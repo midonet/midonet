@@ -1,0 +1,47 @@
+#!/usr/bin/make -f
+
+# Uncomment to enable verbose mode.
+#export DH_VERBOSE=1
+
+test:
+	dh_testdir
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+build:
+	dh_testdir
+
+install:
+	dh_testdir
+	dh_testroot
+	dh_installdirs
+	dh_install
+
+	# Copy in the jar and symlink to something stable
+	dh_install target/midolman-0.1.0-SNAPSHOT.jar \
+		usr/share/midolman
+
+	dh_link usr/share/midolman/midolman-0.1.0-SNAPSHOT.jar \
+		usr/share/midolman/midolman.jar
+
+# Build architecture-independent files here.
+binary-indep: install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installinit -u'start 50 2 3 4 5 . stop 50 0 1 6 .'
+	dh_installdocs README.txt CHANGES.txt NEWS.txt
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-arch: build install
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install
