@@ -76,7 +76,7 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
+<!-- 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.1</version>
@@ -93,13 +93,8 @@
 					<environmentVariables>
 						<version>${version}</version>
 					</environmentVariables>
-			<!-- 		<workingDirectory>./</workingDirectory>
-					<arguments>
-						<argument>-uc</argument>
-						<argument>-us</argument>
-					</arguments> -->
 				</configuration>
-			</plugin>
+			</plugin> -->
 
 			<plugin>
 				<groupId>com.googlecode.maven-overview-plugin</groupId>
@@ -148,6 +143,18 @@
 
 	<repositories>
 		<repository>
+            <id>repo1</id>
+            <name>repo1</name>
+            <url>http://repo1.maven.org/maven2//</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        
+        <repository>
 			<id>java.net</id>
 			<name>Java.Net</name>
 			<url>http://download.java.net/maven/2/</url>
@@ -217,6 +224,18 @@
 					<artifactId>jmxri</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.1</version>
 		</dependency>
 
 <!-- 		<dependency>
