@@ -1,3 +1,0 @@
-conf/log4j-server.properties etc/midolman
-debian/midolman.in.sh usr/share/midolman
-debian/midolman.conf etc/security/limits.d

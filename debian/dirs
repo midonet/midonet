@@ -1,7 +1,0 @@
-usr/share/midolman
-usr/share/midolman/lib
-usr/sbin
-usr/bin
-etc/midolman
-var/lib/midolman
-var/log/midolman

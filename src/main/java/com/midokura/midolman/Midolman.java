@@ -22,7 +22,7 @@ import com.midokura.midolman.openflow.ControllerStubImpl;
 public class Midolman {
 
     private static final Logger log = LoggerFactory.getLogger(Midolman.class);
-
+    
     /**
      * @param args
      */
