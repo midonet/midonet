@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.ControllerStubImpl;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 
 public class Midolman {
 
@@ -31,6 +32,9 @@ public class Midolman {
 
         final ConfigParser config = new ConfigParser();
         config.read("./conf/midolman.conf");
+        
+        // TODO: open the OVSDB connection
+        final OpenvSwitchDatabaseConnection ovsdb = null;
 
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
@@ -55,7 +59,7 @@ public class Midolman {
                 sock.configureBlocking(false);
 
                 ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, executor,
-                        new ControllerTrampoline());
+                        new ControllerTrampoline(ovsdb));
 
                 loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);
             }

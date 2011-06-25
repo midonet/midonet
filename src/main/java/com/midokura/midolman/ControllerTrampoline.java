@@ -14,15 +14,18 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 
 public class ControllerTrampoline implements Controller {
 
     private static final Logger log = LoggerFactory.getLogger(ControllerTrampoline.class);
 
+    private OpenvSwitchDatabaseConnection ovsdb;
+    
     private ControllerStub controllerStub;
 
-    public ControllerTrampoline() {
-
+    public ControllerTrampoline(OpenvSwitchDatabaseConnection ovsdb) {
+        this.ovsdb = ovsdb;
     }
 
     @Override
