@@ -66,8 +66,8 @@ public interface GrePortBuilder {
     /**
      * Set the GRE key that received packets must contain.
      *
-     * If this method or inKeyFlow() are not called, of if inKey is 0, no
-     * key is required in received packets.
+     * If this method or inKeyFlow() are not called, of if inKey is 0, no key
+     * is required in received packets.
      *
      * @param inKey the GRE key that received packets must contain, or 0
      * @return this builder
@@ -79,7 +79,7 @@ public interface GrePortBuilder {
      * be accepted and the key will be placed in the tun_id field for matching
      * in the flow table.
      *
-     * If this method or inKeyFlow() are not called, of if inKeyFlow() is
+     * If this method or inKey() are not called, of if inKey() is
      * called with key 0, no key is required in received packets.
      *
      * @return this builder
