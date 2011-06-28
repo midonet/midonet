@@ -6,9 +6,11 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
@@ -59,22 +61,20 @@ public class ZooKeeperConnection {
         }
         
         @Override
-        public void add(String relativePath, byte[] data, CreateMode createMode) throws KeeperException, InterruptedException {
+        public String add(String relativePath, byte[] data,
+                CreateMode createMode) {
             String fqPath = basePath + "/" + relativePath;
-            
-            zk.create(fqPath, data, null, createMode);
+            try {
+                zk.create(fqPath, data, null, createMode);
+            }
+            catch (Exception e) {}
+            return null;
         }
 
         @Override
         public void update(String relativePath, byte[] data) {
             // TODO Auto-generated method stub
             
-        }
-
-        @Override
-        public byte[] get(String relativePath) {
-            // TODO Auto-generated method stub
-            return null;
         }
 
         public List<String> getChildren(String relativePath) throws KeeperException, InterruptedException {
@@ -84,6 +84,32 @@ public class ZooKeeperConnection {
         @Override
         public Directory getSubDirectory(String path) {
             return new SubDirImpl(basePath + "/" + path);
+        }
+
+        @Override
+        public byte[] get(String relativePath, Runnable watcher)
+                throws NoNodeException {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Set<String> getChildren(String relativePath, Runnable watcher)
+                throws NoNodeException {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public boolean has(String relativePath) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void delete(String relativePath) throws NoNodeException {
+            // TODO Auto-generated method stub
+            
         }
 
     }
