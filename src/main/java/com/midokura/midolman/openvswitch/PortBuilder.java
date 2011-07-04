@@ -29,7 +29,7 @@ public interface PortBuilder {
      * @param ifMac the MAC address of the underlying interface
      * @return this builder
      */
-    PortBuilder ifMac(byte[] ifMac);
+    PortBuilder ifMac(String ifMac);
 
     /**
      * Build and add the port.
