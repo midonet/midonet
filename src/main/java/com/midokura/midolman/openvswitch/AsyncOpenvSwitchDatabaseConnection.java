@@ -4,21 +4,34 @@
 
 package com.midokura.midolman.openvswitch;
 
+import com.midokura.midolman.eventloop.SelectListener;
+import com.sun.tools.doclets.internal.toolkit.MethodWriter;
 import org.async.json.JSONArray;
+import org.async.json.JSONObject;
+import org.async.json.in.JSONParser;
+import org.async.json.in.JSONReader;
+import org.async.json.in.RootParser;
 import org.async.json.out.JSONWriter;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException; // TODO: remove this import
 
-import javax.swing.*;
-import javax.xml.transform.Result;
-import java.io.StringWriter;
-import java.rmi.MarshalledObject;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.channels.Pipe;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.WritableByteChannel;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * An asynchronous implementation of a connection to an Open vSwitch database.
  */
 public class AsyncOpenvSwitchDatabaseConnection
-        implements OpenvSwitchDatabaseConnection {
+        implements OpenvSwitchDatabaseConnection, SelectListener {
 
     /**
      * The port type for system ports.
@@ -71,17 +84,65 @@ public class AsyncOpenvSwitchDatabaseConnection
     private String database;
 
     /**
+     * The buffer used to read bytes.
+     */
+    private ByteBuffer readBuffer;
+
+    /**
+     * The channel used to write bytes.
+     */
+    private WritableByteChannel writeChannel;
+
+    /**
+     * The buffer used to write bytes.
+     */
+    private ByteBuffer writeBuffer;
+
+    /**
+     * A JSON bytes reader reading bytes from readBuffer.
+     */
+    private JSONReader jsonReader;
+
+    /**
+     * The JSON data parser.
+     */
+    private JSONParser jsonParser;
+
+    /**
+     * The JSON data writer.
+     */
+    private JSONWriter jsonWriter;
+
+    /**
      * The next request ID to be used.
      */
     private long nextRequestId = 0;
 
+    /**
+     * The state of pending JSON-RPC 1.0 requests. Maps request IDs to result
+     * placeholders. All accesses to this map must be synchronized on the map
+     * itself.
+     */
+    private Map<Long, BlockingQueue<JSONObject>> pendingJsonRpcRequests = new
+            HashMap<Long, BlockingQueue<JSONObject>>();
+
     // TODO: Javadoc.
-    public AsyncOpenvSwitchDatabaseConnection(String database) {
+    public AsyncOpenvSwitchDatabaseConnection(
+            String database, ByteBuffer readBuffer,
+            WritableByteChannel writeChannel, ByteBuffer writeBuffer) {
         this.database = database;
+        this.readBuffer = readBuffer;
+        this.writeChannel = writeChannel;
+        this.writeBuffer = writeBuffer;
+        jsonReader = new JSONReader(new InputStreamReader(
+                new ByteBufferInputStream(readBuffer)));
+        jsonParser = new JSONParser(new RootParser());
+        jsonWriter = new JSONWriter(new OutputStreamWriter(
+                new ByteBufferOutputStream(writeBuffer)));
     }
 
     /**
-     * Generate a new UUID to identify a newly added row.
+     * Generates a new UUID to identify a newly added row.
      * @return a new UUID
      */
     public static String generateUuid() {
@@ -89,7 +150,7 @@ public class AsyncOpenvSwitchDatabaseConnection
     }
 
     /**
-     * Transform a newly inserted row's temporary UUID into a "UUID name", to
+     * Transforms a newly inserted row's temporary UUID into a "UUID name", to
      * reference the inserted row in the same transaction.
      * @param uuid the UUID to convert
      * @return the converted UUID
@@ -140,19 +201,75 @@ public class AsyncOpenvSwitchDatabaseConnection
         return ovsMap;
     }
 
-    // TODO: Javadoc.
-    private Object doJsonRpc(Transaction tx) {
-        Map<String, ?> request = tx.createJsonRpcRequest(nextRequestId++);
+    @Override
+    public void handleEvent(SelectionKey key) throws IOException {
+        if (key.isValid() && (key.readyOps() & SelectionKey.OP_READ) != 0) {
+            ReadableByteChannel channel = (ReadableByteChannel)key.channel();
+            readBuffer.clear();
+            channel.read(readBuffer);
+            readBuffer.flip();
 
-        // TODO: Do actual requests.
-        StringWriter stringWriter = new StringWriter();
-        JSONWriter writer = new JSONWriter(stringWriter);
+            JSONObject json = jsonParser.parse(jsonReader);
+
+            if (json.get("result") != null) {
+                long requestId = json.getLong("id");
+                BlockingQueue<JSONObject> queue = null;
+                synchronized (pendingJsonRpcRequests) {
+                    queue = pendingJsonRpcRequests.get(requestId);
+                    if (queue != null) {
+                        // Pass the JSON object to the caller, and notify it.
+                        queue.add(json);
+                    }
+                }
+            }
+        }
+    }
+
+    // TODO: Javadoc.
+    private synchronized Object doJsonRpc(Transaction tx) {
+        long requestId = nextRequestId++;
+        Map<String, ?> request = tx.createJsonRpcRequest(requestId);
+
+        BlockingQueue<JSONObject> queue =
+                new ArrayBlockingQueue<JSONObject>(1);
+        synchronized (pendingJsonRpcRequests) {
+            // TODO: Check that no queue is already registered with that
+            // requestId.
+            pendingJsonRpcRequests.put(requestId, queue);
+        }
+
         try {
-            writer.writeObject(null, request);
-        } catch(Exception e) {}
-        System.out.println("executed request: " +
-                stringWriter.getBuffer().toString());
-        return null;
+            // Serialize the JSON-RPC 1.0 request into JSON text in the output
+            // buffer, and write the buffer into the output channel.
+            writeBuffer.clear();
+            try {
+                jsonWriter.writeObject(null, request);
+                jsonWriter.flush();
+                writeBuffer.flip();
+                writeChannel.write(writeBuffer);
+            } catch(IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // Block until the response is received and parsed.
+            // TODO: Set a timeout for the response, using poll() instead of
+            // take().
+            JSONObject response = null;
+            try {
+                response = queue.take();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            Object error = response.get("error");
+            if (error != null) {
+                throw new RuntimeException("OVSDB request error: " + error.toString());
+            }
+            return response.get("result");
+        } finally {
+            synchronized (pendingJsonRpcRequests) {
+                pendingJsonRpcRequests.remove(requestId);
+            }
+        }
     }
 
     /**
@@ -278,7 +395,8 @@ public class AsyncOpenvSwitchDatabaseConnection
                 params.add(abort);
             }
 
-            // Return a 'transact' JSON-RPC request to perform those changes.
+            // Return a "transact" JSON-RPC 1.0 request to perform those
+            // changes.
             Map<String, Object> transact = new HashMap<String, Object>();
             transact.put("method", "transact");
             transact.put("params", params);
@@ -480,6 +598,11 @@ public class AsyncOpenvSwitchDatabaseConnection
     private class AsyncBridgeBuilder implements BridgeBuilder {
 
         /**
+         * The name of the bridge.
+         */
+        private String name;
+
+        /**
          * The attributes of the interface to be created with the same name as
          * the bridge.
          */
@@ -506,6 +629,7 @@ public class AsyncOpenvSwitchDatabaseConnection
          * @param name the name of the bridge to build
          */
         public AsyncBridgeBuilder(String name) {
+            this.name = name;
             ifRow.put("name", name);
             portRow.put("name", name);
             bridgeRow.put("name", name);
@@ -529,7 +653,6 @@ public class AsyncOpenvSwitchDatabaseConnection
 
         @Override
         public void build() {
-
             Transaction tx = new Transaction(database);
 
             // Create an internal interface and a port with the same name as
@@ -553,8 +676,27 @@ public class AsyncOpenvSwitchDatabaseConnection
 
             tx.increment(TABLE_OPEN_VSWITCH, null, "next_cfg");
 
-            doJsonRpc(tx);
+            if (bridgeExternalIds != null) {
+                String extIdsStr = null;
+                for (Map.Entry<String, String> extId :
+                        bridgeExternalIds.entrySet()) {
+                    if (extIdsStr == null) {
+                        extIdsStr = String.format("%s=%s", extId.getKey(),
+                                extId.getValue());
+                    } else {
+                        extIdsStr = String.format("%s, %s=%s",
+                                extIdsStr, extId.getKey(),
+                                extId.getValue());
+                    }
+                }
+                tx.addComment(String.format(
+                        "added bridge %s with external ids %s",
+                        name, extIdsStr));
+            } else {
+                tx.addComment(String.format("added bridge %s", name));
+            }
 
+            doJsonRpc(tx);
         }
 
     }
@@ -641,8 +783,40 @@ public class AsyncOpenvSwitchDatabaseConnection
 
         tx.increment(TABLE_OPEN_VSWITCH, null, "next_cfg");
 
-        doJsonRpc(tx);
+        if (portExternalIds != null) {
+            // TODO: Factorize this code with BridgeBuilder.build().
+            String extIdsStr = null;
+            for (Map.Entry<String, String> extId :
+                    portExternalIds.entrySet()) {
+                if (extIdsStr == null) {
+                    extIdsStr = String.format("%s=%s", extId.getKey(),
+                            extId.getValue());
+                } else {
+                    extIdsStr = String.format("%s, %s=%s",
+                            extIdsStr, extId.getKey(),
+                            extId.getValue());
+                }
+            }
+            if (bridgeName == null) {
+                tx.addComment(String.format(
+                        "added port %s to bridge %x with external ids %s",
+                        portRow.get("name"), bridgeId, extIdsStr));
+            } else {
+                tx.addComment(String.format(
+                        "added port %s to bridge %s with external ids %s",
+                        portRow.get("name"), bridgeName, extIdsStr));
+            }
+        } else {
+            if (bridgeName == null) {
+                tx.addComment(String.format("added port %s to bridge %x",
+                        portRow.get("name"), bridgeId));
+            } else {
+                tx.addComment(String.format("added port %s to bridge %s",
+                        portRow.get("name"), bridgeName));
+            }
+        }
 
+        doJsonRpc(tx);
     }
 
     /**
@@ -1245,18 +1419,6 @@ public class AsyncOpenvSwitchDatabaseConnection
     @Override
     public void close() {
         throw new NotImplementedException(); // TODO
-    }
-
-    // TODO: Remove this. It's for testing only.
-    public static void main(String argv[]) {
-        AsyncOpenvSwitchDatabaseConnection conn =
-                new AsyncOpenvSwitchDatabaseConnection("database-name");
-        System.out.println("before addBridge");
-        BridgeBuilder bridgeBuilder = conn.addBridge("bridge-name");
-        bridgeBuilder.externalId("vnet-id", "blahblah");
-        bridgeBuilder.failMode(BridgeFailMode.SECURE);
-        bridgeBuilder.build();
-        System.out.println("after addBridge");
     }
 
 }
