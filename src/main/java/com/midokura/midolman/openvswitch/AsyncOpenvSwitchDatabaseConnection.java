@@ -4,28 +4,34 @@
 
 package com.midokura.midolman.openvswitch;
 
-import com.midokura.midolman.eventloop.SelectListener;
-import com.sun.tools.doclets.internal.toolkit.MethodWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.WritableByteChannel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 import org.async.json.JSONArray;
 import org.async.json.JSONObject;
 import org.async.json.in.JSONParser;
 import org.async.json.in.JSONReader;
 import org.async.json.in.RootParser;
 import org.async.json.out.JSONWriter;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException; // TODO: remove this import
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.ByteBuffer;
-import java.nio.channels.Pipe;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.WritableByteChannel;
-import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import com.midokura.midolman.eventloop.SelectListener;
 
 /**
  * An asynchronous implementation of a connection to an Open vSwitch database.

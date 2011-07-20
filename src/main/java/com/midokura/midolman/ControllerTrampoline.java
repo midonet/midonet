@@ -39,10 +39,11 @@ public class ControllerTrampoline implements Controller {
         long datapathId = controllerStub.getFeatures().getDatapathId();
 
         // TODO: lookup midolman-vnet of datapath
-
-        Controller newController = null;
-
-        controllerStub.setController(newController);
+//        String uuid = ovsdb.getDatapathExternalId(datapathId, )
+//
+//        Controller newController = null;
+//
+//        controllerStub.setController(newController);
         controllerStub = null;
     }
 
