@@ -81,12 +81,12 @@
                 <configuration>
                 </configuration>
             </plugin>
-
+<!-- 
             <plugin>
                 <groupId>com.googlecode.maven-overview-plugin</groupId>
                 <artifactId>maven-overview-plugin</artifactId>
             </plugin>
-
+ -->
         </plugins>
     </build>
 
@@ -164,6 +164,12 @@
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>async-json</groupId>
+            <artifactId>async-json-library</artifactId>
+            <version>0.1.4</version>
+        </dependency>
+
         <dependency>
             <groupId>org.openflow</groupId>
             <artifactId>openflowj</artifactId>
