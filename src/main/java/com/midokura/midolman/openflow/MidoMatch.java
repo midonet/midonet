@@ -101,4 +101,16 @@ public class MidoMatch extends OFMatch {
         wildcards &= ~OFPFW_TP_SRC;
         return super.setTransportSource(transportSource);
     }
+
+    public OFMatch setNetworkSourcePrefixLength(int prefixLen) {
+        wildcards = (wildcards & ~OFPFW_NW_SRC_MASK) |
+                        ((32-prefixLen) << OFPFW_NW_SRC_SHIFT);
+        return this;
+    }
+
+    public OFMatch setNetworkDestinationPrefixLength(int prefixLen) {
+        wildcards = (wildcards & ~OFPFW_NW_DST_MASK) |
+                        ((32-prefixLen) << OFPFW_NW_DST_SHIFT);
+        return this;
+    }
 }
