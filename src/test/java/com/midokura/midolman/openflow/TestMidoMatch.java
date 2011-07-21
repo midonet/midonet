@@ -91,4 +91,24 @@ public class TestMidoMatch extends TestCase {
                             mmatch.getWildcards());
     }
 
+    @Test
+    public void testSetNwProto() {
+        OFMatch mmatch = new MidoMatch();
+        byte nwProto = 0x11;
+        mmatch.setNetworkProtocol(nwProto);
+        Assert.assertEquals(nwProto, mmatch.getNetworkProtocol());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_NW_PROTO,
+                            mmatch.getWildcards());
+    }
+
+    @Test
+    public void testSetNwTos() {
+        OFMatch mmatch = new MidoMatch();
+        byte nwTos = 0x11;
+        mmatch.setNetworkTypeOfService(nwTos);
+        Assert.assertEquals(nwTos, mmatch.getNetworkTypeOfService());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_NW_TOS,
+                            mmatch.getWildcards());
+    }
+
 }

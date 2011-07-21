@@ -74,7 +74,7 @@ public class MidoMatch extends OFMatch {
 
     @Override
     public OFMatch setNetworkProtocol(byte networkProtocol) {
-        wildcards |= OFPFW_NW_PROTO;
+        wildcards &= ~OFPFW_NW_PROTO;
         return super.setNetworkProtocol(networkProtocol);
     }
 
@@ -86,7 +86,7 @@ public class MidoMatch extends OFMatch {
 
     @Override
     public OFMatch setNetworkTypeOfService(byte networkTypeOfService) {
-        wildcards |= OFPFW_NW_TOS;
+        wildcards &= ~OFPFW_NW_TOS;
         return super.setNetworkTypeOfService(networkTypeOfService);
     }
 
