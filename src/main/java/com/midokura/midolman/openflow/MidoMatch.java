@@ -77,16 +77,20 @@ public class MidoMatch extends OFMatch {
         return setNetworkDestination(networkDestination, 32);
     }
 
-    @Override
-    public OFMatch setNetworkProtocol(byte networkProtocol) {
-        wildcards &= ~OFPFW_NW_PROTO;
-        return super.setNetworkProtocol(networkProtocol);
+    public OFMatch setNetworkSource(int networkSource, int prefixLength) {
+        setNetworkSourcePrefixLength(prefixLength);
+        return super.setNetworkSource(networkSource);
     }
 
     @Override
     public OFMatch setNetworkSource(int networkSource) {
-        wildcards |= (networkSource << OFPFW_NW_SRC_SHIFT);
-        return super.setNetworkSource(networkSource);
+        return setNetworkSource(networkSource, 32);
+    }
+
+    @Override
+    public OFMatch setNetworkProtocol(byte networkProtocol) {
+        wildcards &= ~OFPFW_NW_PROTO;
+        return super.setNetworkProtocol(networkProtocol);
     }
 
     @Override

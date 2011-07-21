@@ -170,4 +170,23 @@ public class TestMidoMatch extends TestCase {
         Assert.assertEquals(nwDest, ofmatch.getNetworkDestination());
     }
 
+    @Test
+    public void testSetNwSrc() {
+        int len = 25;
+        MidoMatch mmatch = new MidoMatch();
+        int nwSource = 0x12345678;
+        mmatch.setNetworkSource(nwSource, len);
+        Assert.assertEquals(len, mmatch.getNetworkSourceMaskLen());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_NW_SRC_MASK,
+                            mmatch.getWildcards() & ~OFMatch.OFPFW_NW_SRC_MASK);
+        Assert.assertEquals(nwSource, mmatch.getNetworkSource());
+
+        OFMatch ofmatch = new MidoMatch();
+        ofmatch.setNetworkSource(nwSource);
+        Assert.assertEquals(32, ofmatch.getNetworkSourceMaskLen());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_NW_SRC_MASK,
+            ofmatch.getWildcards() & ~OFMatch.OFPFW_NW_SRC_MASK);
+        Assert.assertEquals(nwSource, ofmatch.getNetworkSource());
+    }
+
 }
