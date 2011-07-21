@@ -26,7 +26,7 @@ public class MidoMatch extends OFMatch {
 
     @Override
     public OFMatch setDataLayerDestination(String mac) {
-        wildcards |= OFPFW_DL_DST;
+        wildcards &= ~OFPFW_DL_DST;
         return super.setDataLayerDestination(mac);
     }
 

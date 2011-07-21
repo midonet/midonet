@@ -22,8 +22,14 @@ public class TestMidoMatch extends TestCase {
     public void testSetDlDest() {
         OFMatch mmatch = new MidoMatch();
         byte[] dlDest = { 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+        String dlDestStr = "0a:0b:0c:0d:0e:0f";
         mmatch.setDataLayerDestination(dlDest);
-        Assert.assertEquals(dlDest, mmatch.getDataLayerDestination());
+        Assert.assertArrayEquals(dlDest, mmatch.getDataLayerDestination());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_DST,
+                            mmatch.getWildcards());
+        mmatch = new MidoMatch();
+        mmatch.setDataLayerDestination(dlDestStr);
+        Assert.assertArrayEquals(dlDest, mmatch.getDataLayerDestination());
         Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_DST,
                             mmatch.getWildcards());
     }
