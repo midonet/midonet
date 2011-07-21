@@ -44,25 +44,25 @@ public class MidoMatch extends OFMatch {
 
     @Override
     public OFMatch setDataLayerType(short dataLayerType) {
-        wildcards |= OFPFW_DL_TYPE;
+        wildcards &= ~OFPFW_DL_TYPE;
         return super.setDataLayerType(dataLayerType);
     }
 
     @Override
     public OFMatch setDataLayerVirtualLan(short dataLayerVirtualLan) {
-        wildcards |= OFPFW_DL_VLAN;
+        wildcards &= ~OFPFW_DL_VLAN;
         return super.setDataLayerVirtualLan(dataLayerVirtualLan);
     }
 
     @Override
     public OFMatch setDataLayerVirtualLanPriorityCodePoint(byte pcp) {
-        wildcards |= OFPFW_DL_VLAN_PCP;
+        wildcards &= ~OFPFW_DL_VLAN_PCP;
         return super.setDataLayerVirtualLanPriorityCodePoint(pcp);
     }
 
     @Override
     public OFMatch setInputPort(short inputPort) {
-        wildcards |= OFPFW_IN_PORT;
+        wildcards &= ~OFPFW_IN_PORT;
         return super.setInputPort(inputPort);
     }
 

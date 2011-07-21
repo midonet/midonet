@@ -49,4 +49,46 @@ public class TestMidoMatch extends TestCase {
         Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_SRC,
                             mmatch.getWildcards());
     }
+
+    @Test
+    public void testSetDlType() {
+        OFMatch mmatch = new MidoMatch();
+        short dlType = 0x11ee;
+        mmatch.setDataLayerType(dlType);
+        Assert.assertEquals(dlType, mmatch.getDataLayerType());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_TYPE,
+                            mmatch.getWildcards());
+    }
+
+    @Test
+    public void testSetVlan() {
+        OFMatch mmatch = new MidoMatch();
+        short dlVlan = 0x11ee;
+        mmatch.setDataLayerVirtualLan(dlVlan);
+        Assert.assertEquals(dlVlan, mmatch.getDataLayerVirtualLan());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_VLAN,
+                            mmatch.getWildcards());
+    }
+
+    @Test
+    public void testSetVlanPcp() {
+        OFMatch mmatch = new MidoMatch();
+        byte dlVlanPcp = -0x22;
+        mmatch.setDataLayerVirtualLanPriorityCodePoint(dlVlanPcp);
+        Assert.assertEquals(dlVlanPcp,
+                            mmatch.getDataLayerVirtualLanPriorityCodePoint());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_VLAN_PCP,
+                            mmatch.getWildcards());
+    }
+
+    @Test
+    public void testSetInputPort() {
+        OFMatch mmatch = new MidoMatch();
+        short inPort = 0x11ee;
+        mmatch.setInputPort(inPort);
+        Assert.assertEquals(inPort, mmatch.getInputPort());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT,
+                            mmatch.getWildcards());
+    }
+
 }
