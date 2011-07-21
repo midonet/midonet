@@ -32,13 +32,13 @@ public class MidoMatch extends OFMatch {
 
     @Override
     public OFMatch setDataLayerSource(byte[] dataLayerSource) {
-        wildcards |= OFPFW_DL_SRC;
+        wildcards &= ~OFPFW_DL_SRC;
         return super.setDataLayerSource(dataLayerSource);
     }
 
     @Override
     public OFMatch setDataLayerSource(String mac) {
-        wildcards |= OFPFW_DL_SRC;
+        wildcards &= ~OFPFW_DL_SRC;
         return super.setDataLayerSource(mac);
     }
 
