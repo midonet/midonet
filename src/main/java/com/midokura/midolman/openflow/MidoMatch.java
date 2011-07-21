@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.openflow;
@@ -8,9 +8,9 @@ import org.openflow.protocol.OFMatch;
 
 /**
  * MidoMatch extends OFMatch and sets the wildcard bits automatically.
- * 
+ *
  * @author ddumitriu
- * 
+ *
  */
 public class MidoMatch extends OFMatch {
 
