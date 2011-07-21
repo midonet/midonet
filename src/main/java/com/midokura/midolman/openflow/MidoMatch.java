@@ -66,10 +66,15 @@ public class MidoMatch extends OFMatch {
         return super.setInputPort(inputPort);
     }
 
+    public OFMatch setNetworkDestination(
+            int networkDestination, int prefixLength) {
+        setNetworkDestinationPrefixLength(prefixLength);
+        return super.setNetworkDestination(networkDestination);
+    }
+
     @Override
     public OFMatch setNetworkDestination(int networkDestination) {
-        wildcards |= (networkDestination << OFPFW_NW_DST_SHIFT);
-        return super.setNetworkDestination(networkDestination);
+        return setNetworkDestination(networkDestination, 32);
     }
 
     @Override
