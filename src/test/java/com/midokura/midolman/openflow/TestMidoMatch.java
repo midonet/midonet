@@ -4,13 +4,12 @@ package com.midokura.midolman.openflow;
 
 import com.midokura.midolman.openflow.MidoMatch;
 
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 
 
-public class TestMidoMatch extends TestCase {
+public class TestMidoMatch {
 
     @Test
     public void testDefaultCtor() {
