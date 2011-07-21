@@ -111,4 +111,24 @@ public class TestMidoMatch extends TestCase {
                             mmatch.getWildcards());
     }
 
+    @Test
+    public void testSetTpDest() {
+        OFMatch mmatch = new MidoMatch();
+        short tpDest = 0x11ee;
+        mmatch.setTransportDestination(tpDest);
+        Assert.assertEquals(tpDest, mmatch.getTransportDestination());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_TP_DST,
+                            mmatch.getWildcards());
+    }
+
+    @Test
+    public void testSetTpSource() {
+        OFMatch mmatch = new MidoMatch();
+        short tpSource = 0x11ee;
+        mmatch.setTransportSource(tpSource);
+        Assert.assertEquals(tpSource, mmatch.getTransportSource());
+        Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_TP_SRC,
+                            mmatch.getWildcards());
+    }
+
 }

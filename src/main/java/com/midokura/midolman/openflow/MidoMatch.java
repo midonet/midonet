@@ -92,13 +92,13 @@ public class MidoMatch extends OFMatch {
 
     @Override
     public OFMatch setTransportDestination(short transportDestination) {
-        wildcards |= OFPFW_TP_DST;
+        wildcards &= ~OFPFW_TP_DST;
         return super.setTransportDestination(transportDestination);
     }
 
     @Override
     public OFMatch setTransportSource(short transportSource) {
-        wildcards |= OFPFW_TP_SRC;
+        wildcards &= ~OFPFW_TP_SRC;
         return super.setTransportSource(transportSource);
     }
 }
