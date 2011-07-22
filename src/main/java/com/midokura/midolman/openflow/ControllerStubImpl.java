@@ -10,10 +10,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.openflow.protocol.OFBarrierReply;
 import org.openflow.protocol.OFBarrierRequest;
@@ -36,9 +32,9 @@ import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.Reactor;
+import com.midokura.midolman.eventloop.Reactor;
 
-public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub, Reactor {
+public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub {
 
     private final static Logger log = LoggerFactory.getLogger(ControllerStubImpl.class);
 
@@ -50,9 +46,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     protected SocketChannel socketChannel;
     protected HashMap<Short, OFPhysicalPort> ports = new HashMap<Short, OFPhysicalPort>();
 
-    public ControllerStubImpl(SocketChannel sock, ScheduledExecutorService executor,
+    public ControllerStubImpl(SocketChannel sock, Reactor reactor,
             Controller controller) throws IOException {
-        super(sock, executor);
+        super(sock, reactor);
 
         setController(controller);
 
@@ -193,30 +189,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             // let the controller handle any messages not handled here
             controller.onMessage(m);
         }
-    }
-
-    @Override
-    public Future submit(final Runnable runnable) {
-        return executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (ControllerStubImpl.this) {
-                    runnable.run();
-                }
-            }
-        });
-    }
-
-    @Override
-    public ScheduledFuture schedule(final Runnable runnable, long delay, TimeUnit unit) {
-        return executor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (ControllerStubImpl.this) {
-                    runnable.run();
-                }
-            }
-        }, delay, unit);
     }
 
     @Override

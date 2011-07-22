@@ -16,7 +16,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.Reactor;
+import com.midokura.midolman.eventloop.Reactor;
 
 public class ZooKeeperConnection {
     

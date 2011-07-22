@@ -1,4 +1,4 @@
-package com.midokura.midolman;
+package com.midokura.midolman.eventloop;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;

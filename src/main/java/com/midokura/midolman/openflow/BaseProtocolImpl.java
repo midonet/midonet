@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +35,7 @@ import org.openflow.protocol.factory.BasicFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectListener;
 
 /**
@@ -87,17 +87,17 @@ public abstract class BaseProtocolImpl implements SelectListener {
     protected SocketChannel socketChannel;
     protected AtomicInteger transactionIdSource;
 
-    protected ScheduledExecutorService executor;
-
     protected long defaultOperationTimeoutMillis = 3000;
     protected long echoPeriodMillis = 5000;
 
     protected Random rand = new Random();
+    
+    protected Reactor reactor;
 
-    public BaseProtocolImpl(SocketChannel sock, ScheduledExecutorService executor)
+    public BaseProtocolImpl(SocketChannel sock, Reactor reactor)
             throws IOException {
         this.sock = sock;
-        this.executor = executor;
+        this.reactor = reactor;
 
         this.connectedSince = new Date();
         this.transactionIdSource = new AtomicInteger();
@@ -125,7 +125,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
         final int nextXid = xid;
 
         if (timeoutMillis != null) {
-            ScheduledFuture future = executor.schedule(new Runnable() {
+            ScheduledFuture future = reactor.schedule(new Runnable() {
 
                 @Override
                 public void run() {
@@ -169,8 +169,10 @@ public abstract class BaseProtocolImpl implements SelectListener {
              * A key may not be valid here if it has been disconnected while it
              * was in a select operation.
              */
-            if (!key.isValid())
+            if (!key.isValid()) {
+                log.warn("invalid key {}", key);
                 return;
+            }
 
             if (key.isReadable()) {
                 List<OFMessage> msgs = stream.read();
@@ -304,7 +306,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
                     log.error("echo reply with invalid data");
                     disconnectSwitch();
                 } else {
-                    executor.schedule(new Runnable() {
+                    reactor.schedule(new Runnable() {
                         @Override
                         public void run() {
                             sendEchoRequest();
