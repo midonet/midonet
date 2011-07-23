@@ -1,5 +1,6 @@
 package com.midokura.midolman.state;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+
 
 public class TestReplicatedMap {
 
@@ -45,6 +47,22 @@ public class TestReplicatedMap {
         int a;
         int b;
         boolean free;
+
+        Location() {}
+
+        Location(int a, int b, boolean free) {
+            this.a = a;
+            this.b = b;
+            this.free = free;
+        }
+
+        @Override
+        public boolean equals(Object object){
+            if (!(object instanceof Location))
+                return false;
+            Location other = (Location)object;
+            return a == other.a && b == other.b && free == other.free;
+        }
     }
 
     private class ReplicatedStringToLocationMap extends 
@@ -67,15 +85,15 @@ public class TestReplicatedMap {
         @Override
         protected String encodeValue(Location value) {
             StringBuilder builder = new StringBuilder();
-            builder.append(value.a).append(",");
-            builder.append(value.b).append(",");
+            builder.append(value.a).append(";");
+            builder.append(value.b).append(";");
             builder.append(value.free);
             return builder.toString();
         }
 
         @Override
         protected Location decodeValue(String str) {
-            String[] parts = str.split(",");
+            String[] parts = str.split(";");
             Location loc = new Location();
             loc.a = Integer.parseInt(parts[0]);
             loc.b = Integer.parseInt(parts[1]);
@@ -189,10 +207,14 @@ public class TestReplicatedMap {
         expectedMap.put("eleven", "11");
         strMap.put("eleven", "11");
         Assert.assertEquals(expectedMap, strMap.getMap());
-        // The external node fights back.
+        // The external node writes key 'one' again.
         expectedMap.put("one", "100changed3");
         path1 = mapDir.add("/one,100changed3,", null, 
                 CreateMode.PERSISTENT_SEQUENTIAL);
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        // External node removes key 'one'. Our old value shouldn't come back.
+        expectedMap.remove("one");
+        mapDir.delete(path1);
         Assert.assertEquals(expectedMap, strMap.getMap());
         expectedMap.put("two", "200changed4");
         path2 = mapDir.add("/two,200changed4,", null,
@@ -201,8 +223,6 @@ public class TestReplicatedMap {
         String path4 = mapDir.add("/four,400,", null,
                 CreateMode.PERSISTENT_SEQUENTIAL);
         Assert.assertEquals(expectedMap, strMap.getMap());
-        expectedMap.remove("one");
-        mapDir.delete(path1);
         expectedMap.remove("two");
         mapDir.delete(path2);
         Assert.assertEquals(expectedMap, strMap.getMap());
@@ -211,6 +231,132 @@ public class TestReplicatedMap {
         Assert.assertEquals(expectedMap, strMap.getMap());
         expectedMap.remove("four");
         mapDir.delete(path4);
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        strMap.stop();
+        expectedMap.clear();
+        Assert.assertEquals(expectedMap, strMap.getMap());
+    }
+
+    private class MyWatcher implements ReplicatedMap.Watcher<String, String> {
+        Map<String, String> map1 = new HashMap<String, String>();
+        Map<String, String> map2 = new HashMap<String, String>();
+
+        @Override
+        public void processChange(String key, String oldValue,
+                String newValue) {
+            if (null == newValue)
+                map1.remove(key);
+            else
+                map1.put(key, newValue);
+            if (null == oldValue)
+                map2.remove(key);
+            else
+                map2.put(key,  oldValue);
+        }
+    }
+
+    @Test
+    public void testChangeWatchers() throws NoNodeException, 
+            NodeExistsException, NoChildrenForEphemeralsException {
+        Map<String,String> oldValuesMap = new HashMap<String, String>();
+        Map<String, String> expectedMap = new HashMap<String, String>();
+        expectedMap.put("one", "100");
+        String path1 = mapDir.add("/one,100,", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        expectedMap.put("two", "200");
+        String path2 = mapDir.add("/two,200,", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        expectedMap.put("three", "300");
+        String path3 = mapDir.add("/three,300,", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
+        MyWatcher watch1 = new MyWatcher();
+        MyWatcher watch2 = new MyWatcher();
+        strMap.addWatcher(watch1);
+        strMap.addWatcher(watch2);
+        strMap.start();
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+        oldValuesMap.put("one", expectedMap.remove("one"));
+        mapDir.delete(path1);
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+        expectedMap.put("ten", "Blah");
+        strMap.put("ten", "Blah");
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+        oldValuesMap.put("ten", expectedMap.put("ten", "Blah1"));
+        mapDir.add("/ten,Blah1,", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+        oldValuesMap.put("two", expectedMap.put("two", "201"));
+        String path = mapDir.add("/two,201,", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        mapDir.delete(path2);
+        path2 = path;
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+        oldValuesMap.put("ten", expectedMap.remove("ten"));
+        strMap.remove("ten");
+        oldValuesMap.put("two", expectedMap.remove("two"));
+        mapDir.delete(path2);
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+        // Now unregister the watchers. Verify they no longer get notified.
+        strMap.removeWatcher(watch1);
+        strMap.removeWatcher(watch2);
+        strMap.put("eleven", "Foo");
+        Assert.assertEquals(expectedMap, watch1.map1);
+        Assert.assertEquals(expectedMap, watch2.map1);
+        Assert.assertEquals(oldValuesMap, watch1.map2);
+        Assert.assertEquals(oldValuesMap, watch2.map2);
+    }
+
+    @Test
+    public void testStringToLocationMap() throws NoNodeException,
+            NodeExistsException, NoChildrenForEphemeralsException {
+        ReplicatedStringToLocationMap strMap = new 
+                ReplicatedStringToLocationMap(mapDir);
+        Map<String, Location> expectedMap = new HashMap<String, Location>();
+        Location loc1 = new Location(1, 2, false);
+        expectedMap.put("one", loc1);
+        String path1 = mapDir.add("/one,"+strMap.encodeValue(loc1)+",", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        strMap.start();
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        Location loc2 = new Location(10, 20, false);
+        expectedMap.put("two", loc2);
+        strMap.put("two", loc2);
+        Location loc3 = new Location(5, 8, true);
+        expectedMap.put("three", loc3);
+        strMap.put("three", loc3);
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        expectedMap.remove("three");
+        strMap.remove("three");
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        expectedMap.put("one", loc2);
+        strMap.put("one", loc2);
+        mapDir.delete(path1);
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        expectedMap.put("one", loc1);
+        path1 = mapDir.add("/one,"+strMap.encodeValue(loc1)+",", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
+        Assert.assertEquals(expectedMap, strMap.getMap());
+        expectedMap.remove("one");
+        mapDir.delete(path1);
         Assert.assertEquals(expectedMap, strMap.getMap());
         strMap.stop();
         expectedMap.clear();

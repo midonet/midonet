@@ -13,7 +13,7 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 
 public class ReplicatedStringSet {
 
-    public interface ChangeWatcher {
+    public interface Watcher {
         void process(Collection<String> addedStrings,
                 Collection<String> removedStrings);
     }
@@ -44,7 +44,7 @@ public class ReplicatedStringSet {
     private Directory dir;
     private boolean running;
     private Set<String> strings;
-    private Set<ChangeWatcher> changeWatchers;
+    private Set<Watcher> changeWatchers;
     private DirectoryWatcher myWatcher;
 
     public ReplicatedStringSet(Directory d) {
@@ -52,15 +52,15 @@ public class ReplicatedStringSet {
         dir = d;
         running = false;
         strings = new HashSet<String>();
-        changeWatchers = new HashSet<ChangeWatcher>();
+        changeWatchers = new HashSet<Watcher>();
         myWatcher = new DirectoryWatcher();
     }
 
-    public void addWatcher(ChangeWatcher watcher) {
+    public void addWatcher(Watcher watcher) {
         changeWatchers.add(watcher);
     }
 
-    public void removeWatcher(ChangeWatcher watcher) {
+    public void removeWatcher(Watcher watcher) {
         changeWatchers.remove(watcher);
     }
     
@@ -111,7 +111,7 @@ public class ReplicatedStringSet {
     protected void notifyWatchers(Collection<String> addedStrings,
             Collection<String> removedStrings)
     {
-        for (ChangeWatcher watcher : changeWatchers) {
+        for (Watcher watcher : changeWatchers) {
             watcher.process(addedStrings, removedStrings);
         }
     }

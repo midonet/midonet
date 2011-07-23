@@ -120,7 +120,7 @@ public class TestReplicatedStringSet {
         stringSet.remove("bar");
     }
 
-    private class MyWatcher implements ReplicatedStringSet.ChangeWatcher {
+    private class MyWatcher implements ReplicatedStringSet.Watcher {
         Set<String> strings = new HashSet<String>();
 
         @Override

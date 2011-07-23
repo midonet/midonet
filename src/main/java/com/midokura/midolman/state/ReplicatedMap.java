@@ -81,11 +81,11 @@ public abstract class ReplicatedMap<K, V> {
         this.myWatcher = new DirectoryWatcher();
     }
 
-    public void addListener(Watcher<K, V> watcher) {
+    public void addWatcher(Watcher<K, V> watcher) {
         watchers.add(watcher);
     }
 
-    public void removeListener(Watcher<K, V> watcher) {
+    public void removeWatcher(Watcher<K, V> watcher) {
         watchers.remove(watcher);
     }
 
@@ -210,6 +210,7 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
+    // TODO(pino): document that the encoding may not contain ','.
     protected abstract String encodeKey(K key);
     protected abstract K decodeKey(String str);
     protected abstract String encodeValue(V value);

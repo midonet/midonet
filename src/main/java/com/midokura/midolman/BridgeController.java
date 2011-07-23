@@ -12,13 +12,13 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.PortLocationDictionary;
+import com.midokura.midolman.state.PortLocationMap;
 
 public class BridgeController extends AbstractController {
     
     Logger log = LoggerFactory.getLogger(BridgeController.class);
 
-    public BridgeController(int datapathId, UUID switchUuid, int greKey, PortLocationDictionary dict,
+    public BridgeController(int datapathId, UUID switchUuid, int greKey, PortLocationMap dict,
             long flowExpireMinMillis, long flowExpireMaxMillis, long idleFlowExpireMillis, InetAddress internalIp) {
         super(datapathId, switchUuid, greKey, dict, flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis, internalIp);
         // TODO Auto-generated constructor stub
