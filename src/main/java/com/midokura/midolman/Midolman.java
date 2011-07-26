@@ -42,7 +42,7 @@ public class Midolman {
         listenSock.configureBlocking(false);
         listenSock.socket().bind(new java.net.InetSocketAddress(config.getInt("openflow", "controller_port")));
 
-        final SelectLoop loop = new SelectLoop();
+        final SelectLoop loop = new SelectLoop(executor);
 
         loop.register(listenSock, SelectionKey.OP_ACCEPT, new SelectListener() {
 
@@ -58,7 +58,7 @@ public class Midolman {
                 sock.socket().setTcpNoDelay(true);
                 sock.configureBlocking(false);
 
-                ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, executor,
+                ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, loop,
                         new ControllerTrampoline(ovsdb));
 
                 loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);

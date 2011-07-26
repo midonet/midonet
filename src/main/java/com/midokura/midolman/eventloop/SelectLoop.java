@@ -9,9 +9,14 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Dirt simple SelectLoop for simple java controller
@@ -19,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * Originally from org.openflowj.examples
  * 
  */
-public class SelectLoop {
+public class SelectLoop implements Reactor {
     private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
     
     protected boolean dontStop;
@@ -28,9 +33,13 @@ public class SelectLoop {
     protected Queue<Object[]> registrationQueue;
     protected Selector selector;
     protected long timeout;
+    
+    protected ScheduledExecutorService executor;
 
-    public SelectLoop() throws IOException {
+    public SelectLoop(ScheduledExecutorService executor) throws IOException {
         this(0);
+        
+        this.executor = executor;
     }
 
     /**
@@ -46,6 +55,30 @@ public class SelectLoop {
         registrationLock = new Object();
         registrationQueue = new ConcurrentLinkedQueue<Object[]>();
         this.timeout = timeout;
+    }
+    
+    @Override
+    public Future submit(final Runnable runnable) {
+        return executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (SelectLoop.this) {
+                    runnable.run();
+                }
+            }
+        });
+    }
+
+    @Override
+    public ScheduledFuture schedule(final Runnable runnable, long delay, TimeUnit unit) {
+        return executor.schedule(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (SelectLoop.this) {
+                    runnable.run();
+                }
+            }
+        }, delay, unit);
     }
 
     public void register(SelectableChannel ch, int ops, Object arg)

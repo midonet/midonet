@@ -110,6 +110,12 @@
 
     <repositories>
         <repository>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
+        </repository>
+
+        <repository>
             <id>repo1</id>
             <name>repo1</name>
             <url>http://repo1.maven.org/maven2//</url>
@@ -164,6 +170,7 @@
     </repositories>
 
     <dependencies>
+        
         <dependency>
             <groupId>async-json</groupId>
             <artifactId>async-json-library</artifactId>

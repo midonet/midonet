@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
-import com.midokura.midolman.state.PortLocationDictionary;
+import com.midokura.midolman.state.PortLocationMap;
 
 public abstract class AbstractController implements Controller {
 
@@ -32,7 +32,7 @@ public abstract class AbstractController implements Controller {
             UUID switchUuid,
             int greKey,
             //ovsdb_connection_factory,
-            PortLocationDictionary dict,
+            PortLocationMap dict,
             long flowExpireMinMillis,
             long flowExpireMaxMillis,
             long idleFlowExpireMillis,

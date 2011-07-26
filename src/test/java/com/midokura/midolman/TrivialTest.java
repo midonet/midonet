@@ -1,11 +1,9 @@
 package com.midokura.midolman;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 
 
-public class TrivialTest extends TestCase {
+public class TrivialTest {
 
     @Test
     public void testMe() {

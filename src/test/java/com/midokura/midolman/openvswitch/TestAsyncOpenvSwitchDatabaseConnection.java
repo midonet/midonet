@@ -1,7 +1,7 @@
 package com.midokura.midolman.openvswitch;
 
 import com.midokura.midolman.eventloop.SelectListener;
-import junit.framework.TestCase;
+import org.junit.Assert;
 import org.junit.Test;
 import scala.reflect.Select;
 
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 /**
  * Test case for AsyncOpenvSwitchDatabaseConnection.
  */
-public class TestAsyncOpenvSwitchDatabaseConnection extends TestCase {
+public class TestAsyncOpenvSwitchDatabaseConnection {
 
     private class DummyReadSelectionKey extends SelectionKey {
 
@@ -33,7 +33,7 @@ public class TestAsyncOpenvSwitchDatabaseConnection extends TestCase {
 
         @Override
         public Selector selector() {
-            fail();
+            Assert.fail();
             return null;
         }
 
@@ -44,7 +44,7 @@ public class TestAsyncOpenvSwitchDatabaseConnection extends TestCase {
 
         @Override
         public void cancel() {
-            fail();
+            Assert.fail();
         }
 
         @Override
@@ -54,7 +54,7 @@ public class TestAsyncOpenvSwitchDatabaseConnection extends TestCase {
 
         @Override
         public SelectionKey interestOps(int i) {
-            fail();
+            Assert.fail();
             return null;
         }
 
@@ -141,7 +141,7 @@ public class TestAsyncOpenvSwitchDatabaseConnection extends TestCase {
             readBuffer.get(requestBytes);
             String request = new String(requestBytes);
 
-            assertTrue(Pattern.matches(expectedRequestRegex, request));
+            Assert.assertTrue(Pattern.matches(expectedRequestRegex, request));
 
             writeBuffer.clear();
             writeBuffer.put(reply.getBytes());
@@ -163,7 +163,7 @@ public class TestAsyncOpenvSwitchDatabaseConnection extends TestCase {
          * Tests if this thread was successful.
          */
         public void testSuccess() {
-            assertTrue(success);
+            Assert.assertTrue(success);
         }
     }
 
