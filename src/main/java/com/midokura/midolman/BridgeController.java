@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -23,16 +24,21 @@ public class BridgeController extends AbstractController {
     MacPortMap mac_to_port;
     long mac_port_timeout;
 
+    // The delayed deletes for mac_to_port.
+    // FIXME(jlm): Use generics annotation.
+    HashMap delayedDeletes;
+
     public BridgeController(int datapathId, UUID switchUuid, int greKey,
             PortLocationMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMinMillis, long flowExpireMaxMillis,
             long idleFlowExpireMillis, InetAddress publicIp,
             long macPortTimeoutMillis) {
-        super(datapathId, switchUuid, greKey, dict, flowExpireMinMillis,
+        super(datapathId, switchUuid, greKey, port_loc_map, flowExpireMinMillis,
               flowExpireMaxMillis, idleFlowExpireMillis, publicIp);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
+        delayedDeletes = new HashMap();
     }
 
     @Override
