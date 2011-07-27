@@ -28,6 +28,14 @@ public class BridgeController extends AbstractController {
     // FIXME(jlm): Use generics annotation.
     HashMap delayedDeletes;
 
+    HashMap<MacPort, Integer> flowCount;
+
+    private class MacPort {
+        // Pair<Mac, Port>
+        public UUID port;
+        public byte[] mac;
+    }
+
     public BridgeController(int datapathId, UUID switchUuid, int greKey,
             PortLocationMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMinMillis, long flowExpireMaxMillis,
@@ -39,6 +47,7 @@ public class BridgeController extends AbstractController {
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
         delayedDeletes = new HashMap();
+        flowCount = new HashMap<MacPort, Integer>();
     }
 
     @Override
