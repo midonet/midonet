@@ -38,6 +38,7 @@ public class BridgeController extends AbstractController {
     HashMap<MacPort, Integer> flowCount;
 
     HashMap<Integer, UUID> portNumToUuid;
+    HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
     BridgeControllerWatcher macToPortWatcher;
 
@@ -85,6 +86,7 @@ public class BridgeController extends AbstractController {
         delayedDeletes = new HashMap<byte[], UUID>();
         flowCount = new HashMap<MacPort, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
+        tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
         macToPortWatcher = new BridgeControllerWatcher();
         mac_to_port.addWatcher(macToPortWatcher);
     }
@@ -194,7 +196,7 @@ public class BridgeController extends AbstractController {
     }
 
     private boolean isTunnelPortNum(int portNum) {
-        return false;  // FIXME
+        return tunnelPortNumToPeerIp.containsKey(new Integer(portNum));
     }
 
     private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
