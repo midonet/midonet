@@ -107,7 +107,11 @@ public class BridgeController extends AbstractController {
     }
 
     private void invalidateFlowsFromMac(byte[] mac) {
-        // FIXME
+        log.debug("BridgeController: invalidating flows with dl_src " +
+		  macAsAscii(mac));
+	OFMatch match = new MidoMatch();
+        match.setDataLayerSource(mac);
+        sendFlowModDelete(false, match, 0, nonePort);
     }
 
     private void invalidateFlowsToMac(byte[] mac) {
