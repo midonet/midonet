@@ -188,11 +188,7 @@ public class BridgeController extends AbstractController {
     }
 
     private InetAddress peerOfTunnelPortNum(int portNum) {
-        try {
-            return InetAddress.getByName("127.0.0.1");  // FIXME
-        } catch (java.net.UnknownHostException e) {
-            throw new RuntimeException("InetAddress can't handle 127.0.0.1");
-        }
+        return tunnelPortNumToPeerIp.get(portNum);
     }
 
     private boolean isTunnelPortNum(int portNum) {
