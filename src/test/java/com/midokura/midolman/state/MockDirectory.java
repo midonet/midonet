@@ -75,7 +75,7 @@ public class MockDirectory implements Directory {
         Set<String> getChildren(Runnable watcher) {
             if (watcher != null)
                 childrenWatchers.add(watcher);
-            return Collections.unmodifiableSet(children.keySet());
+            return new HashSet<String>(children.keySet());
         }
 
         void deleteChild(String name) throws NoNodeException {

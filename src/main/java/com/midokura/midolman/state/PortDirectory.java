@@ -34,6 +34,7 @@ public class PortDirectory {
             super(device_id);
         }
 
+        @Override
         public boolean equals(Object other) {
             if (other == null)
                 return false;
@@ -92,6 +93,7 @@ public class PortDirectory {
             this.peer_uuid = peer_uuid;
         }
 
+        @Override
         public boolean equals(Object other) {
             if (other == null)
                 return false;
@@ -126,6 +128,7 @@ public class PortDirectory {
             this.bgps = bgps;
         }
 
+        @Override
         public boolean equals(Object other) {
             if (other == null)
                 return false;

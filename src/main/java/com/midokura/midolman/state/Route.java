@@ -5,8 +5,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-
 public class Route implements Serializable {
 
     public enum NextHop {
@@ -39,6 +37,7 @@ public class Route implements Serializable {
         this.attributes = attributes;
     }
 
+    @Override
     public boolean equals(Object other) {
         if (other == null)
             return false;
@@ -66,6 +65,24 @@ public class Route implements Serializable {
                 && weight == rt.weight;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 1;
+        hash = 13 * hash + srcNetworkAddr.hashCode();
+        hash = 17 * hash + srcNetworkLength;
+        hash = 31 * hash + dstNetworkAddr.hashCode();
+        hash = 23 * hash + dstNetworkLength;
+        hash = 29 * hash + nextHop.hashCode();
+        if (null != nextHopPort)
+            hash = 43 * hash + nextHopPort.hashCode();
+        if (null != nextHopPort)
+            hash = 37 * hash + nextHopPort.hashCode();
+        hash = 11 * hash + weight;
+        hash = 5 * hash + attributes.hashCode();
+        return hash;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(srcNetworkAddr.getHostAddress()).append(",");
