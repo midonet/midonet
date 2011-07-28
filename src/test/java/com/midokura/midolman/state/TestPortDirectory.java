@@ -2,10 +2,8 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;

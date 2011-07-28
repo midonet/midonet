@@ -1,6 +1,5 @@
 package com.midokura.midolman.state;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,8 +8,6 @@ import java.util.Set;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.*;
-
-import com.midokura.midolman.*;
 
 public class MockDirectory implements Directory {
 

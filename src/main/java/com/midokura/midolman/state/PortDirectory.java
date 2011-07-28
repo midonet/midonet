@@ -19,6 +19,8 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 public class PortDirectory {
 
     private static abstract class PortConfig implements Serializable {
+        private static final long serialVersionUID = 3124283622213097848L;
+
         private PortConfig(UUID device_id) {
             super();
             this.device_id = device_id;
@@ -29,6 +31,7 @@ public class PortDirectory {
 
     public static class BridgePortConfig extends PortConfig implements
             Serializable {
+        private static final long serialVersionUID = -7817609888045028903L;
 
         public BridgePortConfig(UUID device_id) {
             super(device_id);
@@ -49,6 +52,7 @@ public class PortDirectory {
 
     private static abstract class RouterPortConfig extends PortConfig implements
             Serializable {
+        private static final long serialVersionUID = -4536197977961670285L;
         public InetAddress networkAddr;
         public int networkLength;
         public InetAddress portAddr;
@@ -84,6 +88,7 @@ public class PortDirectory {
 
     public static class LogicalRouterPortConfig extends RouterPortConfig
             implements Serializable {
+        private static final long serialVersionUID = 1576824002284331148L;
         public UUID peer_uuid;
 
         public LogicalRouterPortConfig(UUID device_id, InetAddress networkAddr,
@@ -113,6 +118,7 @@ public class PortDirectory {
 
     public static class MaterializedRouterPortConfig extends RouterPortConfig
             implements Serializable {
+        private static final long serialVersionUID = 3050185323095662934L;
         public InetAddress localNetworkAddr;
         public int localNetworkLength;
         public transient Set<BGP> bgps;

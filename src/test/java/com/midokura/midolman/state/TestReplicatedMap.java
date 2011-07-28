@@ -1,6 +1,5 @@
 package com.midokura.midolman.state;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -267,7 +266,7 @@ public class TestReplicatedMap {
         String path2 = mapDir.add("/two,200,", null,
                 CreateMode.PERSISTENT_SEQUENTIAL);
         expectedMap.put("three", "300");
-        String path3 = mapDir.add("/three,300,", null,
+        mapDir.add("/three,300,", null,
                 CreateMode.PERSISTENT_SEQUENTIAL);
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         MyWatcher watch1 = new MyWatcher();
