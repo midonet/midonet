@@ -1,5 +1,10 @@
 package com.midokura.midolman.state;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -15,6 +20,7 @@ public class BridgeDirectory {
         this.dir = dir;
     }
 
+    /* TODO(pino): get rid of these when we're happy with the serialization.
     private static byte[] intToBytes(int value) {
         return new byte[] { (byte) (value >>> 24), (byte) (value >>> 16),
                 (byte) (value >>> 8), (byte) value };
@@ -24,20 +30,34 @@ public class BridgeDirectory {
         return (b[0] << 24) + ((b[1] & 0xFF) << 16) + ((b[2] & 0xFF) << 8)
                 + (b[3] & 0xFF);
     }
+    */
 
     public void add(UUID bridgeId, int gre_key) throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
-        dir.add("/" + bridgeId.toString(), intToBytes(gre_key),
+            NodeExistsException, NoChildrenForEphemeralsException, IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeInt(gre_key);
+        out.close();
+        dir.add("/" + bridgeId.toString(), bos.toByteArray(),
                 CreateMode.PERSISTENT);
     }
 
-    public void setGreKey(UUID bridgeId, int gre_key) throws NoNodeException {
-        dir.update("/" + bridgeId.toString(), intToBytes(gre_key));
+    public void setGreKey(UUID bridgeId, int gre_key) throws NoNodeException,
+            IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeInt(gre_key);
+        out.close();
+        dir.update("/" + bridgeId.toString(), bos.toByteArray());
     }
 
-    public int getGreKey(UUID bridgeId) throws NoNodeException {
+    public int getGreKey(UUID bridgeId) throws NoNodeException, IOException {
         byte[] data = dir.get("/" + bridgeId.toString(), null);
-        return bytesToInt(data);
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        ObjectInputStream in = new ObjectInputStream(bis);
+        int greKey = in.readInt();
+        in.close();
+        return greKey;
     }
 
     public void delete(UUID bridgeId) throws NoNodeException {

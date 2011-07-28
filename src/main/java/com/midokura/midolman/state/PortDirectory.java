@@ -18,31 +18,131 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 
 public class PortDirectory {
 
-    private class PortConfig implements Serializable {
-        UUID device_id;
+    private static abstract class PortConfig implements Serializable {
+        private PortConfig(UUID device_id) {
+            super();
+            this.device_id = device_id;
+        }
+
+        public UUID device_id;
     }
 
-    public class BridgePortConfig extends PortConfig implements Serializable {
+    public static class BridgePortConfig extends PortConfig implements
+            Serializable {
+
+        public BridgePortConfig(UUID device_id) {
+            super(device_id);
+        }
+
+        public boolean equals(Object other) {
+            if (other == null)
+                return false;
+            if (other == this)
+                return true;
+            if (!(other instanceof BridgePortConfig))
+                return false;
+            BridgePortConfig port = (BridgePortConfig) other;
+            return this.device_id.equals(port.device_id);
+        }
     }
 
-    private class RouterPortConfig extends PortConfig implements Serializable {
-        InetAddress networkAddr;
-        byte networkLength;
-        InetAddress portAddr;
+    private static abstract class RouterPortConfig extends PortConfig implements
+            Serializable {
+        public InetAddress networkAddr;
+        public int networkLength;
+        public InetAddress portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.
-        transient Set<Route> routes;
+        public transient Set<Route> routes;
+
+        public RouterPortConfig(UUID device_id, InetAddress networkAddr,
+                int networkLength, InetAddress portAddr, Set<Route> routes) {
+            super(device_id);
+            this.networkAddr = networkAddr;
+            this.networkLength = networkLength;
+            this.portAddr = portAddr;
+            this.routes = new HashSet<Route>(routes);
+        }
+
+        private void readObject(java.io.ObjectInputStream stream)
+                throws IOException, ClassNotFoundException {
+            stream.defaultReadObject();
+            int numRoutes = stream.readInt();
+            routes = new HashSet<Route>();
+            for (int i = 0; i < numRoutes; i++)
+                routes.add((Route) stream.readObject());
+        }
+
+        private void writeObject(java.io.ObjectOutputStream stream)
+                throws IOException {
+            stream.defaultWriteObject();
+            stream.writeInt(routes.size());
+            for (Route rt : routes)
+                stream.writeObject(rt);
+        }
     }
 
-    public class LogicalRouterPortConfig extends PortConfig implements
-            Serializable {
-        UUID peer_uuid;
+    public static class LogicalRouterPortConfig extends RouterPortConfig
+            implements Serializable {
+        public UUID peer_uuid;
+
+        public LogicalRouterPortConfig(UUID device_id, InetAddress networkAddr,
+                int networkLength, InetAddress portAddr, Set<Route> routes,
+                UUID peer_uuid) {
+            super(device_id, networkAddr, networkLength, portAddr, routes);
+            this.peer_uuid = peer_uuid;
+        }
+
+        public boolean equals(Object other) {
+            if (other == null)
+                return false;
+            if (other == this)
+                return true;
+            if (!(other instanceof LogicalRouterPortConfig))
+                return false;
+            LogicalRouterPortConfig port = (LogicalRouterPortConfig) other;
+            return device_id.equals(port.device_id)
+                    && networkAddr.equals(port.networkAddr)
+                    && networkLength == port.networkLength
+                    && peer_uuid.equals(port.peer_uuid)
+                    && portAddr.equals(port.portAddr)
+                    && routes.equals(port.routes);
+        }
     }
 
-    public class MaterializedRouterPortConfig extends PortConfig implements
-            Serializable {
-        InetAddress localNetworkAddr;
-        byte localNetworkLength;
-        transient Set<BGP> bgps;
+    public static class MaterializedRouterPortConfig extends RouterPortConfig
+            implements Serializable {
+        public InetAddress localNetworkAddr;
+        public int localNetworkLength;
+        public transient Set<BGP> bgps;
+
+        public MaterializedRouterPortConfig(UUID device_id,
+                InetAddress networkAddr, int networkLength,
+                InetAddress portAddr, Set<Route> routes,
+                InetAddress localNetworkAddr, int localNetworkLength,
+                Set<BGP> bgps) {
+            super(device_id, networkAddr, networkLength, portAddr, routes);
+            this.localNetworkAddr = localNetworkAddr;
+            this.localNetworkLength = localNetworkLength;
+            this.bgps = bgps;
+        }
+
+        public boolean equals(Object other) {
+            if (other == null)
+                return false;
+            if (other == this)
+                return true;
+            if (!(other instanceof MaterializedRouterPortConfig))
+                return false;
+            MaterializedRouterPortConfig port = (MaterializedRouterPortConfig) other;
+            return device_id.equals(port.device_id)
+                    && networkAddr.equals(port.networkAddr)
+                    && networkLength == port.networkLength
+                    && portAddr.equals(port.portAddr)
+                    && routes.equals(port.routes)
+                    && bgps.equals(port.bgps)
+                    && localNetworkAddr.equals(port.localNetworkAddr)
+                    && localNetworkLength == port.localNetworkLength;
+        }
 
         private void readObject(java.io.ObjectInputStream stream)
                 throws IOException, ClassNotFoundException {
@@ -70,11 +170,15 @@ public class PortDirectory {
 
     public void addPort(UUID portId, PortConfig port) throws NoNodeException,
             NodeExistsException, NoChildrenForEphemeralsException, IOException {
+        if (!(port instanceof BridgePortConfig
+                || port instanceof LogicalRouterPortConfig || port instanceof MaterializedRouterPortConfig))
+            throw new IllegalArgumentException("Unrecognized port type.");
         byte[] data = portToBytes(port);
         dir.add("/" + portId.toString(), data, CreateMode.PERSISTENT);
         if (port instanceof RouterPortConfig) {
             String path = new StringBuilder("/").append(portId.toString())
                     .append("/routes").toString();
+            dir.add(path, null, CreateMode.PERSISTENT);
             for (Route rt : ((RouterPortConfig) port).routes) {
                 dir.add(path + "/" + rt.toString(), null, CreateMode.PERSISTENT);
             }
@@ -84,7 +188,7 @@ public class PortDirectory {
     public void addRoutes(UUID portId, Set<Route> routes)
             throws NoNodeException, IOException, ClassNotFoundException,
             NodeExistsException, NoChildrenForEphemeralsException {
-        PortConfig port = _getPortNoRoutes(portId, null, null);
+        PortConfig port = getPortConfigNoRoutes(portId, null);
         if (!(port instanceof RouterPortConfig))
             throw new IllegalArgumentException(
                     "Routes may only be added to a Router port");
@@ -97,7 +201,7 @@ public class PortDirectory {
 
     public void removeRoutes(UUID portId, Set<Route> routes)
             throws NoNodeException, IOException, ClassNotFoundException {
-        PortConfig port = _getPortNoRoutes(portId, null, null);
+        PortConfig port = getPortConfigNoRoutes(portId, null);
         if (!(port instanceof RouterPortConfig))
             throw new IllegalArgumentException(
                     "Routes may only be removed from a Router port");
@@ -125,10 +229,10 @@ public class PortDirectory {
         byte[] portData = portToBytes(newPort);
         dir.update("/" + portId.toString(), portData);
         if (newPort instanceof RouterPortConfig) {
-            RouterPortConfig newRtrPort = (RouterPortConfig)newPort;
-            RouterPortConfig oldRtrPort = (RouterPortConfig)oldPort;
-            String routesPath = new StringBuilder("/").
-                    append(portId.toString()).append("/routes").toString();
+            RouterPortConfig newRtrPort = (RouterPortConfig) newPort;
+            RouterPortConfig oldRtrPort = (RouterPortConfig) oldPort;
+            String routesPath = new StringBuilder("/")
+                    .append(portId.toString()).append("/routes").toString();
             for (Route rt : newRtrPort.routes) {
                 if (!oldRtrPort.routes.contains(rt))
                     dir.add(routesPath + "/" + rt.toString(), null,
@@ -141,9 +245,8 @@ public class PortDirectory {
         }
     }
 
-    private PortConfig _getPortNoRoutes(UUID portId, Runnable portWatcher,
-            Runnable routesWatcher) throws NoNodeException, IOException,
-            ClassNotFoundException {
+    private PortConfig getPortConfigNoRoutes(UUID portId, Runnable portWatcher)
+            throws NoNodeException, IOException, ClassNotFoundException {
         byte[] data = dir.get("/" + portId.toString(), portWatcher);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
@@ -154,8 +257,7 @@ public class PortDirectory {
     public PortConfig getPortConfiguration(UUID portId, Runnable portWatcher,
             Runnable routesWatcher) throws NoNodeException, IOException,
             ClassNotFoundException {
-        PortConfig port = _getPortNoRoutes(portId, portWatcher,
-                routesWatcher);
+        PortConfig port = getPortConfigNoRoutes(portId, portWatcher);
         if (port instanceof RouterPortConfig) {
             String path = new StringBuilder("/").append(portId.toString())
                     .append("/routes").toString();
@@ -164,6 +266,9 @@ public class PortDirectory {
             for (String rt : routes)
                 ((RouterPortConfig) port).routes.add(Route.fromString(rt));
         }
+        else if (routesWatcher != null)
+            throw new IllegalArgumentException(
+                    "Can't watch routes on a bridge port");
         return port;
     }
 
