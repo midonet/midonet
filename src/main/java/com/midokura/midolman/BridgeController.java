@@ -37,6 +37,8 @@ public class BridgeController extends AbstractController {
 
     HashMap<MacPort, Integer> flowCount;
 
+    HashMap<Integer, UUID> portNumToUuid;
+
     BridgeControllerWatcher macToPortWatcher;
 
     private class MacPort {
@@ -82,6 +84,7 @@ public class BridgeController extends AbstractController {
         port_locs = port_loc_map;
         delayedDeletes = new HashMap<byte[], UUID>();
         flowCount = new HashMap<MacPort, Integer>();
+        portNumToUuid = new HashMap<Integer, UUID>();
         macToPortWatcher = new BridgeControllerWatcher();
         mac_to_port.addWatcher(macToPortWatcher);
     }
@@ -156,10 +159,45 @@ public class BridgeController extends AbstractController {
     }
 
     private void addPort(OFPhysicalPort portDesc) {
-        // FIXME
+        int portNum = portDesc.getPortNumber();
+        if (isTunnelPortNum(portNum))
+            invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
+        else {
+            UUID portUuid = portNumToUuid.get(portNum);
+            if (portUuid != null)
+                invalidateFlowsToPortUuid(portUuid);
+        }
+
+        UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+        if (uuid != null)
+            portNumToUuid.put(portNum, uuid);
     }
 
     private void deletePort(OFPhysicalPort portDesc) {
         // FIXME
+    }
+
+    private void invalidateFlowsToPortUuid(UUID port_uuid) {
+        // FIXME
+    }
+
+    private void invalidateFlowsToPeer(InetAddress peer_ip) {
+        // FIXME
+    }
+
+    private InetAddress peerOfTunnelPortNum(int portNum) {
+        try {
+            return InetAddress.getByName("127.0.0.1");  // FIXME
+        } catch (java.net.UnknownHostException e) {
+            throw new RuntimeException("InetAddress can't handle 127.0.0.1");
+        }
+    }
+
+    private boolean isTunnelPortNum(int portNum) {
+        return false;  // FIXME
+    }
+
+    private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
+        return new UUID(0, 0);  // FIXME
     }
 }
