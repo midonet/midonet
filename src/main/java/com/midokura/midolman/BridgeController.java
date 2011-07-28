@@ -41,7 +41,25 @@ public class BridgeController extends AbstractController {
     private class BridgeControllerWatcher implements
             ReplicatedMap.Watcher<byte[], UUID> {
         public void processChange(byte[] key, UUID old_uuid, UUID new_uuid) {
-	    // FIXME
+            /* Update callback for the MacPortMap */
+            
+            /* If the new port is local, the flow updates have already been
+             * applied, and we return immediately. */
+            if (port_is_local(new_uuid))
+                return;
+            log.debug("BridgeControllerWatcher.processChange: mac " + 
+                      macAsAscii(key) + " changed from port " + 
+                      old_uuid.toString() + " to port " + new_uuid.toString());
+
+            /* If the MAC's old port was local, we need to invalidate its
+             * flows. */
+            if (port_is_local(old_uuid)) {
+                log.debug("BridgeControllerWatcher.processChange: Old port " +
+                          "was local.  Invalidating its flows.");
+                invalidateFlowsFromMac(key);
+            }
+
+            invalidateFlowsToMac(key);
         }
     }
 
@@ -83,4 +101,26 @@ public class BridgeController extends AbstractController {
             byte[] data) {
         // TODO Auto-generated method stub
     }
+
+    private void invalidateFlowsFromMac(byte[] mac) {
+        // FIXME
+    }
+
+    private void invalidateFlowsToMac(byte[] mac) {
+        // FIXME
+    }
+
+    private boolean port_is_local(UUID port) {
+        return false;  // FIXME
+    }
+
+    static public String macAsAscii(byte[] mac) {
+        // FIXME: Move to packet/ somewhere.
+        assert mac.length == 6;
+        String rv = String.format("%02x:%02x:%02x:%02x:%02x:%02x",
+	                          mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
+                                 );
+        return rv;
+    }
+        
 }
