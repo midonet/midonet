@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * FIXME(dmd): Record the license this is under here.
  * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class Ethernet extends BasePacket {

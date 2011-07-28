@@ -111,7 +111,7 @@ public class BridgeController extends AbstractController {
     }
 
     private boolean port_is_local(UUID port) {
-        return false;  // FIXME
+        return portUuidToNumberMap.containsKey(port);
     }
 
     static public String macAsAscii(byte[] mac) {

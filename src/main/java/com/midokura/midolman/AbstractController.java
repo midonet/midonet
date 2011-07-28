@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -26,6 +27,8 @@ public abstract class AbstractController implements Controller {
     protected int datapathId;
     
     protected ControllerStub controllerStub;
+
+    protected HashMap<UUID, Integer> portUuidToNumberMap;
     
     public AbstractController(
             int datapathId,
@@ -38,6 +41,7 @@ public abstract class AbstractController implements Controller {
             long idleFlowExpireMillis,
             InetAddress internalIp) {
         this.datapathId = datapathId;
+        portUuidToNumberMap = new HashMap<UUID, Integer>();
     }
     
     @Override
@@ -79,4 +83,9 @@ public abstract class AbstractController implements Controller {
 
     /* Clean up resources, especially the ZooKeeper state. */
     abstract public void clear();
+
+    /* Maps a port UUID to its number on the local datapath. */
+    public int portUuidToNumber(UUID port_uuid) {
+        return portUuidToNumberMap.get(port_uuid);
+    }
 }
