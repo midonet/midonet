@@ -69,10 +69,7 @@ public abstract class AbstractController implements Controller {
             int durationSeconds, int durationNanoseconds, short idleTimeout, long packetCount, long byteCount);
 
     @Override
-    public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
-        // TODO Auto-generated method stub
-
-    }
+    public abstract void onPortStatus(OFPhysicalPort port, OFPortReason status);
 
     @Override
     public void onMessage(OFMessage m) {

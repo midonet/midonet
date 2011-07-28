@@ -11,6 +11,9 @@ import java.util.UUID;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,5 +141,25 @@ public class BridgeController extends AbstractController {
     public void sendFlowModDelete(boolean strict, OFMatch match, int priority,
                                   int outPort) { 
 	// FIXME
+    }
+
+    @Override
+    public void onPortStatus(OFPhysicalPort port, OFPortReason reason) {
+        if (reason == OFPortReason.OFPPR_ADD)
+            addPort(port);
+        else if (reason == OFPortReason.OFPPR_DELETE)
+            deletePort(port);
+        else {
+            /* Port modified. */
+            /* TODO: Handle this. */
+        }
+    }
+
+    private void addPort(OFPhysicalPort portDesc) {
+        // FIXME
+    }
+
+    private void deletePort(OFPhysicalPort portDesc) {
+        // FIXME
     }
 }
