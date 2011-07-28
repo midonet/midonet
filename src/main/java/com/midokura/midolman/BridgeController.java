@@ -10,12 +10,15 @@ import java.util.UUID;
 
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.MacPortMap;
+
 
 public class BridgeController extends AbstractController {
 
@@ -24,6 +27,7 @@ public class BridgeController extends AbstractController {
     PortLocationMap port_locs;
     MacPortMap mac_to_port;
     long mac_port_timeout;
+    private final int nonePort = OFPort.OFPP_NONE.getValue();
 
     // The delayed deletes for mac_to_port.
     HashMap<byte[], UUID> delayedDeletes;
@@ -107,7 +111,11 @@ public class BridgeController extends AbstractController {
     }
 
     private void invalidateFlowsToMac(byte[] mac) {
-        // FIXME
+        log.debug("BridgeController: invalidating flows with dl_dst " +
+		  macAsAscii(mac));
+	OFMatch match = new MidoMatch();
+        match.setDataLayerDestination(mac);
+        sendFlowModDelete(false, match, 0, nonePort);
     }
 
     private boolean port_is_local(UUID port) {
@@ -122,5 +130,9 @@ public class BridgeController extends AbstractController {
                                  );
         return rv;
     }
-        
+
+    public void sendFlowModDelete(boolean strict, OFMatch match, int priority,
+                                  int outPort) { 
+	// FIXME
+    }
 }

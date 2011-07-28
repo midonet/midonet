@@ -88,4 +88,7 @@ public abstract class AbstractController implements Controller {
     public int portUuidToNumber(UUID port_uuid) {
         return portUuidToNumberMap.get(port_uuid);
     }
+
+    abstract public void sendFlowModDelete(boolean strict, OFMatch match,
+	 				   int priority, int outPort);
 }
