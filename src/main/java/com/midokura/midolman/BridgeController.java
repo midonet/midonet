@@ -13,6 +13,7 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.MacPortMap;
 
@@ -29,10 +30,19 @@ public class BridgeController extends AbstractController {
 
     HashMap<MacPort, Integer> flowCount;
 
+    BridgeControllerWatcher macToPortWatcher;
+
     private class MacPort {
         // Pair<Mac, Port>
         public UUID port;
         public byte[] mac;
+    }
+
+    private class BridgeControllerWatcher implements
+            ReplicatedMap.Watcher<byte[], UUID> {
+        public void processChange(byte[] key, UUID old_uuid, UUID new_uuid) {
+	    // FIXME
+        }
     }
 
     public BridgeController(int datapathId, UUID switchUuid, int greKey,
@@ -47,6 +57,17 @@ public class BridgeController extends AbstractController {
         port_locs = port_loc_map;
         delayedDeletes = new HashMap<byte[], UUID>();
         flowCount = new HashMap<MacPort, Integer>();
+        macToPortWatcher = new BridgeControllerWatcher();
+        mac_to_port.addWatcher(macToPortWatcher);
+    }
+
+    @Override
+    public void clear() {
+        port_locs.stop();
+        mac_to_port.stop();
+        mac_to_port.removeWatcher(macToPortWatcher);
+        // FIXME(jlm): remove all mac->port entries
+        // FIXME(jlm): Clear all flows.
     }
 
     @Override

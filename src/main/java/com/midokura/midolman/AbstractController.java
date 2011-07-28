@@ -77,4 +77,6 @@ public abstract class AbstractController implements Controller {
 
     }
 
+    /* Clean up resources, especially the ZooKeeper state. */
+    abstract public void clear();
 }
