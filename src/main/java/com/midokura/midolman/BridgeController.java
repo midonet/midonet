@@ -173,6 +173,12 @@ public class BridgeController extends AbstractController {
         UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
         if (uuid != null)
             portNumToUuid.put(portNum, uuid);
+
+        InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+        if (peerIp != null) {
+	    // TODO: Error out if already tunneled to this peer.
+            tunnelPortNumToPeerIp.put(portNum, peerIp);
+        }
     }
 
     private void deletePort(OFPhysicalPort portDesc) {
@@ -197,5 +203,9 @@ public class BridgeController extends AbstractController {
 
     private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
         return new UUID(0, 0);  // FIXME
+    }
+
+    private InetAddress peerIpOfGrePortName(String portName) {
+        return null;	// FIXME
     }
 }
