@@ -170,12 +170,6 @@
     </repositories>
 
     <dependencies>
-        
-        <dependency>
-            <groupId>async-json</groupId>
-            <artifactId>async-json-library</artifactId>
-            <version>0.1.4</version>
-        </dependency>
 
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
