@@ -1,26 +1,14 @@
 package com.midokura.midolman.state;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.rules.NatTarget;
-import com.midokura.midolman.rules.RuleChain;
+import com.midokura.midolman.rules.Rule;
 
 public class RouterDirectory {
-
-    public static class RouterConfig implements Serializable {
-        public transient Set<Route> routes;
-        public transient Set<RuleChain> ruleChains;
-
-        private void readObject(java.io.ObjectInputStream stream) {
-        }
-
-        private void writeObject(java.io.ObjectOutputStream stream) {
-        }
-    }
 
     Directory dir;
 
@@ -52,7 +40,7 @@ public class RouterDirectory {
 
     }
 
-    public void addRuleChain(UUID routerId, RuleChain ruleChain) {
+    public void addRuleChain(UUID routerId, String name, List<Rule> rules) {
 
     }
 
@@ -60,7 +48,7 @@ public class RouterDirectory {
         return null;
     }
 
-    public RuleChain getRuleChain(UUID routerId, String chainName,
+    public List<Rule> getRuleChain(UUID routerId, String chainName,
             Runnable watcher) {
         return null;
     }

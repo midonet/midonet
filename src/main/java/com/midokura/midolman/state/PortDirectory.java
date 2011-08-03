@@ -142,7 +142,8 @@ public class PortDirectory {
                 return true;
             if (!(other instanceof MaterializedRouterPortConfig))
                 return false;
-            MaterializedRouterPortConfig port = (MaterializedRouterPortConfig) other;
+            MaterializedRouterPortConfig port = 
+                    MaterializedRouterPortConfig.class.cast(other);
             return device_id.equals(port.device_id)
                     && networkAddr.equals(port.networkAddr)
                     && networkLength == port.networkLength
@@ -179,7 +180,8 @@ public class PortDirectory {
     public void addPort(UUID portId, PortConfig port) throws IOException,
             KeeperException, InterruptedException {
         if (!(port instanceof BridgePortConfig
-                || port instanceof LogicalRouterPortConfig || port instanceof MaterializedRouterPortConfig))
+                || port instanceof LogicalRouterPortConfig 
+                || port instanceof MaterializedRouterPortConfig))
             throw new IllegalArgumentException("Unrecognized port type.");
         byte[] data = portToBytes(port);
         dir.add("/" + portId.toString(), data, CreateMode.PERSISTENT);
@@ -236,8 +238,8 @@ public class PortDirectory {
         byte[] portData = portToBytes(newPort);
         dir.update("/" + portId.toString(), portData);
         if (newPort instanceof RouterPortConfig) {
-            RouterPortConfig newRtrPort = (RouterPortConfig) newPort;
-            RouterPortConfig oldRtrPort = (RouterPortConfig) oldPort;
+            RouterPortConfig newRtrPort = RouterPortConfig.class.cast(newPort);
+            RouterPortConfig oldRtrPort = RouterPortConfig.class.cast(oldPort);
             String routesPath = new StringBuilder("/")
                     .append(portId.toString()).append("/routes").toString();
             for (Route rt : newRtrPort.routes) {
@@ -287,8 +289,7 @@ public class PortDirectory {
             Set<String> routes = dir.getChildren(routesPath, null);
             for (String rt : routes)
                 dir.delete(routesPath + "/" + rt);
-        }
-        catch (KeeperException.NoNodeException e) {
+        } catch (KeeperException.NoNodeException e) {
             // Ignore the exception - the port may not have routes.
         }
         dir.delete("/" + portId.toString());
