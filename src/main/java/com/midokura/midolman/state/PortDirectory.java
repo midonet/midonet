@@ -14,6 +14,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
+import com.midokura.midolman.layer3.Route;
+
 public class PortDirectory {
 
     private static abstract class PortConfig implements Serializable {

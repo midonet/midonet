@@ -1,4 +1,4 @@
-package com.midokura.midolman.state;
+package com.midokura.midolman.layer3;
 
 import java.io.Serializable;
 import java.net.InetAddress;

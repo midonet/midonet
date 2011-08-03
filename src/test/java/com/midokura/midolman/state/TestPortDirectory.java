@@ -13,6 +13,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.midokura.midolman.layer3.Route;
+
 public class TestPortDirectory {
 
     PortDirectory portDir;
