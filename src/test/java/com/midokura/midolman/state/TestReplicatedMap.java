@@ -4,9 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.junit.Assert;
 
 import org.junit.Before;
@@ -122,8 +121,7 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testStringMapStartWithSomeEntries() throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void testStringMapStartWithSomeEntries() throws KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("one", "100");
@@ -141,8 +139,7 @@ public class TestReplicatedMap {
 
     @Test
     public void testStringMapAddUpdateGetRemove() throws 
-            NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+            KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("one", "100");
@@ -176,8 +173,7 @@ public class TestReplicatedMap {
 
     @Test
     public void testStringMapExternalChanges() throws 
-            NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+            KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("one", "100");
@@ -255,8 +251,7 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testChangeWatchers() throws NoNodeException, 
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void testChangeWatchers() throws KeeperException, InterruptedException {
         Map<String,String> oldValuesMap = new HashMap<String, String>();
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("one", "100");
@@ -325,8 +320,7 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testStringToLocationMap() throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void testStringToLocationMap() throws KeeperException, InterruptedException {
         ReplicatedStringToLocationMap strMap = new 
                 ReplicatedStringToLocationMap(mapDir);
         Map<String, Location> expectedMap = new HashMap<String, Location>();

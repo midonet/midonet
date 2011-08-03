@@ -11,7 +11,6 @@ import java.util.Set;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher;
@@ -36,25 +35,19 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public String add(String relativePath, byte[] data, CreateMode mode) {
+    public String add(String relativePath, byte[] data, CreateMode mode)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         String path = null;
-        try {
-            path = zk.create(absPath, data, acl, mode);
-        } catch (InterruptedException e1) {
-        } catch (KeeperException e2) {
-        }
+        path = zk.create(absPath, data, acl, mode);
         return path.substring(basePath.length());
     }
 
     @Override
-    public void update(String relativePath, byte[] data) {
+    public void update(String relativePath, byte[] data)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        try {
-            zk.setData(absPath, data, -1);
-        } catch (InterruptedException e1) {
-        } catch (KeeperException e2) {
-        }
+        zk.setData(absPath, data, -1);
     }
 
     private class MyWatcher implements Watcher {
@@ -66,72 +59,51 @@ public class ZkDirectory implements Directory {
 
         @Override
         public void process(WatchedEvent arg0) {
-            // TODO(pino): check the event type.
             watcher.run();
         }
     }
 
     @Override
-    public byte[] get(String relativePath, Runnable watcher) {
+    public byte[] get(String relativePath, Runnable watcher)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        try {
-            return zk.getData(absPath, new MyWatcher(watcher), null);
-        } catch (InterruptedException e1) {
-        } catch (KeeperException e2) {
-        }
-        return null;
+        return zk.getData(absPath, new MyWatcher(watcher), null);
     }
 
     @Override
-    public Set<String> getChildren(String relativePath, Runnable watcher) {
+    public Set<String> getChildren(String relativePath, Runnable watcher)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        try {
-            return new HashSet<String>(zk.getChildren(
-                    absPath, new MyWatcher(watcher)));
-        } catch (InterruptedException e1) {
-        } catch (KeeperException e2) {
-        }
-        return null;
+        return new HashSet<String>(
+                zk.getChildren(absPath, new MyWatcher(watcher)));
     }
 
     @Override
-    public boolean has(String relativePath) {
+    public boolean has(String relativePath)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        try {
-            return zk.exists(absPath, null) == null;
-        } catch (InterruptedException e1) {
-        } catch (KeeperException e2) {
-        }
-        return false;
+        return zk.exists(absPath, null) == null;
     }
 
     @Override
-    public void delete(String relativePath) {
+    public void delete(String relativePath)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        try {
-            zk.delete(absPath, -1);
-        } catch (InterruptedException e1) {
-        } catch (KeeperException e2) {
-        }
+        zk.delete(absPath, -1);
     }
 
     @Override
-    public Directory getSubDirectory(String relativePath)
-            throws NoNodeException {
-        String absPath = getAbsolutePath(relativePath);
-        return new ZkDirectory(zk, absPath, null);
+    public Directory getSubDirectory(String relativePath) {
+        return new ZkDirectory(zk, getAbsolutePath(relativePath), null);
     }
 
     private String getAbsolutePath(String relativePath) {
-        if (relativePath.length() > 1) {
-            if (basePath.length() > 1) {
-                return basePath + relativePath;
-            } else {
-                return relativePath;
-            }
-        } else {
+        if (relativePath.isEmpty())
             return basePath;
-        }
+        if (!relativePath.startsWith("/"))
+            throw new IllegalArgumentException("Path must start with '/'.");
+        if (relativePath.endsWith("/"))
+            throw new IllegalArgumentException("Path must not end with '/'.");
+        return basePath + relativePath;
     }
-
 }

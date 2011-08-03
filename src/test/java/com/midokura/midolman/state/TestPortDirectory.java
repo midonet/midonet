@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.junit.Assert;
@@ -36,9 +36,8 @@ public class TestPortDirectory {
     }
 
     @Test
-    public void testAddGetUpdateDeleteBridgePort() throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException, IOException,
-            ClassNotFoundException {
+    public void testAddGetUpdateDeleteBridgePort() throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID bridgeId = new UUID(rand.nextLong(), rand.nextLong());
         PortDirectory.BridgePortConfig port = new PortDirectory.BridgePortConfig(
@@ -82,9 +81,8 @@ public class TestPortDirectory {
 
     @Test
     public void testAddGetUpdateDeleteMaterializedRouterPort()
-            throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException, IOException,
-            ClassNotFoundException {
+            throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID routerId = new UUID(rand.nextLong(), rand.nextLong());
         PortDirectory.MaterializedRouterPortConfig port = new PortDirectory.MaterializedRouterPortConfig(
@@ -143,9 +141,8 @@ public class TestPortDirectory {
 
     @Test
     public void testAddGetUpdateDeleteLogicalRouterPort()
-            throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException, IOException,
-            ClassNotFoundException {
+            throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID peerPortId = new UUID(rand.nextLong(), rand.nextLong());
         UUID routerId = new UUID(rand.nextLong(), rand.nextLong());

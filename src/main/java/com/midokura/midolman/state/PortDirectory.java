@@ -12,9 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException;
 
 public class PortDirectory {
 
@@ -147,8 +145,7 @@ public class PortDirectory {
                     && networkAddr.equals(port.networkAddr)
                     && networkLength == port.networkLength
                     && portAddr.equals(port.portAddr)
-                    && routes.equals(port.routes)
-                    && bgps.equals(port.bgps)
+                    && routes.equals(port.routes) && bgps.equals(port.bgps)
                     && localNetworkAddr.equals(port.localNetworkAddr)
                     && localNetworkLength == port.localNetworkLength;
         }
@@ -177,8 +174,8 @@ public class PortDirectory {
         this.dir = dir;
     }
 
-    public void addPort(UUID portId, PortConfig port) throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException, IOException {
+    public void addPort(UUID portId, PortConfig port) throws IOException,
+            KeeperException, InterruptedException {
         if (!(port instanceof BridgePortConfig
                 || port instanceof LogicalRouterPortConfig || port instanceof MaterializedRouterPortConfig))
             throw new IllegalArgumentException("Unrecognized port type.");
@@ -194,9 +191,8 @@ public class PortDirectory {
         }
     }
 
-    public void addRoutes(UUID portId, Set<Route> routes)
-            throws NoNodeException, IOException, ClassNotFoundException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void addRoutes(UUID portId, Set<Route> routes) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         PortConfig port = getPortConfigNoRoutes(portId, null);
         if (!(port instanceof RouterPortConfig))
             throw new IllegalArgumentException(
@@ -209,7 +205,8 @@ public class PortDirectory {
     }
 
     public void removeRoutes(UUID portId, Set<Route> routes)
-            throws NoNodeException, IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException, KeeperException,
+            InterruptedException {
         PortConfig port = getPortConfigNoRoutes(portId, null);
         if (!(port instanceof RouterPortConfig))
             throw new IllegalArgumentException(
@@ -228,9 +225,8 @@ public class PortDirectory {
         return bos.toByteArray();
     }
 
-    public void updatePort(UUID portId, PortConfig newPort)
-            throws NoNodeException, IOException, ClassNotFoundException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void updatePort(UUID portId, PortConfig newPort) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         PortConfig oldPort = getPortConfiguration(portId, null, null);
         if (oldPort.getClass() != newPort.getClass())
             throw new IllegalArgumentException(
@@ -255,7 +251,8 @@ public class PortDirectory {
     }
 
     private PortConfig getPortConfigNoRoutes(UUID portId, Runnable portWatcher)
-            throws NoNodeException, IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException, KeeperException,
+            InterruptedException {
         byte[] data = dir.get("/" + portId.toString(), portWatcher);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
@@ -264,8 +261,8 @@ public class PortDirectory {
     }
 
     public PortConfig getPortConfiguration(UUID portId, Runnable portWatcher,
-            Runnable routesWatcher) throws NoNodeException, IOException,
-            ClassNotFoundException {
+            Runnable routesWatcher) throws IOException, ClassNotFoundException,
+            KeeperException, InterruptedException {
         PortConfig port = getPortConfigNoRoutes(portId, portWatcher);
         if (port instanceof RouterPortConfig) {
             String path = new StringBuilder("/").append(portId.toString())
@@ -274,21 +271,23 @@ public class PortDirectory {
             ((RouterPortConfig) port).routes = new HashSet<Route>();
             for (String rt : routes)
                 ((RouterPortConfig) port).routes.add(Route.fromString(rt));
-        }
-        else if (routesWatcher != null)
+        } else if (routesWatcher != null)
             throw new IllegalArgumentException(
                     "Can't watch routes on a bridge port");
         return port;
     }
 
-    public void deletePort(UUID portId) throws NoNodeException {
+    public void deletePort(UUID portId) throws KeeperException,
+            InterruptedException {
         String routesPath = new StringBuilder("/").append(portId.toString())
                 .append("/routes").toString();
         try {
             Set<String> routes = dir.getChildren(routesPath, null);
             for (String rt : routes)
                 dir.delete(routesPath + "/" + rt);
-        } catch (NoNodeException e) {
+        }
+        catch (KeeperException.NoNodeException e) {
+            // Ignore the exception - the port may not have routes.
         }
         dir.delete("/" + portId.toString());
     }

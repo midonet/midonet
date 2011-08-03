@@ -8,9 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException;
 
 public class BridgeDirectory {
 
@@ -20,20 +18,18 @@ public class BridgeDirectory {
         this.dir = dir;
     }
 
-    /* TODO(pino): get rid of these when we're happy with the serialization.
-    private static byte[] intToBytes(int value) {
-        return new byte[] { (byte) (value >>> 24), (byte) (value >>> 16),
-                (byte) (value >>> 8), (byte) value };
-    }
+    /*
+     * TODO(pino): get rid of these when we're happy with the serialization.
+     * private static byte[] intToBytes(int value) { return new byte[] { (byte)
+     * (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value
+     * }; }
+     * 
+     * private static int bytesToInt(byte[] b) { return (b[0] << 24) + ((b[1] &
+     * 0xFF) << 16) + ((b[2] & 0xFF) << 8) + (b[3] & 0xFF); }
+     */
 
-    private static int bytesToInt(byte[] b) {
-        return (b[0] << 24) + ((b[1] & 0xFF) << 16) + ((b[2] & 0xFF) << 8)
-                + (b[3] & 0xFF);
-    }
-    */
-
-    public void add(UUID bridgeId, int gre_key) throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException, IOException {
+    public void add(UUID bridgeId, int gre_key) throws IOException,
+            KeeperException, InterruptedException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
         out.writeInt(gre_key);
@@ -42,8 +38,8 @@ public class BridgeDirectory {
                 CreateMode.PERSISTENT);
     }
 
-    public void setGreKey(UUID bridgeId, int gre_key) throws NoNodeException,
-            IOException {
+    public void setGreKey(UUID bridgeId, int gre_key) throws IOException,
+            KeeperException, InterruptedException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
         out.writeInt(gre_key);
@@ -51,7 +47,8 @@ public class BridgeDirectory {
         dir.update("/" + bridgeId.toString(), bos.toByteArray());
     }
 
-    public int getGreKey(UUID bridgeId) throws NoNodeException, IOException {
+    public int getGreKey(UUID bridgeId) throws IOException, KeeperException,
+            InterruptedException {
         byte[] data = dir.get("/" + bridgeId.toString(), null);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
@@ -60,7 +57,8 @@ public class BridgeDirectory {
         return greKey;
     }
 
-    public void delete(UUID bridgeId) throws NoNodeException {
+    public void delete(UUID bridgeId) throws KeeperException,
+            InterruptedException {
         dir.delete("/" + bridgeId.toString());
     }
 }

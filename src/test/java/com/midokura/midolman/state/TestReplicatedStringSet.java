@@ -6,9 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +19,7 @@ public class TestReplicatedStringSet {
     Set<String> emptySet = Collections.emptySet();
 
     @Before
-    public void setUp() throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+    public void setUp() throws KeeperException, InterruptedException {
         Directory dir = new MockDirectory();
         dir.add("/one", null, CreateMode.PERSISTENT);
         dir.add("/one/two", null, CreateMode.PERSISTENT);
@@ -35,7 +32,7 @@ public class TestReplicatedStringSet {
     }
 
     @Test
-    public void testStartEmpty() throws NoNodeException {
+    public void testStartEmpty() {
         stringSet.start();
         Assert.assertEquals(emptySet, stringSet.getStrings());
         stringSet.stop();
@@ -43,8 +40,8 @@ public class TestReplicatedStringSet {
     }
 
     @Test
-    public void testAddToDirectoryThenStart() throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void testAddToDirectoryThenStart() throws KeeperException,
+            InterruptedException {
         for (String str : testStrings) {
             setDir.add("/" + str, null, CreateMode.PERSISTENT);
         }
@@ -53,8 +50,8 @@ public class TestReplicatedStringSet {
     }
 
     @Test
-    public void testStartThenAddToDirectory() throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void testStartThenAddToDirectory() throws KeeperException,
+            InterruptedException {
         stringSet.start();
         for (String str : testStrings) {
             setDir.add("/" + str, null, CreateMode.PERSISTENT);
@@ -63,16 +60,15 @@ public class TestReplicatedStringSet {
     }
 
     @Test
-    public void testStartThenAdd() throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+    public void testStartThenAdd() throws KeeperException, InterruptedException {
         stringSet.start();
         stringSet.add(testStrings);
         Assert.assertEquals(testStrings, stringSet.getStrings());
     }
 
     @Test
-    public void testStartThenAddDelete() throws NoNodeException, 
-            NodeExistsException, NoChildrenForEphemeralsException{
+    public void testStartThenAddDelete() throws KeeperException,
+            InterruptedException {
         stringSet.start();
         stringSet.add(testStrings);
         Assert.assertEquals(testStrings, stringSet.getStrings());
@@ -82,8 +78,8 @@ public class TestReplicatedStringSet {
     }
 
     @Test
-    public void testStartThenAddDeleteToDirectory() throws NoNodeException, 
-            NodeExistsException, NoChildrenForEphemeralsException{
+    public void testStartThenAddDeleteToDirectory() throws KeeperException,
+            InterruptedException {
         stringSet.start();
         for (String str : testStrings) {
             setDir.add("/" + str, null, CreateMode.PERSISTENT);
@@ -94,27 +90,25 @@ public class TestReplicatedStringSet {
         Assert.assertEquals(testStrings, stringSet.getStrings());
     }
 
-    @Test(expected=NodeExistsException.class)
-    public void testAddStringExists() throws NoNodeException,
-        NoChildrenForEphemeralsException, NodeExistsException {
+    @Test(expected = KeeperException.NodeExistsException.class)
+    public void testAddStringExists() throws KeeperException,
+            InterruptedException {
         stringSet.start();
         try {
             stringSet.add("foo");
-        }
-        catch (NodeExistsException e) {
+        } catch (KeeperException.NodeExistsException e) {
             Assert.fail();
         }
         stringSet.add("foo");
     }
 
-    @Test(expected=NoNodeException.class)
-    public void testRemoveStringDoesNotExist() throws NoNodeException,
-        NoChildrenForEphemeralsException, NodeExistsException {
+    @Test(expected = KeeperException.NoNodeException.class)
+    public void testRemoveStringDoesNotExist() throws KeeperException,
+            InterruptedException {
         stringSet.start();
         try {
             stringSet.add("foo");
-        }
-        catch (NoNodeException e) {
+        } catch (KeeperException.NoNodeException e) {
             Assert.fail();
         }
         stringSet.remove("bar");
@@ -132,8 +126,8 @@ public class TestReplicatedStringSet {
     }
 
     @Test
-    public void testChangeWatchers() throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void testChangeWatchers() throws KeeperException,
+            InterruptedException {
         MyWatcher watch1 = new MyWatcher();
         MyWatcher watch2 = new MyWatcher();
         stringSet.addWatcher(watch1);

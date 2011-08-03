@@ -184,8 +184,7 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public Directory getSubDirectory(String path)
-            throws NoNodeException {
+    public Directory getSubDirectory(String path) throws NoNodeException {
         Node subdirRoot = getNode(path);
         return new MockDirectory(subdirRoot);
     }

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
@@ -152,7 +153,7 @@ public class TestMockDirectory {
 
     @Test
     public void testSubDirectory() throws
-        NoNodeException, NodeExistsException, NoChildrenForEphemeralsException {
+        KeeperException, InterruptedException {
         dir.add("/a", "a".getBytes(), CreateMode.PERSISTENT);
         dir.add("/a/b", "ab".getBytes(), CreateMode.PERSISTENT);
         dir.add("/a/b/c", "abc".getBytes(), CreateMode.PERSISTENT);

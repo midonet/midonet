@@ -8,9 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException;
 
 public abstract class ReplicatedMap<K, V> {
 
@@ -26,9 +24,12 @@ public abstract class ReplicatedMap<K, V> {
             Set<String> curPaths = null;
             try {
                  curPaths = dir.getChildren("/", this);
-            } 
-            catch(NoNodeException e) {
+            } catch (KeeperException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             List<String> cleanupPaths = new LinkedList<String>();
             Set<K> curKeys = new HashSet<K>();
@@ -60,9 +61,12 @@ public abstract class ReplicatedMap<K, V> {
             for (String path : cleanupPaths)
                 try {
                     dir.delete(path);
-                } catch (NoNodeException e) {
-                    // TODO Auto-generated catch block
+                } catch (KeeperException e) {
                     e.printStackTrace();
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 }
         }
     }
@@ -89,7 +93,7 @@ public abstract class ReplicatedMap<K, V> {
         watchers.remove(watcher);
     }
 
-    public void start() throws NoNodeException {
+    public void start() {
         if (!this.running) {
             this.running = true;
             myWatcher.run();
@@ -115,21 +119,22 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
-    public void put(K key, V value) throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void put(K key, V value) throws KeeperException, InterruptedException {
         MapValue oldMv = map.get(key);
         String path = dir.add(new Path(key, value, 0).encode(false), null,
                 CreateMode.EPHEMERAL_SEQUENTIAL);
+        // Get the sequence number added by ZooKeeper.
         Path p = decodePath(path);
-        // The sequence suffix is generated and added by ZooKeeper to the
-        // path. Keep track of it locally, for later garbage collection.
         map.put(key, new MapValue(value, p.version, true));
 
         if (null != oldMv && oldMv.owner) {
             try {
                 dir.delete(encodePath(key, oldMv.value, oldMv.version));
             }
-            catch (NoNodeException e) {}
+            catch (KeeperException.NoNodeException e) {
+                // Ignore this exception. The watcher may already have been
+                // triggered and it cleaned up this old node.
+            }
         }
         if (null != oldMv) {
             if (!value.equals(oldMv.value))
@@ -139,7 +144,7 @@ public abstract class ReplicatedMap<K, V> {
             notifyWatchers(key, null, value);
     }
 
-    public V remove(K key) throws NoNodeException {
+    public V remove(K key) throws KeeperException, InterruptedException {
         MapValue mv = map.get(key);
         if (null == mv)
             return null;

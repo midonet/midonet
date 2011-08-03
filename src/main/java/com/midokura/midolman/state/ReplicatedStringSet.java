@@ -6,10 +6,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
-
+import org.apache.zookeeper.KeeperException;
 
 public class ReplicatedStringSet {
 
@@ -26,9 +23,13 @@ public class ReplicatedStringSet {
             Set<String> oldStrings = strings;
             try {
                 strings = new HashSet<String>(dir.getChildren("/", this));
-            } 
-            catch(NoNodeException e) {
+            } catch (KeeperException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             // Compute the newly added strings
             Set<String> addedStrings = new HashSet<String>(strings);
@@ -63,8 +64,8 @@ public class ReplicatedStringSet {
     public void removeWatcher(Watcher watcher) {
         changeWatchers.remove(watcher);
     }
-    
-    public void start() throws NoNodeException {
+
+    public void start() {
         if (!running) {
             running = true;
             myWatcher.run();
@@ -76,29 +77,29 @@ public class ReplicatedStringSet {
         strings.clear();
     }
 
-    public void add(Collection<String> addStrings) throws NoNodeException,
-            NodeExistsException, NoChildrenForEphemeralsException {
+    public void add(Collection<String> addStrings) throws KeeperException,
+            InterruptedException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         for (String str : addStrings)
             add(str);
     }
 
-    public void remove(Collection<String> delStrings) throws NoNodeException {
+    public void remove(Collection<String> delStrings) throws KeeperException,
+            InterruptedException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         for (String str : delStrings)
             remove(str);
     }
 
-    public void add(String str) throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+    public void add(String str) throws KeeperException, InterruptedException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         dir.add("/" + str, null, CreateMode.EPHEMERAL);
     }
 
-    public void remove(String str) throws NoNodeException {
+    public void remove(String str) throws KeeperException, InterruptedException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         dir.delete("/" + str);
@@ -109,8 +110,7 @@ public class ReplicatedStringSet {
     }
 
     protected void notifyWatchers(Collection<String> addedStrings,
-            Collection<String> removedStrings)
-    {
+            Collection<String> removedStrings) {
         for (Watcher watcher : changeWatchers) {
             watcher.process(addedStrings, removedStrings);
         }
