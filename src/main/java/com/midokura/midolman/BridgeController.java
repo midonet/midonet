@@ -203,6 +203,7 @@ public class BridgeController extends AbstractController {
 
     private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
         return new UUID(0, 0);  // FIXME
+	// Should be part of OVS interface.
     }
 
     private InetAddress peerIpOfGrePortName(String portName) {
