@@ -29,6 +29,21 @@
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
+				<executions>
+				  <execution>
+					<goals>
+					  <goal>compile</goal>
+					  <goal>testCompile</goal>
+					</goals>
+					<configuration>
+					  <args>
+						<arg>-make:transitive</arg>
+						<arg>-dependencyfile</arg>
+						<arg>${project.build.directory}/.scala_dependencies</arg>
+					  </args>
+					</configuration>
+				  </execution>
+				</executions>
             </plugin>
 
             <plugin>
@@ -109,6 +124,12 @@
     </pluginRepositories>
 
     <repositories>
+      <repository>
+        <id>mido-maven-snapshot</id>
+        <name>mido-maven-snapshot</name>
+        <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
+      </repository>
+
         <repository>
             <id>mido-maven</id>
             <name>mido-maven</name>
@@ -170,6 +191,12 @@
     </repositories>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>jackson-module-scala</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
