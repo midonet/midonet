@@ -82,7 +82,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeId: Long): List[List[String]] = {
-        List(List("datapath_id", "==", format("%016x", bridgeId)))
+        List(List("datapath_id", "==", "%016x".format(bridgeId)))
     }
 
     /**
@@ -121,9 +121,12 @@ object OpenvSwitchDatabaseConnectionImpl {
     def ovsMapToMap(ovsMap: JsonNode): Map[String, String] = {
         require(ovsMap.get(0).toString != "map",
                 "map should be the first entry.")
-        (for (node <- ovsMap.get(1))
-         yield (node.get(0).getTextValue,
-                node.get(1).getTextValue)).toMap[String, String]
+        (for {
+            node <- ovsMap.get(1)
+            key = node.get(0) if key != null
+            value = node.get(1) if value != null
+        } yield (key.getTextValue,
+                 value.getTextValue)).toMap[String, String]
      }
 
     /**
@@ -160,13 +163,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private val timer = new Timer()
     private var continue = true
 
-    { val me = new Thread(this); me.setDaemon(true); me.start() }
+    { val me = new Thread(this); me.setDaemon(true); me.start }
 
     timer.schedule(new TimerTask() {
         override def run = synchronized {
             val transact = Map(
                 "method" -> "echo",
-                "params" -> objectMapper.createArrayNode(), "id" -> "echo")
+                "params" -> objectMapper.createArrayNode, "id" -> "echo")
             try {
                 objectMapper.writeValue(jsonGenerator, transact)
                 jsonGenerator.flush
@@ -217,16 +220,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             // take().
             var response: JsonNode = null
             try {
-                response = queue.take()
+                response = queue.take
             } catch {
                 case e: InterruptedException =>
                     { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
             }
             val errorValue = response.get("error")
-            if (!errorValue.isNull()) {
+            if (!errorValue.isNull) {
                 log.warn("doJsonRpc: error from server: ", errorValue)
                 throw new RuntimeException(
-                    "OVSDB request error: " + errorValue.toString())
+                    "OVSDB request error: " + errorValue.toString)
             }
             return response.get("result")
         } finally {
@@ -239,18 +242,19 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def run() = {
         while (continue) {
             try {
-                val json = jsonParser.readValueAsTree()
+                val json = jsonParser.readValueAsTree
                 log.debug("OVSDB response: ", json)
 
                 if (json.get("result") != null) {
-                    val requestId = json.get("id").getValueAsLong()
-                    //var queue: BlockingQueue[JsonNode] = null
+                    assume(json.get("id") != null, "Invalid JSON object.")
+                    val requestId = json.get("id").getValueAsLong
                     pendingJsonRpcRequests.synchronized {
                         pendingJsonRpcRequests.get(requestId) match {
-                            // Pass the JSON object to the caller,
-                            // and notify it.
+                            // Pass the JSON object to the caller, and
+                            // notify it.
                             case Some(queue) => queue.add(json)
-                            case None =>
+                            case None => throw new RuntimeException(
+                                "Invalid requestId %d".format(requestId))
                         }
                     }
                 }
@@ -468,7 +472,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                        column: List[String]): JsonNode = {
         val tx = new Transaction(database)
         tx.select(table, where, column)
-        doJsonRpc(tx).get(0).get("rows")
+        val json = doJsonRpc(tx)
+        assume(json.get(0) != null, "Invalid JSON object.")
+        json.get(0).get("rows")
     }
 
     /**
@@ -487,7 +493,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val tx = new Transaction(database)
         tx.select(table, List(List("external_ids", "includes",
                                    mapToOvsMap(Map(key -> value)))), columns)
-        doJsonRpc(tx).get(0).get("rows")
+        val json = doJsonRpc(tx)
+        assume(json.get(0) != null, "Invalid JSON object.")
+        json.get(0).get("rows")
     }
 
     /**
@@ -500,8 +508,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def getBridgeUUID(bridgeId: Long): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List("_uuid"))
-        for (bridgeRow <- bridgeRows)
-            return bridgeRow.get("_uuid").get(1).getTextValue
+        for {
+            bridgeRow <- bridgeRows
+            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            bridgeUUID = _uuid.get(1) if bridgeUUID != null
+        } return bridgeUUID.getTextValue
+
         return ""
     }
 
@@ -513,11 +525,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return The UUID of the bridge associated with the given bridge id.
      */
     private def getBridgeUUID(bridgeName: String): String = {
-        val where = List(List("name", "==", bridgeName))
-        val columns = List("_uuid")
-        val bridgeRows = select(TableBridge, where, columns)
-        for (bridgeRow <- bridgeRows.getElements)
-            return bridgeRow.get("_uuid").get(1).getTextValue
+        val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
+                                List("_uuid"))
+        for {
+            bridgeRow <- bridgeRows
+            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            bridgeUUID = _uuid.get(1) if bridgeUUID != null
+        } return bridgeUUID.getTextValue
+
         return ""
     }
 
@@ -526,11 +541,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     private class BridgeBuilderImpl(val name: String) extends BridgeBuilder {
         require(name != null, "The name of the bridge is required.")
-        private var ifRow = Map[String, Any]("name" -> name)
+        private var ifRow = Map[String, String]("name" -> name)
         private var portRow = Map[String, Any]("name" -> name)
         private var bridgeRow = Map[String, Any]("name" -> name,
                                                  "datapath_type" -> "")
-        private var bridgeExternalIds = Map[String, Any]()
+        private var bridgeExternalIds = Map[String, String]()
 
         /**
          * Add an external id.
@@ -560,25 +575,24 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         /**
          * Build the bridge base on this BridgeBuilderImpl instance.
          */
-        override def build() = { apply; this }
-        def apply(): JsonNode = {
+        override def build() = {
             val tx = new Transaction(database)
-            val ifUUID: String = generateUUID()
+            val ifUUID: String = generateUUID
             tx.insert(TableInterface, ifUUID, ifRow)
-            val portUUID = generateUUID()
+            val portUUID = generateUUID
             portRow += ("interfaces" -> getNewRowOvsUUID(ifUUID))
             tx.insert(TablePort, portUUID, portRow)
-            val bridgeUUID = generateUUID()
+            val bridgeUUID = generateUUID
             bridgeRow += ("ports" -> getNewRowOvsUUID(portUUID))
             bridgeRow += ("external_ids" -> mapToOvsMap(bridgeExternalIds))
             tx.insert(TableBridge, bridgeUUID, bridgeRow)
             tx.setInsert(TableOpenvSwitch, None, "bridges",
                          getNewRowOvsUUID(bridgeUUID))
             val extIds: Iterable[String] =
-                for ((k, v) <- bridgeExternalIds) yield format("%s=%s", k, v)
+                for ((k, v) <- bridgeExternalIds) yield "%s=%s".format(k, v)
             val extIdsStr: String = extIds.mkString(", ")
-            tx.addComment(format("added bridge %s with external ids ",
-                                 extIdsStr))
+            tx.addComment("added bridge %s with external ids %s.".format(
+                bridgeUUID, extIdsStr))
             tx.increment(TableOpenvSwitch, None, "next_cfg")
             doJsonRpc(tx)
         }
@@ -588,16 +602,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * A BridgeBuilder that uses a synchronous OVSDB connection.
      */
     private class PortBuilderImpl(
-        val ifType: String, val bridgeId: Long, val portName: String,
+        val ifType: String, val bridgeId: Long = 0, val portName: String,
         val bridgeName: String="") extends PortBuilder {
-        private var ifRow = Map[String, Any]("type" -> ifType,
-                                             "name" -> portName)
-        private var portRow = Map[String, Any]("name" -> portName)
+        private var ifRow = Map[String, String]("type" -> ifType,
+                                                "name" -> portName)
+        private var portRow = Map[String, String]("name" -> portName)
         private var portExternalIds = Map[String, String]()
-
-        def this(ifType: String, bridgeName: String, portName: String) = {
-            this(ifType, 0, portName, bridgeName)
-        }
 
         /**
          * Add an external id.
@@ -626,8 +636,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         /**
          * Build the port base on this PortBuilder instance.
          */
-        override def build() = { apply; this }
-        def apply(): JsonNode = {
+        override def build() = {
             val bridgeUUID = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
             } else {
@@ -640,20 +649,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * A GrePortBuilder that uses an synchronous OVSDB connection.
      */
-    private class GrePortBuilderImpl(val bridgeId: Long, val portName: String,
+    private class GrePortBuilderImpl(val bridgeId: Long = 0, val portName: String,
                                      val remoteIp: String,
                                      val bridgeName: String="")
             extends GrePortBuilder {
-        private var ifRow: Map[String, Any] =
+        private var ifRow: Map[String, String] =
             Map("type" -> InterfaceTypeGre, "name" -> portName)
-        private var portRow: Map[String, Any] = Map("name" -> portName)
+        private var portRow: Map[String, String] = Map("name" -> portName)
 
-        private var ifOptions: Map[String, Any] = Map("remote_ip" -> remoteIp)
+        private var ifOptions: Map[String, _] = Map("remote_ip" -> remoteIp)
         private var portExternalIds = Map[String, String]()
-
-        def this(bridgeName: String, portName: String, remoteIp: String) = {
-            this(0, portName, remoteIp, bridgeName)
-        }
 
         override def externalId(key: String, value: String) =
             { portExternalIds += (key -> value); this }
@@ -682,13 +687,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def ttlInherit() =
             { ifOptions += ("ttl" -> "inherit"); this }
         override def enableCsum() =
-            { ifOptions += ("csum" -> "true"); this }
+            { ifOptions += ("csum" -> true); this }
         override def disablePmtud() =
-            { ifOptions += ("pmtud" -> "false"); this }
+            { ifOptions += ("pmtud" -> false); this }
         override def disableHeaderCache() =
-            { ifOptions += ("header_cache" -> "false"); this }
-        override def build() = { apply; this }
-        def apply(): JsonNode = {
+            { ifOptions += ("header_cache" -> false); this }
+        override def build() = {
             val bridgeUUID = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
             } else {
@@ -702,15 +706,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * A ControllerBuilder that uses an asynchronous OVSDB connection.
      */
-    private class ControllerBuilderImpl(val bridgeId: Long, val target: String,
+    private class ControllerBuilderImpl(val bridgeId: Long = 0, val target: String,
                                         val bridgeName: String="")
             extends ControllerBuilder {
-        private var ctrlRow: Map[String, Any] = Map("target" -> target)
-        private var ctrlExternalIds: Map[String, Any] = Map()
-
-        def this(bridgeName: String, target: String) = {
-            this(0, target, bridgeName)
-        }
+        private var ctrlRow: Map[String, _] = Map("target" -> target)
+        private var ctrlExternalIds: Map[String, String] = Map()
 
         override def externalId(key: String, value: String) =
             { ctrlExternalIds += (key -> value); this }
@@ -735,7 +735,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def discoverUpdateResolvConf(
             discoverUpdateResolvConf: Boolean) = {
             ctrlRow += ("discover_update_resolv_conf" ->
-                        (if (discoverUpdateResolvConf) "true" else "false"))
+                        (if (discoverUpdateResolvConf) true else false))
             this
         }
         override def localIp(localIp: String) = {
@@ -747,15 +747,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def localGateway(localGateway: String) = {
             ctrlRow += ("local_gateway" -> localGateway); this
         }
-        override def build() = { apply; this }
-        def apply(): JsonNode = {
+        override def build() = {
             val bridgeUUID: String = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
             } else {
                 getBridgeUUID(bridgeId)
             }
             val tx = new Transaction(database)
-            val ctrlUUID: String = generateUUID()
+            val ctrlUUID: String = generateUUID
             ctrlRow += ("external_ids" -> mapToOvsMap(ctrlExternalIds))
             tx.insert(TableController, ctrlUUID, ctrlRow)
             tx.setInsert(TableBridge, Some(bridgeUUID), "controller",
@@ -791,13 +790,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                         ifOptions: Option[Map[String, _]],
                         portExternalIds: Option[Map[String, _]]) = {
         val tx = new Transaction(database)
-        val ifUUID: String = generateUUID()
+        val ifUUID: String = generateUUID
         var portRowUpdated: Map[String, Any] = portRow
         var ifRowUpdated: Map[String, Any] = ifRow
         if (!ifOptions.isEmpty)
             ifRowUpdated += ("options" -> mapToOvsMap(ifOptions.get))
         tx.insert(TableInterface, ifUUID, ifRowUpdated)
-        val portUUID: String = generateUUID()
+        val portUUID: String = generateUUID
         if (!portExternalIds.isEmpty)
             portRowUpdated =
                 portRow + ("external_ids" -> mapToOvsMap(portExternalIds.get))
@@ -807,14 +806,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                      "ports", getNewRowOvsUUID(portUUID))
         if (!portExternalIds.isEmpty) {
             val extIds = for ((k, v) <- portExternalIds.get)
-                         yield format("%s=%s", k, v)
+                         yield "%s=%s".format(k, v)
             val extIdsStr: String = extIds.mkString(", ")
             tx.addComment(
-                format("added port %s to bridge %s with external ids %s",
-                       portRow("name"), bridgeUUID, extIdsStr))
+                "added port %s to bridge %s with external ids %s".format(
+                    portRow("name"), bridgeUUID, extIdsStr))
         } else {
-            tx.addComment(format("added port %s to bridge %s",
-                                 portRow("name"), bridgeUUID))
+            tx.addComment("added port %s to bridge %s".format(
+                portRow("name"), bridgeUUID))
         }
         tx.increment(TableOpenvSwitch, None, "next_cfg")
         doJsonRpc(tx)
@@ -844,7 +843,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def addSystemPort(bridgeName: String,
                                portName: String): PortBuilder =
-        new PortBuilderImpl(InterfaceTypeSystem, bridgeName, portName)
+        new PortBuilderImpl(InterfaceTypeSystem, portName=portName,
+                            bridgeName=bridgeName)
 
     /**
      * Create a port and an internal interface, and add the port to a bridge
@@ -872,7 +872,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def addInternalPort(bridgeName: String,
                         portName: String): PortBuilder =
-        new PortBuilderImpl(InterfaceTypeInternal, bridgeName, portName)
+        new PortBuilderImpl(InterfaceTypeInternal, portName=portName,
+                        bridgeName=bridgeName)
 
     /**
      * Create a port and a TAP interface, and add the port to a bridge.
@@ -892,7 +893,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return a builder to set optional parameters of the port and add it
      */
     override def addTapPort(bridgeName: String, portName: String): PortBuilder =
-        new PortBuilderImpl(InterfaceTypeTap, bridgeName, portName)
+        new PortBuilderImpl(InterfaceTypeTap, portName=portName,
+                            bridgeName=bridgeName)
 
     /**
      * Create a port and a GRE interface, and add the port to a bridge.
@@ -916,7 +918,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def addGrePort(bridgeName: String,  portName: String,
                    remoteIp: String): GrePortBuilder =
-        new GrePortBuilderImpl(bridgeName, portName, remoteIp)
+        new GrePortBuilderImpl(bridgeName=bridgeName, portName=portName,
+                               remoteIp=remoteIp)
 
     /**
      * Delete a port which name is <pre>portName</pre>.
@@ -927,23 +930,32 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val tx: Transaction = new Transaction(database)
         val portRows = select(TablePort, List(List("name", "==", portName)),
                               List("_uuid", "interfaces"))
-        for (portRow <- portRows) {
-            val portUUID: String =
-                portRow.get("_uuid").get(1).getTextValue
+        for {
+            portRow <- portRows
+            _uuid = portRow.get("_uuid") if _uuid != null
+            uuidVal = _uuid.get(1) if uuidVal != null
+        } {
+            val portUUID: String = uuidVal.getTextValue
             tx.delete(TablePort, Some(portUUID))
+
             val ifs: JsonNode = portRow.get("interfaces")
+            assume(ifs != null, "Invalid JSON object.")
             // ifs could be a single array, ["uuid", "1234"], or
             // a set of array, ["set" [["uuid", "1234"], ["uuid", "5678"]]].
             val ifUUIDs: List[JsonNode] =
                 if (ifs.get(0) == "uuid") {
                     List(ifs)
                 } else if (ifs.get(0) == "set") {
+                    assume(ifs.get(1) != null, "Invalid JSON object.")
                     ifs.get(1).getElements.toList
                 } else {
                     List()
                 }
-            for (uuidArray <- ifUUIDs) {
-                val ifUUID = uuidArray.get(1).getTextValue
+            for {
+                uuidArray <- ifUUIDs
+                uuidArrayVal = uuidArray.get(1) if uuidArrayVal != null
+            } {
+                val ifUUID = uuidArrayVal.getTextValue
                 tx.delete("Interface", Some(ifUUID))
             }
             tx.setDelete(TableBridge, None, "ports", List("uuid", portUUID))
@@ -1022,27 +1034,37 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def addBridgeOpenflowController(
         bridgeName: String, target: String): ControllerBuilder =
-        new ControllerBuilderImpl(bridgeName, target)
+            new ControllerBuilderImpl(bridgeName=bridgeName, target=target)
 
 
     private def delBridgeOpenflowControllers(
         bridgeRows: JsonNode, bridge: String) = {
         val tx = new Transaction(database)
 
-        for (bridgeRow <- bridgeRows.getElements) {
-            val bridgeUUID: String =
-                bridgeRow.get("_uuid").get(1).getTextValue
-            val controllers = bridgeRow.get("controller")
+        for {
+            bridgeRow <- bridgeRows
+            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            uuidVal = _uuid.get(1) if uuidVal != null
+            controllers = bridgeRow.get("controller") if controllers != null
+            controllersKey = controllers.get(0) if controllersKey != null
+        } {
+            val bridgeUUID: String = uuidVal.getTextValue
             val controllerUUIDs: List[JsonNode] =
-                if (controllers.get(0).getTextValue == "uuid") {
+                if (controllersKey.getTextValue == "uuid") {
                     List(controllers)
-                } else if (controllers.get(0).getTextValue == "set") {
+                } else if (controllersKey.getTextValue == "set") {
+                    assume(controllers.get(1) != null, "Invalid JSON object.")
                     controllers.get(1).getElements.toList
                 } else {
                     List()
                 }
-            for (controllerUUID <- controllerUUIDs) {
-                val uuid = controllerUUID.get(1).getTextValue
+
+            for {
+                controllerUUID <- controllerUUIDs
+                controllerUUIDVal = controllerUUID.get(1)
+                if controllerUUIDVal != null
+            } {
+                val uuid = controllerUUIDVal.getTextValue
                 tx.delete(TableController, Some(uuid))
                 tx.setDelete(TableBridge, Some(bridgeUUID),
                              "controller", List("uuid", uuid))
@@ -1086,7 +1108,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def hasBridge(bridgeId: Long) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List("_uuid"))
-        bridgeRows.getElements.length != 0
+        !bridgeRows.getElements.isEmpty
     }
 
     /**
@@ -1098,7 +1120,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def hasBridge(bridgeName: String) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("_uuid"))
-        bridgeRows.getElements.length != 0
+        !bridgeRows.getElements.isEmpty
     }
 
     /**
@@ -1110,7 +1132,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def hasPort(portName: String) = {
         val portRows = select(TablePort, List(List("name", "==", portName)),
                                 List("_uuid"))
-        portRows.getElements.length != 0
+        !portRows.getElements.isEmpty
     }
 
     /**
@@ -1122,14 +1144,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def hasController(target: String) = {
         val controllerRows = select(
             TableController, List(List("target", "==", target)), List("_uuid"))
-        controllerRows.getElements.length != 0
+        !controllerRows.getElements.isEmpty
     }
 
     private def delBridge(bridgeRows: Iterator[JsonNode], bridge: String) = {
         val tx = new Transaction(database)
 
-        for (bridgeRow <- bridgeRows) {
-            val bridgeUUID = bridgeRow.get("_uuid").get(1)
+        for {
+            bridgeRow <- bridgeRows
+            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            bridgeUUID = _uuid.get(1) if bridgeUUID != null
+        } {
             tx.delete(TableBridge, Some(bridgeUUID.getTextValue))
             // The 'Open_vSwitch' table should contain only one row, so pass
             // None as the UUID to update all the rows in there.  Delete the
@@ -1138,36 +1163,46 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                          List("uuid", bridgeUUID.getTextValue))
 
             val ports = bridgeRow.get("ports")
+            assume(ports != null, "Invalid JSON object.")
+            assume(ports.get(0) != null, "Invalid JSON object.")
             val portUUIDs: List[JsonNode] =
                 if (ports.get(0).getTextValue == "uuid") {
                     List(ports)
                 } else if (ports.get(0).getTextValue == "set") {
+                    assume(ports.get(1) != null, "Invalid JSON object.")
                     ports.get(1).getElements.toList
                 } else {
                     List()
                 }
-            for (portUUID <- portUUIDs) {
-                tx.delete(TablePort, Some(portUUID.get(1).getTextValue))
+            for {
+                portUUID <- portUUIDs
+                portUUIDVal = portUUID.get(1) if portUUIDVal != null
+            } {
+                tx.delete(TablePort, Some(portUUIDVal.getTextValue))
                 val portRow = select(
-                    TablePort, whereUUIDEquals(portUUID.get(1).getTextValue),
+                    TablePort,
+                    whereUUIDEquals(portUUIDVal.getTextValue),
                     List("_uuid", "interfaces")).get(0)
                 val ifs = portRow.get("interfaces")
+                assume(ifs != null, "Invalid JSON object.")
+                assume(ifs.get(0) != null, "Invalid JSON object.")
                 val ifUUIDs: List[JsonNode] =
                     if (ifs.get(0).getTextValue == "uuid") {
                         List(ifs)
                     } else {
                         ifs.getElements.toList
                     }
-                for (ifUUID <- ifUUIDs) {
-                    tx.delete(TableInterface, Some(ifUUID.get(1).getTextValue))
-                }
+                for {
+                    ifUUID <- ifUUIDs
+                    ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
+                } tx.delete(TableInterface, Some(ifUUIDVal.getTextValue))
             }
         }
 
         // Trigger ovswitchd to reload the configuration.
         tx.increment(TableOpenvSwitch, None, "next_cfg")
 
-        tx.addComment(format("deleted bridge with %s", bridge))
+        tx.addComment("deleted bridge with %s".format(bridge))
 
         doJsonRpc(tx)
     }
@@ -1203,9 +1238,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def getDatapathId(bridgeName: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("datapath_id", "ports"))
-        for (bridgeRow <- bridgeRows) {
-            return bridgeRow.get("datapath_id").getValueAsText
-        }
+        for {
+            bridgeRow <- bridgeRows
+            datapathId = bridgeRow.get("datapath_id") if datapathId != null
+        } return datapathId.getValueAsText
+
         return ""
     }
 
@@ -1221,13 +1258,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                        externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List("external_ids"))
-        for (bridgeRow <- bridgeRows) {
-            val extIds = ovsMapToMap(bridgeRow.get("external_ids"))
-            extIds.get(externalIdKey) match {
-                case Some(s) => return s
-                case None => return ""
+        for {
+            bridgeRow <- bridgeRows
+            ovsMap = bridgeRow.get("external_ids") if ovsMap != null
+        } {
+            val extIds = ovsMapToMap(ovsMap)
+            for (externalIdVal <- extIds.get(externalIdKey)) {
+                return externalIdVal
             }
         }
+
         return ""
     }
 
@@ -1243,11 +1283,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                        externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("external_ids"))
-        for (bridgeRow <- bridgeRows) {
-            val extIds = ovsMapToMap(bridgeRow.get("external_ids"))
-            extIds.get(externalIdKey) match {
-                case Some(s) => return s
-                case None => return ""
+        for {
+            bridgeRow <- bridgeRows
+            ovsMap = bridgeRow.get("external_ids") if ovsMap != null
+        } {
+            val extIds = ovsMapToMap(ovsMap)
+            for (externalIdVal <- extIds.get(externalIdKey)) {
+                return externalIdVal
             }
         }
         return ""
@@ -1256,38 +1298,52 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def getPortExternalId(
         bridgeRows: Iterator[JsonNode], portNum: Int,
         externalIdKey: String): String = {
-        for (bridgeRow <- bridgeRows) {
-            val ports = bridgeRow.get("ports")
+        for {
+            bridgeRow <- bridgeRows
+            ports = bridgeRow.get("ports") if ports != null
+            portsKey = ports.get(0) if portsKey != null
+        } {
             val portUUIDs: List[JsonNode] =
-                if (ports.get(0).getTextValue == "uuid") {
+                if (portsKey.getTextValue == "uuid") {
                     List(ports)
-                } else if (ports.get(0).getTextValue == "set") {
+                } else if (portsKey.getTextValue == "set") {
+                    assume(ports.get(1) != null, "Invalid JSON object.")
                     ports.get(1).getElements.toList
                 } else {
                     List()
                 }
-            for (portUUID <- portUUIDs) {
+            for {
+                portUUID <- portUUIDs
+                portUUIDVal = portUUID.get(1) if portUUIDVal !=  null
+            } {
                 val portRow = select(
                     TablePort, whereUUIDEquals(portUUID.get(1).getTextValue),
                     List("_uuid", "interfaces", "external_ids")).get(0)
                 val ifs = portRow.get("interfaces")
+                assume(ifs != null, "Invalid JSON object.")
                 val ifUUIDs: List[JsonNode] =
                     if (ifs.get(0).getTextValue == "uuid") {
                         List(ifs)
                     } else {
+                        assume(ifs.get(1) != null, "Invalid JSON object.")
                         ifs.get(1).getElements.toList
                     }
-                for (ifUUID <- ifUUIDs) {
+                for {
+                    ifUUID <- ifUUIDs
+                    ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
+                } {
                     val ifRow =
                         select(TableInterface,
-                               whereUUIDEquals(ifUUID.get(1).getTextValue),
+                               whereUUIDEquals(ifUUIDVal.getTextValue),
                                List("_uuid", "ofport")).get(0)
+                    assume(ifRow.get("ofport") != null, "Invalid JSON object.")
                     if (ifRow.get("ofport").getValueAsInt == portNum) {
+                        assume(portRow.get("external_ids") != null,
+                               "Invalid JSON object.")
                         val extIds =
                             ovsMapToMap(portRow.get("external_ids"))
-                        extIds.get(externalIdKey) match {
-                            case Some(s) => return s
-                            case None => return ""
+                        for (externalIdVal <- extIds.get(externalIdKey)) {
+                            return externalIdVal
                         }
                     }
                 }
@@ -1308,11 +1364,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                    externalIdKey: String): String = {
         val portRows = select(TablePort, List(List("name", "==", portName)),
                               List("_uuid", "external_ids"))
-        for (portRow <- portRows) {
-            val extIds = ovsMapToMap(portRow.get("external_ids"))
-            extIds.get(externalIdKey) match {
-                case Some(s) => return s
-                case None => return ""
+        for {
+            portRow <- portRows
+            ovsMap = portRow.get("external_ids") if ovsMap != null
+        } {
+            val extIds = ovsMapToMap(ovsMap)
+            for (externalIdVal <- extIds.get(externalIdKey)) {
+                return externalIdVal
             }
         }
         return ""
@@ -1401,7 +1459,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         key: String, value: String): java.util.Set[String] = {
         val rows = selectByExternalId(TableBridge, key, value, List("name"))
         mutable.Set(
-            (for (row <- rows) yield row.get("name").getTextValue).toList:_*)
+            (for {
+                row <- rows
+                name = row.get("name") if name != null
+            } yield name.getTextValue).toList: _*)
     }
 
     /**
@@ -1416,7 +1477,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         key: String, value: String): java.util.Set[String] = {
         val rows = selectByExternalId(TablePort, key, value, List("name"))
         mutable.Set(
-            (for (row <- rows) yield row.get("name").getTextValue).toList:_*)
+                (for {
+                    row <- rows
+                    name = row.get("name") if name != null
+                } yield name.getTextValue).toList: _*)
     }
 
     /**

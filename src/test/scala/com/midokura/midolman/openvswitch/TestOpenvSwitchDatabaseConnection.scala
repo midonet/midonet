@@ -17,7 +17,7 @@ import com.midokura.midolman.openvswitch._
 /**
  * Test for the Open vSwitch database connection.
  */
-object TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
+object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
     private final val port = 12344
@@ -64,8 +64,8 @@ object TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
     }
 }
 
-class TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
-    import TestOpenvSwitchDatabaaseConnection._
+class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
+    import TestOpenvSwitchDatabaseConnection._
 
     /**
      * Test addSystemPort().
