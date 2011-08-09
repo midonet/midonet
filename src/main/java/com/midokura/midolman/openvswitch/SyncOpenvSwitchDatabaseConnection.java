@@ -1402,13 +1402,13 @@ public class SyncOpenvSwitchDatabaseConnection
     }
 
     @Override
-    public String getPortExternalId(long bridgeId, short portNum,
+    public String getPortExternalId(long bridgeId, int portNum,
                                     String externalIdKey) {
         throw new RuntimeException("not implemented"); // TODO
     }
 
     @Override
-    public String getPortExternalId(String bridgeName, short portNum,
+    public String getPortExternalId(String bridgeName, int portNum,
                                     String externalIdKey) {
         throw new RuntimeException("not implemented"); // TODO
     }

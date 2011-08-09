@@ -269,7 +269,7 @@ public interface OpenvSwitchDatabaseConnection {
      * datapath ID exists, or if no port with that number exists in that
      * bridge, or if the port has no external ID with that key
      */
-    String getPortExternalId(long bridgeId, short portNum,
+    String getPortExternalId(long bridgeId, int portNum,
                              String externalIdKey);
 
     /**
@@ -282,7 +282,7 @@ public interface OpenvSwitchDatabaseConnection {
      * name exists, or if no port with that number exists in that bridge, or if
      * the port has no external ID with that key
      */
-    String getPortExternalId(String bridgeName, short portNum,
+    String getPortExternalId(String bridgeName, int portNum,
                              String externalIdKey);
 
     /**
