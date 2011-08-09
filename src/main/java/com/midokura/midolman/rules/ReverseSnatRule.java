@@ -6,7 +6,6 @@ public class ReverseSnatRule extends Rule {
 
     public ReverseSnatRule(Condition condition) {
         super(condition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override
@@ -15,5 +14,10 @@ public class ReverseSnatRule extends Rule {
         
     }
 
-
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof ReverseDnatRule)) return false;
+        return super.equals(other);
+    }
 }

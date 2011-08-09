@@ -4,15 +4,32 @@ import java.util.UUID;
 
 public class JumpRule extends Rule {
 
-    public JumpRule(Condition condition) {
+    String jumpToChain;
+
+    public JumpRule(Condition condition, String jumpToChain) {
         super(condition);
-        // TODO Auto-generated constructor stub
+        this.jumpToChain = jumpToChain;
     }
 
     @Override
     protected void apply(UUID inPortId, UUID outPortId, RuleResult res) {
-        // TODO Auto-generated method stub
-        
+        res.action = Action.JUMP;
+        res.jumpToChain = jumpToChain;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        return 31*hash + jumpToChain.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof JumpRule)) return false;
+        if (!super.equals(other))
+            return false;
+        JumpRule r = (JumpRule)other;
+        return jumpToChain.equals(r.jumpToChain);
+    }
 }

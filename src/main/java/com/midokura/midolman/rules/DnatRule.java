@@ -1,12 +1,17 @@
 package com.midokura.midolman.rules;
 
+import java.util.Set;
 import java.util.UUID;
 
 public class DnatRule extends Rule {
 
-    public DnatRule(Condition condition) {
+    Set<NatTarget> targets;
+
+    public DnatRule(Condition condition, Set<NatTarget> targets) {
         super(condition);
-        // TODO Auto-generated constructor stub
+        this.targets = targets;
+        if (null == targets || targets.size() == 0)
+            throw new IllegalArgumentException("DnatRule must have targets.");
     }
 
     @Override
@@ -15,4 +20,25 @@ public class DnatRule extends Rule {
         
     }
 
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        return 29*hash + targets.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof DnatRule)) return false;
+        if (!super.equals(other))
+            return false;
+        DnatRule r = (DnatRule)other;
+        for (NatTarget nt: targets) {
+            if (!r.targets.contains(nt)) return false;
+        }
+        for (NatTarget nt: r.targets) {
+            if (!targets.contains(nt)) return false;
+        }
+        return true;
+    }
 }

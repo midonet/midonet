@@ -18,4 +18,17 @@ public abstract class Rule {
 
     protected abstract void apply(UUID inPortId, UUID outPortId,
             RuleResult res);
+
+    @Override
+    public int hashCode() {
+        return condition.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof Rule)) return false;
+        Rule r = (Rule)other;
+        return condition.equals(r.condition);
+    }
 }

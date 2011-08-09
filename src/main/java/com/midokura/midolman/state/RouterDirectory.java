@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
+
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.Rule;
@@ -49,7 +51,7 @@ public class RouterDirectory {
     }
 
     public List<Rule> getRuleChain(UUID routerId, String chainName,
-            Runnable watcher) {
+            Runnable watcher) throws KeeperException.NoNodeException {
         return null;
     }
 
