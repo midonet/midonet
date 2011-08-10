@@ -1,0 +1,27 @@
+package com.midokura.midolman.routing;
+
+public class NwTpPair {
+
+    public final int nwAddr;
+    public final short tpPort;
+
+    public NwTpPair(int nwAddr, short tpPort) {
+        this.nwAddr = nwAddr;
+        this.tpPort = tpPort;
+    }
+
+    @Override
+    public int hashCode() {
+        return nwAddr * 31 + tpPort * 17;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (!(other instanceof PacketSignature))
+            return false;
+        NwTpPair p = (NwTpPair) other;
+        return nwAddr == p.nwAddr && tpPort == p.tpPort;
+    }
+}

@@ -7,12 +7,12 @@ public class JumpRule extends Rule {
     String jumpToChain;
 
     public JumpRule(Condition condition, String jumpToChain) {
-        super(condition);
+        super(condition, null);
         this.jumpToChain = jumpToChain;
     }
 
     @Override
-    protected void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChain;
     }

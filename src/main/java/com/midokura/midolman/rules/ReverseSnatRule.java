@@ -2,16 +2,27 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
-public class ReverseSnatRule extends Rule {
+import com.midokura.midolman.routing.NwTpPair;
 
-    public ReverseSnatRule(Condition condition) {
-        super(condition);
+public class ReverseSnatRule extends NatRule {
+
+    public ReverseSnatRule(Condition condition, Action action) {
+        super(condition, action);
     }
 
     @Override
-    protected void apply(UUID inPortId, UUID outPortId, RuleResult res) {
-        // TODO Auto-generated method stub
-        
+    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        NwTpPair origConn = natMap.lookupSnatRev(
+                res.match.getNetworkDestination(),
+                res.match.getTransportDestination(),
+                res.match.getNetworkSource(),
+                res.match.getTransportSource());
+        if (null == origConn)
+            return;
+        res.match.setNetworkDestination(origConn.nwAddr);
+        res.match.setTransportDestination(origConn.tpPort);
+        res.action = action;
+        return;
     }
 
     @Override

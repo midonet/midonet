@@ -4,19 +4,16 @@ import java.util.UUID;
 
 public class LiteralRule extends Rule {
 
-    protected Action action;
-
     public LiteralRule(Condition condition, Action action) {
-        super(condition);
-        this.action = action;
+        super(condition, action);
         if(action != Action.ACCEPT && action != Action.DROP &&
                 action != Action.REJECT && action != Action.RETURN)
             throw new IllegalArgumentException("A literal rule's action " +
-            		"must be one of: ACCEPT, DROP, REJECT or RETURN.");
+                    "must be one of: ACCEPT, DROP, REJECT or RETURN.");
     }
 
     @Override
-    protected void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         res.action = action;
     }
 

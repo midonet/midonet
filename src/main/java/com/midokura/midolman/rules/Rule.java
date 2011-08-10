@@ -5,9 +5,11 @@ import java.util.UUID;
 public abstract class Rule {
 
     private Condition condition;
+    protected Action action;
 
-    public Rule(Condition condition) {
+    public Rule(Condition condition, Action action) {
         this.condition = condition;
+        this.action = action;
     }
 
     public void process(UUID inPortId, UUID outPortId, RuleResult res) {
@@ -16,7 +18,8 @@ public abstract class Rule {
         }
     }
 
-    protected abstract void apply(UUID inPortId, UUID outPortId,
+    // Call process instead - it calls 'apply' if appropriate.
+    public abstract void apply(UUID inPortId, UUID outPortId,
             RuleResult res);
 
     @Override

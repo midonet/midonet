@@ -1,10 +1,10 @@
 package com.midokura.midolman.rules;
 
 public class NatTarget {
-    int nwStart;
-    int nwEnd;
-    short tpStart;
-    short tpEnd;
+    public int nwStart;
+    public int nwEnd;
+    public short tpStart;
+    public short tpEnd;
 
     public NatTarget(int nwStart, int nwEnd, short tpStart, short tpEnd) {
         this.nwStart = nwStart;
