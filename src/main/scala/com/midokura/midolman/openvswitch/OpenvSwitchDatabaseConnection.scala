@@ -813,7 +813,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     portRow("name"), bridgeUUID, extIdsStr))
         } else {
             tx.addComment("added port %s to bridge %s".format(
-                portRow("name"), bridgeUUID))        }
+                portRow("name"), bridgeUUID))
+        }
         tx.increment(TableOpenvSwitch, None, "next_cfg")
         doJsonRpc(tx)
     }
