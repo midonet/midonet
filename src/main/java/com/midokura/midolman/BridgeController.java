@@ -52,13 +52,13 @@ public class BridgeController extends AbstractController {
             ReplicatedMap.Watcher<byte[], UUID> {
         public void processChange(byte[] key, UUID old_uuid, UUID new_uuid) {
             /* Update callback for the MacPortMap */
-            
+
             /* If the new port is local, the flow updates have already been
              * applied, and we return immediately. */
             if (port_is_local(new_uuid))
                 return;
-            log.debug("BridgeControllerWatcher.processChange: mac " + 
-                      macAsAscii(key) + " changed from port " + 
+            log.debug("BridgeControllerWatcher.processChange: mac " +
+                      macAsAscii(key) + " changed from port " +
                       old_uuid.toString() + " to port " + new_uuid.toString());
 
             /* If the MAC's old port was local, we need to invalidate its
@@ -116,16 +116,16 @@ public class BridgeController extends AbstractController {
 
     private void invalidateFlowsFromMac(byte[] mac) {
         log.debug("BridgeController: invalidating flows with dl_src " +
-		  macAsAscii(mac));
-	OFMatch match = new MidoMatch();
+                  macAsAscii(mac));
+        OFMatch match = new MidoMatch();
         match.setDataLayerSource(mac);
         sendFlowModDelete(false, match, 0, nonePort);
     }
 
     private void invalidateFlowsToMac(byte[] mac) {
         log.debug("BridgeController: invalidating flows with dl_dst " +
-		  macAsAscii(mac));
-	OFMatch match = new MidoMatch();
+                  macAsAscii(mac));
+        OFMatch match = new MidoMatch();
         match.setDataLayerDestination(mac);
         sendFlowModDelete(false, match, 0, nonePort);
     }
@@ -138,14 +138,14 @@ public class BridgeController extends AbstractController {
         // FIXME: Move to packet/ somewhere.
         assert mac.length == 6;
         String rv = String.format("%02x:%02x:%02x:%02x:%02x:%02x",
-	                          mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
+                                  mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
                                  );
         return rv;
     }
 
     public void sendFlowModDelete(boolean strict, OFMatch match, int priority,
-                                  int outPort) { 
-	// FIXME
+                                  int outPort) {
+        // FIXME
     }
 
     @Override
@@ -176,7 +176,7 @@ public class BridgeController extends AbstractController {
 
         InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
         if (peerIp != null) {
-	    // TODO: Error out if already tunneled to this peer.
+            // TODO: Error out if already tunneled to this peer.
             tunnelPortNumToPeerIp.put(portNum, peerIp);
         }
     }
@@ -203,10 +203,10 @@ public class BridgeController extends AbstractController {
 
     private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
         return new UUID(0, 0);  // FIXME
-	// Should be part of OVS interface.
+        // Should be part of OVS interface.
     }
 
     private InetAddress peerIpOfGrePortName(String portName) {
-        return null;	// FIXME
+        return null;    // FIXME
     }
 }

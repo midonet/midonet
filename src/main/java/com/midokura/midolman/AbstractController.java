@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman;
@@ -23,13 +23,13 @@ import com.midokura.midolman.state.PortLocationMap;
 public abstract class AbstractController implements Controller {
 
     Logger log = LoggerFactory.getLogger(AbstractController.class);
-    
+
     protected int datapathId;
-    
+
     protected ControllerStub controllerStub;
 
     protected HashMap<UUID, Integer> portUuidToNumberMap;
-    
+
     public AbstractController(
             int datapathId,
             UUID switchUuid,
@@ -43,7 +43,7 @@ public abstract class AbstractController implements Controller {
         this.datapathId = datapathId;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
     }
-    
+
     @Override
     public void setControllerStub(ControllerStub controllerStub) {
         this.controllerStub = controllerStub;
@@ -87,5 +87,5 @@ public abstract class AbstractController implements Controller {
     }
 
     abstract public void sendFlowModDelete(boolean strict, OFMatch match,
-	 				   int priority, int outPort);
+ 	                                   int priority, int outPort);
 }
