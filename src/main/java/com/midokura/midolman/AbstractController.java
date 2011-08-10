@@ -87,5 +87,5 @@ public abstract class AbstractController implements Controller {
     }
 
     abstract public void sendFlowModDelete(boolean strict, OFMatch match,
- 	                                   int priority, int outPort);
+                                           int priority, int outPort);
 }
