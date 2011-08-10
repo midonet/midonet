@@ -40,10 +40,10 @@ public class Condition {
          * then return the value of 'conjunctionInv'. If the conjunction
          * evaluates to true, then we return 'NOT conjunctionInv'.
          */
-        if (null != inPortId && null != inPortIds
+        if (null != inPortIds
                 && inPortIds.contains(inPortId) == inPortInv)
             return conjunctionInv;
-        if (null != outPortId && null != outPortIds
+        if (null != outPortIds
                 && outPortIds.contains(outPortId) == outPortInv)
             return conjunctionInv;
         if (nwTos != 0
@@ -52,13 +52,13 @@ public class Condition {
         if (nwProto != 0
                 && (nwProto == pktMatch.getNetworkProtocol()) == nwProtoInv)
             return conjunctionInv;
-        int nwSrc = pktMatch.getNetworkSource();
-        if (nwSrcIp != 0
-                && (nwSrcIp >>> nwSrcLength == nwSrc >>> nwSrcLength) == nwSrcInv)
+        int shift = 32-nwSrcLength;
+        if (nwSrcIp != 0 && nwSrcLength > 0
+                && (nwSrcIp >>> shift == pktMatch.getNetworkSource() >>> shift) == nwSrcInv)
             return conjunctionInv;
-        int nwDst = pktMatch.getNetworkDestination();
-        if (nwDstIp != 0
-                && (nwDstIp >>> nwDstLength == nwDst >>> nwDstLength) == nwDstInv)
+        shift = 32-nwDstLength;
+        if (nwDstIp != 0 && nwDstLength > 0
+                && (nwDstIp >>> shift == pktMatch.getNetworkDestination() >>> shift) == nwDstInv)
             return conjunctionInv;
         short tpSrc = pktMatch.getTransportSource();
         if (tpSrcEnd != 0
