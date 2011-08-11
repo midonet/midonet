@@ -19,6 +19,8 @@ public class SnatRule extends NatRule {
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        if (null == natMap)
+            return;
         NwTpPair conn = natMap.lookupSnatFwd(
                 res.match.getNetworkSource(),
                 res.match.getTransportSource(),

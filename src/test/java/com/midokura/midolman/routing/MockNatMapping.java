@@ -79,7 +79,7 @@ public class MockNatMapping implements NatMapping {
     @Override
     public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
             short tpDst) {
-        return dnatRevMap.get(
+        return snatRevMap.get(
                 new PacketSignature(newNwSrc, newTpSrc, nwDst, tpDst));
     }
 

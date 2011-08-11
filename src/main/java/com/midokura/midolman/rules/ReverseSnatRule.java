@@ -12,6 +12,8 @@ public class ReverseSnatRule extends NatRule {
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        if (null == natMap)
+            return;
         NwTpPair origConn = natMap.lookupSnatRev(
                 res.match.getNetworkDestination(),
                 res.match.getTransportDestination(),
@@ -22,7 +24,6 @@ public class ReverseSnatRule extends NatRule {
         res.match.setNetworkDestination(origConn.nwAddr);
         res.match.setTransportDestination(origConn.tpPort);
         res.action = action;
-        return;
     }
 
     @Override

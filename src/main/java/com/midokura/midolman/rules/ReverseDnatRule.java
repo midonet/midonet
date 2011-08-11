@@ -12,6 +12,8 @@ public class ReverseDnatRule extends NatRule {
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        if (null == natMap)
+            return;
         NwTpPair origConn = natMap.lookupDnatRev(
                 res.match.getNetworkDestination(),
                 res.match.getTransportDestination(),
@@ -22,7 +24,6 @@ public class ReverseDnatRule extends NatRule {
         res.match.setNetworkSource(origConn.nwAddr);
         res.match.setTransportSource(origConn.tpPort);
         res.action = action;
-        return;
     }
 
     @Override
