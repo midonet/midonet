@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public class JumpRule extends Rule {
 
+    private static final long serialVersionUID = -7212783590950701193L;
     String jumpToChain;
 
     public JumpRule(Condition condition, String jumpToChain) {
@@ -19,17 +20,17 @@ public class JumpRule extends Rule {
 
     @Override
     public int hashCode() {
-        int hash = super.hashCode();
-        return 31*hash + jumpToChain.hashCode();
+        return super.hashCode() * 31 + jumpToChain.hashCode();
     }
 
     @Override
     public boolean equals(Object other) {
-        if (this == other) return true;
-        if (!(other instanceof JumpRule)) return false;
+        if (this == other)
+            return true;
+        if (!(other instanceof JumpRule))
+            return false;
         if (!super.equals(other))
             return false;
-        JumpRule r = (JumpRule)other;
-        return jumpToChain.equals(r.jumpToChain);
+        return jumpToChain.equals(((JumpRule) other).jumpToChain);
     }
 }

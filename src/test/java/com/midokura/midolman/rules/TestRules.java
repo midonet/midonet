@@ -11,9 +11,9 @@ import org.junit.BeforeClass;
 
 import org.junit.Test;
 
+import com.midokura.midolman.layer4.MockNatMapping;
+import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.routing.MockNatMapping;
-import com.midokura.midolman.routing.NatMapping;
 
 public class TestRules {
 
@@ -27,25 +27,25 @@ public class TestRules {
     @BeforeClass
     public static void setupOnce() {
         pktMatch = new MidoMatch();
-        pktMatch.setInputPort((short)5);
+        pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setNetworkSource(0x0a001406, 32);
         pktMatch.setNetworkDestination(0x0a000b22, 32);
-        pktMatch.setNetworkProtocol((byte)8);
-        pktMatch.setNetworkTypeOfService((byte)34);
-        pktMatch.setTransportSource((short)4321);
-        pktMatch.setTransportDestination((short)1234);
+        pktMatch.setNetworkProtocol((byte) 8);
+        pktMatch.setNetworkTypeOfService((byte) 34);
+        pktMatch.setTransportSource((short) 4321);
+        pktMatch.setTransportDestination((short) 1234);
         pktResponseMatch = new MidoMatch();
-        pktResponseMatch.setInputPort((short)5);
+        pktResponseMatch.setInputPort((short) 5);
         pktResponseMatch.setDataLayerDestination("02:11:33:00:11:01");
         pktResponseMatch.setDataLayerSource("02:11:aa:ee:22:05");
         pktResponseMatch.setNetworkDestination(0x0a001406, 32);
         pktResponseMatch.setNetworkSource(0x0a000b22, 32);
-        pktResponseMatch.setNetworkProtocol((byte)8);
-        pktResponseMatch.setNetworkTypeOfService((byte)34);
-        pktResponseMatch.setTransportDestination((short)4321);
-        pktResponseMatch.setTransportSource((short)1234);
+        pktResponseMatch.setNetworkProtocol((byte) 8);
+        pktResponseMatch.setNetworkTypeOfService((byte) 34);
+        pktResponseMatch.setTransportDestination((short) 4321);
+        pktResponseMatch.setTransportSource((short) 1234);
         rand = new Random();
         inPort = new UUID(rand.nextLong(), rand.nextLong());
         // Build a condition that matches the packet.
@@ -80,7 +80,7 @@ public class TestRules {
         Assert.assertTrue(expRes.equals(argRes));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testLiteralRuleContinue() {
         new LiteralRule(cond, Action.CONTINUE);
     }
@@ -96,8 +96,8 @@ public class TestRules {
         Assert.assertTrue(expRes.equals(argRes));
     }
 
-    @Test(expected=IllegalArgumentException.class)
-    public void testLiteralRuleJUMP() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testLiteralRuleJump() {
         new LiteralRule(cond, Action.JUMP);
     }
 
@@ -136,17 +136,17 @@ public class TestRules {
         Assert.assertTrue(expRes.equals(argRes));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionDrop() {
         new SnatRule(cond, null, Action.DROP);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionJump() {
         new SnatRule(cond, null, Action.JUMP);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionReject() {
         new SnatRule(cond, null, Action.REJECT);
     }
@@ -154,17 +154,17 @@ public class TestRules {
     @Test
     public void testSnatAndReverseRules() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0b000102, 0x0b00010a, (short)3366,
-                (short)3399));
+        nats.add(new NatTarget(0x0b000102, 0x0b00010a, (short) 3366,
+                (short) 3399));
         Rule rule = new SnatRule(cond, nats, Action.ACCEPT);
         NatMapping natMap = new MockNatMapping();
-        ((NatRule)rule).setNatMapping(natMap);
+        ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         rule.process(null, null, argRes);
         Assert.assertTrue(expRes.equals(argRes));
         // We let the reverse snat rule try reversing everything.
         Rule revRule = new ReverseSnatRule(new Condition(), Action.RETURN);
-        ((NatRule)revRule).setNatMapping(natMap);
+        ((NatRule) revRule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         revRule.process(null, null, argRes);
         Assert.assertTrue(expRes.equals(argRes));
@@ -189,17 +189,15 @@ public class TestRules {
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
         argRes.match = pktResponseMatch.clone();
-        Assert.assertFalse(
-                pktResponseMatch.getNetworkDestination() == newNwSrc);
+        Assert.assertFalse(pktResponseMatch.getNetworkDestination() == newNwSrc);
         argRes.match.setNetworkDestination(newNwSrc);
-        Assert.assertFalse(
-                pktResponseMatch.getTransportDestination() == newTpSrc);
+        Assert.assertFalse(pktResponseMatch.getTransportDestination() == newTpSrc);
         argRes.match.setTransportDestination(newTpSrc);
         argRes.action = null;
         argRes.trackConnection = false;
         revRule.process(null, null, argRes);
         Assert.assertEquals(Action.RETURN, argRes.action);
-        // The generated response should be the mirror of the original. 
+        // The generated response should be the mirror of the original.
         Assert.assertTrue(pktResponseMatch.equals(argRes.match));
         Assert.assertFalse(argRes.trackConnection);
     }
@@ -207,17 +205,17 @@ public class TestRules {
     @Test
     public void testDnatAndReverseRule() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short)1030,
-                (short)1050));
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
+                (short) 1050));
         Rule rule = new DnatRule(cond, nats, Action.CONTINUE);
         NatMapping natMap = new MockNatMapping();
-        ((NatRule)rule).setNatMapping(natMap);
+        ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         rule.process(null, null, argRes);
         Assert.assertTrue(expRes.equals(argRes));
         // We let the reverse dnat rule try reversing everything.
         Rule revRule = new ReverseDnatRule(new Condition(), Action.ACCEPT);
-        ((NatRule)revRule).setNatMapping(natMap);
+        ((NatRule) revRule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         revRule.process(null, null, argRes);
         Assert.assertTrue(expRes.equals(argRes));
@@ -242,17 +240,15 @@ public class TestRules {
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
         argRes.match = pktResponseMatch.clone();
-        Assert.assertFalse(
-                pktResponseMatch.getNetworkSource() == newNwDst);
+        Assert.assertFalse(pktResponseMatch.getNetworkSource() == newNwDst);
         argRes.match.setNetworkSource(newNwDst);
-        Assert.assertFalse(
-                pktResponseMatch.getTransportSource() == newTpDst);
+        Assert.assertFalse(pktResponseMatch.getTransportSource() == newTpDst);
         argRes.match.setTransportSource(newTpDst);
         argRes.action = null;
         argRes.trackConnection = false;
         revRule.process(null, null, argRes);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
-        // The generated response should be the mirror of the original. 
+        // The generated response should be the mirror of the original.
         Assert.assertTrue(pktResponseMatch.equals(argRes.match));
         Assert.assertFalse(argRes.trackConnection);
     }

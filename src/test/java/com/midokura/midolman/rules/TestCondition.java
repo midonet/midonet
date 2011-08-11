@@ -1,11 +1,15 @@
 package com.midokura.midolman.rules;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
 import org.junit.Assert;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -19,15 +23,15 @@ public class TestCondition {
     @BeforeClass
     public static void setup() {
         pktMatch = new MidoMatch();
-        pktMatch.setInputPort((short)5);
+        pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setNetworkSource(0x0a001406, 32);
         pktMatch.setNetworkDestination(0x0a000b22, 32);
-        pktMatch.setNetworkProtocol((byte)8);
-        pktMatch.setNetworkTypeOfService((byte)34);
-        pktMatch.setTransportSource((short)4321);
-        pktMatch.setTransportDestination((short)1234);
+        pktMatch.setNetworkProtocol((byte) 8);
+        pktMatch.setNetworkTypeOfService((byte) 34);
+        pktMatch.setTransportSource((short) 4321);
+        pktMatch.setTransportDestination((short) 1234);
         rand = new Random();
     }
 
@@ -243,5 +247,19 @@ public class TestCondition {
         cond.tpDstInv = false;
         cond.tpDstStart = 1235;
         Assert.assertFalse(cond.matches(inPort, null, pktMatch));
+    }
+
+    @Test
+    public void testSerialization() throws IOException, ClassNotFoundException {
+        Condition cond = new Condition();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeObject(cond);
+        out.close();
+        byte[] data = bos.toByteArray();
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        ObjectInputStream in = new ObjectInputStream(bis);
+        Condition c = (Condition) in.readObject();
+        Assert.assertTrue(cond.equals(c));
     }
 }

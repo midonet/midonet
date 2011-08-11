@@ -3,18 +3,15 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.routing.NwTpPair;
+import com.midokura.midolman.layer4.NwTpPair;
 
-public class SnatRule extends NatRule {
+public class SnatRule extends ForwardNatRule {
 
-    private Set<NatTarget> targets;
+    private static final long serialVersionUID = 2848105655045425499L;
 
     public SnatRule(Condition condition, Set<NatTarget> targets,
             Action action) {
-        super(condition, action);
-        this.targets = targets;
-        if (null == targets || targets.size() == 0)
-            throw new IllegalArgumentException("DnatRule must have targets.");
+        super(condition, targets, action);
     }
 
     @Override
@@ -41,29 +38,14 @@ public class SnatRule extends NatRule {
     }
 
     @Override
-    public Set<NatTarget> getNatTargets() {
-        return targets;
-    }
-
-    @Override
     public int hashCode() {
-        int hash = super.hashCode();
-        return 31*hash + targets.hashCode();
+        return 11 * super.hashCode() + "SnatRule".hashCode();
     }
 
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;
-        if (!(other instanceof DnatRule)) return false;
-        if (!super.equals(other))
-            return false;
-        SnatRule r = (SnatRule)other;
-        for (NatTarget nt: targets) {
-            if (!r.targets.contains(nt)) return false;
-        }
-        for (NatTarget nt: r.targets) {
-            if (!targets.contains(nt)) return false;
-        }
-        return true;
+        if (!(other instanceof SnatRule)) return false;
+        return super.equals(other);
     }
 }

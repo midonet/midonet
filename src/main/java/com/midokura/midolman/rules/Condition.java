@@ -1,16 +1,23 @@
 package com.midokura.midolman.rules;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.openflow.MidoMatch;
 
-public class Condition {
+public class Condition implements Serializable {
+
+    private static final long serialVersionUID = 5676283307439852254L;
 
     boolean conjunctionInv;
-    Set<UUID> inPortIds;
+    transient Set<UUID> inPortIds;
     boolean inPortInv;
-    Set<UUID> outPortIds;
+    transient Set<UUID> outPortIds;
     boolean outPortInv;
     byte nwTos;
     boolean nwTosInv;
@@ -29,6 +36,45 @@ public class Condition {
     short tpDstEnd;
     boolean tpDstInv;
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        if (null == inPortIds)
+            out.writeInt(0);
+        else {
+            out.writeInt(inPortIds.size());
+            for (UUID id : inPortIds)
+                out.writeObject(id);
+        }
+        if (null == outPortIds)
+            out.writeInt(0);
+        else {
+            out.writeInt(outPortIds.size());
+            for (UUID id : outPortIds)
+                out.writeObject(id);
+        }
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        in.defaultReadObject();
+        int numInPortIds = in.readInt();
+        if (0 == numInPortIds)
+            inPortIds = null;
+        else {
+            inPortIds = new HashSet<UUID>();
+            for (int i = 0; i < numInPortIds; i++)
+                inPortIds.add((UUID) in.readObject());
+        }
+        int numOutPortIds = in.readInt();
+        if (0 == numOutPortIds)
+            outPortIds = null;
+        else {
+            outPortIds = new HashSet<UUID>();
+            for (int i = 0; i < numOutPortIds; i++)
+                outPortIds.add((UUID) in.readObject());
+        }
+    }
+
     public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch) {
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true iff: 1)
@@ -40,11 +86,9 @@ public class Condition {
          * then return the value of 'conjunctionInv'. If the conjunction
          * evaluates to true, then we return 'NOT conjunctionInv'.
          */
-        if (null != inPortIds
-                && inPortIds.contains(inPortId) == inPortInv)
+        if (null != inPortIds && inPortIds.contains(inPortId) == inPortInv)
             return conjunctionInv;
-        if (null != outPortIds
-                && outPortIds.contains(outPortId) == outPortInv)
+        if (null != outPortIds && outPortIds.contains(outPortId) == outPortInv)
             return conjunctionInv;
         if (nwTos != 0
                 && (nwTos == pktMatch.getNetworkTypeOfService()) == nwTosInv)
@@ -52,12 +96,14 @@ public class Condition {
         if (nwProto != 0
                 && (nwProto == pktMatch.getNetworkProtocol()) == nwProtoInv)
             return conjunctionInv;
-        int shift = 32-nwSrcLength;
-        if (nwSrcIp != 0 && nwSrcLength > 0
+        int shift = 32 - nwSrcLength;
+        if (nwSrcIp != 0
+                && nwSrcLength > 0
                 && (nwSrcIp >>> shift == pktMatch.getNetworkSource() >>> shift) == nwSrcInv)
             return conjunctionInv;
-        shift = 32-nwDstLength;
-        if (nwDstIp != 0 && nwDstLength > 0
+        shift = 32 - nwDstLength;
+        if (nwDstIp != 0
+                && nwDstLength > 0
                 && (nwDstIp >>> shift == pktMatch.getNetworkDestination() >>> shift) == nwDstInv)
             return conjunctionInv;
         short tpSrc = pktMatch.getTransportSource();
@@ -75,36 +121,36 @@ public class Condition {
     public int hashCode() {
         final int prime = 41;
         int result = 1;
-        int bHash = conjunctionInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + inPortIds.hashCode();
-        bHash = inPortInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + outPortIds.hashCode();
-        bHash = outPortInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + nwTos;
-        bHash = nwTosInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + nwProto;
-        bHash = nwProtoInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + nwSrcIp;
-        result = prime*result + nwSrcLength;
-        bHash = nwSrcInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + nwDstIp;
-        result = prime*result + nwDstLength;
-        bHash = nwDstInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + tpSrcStart;
-        result = prime*result + tpSrcEnd;
-        bHash = tpSrcInv? 1231 : 1237;
-        result = prime*result + bHash;
-        result = prime*result + tpDstStart;
-        result = prime*result + tpDstEnd;
-        bHash = tpDstInv? 1231 : 1237;
-        result = prime*result + bHash;
+        int bHash = conjunctionInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + inPortIds.hashCode();
+        bHash = inPortInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + outPortIds.hashCode();
+        bHash = outPortInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + nwTos;
+        bHash = nwTosInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + nwProto;
+        bHash = nwProtoInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + nwSrcIp;
+        result = prime * result + nwSrcLength;
+        bHash = nwSrcInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + nwDstIp;
+        result = prime * result + nwDstLength;
+        bHash = nwDstInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + tpSrcStart;
+        result = prime * result + tpSrcEnd;
+        bHash = tpSrcInv ? 1231 : 1237;
+        result = prime * result + bHash;
+        result = prime * result + tpDstStart;
+        result = prime * result + tpDstEnd;
+        bHash = tpDstInv ? 1231 : 1237;
+        result = prime * result + bHash;
         return result;
     }
 
@@ -116,16 +162,18 @@ public class Condition {
             return false;
         Condition c = (Condition) other;
         return conjunctionInv == c.conjunctionInv
-                && inPortIds.equals(c.inPortIds) && inPortInv == c.inPortInv
-                && outPortIds.equals(c.outPortIds)
-                && outPortInv == c.outPortInv && nwTos == c.nwTos
-                && nwTosInv == c.nwTosInv && nwProto == c.nwProto
-                && nwProtoInv == c.nwProtoInv && nwSrcIp == c.nwSrcIp
-                && nwSrcLength == c.nwSrcLength && nwSrcInv == c.nwSrcInv
-                && nwDstIp == c.nwDstIp && nwDstLength == c.nwDstLength
-                && nwDstInv == c.nwDstInv && tpSrcStart == c.tpSrcStart
-                && tpSrcEnd == c.tpSrcEnd && tpSrcInv == c.tpSrcInv
-                && tpDstStart == c.tpDstStart && tpDstEnd == c.tpDstEnd
-                && tpDstInv == c.tpDstInv;
+                && ((null == inPortIds && null == c.inPortIds) || inPortIds
+                        .equals(c.inPortIds))
+                && inPortInv == c.inPortInv
+                && ((null == outPortIds && null == c.outPortIds) || outPortIds
+                        .equals(c.outPortIds)) && outPortInv == c.outPortInv
+                && nwTos == c.nwTos && nwTosInv == c.nwTosInv
+                && nwProto == c.nwProto && nwProtoInv == c.nwProtoInv
+                && nwSrcIp == c.nwSrcIp && nwSrcLength == c.nwSrcLength
+                && nwSrcInv == c.nwSrcInv && nwDstIp == c.nwDstIp
+                && nwDstLength == c.nwDstLength && nwDstInv == c.nwDstInv
+                && tpSrcStart == c.tpSrcStart && tpSrcEnd == c.tpSrcEnd
+                && tpSrcInv == c.tpSrcInv && tpDstStart == c.tpDstStart
+                && tpDstEnd == c.tpDstEnd && tpDstInv == c.tpDstInv;
     }
 }

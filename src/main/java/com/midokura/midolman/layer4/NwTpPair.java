@@ -1,4 +1,4 @@
-package com.midokura.midolman.routing;
+package com.midokura.midolman.layer4;
 
 public class NwTpPair {
 
