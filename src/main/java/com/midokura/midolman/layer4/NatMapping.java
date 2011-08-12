@@ -25,4 +25,7 @@ public interface NatMapping {
 
     NwTpPair lookupSnatRev(
             int newNwSrc, short newTpSrc, int nwDst, short tpDst);
+
+    // The implementation of this method should reserve and clean up resources.
+    void updateSnatTargets(Set<NatTarget> targets);
 }

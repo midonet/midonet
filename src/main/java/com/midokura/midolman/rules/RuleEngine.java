@@ -49,7 +49,7 @@ public class RuleEngine {
         @Override
         public void run() {
             try {
-                updateRules(chainName, this, true);
+                updateRules(chainName, this);
             } catch (KeeperException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -69,7 +69,7 @@ public class RuleEngine {
     private UUID rtrId;
     private RouterDirectory rtrDir;
     private NatMapping natMap;
-    private Map<String, List<Rule>> ruleChains;
+    protected Map<String, List<Rule>> ruleChains;
     private RouterWatcher rtrWatcher;
     private Set<Runnable> listeners;
 
@@ -103,55 +103,71 @@ public class RuleEngine {
             InterruptedException, IOException, ClassNotFoundException {
         Collection<String> currentChains = rtrDir.getRuleChainNames(rtrId,
                 rtrWatcher);
-        Set<String> deletedChains = new HashSet<String>(ruleChains.keySet());
-        deletedChains.removeAll(currentChains);
-        boolean changed = !deletedChains.isEmpty();
-        for (String chain : deletedChains) {
-            List<Rule> rules = ruleChains.remove(chain);
-            for (Rule r : rules)
-                ;// TODO(pino): free the rule's resources?
+        Set<String> oldChains = new HashSet<String>(ruleChains.keySet());
+        Set<String> newChains = new HashSet<String>(currentChains);
+        newChains.removeAll(oldChains);
+        oldChains.removeAll(currentChains);
+
+        // Any old chains that are not in currentChains should be removed.
+        for (String chain : oldChains) {
+            ruleChains.remove(chain);
         }
-        for (String chain : currentChains) {
-            if (ruleChains.containsKey(chain))
-                continue;
-            changed = true;
-            updateRules(chain, new RuleChainWatcher(chain), false);
+        // Any brand new chains should be processed.
+        for (String chain : newChains) {
+            updateRules(chain, new RuleChainWatcher(chain));
         }
-        if (changed && notify)
-            notifyListeners();
+        // If no chains were added or deleted we're done. Otherwise, we need to
+        // recompute the resources and notify listeners.
+        if (oldChains.isEmpty() && newChains.isEmpty())
+            return;
+        updateResources();
+        notifyListeners();
     }
 
-    private void updateRules(String chainName, Runnable watcher, boolean notify)
+    private void updateRules(String chainName, Runnable watcher)
             throws KeeperException, InterruptedException, IOException,
             ClassNotFoundException {
         List<Rule> curRules = null;
         try {
             curRules = rtrDir.getRuleChain(rtrId, chainName, watcher);
         } catch (KeeperException.NoNodeException e) {
-            // The chain has been deleted. The router watcher will handle this.
+            // The chain has been deleted. The router watcher will handle the
+            // notifications.
             return;
         }
-        List<Rule> oldRules = ruleChains.put(chainName, curRules);
-        boolean changed = false;
-        if (null == oldRules) {
-            // Since we didn't know about this chain before, no one could have
-            // been interested in changes to it.
+        List<Rule> oldRules = ruleChains.get(chainName);
+        if (null != oldRules && oldRules.equals(curRules))
+            // The chain was updated with the same rules. Do nothing.
             return;
-        } else {
-            // For any rule that already existed, use the old rule since it
-            // may own resources (it's already initialized).
-            for (int i = 0; i < curRules.size(); i++) {
-                Rule r = curRules.get(i);
-                int oldIndex = oldRules.indexOf(r);
-                if (-1 == oldIndex) {
-                    ; // r.init(/* TODO(pino): pass the router.*/);
-                } else {
-                    curRules.set(i, oldRules.get(oldIndex));
-                }
+
+        // Initialize rules that need it.
+        for (Rule r : curRules) {
+            if (r instanceof NatRule)
+                ((NatRule) r).setNatMapping(natMap);
+        }
+        ruleChains.put(chainName, curRules);
+
+        // If this is a new chain, we're done: the router watcher will handle
+        // notifications.
+        if (null == oldRules)
+            return;
+        // The chain already existed. We handle notifications here.
+        updateResources();
+        notifyListeners();
+    }
+
+    private void updateResources() {
+        // Tell the NatMapping about all the current NatTargets for SNAT.
+        // TODO(pino): the NatMapping should clean up any old targets that
+        // are no longer used and remember the current targets.
+        Set<NatTarget> targets = new HashSet<NatTarget>();
+        for (List<Rule> chain : ruleChains.values()) {
+            for (Rule r : chain) {
+                if (r instanceof SnatRule)
+                    targets.addAll(((SnatRule)r).getNatTargets());
             }
         }
-        if (changed && notify)
-            notifyListeners();
+        natMap.updateSnatTargets(targets);
     }
 
     private class ChainPosition {
@@ -182,6 +198,10 @@ public class RuleEngine {
         while (!chainStack.empty()) {
             ChainPosition cp = chainStack.pop();
             while (cp.position < cp.rules.size()) {
+                // Reset the default action and jumpToChain. Keep the
+                // transformed match and trackConnection.
+                res.action = Action.CONTINUE;
+                res.jumpToChain = null;
                 cp.rules.get(cp.position).process(inPortId, outPortId, res);
                 cp.position++;
                 if (res.action == Action.ACCEPT || res.action == Action.DROP
@@ -202,9 +222,9 @@ public class RuleEngine {
                     traversedChains.add(res.jumpToChain);
                     // Remember the calling chain.
                     chainStack.push(cp);
-                    // Start processing in the new chain.
-                    cp = new ChainPosition(res.jumpToChain, nextChain, 0);
-                    continue;
+                    chainStack.push(new ChainPosition(res.jumpToChain,
+                            nextChain, 0));
+                    break;
                 } else if (res.action == Action.RETURN) {
                     // Stop processing this chain; return to the calling chain.
                     break;
