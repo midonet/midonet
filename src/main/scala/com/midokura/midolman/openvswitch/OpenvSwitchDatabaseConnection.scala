@@ -51,7 +51,7 @@ object OpenvSwitchDatabaseConnectionImpl {
     /**
      * Generates a new UUID to identify a newly added row.
      *
-     * @return A new UUID
+     * @return A new UUID.
      */
     def generateUUID(): String = UUID.randomUUID.toString
 
@@ -59,8 +59,8 @@ object OpenvSwitchDatabaseConnectionImpl {
      * Transforms a newly inserted row's temporary UUID into a "UUID name", to
      * reference the inserted row in the same transaction.
      *
-     * @param uuid the UUID to convert
-     * @return The converted UUID
+     * @param uuid The UUID to convert.
+     * @return The converted UUID.
      */
     def getUUIDNameFromUUID(uuid: String) = "row" + uuid.replace("-", "_")
 
@@ -68,7 +68,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      * Converts a row UUID into an Open vSwitch UUID reference to a row
      * inserted in the same transaction.
      *
-     * @param uuid the UUID to convert
+     * @param uuid The UUID to convert.
      * @return The Open vSwitch DB row UUID reference.
      */
     def getNewRowOvsUUID(uuid: String): List[String] = {
@@ -110,12 +110,9 @@ object OpenvSwitchDatabaseConnectionImpl {
     /**
      * Converts an Open vSwitch DB map into a Map.
      *
-     * @param table The name of the table containing the row to select
-
-     * @param where The JSON-encodable 'where' clause to be matched by the
-                    row.
+     * @param table   The name of the table containing the row to select.
+     * @param where   The JSON-encodable 'where' clause to be matched by the row.
      * @param columns The List of columns to return.
-     *
      * @return The List of selected rows.
      */
     def ovsMapToMap(ovsMap: JsonNode): Map[String, String] = {
@@ -133,7 +130,6 @@ object OpenvSwitchDatabaseConnectionImpl {
      * Converts and Open vSwitch DB map into a Map
      *
      * @param map The Map to convert.
-     *
      * @return An Open vSwitch DB map with the key-value pairs of the Map.
      */
     def mapToOvsMap(map: Map[String, _]): List[_] = {
@@ -186,7 +182,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * Apply a operation to the database.
      *
      * @param tx The instance of the transaction.
-     * @return  The Java representation of the JSON object.
+     * @return The Java representation of the JSON object.
      */
     private def doJsonRpc(tx: Transaction,
                           async: Boolean = false): JsonNode = synchronized {
@@ -200,13 +196,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             // requestId.
             pendingJsonRpcRequests.put(requestId, queue)
         }
-
         log.debug("doJsonRpc request: ", request)
-
         try {
             // Serialize the JSON-RPC 1.0 request into JSON text in the output
             // channel.
-
             try {
                 objectMapper.writeValue(jsonGenerator, request)
                 jsonGenerator.flush
@@ -214,7 +207,6 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 case e: IOException =>
                     { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
             }
-
             // Block until the response is received and parsed.
             // TODO: Set a timeout for the response, using poll() instead of
             // take().
@@ -284,7 +276,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * The transaction to abort all changes, or not.
          *
          * @param dryRun If true, the transaction's changes are unconditionally
-         *               aborted at the end of the transaction
+         *               aborted at the end of the transaction.
          */
         def setDryRun(dryRun: Boolean) = {
             this.dryRun = dryRun
@@ -294,7 +286,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * Add a comment to be added into the logs when the transaction is
          * successfully committed.
          *
-         * @param comment the comment to log
+         * @param comment The comment to log.
          */
         def addComment(comment: String) = {
             comments += comment
@@ -304,7 +296,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * Get a JSON-encodable representation of this transaction's changes
          *
          * @param id An unambigous JSON-RPC request ID assigned to the
-                     newrequest.
+         *           newrequest.
          * @return A Scala value that can be encoded into JSON to represent
          *         this transaction in a JSON-RPC call to a DB.
          */
@@ -329,7 +321,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          *
          * @param table The name of the table containing the rows to select.
          * @param where The JSON-encodable 'where' clauses to be matched by
-                        the row.
+         *              the row.
          * @param columns The list of columns to return.
          */
         def select(table: String, where: List[List[_]],
@@ -411,7 +403,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param table   The name of the table containig the row to update.
          * @param rowUUID The UUID string of the row to update.
          * @param columns The List of column names of the columns to increment.
-         * @see           #increment(String, String, List[String]): Unit
+         * @see           #increment(String, Option[String], List[String]): Unit
          */
         def increment(table: String, rowUUID: Option[String],
                       columns: String): Unit = {
@@ -465,7 +457,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param table   The name of the table containing the rows to select.
      * @param where   The JSON-encodable 'where' clause to be matched by the
      *                rows.
-     * @param columns The list of columns to return
+     * @param columns The list of columns to return.
      * @return The list of selected rows.
      */
     private def select(table: String, where: List[List[_]],
@@ -485,7 +477,6 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param key key to seek in the external_ids column.
      * @param value value to seek in the external_ids column.
      * @param columns The list of columns to return.
-     *
      * @return The list of selected rows.
      */
     def selectByExternalId(table: String, key: String, value: String,
@@ -552,7 +543,6 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          *
          * @param key The key of the external id entry.
          * @param key The value of the external id entry.
-         *
          * @return This SBridgeBuilder instance.
          */
         override def externalId(key: String, value: String) = {
@@ -564,7 +554,6 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * Set the fail mode.
          *
          * @param failMode The failMode instance to set.
-         *
          * @return This SBridgeBuilder instance.
          */
         override def failMode(failMode: BridgeFailMode) = {
@@ -704,7 +693,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      }
 
     /**
-     * A ControllerBuilder that uses an asynchronous OVSDB connection.
+     * A ControllerBuilder that uses an synchronous OVSDB connection.
      */
     private class ControllerBuilderImpl(val bridgeId: Long = 0, val target: String,
                                         val bridgeName: String="")
@@ -767,8 +756,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Add a new bridge with the given name.
      *
-     * @param name the name of the bridge to add
-     * @return a builder to set optional parameters of the bridge and add it
+     * @param name The name of the bridge to add.
+     * @return A builder to set optional parameters of the bridge and add it.
      */
     override def addBridge(name: String): BridgeBuilder = {
         val bb = new BridgeBuilderImpl(name)
@@ -783,7 +772,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     * @param ifOptions       The interface's options; may be null.
     * @param portRow         The port's attributes.
     * @param portExternalIds Arbitrary pairs of key-value strings associated
-    *                        with the port
+    *                        with the port.
     */
     private def addPort(bridgeUUID: String, ifRow: Map[String, _],
                         portRow: Map[String, _],
@@ -837,9 +826,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * A system interface is for instance a physical Ethernet interface.
      *
-     * @param bridgeName the name of the bridge to add the port to
-     * @param portName the name of the port and of the interface to create
-     * @return a builder to set optional parameters of the port and add it
+     * @param bridgeName The name of the bridge to add the port to.
+     * @param portName   The name of the port and of the interface to create.
+     * @return A builder to set optional parameters of the port and add it.
      */
     override def addSystemPort(bridgeName: String,
                                portName: String): PortBuilder =
@@ -854,7 +843,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param bridgeId The datapath identifier of the bridge to add the port to.
      * @param portName The name of the port and of the interface to create.
-     * @return a builder to set optional parameters of the port and add it
+     * @return A builder to set optional parameters of the port and add it.
      */
     override def addInternalPort(bridgeId: Long,
                         portName: String): PortBuilder =
@@ -866,9 +855,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * An internal interface is a virtual physical Ethernet interface usable
      * to exchange packets only with the bridge.
      *
-     * @param bridgeName the name of the bridge to add the port to
-     * @param portName the name of the port and of the interface to create
-     * @return a builder to set optional parameters of the port and add it
+     * @param bridgeName The name of the bridge to add the port to.
+     * @param portName   The name of the port and of the interface to create.
+     * @return A builder to set optional parameters of the port and add it.
      */
     override def addInternalPort(bridgeName: String,
                         portName: String): PortBuilder =
@@ -888,9 +877,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Create a port and a TAP interface, and add the port to a bridge.
      *
-     * @param bridgeName the name of the bridge to add the port to
-     * @param portName the name of the port and of the TAP interface to create
-     * @return a builder to set optional parameters of the port and add it
+     * @param bridgeName The name of the bridge to add the port to.
+     * @param portName   The name of the port and of the TAP interface to create.
+     * @return A builder to set optional parameters of the port and add it.
      */
     override def addTapPort(bridgeName: String, portName: String): PortBuilder =
         new PortBuilderImpl(InterfaceTypeTap, portName=portName,
@@ -911,10 +900,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Create a port and a GRE interface, and add the port to a bridge.
      *
-     * @param bridgeName the name of the bridge to add the port to
-     * @param portName the name of the port and of the TAP interface to create
-     * @param remoteIp the tunnel remote endpoint's IP address
-     * @return a builder to set optional parameters of the port and add it
+     * @param bridgeName The name of the bridge to add the port to.
+     * @param portName   The name of the port and of the TAP interface to create.
+     * @param remoteIp   The tunnel remote endpoint's IP address.
+     * @return A builder to set optional parameters of the port and add it.
      */
     override def addGrePort(bridgeName: String,  portName: String,
                    remoteIp: String): GrePortBuilder =
@@ -922,7 +911,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                remoteIp=remoteIp)
 
     /**
-     * Delete a port which name is <pre>portName</pre>.
+     * Delete a port with the given port name.
      *
      * @param portName The name of the port to delete.
      */
@@ -968,34 +957,32 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Add an OpenFlow controller for a bridge.
      *
-     * An OpenFlow controller target may be in any of the following forms
-     * for a primary controller (i.e. a normal OpenFlow controller):
-     *     'ssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633)
-     *         on the host at the given ip, which must be expressed as an
-     *         IP address (not a DNS name).
-     *     'tcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633)
-     *         on the host at the given ip, which must be expressed as an
-     *         IP address (not a DNS name).
-     *     'discover': The switch discovers the controller by broadcasting
-     *         DHCP requests with vendor class identifier 'OpenFlow'.
-     *
-     * An OpenFlow controller target may be in any of the following forms
-     * for a service controller (i.e. a controller that only connects
-     * temporarily and doesn't affect the datapath's failMode):
-     *     'pssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633)
-     *         and ip Open vSwitch listens on for connections from
-     *         controllers; the given ip must be expressed as an IP address
+     * An OpenFlow controller target may be in any of the following forms for a
+     * primary controller (i.e. a normal OpenFlow controller):
+     *     'ssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633) on the
+     *         host at the given ip, which must be expressed as an IP address
      *         (not a DNS name).
-     *     'ptcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633)
-     *         and ip Open vSwitch listens on for connections from
-     *         controllers; the given ip must be expressed as an IP address
+     *     'tcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633) on the
+     *         host at the given ip, which must be expressed as an IP address
      *         (not a DNS name).
+     *     'discover': The switch discovers the controller by broadcasting DHCP
+     *         requests with vendor class identifier 'OpenFlow'.
      *
-     * @param bridgeId the datapath identifier of the bridge to add the
-     * controller to
-     * @param target the target to connect to the OpenFlow controller
-     * @return a builder to set optional parameters of the controller
-     * connection and add it
+     * An OpenFlow controller target may be in any of the following forms for a
+     * service controller (i.e. a controller that only connects temporarily and
+     * doesn't affect the datapath's failMode):
+     *     'pssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633) and
+     *         ip Open vSwitch listens on for connections from controller; the
+     *         given ip must be expressed as an IP address (not a DNS name).
+     *     'ptcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633) and
+     *         ip Open vSwitch listens on for connections from controllers; the
+     *         given ip must be expressed as an IP address (not a DNS name).
+     *
+     * @param bridgeId The datapath identifier of the bridge to add the
+     *                 controller to.
+     * @param target   The target to connect to the OpenFlow controller.
+     * @return A builder to set optional parameters of the controller
+     *         connection and add it.
      */
     override def addBridgeOpenflowController(
         bridgeId: Long, target: String): ControllerBuilder =
@@ -1004,38 +991,35 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Add an OpenFlow controller for a bridge.
      *
-     * An OpenFlow controller target may be in any of the following forms
-     * for a primary controller (i.e. a normal OpenFlow controller):
-     *     'ssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633)
-     *         on the host at the given ip, which must be expressed as an
-     *         IP address (not a DNS name).
-     *     'tcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633)
-     *         on the host at the given ip, which must be expressed as an
-     *         IP address (not a DNS name).
-     *     'discover': The switch discovers the controller by broadcasting
-     *         DHCP requests with vendor class identifier 'OpenFlow'.
-     *
-     * An OpenFlow controller target may be in any of the following forms
-     * for a service controller (i.e. a controller that only connects
-     * temporarily and doesn't affect the datapath's failMode):
-     *     'pssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633)
-     *         and ip Open vSwitch listens on for connections from
-     *         controllers; the given ip must be expressed as an IP address
+     * An OpenFlow controller target may be in any of the following forms for a
+     * primary controller (i.e. a normal OpenFlow controller):
+     *     'ssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633) on the
+     *         host at the given ip, which must be expressed as an IP address
      *         (not a DNS name).
-     *     'ptcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633)
-     *         and ip Open vSwitch listens on for connections from
-     *         controllers; the given ip must be expressed as an IP address
+     *     'tcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633) on the
+     *         host at the given ip, which must be expressed as an IP address
      *         (not a DNS name).
+     *     'discover': The switch discovers the controller by broadcasting DHCP
+     *         requests with vendor class identifier 'OpenFlow'.
      *
-     * @param bridgeName the name of the bridge to add the controller to
-     * @param target the target to connect to the OpenFlow controller
-     * @return a builder to set optional parameters of the controller
-     * connection and add it
+     * An OpenFlow controller target may be in any of the following forms for a
+     * service controller (i.e. a controller that only connects temporarily and
+     * doesn't affect the datapath's failMode):
+     *     'pssl:$(ip)[:$(port)s]': The specified SSL port (default: 6633) and
+     *         ip Open vSwitch listens on for connections from controllers; the
+     *         given ip must be expressed as an IP address (not a DNS name).
+     *     'ptcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633) and
+     *         ip Open vSwitch listens on for connections from controllers; the
+     *         given ip must be expressed as an IP address (not a DNS name).
+     *
+     * @param bridgeName The name of the bridge to add the controller to.
+     * @param target     The target to connect to the OpenFlow controller.
+     * @return A builder to set optional parameters of the controller
+     *         connection and add it.
      */
     override def addBridgeOpenflowController(
         bridgeName: String, target: String): ControllerBuilder =
             new ControllerBuilderImpl(bridgeName=bridgeName, target=target)
-
 
     private def delBridgeOpenflowControllers(
         bridgeRows: JsonNode, bridge: String) = {
@@ -1090,7 +1074,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Delete all the OpenFlow controller targets for a bridge.
      *
-     * @param bridgeName the name of the bridge
+     * @param bridgeName The name of the bridge.
      */
     override def delBridgeOpenflowControllers(bridgeName: String) = {
         val bridgeRows =
@@ -1114,8 +1098,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Determine whether a bridge with a given name exists.
      *
-     * @param bridgeName the name of the bridge
-     * @return whether a bridge with the given name exists
+     * @param bridgeName The name of the bridge.
+     * @return Whether a bridge with the given name exists.
      */
     override def hasBridge(bridgeName: String) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
@@ -1126,8 +1110,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Determine whether a port with a given name exists.
      *
-     * @param portName the name of the port
-     * @return whether a bridge with the given name exists
+     * @param portName The name of the port.
+     * @return Whether a bridge with the given name exists.
      */
     def hasPort(portName: String) = {
         val portRows = select(TablePort, List(List("name", "==", portName)),
@@ -1138,8 +1122,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Determine whether a controller with a given target exists.
      *
-     * @param target the target of the controller
-     * @return whether a bridge with the given name exists
+     * @param target The target of the controller.
+     * @return Whether a bridge with the given name exists.
      */
     def hasController(target: String) = {
         val controllerRows = select(
@@ -1221,7 +1205,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Delete the bridge with the given name.
      *
-     * @param bridgeName the name of the bridge
+     * @param bridgeName The name of the bridge
      */
     override def delBridge(bridgeName: String) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
@@ -1233,7 +1217,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * Get the datapath identifier of the bridge.
      *
      * @param bridgeName The name of the bridge.
-     * @return the datapath identifier of the bridge.
+     * @return The datapath identifier of the bridge.
      */
     def getDatapathId(bridgeName: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
@@ -1249,10 +1233,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Get an external ID associated with a bridge given its ID.
      *
-     * @param bridgeId the datapath identifier of the bridge
-     * @param externalIdKey the key of the external ID to look up
-     * @return the value of the external id, or null if no bridge with that
-     * datapath ID exists or if the bridge has no external ID with that key
+     * @param bridgeId The datapath identifier of the bridge.
+     * @param externalIdKey The key of the external ID to look up.
+     * @return The value of the external id, or null if no bridge with that
+     *         datapath ID exists or if the bridge has no external ID with that
+     *         key.
      */
     override def getDatapathExternalId(bridgeId: Long,
                                        externalIdKey: String): String = {
@@ -1267,17 +1252,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal
             }
         }
-
         return ""
     }
 
     /**
      * Get an external ID associated with a bridge given its name.
      *
-     * @param bridgeName the name of the bridge
-     * @param externalIdKey the key of the external ID to look up
-     * @return the value of the external id, or null if no bridge with that
-     * name exists or if the bridge has no external ID with that key
+     * @param bridgeName    The name of the bridge.
+     * @param externalIdKey The key of the external ID to look up.
+     * @return The value of the external id, or null if no bridge with that name
+     *         exists or if the bridge has no external ID with that key.
      */
     override def getDatapathExternalId(bridgeName: String,
                                        externalIdKey: String): String = {
@@ -1355,10 +1339,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Get an external ID associated with a port given its name.
      *
-     * @param portName the name of the port
-     * @param externalIdKey the key of the external ID to look up
-     * @return the value of the external ID, or null if no port with that name
-     * exists or if the port has no external id with that key
+     * @param portName The name of the port.
+     * @param externalIdKey The key of the external ID to look up.
+     * @return The value of the external ID, or null if no port with that name
+     *         exists or if the port has no external id with that key.
      */
     override def getPortExternalId(portName: String,
                                    externalIdKey: String): String = {
@@ -1379,13 +1363,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Get an external ID associated with a given OpenFlow port number.
      *
-     * @param bridgeId the datapath identifier of the bridge that contains the
-     * port
-     * @param portNum the OpenFlow number of the port
-     * @param externalIdKey the key of the external ID to look up
-     * @return the value of the external ID, or null if no bridge with that
-     * datapath ID exists, or if no port with that number exists in that
-     * bridge, or if the port has no external ID with that key
+     * @param bridgeId      The datapath identifier of the bridge that contains
+     *                      the port.
+     * @param portNum       The OpenFlow number of the port.
+     * @param externalIdKey The key of the external ID to look up.
+     * @return The value of the external ID, or null if no bridge with that
+     *         datapath ID exists, or if no port with that number exists in that
+     *         bridge, or if the port has no external ID with that key.
      */
     override def getPortExternalId(bridgeId: Long, portNum: Int,
                                     externalIdKey: String): String = {
@@ -1397,12 +1381,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Get an external ID associated with a given OpenFlow port number.
      *
-     * @param bridgeName the name of the bridge that contains the port
-     * @param portNum the OpenFlow number of the port
-     * @param externalIdKey the key of the external ID to look up
-     * @return the value of the external ID, or null if no bridge with that
-     * name exists, or if no port with that number exists in that bridge, or if
-     * the port has no external ID with that key
+     * @param bridgeName    The name of the bridge that contains the port.
+     * @param portNum       The OpenFlow number of the port.
+     * @param externalIdKey The key of the external ID to look up.
+     * @return The value of the external ID, or null if no bridge with that
+     *         name exists, or if no port with that number exists in that
+     *         bridge, or if the port has no external ID with that key.
      */
     override def getPortExternalId(bridgeName: String, portNum: Int,
                                    externalIdKey: String): String = {
@@ -1451,9 +1435,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * Get the set of names of bridges that are associated a given external
      * ID key-value pair.
      *
-     * @param key the external ID key to lookup
-     * @param value the external ID to lookup
-     * @return the set of names of bridges that are associated the external ID
+     * @param key   The external ID key to lookup.
+     * @param value The external ID to lookup.
+     * @return The set of names of bridges that are associated the external ID.
      */
     override def getBridgeNamesByExternalId(
         key: String, value: String): java.util.Set[String] = {
@@ -1469,9 +1453,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * Get the set of names of ports that are associated a given external
      * ID key-value pair.
      *
-     * @param key the external ID key to lookup
-     * @param value the external ID to lookup
-     * @return the set of names of ports that are associated the external ID
+     * @param key   The external ID key to lookup.
+     * @param value The external ID to lookup.
+     * @return The set of names of ports that are associated the external ID.
      */
     override def getPortNamesByExternalId(
         key: String, value: String): java.util.Set[String] = {
