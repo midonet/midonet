@@ -5,9 +5,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.layer4.NwTpPair;
-import com.midokura.midolman.layer4.PacketSignature;
 import com.midokura.midolman.rules.NatTarget;
 
 public class MockNatMapping implements NatMapping {

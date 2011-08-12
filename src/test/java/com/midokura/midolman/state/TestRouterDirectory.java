@@ -18,14 +18,12 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.rules.Action;
 import com.midokura.midolman.rules.Condition;
-import com.midokura.midolman.rules.DnatRule;
+import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
 import com.midokura.midolman.rules.LiteralRule;
 import com.midokura.midolman.rules.NatTarget;
-import com.midokura.midolman.rules.ReverseDnatRule;
-import com.midokura.midolman.rules.ReverseSnatRule;
+import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.rules.SnatRule;
 
 public class TestRouterDirectory {
 
@@ -92,16 +90,18 @@ public class TestRouterDirectory {
         Assert.assertTrue(chainNames.contains("Chain1"));
         List<Rule> chain2 = new Vector<Rule>();
         chain2.add(new JumpRule(new Condition(), "Chain1"));
-        chain2.add(new ReverseDnatRule(new Condition(), Action.RETURN));
-        chain2.add(new ReverseSnatRule(new Condition(), Action.ACCEPT));
+        chain2.add(new ReverseNatRule(new Condition(), Action.RETURN, true));
+        chain2.add(new ReverseNatRule(new Condition(), Action.ACCEPT, false));
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x82010104, 0x82010104, (short) 1111,
                 (short) 1113));
-        chain2.add(new DnatRule(new Condition(), nats, Action.CONTINUE));
+        chain2.add(new ForwardNatRule(new Condition(), nats, Action.CONTINUE,
+                true));
         nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x840a0a02, 0x840a0a0b, (short) 3000,
                 (short) 4000));
-        chain2.add(new SnatRule(new Condition(), nats, Action.RETURN));
+        chain2.add(new ForwardNatRule(new Condition(), nats, Action.RETURN,
+                false));
         rtrDir.addRuleChain(rtrId, "Chain2", chain2);
         Assert.assertEquals(2, chainsWatcher.timesCalled);
         chainNames = rtrDir.getRuleChainNames(rtrId, chainsWatcher);
@@ -114,12 +114,12 @@ public class TestRouterDirectory {
                 rulesWatcher1);
         Assert.assertTrue(chain1.equals(storedRules));
         chain1.remove(3);
-        rtrDir.setRuleChain(rtrId,  "Chain1", chain1);
+        rtrDir.setRuleChain(rtrId, "Chain1", chain1);
         Assert.assertEquals(1, rulesWatcher1.timesCalled);
         storedRules = rtrDir.getRuleChain(rtrId, "Chain1", rulesWatcher1);
         Assert.assertTrue(chain1.equals(storedRules));
         chain1.remove(2);
-        rtrDir.setRuleChain(rtrId,  "Chain1", chain1);
+        rtrDir.setRuleChain(rtrId, "Chain1", chain1);
         Assert.assertEquals(2, rulesWatcher1.timesCalled);
         storedRules = rtrDir.getRuleChain(rtrId, "Chain1", rulesWatcher1);
         Assert.assertTrue(chain1.equals(storedRules));
@@ -129,7 +129,7 @@ public class TestRouterDirectory {
         Assert.assertTrue(chain2.equals(storedRules));
         chain2.remove(0);
         chain2.remove(0);
-        rtrDir.setRuleChain(rtrId,  "Chain2", chain2);
+        rtrDir.setRuleChain(rtrId, "Chain2", chain2);
         Assert.assertEquals(1, rulesWatcher2.timesCalled);
         storedRules = rtrDir.getRuleChain(rtrId, "Chain2", rulesWatcher2);
         Assert.assertTrue(chain2.equals(storedRules));

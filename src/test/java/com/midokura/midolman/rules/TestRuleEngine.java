@@ -13,12 +13,10 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 
 import org.junit.Test;
 
 import com.midokura.midolman.layer4.MockNatMapping;
-import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -54,12 +52,12 @@ public class TestRuleEngine {
         }
     }
 
-    private static class MyRevSnatRule extends ReverseSnatRule {
+    private static class MyRevSnatRule extends ReverseNatRule {
         private static final long serialVersionUID = 0L;
         int timesApplied;
 
         public MyRevSnatRule(Condition condition, Action action) {
-            super(condition, action);
+            super(condition, action, false);
             timesApplied = 0;
         }
 
@@ -205,8 +203,8 @@ public class TestRuleEngine {
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
         List<Rule> chain4 = new Vector<Rule>();
-        chain4.add(new DnatRule(cond, nats, Action.CONTINUE));
-        chain4.add(new ReverseDnatRule(new Condition(), Action.RETURN));
+        chain4.add(new ForwardNatRule(cond, nats, Action.CONTINUE, true));
+        chain4.add(new ReverseNatRule(new Condition(), Action.RETURN, true));
         rtrDir.addRuleChain(rtrId, "Chain4", chain4);
         Assert.assertTrue(natMap.recentlyFreedSnatTargets.isEmpty());
         Assert.assertTrue(natMap.snatTargets.isEmpty());
@@ -226,7 +224,7 @@ public class TestRuleEngine {
         short port = pkt.getTransportDestination();
         Assert.assertTrue(1030 <= port);
         Assert.assertTrue(port <= 1050);
-        // Now build a response packet as it would be emitted by the receiver. 
+        // Now build a response packet as it would be emitted by the receiver.
         MidoMatch respPkt = pktMatch.clone();
         respPkt.setNetworkSource(ip);
         respPkt.setTransportSource(port);
@@ -244,7 +242,7 @@ public class TestRuleEngine {
         Assert.assertEquals(1234, pkt.getTransportSource());
         // Verify that only the source ip/port were changed in the response.
         respPkt.setNetworkSource(0x0a000b22);
-        respPkt.setTransportSource((short)1234);
+        respPkt.setTransportSource((short) 1234);
         Assert.assertTrue(pkt.equals(respPkt));
     }
 
@@ -255,8 +253,8 @@ public class TestRuleEngine {
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
         List<Rule> chain4 = new Vector<Rule>();
-        chain4.add(new SnatRule(cond, nats, Action.CONTINUE));
-        chain4.add(new ReverseSnatRule(new Condition(), Action.RETURN));
+        chain4.add(new ForwardNatRule(cond, nats, Action.CONTINUE, false));
+        chain4.add(new ReverseNatRule(new Condition(), Action.RETURN, false));
         rtrDir.addRuleChain(rtrId, "Chain4", chain4);
         Assert.assertTrue(natMap.recentlyFreedSnatTargets.isEmpty());
         Assert.assertTrue(nats.equals(natMap.snatTargets));
@@ -276,7 +274,7 @@ public class TestRuleEngine {
         short port = pkt.getTransportSource();
         Assert.assertTrue(1030 <= port);
         Assert.assertTrue(port <= 1050);
-        // Now build a response packet as it would be emitted by the receiver. 
+        // Now build a response packet as it would be emitted by the receiver.
         MidoMatch respPkt = pktMatch.clone();
         respPkt.setNetworkSource(pktMatch.getNetworkDestination());
         respPkt.setTransportSource(pktMatch.getTransportDestination());
@@ -294,7 +292,7 @@ public class TestRuleEngine {
         Assert.assertEquals(4321, pkt.getTransportDestination());
         // Verify that only destination ip/port were changed in the response.
         respPkt.setNetworkDestination(0x0a001406);
-        respPkt.setTransportDestination((short)4321);
+        respPkt.setTransportDestination((short) 4321);
         Assert.assertTrue(pkt.equals(respPkt));
     }
 }

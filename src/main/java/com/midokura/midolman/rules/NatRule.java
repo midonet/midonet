@@ -1,7 +1,5 @@
 package com.midokura.midolman.rules;
 
-import java.util.Set;
-
 import com.midokura.midolman.layer4.NatMapping;
 
 public abstract class NatRule extends Rule {
@@ -9,9 +7,11 @@ public abstract class NatRule extends Rule {
     private static final long serialVersionUID = 8176550999088632045L;
     // The NatMapping is irrelevant to the hashCode, equals and serialization.
     protected transient NatMapping natMap;
+    protected boolean dnat;
 
-    public NatRule(Condition condition, Action action) {
+    public NatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action);
+        this.dnat = dnat;
         if (action != Action.ACCEPT && action != Action.CONTINUE
                 && action != Action.RETURN)
             throw new IllegalArgumentException("A nat rule's action "
@@ -22,9 +22,19 @@ public abstract class NatRule extends Rule {
         natMap = nat;
     }
 
-    // Used by RuleEngine to discover resources that must be initialized
-    // or preserved. Not all NatRules have NatTargets (e.g. reverse nats).
-    public Set<NatTarget> getNatTargets() {
-        return null;
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 11 + (dnat ? 1231 : 1237);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (!(other instanceof NatRule))
+            return false;
+        if (!super.equals(other))
+            return false;
+        return dnat == ((NatRule) other).dnat;
     }
 }

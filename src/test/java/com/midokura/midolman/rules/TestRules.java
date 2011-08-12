@@ -138,17 +138,17 @@ public class TestRules {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionDrop() {
-        new SnatRule(cond, null, Action.DROP);
+        new ForwardNatRule(cond, null, Action.DROP, false);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionJump() {
-        new SnatRule(cond, null, Action.JUMP);
+        new ForwardNatRule(cond, null, Action.JUMP, false);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionReject() {
-        new SnatRule(cond, null, Action.REJECT);
+        new ForwardNatRule(cond, null, Action.REJECT, false);
     }
 
     @Test
@@ -156,14 +156,14 @@ public class TestRules {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0b000102, 0x0b00010a, (short) 3366,
                 (short) 3399));
-        Rule rule = new SnatRule(cond, nats, Action.ACCEPT);
+        Rule rule = new ForwardNatRule(cond, nats, Action.ACCEPT, false);
         NatMapping natMap = new MockNatMapping();
         ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         rule.process(null, null, argRes);
         Assert.assertTrue(expRes.equals(argRes));
         // We let the reverse snat rule try reversing everything.
-        Rule revRule = new ReverseSnatRule(new Condition(), Action.RETURN);
+        Rule revRule = new ReverseNatRule(new Condition(), Action.RETURN, false);
         ((NatRule) revRule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         revRule.process(null, null, argRes);
@@ -207,14 +207,14 @@ public class TestRules {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
-        Rule rule = new DnatRule(cond, nats, Action.CONTINUE);
+        Rule rule = new ForwardNatRule(cond, nats, Action.CONTINUE, true);
         NatMapping natMap = new MockNatMapping();
         ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         rule.process(null, null, argRes);
         Assert.assertTrue(expRes.equals(argRes));
         // We let the reverse dnat rule try reversing everything.
-        Rule revRule = new ReverseDnatRule(new Condition(), Action.ACCEPT);
+        Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
         ((NatRule) revRule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
         revRule.process(null, null, argRes);

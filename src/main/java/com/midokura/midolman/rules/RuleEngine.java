@@ -163,8 +163,11 @@ public class RuleEngine {
         Set<NatTarget> targets = new HashSet<NatTarget>();
         for (List<Rule> chain : ruleChains.values()) {
             for (Rule r : chain) {
-                if (r instanceof SnatRule)
-                    targets.addAll(((SnatRule)r).getNatTargets());
+                if (r instanceof ForwardNatRule) {
+                    ForwardNatRule fR = (ForwardNatRule) r;
+                    if (!fR.dnat)
+                        targets.addAll(fR.getNatTargets());
+                }
             }
         }
         natMap.updateSnatTargets(targets);
