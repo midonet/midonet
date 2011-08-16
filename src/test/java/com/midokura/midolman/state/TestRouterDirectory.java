@@ -42,12 +42,16 @@ public class TestRouterDirectory {
             InterruptedException, ClassNotFoundException {
         UUID rtrId = new UUID(rand.nextLong(), rand.nextLong());
         rtrDir.addRouter(rtrId);
-        StringBuilder strb = new StringBuilder("10.0.1.0,24,10.0.2.0,24,");
-        strb.append(NextHop.BLACKHOLE.toString()).append(",,,1000,myattrs");
+        StringBuilder strb = new StringBuilder();
+        strb.append(0x0a000100).append(",24,");
+        strb.append(0x0a000200).append(",24,");
+        strb.append(NextHop.BLACKHOLE.toString()).append(",,0,1000,myattrs");
         Route rt1 = Route.fromString(strb.toString());
         rtrDir.addRoute(rtrId, rt1);
-        strb = new StringBuilder("10.4.0.0,16,10.5.0.0,16,");
-        strb.append(NextHop.REJECT.toString()).append(",,,2000,mymanyattrs");
+        strb = new StringBuilder();
+        strb.append(0x0a040000).append(",16,");
+        strb.append(0x0a050000).append(",16,");
+        strb.append(NextHop.REJECT.toString()).append(",,0,2000,mymanyattrs");
         Route rt2 = Route.fromString(strb.toString());
         rtrDir.addRoute(rtrId, rt2);
         Collection<Route> routes = rtrDir.getRoutes(rtrId);
