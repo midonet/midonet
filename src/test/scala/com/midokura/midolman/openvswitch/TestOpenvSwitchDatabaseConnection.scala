@@ -208,4 +208,19 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
     }
+
+    /**
+     * Test addQos and delQos.
+     */
+    @Test def testAddQos() = {
+        val qosType = "linux-htb"
+        val qosExtIdKey = bridgeExtIdKey
+        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val qb = ovsdb.addQos(qosType)
+        qb.externalId(qosExtIdKey, qosExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQos(uuid))
+        ovsdb.delQos(uuid)
+        assertFalse(ovsdb.hasQos(uuid))
+    }
 }
