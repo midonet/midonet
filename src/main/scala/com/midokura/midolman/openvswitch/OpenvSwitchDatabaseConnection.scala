@@ -770,6 +770,54 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     /**
+     * A QosBuilder that uses an synchronous OVSDB connection.
+     */
+    class QosBuilderImpl(var qosType: String) extends QosBuilder {
+        private var qosQueues: Map[Long, String] = Map()
+        private var qosOtherConfig: Map[String, Long] = Map()
+        private var qosExternalIds: Map[String, _] = Map()
+        override def clear() = {
+          qosType = ""
+          qosQueues.clear
+          qosOtherConfig.clear
+          qosExternalIds.clear
+          this
+        }
+        override def externalId(key: String, value: String) =
+            { qosExternalIds += (key -> value); this }
+        override def maxRate(maxRate: Int) =
+            { qosOtherConfig += ("max-rate" -> maxRate); this }
+        def queues(queues: Map[Long, String]) =
+            { qosQueues ++= queues; this }
+        override def queues(queues: java.util.Map[java.lang.Long, java.lang.String]) =
+            this.queues(queues)
+        override def build(): String = {
+            val tx = new Transaction(database)
+            val qosUUID: String = generateUUID
+            var qosRow: Map[String, Any] = Map("type" -> qosType)
+            if (!qosQueues.isEmpty)
+                qosRow += ("queue" -> mapToOvsMap(qosQueues))
+            if (!qosOtherConfig.isEmpty)
+                qosRow += ("other_config" -> mapToOvsMap(qosOtherConfig))
+            if (!qosExternalIds.isEmpty)
+                qosRow += ("external_ids" -> mapToOvsMap(qosExternalIds))
+            tx.insert(TableQos, qosUUID, qosRow)
+            tx.setInsert(TablePort, Some(qosUUID), "qos",
+                         getNewRowOvsUUID(qosUUID))
+            tx.addComment("created QoS with uuid " + qosUUID)
+            tx.increment(TableOpenvSwitch, None, "next_cfg")
+            val json = doJsonRpc(tx)
+            assume(json.get(0) != null, "Invalid JSON object.")
+            for {
+                qosRow <- json
+                uuid = qosRow.get("uuid") if uuid != null
+                qosUUID = uuid.get(1) if qosUUID != null
+            } return qosUUID.getTextValue
+            return ""
+        }
+    }
+
+    /**
      * Add a new bridge with the given name.
      *
      * @param name The name of the bridge to add.
@@ -1147,6 +1195,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         !controllerRows.getElements.isEmpty
     }
 
+    /**
+     * Determine whether a QoS with a given target exists.
+     *
+     * @param uuid The UUID of the controller.
+     * @return Whether a QoS with the given name exists.
+     */
+    def hasQos(uuid: String) = {
+        val qosRows = select(TableQos, whereUUIDEquals(uuid), List("_uuid"))
+        !qosRows.getElements.isEmpty
+    }
+
     private def delBridge(bridgeRows: Iterator[JsonNode], bridge: String) = {
         val tx = new Transaction(database)
 
@@ -1411,9 +1470,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         getPortExternalId(bridgeRows.getElements, portNum, externalIdKey)
     }
 
-    override def addQos(_type: String): QosBuilder = {
-        throw new RuntimeException("not implemented") // TODO
-    }
+    /**
+     * Create a QoS.
+     *
+     * @param qosType The type of the QoS such as 'linux-htb' or 'linux-hfcs'.
+     *                Defaults to 'linux-htb'.bridgeName The name of the bridge
+     *                to add the port to.
+     *                
+     * @return A builder to set optional parameters of the QoS and add it.
+     */
+    override def addQos(qosType: String): QosBuilder =
+        new QosBuilderImpl(qosType)
 
     override def updateQos(qosUuid: String, _type: String): QosBuilder = {
         throw new RuntimeException("not implemented") // TODO
@@ -1423,8 +1490,51 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         throw new RuntimeException("not implemented") // TODO
     }
 
-    override def delQos(qosUuid: String) = {
-        throw new RuntimeException("not implemented") // TODO
+    /**
+     * Delete a QoS.
+     *
+     * @param qos_uuid The UUID of the QoS to delete.
+     */
+    override def delQos(qosUUID: String) = {
+        delQos(qosUUID, false)
+    }
+
+    /**
+     * Delete a QoS.
+     * The QoS is removed from any port on which it is set. If deleteQueue is
+     * True, delete all queues bound to the QoS.
+     *
+     * @param qos_uuid The UUID of the QoS to delete.
+     * @param deleteQueues The flag whether queues the QoS has will be deleted or
+     *        not. Defaults to False, i.e., no queues bound to the QoS will be
+     *        deleted.
+     */
+    private def delQos(qosUUID: String, deleteQueues: Boolean = false) = {
+        val tx = new Transaction(database)
+        val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
+                             List("_uuid", "queues"))
+        if (qosRows.getElements.isEmpty)
+          throw new RuntimeException("no QoS with uuid " + qosUUID)
+        tx.delete(TableQos, Some(qosUUID))
+        tx.addComment("deleted QoS with uuid " + qosUUID)
+        if (deleteQueues) {
+            val queues = ovsMapToMap(qosRows.get(0).get("queues"))
+            for {
+              q <- queues.values
+              queueUUID <- q.getElements
+            } tx.delete(TableQueue, Some(queueUUID.get(1).getTextValue))
+        }
+        val portRows = select(
+          TablePort, List(List("qos", "includes", List("uuid", qosUUID))),
+          List("_uuid", "qos"))
+        for (portRow <- portRows) {
+            val portUUID = portRow.get("_uuid").get(1).getTextValue
+            val qosValue = portRow.get("qos").get(1).getTextValue
+            tx.setDelete(TablePort, Some(portUUID), "qos", qosValue)
+        }
+        tx.addComment("deleted QoS with uuid " + qosUUID)
+        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        doJsonRpc(tx)
     }
 
     override def setPortQos(portName: String, qosUuid: String) = {
