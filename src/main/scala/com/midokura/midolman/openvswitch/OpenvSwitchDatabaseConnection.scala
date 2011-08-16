@@ -108,14 +108,30 @@ object OpenvSwitchDatabaseConnectionImpl {
     }
 
     /**
+     * implicit conversion from Int to String for objects' keys of JSON.
+     *
+     * @param i The integer value to convert.
+     * @return The String of the value.
+     */
+    implicit def intToString(i: Int): String = i.toString
+
+    /**
+     * implicit conversion from Long to String for objects' keys of JSON.
+     *
+     * @param i The integer value to convert.
+     * @return The String of the value.
+     */
+    implicit def longToString(i: Long): String = i.toString
+
+    /**
      * Converts an Open vSwitch DB map into a Map.
      *
      * @param table   The name of the table containing the row to select.
      * @param where   The JSON-encodable 'where' clause to be matched by the row.
      * @param columns The List of columns to return.
-     * @return The List of selected rows.
+     * @return The Map from the key to the JsonNode.
      */
-    def ovsMapToMap(ovsMap: JsonNode): Map[String, String] = {
+    def ovsMapToMap(ovsMap: JsonNode): Map[String, JsonNode] = {
         require(ovsMap.get(0).toString != "map",
                 "map should be the first entry.")
         (for {
@@ -123,7 +139,7 @@ object OpenvSwitchDatabaseConnectionImpl {
             key = node.get(0) if key != null
             value = node.get(1) if value != null
         } yield (key.getTextValue,
-                 value.getTextValue)).toMap[String, String]
+                 value)).toMap[String, JsonNode]
      }
 
     /**
@@ -132,7 +148,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      * @param map The Map to convert.
      * @return An Open vSwitch DB map with the key-value pairs of the Map.
      */
-    def mapToOvsMap(map: Map[String, _]): List[_] = {
+    def mapToOvsMap[T](map: Map[T, _])(implicit f: T => String): List[_] = {
         List("map", (for ((k, v) <- map) yield List(k, v)).toList)
     }
 }
@@ -1249,7 +1265,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         } {
             val extIds = ovsMapToMap(ovsMap)
             for (externalIdVal <- extIds.get(externalIdKey)) {
-                return externalIdVal
+                return externalIdVal.getTextValue
             }
         }
         return ""
@@ -1273,7 +1289,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         } {
             val extIds = ovsMapToMap(ovsMap)
             for (externalIdVal <- extIds.get(externalIdKey)) {
-                return externalIdVal
+                return externalIdVal.getTextValue
             }
         }
         return ""
@@ -1327,7 +1343,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                         val extIds =
                             ovsMapToMap(portRow.get("external_ids"))
                         for (externalIdVal <- extIds.get(externalIdKey)) {
-                            return externalIdVal
+                            return externalIdVal.getTextValue
                         }
                     }
                 }
@@ -1354,7 +1370,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         } {
             val extIds = ovsMapToMap(ovsMap)
             for (externalIdVal <- extIds.get(externalIdKey)) {
-                return externalIdVal
+                return externalIdVal.getTextValue
             }
         }
         return ""
