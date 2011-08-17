@@ -246,7 +246,7 @@ public class TestReplicatedMap {
             if (null == oldValue)
                 map2.remove(key);
             else
-                map2.put(key,  oldValue);
+                map2.put(key, oldValue);
         }
     }
 
