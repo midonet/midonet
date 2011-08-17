@@ -1501,6 +1501,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
     /**
      * Delete a QoS.
+     *
      * The QoS is removed from any port on which it is set. If deleteQueue is
      * True, delete all queues bound to the QoS.
      *
@@ -1509,7 +1510,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *        not. Defaults to False, i.e., no queues bound to the QoS will be
      *        deleted.
      */
-    private def delQos(qosUUID: String, deleteQueues: Boolean = false) = {
+    def delQos(qosUUID: String, deleteQueues: Boolean = false) = {
         val tx = new Transaction(database)
         val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
                              List("_uuid", "queues"))
@@ -1517,20 +1518,23 @@ extends OpenvSwitchDatabaseConnection with Runnable {
           throw new RuntimeException("no QoS with uuid " + qosUUID)
         tx.delete(TableQos, Some(qosUUID))
         tx.addComment("deleted QoS with uuid " + qosUUID)
-        if (deleteQueues) {
-            val queues = ovsMapToMap(qosRows.get(0).get("queues"))
-            for {
-              q <- queues.values
-              queueUUID <- q.getElements
-            } tx.delete(TableQueue, Some(queueUUID.get(1).getTextValue))
-        }
-        val portRows = select(
-          TablePort, List(List("qos", "includes", List("uuid", qosUUID))),
-          List("_uuid", "qos"))
-        for (portRow <- portRows) {
-            val portUUID = portRow.get("_uuid").get(1).getTextValue
-            val qosValue = portRow.get("qos").get(1).getTextValue
-            tx.setDelete(TablePort, Some(portUUID), "qos", qosValue)
+        for (qosRow <- qosRows) {
+            if (deleteQueues) {
+                val queues = ovsMapToMap(qosRows.get(0).get("queues"))
+                for {
+                    q <- queues.values
+                    queueUUIDNode <- q.getElements
+                    val queueUUID = queueUUIDNode.get(1).getTextValue
+                } tx.delete(TableQueue, Some(queueUUID))
+            }
+            val portRows = select(TablePort, 
+                                  List(List("qos", "includes", List("uuid", qosUUID))),
+                                  List("_uuid", "qos"))
+            for (portRow <- portRows) {
+                val portUUID = portRow.get("_uuid").get(1).getTextValue
+                val qosValue = portRow.get("qos").get(1).getTextValue
+                tx.setDelete(TablePort, Some(portUUID), "qos", qosValue)
+            }
         }
         tx.addComment("deleted QoS with uuid " + qosUUID)
         tx.increment(TableOpenvSwitch, None, List("next_cfg"))
