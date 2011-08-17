@@ -223,4 +223,20 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         ovsdb.delQos(uuid)
         assertFalse(ovsdb.hasQos(uuid))
     }
+
+    /**
+     * Test addQueue and delQueue.
+     */
+    @Test def testAddQueue() = {
+        val queueMinRate: Long = 100000000
+        val queueExtIdKey = bridgeExtIdKey
+        val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val qb = ovsdb.addQueue()
+        qb.minRate(queueMinRate)
+        qb.externalId(queueExtIdKey, queueExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQueue(uuid))
+        ovsdb.delQueue(uuid)
+        assertFalse(ovsdb.hasQueue(uuid))
+    }
 }
