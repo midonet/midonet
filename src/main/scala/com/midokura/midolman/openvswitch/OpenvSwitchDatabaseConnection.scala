@@ -817,6 +817,62 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }
 
+    class QueueBuilderImpl extends QueueBuilder {
+        private var queueMaxRate: Option[Long] = None
+        private var queueMinRate: Option[Long] = None
+        private var queueExternalIds: Map[String, String] = Map()
+        private var queueBurst: Option[Long] = None
+        private var queuePriority: Option[Long] = None
+
+        override def clear() = {
+            queueMaxRate = None
+            queueMinRate = None
+            queueExternalIds.clear
+            queueBurst= None
+            queuePriority = None
+            this
+        }
+        override def externalId(key: String, value: String) =
+            { queueExternalIds += (key -> value); this }
+        override def minRate(minRate: Long) =
+            { queueMinRate = Some(minRate); this }
+        override def maxRate(maxRate: Long) =
+            { queueMaxRate = Some(maxRate); this }
+        override def burst(burst: Long) =
+            { queueBurst = Some(burst); this }
+        override def priority(priority: Long) =
+            { queuePriority = Some(priority); this }
+        override def build(): String = {
+            val tx = new Transaction(database)
+            val queueUUID: String = generateUUID
+            var queueOtherConfig: Map[String, String] = Map()
+            if (!queueMinRate.isEmpty)
+                queueOtherConfig += ("min-rate" -> queueMinRate.toString)
+            if (!queueMaxRate.isEmpty)
+                queueOtherConfig += ("max-rate" -> queueMaxRate.toString)
+            if (!queueBurst.isEmpty)
+                queueOtherConfig += ("burst" -> queueBurst.toString)
+            if (!queuePriority.isEmpty)
+                queueOtherConfig += ("priority" -> queuePriority.toString)
+            var queueRow: Map[String, Any] = Map()
+            if (!queueOtherConfig.isEmpty)
+                queueRow += ("other_config" -> mapToOvsMap(queueOtherConfig))
+            if (!queueExternalIds.isEmpty)
+                queueRow += ("external_ids" -> mapToOvsMap(queueExternalIds))
+            tx.insert(TableQueue, queueUUID, queueRow)
+            tx.addComment("created Queue with uuid" + queueUUID)
+            tx.increment(TableOpenvSwitch, None, "next_cfg")
+            val json = doJsonRpc(tx)
+            assume(json.get(0) != null, "Invalid JSON object.")
+            for {
+                queueRow <- json
+                uuid = queueRow.get("uuid") if uuid != null
+                queueUUID = uuid.get(1) if queueUUID != null
+            } return queueUUID.getTextValue
+            return ""
+        }
+    }
+    
     /**
      * Add a new bridge with the given name.
      *
@@ -1206,6 +1262,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         !qosRows.getElements.isEmpty
     }
 
+    /**
+     * Determine whether a queue with a given target exists.
+     *
+     * @param uuid The UUID of the queue.
+     * @return Whether a queue with the given name exists.
+     */
+    def hasQueue(uuid: String) = {
+        val queueRows = select(TableQueue, whereUUIDEquals(uuid), List("_uuid"))
+        !queueRows.getElements.isEmpty
+    }
+
     private def delBridge(bridgeRows: Iterator[JsonNode], bridge: String) = {
         val tx = new Transaction(database)
 
@@ -1549,16 +1616,31 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         throw new RuntimeException("not implemented") // TODO
     }
 
-    override def addQueue(): QueueBuilder = {
-        throw new RuntimeException("not implemented") // TODO
-    }
+    /**
+     * Create a Queue.
+     */
+    override def addQueue(): QueueBuilder = new QueueBuilderImpl()
 
     override def updateQueue(queueUuid: String): QueueBuilder = {
         throw new RuntimeException("not implemented") // TODO
     }
 
-    override def delQueue(queueUuid: String) = {
-        throw new RuntimeException("not implemented") // TODO
+    
+    /**
+     * Delete the queue associated with with the UUID.
+     *
+     * @param queueUUID The uuid of the queue to be deleted.
+     */
+    override def delQueue(queueUUID: String) = {
+        val tx = new Transaction(database)
+        val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
+                               List("_uuid"))
+        if (queueRows.getElements.isEmpty)
+            throw new RuntimeException("no Queue with uuid " + queueUUID)
+        tx.delete(TableQueue, Some(queueUUID))
+        tx.addComment("deleted queue with uuid " + queueUUID)
+        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        doJsonRpc(tx)
     }
 
     /**
