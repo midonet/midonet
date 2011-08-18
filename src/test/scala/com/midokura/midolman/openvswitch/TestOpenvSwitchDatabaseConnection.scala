@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitSuite
 
 import com.midokura.midolman.openvswitch._
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 
 /**
  * Test for the Open vSwitch database connection.
@@ -238,5 +239,29 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         assertTrue(ovsdb.hasQueue(uuid))
         ovsdb.delQueue(uuid)
         assertFalse(ovsdb.hasQueue(uuid))
+    }
+
+    /**
+     * Test setPortQos and unsetPortQos.
+     */
+    @Test def testSetPortQos() = {
+        val qosType = "linux-htb"
+        val qosExtIdKey = bridgeExtIdKey
+        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        var pb = ovsdb.addSystemPort(bridgeName, portName)
+        pb.build
+        assertTrue(ovsdb.hasPort(portName))
+        val qb = ovsdb.addQos(qosType)
+        qb.externalId(qosExtIdKey, qosExtIdValue)
+        val qosUUID = qb.build
+        assertTrue(ovsdb.hasQos(qosUUID))
+        ovsdb.setPortQos(portName, qosUUID)
+        assertFalse(ovsdb.isEmptyColumn(TablePort, portName, "qos"))
+        ovsdb.unsetPortQos(portName)
+        assertTrue(ovsdb.isEmptyColumn(TablePort, portName, "qos"))
+        ovsdb.delQos(qosUUID)
+        assertFalse(ovsdb.hasQos(qosUUID))
+        ovsdb.delPort(portName)
+        assertFalse(ovsdb.hasPort(portName))
     }
 }
