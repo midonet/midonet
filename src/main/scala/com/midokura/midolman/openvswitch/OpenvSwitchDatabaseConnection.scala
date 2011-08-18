@@ -34,17 +34,17 @@ import com.fasterxml.jackson.module.scala.ScalaModule
  * Static methods and constants for OpenvSwitchDatabaseConnection.
  */
 object OpenvSwitchDatabaseConnectionImpl {
-    private final val InterfaceTypeSystem: String  = "system"
-    private final val InterfaceTypeInternal: String = "internal"
-    private final val InterfaceTypeTap: String = "tap"
-    private final val InterfaceTypeGre: String = "gre"
-    private final val TableBridge: String = "Bridge"
-    private final val TableController: String = "Controller"
-    private final val TableInterface: String = "Interface"
-    private final val TableOpenvSwitch: String = "Open_vSwitch"
-    private final val TablePort: String = "Port"
-    private final val TableQos: String = "QoS"
-    private final val TableQueue: String = "Queue"
+    final val InterfaceTypeSystem: String  = "system"
+    final val InterfaceTypeInternal: String = "internal"
+    final val InterfaceTypeTap: String = "tap"
+    final val InterfaceTypeGre: String = "gre"
+    final val TableBridge: String = "Bridge"
+    final val TableController: String = "Controller"
+    final val TableInterface: String = "Interface"
+    final val TableOpenvSwitch: String = "Open_vSwitch"
+    final val TablePort: String = "Port"
+    final val TableQos: String = "QoS"
+    final val TableQueue: String = "Queue"
     private final val echo_interval = 1000
     private final val log = LoggerFactory.getLogger(this.getClass)
 
