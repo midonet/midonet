@@ -23,7 +23,7 @@ import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import java.util.{UUID, Timer, TimerTask}
 
 import org.codehaus.jackson.{JsonNode, JsonFactory, JsonGenerator, JsonParser}
-import org.codehaus.jackson.node.JsonNodeFactory
+import org.codehaus.jackson.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode}
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
 
@@ -151,6 +151,15 @@ object OpenvSwitchDatabaseConnectionImpl {
     def mapToOvsMap[T](map: Map[T, _])(implicit f: T => String): List[_] = {
         List("map", (for ((k, v) <- map) yield List(k, v)).toList)
     }
+
+    /**
+     * Converts ObjectNode to Map.
+     * @param node The ObjectNode to convert.
+     * @return An Map from the keys to the values of JsonNode.
+     */
+    implicit def objectNodeToMap(objectNode: ObjectNode): Map[String, JsonNode] =
+        (for (entry <- objectNode.getFields)
+         yield (entry.getKey -> entry.getValue)).toMap[String, JsonNode]
 }
 
 /**
@@ -1273,6 +1282,45 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         !queueRows.getElements.isEmpty
     }
 
+    /**
+     * Determine whether a queue with a given target exists.
+     *
+     * @param table The table name to check.
+     * @param uuid The UUID or name to check.
+     * @param column The column name to check.
+     * @return Whether a column value exists.
+     */
+    def isEmptyColumn(table: String, uuid: String, column: String): Boolean = {
+        val where: List[List[_]] = table match {
+            case TableBridge | TablePort =>
+                List(List("name", "==", uuid))
+            case _ =>
+                whereUUIDEquals(uuid)
+        }
+        val rows = select(table, where, List("_uuid", column))
+        for (row <- rows) {
+            val isEmpty: Boolean =  row.get(column) match {
+                case null => true
+                case t: TextNode =>
+                    if (t.getTextValue.isEmpty) true else false
+                case a: ArrayNode =>
+                    if (a.getElements.isEmpty)
+                        true
+                    else
+                        if (a.get(0).getTextValue == "map" || 
+                            a.get(0).getTextValue == "set")
+                            if (a.get(1).getElements.isEmpty)
+                                true
+                            else
+                                false
+                        else false
+                case _ => false
+            }
+            return isEmpty
+        }
+        return true
+    }
+
     private def delBridge(bridgeRows: Iterator[JsonNode], bridge: String) = {
         val tx = new Transaction(database)
 
@@ -1608,12 +1656,66 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         doJsonRpc(tx)
     }
 
-    override def setPortQos(portName: String, qosUuid: String) = {
-        throw new RuntimeException("not implemented") // TODO
+    /**
+     * Set the QoS to the port.
+     *
+     * @param portName The name of the port to be added.
+     * @param qosUUID The UUID of the QoS to add.
+     */
+    override def setPortQos(portName: String, qosUUID: String) = {
+        val tx = new Transaction(database)
+        val portRows = select(TablePort, List(List("name", "==", portName)),
+                              List("_uuid"))
+        if (portRows.getElements.isEmpty)
+            throw new RuntimeException("no port with the name " + portName)
+        val qosRows = select(TableQos, whereUUIDEquals(qosUUID), List("_uuid"))
+        if (qosRows.getElements.isEmpty)
+            throw new RuntimeException("no QoS with the uuid " + qosUUID)
+        for (portRow <- portRows) {
+            val portUUID = portRow.get("_uuid").get(1).getTextValue
+            val qosUUID = qosRows.get(0).get("_uuid")
+            tx.setInsert(TablePort, Some(portUUID), "qos", qosUUID)
+        }
+        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        doJsonRpc(tx)
     }
+    
+    /**
+     * Unset the QoS from the port.
+     *
+     * @param portName The name of the port to be added.
+     */
+    override def unsetPortQos(portName: String) = clearQos(portName, false)
 
-    override def unsetPortQos(portName: String) = {
-        throw new RuntimeException("not implemented") // TODO
+    
+    /**
+     * Clear and unset the QoS from the port.
+     *
+     * @param portName The name of the port to be added.
+     * @param deleteQos The boolean whether to delete the qos or not. Defaults
+     *                  to false. i.e., Not to delete queues but only
+     *                  disassociate.
+     */
+    def clearQos(portName: String, deleteQos: Boolean = false) = {
+        val tx = new Transaction(database)
+        val portRows = select(TablePort, List(List("name", "==", portName)),
+                              List("_uuid", "qos"))
+        if (portRows.getElements.isEmpty)
+            throw new RuntimeException("no port with name " + portName)
+        for (portRow <- portRows) {
+            val portUUID = portRow.get("_uuid").get(1).getTextValue
+            if (deleteQos) {
+                val qosUUID = portRow.get("qos").getTextValue
+                tx.delete(TableQos, Some(qosUUID))
+                tx.addComment("deleted the QoS with uuid " + qosUUID)
+            }
+            var updatedPortRow: Map[String, Any] =
+                objectNodeToMap(portRow.asInstanceOf[ObjectNode])
+            updatedPortRow += ("qos" -> List("set", List()))
+            tx.update(TablePort, Some(portUUID), updatedPortRow)
+        }
+        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        doJsonRpc(tx)
     }
 
     /**
