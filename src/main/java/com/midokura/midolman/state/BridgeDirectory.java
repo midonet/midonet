@@ -37,6 +37,10 @@ public class BridgeDirectory {
         dir.add("/" + bridgeId.toString(), bos.toByteArray(),
                 CreateMode.PERSISTENT);
     }
+    
+    public boolean exists(UUID bridgeId) throws KeeperException, InterruptedException {
+        return dir.has("/" + bridgeId.toString());
+    }
 
     public void setGreKey(UUID bridgeId, int gre_key) throws IOException,
             KeeperException, InterruptedException {

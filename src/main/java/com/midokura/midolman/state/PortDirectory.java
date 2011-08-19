@@ -194,6 +194,10 @@ public class PortDirectory {
             }
         }
     }
+    
+    public boolean exists(UUID portId) throws KeeperException, InterruptedException {
+        return dir.has("/" + portId.toString());
+    }
 
     public void addRoutes(UUID portId, Set<Route> routes) throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {

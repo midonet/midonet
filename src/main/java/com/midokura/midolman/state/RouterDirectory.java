@@ -79,6 +79,10 @@ public class RouterDirectory {
         }
     }
 
+    public boolean exists(UUID routerId) throws KeeperException, InterruptedException {
+        return dir.has("/" + routerId.toString());
+    }
+
     public void deleteRouter(UUID routerId) throws InterruptedException,
             KeeperException {
         String[] paths = new String[] { getRoutesPath(routerId),
