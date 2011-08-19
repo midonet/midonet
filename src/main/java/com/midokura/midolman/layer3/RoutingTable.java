@@ -241,7 +241,7 @@ public class RoutingTable {
         }
     }
 
-    private MyRoutesIterator findBestMatch(int dst) {
+    private Iterator<Collection<Route>> findBestMatch(int dst) {
         TrieNode parent = null;
         TrieNode node = dstPrefixTrie;
 
