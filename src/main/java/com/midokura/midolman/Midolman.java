@@ -11,6 +11,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -19,12 +20,11 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scala.actors.threadpool.TimeUnit;
-
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.state.ZkConnection;
 
 public class Midolman {
@@ -105,18 +105,22 @@ public class Midolman {
                 public void handleEvent(SelectionKey key) throws IOException {
                     log.info("handleEvent " + key);
     
-                    SocketChannel sock = listenSock.accept();
-    
-                    log.info("handleEvent acccepted connection from "
-                            + sock.socket().getRemoteSocketAddress());
-    
-                    sock.socket().setTcpNoDelay(true);
-                    sock.configureBlocking(false);
-    
-                    ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, loop,
-                            new ControllerTrampoline(config, ovsdb, zkConnection.getRootDirectory()));
-    
-                    loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);
+                    try {
+                        SocketChannel sock = listenSock.accept();
+        
+                        log.info("handleEvent acccepted connection from "
+                                + sock.socket().getRemoteSocketAddress());
+        
+                        sock.socket().setTcpNoDelay(true);
+                        sock.configureBlocking(false);
+        
+                        ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, loop,
+                                new ControllerTrampoline(config, ovsdb, zkConnection.getRootDirectory()));
+        
+                        loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);
+                    } catch (Exception e) {
+                        log.warn("handleEvent", e);
+                    }
                 }
     
             });
