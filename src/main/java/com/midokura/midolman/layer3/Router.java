@@ -1,7 +1,6 @@
 package com.midokura.midolman.layer3;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -9,6 +8,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
@@ -20,6 +21,8 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 
 public class Router {
+
+    private static final Logger log = LoggerFactory.getLogger(Router.class);
 
     public static final long ARP_RETRY_MILLIS = 10000;
     public static final long ARP_TIMEOUT_MILLIS = 60000;
@@ -275,8 +278,75 @@ public class Router {
 
         @Override
         public void run() {
-            // TODO Auto-generated method stub
+            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
+            if (null == arpCache)
+                // ARP cache is gone, probably because port went down.
+                return;
+            ArpCacheEntry entry = arpCache.get(nwAddr);
+            if (null == entry)
+                // The entry has already been removed.
+                return;
+            if (entry.expiry <= System.currentTimeMillis()) {
+                arpCache.remove(nwAddr);
+                // TODO(pino): complete callbacks waiting for this ARP.
+            }
+            // Else the expiration was rescheduled by an ARP reply arriving
+            // while the entry was stale. Do nothing.
         }
     }
 
+    private class ArpRetry implements Runnable {
+        int nwAddr;
+        UUID inPortId;
+
+        ArpRetry(int nwAddr, UUID inPortId) {
+            this.nwAddr = nwAddr;
+            this.inPortId = inPortId;
+        }
+
+        @Override
+        public void run() {
+            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
+            if (null == arpCache)
+                // ARP cache is gone, probably because port went down.
+                return;
+            ArpCacheEntry entry = arpCache.get(nwAddr);
+            if (null == entry)
+                // The entry has already been removed.
+                return;
+            if (null != entry.macAddr)
+                // An answer arrived
+                return;
+            // Re-ARP and schedule again.
+            generateArpRequest(nwAddr, inPortId);
+            reactor.schedule(this, ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void generateArpRequest(int nwAddr, UUID inPortId) {
+        /*
+    gw_mac = self._vrn_controller.get_hw_addr(out_port)
+    local_gw = self._vrn_controller.localgw_for_port(out_port)
+    arp_pkt = arp.ARP()
+    arp_pkt.sha = gw_mac
+    arp_pkt.spa = local_gw
+    arp_pkt.tpa = ip_addr
+    ether_pkt = ethernet.Ethernet(data=arp_pkt,
+                                  dst=b'\xFF\xFF\xFF\xFF\xFF\xFF',
+                                  src=gw_mac,
+                                  type=ethernet.ETH_TYPE_ARP)
+    logging.debug('router_fe: arp from port %s for address %s' %
+                  (out_port, socket.inet_ntoa(ip_addr)))
+    self._vrn_controller.send_packet_from_port(ether_pkt, out_port)
+    arp_cache = self._arp_cache[out_port]
+    now = self._reactor.seconds()
+    if ip_addr in arp_cache:
+      arp_cache[ip_addr] = arp_cache[ip_addr]._replace(arp_send=now)
+    else:
+      arp_cache[ip_addr] = arp_cache_entry.ArpCacheEntry(
+          mac_address=None, expiry=now+ARP_TIMEOUT, stale=now+ARP_RETRY,
+          arp_send=now)
+          */
+    
+    }
 }
