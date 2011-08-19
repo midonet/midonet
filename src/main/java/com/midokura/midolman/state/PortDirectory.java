@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -53,17 +52,17 @@ public class PortDirectory {
     private static abstract class RouterPortConfig extends PortConfig implements
             Serializable {
         private static final long serialVersionUID = -4536197977961670285L;
-        public InetAddress networkAddr;
-        public int networkLength;
-        public InetAddress portAddr;
+        public int nwAddr;
+        public int nwLength;
+        public int portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.
         public transient Set<Route> routes;
 
-        public RouterPortConfig(UUID device_id, InetAddress networkAddr,
-                int networkLength, InetAddress portAddr, Set<Route> routes) {
+        public RouterPortConfig(UUID device_id, int networkAddr,
+                int networkLength, int portAddr, Set<Route> routes) {
             super(device_id);
-            this.networkAddr = networkAddr;
-            this.networkLength = networkLength;
+            this.nwAddr = networkAddr;
+            this.nwLength = networkLength;
             this.portAddr = portAddr;
             this.routes = new HashSet<Route>(routes);
         }
@@ -91,8 +90,8 @@ public class PortDirectory {
         private static final long serialVersionUID = 1576824002284331148L;
         public UUID peer_uuid;
 
-        public LogicalRouterPortConfig(UUID device_id, InetAddress networkAddr,
-                int networkLength, InetAddress portAddr, Set<Route> routes,
+        public LogicalRouterPortConfig(UUID device_id, int networkAddr,
+                int networkLength, int portAddr, Set<Route> routes,
                 UUID peer_uuid) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.peer_uuid = peer_uuid;
@@ -108,10 +107,10 @@ public class PortDirectory {
                 return false;
             LogicalRouterPortConfig port = (LogicalRouterPortConfig) other;
             return device_id.equals(port.device_id)
-                    && networkAddr.equals(port.networkAddr)
-                    && networkLength == port.networkLength
+                    && nwAddr == port.nwAddr
+                    && nwLength == port.nwLength
                     && peer_uuid.equals(port.peer_uuid)
-                    && portAddr.equals(port.portAddr)
+                    && portAddr == port.portAddr
                     && routes.equals(port.routes);
         }
     }
@@ -119,18 +118,18 @@ public class PortDirectory {
     public static class MaterializedRouterPortConfig extends RouterPortConfig
             implements Serializable {
         private static final long serialVersionUID = 3050185323095662934L;
-        public InetAddress localNetworkAddr;
-        public int localNetworkLength;
+        public int localNwAddr;
+        public int localNwLength;
         public transient Set<BGP> bgps;
 
         public MaterializedRouterPortConfig(UUID device_id,
-                InetAddress networkAddr, int networkLength,
-                InetAddress portAddr, Set<Route> routes,
-                InetAddress localNetworkAddr, int localNetworkLength,
+                int networkAddr, int networkLength,
+                int portAddr, Set<Route> routes,
+                int localNetworkAddr, int localNetworkLength,
                 Set<BGP> bgps) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
-            this.localNetworkAddr = localNetworkAddr;
-            this.localNetworkLength = localNetworkLength;
+            this.localNwAddr = localNetworkAddr;
+            this.localNwLength = localNetworkLength;
             this.bgps = bgps;
         }
 
@@ -145,12 +144,12 @@ public class PortDirectory {
             MaterializedRouterPortConfig port = 
                     MaterializedRouterPortConfig.class.cast(other);
             return device_id.equals(port.device_id)
-                    && networkAddr.equals(port.networkAddr)
-                    && networkLength == port.networkLength
-                    && portAddr.equals(port.portAddr)
+                    && nwAddr == port.nwAddr
+                    && nwLength == port.nwLength
+                    && portAddr == port.portAddr
                     && routes.equals(port.routes) && bgps.equals(port.bgps)
-                    && localNetworkAddr.equals(port.localNetworkAddr)
-                    && localNetworkLength == port.localNetworkLength;
+                    && localNwAddr == port.localNwAddr
+                    && localNwLength == port.localNwLength;
         }
 
         private void readObject(java.io.ObjectInputStream stream)

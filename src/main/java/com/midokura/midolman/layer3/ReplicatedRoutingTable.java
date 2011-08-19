@@ -1,14 +1,16 @@
 package com.midokura.midolman.layer3;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ReplicatedSet;
 
-public class ReplicatedRoutingTable implements RoutingTable {
+public class ReplicatedRoutingTable {
 
     private class ReplicatedRouteSet extends ReplicatedSet<Route> {
 
@@ -28,40 +30,56 @@ public class ReplicatedRoutingTable implements RoutingTable {
     private class MyWatcher implements ReplicatedSet.Watcher<Route> {
 
         @Override
-        public void process(Collection<Route> added,
-                Collection<Route> removed) {
-            for(Route rt : removed) {
-                trie.deleteRoute(rt);
+        public void process(Collection<Route> added, Collection<Route> removed) {
+            for (Route rt : removed) {
+                table.deleteRoute(rt);
             }
-            for(Route rt : added) {
-                trie.addRoute(rt);
+            for (Route rt : added) {
+                table.addRoute(rt);
             }
+            if (added.size() > 0 || removed.size() > 0)
+                notifyWatchers();
         }
     }
 
-    private RoutingTrie trie;
+    private RoutingTable table;
     private ReplicatedRouteSet routeSet;
+    private Set<Runnable> watchers;
 
     public ReplicatedRoutingTable(Directory routeDir) {
-        trie = new RoutingTrie();
+        table = new RoutingTable();
+        watchers = new HashSet<Runnable>();
         routeSet = new ReplicatedRouteSet(routeDir);
         routeSet.addWatcher(new MyWatcher());
         // TODO(pino): perhaps move this into a start method?
         routeSet.start();
     }
 
-    @Override
+    public void addWatcher(Runnable watcher) {
+        watchers.add(watcher);
+    }
+
+    public void removeWatcher(Runnable watcher) {
+        watchers.remove(watcher);
+    }
+
+    private void notifyWatchers() {
+        // TODO(pino): should these be called asynchronously?
+        for (Runnable w : watchers) {
+            w.run();
+        }
+    }
+
     public void addRoute(Route rt) throws KeeperException, InterruptedException {
         routeSet.add(rt);
     }
 
-    @Override
-    public void deleteRoute(Route rt) throws KeeperException, InterruptedException {
+    public void deleteRoute(Route rt) throws KeeperException,
+            InterruptedException {
         routeSet.remove(rt);
     }
 
-    @Override
     public List<Route> lookup(int src, int dst) {
-        return trie.lookup(src, dst);
+        return table.lookup(src, dst);
     }
 }

@@ -12,49 +12,49 @@ import org.junit.Test;
 
 import com.midokura.midolman.layer3.Route.NextHop;
 
-public class TestRoutingTrie {
+public class TestRoutingTable {
 
     @Test
     public void testFindMSB() {
-        Assert.assertEquals(-1, RoutingTrie.findMSB(0));
-        Assert.assertEquals(31, RoutingTrie.findMSB(0x01));
-        Assert.assertEquals(28, RoutingTrie.findMSB(0x0a));
-        Assert.assertEquals(24, RoutingTrie.findMSB(0xc3));
-        Assert.assertEquals(22, RoutingTrie.findMSB(0x03ff));
-        Assert.assertEquals(17, RoutingTrie.findMSB(0x70f0));
-        Assert.assertEquals(8, RoutingTrie.findMSB(0x8b5904));
-        Assert.assertEquals(7, RoutingTrie.findMSB(0x01c27d5f));
-        Assert.assertEquals(4, RoutingTrie.findMSB(0x0adedede));
-        Assert.assertEquals(1, RoutingTrie.findMSB(0x5f123456));
-        Assert.assertEquals(0, RoutingTrie.findMSB(0xb3020456));
+        Assert.assertEquals(-1, RoutingTable.findMSB(0));
+        Assert.assertEquals(31, RoutingTable.findMSB(0x01));
+        Assert.assertEquals(28, RoutingTable.findMSB(0x0a));
+        Assert.assertEquals(24, RoutingTable.findMSB(0xc3));
+        Assert.assertEquals(22, RoutingTable.findMSB(0x03ff));
+        Assert.assertEquals(17, RoutingTable.findMSB(0x70f0));
+        Assert.assertEquals(8, RoutingTable.findMSB(0x8b5904));
+        Assert.assertEquals(7, RoutingTable.findMSB(0x01c27d5f));
+        Assert.assertEquals(4, RoutingTable.findMSB(0x0adedede));
+        Assert.assertEquals(1, RoutingTable.findMSB(0x5f123456));
+        Assert.assertEquals(0, RoutingTable.findMSB(0xb3020456));
     }
 
     @Test
     public void testAddresMatch() {
-        Assert.assertFalse(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 32));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 30));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 29));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 28));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 21));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 17));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 5));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x0a0101fd, 0x0a0101f8, 1));
+        Assert.assertFalse(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 32));
+        Assert.assertFalse(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 30));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 29));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 28));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 21));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 17));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 5));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 1));
 
-        Assert.assertTrue(RoutingTrie.addrsMatch(0x01234567, 0x87654321, 0));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0x01234567, 0x87654321, 1));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0x01234567, 0x87654321, 5));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0x01234567, 0x87654321, 20));
+        Assert.assertTrue(RoutingTable.addrsMatch(0x01234567, 0x87654321, 0));
+        Assert.assertFalse(RoutingTable.addrsMatch(0x01234567, 0x87654321, 1));
+        Assert.assertFalse(RoutingTable.addrsMatch(0x01234567, 0x87654321, 5));
+        Assert.assertFalse(RoutingTable.addrsMatch(0x01234567, 0x87654321, 20));
 
-        Assert.assertTrue(RoutingTrie.addrsMatch(0xa0a0a0a0, 0xa0a05050, 15));
-        Assert.assertTrue(RoutingTrie.addrsMatch(0xa0a0a0a0, 0xa0a05050, 16));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0xa0a0a0a0, 0xa0a05050, 17));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0xa0a0a0a0, 0xa0a05050, 20));
-        Assert.assertFalse(RoutingTrie.addrsMatch(0xa0a0a0a0, 0xa0a05050, 25));
+        Assert.assertTrue(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 15));
+        Assert.assertTrue(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 16));
+        Assert.assertFalse(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 17));
+        Assert.assertFalse(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 20));
+        Assert.assertFalse(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 25));
     }
 
     @Test
     public void testEmptyRoutingTable() {
-        RoutingTrie table = new RoutingTrie();
+        RoutingTable table = new RoutingTable();
         Assert.assertTrue(table.lookup(0x0a010108, 0x0a010106).isEmpty());
         Assert.assertTrue(table.lookup(0x00000009, 0xfffffffe).isEmpty());
     }
@@ -72,7 +72,7 @@ public class TestRoutingTrie {
         routes.add(rt1);
         routes.add(rt2);
         routes.add(rt3);
-        RoutingTrie table = new RoutingTrie();
+        RoutingTable table = new RoutingTable();
         for (Route rt : routes)
             table.addRoute(rt);
         // Try a search with a bad address.
@@ -142,7 +142,7 @@ public class TestRoutingTrie {
         routes.add(rt3);
         routes.add(rt4);
         routes.add(rt5);
-        RoutingTrie table = new RoutingTrie();
+        RoutingTable table = new RoutingTable();
         for (Route rt : routes)
             table.addRoute(rt);
 
@@ -215,7 +215,7 @@ public class TestRoutingTrie {
         Vector<Route> routes = new Vector<Route>();
         routes.add(new Route(0, 0, 0, 0, NextHop.PORT, new UUID((long) 40,
                 (long) 50), 0, 100, null));
-        RoutingTrie table = new RoutingTrie();
+        RoutingTable table = new RoutingTable();
         for (Route rt : routes)
             table.addRoute(rt);
     }
