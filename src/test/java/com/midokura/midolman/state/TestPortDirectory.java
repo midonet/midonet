@@ -14,6 +14,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 
 public class TestPortDirectory {
 
@@ -42,7 +45,7 @@ public class TestPortDirectory {
             ClassNotFoundException, KeeperException, InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID bridgeId = new UUID(rand.nextLong(), rand.nextLong());
-        PortDirectory.BridgePortConfig port = new PortDirectory.BridgePortConfig(
+        BridgePortConfig port = new BridgePortConfig(
                 bridgeId);
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
@@ -87,17 +90,16 @@ public class TestPortDirectory {
             InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID routerId = new UUID(rand.nextLong(), rand.nextLong());
-        PortDirectory.MaterializedRouterPortConfig port = new PortDirectory.MaterializedRouterPortConfig(
-                routerId, InetAddress.getByName("1.2.3.0"), 24,
-                InetAddress.getByName("1.2.3.1"), new HashSet<Route>(),
-                InetAddress.getByName("1.2.3.5"), 32, new HashSet<BGP>());
+        MaterializedRouterPortConfig port = new MaterializedRouterPortConfig(
+                routerId, 0x01020300, 24, 0x01020301, new HashSet<Route>(),
+                0x01020305, 32, new HashSet<BGP>());
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
                 portDir.getPortConfiguration(portId, null, null));
         UUID routerId1 = new UUID(rand.nextLong(), rand.nextLong());
         Assert.assertNotSame(routerId1, routerId);
         port.device_id = routerId1;
-        port.localNetworkAddr = InetAddress.getByName("1.2.3.8");
+        port.localNwAddr = 0x01020308;
         try {
             portDir.addPort(portId, port);
             Assert.fail("Should not be able to add same port twice");
@@ -128,7 +130,7 @@ public class TestPortDirectory {
         port.routes.remove(rt);
         rt.dstNetworkLength = 24;
         port.routes.add(rt);
-        port.networkLength = 16;
+        port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(2, portWatch.numCalls);
         Assert.assertEquals(1, routesWatch.numCalls);
@@ -146,9 +148,8 @@ public class TestPortDirectory {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID peerPortId = new UUID(rand.nextLong(), rand.nextLong());
         UUID routerId = new UUID(rand.nextLong(), rand.nextLong());
-        PortDirectory.LogicalRouterPortConfig port = new PortDirectory.LogicalRouterPortConfig(
-                routerId, InetAddress.getByName("1.2.3.0"), 24,
-                InetAddress.getByName("1.2.3.1"), new HashSet<Route>(),
+        LogicalRouterPortConfig port = new LogicalRouterPortConfig(
+                routerId, 0x01020300, 24, 0x01020301, new HashSet<Route>(),
                 peerPortId);
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
@@ -194,7 +195,7 @@ public class TestPortDirectory {
         rt1.attributes = "other attrs";
         rt1.nextHopGateway = 0x010203fe;
         port.routes.add(rt1);
-        port.networkLength = 16;
+        port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,
                 portDir.getPortConfiguration(portId, null, null));
