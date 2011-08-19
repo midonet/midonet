@@ -24,7 +24,7 @@ import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-//import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.state.ZkConnection;
 
 public class Midolman {
@@ -45,14 +45,12 @@ public class Midolman {
             final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
             
             // open the OVSDB connection
-            final OpenvSwitchDatabaseConnection ovsdb = null;
-            /*
             final OpenvSwitchDatabaseConnection ovsdb = new OpenvSwitchDatabaseConnectionImpl(
                                                                 "OpenvSwitch",
                                                                 config.configurationAt("openvswitch").getString("openvswitchdb_ip_addr", "127.0.0.1"),
                                                                 config.configurationAt("openvswitch").getInt("openvswitchdb_tcp_port", 6634)
                                                                 );
-            */
+
             final ZkConnection zkConnection = new ZkConnection(
                                                     config.configurationAt("zookeeper").getString("zookeeper_hosts", "127.0.0.1:2181"),
                                                     new Watcher() {
