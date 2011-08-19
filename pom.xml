@@ -7,6 +7,9 @@
     <artifactId>midolmanj</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0-SNAPSHOT</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <scm>
         <connection>git://github.com:midokura/midolmanj.git</connection>
@@ -15,6 +18,37 @@
 
     <build>
         <defaultGoal>package</defaultGoal>
+
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.eclipse.m2e</groupId>
+              <artifactId>lifecycle-mapping</artifactId>
+              <version>1.0.0</version>
+              <configuration>
+                <lifecycleMappingMetadata>
+                  <pluginExecutions>
+                    <pluginExecution>
+                      <pluginExecutionFilter>
+                        <groupId>org.scala-tools</groupId>
+                        <artifactId>maven-scala-plugin</artifactId>
+                        <versionRange>[2.14.0,)</versionRange>
+                        <goals>
+                          <goal>compile</goal>
+                          <goal>testCompile</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <ignore />
+                      </action>
+                    </pluginExecution>
+                  </pluginExecutions>
+                </lifecycleMappingMetadata>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -29,21 +63,22 @@
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
-				<executions>
-				  <execution>
-					<goals>
-					  <goal>compile</goal>
-					  <goal>testCompile</goal>
-					</goals>
-					<configuration>
-					  <args>
-						<arg>-make:transitive</arg>
-						<arg>-dependencyfile</arg>
-						<arg>${project.build.directory}/.scala_dependencies</arg>
-					  </args>
-					</configuration>
-				  </execution>
-				</executions>
+                <version>2.14</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <arg>-make:transitive</arg>
+                                <arg>-dependencyfile</arg>
+                                <arg>${project.build.directory}/.scala_dependencies</arg>
+                            </args>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -107,95 +142,43 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>codehaus</id>
-            <name>Codehaus Snapshots</name>
-            <layout>default</layout>
-            <url>http://snapshots.repository.codehaus.org/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
-
-        <pluginRepository>
-            <id>scala-tools.org</id>
-            <name>Scala-tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
         </pluginRepository>
     </pluginRepositories>
 
     <repositories>
-      <repository>
-        <id>mido-maven-snapshot</id>
-        <name>mido-maven-snapshot</name>
-        <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
-      </repository>
-
-        <repository>
-            <id>mido-maven</id>
-            <name>mido-maven</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
-        </repository>
-
-        <repository>
-            <id>repo1</id>
-            <name>repo1</name>
-            <url>http://repo1.maven.org/maven2//</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>java.net</id>
-            <name>Java.Net</name>
-            <url>http://download.java.net/maven/2/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>codehaus</id>
-            <name>Codehaus Public</name>
-            <url>http://repository.codehaus.org/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>stanford-public</id>
-            <name>Stanford Nexus Public</name>
-            <layout>default</layout>
-            <url>http://yuba.stanford.edu:8081/nexus/content/repositories/public/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>scala-tools.org</id>
-            <name>Scala-tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
-        </repository>
-
+	      <repository>
+	        <id>mido-maven</id>
+	        <name>mido-maven</name>
+	        <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+	      </repository>
     </repositories>
 
     <dependencies>
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
+		</dependency>
+		
+		<dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+		<dependency>
+			<groupId>spy</groupId>
+			<artifactId>spymemcached</artifactId>
+			<version>2.7</version>
+		</dependency>
 
         <dependency>
             <groupId>com.fasterxml</groupId>
             <artifactId>jackson-module-scala</artifactId>
-            <version>0.5.0-SNAPSHOT</version>
+            <version>0.5.0</version>
         </dependency>
 
         <dependency>
@@ -246,11 +229,11 @@
             <version>1.3.3</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.ini4j</groupId>
-            <artifactId>ini4j</artifactId>
-            <version>0.5.1</version>
-        </dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.6</version>
+		</dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>

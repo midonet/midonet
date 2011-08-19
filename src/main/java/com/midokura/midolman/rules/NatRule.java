@@ -1,0 +1,40 @@
+package com.midokura.midolman.rules;
+
+import com.midokura.midolman.layer4.NatMapping;
+
+public abstract class NatRule extends Rule {
+
+    private static final long serialVersionUID = 8176550999088632045L;
+    // The NatMapping is irrelevant to the hashCode, equals and serialization.
+    protected transient NatMapping natMap;
+    protected boolean dnat;
+
+    public NatRule(Condition condition, Action action, boolean dnat) {
+        super(condition, action);
+        this.dnat = dnat;
+        if (action != Action.ACCEPT && action != Action.CONTINUE
+                && action != Action.RETURN)
+            throw new IllegalArgumentException("A nat rule's action "
+                    + "must be one of: ACCEPT, CONTINUE, or RETURN.");
+    }
+
+    public void setNatMapping(NatMapping nat) {
+        natMap = nat;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 11 + (dnat ? 1231 : 1237);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (!(other instanceof NatRule))
+            return false;
+        if (!super.equals(other))
+            return false;
+        return dnat == ((NatRule) other).dnat;
+    }
+}

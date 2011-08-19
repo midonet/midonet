@@ -1,8 +1,6 @@
 package com.midokura.midolman.layer3;
 
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.UUID;
 
 public class Route implements Serializable {
@@ -13,20 +11,19 @@ public class Route implements Serializable {
         BLACKHOLE, REJECT, PORT;
     }
 
-    public InetAddress srcNetworkAddr;
+    public int srcNetworkAddr;
     public int srcNetworkLength;
-    public InetAddress dstNetworkAddr;
+    public int dstNetworkAddr;
     public int dstNetworkLength;
     public NextHop nextHop;
     public UUID nextHopPort;
-    public InetAddress nextHopGateway;
+    public int nextHopGateway;
     public int weight;
     public String attributes;
 
-    public Route(InetAddress srcNetworkAddr, int srcNetworkLength,
-            InetAddress dstNetworkAddr, int dstNetworkLength, NextHop nextHop,
-            UUID nextHopPort, InetAddress nextHopGateway, int weight,
-            String attributes) {
+    public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
+            int dstNetworkLength, NextHop nextHop, UUID nextHopPort,
+            int nextHopGateway, int weight, String attributes) {
         super();
         this.srcNetworkAddr = srcNetworkAddr;
         this.srcNetworkLength = srcNetworkLength;
@@ -48,70 +45,75 @@ public class Route implements Serializable {
         if (!(other instanceof Route))
             return false;
         Route rt = (Route) other;
-        if (null == nextHopGateway || null == rt.nextHopGateway) {
-            if (nextHopGateway != rt.nextHopGateway)
+        if (null == nextHop || null == rt.nextHop) {
+            if (nextHop != rt.nextHop)
                 return false;
-        } else if (!nextHopGateway.equals(rt.nextHopGateway))
+        } else if (!nextHop.equals(rt.nextHop))
             return false;
         if (null == nextHopPort || null == rt.nextHopPort) {
             if (nextHopPort != rt.nextHopPort)
                 return false;
         } else if (!nextHopPort.equals(rt.nextHopPort))
             return false;
-        return attributes.equals(rt.attributes)
-                && dstNetworkAddr.equals(rt.dstNetworkAddr)
+        if (null == attributes || null == rt.attributes) {
+            if (attributes != rt.attributes)
+                return false;
+        } else if (!attributes.equals(rt.attributes))
+            return false;
+        return dstNetworkAddr == rt.dstNetworkAddr
                 && dstNetworkLength == rt.dstNetworkLength
-                && nextHop.equals(rt.nextHop)
-                && srcNetworkAddr.equals(rt.srcNetworkAddr)
+                && srcNetworkAddr == rt.srcNetworkAddr
                 && srcNetworkLength == rt.srcNetworkLength
-                && weight == rt.weight;
+                && nextHopGateway == rt.nextHopGateway && weight == rt.weight;
     }
 
     @Override
     public int hashCode() {
         int hash = 1;
-        hash = 13 * hash + srcNetworkAddr.hashCode();
+        hash = 13 * hash + srcNetworkAddr;
         hash = 17 * hash + srcNetworkLength;
-        hash = 31 * hash + dstNetworkAddr.hashCode();
+        hash = 31 * hash + dstNetworkAddr;
         hash = 23 * hash + dstNetworkLength;
-        hash = 29 * hash + nextHop.hashCode();
+        hash = 37 * hash + nextHopGateway;
+        hash = 11 * hash + weight;
+        if (null != nextHop)
+            hash = 29 * hash + nextHop.hashCode();
         if (null != nextHopPort)
             hash = 43 * hash + nextHopPort.hashCode();
-        if (null != nextHopPort)
-            hash = 37 * hash + nextHopPort.hashCode();
-        hash = 11 * hash + weight;
-        hash = 5 * hash + attributes.hashCode();
+        if (null != attributes)
+            hash = 5 * hash + attributes.hashCode();
         return hash;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(srcNetworkAddr.getHostAddress()).append(",");
+        sb.append(srcNetworkAddr).append(",");
         sb.append(srcNetworkLength).append(",");
-        sb.append(dstNetworkAddr.getHostAddress()).append(",");
+        sb.append(dstNetworkAddr).append(",");
         sb.append(dstNetworkLength).append(",");
-        sb.append(nextHop.toString()).append(",");
+        if (null != nextHop)
+            sb.append(nextHop.toString());
+        sb.append(",");
         if (null != nextHopPort)
             sb.append(nextHopPort.toString());
         sb.append(",");
-        if (null != nextHopGateway)
-            sb.append(nextHopGateway.getHostAddress());
-        sb.append(",");
+        sb.append(nextHopGateway).append(",");
         sb.append(weight).append(",");
-        sb.append(attributes);
+        if (null != attributes)
+            sb.append(attributes);
         return sb.toString();
     }
 
-    public static Route fromString(String str) throws NumberFormatException,
-            UnknownHostException {
+    public static Route fromString(String str) {
         String[] parts = str.split(",");
-        Route rt = new Route(InetAddress.getByName(parts[0]),
-                Byte.parseByte(parts[1]), InetAddress.getByName(parts[2]),
-                Byte.parseByte(parts[3]), NextHop.valueOf(parts[4]),
-                parts[5].isEmpty() ? null : UUID.fromString(parts[5]),
-                parts[6].isEmpty() ? null : InetAddress.getByName(parts[6]),
-                Integer.parseInt(parts[7]), parts[8]);
+        Route rt = new Route(Integer.parseInt(parts[0]),
+                Byte.parseByte(parts[1]), Integer.parseInt(parts[2]),
+                Byte.parseByte(parts[3]), parts[4].isEmpty() ? null
+                        : NextHop.valueOf(parts[4]), parts[5].isEmpty() ? null
+                        : UUID.fromString(parts[5]),
+                Integer.parseInt(parts[6]), Integer.parseInt(parts[7]),
+                parts[8]);
         return rt;
     }
 
