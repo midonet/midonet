@@ -64,21 +64,21 @@
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <version>2.14</version>
-				<executions>
-				  <execution>
-					<goals>
-					  <goal>compile</goal>
-					  <goal>testCompile</goal>
-					</goals>
-					<configuration>
-					  <args>
-						<arg>-make:transitive</arg>
-						<arg>-dependencyfile</arg>
-						<arg>${project.build.directory}/.scala_dependencies</arg>
-					  </args>
-					</configuration>
-				  </execution>
-				</executions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <arg>-make:transitive</arg>
+                                <arg>-dependencyfile</arg>
+                                <arg>${project.build.directory}/.scala_dependencies</arg>
+                            </args>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -142,95 +142,25 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>codehaus</id>
-            <name>Codehaus Snapshots</name>
-            <layout>default</layout>
-            <url>http://snapshots.repository.codehaus.org/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
-
-        <pluginRepository>
-            <id>scala-tools.org</id>
-            <name>Scala-tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
         </pluginRepository>
     </pluginRepositories>
 
     <repositories>
-      <repository>
-        <id>mido-maven-snapshot</id>
-        <name>mido-maven-snapshot</name>
-        <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
-      </repository>
-
-        <repository>
-            <id>mido-maven</id>
-            <name>mido-maven</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
-        </repository>
-
-        <repository>
-            <id>repo1</id>
-            <name>repo1</name>
-            <url>http://repo1.maven.org/maven2//</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>java.net</id>
-            <name>Java.Net</name>
-            <url>http://download.java.net/maven/2/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>codehaus</id>
-            <name>Codehaus Public</name>
-            <url>http://repository.codehaus.org/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>stanford-public</id>
-            <name>Stanford Nexus Public</name>
-            <layout>default</layout>
-            <url>http://yuba.stanford.edu:8081/nexus/content/repositories/public/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>scala-tools.org</id>
-            <name>Scala-tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
-        </repository>
-
+	      <repository>
+	        <id>mido-maven</id>
+	        <name>mido-maven</name>
+	        <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+	      </repository>
     </repositories>
 
     <dependencies>
-
         <dependency>
             <groupId>com.fasterxml</groupId>
             <artifactId>jackson-module-scala</artifactId>
-            <version>0.5.0-SNAPSHOT</version>
+            <version>0.5.0</version>
         </dependency>
 
         <dependency>
@@ -275,11 +205,11 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.ini4j</groupId>
-            <artifactId>ini4j</artifactId>
-            <version>0.5.1</version>
-        </dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.6</version>
+		</dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
