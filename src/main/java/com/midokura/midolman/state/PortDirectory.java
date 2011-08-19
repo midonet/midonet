@@ -17,7 +17,7 @@ import com.midokura.midolman.layer3.Route;
 
 public class PortDirectory {
 
-    private static abstract class PortConfig implements Serializable {
+    public static abstract class PortConfig implements Serializable {
         private static final long serialVersionUID = 3124283622213097848L;
 
         private PortConfig(UUID device_id) {
@@ -49,7 +49,7 @@ public class PortDirectory {
         }
     }
 
-    private static abstract class RouterPortConfig extends PortConfig implements
+    public static abstract class RouterPortConfig extends PortConfig implements
             Serializable {
         private static final long serialVersionUID = -4536197977961670285L;
         public int nwAddr;
