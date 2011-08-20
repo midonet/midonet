@@ -3,6 +3,7 @@ package com.midokura.midolman.rules;
 import java.util.UUID;
 
 import com.midokura.midolman.layer4.NwTpPair;
+import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ReverseNatRule extends NatRule {
 

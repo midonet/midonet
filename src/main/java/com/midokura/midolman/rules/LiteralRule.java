@@ -2,6 +2,8 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import com.midokura.midolman.rules.RuleResult.Action;
+
 public class LiteralRule extends Rule {
 
     private static final long serialVersionUID = -4902104131572973862L;

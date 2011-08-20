@@ -1,10 +1,11 @@
 package com.midokura.midolman.layer3;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
@@ -16,9 +17,12 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.RuleEngine;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.util.Callback;
 
 public class Router {
 
@@ -67,26 +71,44 @@ public class Router {
         public void routesChanged(UUID portId, Collection<Route> added,
                 Collection<Route> removed) {
             for (Route rt : added) {
-                table.addRoute(rt);
+                try {
+                    table.addRoute(rt);
+                } catch (KeeperException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             for (Route rt : removed) {
-                table.deleteRoute(rt);
+                try {
+                    table.deleteRoute(rt);
+                } catch (KeeperException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     protected UUID routerId;
     private RuleEngine ruleEngine;
-    private RoutingTable table;
+    private ReplicatedRoutingTable table;
     private PortDirectory portDir;
     // Note that only materialized ports are tracked.
     private Map<UUID, L3DevicePort> devicePorts;
     private PortListener portListener;
     private Map<UUID, Map<Integer, ArpCacheEntry>> arpCaches;
+    private Map<UUID, Map<Integer, List<Callback<byte[]>>>> arpCallbackLists;
     private Reactor reactor;
+    private LoadBalancer loadBalancer;
 
-    public Router(UUID routerId, RuleEngine ruleEngine, RoutingTable table,
-            PortDirectory portDir, Reactor reactor) {
+    public Router(UUID routerId, RuleEngine ruleEngine,
+            ReplicatedRoutingTable table, PortDirectory portDir, Reactor reactor) {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
@@ -94,7 +116,9 @@ public class Router {
         this.devicePorts = new HashMap<UUID, L3DevicePort>();
         this.portListener = new PortListener();
         this.arpCaches = new HashMap<UUID, Map<Integer, ArpCacheEntry>>();
+        this.arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback<byte[]>>>>();
         this.reactor = reactor;
+        this.loadBalancer = new DummyLoadBalancer(table);
     }
 
     // This should only be called for materialized ports, not logical ports.
@@ -117,15 +141,95 @@ public class Router {
         }
     }
 
-    public Future getMacForIp(UUID outPort, int nwAddr,
-            Runnable completionCallback) {
+    public byte[] getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
+        ArpCacheEntry entry = arpCache.get(nwAddr);
+        long now = System.currentTimeMillis();
+        if (null != entry && null != entry.macAddr) {
+            if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now)
+                // Entry is stale and it's been at least ARP_RETRY_MILLIS since
+                // the last ARP was sent for it: re-ARP.
+                generateArpRequest(nwAddr, portId);
+            return entry.macAddr;
+        }
+        // Store the callback. ARP for nwAddr's MAC if no outstanding ARP yet.
+        Map<Integer, List<Callback<byte[]>>> cbLists = arpCallbackLists
+                .get(portId);
+        List<Callback<byte[]>> cbList = cbLists.get(nwAddr);
+        if (null == cbList) {
+            cbList = new ArrayList<Callback<byte[]>>();
+            cbLists.put(nwAddr, cbList);
+            generateArpRequest(nwAddr, portId);
+            // Schedule ARP retry and expiration.
+            reactor.schedule(new ArpRetry(nwAddr, portId), ARP_RETRY_MILLIS,
+                    TimeUnit.MILLISECONDS);
+            reactor.schedule(new ArpExpiration(nwAddr, portId),
+                    ARP_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        }
+        cbList.add(cb);
         return null;
     }
 
     public Action process(MidoMatch pktMatch, byte[] packet, UUID inPortId,
             ForwardInfo fwdInfo) {
-        // TODO Auto-generated method stub
-        return null;
+        // Check if it's addressed to us (ARP, SNMP, ICMP Echo, ...)
+        // Only handle ARP so far.
+        if (pktMatch.getDataLayerType() == ARP.ETHERTYPE) {
+            Ethernet etherPkt = new Ethernet();
+            etherPkt.deserialize(packet, 0, packet.length);
+            processArp(etherPkt, inPortId);
+            return Action.CONSUMED;
+        }
+        if (pktMatch.getDataLayerType() != IPv4.ETHERTYPE)
+            return Action.NOT_IPV4;
+
+        // Apply pre-routing rules.
+        RuleResult res = ruleEngine.applyChain("pre_routing", pktMatch,
+                inPortId, null);
+        if (res.action.equals(RuleResult.Action.DROP))
+            return Action.BLACKHOLE;
+        if (res.action.equals(RuleResult.Action.REJECT))
+            return Action.REJECT;
+        if (res.action.equals(RuleResult.Action.ACCEPT))
+            throw new RuntimeException("Pre-routing returned an action other "
+                    + "than ACCEPT, DROP or REJECT.");
+        fwdInfo.trackConnection = res.trackConnection;
+
+        // Do a routing table lookup.
+        Route rt = loadBalancer.lookup(pktMatch);
+        if (null == rt)
+            return Action.NO_ROUTE;
+        if (rt.nextHop.equals(Route.NextHop.BLACKHOLE))
+            return Action.BLACKHOLE;
+        if (rt.nextHop.equals(Route.NextHop.REJECT))
+            return Action.REJECT;
+        if (!rt.nextHop.equals(Route.NextHop.PORT))
+            throw new RuntimeException("Routing table returned next hop "
+                    + "that isn't one of BLACKHOLE, NO_ROUTE, or REJECT.");
+        if (null == rt.nextHopPort)
+            // TODO(pino): malformed rule. Should we silently drop the packet?
+            throw new RuntimeException("Routing table returne next hop PORT "
+                    + "but no port UUID given.");
+        // TODO(pino): log next hop portId and gateway addr..
+
+        // Apply post-routing rules.
+        res = ruleEngine.applyChain("post_routing", res.match, inPortId,
+                rt.nextHopPort);
+        if (res.action.equals(RuleResult.Action.DROP))
+            return Action.BLACKHOLE;
+        if (res.action.equals(RuleResult.Action.REJECT))
+            return Action.REJECT;
+        if (res.action.equals(RuleResult.Action.ACCEPT))
+            throw new RuntimeException("Post-routing returned an action other "
+                    + "than ACCEPT, DROP or REJECT.");
+        if (!fwdInfo.trackConnection && res.trackConnection)
+            fwdInfo.trackConnection = true;
+
+        fwdInfo.outPortId = rt.nextHopPort;
+        fwdInfo.newMatch = res.match;
+        fwdInfo.gatewayNwAddr = (0 == rt.nextHopGateway) ? res.match
+                .getNetworkDestination() : rt.nextHopGateway;
+        return Action.FORWARD;
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
@@ -269,16 +373,16 @@ public class Router {
     private class ArpExpiration implements Runnable {
 
         int nwAddr;
-        UUID inPortId;
+        UUID portId;
 
         ArpExpiration(int nwAddr, UUID inPortId) {
             this.nwAddr = nwAddr;
-            this.inPortId = inPortId;
+            this.portId = inPortId;
         }
 
         @Override
         public void run() {
-            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
+            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
             if (null == arpCache)
                 // ARP cache is gone, probably because port went down.
                 return;
@@ -297,16 +401,16 @@ public class Router {
 
     private class ArpRetry implements Runnable {
         int nwAddr;
-        UUID inPortId;
+        UUID portId;
 
         ArpRetry(int nwAddr, UUID inPortId) {
             this.nwAddr = nwAddr;
-            this.inPortId = inPortId;
+            this.portId = inPortId;
         }
 
         @Override
         public void run() {
-            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
+            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
             if (null == arpCache)
                 // ARP cache is gone, probably because port went down.
                 return;
@@ -315,38 +419,45 @@ public class Router {
                 // The entry has already been removed.
                 return;
             if (null != entry.macAddr)
-                // An answer arrived
+                // An answer arrived.
                 return;
             // Re-ARP and schedule again.
-            generateArpRequest(nwAddr, inPortId);
-            reactor.schedule(this, ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
+            generateArpRequest(nwAddr, portId);
+            reactor.schedule(this, ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
         }
     }
 
-    private void generateArpRequest(int nwAddr, UUID inPortId) {
-        /*
-    gw_mac = self._vrn_controller.get_hw_addr(out_port)
-    local_gw = self._vrn_controller.localgw_for_port(out_port)
-    arp_pkt = arp.ARP()
-    arp_pkt.sha = gw_mac
-    arp_pkt.spa = local_gw
-    arp_pkt.tpa = ip_addr
-    ether_pkt = ethernet.Ethernet(data=arp_pkt,
-                                  dst=b'\xFF\xFF\xFF\xFF\xFF\xFF',
-                                  src=gw_mac,
-                                  type=ethernet.ETH_TYPE_ARP)
-    logging.debug('router_fe: arp from port %s for address %s' %
-                  (out_port, socket.inet_ntoa(ip_addr)))
-    self._vrn_controller.send_packet_from_port(ether_pkt, out_port)
-    arp_cache = self._arp_cache[out_port]
-    now = self._reactor.seconds()
-    if ip_addr in arp_cache:
-      arp_cache[ip_addr] = arp_cache[ip_addr]._replace(arp_send=now)
-    else:
-      arp_cache[ip_addr] = arp_cache_entry.ArpCacheEntry(
-          mac_address=None, expiry=now+ARP_TIMEOUT, stale=now+ARP_RETRY,
-          arp_send=now)
-          */
-    
+    private void generateArpRequest(int nwAddr, UUID portId) {
+        L3DevicePort devPort = devicePorts.get(portId);
+        if (null == devPort)
+            return;
+        MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setHardwareAddressLength((byte) 6);
+        arp.setProtocolAddressLength((byte) 4);
+        arp.setOpCode(ARP.OP_REQUEST);
+        byte[] portMac = devPort.getMacAddr();
+        arp.setSenderHardwareAddress(portMac);
+        arp.setSenderProtocolAddress(nwAddrToBytes(portConfig.portAddr));
+        arp.setTargetProtocolAddress(nwAddrToBytes(nwAddr));
+        Ethernet pkt = new Ethernet();
+        pkt.setPayload(arp);
+        pkt.setSourceMACAddress(portMac);
+        byte b = (byte) 0xff;
+        pkt.setDestinationMACAddress(new byte[] { b, b, b, b, b, b });
+        pkt.setEtherType(ARP.ETHERTYPE);
+        // TODO(pino) add logging.
+        // Now send it from the port.
+        devPort.send(pkt.serialize());
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
+        ArpCacheEntry entry = arpCache.get(nwAddr);
+        long now = System.currentTimeMillis();
+        if (null == entry)
+            arpCache.put(nwAddr, new ArpCacheEntry(null, now
+                    + ARP_TIMEOUT_MILLIS, now + ARP_STALE_MILLIS, now));
+        else
+            entry.lastArp = now;
     }
 }

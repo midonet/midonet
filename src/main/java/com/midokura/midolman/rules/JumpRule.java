@@ -2,6 +2,8 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import com.midokura.midolman.rules.RuleResult.Action;
+
 public class JumpRule extends Rule {
 
     private static final long serialVersionUID = -7212783590950701193L;

@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.layer4.NwTpPair;
+import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ForwardNatRule extends NatRule {
 

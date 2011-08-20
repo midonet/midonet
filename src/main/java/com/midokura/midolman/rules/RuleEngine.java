@@ -14,6 +14,7 @@ import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.RouterDirectory;
 
 public class RuleEngine {

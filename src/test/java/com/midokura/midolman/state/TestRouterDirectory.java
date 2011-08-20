@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.rules.Action;
+import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;

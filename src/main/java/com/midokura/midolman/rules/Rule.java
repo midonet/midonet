@@ -3,6 +3,8 @@ package com.midokura.midolman.rules;
 import java.io.Serializable;
 import java.util.UUID;
 
+import com.midokura.midolman.rules.RuleResult.Action;
+
 public abstract class Rule implements Serializable {
 
     private static final long serialVersionUID = -5679026587128317121L;

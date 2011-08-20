@@ -5,9 +5,9 @@ import java.util.List;
 import com.midokura.midolman.openflow.MidoMatch;
 
 public class DummyLoadBalancer implements LoadBalancer {
-    private RoutingTable table;
+    private ReplicatedRoutingTable table;
 
-    public DummyLoadBalancer(RoutingTable table) {
+    public DummyLoadBalancer(ReplicatedRoutingTable table) {
         this.table = table;
         if (null == table)
             throw new NullPointerException("Cannot use a null routing table.");

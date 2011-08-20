@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.midokura.midolman.layer4.MockNatMapping;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.RuleResult.Action;
 
 public class TestRules {
 

@@ -4,6 +4,10 @@ import com.midokura.midolman.openflow.MidoMatch;
 
 public class RuleResult {
 
+    public enum Action {
+        ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN;
+    }
+
     public Action action;
     public String jumpToChain;
     public MidoMatch match;
