@@ -33,6 +33,12 @@ public class RouterDirectory {
         return strb.toString();
     }
 
+    private String getRoutingTablePath(UUID routerId) {
+        StringBuilder strb = new StringBuilder("/");
+        strb.append(routerId.toString()).append("/").append("routing_table");
+        return strb.toString();
+    }
+
     private String getRoutesPath(UUID routerId) {
         StringBuilder strb = new StringBuilder("/");
         strb.append(routerId.toString()).append("/").append("routes");
@@ -63,6 +69,10 @@ public class RouterDirectory {
         // Use try-catch blocks to avoid getting stuck in a half-created state.
         try {
             dir.add("/" + routerId.toString(), null, CreateMode.PERSISTENT);
+        } catch (KeeperException e) {
+        }
+        try {
+            dir.add(getRoutingTablePath(routerId), null, CreateMode.PERSISTENT);
         } catch (KeeperException e) {
         }
         try {
@@ -108,6 +118,11 @@ public class RouterDirectory {
             }
         }
         dir.delete("/" + routerId.toString());
+    }
+
+    public Directory getRoutingTableDirectory(UUID routerId)
+            throws KeeperException {
+        return dir.getSubDirectory(getRoutingTablePath(routerId));
     }
 
     public void addRoute(UUID routerId, Route rt) throws KeeperException,

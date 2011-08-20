@@ -16,6 +16,7 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.util.Callback;
 
 public class RuleEngine {
 
@@ -72,7 +73,7 @@ public class RuleEngine {
     private NatMapping natMap;
     protected Map<String, List<Rule>> ruleChains;
     private RouterWatcher rtrWatcher;
-    private Set<Runnable> listeners;
+    private Set<Callback<UUID>> watchers;
 
     public RuleEngine(RouterDirectory rtrDir, UUID rtrId, NatMapping natMap)
             throws KeeperException, InterruptedException, IOException,
@@ -82,22 +83,22 @@ public class RuleEngine {
         this.natMap = natMap;
         ruleChains = new HashMap<String, List<Rule>>();
         rtrWatcher = new RouterWatcher();
-        listeners = new HashSet<Runnable>();
+        watchers = new HashSet<Callback<UUID>>();
         updateChains(false);
     }
 
-    public void addListener(Runnable listener) {
-        listeners.add(listener);
+    public void addWatcher(Callback<UUID> watcher) {
+        watchers.add(watcher);
     }
 
-    public void removeListener(Runnable listener) {
-        listeners.remove(listener);
+    public void removeWatcher(Callback<UUID> watcher) {
+        watchers.remove(watcher);
     }
 
-    private void notifyListeners() {
-        for (Runnable listener : listeners)
+    private void notifyWatchers() {
+        for (Callback<UUID> watcher : watchers)
             // TODO(pino): schedule for later instead of calling them here.
-            listener.run();
+            watcher.call(rtrId);
     }
 
     private void updateChains(boolean notify) throws KeeperException,
@@ -122,7 +123,7 @@ public class RuleEngine {
         if (oldChains.isEmpty() && newChains.isEmpty())
             return;
         updateResources();
-        notifyListeners();
+        notifyWatchers();
     }
 
     private void updateRules(String chainName, Runnable watcher)
@@ -154,7 +155,7 @@ public class RuleEngine {
             return;
         // The chain already existed. We handle notifications here.
         updateResources();
-        notifyListeners();
+        notifyWatchers();
     }
 
     private void updateResources() {

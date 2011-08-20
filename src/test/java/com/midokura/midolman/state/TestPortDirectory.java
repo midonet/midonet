@@ -49,7 +49,7 @@ public class TestPortDirectory {
                 bridgeId);
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         UUID bridgeId1 = new UUID(rand.nextLong(), rand.nextLong());
         Assert.assertNotSame(bridgeId1, bridgeId);
         port.device_id = bridgeId1;
@@ -60,14 +60,14 @@ public class TestPortDirectory {
         }
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         MyWatcher watch = new MyWatcher();
         try {
-            portDir.getPortConfiguration(portId, null, watch);
+            portDir.getPortConfig(portId, null, watch);
             Assert.fail("Shouldn't watch routes on a bridge port");
         } catch (IllegalArgumentException e) {
         }
-        portDir.getPortConfiguration(portId, watch, null);
+        portDir.getPortConfig(portId, watch, null);
         port.device_id = bridgeId;
         Assert.assertEquals(0, watch.numCalls);
         portDir.updatePort(portId, port);
@@ -78,7 +78,7 @@ public class TestPortDirectory {
         Assert.assertEquals(1, watch.numCalls);
         portDir.deletePort(portId);
         try {
-            portDir.getPortConfiguration(portId, null, null);
+            portDir.getPortConfig(portId, null, null);
             Assert.fail("Should have thrown NoNodeException");
         } catch (NoNodeException e) {
         }
@@ -95,7 +95,7 @@ public class TestPortDirectory {
                 0x01020305, 32, new HashSet<BGP>());
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         UUID routerId1 = new UUID(rand.nextLong(), rand.nextLong());
         Assert.assertNotSame(routerId1, routerId);
         port.device_id = routerId1;
@@ -107,11 +107,11 @@ public class TestPortDirectory {
         }
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         MyWatcher portWatch = new MyWatcher();
         MyWatcher routesWatch = new MyWatcher();
         // Register the watchers.
-        portDir.getPortConfiguration(portId, portWatch, routesWatch);
+        portDir.getPortConfig(portId, portWatch, routesWatch);
         port.device_id = routerId;
         Assert.assertEquals(0, portWatch.numCalls);
         Assert.assertEquals(0, routesWatch.numCalls);
@@ -119,7 +119,7 @@ public class TestPortDirectory {
         Assert.assertEquals(1, portWatch.numCalls);
         Assert.assertEquals(0, routesWatch.numCalls);
         // Re-register the port watcher.
-        portDir.getPortConfiguration(portId, portWatch, null);
+        portDir.getPortConfig(portId, portWatch, null);
         Route rt = new Route(0, 0, 0x0102030f, 32, Route.NextHop.PORT, portId,
                 0, 5, "attrs");
         port.routes.add(rt);
@@ -136,7 +136,7 @@ public class TestPortDirectory {
         Assert.assertEquals(1, routesWatch.numCalls);
         portDir.deletePort(portId);
         try {
-            portDir.getPortConfiguration(portId, null, null);
+            portDir.getPortConfig(portId, null, null);
             Assert.fail("Should have thrown NoNodeException");
         } catch (NoNodeException e) {
         }
@@ -153,7 +153,7 @@ public class TestPortDirectory {
                 peerPortId);
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         UUID routerId1 = new UUID(rand.nextLong(), rand.nextLong());
         UUID peerPortId1 = new UUID(rand.nextLong(), rand.nextLong());
         Assert.assertNotSame(routerId, routerId1);
@@ -167,11 +167,11 @@ public class TestPortDirectory {
         }
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         MyWatcher portWatch = new MyWatcher();
         MyWatcher routesWatch = new MyWatcher();
         // Register the watchers.
-        portDir.getPortConfiguration(portId, portWatch, routesWatch);
+        portDir.getPortConfig(portId, portWatch, routesWatch);
         port.device_id = routerId;
         port.peer_uuid = peerPortId;
         Assert.assertEquals(0, portWatch.numCalls);
@@ -180,7 +180,7 @@ public class TestPortDirectory {
         Assert.assertEquals(1, portWatch.numCalls);
         Assert.assertEquals(0, routesWatch.numCalls);
         // Re-register the port watcher.
-        portDir.getPortConfiguration(portId, portWatch, null);
+        portDir.getPortConfig(portId, portWatch, null);
         Route rt1 = new Route(0, 0, 0x0102030f, 32, Route.NextHop.PORT, portId,
                 0, 5, "attrs");
         Route rt2 = new Route(0, 0, 0x01020300, 24, Route.NextHop.PORT, portId,
@@ -198,12 +198,12 @@ public class TestPortDirectory {
         port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,
-                portDir.getPortConfiguration(portId, null, null));
+                portDir.getPortConfig(portId, null, null));
         Assert.assertEquals(2, portWatch.numCalls);
         Assert.assertEquals(1, routesWatch.numCalls);
         portDir.deletePort(portId);
         try {
-            portDir.getPortConfiguration(portId, null, null);
+            portDir.getPortConfig(portId, null, null);
             Assert.fail("Should have thrown NoNodeException");
         } catch (NoNodeException e) {
         }

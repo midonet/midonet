@@ -224,6 +224,17 @@ public class PortDirectory {
             dir.delete(routesPath + "/" + rt.toString());
     }
 
+    public Set<Route> getRoutes(UUID portId, Runnable routesWatcher)
+            throws KeeperException, InterruptedException {
+        String path = new StringBuilder("/").append(portId.toString())
+                .append("/routes").toString();
+        Set<String> rtStrings = dir.getChildren(path, routesWatcher);
+        Set<Route> routes = new HashSet<Route>();
+        for (String rtStr : rtStrings)
+            routes.add(Route.fromString(rtStr));
+        return routes;
+    }
+
     private byte[] portToBytes(PortConfig port) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
@@ -234,7 +245,7 @@ public class PortDirectory {
 
     public void updatePort(UUID portId, PortConfig newPort) throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {
-        PortConfig oldPort = getPortConfiguration(portId, null, null);
+        PortConfig oldPort = getPortConfig(portId, null, null);
         if (oldPort.getClass() != newPort.getClass())
             throw new IllegalArgumentException(
                     "Cannot change a port's type without first deleting it.");
@@ -257,7 +268,7 @@ public class PortDirectory {
         }
     }
 
-    private PortConfig getPortConfigNoRoutes(UUID portId, Runnable portWatcher)
+    public PortConfig getPortConfigNoRoutes(UUID portId, Runnable portWatcher)
             throws IOException, ClassNotFoundException, KeeperException,
             InterruptedException {
         byte[] data = dir.get("/" + portId.toString(), portWatcher);
@@ -267,17 +278,12 @@ public class PortDirectory {
         return port;
     }
 
-    public PortConfig getPortConfiguration(UUID portId, Runnable portWatcher,
+    public PortConfig getPortConfig(UUID portId, Runnable portWatcher,
             Runnable routesWatcher) throws IOException, ClassNotFoundException,
             KeeperException, InterruptedException {
         PortConfig port = getPortConfigNoRoutes(portId, portWatcher);
         if (port instanceof RouterPortConfig) {
-            String path = new StringBuilder("/").append(portId.toString())
-                    .append("/routes").toString();
-            Set<String> routes = dir.getChildren(path, routesWatcher);
-            ((RouterPortConfig) port).routes = new HashSet<Route>();
-            for (String rt : routes)
-                ((RouterPortConfig) port).routes.add(Route.fromString(rt));
+            ((RouterPortConfig) port).routes = getRoutes(portId, routesWatcher);
         } else if (routesWatcher != null)
             throw new IllegalArgumentException(
                     "Can't watch routes on a bridge port");

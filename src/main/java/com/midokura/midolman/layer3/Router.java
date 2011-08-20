@@ -122,7 +122,7 @@ public class Router {
     }
 
     // This should only be called for materialized ports, not logical ports.
-    void addPort(L3DevicePort port) throws KeeperException,
+    public void addPort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.put(port.getId(), port);
         port.addListener(portListener);
@@ -132,7 +132,7 @@ public class Router {
     }
 
     // This should only be called for materialized ports, not logical ports.
-    void removePort(L3DevicePort port) throws KeeperException,
+    public void removePort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.remove(port.getId());
         port.removeListener(portListener);

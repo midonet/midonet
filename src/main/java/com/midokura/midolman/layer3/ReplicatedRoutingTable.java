@@ -4,11 +4,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ReplicatedSet;
+import com.midokura.midolman.util.Callback;
 
 public class ReplicatedRoutingTable {
 
@@ -43,30 +45,32 @@ public class ReplicatedRoutingTable {
     }
 
     private RoutingTable table;
+    private UUID routerId;
     private ReplicatedRouteSet routeSet;
-    private Set<Runnable> watchers;
+    private Set<Callback<UUID>> watchers;
 
-    public ReplicatedRoutingTable(Directory routeDir) {
+    public ReplicatedRoutingTable(UUID routerId, Directory routeDir) {
+        this.routerId = routerId;
         table = new RoutingTable();
-        watchers = new HashSet<Runnable>();
+        watchers = new HashSet<Callback<UUID>>();
         routeSet = new ReplicatedRouteSet(routeDir);
         routeSet.addWatcher(new MyWatcher());
         // TODO(pino): perhaps move this into a start method?
         routeSet.start();
     }
 
-    public void addWatcher(Runnable watcher) {
+    public void addWatcher(Callback<UUID> watcher) {
         watchers.add(watcher);
     }
 
-    public void removeWatcher(Runnable watcher) {
+    public void removeWatcher(Callback<UUID> watcher) {
         watchers.remove(watcher);
     }
 
     private void notifyWatchers() {
         // TODO(pino): should these be called asynchronously?
-        for (Runnable w : watchers) {
-            w.run();
+        for (Callback<UUID> watcher : watchers) {
+            watcher.call(routerId);
         }
     }
 
