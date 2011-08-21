@@ -18,9 +18,13 @@ import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.state.NetworkDirectory;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.util.Callback;
 
@@ -36,11 +40,15 @@ public class Network {
     private Reactor reactor;
     private Map<UUID, Router> routers;
     private Map<UUID, Router> routersByPortId;
+    // These watchers are interested in routing table and rule changes.
     private Set<Callback<UUID>> watchers;
-    private Callback<UUID> myWatcher;
+    // This watches all routing and table changes and then notifies the others.
+    private Callback<UUID> routerWatcher;
+    // TODO(pino): use Guava's CacheBuilder here.
+    private Map<UUID, RouterPortConfig> portIdToConfig;
 
-    public Network(UUID netId, NetworkDirectory netDir,
-            RouterDirectory routerDir, PortDirectory portDir, Reactor reactor) {
+    public Network(UUID netId, RouterDirectory routerDir,
+            PortDirectory portDir, Reactor reactor) {
         this.netId = netId;
         this.netDir = netDir;
         this.routerDir = routerDir;
@@ -49,11 +57,65 @@ public class Network {
         this.routers = new HashMap<UUID, Router>();
         this.routersByPortId = new HashMap<UUID, Router>();
         this.watchers = new HashSet<Callback<UUID>>();
-        myWatcher = new Callback<UUID>() {
+        routerWatcher = new Callback<UUID>() {
             public void call(UUID routerId) {
                 notifyWatchers(routerId);
             }
         };
+        // TODO(pino): use Guava's CacheBuilder here.
+        portIdToConfig = new HashMap<UUID, RouterPortConfig>();
+    }
+
+    // This maintains consistency of the cached port configs w.r.t ZK.
+    private class PortWatcher implements Runnable {
+        UUID portId;
+
+        PortWatcher(UUID portId) {
+            this.portId = portId;
+        }
+
+        @Override
+        public void run() {
+            // Don't get the new config if the portId's entry has expired.
+            if (portIdToConfig.containsKey(portId)) {
+                try {
+                    refreshPortConfig(portId, this);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (KeeperException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
+
+    public RouterPortConfig getPortConfig(UUID portId) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
+        RouterPortConfig rcfg = portIdToConfig.get(portId);
+        if (null == rcfg)
+            rcfg = refreshPortConfig(portId, null);
+        return rcfg;
+    }
+
+    private RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
+            throws IOException, ClassNotFoundException, KeeperException,
+            InterruptedException {
+        if (null == watcher)
+            watcher = new PortWatcher(portId);
+        PortConfig cfg = portDir.getPortConfigNoRoutes(portId, watcher);
+        if (!(cfg instanceof RouterPortConfig))
+            return null;
+        RouterPortConfig rcfg = RouterPortConfig.class.cast(cfg);
+        portIdToConfig.put(portId, rcfg);
+        return rcfg;
     }
 
     public void addWatcher(Callback<UUID> watcher) {
@@ -65,102 +127,123 @@ public class Network {
     }
 
     private void notifyWatchers(UUID routerId) {
-        for (Callback<UUID> watcher: watchers)
+        for (Callback<UUID> watcher : watchers)
             // TODO(pino): should this be scheduled instead of directly called?
             watcher.call(routerId);
     }
 
-    private Router getRouterByPort(UUID portId) {
+    private Router getRouter(UUID routerId) throws KeeperException,
+            InterruptedException, IOException, ClassNotFoundException {
+        Router rtr = routers.get(routerId);
+        if (null != rtr)
+            return rtr;
+        NatMapping natMap = null; // TODO(pino): finish this.
+        RuleEngine ruleEngine = new RuleEngine(routerDir, routerId, natMap);
+        ruleEngine.addWatcher(routerWatcher);
+        ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
+                routerDir.getRoutingTableDirectory(routerId));
+        table.addWatcher(routerWatcher);
+        rtr = new Router(routerId, ruleEngine, table, portDir, reactor);
+        routers.put(routerId, rtr);
+        return rtr;
+    }
+
+    private Router getRouterByPort(UUID portId) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
-        return null;
-        
-        /*
-    fe = self._port_uuid_to_fe.get(port_uuid)
-    if fe is not None:
-      return fe
-    pconfig = self._port_dir.get_port_configuration(port_uuid)
-    if pconfig is None:
-      message = "Cannot create the forwarding element for port %s: no port " \
-                "configuration found.", port_uuid
-      logging.warn(message)
-      raise Exception, message
-    (port_type, port_config) = pconfig
-    if port_type != port.ROUTER_PORT and port_type != port.LOGICAL_ROUTER_PORT:
-      raise ValueError('port_uuid %s does not belong to a router port' %
-                       str(port_uuid))
-    fe = self._uuid_to_fe.get(port_config.router_uuid)
-    if fe is None:
-      fe = self._make_router_fe(port_config.router_uuid)
-    self._port_uuid_to_fe[port_uuid] = fe
-    return fe
-         */
+        RouterPortConfig cfg = getPortConfig(portId);
+        // TODO(pino): throw an exception if the config isn't found.
+        rtr = getRouter(cfg.device_id);
+        routersByPortId.put(cfg.device_id, rtr);
+        return rtr;
     }
-    
+
     public void addPort(L3DevicePort port) throws KeeperException,
             InterruptedException, IOException, ClassNotFoundException {
         UUID routerId = port.getVirtualConfig().device_id;
-        Router rtr = routers.get(routerId);
-        if (null == rtr) {
-            NatMapping natMap = null; // TODO(pino): finish this.
-            RuleEngine ruleEngine = new RuleEngine(routerDir, routerId, natMap);
-            ruleEngine.addWatcher(myWatcher);
-            ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
-                    routerDir.getRoutingTableDirectory(routerId));
-            table.addWatcher(myWatcher);
-            rtr = new Router(routerId, ruleEngine, table, portDir, reactor);
-            routers.put(routerId, rtr);
-        }
+        Router rtr = getRouter(routerId);
         rtr.addPort(port);
         routersByPortId.put(port.getId(), rtr);
     }
 
     // This should only be called for materialized ports, not logical ports.
     public void removePort(L3DevicePort port) throws KeeperException,
-            InterruptedException {
-
+            InterruptedException, IOException, ClassNotFoundException {
+        Router rtr = getRouter(port.getVirtualConfig().device_id);
+        rtr.removePort(port);
+        routersByPortId.remove(port.getId());
+        // TODO(pino): we should clean up any router that isn't a value in the
+        // routersByPortId map.
     }
 
     public byte[] getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
+        Router rtr;
+        try {
+            rtr = getRouter(portId);
+            return rtr.getMacForIp(portId, nwAddr, cb);
+        } catch (KeeperException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return null;
     }
 
-    public Action process(MidoMatch pktMatch, byte[] packet, UUID inPortId,
-            ForwardInfo fwdInfo, Collection<UUID> traversedRouters) {
-        Router rtr = routersByPortId.get(inPortId);
+    public Action process(MidoMatch pktMatch, Ethernet ethPkt,
+            ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
+            throws IOException, ClassNotFoundException, KeeperException,
+            InterruptedException {
+        traversedRouters.clear();
+        Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
-            throw new RuntimeException("Packet arrived on a port that hasn't " +
-                    "been added to the network yet.");
+            throw new RuntimeException("Packet arrived on a port that hasn't "
+                    + "been added to the network yet.");
 
-        for (int i=0; i< MAX_HOPS; i++) {
+        for (int i = 0; i < MAX_HOPS; i++) {
             traversedRouters.add(rtr.routerId);
-            Action action = rtr.process(pktMatch, packet, inPortId, fwdInfo);
+            Action action = rtr.process(pktMatch, ethPkt, fwdInfo);
             if (action.equals(Action.FORWARD)) {
                 // Get the port's configuration to see if it's logical.
+                RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
+                if (null == cfg) {
+                    // Either the config wasn't found or it's not a router port.
+                    log.error("Packet forwarded to a portId that either "
+                            + "has null config or not router type.");
+                    // TODO(pino): throw exception instead?
+                    return Action.BLACKHOLE;
+                }
+                if (cfg instanceof LogicalRouterPortConfig) {
+                    LogicalRouterPortConfig lcfg = LogicalRouterPortConfig.class
+                            .cast(cfg);
+                    rtr = getRouterByPort(lcfg.peer_uuid);
+                    if (traversedRouters.contains(rtr)) {
+                        log.warn("Detected a routing loop.");
+                        return Action.BLACKHOLE;
+                    }
+                    pktMatch = fwdInfo.newMatch;
+                    fwdInfo.inPortId = lcfg.peer_uuid;
+                    continue;
+                }
+                // If we got here, return fwd_action to the caller. One of
+                // these holds:
+                // 1) the action is OUTPUT and the port type is not logical OR
+                // 2) the action is not OUTPUT
+                return action;
             }
         }
-        return null;
-
-        /*
-         * get_port_configuration(fwd_action.args.out_port_uuid) if
-         * out_port_type == port.LOGICAL_ROUTER_PORT: # The packet needs to be
-         * processed by the router that owns the # out_port's peer. peer_uuid =
-         * out_port_config.peer_uuid # TODO(pino): sanity check that peer_uuid
-         * is not None? fe = self._get_fe_for_port_uuid(peer_uuid) if
-         * fe._router_uuid in fe_traversed: message = 'Detected a routing loop'
-         * logging.warn(message) raise Exception, message match =
-         * fwd_action.args.new_match in_port_uuid=peer_uuid continue # If we got
-         * here, return fwd_action to the caller. One of these holds: # 1) the
-         * action is OUTPUT and the port type is not logical OR # 2) the action
-         * is not OUTPUT
-         * logging.debug('VirtualRouterNetwork::vrn_process_packet_match
-         * returning ' 'action %s' % (fwd_action,))
-         * 
-         * return (fwd_action, in_port_uuid, fe_traversed) # If we got here it
-         * means that we already traversed _MAX_PATH_LENGTH # router FE's
-         * without reaching a materialized router port. msg = 'Traversed %s
-         * routers without finding a materialized port' % i raise Exception, msg
-         */
+        // If we got here, we traversed MAX_HOPS routers without reaching a
+        // materialized port.
+        log.warn("Detected a routing loop.");
+        return Action.BLACKHOLE;
     }
 }

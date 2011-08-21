@@ -24,6 +24,7 @@ public class L3DevicePort {
     }
 
     private PortDirectory portDir;
+    private short portNum;
     private UUID portId;
     private byte[] mac;
     private PortWatcher portWatcher;
@@ -109,6 +110,10 @@ public class L3DevicePort {
 
     public UUID getId() {
         return portId;
+    }
+
+    public short getNum() {
+        return portNum;
     }
 
     public byte[] getMacAddr() {

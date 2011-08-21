@@ -38,10 +38,20 @@ public class Router {
     }
 
     public static class ForwardInfo {
-        UUID outPortId;
-        int gatewayNwAddr;
-        MidoMatch newMatch;
-        boolean trackConnection;
+        public UUID inPortId;
+        public UUID outPortId;
+        public int gatewayNwAddr;
+        public MidoMatch newMatch;
+        public boolean trackConnection;
+        public ForwardInfo(UUID inPortId, UUID outPortId, int gatewayNwAddr,
+                MidoMatch newMatch, boolean trackConnection) {
+            super();
+            this.inPortId = inPortId;
+            this.outPortId = outPortId;
+            this.gatewayNwAddr = gatewayNwAddr;
+            this.newMatch = newMatch;
+            this.trackConnection = trackConnection;
+        }
     }
 
     private static class ArpCacheEntry {
@@ -170,14 +180,12 @@ public class Router {
         return null;
     }
 
-    public Action process(MidoMatch pktMatch, byte[] packet, UUID inPortId,
+    public Action process(MidoMatch pktMatch, Ethernet ethPkt, 
             ForwardInfo fwdInfo) {
         // Check if it's addressed to us (ARP, SNMP, ICMP Echo, ...)
         // Only handle ARP so far.
         if (pktMatch.getDataLayerType() == ARP.ETHERTYPE) {
-            Ethernet etherPkt = new Ethernet();
-            etherPkt.deserialize(packet, 0, packet.length);
-            processArp(etherPkt, inPortId);
+            processArp(ethPkt, fwdInfo.inPortId);
             return Action.CONSUMED;
         }
         if (pktMatch.getDataLayerType() != IPv4.ETHERTYPE)
@@ -185,7 +193,7 @@ public class Router {
 
         // Apply pre-routing rules.
         RuleResult res = ruleEngine.applyChain("pre_routing", pktMatch,
-                inPortId, null);
+                fwdInfo.inPortId, null);
         if (res.action.equals(RuleResult.Action.DROP))
             return Action.BLACKHOLE;
         if (res.action.equals(RuleResult.Action.REJECT))
@@ -213,7 +221,7 @@ public class Router {
         // TODO(pino): log next hop portId and gateway addr..
 
         // Apply post-routing rules.
-        res = ruleEngine.applyChain("post_routing", res.match, inPortId,
+        res = ruleEngine.applyChain("post_routing", res.match, fwdInfo.inPortId,
                 rt.nextHopPort);
         if (res.action.equals(RuleResult.Action.DROP))
             return Action.BLACKHOLE;

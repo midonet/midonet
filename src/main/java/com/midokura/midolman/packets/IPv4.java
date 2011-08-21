@@ -263,15 +263,46 @@ public class IPv4 extends BasePacket {
     }
 
     /**
+     * Compute the IPv4-style checksum of the first lengthBytes of a ByteBuffer.
+     * From RFC 1071: "The checksum field is the 16-bit one's complement of the
+     * one's complement sum of all 16-bit words in the header. For purposes of
+     * computing the checksum, the value of the checksum field is zero."
+     * @param bb The ByteBuffer
+     * @param lengthBytes An even number of bytes on which to compute the cksum.
+     * @param cksumPos The even starting index of the 2-byte checksum within
+     * the stream of bytes. For example, in IPv4 header the cksum starts at 
+     * the 11th byte, so cksumPos=10 (zero-indexed). If the header includes a
+     * non-zero checksum it is skipped (treated as zero).
+     * @return The computed checksum as a short.
+     */
+    public static short computeChecksum(ByteBuffer bb, int lengthBytes,
+            int cksumPos) {
+        bb.rewind();
+        int accumulation = 0;
+        for (int i = 0; i < lengthBytes / 2; ++i) {
+            if (i != cksumPos / 2)
+                accumulation += 0xffff & bb.getShort();
+        }
+        accumulation = ((accumulation >> 16) & 0xffff)
+                + (accumulation & 0xffff);
+        return (short) (~accumulation & 0xffff);
+    }
+
+    /**
      * Serializes the packet. Will compute and set the following fields if they
      * are set to specific values at the time serialize is called:
      *      -checksum : 0
      *      -headerLength : 0
      *      -totalLength : 0
      */
+    @Override
     public byte[] serialize() {
+        return serialize(false);
+    }
+
+    public byte[] serialize(boolean ignorePayload) {
         byte[] payloadData = null;
-        if (payload != null) {
+        if (!ignorePayload && payload != null) {
             payload.setParent(this);
             payloadData = payload.serialize();
         }
@@ -303,19 +334,12 @@ public class IPv4 extends BasePacket {
         bb.putInt(this.destinationAddress);
         if (this.options != null)
             bb.put(this.options);
-        if (payloadData != null)
+        if (!ignorePayload && payloadData != null)
             bb.put(payloadData);
 
         // compute checksum if needed
         if (this.checksum == 0) {
-            bb.rewind();
-            int accumulation = 0;
-            for (int i = 0; i < this.headerLength * 2; ++i) {
-                accumulation += 0xffff & bb.getShort();
-            }
-            accumulation = ((accumulation >> 16) & 0xffff)
-                    + (accumulation & 0xffff);
-            this.checksum = (short) (~accumulation & 0xffff);
+            this.checksum = computeChecksum(bb, this.headerLength * 4, 10);
             bb.putShort(10, this.checksum);
         }
         return data;
@@ -323,6 +347,11 @@ public class IPv4 extends BasePacket {
 
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
+        return deserialize(data, offset, length, false);
+    }
+
+    public IPacket deserialize(byte[] data, int offset, int length,
+            boolean ignorePayload) {
         ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         short sscratch;
 
@@ -346,6 +375,9 @@ public class IPv4 extends BasePacket {
             this.options = new byte[optionsLength];
             bb.get(this.options);
         }
+
+        if(ignorePayload)
+            return this;
 
         IPacket payload;
         if (IPv4.protocolClassMap.containsKey(this.protocol)) {

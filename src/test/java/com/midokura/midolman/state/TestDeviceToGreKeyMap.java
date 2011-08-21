@@ -10,15 +10,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestBridgeDirectory {
+public class TestDeviceToGreKeyMap {
 
-    BridgeDirectory bridgeDir;
+    DeviceToGreKeyMap bridgeDir;
     Random rand;
 
     @Before
     public void setUp() {
         Directory dir = new MockDirectory();
-        bridgeDir = new BridgeDirectory(dir);
+        bridgeDir = new DeviceToGreKeyMap(dir);
         rand = new Random();
     }
 

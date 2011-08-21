@@ -41,6 +41,30 @@ public class TestPortDirectory {
     }
 
     @Test
+    public void test32BitUUID() {
+        byte b = Byte.MIN_VALUE;
+        int a = b;
+        System.out.println(Integer.toHexString(a));
+
+        int lBits1 = -5;
+        UUID id1 = PortDirectory.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        lBits1 = 20;
+        id1 = PortDirectory.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        lBits1 = Integer.MAX_VALUE;
+        id1 = PortDirectory.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        lBits1 = Integer.MIN_VALUE;
+        id1 = PortDirectory.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+
+        id1 = PortDirectory.generate32BitUUID();
+        UUID id2 = PortDirectory.intTo32BitUUID(PortDirectory.UUID32toInt(id1));
+        Assert.assertTrue(id1.equals(id2));
+    }
+
+    @Test
     public void testAddGetUpdateDeleteBridgePort() throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
