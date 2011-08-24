@@ -796,10 +796,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             { qosExternalIds += (key -> value); this }
         override def maxRate(maxRate: Int) =
             { qosOtherConfig += ("max-rate" -> maxRate); this }
-        def queues(queues: Map[Long, String]) =
-            { qosQueues ++= queues; this }
-        override def queues(queues: java.util.Map[java.lang.Long, java.lang.String]) =
-            this.queues(queues)
+        def queues(queueUUIDs: Map[Long, String]) =
+            { qosQueues ++= queueUUIDs; this }
+        override def queues(
+            queueUUIDs: java.util.Map[java.lang.Long, java.lang.String]): QosBuilder =
+                this.queues(
+                    (for ((k, v) <- queueUUIDs) yield ((k: Long) -> (v: String))).toMap)
         override def build(): String = {
             val tx = new Transaction(database)
             val qosUUID: String = generateUUID
@@ -823,6 +825,30 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 qosUUID = uuid.get(1) if qosUUID != null
             } return qosUUID.getTextValue
             return ""
+        }
+        def update(qosUUID: String): QosBuilder = {
+            val tx = new Transaction(database)
+            val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
+                                 List("_uuid", "queues", "other_config",
+                                      "external_ids"))
+            if (qosRows.isEmpty)
+                throw new RuntimeException("no QoS with uuid " + qosUUID)
+            for (qosRow <- qosRows) {
+                var updatedQosRow: Map[String, Any] =
+                    objectNodeToMap(qosRow.asInstanceOf[ObjectNode])
+                if (!qosQueues.isEmpty)
+                    updatedQosRow += ("queue" -> mapToOvsMap(qosQueues))
+                if (!qosOtherConfig.isEmpty)
+                    updatedQosRow +=("other_config" ->
+                                      mapToOvsMap(qosOtherConfig))
+                if (!qosExternalIds.isEmpty)
+                    updatedQosRow += ("external_ids" ->
+                                      mapToOvsMap(qosExternalIds))
+                tx.update(TableQos, Some(qosUUID), updatedQosRow)
+            }
+            tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+            doJsonRpc(tx)
+            this
         }
     }
 
@@ -1597,8 +1623,43 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def addQos(qosType: String): QosBuilder =
         new QosBuilderImpl(qosType)
 
-    override def updateQos(qosUuid: String, _type: String): QosBuilder = {
-        throw new RuntimeException("not implemented") // TODO
+    /**
+     * Update a QoS's parameters.
+     *
+     * @param qosUUID The UUID of the QoS to update
+     * @param qosType The new QoS type, or null to keep the existing QoS type
+     * @return A builder to reset optional parameters of the QoS and update it
+     */
+    override def updateQos(qosUUID: String, qosType: String): QosBuilder =
+        updateQos(qosUUID, Some(qosType), None, None, None)
+
+    /**
+     * Update a QoS's parameters.
+     *
+     * @param qosUUID The UUID of the QoS to update
+     * @param qosType The type of queues such as 'linux-htb' or 'linux-hfcs'.
+     *                Defaults to None. i.e., the type of the QoS will not be
+     *                updated.
+     * @param queueUUIDs The key-value pairs which key is the number of the queue
+     *                   and value is the list which the first is 'uuid' and the
+     *                   second is the UUID of the queue. Defaults to an empty
+     *                   dictionary, i.e., no queues to be updated.
+     * @return A builder to reset optional parameters of the QoS and update it.
+     */
+    def updateQos(qosUUID: String, qosType: Option[String] = Some("linux-htb"),
+                  queueUUIDs: Option[Map[Long, String]] =  Some(Map()),
+                  maxRate: Option[Int] = None,
+                  externalIds: Option[Map[String, String]] = Some(Map())
+              ): QosBuilder = {
+        val qb = new QosBuilderImpl(qosType.get)
+        if (!queueUUIDs.isEmpty)
+            qb.queues(queueUUIDs.get)
+        if (!maxRate.isEmpty)
+            qb.maxRate(maxRate.get)
+        if (!externalIds.isEmpty)
+            for ((k, v) <- externalIds.get)
+                qb.externalId(k, v)
+        qb
     }
 
     override def clearQosQueues(qosUuid: String) = {
@@ -1779,6 +1840,24 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     row <- rows
                     name = row.get("name") if name != null
                 } yield name.getTextValue).toList: _*)
+    }
+
+    /**
+     * Get the set of QoSs' UUIDs that are associated a given external ID
+     * key-value pair.
+     *
+     * @param key   The external ID key to lookup.
+     * @param value The external ID to lookup.
+     * @return The set of names of ports that are associated the external ID.
+     */
+    def getQosUUIDsByExternalId(
+        key: String, value: String): java.util.Set[String] = {
+        val rows = selectByExternalId(TableQos, key, value, List("_uuid"))
+        Set((for {
+            row <- rows
+            _uuid = row.get("_uuid") if _uuid != null
+            qosUUID = _uuid.get(1) if qosUUID != null
+        } yield qosUUID.getTextValue).toList: _*)
     }
 
     /**
