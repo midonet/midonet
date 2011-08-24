@@ -226,6 +226,31 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     }
 
     /**
+     * Test addQos and delQos.
+     */
+    @Test def testUpdateQos() = {
+        val qosType = "linux-htb"
+        val qosExtIdKey = bridgeExtIdKey
+        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val updatedQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
+        var qb = ovsdb.addQos(qosType)
+        qb.externalId(qosExtIdKey, qosExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQos(uuid))
+        assertTrue(!ovsdb.getQosUUIDsByExternalId(
+            qosExtIdKey, qosExtIdValue).isEmpty)
+        qb = ovsdb.updateQos(uuid,
+            externalIds=Some(Map(qosExtIdKey -> updatedQosExtIdValue)))
+        qb.update(uuid)
+        assertFalse(!ovsdb.getQosUUIDsByExternalId(
+            qosExtIdKey, qosExtIdValue).isEmpty)
+        assertTrue(!ovsdb.getQosUUIDsByExternalId(
+            qosExtIdKey, updatedQosExtIdValue).isEmpty)
+        ovsdb.delQos(uuid)
+        assertFalse(ovsdb.hasQos(uuid))
+    }
+
+    /**
      * Test addQueue and delQueue.
      */
     @Test def testAddQueue() = {
