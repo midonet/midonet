@@ -262,6 +262,18 @@ public class IPv4 extends BasePacket {
         return this;
     }
 
+    public boolean isMcast() {
+        int byte1 = getDestinationAddress() >>> 24;
+        // TODO(pino): check on this range.
+        return byte1 >= 224 && byte1 < 240;
+    }
+
+    public boolean isSubnetBcast(int nwAddr, int nwLength) {
+        int mask = 0xffffffff >>> nwLength;
+        int subnetBcast = mask | nwAddr;
+        return getDestinationAddress() == subnetBcast;
+    }
+
     /**
      * Compute the IPv4-style checksum of the first lengthBytes of a ByteBuffer.
      * From RFC 1071: "The checksum field is the 16-bit one's complement of the
@@ -286,6 +298,16 @@ public class IPv4 extends BasePacket {
         accumulation = ((accumulation >> 16) & 0xffff)
                 + (accumulation & 0xffff);
         return (short) (~accumulation & 0xffff);
+    }
+
+    public static String addrToString(int addr) {
+        StringBuffer sbuf = new StringBuffer();
+        for (int i=0; i<4; i++) {
+            sbuf.append((addr >>> (3-i)*8) & 0xff);
+            if (i != 3)
+                sbuf.append(".");
+        }
+        return sbuf.toString(); 
     }
 
     /**

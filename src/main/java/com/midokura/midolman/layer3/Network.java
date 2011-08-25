@@ -148,7 +148,7 @@ public class Network {
         return rtr;
     }
 
-    private Router getRouterByPort(UUID portId) throws IOException,
+    public Router getRouterByPort(UUID portId) throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
@@ -199,7 +199,7 @@ public class Network {
         return null;
     }
 
-    public Action process(MidoMatch pktMatch, Ethernet ethPkt,
+    public void process(UUID inPortId, MidoMatch pktMatch, Ethernet ethPkt,
             ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
             throws IOException, ClassNotFoundException, KeeperException,
             InterruptedException {
@@ -211,8 +211,8 @@ public class Network {
 
         for (int i = 0; i < MAX_HOPS; i++) {
             traversedRouters.add(rtr.routerId);
-            Action action = rtr.process(pktMatch, ethPkt, fwdInfo);
-            if (action.equals(Action.FORWARD)) {
+            rtr.process(pktMatch, ethPkt, fwdInfo);
+            if (fwdInfo.action.equals(Action.FORWARD)) {
                 // Get the port's configuration to see if it's logical.
                 RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
                 if (null == cfg) {
@@ -220,7 +220,8 @@ public class Network {
                     log.error("Packet forwarded to a portId that either "
                             + "has null config or not router type.");
                     // TODO(pino): throw exception instead?
-                    return Action.BLACKHOLE;
+                    fwdInfo.action = Action.BLACKHOLE;
+                    return;
                 }
                 if (cfg instanceof LogicalRouterPortConfig) {
                     LogicalRouterPortConfig lcfg = LogicalRouterPortConfig.class
@@ -228,7 +229,8 @@ public class Network {
                     rtr = getRouterByPort(lcfg.peer_uuid);
                     if (traversedRouters.contains(rtr)) {
                         log.warn("Detected a routing loop.");
-                        return Action.BLACKHOLE;
+                        fwdInfo.action = Action.BLACKHOLE;
+                        return;
                     }
                     pktMatch = fwdInfo.newMatch;
                     fwdInfo.inPortId = lcfg.peer_uuid;
@@ -238,12 +240,18 @@ public class Network {
                 // these holds:
                 // 1) the action is OUTPUT and the port type is not logical OR
                 // 2) the action is not OUTPUT
-                return action;
+                return;
             }
         }
         // If we got here, we traversed MAX_HOPS routers without reaching a
         // materialized port.
         log.warn("Detected a routing loop.");
-        return Action.BLACKHOLE;
+        fwdInfo.action = Action.BLACKHOLE;
+        return;
+    }
+
+    public void undoRouterTransformation(Ethernet tunneledEthPkt) {
+        // TODO Auto-generated method stub
+        
     }
 }

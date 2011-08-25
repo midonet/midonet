@@ -38,20 +38,13 @@ public class Router {
     }
 
     public static class ForwardInfo {
+        public Action action;
         public UUID inPortId;
         public UUID outPortId;
         public int gatewayNwAddr;
         public MidoMatch newMatch;
         public boolean trackConnection;
-        public ForwardInfo(UUID inPortId, UUID outPortId, int gatewayNwAddr,
-                MidoMatch newMatch, boolean trackConnection) {
-            super();
-            this.inPortId = inPortId;
-            this.outPortId = outPortId;
-            this.gatewayNwAddr = gatewayNwAddr;
-            this.newMatch = newMatch;
-            this.trackConnection = trackConnection;
-        }
+        public Ethernet pktIn;
     }
 
     private static class ArpCacheEntry {
@@ -180,24 +173,31 @@ public class Router {
         return null;
     }
 
-    public Action process(MidoMatch pktMatch, Ethernet ethPkt, 
+    public void process(MidoMatch pktMatch, Ethernet ethPkt,
             ForwardInfo fwdInfo) {
         // Check if it's addressed to us (ARP, SNMP, ICMP Echo, ...)
         // Only handle ARP so far.
         if (pktMatch.getDataLayerType() == ARP.ETHERTYPE) {
             processArp(ethPkt, fwdInfo.inPortId);
-            return Action.CONSUMED;
+            fwdInfo.action = Action.CONSUMED;
+            return;
         }
-        if (pktMatch.getDataLayerType() != IPv4.ETHERTYPE)
-            return Action.NOT_IPV4;
+        if (pktMatch.getDataLayerType() != IPv4.ETHERTYPE) {
+            fwdInfo.action = Action.NOT_IPV4;
+            return;
+        }
 
         // Apply pre-routing rules.
         RuleResult res = ruleEngine.applyChain("pre_routing", pktMatch,
                 fwdInfo.inPortId, null);
-        if (res.action.equals(RuleResult.Action.DROP))
-            return Action.BLACKHOLE;
-        if (res.action.equals(RuleResult.Action.REJECT))
-            return Action.REJECT;
+        if (res.action.equals(RuleResult.Action.DROP)) {
+            fwdInfo.action = Action.BLACKHOLE;
+            return;
+        }
+        if (res.action.equals(RuleResult.Action.REJECT)){
+            fwdInfo.action = Action.REJECT;
+            return;
+        }
         if (res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Pre-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
@@ -205,28 +205,38 @@ public class Router {
 
         // Do a routing table lookup.
         Route rt = loadBalancer.lookup(pktMatch);
-        if (null == rt)
-            return Action.NO_ROUTE;
-        if (rt.nextHop.equals(Route.NextHop.BLACKHOLE))
-            return Action.BLACKHOLE;
-        if (rt.nextHop.equals(Route.NextHop.REJECT))
-            return Action.REJECT;
+        if (null == rt) {
+            fwdInfo.action = Action.NO_ROUTE;
+            return;
+        }
+        if (rt.nextHop.equals(Route.NextHop.BLACKHOLE)){
+            fwdInfo.action = Action.BLACKHOLE;
+            return;
+        }
+        if (rt.nextHop.equals(Route.NextHop.REJECT)) {
+            fwdInfo.action = Action.REJECT;
+            return;
+        }
         if (!rt.nextHop.equals(Route.NextHop.PORT))
             throw new RuntimeException("Routing table returned next hop "
-                    + "that isn't one of BLACKHOLE, NO_ROUTE, or REJECT.");
+                    + "that isn't one of BLACKHOLE, NO_ROUTE, PORT or REJECT.");
         if (null == rt.nextHopPort)
             // TODO(pino): malformed rule. Should we silently drop the packet?
-            throw new RuntimeException("Routing table returne next hop PORT "
+            throw new RuntimeException("Routing table returned next hop PORT "
                     + "but no port UUID given.");
         // TODO(pino): log next hop portId and gateway addr..
 
         // Apply post-routing rules.
-        res = ruleEngine.applyChain("post_routing", res.match, fwdInfo.inPortId,
-                rt.nextHopPort);
-        if (res.action.equals(RuleResult.Action.DROP))
-            return Action.BLACKHOLE;
-        if (res.action.equals(RuleResult.Action.REJECT))
-            return Action.REJECT;
+        res = ruleEngine.applyChain("post_routing", res.match,
+                fwdInfo.inPortId, rt.nextHopPort);
+        if (res.action.equals(RuleResult.Action.DROP)){
+            fwdInfo.action = Action.BLACKHOLE;
+            return;
+        }
+        if (res.action.equals(RuleResult.Action.REJECT)){
+            fwdInfo.action = Action.REJECT;
+            return;
+        }
         if (res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Post-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
@@ -237,7 +247,8 @@ public class Router {
         fwdInfo.newMatch = res.match;
         fwdInfo.gatewayNwAddr = (0 == rt.nextHopGateway) ? res.match
                 .getNetworkDestination() : rt.nextHopGateway;
-        return Action.FORWARD;
+        fwdInfo.action = Action.FORWARD;
+        return;
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
