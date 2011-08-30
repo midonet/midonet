@@ -289,4 +289,31 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
     }
+
+    /**
+     * Test updateQueue
+     */
+    @Test def testUpdateQueue() = {
+        val queueMinRate: Long = 100000000
+        val queueExtIdKey = bridgeExtIdKey
+        val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val updatedQueueExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
+        var qb = ovsdb.addQueue()
+        qb.minRate(queueMinRate)
+        qb.externalId(queueExtIdKey, queueExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQueue(uuid))
+        assertTrue(!ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, queueExtIdValue).isEmpty)
+        qb = ovsdb.updateQueue(uuid, minRate=Some(queueMinRate/10),
+                               externalIds=Some(
+                                   Map(queueExtIdKey -> updatedQueueExtIdValue)))
+        qb.update(uuid)
+        assertFalse(!ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, queueExtIdValue).isEmpty)
+        assertTrue(!ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, updatedQueueExtIdValue).isEmpty)
+        ovsdb.delQueue(uuid)
+        assertFalse(ovsdb.hasQueue(uuid))
+    }
 }

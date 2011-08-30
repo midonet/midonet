@@ -1933,6 +1933,24 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     /**
+     * Get the set of queues' UUIDs that are associated a given external ID
+     * key-value pair.
+     *
+     * @param key   The external ID key to lookup.
+     * @param value The external ID to lookup.
+     * @return The set of names of ports that are associated the external ID.
+     */
+    def getQueueUUIDsByExternalId(
+        key: String, value: String): java.util.Set[String] = {
+        val rows = selectByExternalId(TableQueue, key, value, List("_uuid"))
+        Set((for {
+            row <- rows
+            _uuid = row.get("_uuid") if _uuid != null
+            qosUUID = _uuid.get(1) if qosUUID != null
+        } yield qosUUID.getTextValue).toList: _*)
+    }
+
+    /**
      * Close the connection.
      */
     override def close() = {
