@@ -906,6 +906,37 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             } return queueUUID.getTextValue
             return ""
         }
+        def update(queueUUID: String) = {
+            val tx = new Transaction(database)
+            val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
+                                   List("_uuid", "other_config", "external_ids"))
+            for (queueRow <- queueRows) {
+                var queueOtherConfig: Map[String, Any] = Map()
+                var updateQueueRow: Map[String, Any] =
+                    objectNodeToMap(queueRow.asInstanceOf[ObjectNode])
+                if (!queueMaxRate.isEmpty)
+                    queueOtherConfig +=
+                        ("max-rate" -> queueMaxRate.get.toString)
+                if (!queueMinRate.isEmpty)
+                    queueOtherConfig +=
+                        ("min-rate" -> queueMinRate.get.toString)
+                if (!queueBurst.isEmpty)
+                    queueOtherConfig += ("burst" -> queueBurst.get.toString)
+                if (!queuePriority.isEmpty)
+                    queueOtherConfig +=
+                        ("priority" -> queuePriority.get.toString)
+                if (!queueOtherConfig.isEmpty)
+                    updateQueueRow +=
+                        ("other_config" -> mapToOvsMap(queueOtherConfig))
+                if (!queueExternalIds.isEmpty)
+                    updateQueueRow +=
+                        ("external_ids" -> mapToOvsMap(queueExternalIds.get))
+                tx.update(TableQueue, Some(queueUUID), updateQueueRow)
+            }
+            tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+            doJsonRpc(tx)
+            this
+        }
     }
     
     /**
@@ -1784,8 +1815,49 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def addQueue(): QueueBuilder = new QueueBuilderImpl()
 
-    override def updateQueue(queueUuid: String): QueueBuilder = {
-        throw new RuntimeException("not implemented") // TODO
+    /**
+     * Update a queue's parameters.
+     *
+     * @param queueUUID The UUID of the queue to update
+     * @return A builder to reset optional parameters of the queue and update it
+     */
+    override def updateQueue(queueUUID: String) =
+        updateQueue(queueUUID)
+
+    /**
+     * Update a queue's parameters.
+     *
+     * @param queueUUID The UUID of the queue to update
+     * @param maxRate The maximum rate for the queue. Defaults to None, i.e.,
+     *                maximum rate will not be updated.
+     * @param minRate The minimum rate for the queue. Defaults to None, i.e.,
+     *                burst will not be updated.
+     * @param burst The burst size in bits (for linux-hfsc). Defaults to None,
+     *              i.e., burst will not be updated.
+     * @param priority The priority of the queue (for linux-hfsc). Defaults to
+     *                 None, i.e., priority will not be updated.
+     * @param external_ids The key-value pairs for use by external frameworks.
+     *                     Defaults to an empty Map. i.e., external ids will not
+     *                     be updated.
+     * @return A builder to reset optional parameters of the queue and update it
+     */
+    def updateQueue(queueUUID: String, maxRate: Option[Long] = None,
+                    minRate: Option[Long] = None,
+                    externalIds: Option[Map[String, String]] = None,
+                    burst: Option[Long] = None,
+                    priority: Option[Long] = None): QueueBuilder = {
+        val queueBuilder = new QueueBuilderImpl
+        if (!maxRate.isEmpty)
+            queueBuilder.maxRate(maxRate.get)
+        if (!minRate.isEmpty)
+            queueBuilder.minRate(minRate.get)
+        if (!externalIds.isEmpty)
+            for ((k, v) <- externalIds.get) queueBuilder.externalId(k, v)
+        if (!burst.isEmpty)
+            queueBuilder.burst(burst.get)
+        if (!priority.isEmpty)
+            queueBuilder.priority(priority.get)
+        queueBuilder
     }
 
     

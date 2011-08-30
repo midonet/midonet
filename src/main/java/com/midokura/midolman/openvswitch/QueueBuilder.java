@@ -92,4 +92,12 @@ public interface QueueBuilder {
      */
     String build();
 
+    /**
+     * Update the queue.
+     *
+     * @param queueUuid The UUID of the queue to update.
+     * @return this builder
+     */
+    QueueBuilder update(String queueUuid);
+
 }
