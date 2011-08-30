@@ -786,11 +786,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         private var qosOtherConfig: Map[String, Long] = Map()
         private var qosExternalIds: Map[String, _] = Map()
         override def clear() = {
-          qosType = ""
-          qosQueues.clear
-          qosOtherConfig.clear
-          qosExternalIds.clear
-          this
+            qosType = ""
+            qosQueues =  Map()
+            qosOtherConfig = Map()
+            qosExternalIds = Map()
+            this
         }
         override def externalId(key: String, value: String) =
             { qosExternalIds += (key -> value); this }
@@ -855,20 +855,20 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     class QueueBuilderImpl extends QueueBuilder {
         private var queueMaxRate: Option[Long] = None
         private var queueMinRate: Option[Long] = None
-        private var queueExternalIds: Map[String, String] = Map()
+        private var queueExternalIds: Option[Map[String, String]] = Some(Map())
         private var queueBurst: Option[Long] = None
         private var queuePriority: Option[Long] = None
 
         override def clear() = {
             queueMaxRate = None
             queueMinRate = None
-            queueExternalIds.clear
+            queueExternalIds = Some(Map())
             queueBurst= None
             queuePriority = None
             this
         }
         override def externalId(key: String, value: String) =
-            { queueExternalIds += (key -> value); this }
+            { queueExternalIds = Some(queueExternalIds.get + (key -> value)); this }
         override def minRate(minRate: Long) =
             { queueMinRate = Some(minRate); this }
         override def maxRate(maxRate: Long) =
@@ -882,18 +882,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             val queueUUID: String = generateUUID
             var queueOtherConfig: Map[String, String] = Map()
             if (!queueMinRate.isEmpty)
-                queueOtherConfig += ("min-rate" -> queueMinRate.toString)
+                queueOtherConfig += ("min-rate" -> queueMinRate.get.toString)
             if (!queueMaxRate.isEmpty)
-                queueOtherConfig += ("max-rate" -> queueMaxRate.toString)
+                queueOtherConfig += ("max-rate" -> queueMaxRate.get.toString)
             if (!queueBurst.isEmpty)
-                queueOtherConfig += ("burst" -> queueBurst.toString)
+                queueOtherConfig += ("burst" -> queueBurst.get.toString)
             if (!queuePriority.isEmpty)
-                queueOtherConfig += ("priority" -> queuePriority.toString)
+                queueOtherConfig += ("priority" -> queuePriority.get.toString)
             var queueRow: Map[String, Any] = Map()
             if (!queueOtherConfig.isEmpty)
                 queueRow += ("other_config" -> mapToOvsMap(queueOtherConfig))
             if (!queueExternalIds.isEmpty)
-                queueRow += ("external_ids" -> mapToOvsMap(queueExternalIds))
+                queueRow += ("external_ids" -> mapToOvsMap(queueExternalIds.get))
             tx.insert(TableQueue, queueUUID, queueRow)
             tx.addComment("created Queue with uuid" + queueUUID)
             tx.increment(TableOpenvSwitch, None, "next_cfg")
