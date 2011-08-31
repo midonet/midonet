@@ -1698,8 +1698,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         qb
     }
 
-    override def clearQosQueues(qosUuid: String) = {
-        throw new RuntimeException("not implemented") // TODO
+    /**
+     * Clear the QoS's queues.
+     *
+     * @param qosUUID The UUID of the QoS to clear its queues.
+     */
+    override def clearQosQueues(qosUUID: String) = {
+        val qosBuilder = updateQos(qosUUID, queueUUIDs = Some(Map()))
+        qosBuilder.update(qosUUID)
     }
 
     /**
