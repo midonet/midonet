@@ -199,8 +199,7 @@ public class Network {
         return null;
     }
 
-    public void process(UUID inPortId, MidoMatch pktMatch, Ethernet ethPkt,
-            ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
+    public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
             throws IOException, ClassNotFoundException, KeeperException,
             InterruptedException {
         traversedRouters.clear();
@@ -211,7 +210,7 @@ public class Network {
 
         for (int i = 0; i < MAX_HOPS; i++) {
             traversedRouters.add(rtr.routerId);
-            rtr.process(pktMatch, ethPkt, fwdInfo);
+            rtr.process(fwdInfo);
             if (fwdInfo.action.equals(Action.FORWARD)) {
                 // Get the port's configuration to see if it's logical.
                 RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
@@ -232,7 +231,7 @@ public class Network {
                         fwdInfo.action = Action.BLACKHOLE;
                         return;
                     }
-                    pktMatch = fwdInfo.newMatch;
+                    fwdInfo.matchIn = fwdInfo.matchOut;
                     fwdInfo.inPortId = lcfg.peer_uuid;
                     continue;
                 }

@@ -167,10 +167,10 @@ public class NetworkController extends AbstractController {
                     // The port was removed while we waited for the ARP.
                     return;
                 }
-                fwdInfo.newMatch.setDataLayerSource(devPort.getMacAddr());
-                fwdInfo.newMatch.setDataLayerDestination(mac);
+                fwdInfo.matchOut.setDataLayerSource(devPort.getMacAddr());
+                fwdInfo.matchOut.setDataLayerDestination(mac);
                 List<OFAction> ofActions = makeActionsForFlow(match,
-                        fwdInfo.newMatch, devPort.getNum());
+                        fwdInfo.matchOut, devPort.getNum());
                 boolean useWildcards = true; // TODO: get this from config.
                 if (useWildcards) {
                     // TODO: Should we check for non-load-balanced routes and
@@ -188,7 +188,7 @@ public class NetworkController extends AbstractController {
                         .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
                         fwdInfo.outPortId);
             }
-            notifyFlowAdded(match, fwdInfo.newMatch, inPort.getId(), fwdInfo,
+            notifyFlowAdded(match, fwdInfo.matchOut, inPort.getId(), fwdInfo,
                     traversedRouters);
         }
     }
@@ -296,9 +296,12 @@ public class NetworkController extends AbstractController {
             return;
         }
         ForwardInfo fwdInfo = new ForwardInfo();
+        fwdInfo.inPortId = devPortIn.getId();
+        fwdInfo.matchIn = match;
+        fwdInfo.pktIn = ethPkt;
         Set<UUID> routers = new HashSet<UUID>();
         try {
-            network.process(devPortIn.getId(), match, ethPkt, fwdInfo, routers);
+            network.process(fwdInfo, routers);
         } catch (Exception e) {
             return;
         }
@@ -357,10 +360,10 @@ public class NetworkController extends AbstractController {
                 setDlHeadersForTunnel(dlSrc, dlDst, PortDirectory
                         .UUID32toInt(fwdInfo.inPortId), PortDirectory
                         .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
-                fwdInfo.newMatch.setDataLayerSource(dlSrc);
-                fwdInfo.newMatch.setDataLayerDestination(dlDst);
+                fwdInfo.matchOut.setDataLayerSource(dlSrc);
+                fwdInfo.matchOut.setDataLayerDestination(dlDst);
                 List<OFAction> ofActions = makeActionsForFlow(match,
-                        fwdInfo.newMatch, tunPortNum);
+                        fwdInfo.matchOut, tunPortNum);
                 // TODO(pino): should we do any wildcarding here?
                 // TODO(pino): choose the correct hard and idle timeouts.
                 addFlowAndSendPacket(bufferId, match, OFP_FLOW_PERMANENT,
@@ -567,6 +570,8 @@ public class NetworkController extends AbstractController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, (short) 0);
         ForwardInfo fwdInfo = new ForwardInfo();
+        fwdInfo.matchIn = match;
+        fwdInfo.pktIn = eth;
         if (portConfig instanceof MaterializedRouterPortConfig) {
             // The lastIngress port is materialized. Invoke the routing logic of
             // its router in order to find the network address of the next hop
@@ -581,7 +586,7 @@ public class NetworkController extends AbstractController {
                         + "that would route it.");
                 return;
             }
-            rtr.process(match, eth, fwdInfo);
+            rtr.process(fwdInfo);
             if (!fwdInfo.action.equals(Action.FORWARD)) {
                 log.warn("Dropping ICMP error message. Don't know where to "
                         + "forward it because router.process didn't return "
@@ -601,8 +606,9 @@ public class NetworkController extends AbstractController {
             // routing.
             Set<UUID> routerIds = new HashSet<UUID>();
             UUID peer_uuid = ((PortDirectory.LogicalRouterPortConfig) portConfig).peer_uuid;
+            fwdInfo.inPortId = peer_uuid;
             try {
-                network.process(peer_uuid, match, eth, fwdInfo, routerIds);
+                network.process(fwdInfo, routerIds);
             } catch (Exception e) {
                 log.warn("Dropping ICMP error message. Don't know where to "
                         + "forward it because network.process threw exception.");
@@ -838,7 +844,8 @@ public class NetworkController extends AbstractController {
         // Now get the port configuration from ZooKeeper.
         L3DevicePort devPort = null;
         try {
-            devPort = new L3DevicePort(portDir, portId);
+            devPort = new L3DevicePort(portDir, portId, port.getPortNumber(),
+                    port.getHardwareAddress(), super.controllerStub);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -113,7 +113,7 @@ public class Route implements Serializable {
                         : NextHop.valueOf(parts[4]), parts[5].isEmpty() ? null
                         : UUID.fromString(parts[5]),
                 Integer.parseInt(parts[6]), Integer.parseInt(parts[7]),
-                parts[8]);
+                parts.length > 8? parts[8] : null);
         return rt;
     }
 

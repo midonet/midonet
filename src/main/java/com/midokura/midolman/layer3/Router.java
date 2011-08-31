@@ -42,9 +42,10 @@ public class Router {
         public UUID inPortId;
         public UUID outPortId;
         public int gatewayNwAddr;
-        public MidoMatch newMatch;
+        public MidoMatch matchOut;
         public boolean trackConnection;
         public Ethernet pktIn;
+        public MidoMatch matchIn;
     }
 
     private static class ArpCacheEntry {
@@ -102,8 +103,9 @@ public class Router {
     private RuleEngine ruleEngine;
     private ReplicatedRoutingTable table;
     private PortDirectory portDir;
-    // Note that only materialized ports are tracked.
-    private Map<UUID, L3DevicePort> devicePorts;
+    // Note that only materialized ports are tracked. Package visibility for
+    // testing.
+    Map<UUID, L3DevicePort> devicePorts;
     private PortListener portListener;
     private Map<UUID, Map<Integer, ArpCacheEntry>> arpCaches;
     private Map<UUID, Map<Integer, List<Callback<byte[]>>>> arpCallbackLists;
@@ -173,43 +175,42 @@ public class Router {
         return null;
     }
 
-    public void process(MidoMatch pktMatch, Ethernet ethPkt,
-            ForwardInfo fwdInfo) {
+    public void process(ForwardInfo fwdInfo) {
         // Check if it's addressed to us (ARP, SNMP, ICMP Echo, ...)
         // Only handle ARP so far.
-        if (pktMatch.getDataLayerType() == ARP.ETHERTYPE) {
-            processArp(ethPkt, fwdInfo.inPortId);
+        if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
+            processArp(fwdInfo.pktIn, fwdInfo.inPortId);
             fwdInfo.action = Action.CONSUMED;
             return;
         }
-        if (pktMatch.getDataLayerType() != IPv4.ETHERTYPE) {
+        if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE) {
             fwdInfo.action = Action.NOT_IPV4;
             return;
         }
 
         // Apply pre-routing rules.
-        RuleResult res = ruleEngine.applyChain("pre_routing", pktMatch,
+        RuleResult res = ruleEngine.applyChain("pre_routing", fwdInfo.matchIn,
                 fwdInfo.inPortId, null);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
         }
-        if (res.action.equals(RuleResult.Action.REJECT)){
+        if (res.action.equals(RuleResult.Action.REJECT)) {
             fwdInfo.action = Action.REJECT;
             return;
         }
-        if (res.action.equals(RuleResult.Action.ACCEPT))
+        if (!res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Pre-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
         fwdInfo.trackConnection = res.trackConnection;
 
         // Do a routing table lookup.
-        Route rt = loadBalancer.lookup(pktMatch);
+        Route rt = loadBalancer.lookup(fwdInfo.matchIn);
         if (null == rt) {
             fwdInfo.action = Action.NO_ROUTE;
             return;
         }
-        if (rt.nextHop.equals(Route.NextHop.BLACKHOLE)){
+        if (rt.nextHop.equals(Route.NextHop.BLACKHOLE)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
         }
@@ -229,22 +230,22 @@ public class Router {
         // Apply post-routing rules.
         res = ruleEngine.applyChain("post_routing", res.match,
                 fwdInfo.inPortId, rt.nextHopPort);
-        if (res.action.equals(RuleResult.Action.DROP)){
+        if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
         }
-        if (res.action.equals(RuleResult.Action.REJECT)){
+        if (res.action.equals(RuleResult.Action.REJECT)) {
             fwdInfo.action = Action.REJECT;
             return;
         }
-        if (res.action.equals(RuleResult.Action.ACCEPT))
+        if (!res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Post-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
         if (!fwdInfo.trackConnection && res.trackConnection)
             fwdInfo.trackConnection = true;
 
         fwdInfo.outPortId = rt.nextHopPort;
-        fwdInfo.newMatch = res.match;
+        fwdInfo.matchOut = res.match;
         fwdInfo.gatewayNwAddr = (0 == rt.nextHopGateway) ? res.match
                 .getNetworkDestination() : rt.nextHopGateway;
         fwdInfo.action = Action.FORWARD;
@@ -292,25 +293,7 @@ public class Router {
         return !inNw;
     }
 
-    private static int bytesToNwAddr(byte[] bytes) {
-        if (bytes.length < 4)
-            return 0;
-        int addr = 0;
-        for (int i = 0; i < 4; i++) {
-            addr |= (bytes[i] & 0xff) << 8 * (3 - i);
-        }
-        return addr;
-    }
-
-    private static byte[] nwAddrToBytes(int addr) {
-        byte[] bytes = new byte[4];
-        for (int i = 0; i < 4; i++) {
-            bytes[i] = (byte) ((addr >>> (3 - i) * 8) & 0xff);
-        }
-        return bytes;
-    }
-
-    private void processArpRequest(ARP arpPkt, UUID inPortId) {
+    public void processArpRequest(ARP arpPkt, UUID inPortId) {
         // If the request is for the ingress port's own address, it's for us.
         // Respond with the port's Mac address.
         // If the request is for an IP address which we emulate
@@ -322,7 +305,7 @@ public class Router {
         // First get the ingress port's mac address
         L3DevicePort devPort = devicePorts.get(inPortId);
         MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
-        int tpa = bytesToNwAddr(arpPkt.getTargetProtocolAddress());
+        int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         if (tpa != devPort.getVirtualConfig().portAddr
                 && !spoofL2Network(tpa, portConfig.nwAddr, portConfig.nwLength,
                         portConfig.localNwAddr, portConfig.localNwLength)) {
@@ -356,7 +339,7 @@ public class Router {
         // Verify that the reply was meant for us.
         L3DevicePort devPort = devicePorts.get(inPortId);
         MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
-        int tpa = bytesToNwAddr(arpPkt.getTargetProtocolAddress());
+        int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         byte[] tha = arpPkt.getTargetHardwareAddress();
         if (tpa != portConfig.portAddr || !tha.equals(devPort.getMacAddr()))
             return;
@@ -371,7 +354,7 @@ public class Router {
         ArpCacheEntry entry = new ArpCacheEntry(arpPkt
                 .getSenderHardwareAddress(), now + ARP_EXPIRATION_MILLIS, now
                 + ARP_STALE_MILLIS, 0);
-        int spa = bytesToNwAddr(arpPkt.getSenderProtocolAddress());
+        int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
         arpCache.put(spa, entry);
         reactor.schedule(new ArpExpiration(spa, inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
@@ -459,8 +442,9 @@ public class Router {
         arp.setOpCode(ARP.OP_REQUEST);
         byte[] portMac = devPort.getMacAddr();
         arp.setSenderHardwareAddress(portMac);
-        arp.setSenderProtocolAddress(nwAddrToBytes(portConfig.portAddr));
-        arp.setTargetProtocolAddress(nwAddrToBytes(nwAddr));
+        arp.setSenderProtocolAddress(IPv4
+                .toIPv4AddressBytes(portConfig.portAddr));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwAddr));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(portMac);

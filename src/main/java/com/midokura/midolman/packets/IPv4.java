@@ -452,6 +452,21 @@ public class IPv4 extends BasePacket {
     }
 
     /**
+     * Accepts an IPv4 address and returns the correspondent bytes.
+     * 
+     * @param ipAddress
+     * @return
+     */
+    public static byte[] toIPv4AddressBytes(int ipAddress) {
+        byte[] bytes = new byte[4];
+        for (int i = 0; i < 4; i++) {
+            bytes[i] = (byte) ((ipAddress >>> (3-i)*8) & 0xff);
+        }
+        return bytes;
+    }
+
+
+    /**
      * Accepts an IPv4 address and returns of string of the form xxx.xxx.xxx.xxx
      * ie 192.168.0.1
      * 

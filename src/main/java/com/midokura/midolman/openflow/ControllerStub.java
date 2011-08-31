@@ -11,6 +11,8 @@ import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
 
 public interface ControllerStub {
+    public static final int UNBUFFERED_ID = 0xffffffff;
+    public static final short CONTROLLER_PORT = -1; // TODO: check this.
 
     void setController(Controller controller);
 

@@ -1,14 +1,19 @@
 package com.midokura.midolman;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
@@ -27,20 +32,24 @@ public class L3DevicePort {
     private short portNum;
     private UUID portId;
     private byte[] mac;
+    private ControllerStub stub;
     private PortWatcher portWatcher;
     private RoutesWatcher routesWatcher;
     private MaterializedRouterPortConfig portCfg;
     private Set<Listener> listeners;
 
-    public L3DevicePort(PortDirectory portDir, UUID portId)
-            throws Exception {
+    public L3DevicePort(PortDirectory portDir, UUID portId, short portNum,
+            byte[] mac, ControllerStub stub) throws Exception {
         this.portDir = portDir;
         this.portId = portId;
+        this.portNum = portNum;
+        this.mac = mac;
+        this.stub = stub;
         this.portWatcher = new PortWatcher();
         this.routesWatcher = new RoutesWatcher();
+        listeners = new HashSet<Listener>();
         updatePortConfig();
         updateRoutes();
-        listeners = new HashSet<Listener>();
     }
 
     private class PortWatcher implements Runnable {
@@ -74,7 +83,8 @@ public class L3DevicePort {
         MaterializedRouterPortConfig oldCfg = portCfg;
         portCfg = MaterializedRouterPortConfig.class.cast(cfg);
         // Keep the old routes.
-        portCfg.routes = oldCfg.routes;
+        if (null != oldCfg)
+            portCfg.routes = oldCfg.routes;
         for (Listener listener : listeners)
             // TODO(pino): should we schedule this instead?
             listener.configChanged(portId, oldCfg, portCfg);
@@ -96,7 +106,7 @@ public class L3DevicePort {
 
     private void updateRoutes() throws KeeperException, InterruptedException {
         Set<Route> routes = portDir.getRoutes(portId, routesWatcher);
-        if(routes.equals(portCfg.routes))
+        if (routes.equals(portCfg.routes))
             return;
         Set<Route> oldRoutes = portCfg.routes;
         portCfg.routes = routes;
@@ -120,12 +130,11 @@ public class L3DevicePort {
         return mac;
     }
 
-    public void setMacAddr(byte[] mac) {
-        this.mac = mac;
-    }
-
-    public void send(byte[] ethernetPacket) {
-
+    public void send(byte[] pktData) {
+        List<OFAction> actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(portNum, (short) 0));
+        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID, 
+                ControllerStub.CONTROLLER_PORT, actions, pktData);
     }
 
     public MaterializedRouterPortConfig getVirtualConfig() {

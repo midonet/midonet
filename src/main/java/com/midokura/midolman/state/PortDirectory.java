@@ -19,24 +19,25 @@ import com.midokura.midolman.layer3.Route;
 public class PortDirectory {
 
     public static Random random = new Random();
+
     public static UUID generate32BitUUID() {
         // TODO: make this non-static and use ZK to generate sequence numbers.
         int r = random.nextInt();
-        return new UUID(0, (long)r);
+        return new UUID(0, (long) r);
     }
 
     public static int UUID32toInt(UUID id) {
         long lBits = id.getLeastSignificantBits();
-        if (0 != id.getMostSignificantBits() || 
-                lBits < Integer.MIN_VALUE || lBits > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException
-                ("uuid cannot be converted to int without losing information.");
+        if (0 != id.getMostSignificantBits() || lBits < Integer.MIN_VALUE
+                || lBits > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(
+                    "uuid cannot be converted to int without losing information.");
         }
         return (int) lBits;
     }
 
     public static UUID intTo32BitUUID(int id) {
-        return new UUID(0, (long)id);
+        return new UUID(0, (long) id);
     }
 
     public static abstract class PortConfig implements Serializable {
@@ -128,12 +129,10 @@ public class PortDirectory {
             if (!(other instanceof LogicalRouterPortConfig))
                 return false;
             LogicalRouterPortConfig port = (LogicalRouterPortConfig) other;
-            return device_id.equals(port.device_id)
-                    && nwAddr == port.nwAddr
+            return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength
                     && peer_uuid.equals(port.peer_uuid)
-                    && portAddr == port.portAddr
-                    && routes.equals(port.routes);
+                    && portAddr == port.portAddr && routes.equals(port.routes);
         }
     }
 
@@ -144,11 +143,9 @@ public class PortDirectory {
         public int localNwLength;
         public transient Set<BGP> bgps;
 
-        public MaterializedRouterPortConfig(UUID device_id,
-                int networkAddr, int networkLength,
-                int portAddr, Set<Route> routes,
-                int localNetworkAddr, int localNetworkLength,
-                Set<BGP> bgps) {
+        public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
+                int networkLength, int portAddr, Set<Route> routes,
+                int localNetworkAddr, int localNetworkLength, Set<BGP> bgps) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.localNwAddr = localNetworkAddr;
             this.localNwLength = localNetworkLength;
@@ -163,12 +160,10 @@ public class PortDirectory {
                 return true;
             if (!(other instanceof MaterializedRouterPortConfig))
                 return false;
-            MaterializedRouterPortConfig port = 
-                    MaterializedRouterPortConfig.class.cast(other);
-            return device_id.equals(port.device_id)
-                    && nwAddr == port.nwAddr
-                    && nwLength == port.nwLength
-                    && portAddr == port.portAddr
+            MaterializedRouterPortConfig port = MaterializedRouterPortConfig.class
+                    .cast(other);
+            return device_id.equals(port.device_id) && nwAddr == port.nwAddr
+                    && nwLength == port.nwLength && portAddr == port.portAddr
                     && routes.equals(port.routes) && bgps.equals(port.bgps)
                     && localNwAddr == port.localNwAddr
                     && localNwLength == port.localNwLength;
@@ -186,9 +181,12 @@ public class PortDirectory {
         private void writeObject(java.io.ObjectOutputStream stream)
                 throws IOException {
             stream.defaultWriteObject();
-            stream.writeInt(bgps.size());
-            for (BGP bgp : bgps)
-                stream.writeObject(bgp);
+            if (null != bgps) {
+                stream.writeInt(bgps.size());
+                for (BGP bgp : bgps)
+                    stream.writeObject(bgp);
+            } else
+                stream.writeInt(0);
         }
     }
 
@@ -201,8 +199,7 @@ public class PortDirectory {
     public void addPort(UUID portId, PortConfig port) throws IOException,
             KeeperException, InterruptedException {
         if (!(port instanceof BridgePortConfig
-                || port instanceof LogicalRouterPortConfig 
-                || port instanceof MaterializedRouterPortConfig))
+                || port instanceof LogicalRouterPortConfig || port instanceof MaterializedRouterPortConfig))
             throw new IllegalArgumentException("Unrecognized port type.");
         byte[] data = portToBytes(port);
         dir.add("/" + portId.toString(), data, CreateMode.PERSISTENT);
@@ -215,8 +212,9 @@ public class PortDirectory {
             }
         }
     }
-    
-    public boolean exists(UUID portId) throws KeeperException, InterruptedException {
+
+    public boolean exists(UUID portId) throws KeeperException,
+            InterruptedException {
         return dir.has("/" + portId.toString());
     }
 
@@ -248,8 +246,8 @@ public class PortDirectory {
 
     public Set<Route> getRoutes(UUID portId, Runnable routesWatcher)
             throws KeeperException, InterruptedException {
-        String path = new StringBuilder("/").append(portId.toString())
-                .append("/routes").toString();
+        String path = new StringBuilder("/").append(portId.toString()).append(
+                "/routes").toString();
         Set<String> rtStrings = dir.getChildren(path, routesWatcher);
         Set<Route> routes = new HashSet<Route>();
         for (String rtStr : rtStrings)
