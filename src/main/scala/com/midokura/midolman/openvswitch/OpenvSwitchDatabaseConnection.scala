@@ -148,8 +148,10 @@ object OpenvSwitchDatabaseConnectionImpl {
      * @param map The Map to convert.
      * @return An Open vSwitch DB map with the key-value pairs of the Map.
      */
-    def mapToOvsMap[T](map: Map[T, _])(implicit f: T => String): List[_] = {
-        List("map", (for ((k, v) <- map) yield List(k, v)).toList)
+    def mapToOvsMap[T](map: Map[T, _], uuid: Boolean = false)
+    (implicit f: T => String): List[_] = {
+        List("map", (for ((k, v) <- map)
+                     yield List(k, if (uuid) List("uuid", v) else v)).toList)
     }
 
     /**
@@ -782,36 +784,38 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * A QosBuilder that uses an synchronous OVSDB connection.
      */
     class QosBuilderImpl(var qosType: String) extends QosBuilder {
-        private var qosQueues: Map[Long, String] = Map()
-        private var qosOtherConfig: Map[String, Long] = Map()
-        private var qosExternalIds: Map[String, _] = Map()
+        private var qosQueues: Option[Map[Long, String]] = Some(Map())
+        private var qosOtherConfig: Option[Map[String, Long]] = Some(Map())
+        private var qosExternalIds: Option[Map[String, _]] = Some(Map())
         override def clear() = {
             qosType = ""
-            qosQueues =  Map()
-            qosOtherConfig = Map()
-            qosExternalIds = Map()
+            qosQueues =  Some(Map())
+            qosOtherConfig = Some(Map())
+            qosExternalIds = Some(Map())
             this
         }
         override def externalId(key: String, value: String) =
-            { qosExternalIds += (key -> value); this }
-        override def maxRate(maxRate: Int) =
-            { qosOtherConfig += ("max-rate" -> maxRate); this }
+            { qosExternalIds = Some(qosExternalIds.get + (key -> value)); this }
+        override def maxRate(maxRate: Int) = {
+            qosOtherConfig = Some(qosOtherConfig.get + ("max-rate" -> maxRate));
+            this
+        }
+        override def queues(queueUUIDs: 
+            java.util.Map[java.lang.Long, java.lang.String]): QosBuilder =
+                queues((for ((k, v) <- queueUUIDs)
+                        yield ((k: Long) -> (v: String))).toMap[Long, String])
         def queues(queueUUIDs: Map[Long, String]) =
-            { qosQueues ++= queueUUIDs; this }
-        override def queues(
-            queueUUIDs: java.util.Map[java.lang.Long, java.lang.String]): QosBuilder =
-                this.queues(
-                    (for ((k, v) <- queueUUIDs) yield ((k: Long) -> (v: String))).toMap)
+            { qosQueues = Some(qosQueues.get ++ queueUUIDs); this }
         override def build(): String = {
             val tx = new Transaction(database)
             val qosUUID: String = generateUUID
             var qosRow: Map[String, Any] = Map("type" -> qosType)
             if (!qosQueues.isEmpty)
-                qosRow += ("queue" -> mapToOvsMap(qosQueues))
+                qosRow += ("queues" -> mapToOvsMap(qosQueues.get, uuid = true))
             if (!qosOtherConfig.isEmpty)
-                qosRow += ("other_config" -> mapToOvsMap(qosOtherConfig))
+                qosRow += ("other_config" -> mapToOvsMap(qosOtherConfig.get))
             if (!qosExternalIds.isEmpty)
-                qosRow += ("external_ids" -> mapToOvsMap(qosExternalIds))
+                qosRow += ("external_ids" -> mapToOvsMap(qosExternalIds.get))
             tx.insert(TableQos, qosUUID, qosRow)
             tx.setInsert(TablePort, Some(qosUUID), "qos",
                          getNewRowOvsUUID(qosUUID))
@@ -837,13 +841,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 var updatedQosRow: Map[String, Any] =
                     objectNodeToMap(qosRow.asInstanceOf[ObjectNode])
                 if (!qosQueues.isEmpty)
-                    updatedQosRow += ("queue" -> mapToOvsMap(qosQueues))
+                    updatedQosRow += ("queues" ->
+                                      mapToOvsMap(qosQueues.get, uuid = true))
                 if (!qosOtherConfig.isEmpty)
                     updatedQosRow +=("other_config" ->
-                                      mapToOvsMap(qosOtherConfig))
+                                      mapToOvsMap(qosOtherConfig.get))
                 if (!qosExternalIds.isEmpty)
                     updatedQosRow += ("external_ids" ->
-                                      mapToOvsMap(qosExternalIds))
+                                      mapToOvsMap(qosExternalIds.get))
                 tx.update(TableQos, Some(qosUUID), updatedQosRow)
             }
             tx.increment(TableOpenvSwitch, None, List("next_cfg"))
