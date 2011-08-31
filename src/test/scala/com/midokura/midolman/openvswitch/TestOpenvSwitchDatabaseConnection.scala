@@ -316,4 +316,31 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         ovsdb.delQueue(uuid)
         assertFalse(ovsdb.hasQueue(uuid))
     }
+
+    /**
+     * Test cleaQosQueues
+     */
+    @Test def testClearQosQueeus() = {
+        val qosType = "linux-htb"
+        var qosBuilder = ovsdb.addQos(qosType)
+        val qosUUID = qosBuilder.build
+        qosBuilder.clear
+        assertTrue(ovsdb.hasQos(qosUUID))
+        val queueMinRate: Long = 100000000
+        var queueBuilder = ovsdb.addQueue()
+        queueBuilder.minRate(queueMinRate)
+        val queueUUID = queueBuilder.build
+        queueBuilder.clear
+        assertTrue(ovsdb.hasQueue(queueUUID))
+        qosBuilder = ovsdb.updateQos(
+            qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
+        qosBuilder.update(qosUUID)
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        ovsdb.clearQosQueues(qosUUID)
+        assertFalse(!ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        ovsdb.delQueue(queueUUID)
+        assertFalse(ovsdb.hasQueue(queueUUID))
+        ovsdb.delQos(qosUUID)
+        assertFalse(ovsdb.hasQos(qosUUID))
+    }
 }
