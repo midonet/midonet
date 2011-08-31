@@ -1683,9 +1683,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to reset optional parameters of the QoS and update it.
      */
     def updateQos(qosUUID: String, qosType: Option[String] = Some("linux-htb"),
-                  queueUUIDs: Option[Map[Long, String]] =  Some(Map()),
+                  queueUUIDs: Option[Map[Long, String]] =  None,
                   maxRate: Option[Int] = None,
-                  externalIds: Option[Map[String, String]] = Some(Map())
+                  externalIds: Option[Map[String, String]] = None
               ): QosBuilder = {
         val qb = new QosBuilderImpl(qosType.get)
         if (!queueUUIDs.isEmpty)
