@@ -134,6 +134,9 @@ public class Router {
         for (Route rt : port.getVirtualConfig().routes) {
             table.addRoute(rt);
         }
+        arpCaches.put(port.getId(), new HashMap<Integer, ArpCacheEntry>());
+        arpCallbackLists.put(port.getId(),
+                new HashMap<Integer, List<Callback<byte[]>>>());
     }
 
     // This should only be called for materialized ports, not logical ports.
@@ -144,12 +147,17 @@ public class Router {
         for (Route rt : port.getVirtualConfig().routes) {
             table.deleteRoute(rt);
         }
+        arpCaches.remove(port.getId());
+        arpCallbackLists.remove(port.getId());
     }
 
     public byte[] getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
+        if (null == arpCache)
+            throw new IllegalArgumentException("Cannot get mac for a port "
+                    + "that is not local to this controller");
         ArpCacheEntry entry = arpCache.get(nwAddr);
-        long now = System.currentTimeMillis();
+        long now = reactor.currentTimeMillis();
         if (null != entry && null != entry.macAddr) {
             if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now)
                 // Entry is stale and it's been at least ARP_RETRY_MILLIS since
@@ -160,6 +168,9 @@ public class Router {
         // Store the callback. ARP for nwAddr's MAC if no outstanding ARP yet.
         Map<Integer, List<Callback<byte[]>>> cbLists = arpCallbackLists
                 .get(portId);
+        if (null == cbLists)
+            throw new IllegalArgumentException("Cannot get mac for a port "
+                    + "that is not local to this controller");
         List<Callback<byte[]>> cbList = cbLists.get(nwAddr);
         if (null == cbList) {
             cbList = new ArrayList<Callback<byte[]>>();
@@ -260,8 +271,8 @@ public class Router {
         if (arpPkt.getProtocolType() != ARP.PROTO_TYPE_IP)
             return;
         if (arpPkt.getOpCode() == ARP.OP_REQUEST) {
-            // ARP requests should be broadcast or multicast. Ignore otherwise.
-            if (0 != (etherPkt.getDestinationMACAddress()[0] & 0x01)) {
+            // ARP requests should broadcast or multicast. Ignore otherwise.
+            if (!etherPkt.isMcast()) {
                 // TODO(pino): logging.debug("Non-multicast/broadcast ARP
                 // request to ...",
                 return;
@@ -350,26 +361,22 @@ public class Router {
         if (null == arpCache)
             return;
 
-        long now = System.currentTimeMillis();
-        ArpCacheEntry entry = new ArpCacheEntry(arpPkt
-                .getSenderHardwareAddress(), now + ARP_EXPIRATION_MILLIS, now
-                + ARP_STALE_MILLIS, 0);
+        long now = reactor.currentTimeMillis();
+        byte[] sha = arpPkt.getSenderHardwareAddress();
+        ArpCacheEntry entry = new ArpCacheEntry(sha, now
+                + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
         int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
         arpCache.put(spa, entry);
         reactor.schedule(new ArpExpiration(spa, inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
-        // logging.debug('router_fe: received an arp reply on port %s for ip %s;
-        // '
-        // 'mac is %s' % (in_port, socket.inet_ntoa(packet.spa),
-        // ieee_802.mac_to_str(packet.sha)))
-
-        // Complete any pending getMacForIp calls.
-        /*
-         * callback_list = self._pending_arp_callbacks.get( (packet.spa,
-         * in_port) ) if callback_list is not None: for callback in
-         * callback_list: callback(packet.sha) del
-         * self._pending_arp_callbacks[(packet.spa, in_port)]
-         */
+        Map<Integer, List<Callback<byte[]>>> cbLists = arpCallbackLists
+                .get(inPortId);
+        if (null == cbLists)
+            return;
+        List<Callback<byte[]>> cbList = cbLists.remove(spa);
+        if (null != cbList)
+            for (Callback<byte[]> cb : cbList)
+                cb.call(sha);
     }
 
     private class ArpExpiration implements Runnable {
@@ -392,9 +399,17 @@ public class Router {
             if (null == entry)
                 // The entry has already been removed.
                 return;
-            if (entry.expiry <= System.currentTimeMillis()) {
+            if (entry.expiry <= reactor.currentTimeMillis()) {
                 arpCache.remove(nwAddr);
-                // TODO(pino): complete callbacks waiting for this ARP.
+                Map<Integer, List<Callback<byte[]>>> cbLists = arpCallbackLists
+                        .get(portId);
+                if (null != cbLists) {
+                    List<Callback<byte[]>> cbList = cbLists.get(nwAddr);
+                    if (null != cbList) {
+                        for (Callback<byte[]> cb : cbList)
+                            cb.call(null);
+                    }
+                }
             }
             // Else the expiration was rescheduled by an ARP reply arriving
             // while the entry was stale. Do nothing.
@@ -442,6 +457,7 @@ public class Router {
         arp.setOpCode(ARP.OP_REQUEST);
         byte[] portMac = devPort.getMacAddr();
         arp.setSenderHardwareAddress(portMac);
+        arp.setTargetHardwareAddress(Ethernet.toMACAddress("00:00:00:00:00:00"));
         arp.setSenderProtocolAddress(IPv4
                 .toIPv4AddressBytes(portConfig.portAddr));
         arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwAddr));
@@ -456,7 +472,7 @@ public class Router {
         devPort.send(pkt.serialize());
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
         ArpCacheEntry entry = arpCache.get(nwAddr);
-        long now = System.currentTimeMillis();
+        long now = reactor.currentTimeMillis();
         if (null == entry)
             arpCache.put(nwAddr, new ArpCacheEntry(null, now
                     + ARP_TIMEOUT_MILLIS, now + ARP_STALE_MILLIS, now));

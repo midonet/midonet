@@ -14,10 +14,10 @@ import com.midokura.midolman.openflow.TimeoutHandler;
 
 public class MockControllerStub implements ControllerStub {
     public class Packet {
-        int bufferId;
-        short inPort;
-        List<OFAction> actions;
-        byte[] data;
+        public int bufferId;
+        public short inPort;
+        public List<OFAction> actions;
+        public byte[] data;
 
         public Packet(int bufferId, short inPort, List<OFAction> actions,
                 byte[] data) {
@@ -30,16 +30,16 @@ public class MockControllerStub implements ControllerStub {
     }
 
     public class Flow {
-        OFMatch match;
-        long cookie;
-        short idleTimeoutSecs;
-        short priority;
-        int bufferId;
-        boolean sendFlowRemove;
-        boolean checkOverlap;
-        boolean emergency;
-        List<OFAction> actions;
-        short outPort;
+        public OFMatch match;
+        public long cookie;
+        public short idleTimeoutSecs;
+        public short priority;
+        public int bufferId;
+        public boolean sendFlowRemove;
+        public boolean checkOverlap;
+        public boolean emergency;
+        public List<OFAction> actions;
+        public short outPort;
 
         public Flow(OFMatch match, long cookie, short idleTimeoutSecs,
                 short priority, int bufferId, boolean sendFlowRemove,

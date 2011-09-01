@@ -238,7 +238,11 @@ public class Ethernet extends BasePacket {
     }
 
     public boolean isMcast() {
-        return 0 != (getDestinationMACAddress()[0] & 0x01);
+        return isMcast(getDestinationMACAddress());
+    }
+
+    public static boolean isMcast(byte[] mac) {
+        return 0 != (mac[0] & 0x01);
     }
 
     /* (non-Javadoc)
