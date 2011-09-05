@@ -2,7 +2,6 @@ package com.midokura.midolman.layer3;
 
 import org.junit.Assert;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +21,6 @@ import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
@@ -198,7 +196,7 @@ public class TestRouter {
         return fInfo;
     }
 
-    public void checkForwardInfo(ForwardInfo fInfo, Action action,
+    public static void checkForwardInfo(ForwardInfo fInfo, Action action,
             UUID outPortId, int nextHopNwAddr) {
         Assert.assertTrue(fInfo.action.equals(action));
         if (null == outPortId)
@@ -300,7 +298,7 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
     }
 
-    private class ArpCompletedCallback implements Callback<byte[]> {
+    static class ArpCompletedCallback implements Callback<byte[]> {
         List<byte[]> macsReturned = new ArrayList<byte[]>();
 
         @Override
@@ -347,6 +345,25 @@ public class TestRouter {
         pkt.setDestinationMACAddress(tha);
         pkt.setEtherType(ARP.ETHERTYPE);
         return pkt;
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testArpRequestNonLocalPort() {
+        // Try to get the MAC for a nwAddr on port 11 (i.e. in 10.0.1.4/30).
+        // Port 11 is not local to this controller (it was never added to the
+        // router as a L3DevicePort). So the router can't ARP to it.
+        ArpCompletedCallback cb = new ArpCompletedCallback();
+        UUID port1Id = PortDirectory.intTo32BitUUID(11);
+        rtr.getMacForIp(port1Id, 0x0a000105, cb);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testArpRequestNonLocalAddress() {
+        // Try to get the MAC via port 12 for an address that isn't in that
+        // port's local network segment (i.e. not in 10.0.1.8/30).
+        ArpCompletedCallback cb = new ArpCompletedCallback();
+        UUID port1Id = PortDirectory.intTo32BitUUID(12);
+        rtr.getMacForIp(port1Id, 0x0a000105, cb);
     }
 
     @Test
@@ -405,7 +422,7 @@ public class TestRouter {
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         Assert.assertTrue(Arrays.equals(expectedArp2.serialize(), pkt.data));
 
-        // Verify that the first ARP expires at 60 s, and triggers the callback
+        // Verify that the first ARP times out at 60s and triggers the callback
         // twice (because we called getMacForIp twice for the first address).
         reactor.incrementTime(47, TimeUnit.SECONDS);
         Assert.assertEquals(0, cb.macsReturned.size());
@@ -413,7 +430,7 @@ public class TestRouter {
         Assert.assertEquals(2, cb.macsReturned.size());
         Assert.assertNull(cb.macsReturned.get(0));
         Assert.assertNull(cb.macsReturned.get(1));
-        // At 62 seconds, the second ARP expires and invokes the callback.
+        // At 62 seconds, the second ARP times out and invokes the callback.
         reactor.incrementTime(2, TimeUnit.SECONDS);
         Assert.assertEquals(3, cb.macsReturned.size());
         Assert.assertNull(cb.macsReturned.get(2));
@@ -426,6 +443,7 @@ public class TestRouter {
         UUID port2Id = PortDirectory.intTo32BitUUID(2);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
         // Now create the ARP response form 10.0.0.10. Make up its mac address,
         // but use port 2's L2 and L3 addresses for the destination.
         L3DevicePort devPort2 = rtr.devicePorts.get(port2Id);
@@ -437,7 +455,52 @@ public class TestRouter {
         // Verify that the callback was triggered with the correct mac.
         Assert.assertEquals(1, cb.macsReturned.size());
         Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(0)));
-
+        // The ARP should be stale after 1800 seconds. So any request after
+        // that long should trigger another ARP request to refresh the entry.
+        // However, the stale Mac can still be returned immediately.
+        reactor.incrementTime(1800, TimeUnit.SECONDS);
+        // At this point a call to getMacForIP won't trigger an ARP request.
+        rtr.getMacForIp(port2Id, 0x0a00000a, cb);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(2, cb.macsReturned.size());
+        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(1)));
+        reactor.incrementTime(1, TimeUnit.SECONDS);
+        // At this point a call to getMacForIP should trigger an ARP request.
+        rtr.getMacForIp(port2Id, 0x0a00000a, cb);
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        Assert.assertEquals(3, cb.macsReturned.size());
+        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(2)));
+        // Let's send an ARP response that refreshes the ARP cache entry.
+        fInfo = routePacket(port2Id, arpReplyPkt);
+        checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
+        // Now, if we wait 3599 seconds the cached response is stale but can
+        // still be returned. Again, getMacForIp will trigger an ARP request.
+        reactor.incrementTime(3599, TimeUnit.SECONDS);
+        rtr.getMacForIp(port2Id, 0x0a00000a, cb);
+        Assert.assertEquals(3, controllerStub.sentPackets.size());
+        Assert.assertEquals(4, cb.macsReturned.size());
+        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(3)));
+        // Now we increment the time by 1 second and the cached response
+        // is expired (completely removed). Therefore getMacForIp will trigger
+        // another ARP request and the callback has to wait for the response.
+        reactor.incrementTime(1, TimeUnit.SECONDS);
+        rtr.getMacForIp(port2Id, 0x0a00000a, cb);
+        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        // No new callbacks because it waits for the ARP response.
+        Assert.assertEquals(4, cb.macsReturned.size());
+        // Say someone asks for the same mac again.
+        reactor.incrementTime(1, TimeUnit.SECONDS);
+        rtr.getMacForIp(port2Id, 0x0a00000a, cb);
+        // No new ARP request since only one second passed since the last one.
+        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        // Again no new callbacks because it must wait for the ARP response.
+        Assert.assertEquals(4, cb.macsReturned.size());
+        // Now send the ARP reply and the callback should be triggered twice.
+        fInfo = routePacket(port2Id, arpReplyPkt);
+        checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
+        Assert.assertEquals(6, cb.macsReturned.size());
+        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(4)));
+        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(5)));
     }
 
     @Test
@@ -496,5 +559,11 @@ public class TestRouter {
         } else {
             Assert.assertEquals(0, controllerStub.sentPackets.size());
         }
+    }
+
+    @Ignore
+    @Test
+    public void testPortConfigChanges() {
+        
     }
 }

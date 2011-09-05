@@ -16,11 +16,10 @@ import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
+import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.rules.RuleEngine;
-import com.midokura.midolman.state.NetworkDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
@@ -34,7 +33,6 @@ public class Network {
     private static final int MAX_HOPS = 10;
 
     protected UUID netId;
-    private NetworkDirectory netDir;
     private RouterDirectory routerDir;
     private PortDirectory portDir;
     private Reactor reactor;
@@ -50,7 +48,6 @@ public class Network {
     public Network(UUID netId, RouterDirectory routerDir,
             PortDirectory portDir, Reactor reactor) {
         this.netId = netId;
-        this.netDir = netDir;
         this.routerDir = routerDir;
         this.portDir = portDir;
         this.reactor = reactor;
@@ -132,12 +129,13 @@ public class Network {
             watcher.call(routerId);
     }
 
-    private Router getRouter(UUID routerId) throws KeeperException,
+    protected Router getRouter(UUID routerId) throws KeeperException,
             InterruptedException, IOException, ClassNotFoundException {
         Router rtr = routers.get(routerId);
         if (null != rtr)
             return rtr;
-        NatMapping natMap = null; // TODO(pino): finish this.
+        // TODO(pino): replace the following with a real implementation.
+        NatMapping natMap = new NatLeaseManager();
         RuleEngine ruleEngine = new RuleEngine(routerDir, routerId, natMap);
         ruleEngine.addWatcher(routerWatcher);
         ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
@@ -178,11 +176,11 @@ public class Network {
         // routersByPortId map.
     }
 
-    public byte[] getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
+    public void getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
         Router rtr;
         try {
-            rtr = getRouter(portId);
-            return rtr.getMacForIp(portId, nwAddr, cb);
+            rtr = getRouterByPort(portId);
+            rtr.getMacForIp(portId, nwAddr, cb);
         } catch (KeeperException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -196,7 +194,6 @@ public class Network {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return null;
     }
 
     public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
@@ -235,12 +232,12 @@ public class Network {
                     fwdInfo.inPortId = lcfg.peer_uuid;
                     continue;
                 }
-                // If we got here, return fwd_action to the caller. One of
-                // these holds:
-                // 1) the action is OUTPUT and the port type is not logical OR
-                // 2) the action is not OUTPUT
-                return;
             }
+            // If we got here, return fwd_action to the caller. One of
+            // these holds:
+            // 1) the action is OUTPUT and the port type is not logical OR
+            // 2) the action is not OUTPUT
+            return;
         }
         // If we got here, we traversed MAX_HOPS routers without reaching a
         // materialized port.
