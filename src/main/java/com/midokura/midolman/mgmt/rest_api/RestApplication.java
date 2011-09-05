@@ -1,0 +1,59 @@
+/*
+ * @(#)RestApplication        1.6 11/09/05
+ *
+ * Copyright 2011 Midokura KK
+ */
+package com.midokura.midolman.mgmt.rest_api;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.ws.rs.core.Application;
+
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
+
+import com.midokura.midolman.mgmt.rest_api.resources.v1.RouterResource;
+
+
+/**
+ * Jax-RS application class.
+ *
+ * @version        1.6 05 Sept 2011
+ * @author         Ryu Ishimoto
+ */
+public class RestApplication extends Application {
+    /*
+     * Override methods to initialize application.
+     */
+	
+	/**
+	 * Default constructor
+	 */
+	public RestApplication () {
+	}
+	
+    /**
+     * Get a set of root resource and provider classes.
+	 *
+	 * @return  A list of Class objects.
+     */
+	@Override
+	public Set<Class<?>> getClasses() {
+		HashSet<Class<?>> set = new HashSet<Class<?>>();
+		set.add(RouterResource.class);
+		return set;
+	}
+	
+    /**
+     * Get a set of root resource and provider instances.
+	 *
+	 * @return  A list of singleton instances.
+     */
+	@Override
+	public Set<Object> getSingletons() {
+		HashSet<Object> singletons = new HashSet<Object>();
+		singletons.add(new JacksonJaxbJsonProvider());
+		return singletons;
+	}
+
+}
