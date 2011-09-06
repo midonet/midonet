@@ -17,8 +17,8 @@ public class TestReplicatedSet {
 
     private class MyReplicatedStringSet extends ReplicatedSet<String> {
 
-        public MyReplicatedStringSet(Directory d) {
-            super(d);
+        public MyReplicatedStringSet(Directory d, CreateMode createMode) {
+            super(d, createMode);
         }
 
         @Override
@@ -35,8 +35,8 @@ public class TestReplicatedSet {
 
     private class ReplicatedRouteSet extends ReplicatedSet<Route> {
 
-        public ReplicatedRouteSet(Directory d) {
-            super(d);
+        public ReplicatedRouteSet(Directory d, CreateMode cMode) {
+            super(d, cMode);
         }
 
         @Override
@@ -66,13 +66,13 @@ public class TestReplicatedSet {
         dir.add("/top/strings", null, CreateMode.PERSISTENT);
         dir.add("/top/routes", null, CreateMode.PERSISTENT);
         stringDir = dir.getSubDirectory("/top/strings");
-        stringSet = new MyReplicatedStringSet(stringDir);
+        stringSet = new MyReplicatedStringSet(stringDir, CreateMode.EPHEMERAL);
         testStrings = new HashSet<String>();
         testStrings.add("foo");
         testStrings.add("bar");
         testStrings.add("pie");
         routeDir = dir.getSubDirectory("/top/routes");
-        routeSet = new ReplicatedRouteSet(routeDir);
+        routeSet = new ReplicatedRouteSet(routeDir, CreateMode.EPHEMERAL);
         testRoutes = new HashSet<Route>();
         testRoutes.add(new Route(0, 0, 0, 0, null, null, 0, 0, null));
         testRoutes.add(new Route(0x01, 0, 0, 0, null, null, 0, 0, null));

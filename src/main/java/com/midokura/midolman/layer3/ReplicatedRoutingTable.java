@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.state.Directory;
@@ -16,8 +17,8 @@ public class ReplicatedRoutingTable {
 
     private class ReplicatedRouteSet extends ReplicatedSet<Route> {
 
-        public ReplicatedRouteSet(Directory d) {
-            super(d);
+        public ReplicatedRouteSet(Directory d, CreateMode mode) {
+            super(d, mode);
         }
 
         protected String encode(Route rt) {
@@ -49,11 +50,12 @@ public class ReplicatedRoutingTable {
     private ReplicatedRouteSet routeSet;
     private Set<Callback<UUID>> watchers;
 
-    public ReplicatedRoutingTable(UUID routerId, Directory routeDir) {
+    public ReplicatedRoutingTable(UUID routerId, Directory routeDir,
+            CreateMode createMode) {
         this.routerId = routerId;
         table = new RoutingTable();
         watchers = new HashSet<Callback<UUID>>();
-        routeSet = new ReplicatedRouteSet(routeDir);
+        routeSet = new ReplicatedRouteSet(routeDir, createMode);
         routeSet.addWatcher(new MyWatcher());
         // TODO(pino): perhaps move this into a start method?
         routeSet.start();

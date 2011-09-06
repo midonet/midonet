@@ -1,7 +1,5 @@
 package com.midokura.midolman.layer3;
 
-import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -37,6 +34,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
@@ -196,48 +194,35 @@ public class NetworkController extends AbstractController {
     private static final Logger log = LoggerFactory
             .getLogger(NetworkController.class);
 
-    public NetworkController(int datapathId, UUID switchUuid, int greKey,
-            PortLocationMap dict, long flowExpireMinMillis,
-            long flowExpireMaxMillis, long idleFlowExpireMillis,
-            InetAddress internalIp, PortDirectory portDir, Network network,
-            Map<UUID, L3DevicePort> devPortById,
-            Map<Short, L3DevicePort> devPortByNum, Reactor reactor) {
-        super(datapathId, switchUuid, greKey, dict, flowExpireMinMillis,
-                flowExpireMaxMillis, idleFlowExpireMillis, internalIp);
-        this.portDir = portDir;
-        this.network = network;
-        this.devPortById = devPortById;
-        this.devPortByNum = devPortByNum;
-        this.reactor = reactor;
-    }
-
     // TODO(pino): This constant should be declared in openflow...
     private static final short OFP_FLOW_PERMANENT = 0;
     private static final short TUNNEL_EXPIRY_SECONDS = 5;
     private static final short ICMP_EXPIRY_SECONDS = 5;
-    private static final short IDLE_TIMEOUT_SECS = 0;
+    public static final short IDLE_TIMEOUT_SECS = 0;
     private static final short FLOW_PRIORITY = 0;
     private static final int ICMP_TUNNEL = 0x05;
     private static final int UNBUFFERED_PACKET = 0xffffffff;
 
     private PortDirectory portDir;
-    private Network network;
+    Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
     private Reactor reactor;
+    private OpenvSwitchDatabaseConnection ovsdb;
 
     public NetworkController(int datapathId, UUID deviceId, int greKey,
-            PortLocationMap dict, long flowExpireMinMillis,
-            long flowExpireMaxMillis, long idleFlowExpireMillis,
-            InetAddress internalIp, RouterDirectory routerDir,
-            PortDirectory portDir, Reactor reactor) {
-        super(datapathId, deviceId, greKey, dict, flowExpireMinMillis,
-                flowExpireMaxMillis, idleFlowExpireMillis, internalIp);
+            PortLocationMap dict, long idleFlowExpireMillis, int localNwAddr,
+            RouterDirectory routerDir, PortDirectory portDir,
+            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor) {
+        super(datapathId, deviceId, greKey, dict, 0, 0, idleFlowExpireMillis,
+                null);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor);
         this.reactor = reactor;
         this.devPortById = new HashMap<UUID, L3DevicePort>();
+        this.devPortByNum = new HashMap<Short, L3DevicePort>();
+        this.ovsdb = ovsdb;
     }
 
     @Override
@@ -305,7 +290,7 @@ public class NetworkController extends AbstractController {
         } catch (Exception e) {
             return;
         }
-        boolean useWildcards = true; // TODO(pino): replace with real config.
+        boolean useWildcards = false; // TODO(pino): replace with real config.
 
         MidoMatch flowMatch;
         switch (fwdInfo.action) {
@@ -467,7 +452,7 @@ public class NetworkController extends AbstractController {
 
     private MidoMatch makeWildcardedFromTunnel(MidoMatch m1) {
         // TODO Auto-generated method stub
-        return null;
+        return m1;
     }
 
     public static void setDlHeadersForTunnel(byte[] dlSrc, byte[] dlDst,
@@ -818,13 +803,15 @@ public class NetworkController extends AbstractController {
 
     private void installBlackhole(MidoMatch flowMatch, int bufferId,
             int hardTimeout) {
-        // TODO Auto-generated method stub
-
+        // TODO(pino): can we just send a null list instead of an empty list?
+        List<OFAction> actions = new ArrayList<OFAction>();
+        controllerStub.sendFlowModAdd(flowMatch, (long)0, IDLE_TIMEOUT_SECS,
+                (short)0, bufferId, true, false, false, actions, (short)0);
     }
 
     private MidoMatch makeWildcarded(MidoMatch origMatch) {
         // TODO Auto-generated method stub
-        return null;
+        return origMatch;
     }
 
     @Override
@@ -838,35 +825,47 @@ public class NetworkController extends AbstractController {
 
     @Override
     public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
-        // TODO Auto-generated method stub
         // Get the Midolman UUID from OVSDB.
-        UUID portId = null;
-        // Now get the port configuration from ZooKeeper.
+        String extId = ovsdb.getPortExternalId(datapathId,
+                port.getPortNumber(), "midonet");
+        if (null == extId) {
+            // TODO(pino): It might be a tunnel.
+            return;
+        }
         L3DevicePort devPort = null;
-        try {
-            devPort = new L3DevicePort(portDir, portId, port.getPortNumber(),
-                    port.getHardwareAddress(), super.controllerStub);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        if (status.equals(OFPortReason.OFPPR_DELETE)) {
+            // TODO(pino): handle the case of a tunnel port.
+            devPort = devPortByNum.remove(port.getPortNumber());
+            if (null != devPort) {
+                devPortById.remove(devPort.getId());
+                try {
+                    network.removePort(devPort);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        try {
-            network.addPort(devPort);
-        } catch (KeeperException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        else if (status.equals(OFPortReason.OFPPR_ADD)) {
+            UUID portId = UUID.fromString(extId);
+            // Now get the port configuration from ZooKeeper.
+            try {
+                devPort = new L3DevicePort(portDir, portId, port.getPortNumber(),
+                        port.getHardwareAddress(), super.controllerStub);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                network.addPort(devPort);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            devPortById.put(portId, devPort);
+            devPortByNum.put(port.getPortNumber(), devPort);
         }
-        devPortById.put(portId, devPort);
-        devPortByNum.put(port.getPortNumber(), devPort);
+        // TODO(pino): else if (status.equals(OFPortReason.OFPPR_MODIFY)) { ...
     }
 
     @Override

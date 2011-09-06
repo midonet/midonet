@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +140,8 @@ public class Network {
         RuleEngine ruleEngine = new RuleEngine(routerDir, routerId, natMap);
         ruleEngine.addWatcher(routerWatcher);
         ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
-                routerDir.getRoutingTableDirectory(routerId));
+                routerDir.getRoutingTableDirectory(routerId), 
+                CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
         rtr = new Router(routerId, ruleEngine, table, portDir, reactor);
         routers.put(routerId, rtr);

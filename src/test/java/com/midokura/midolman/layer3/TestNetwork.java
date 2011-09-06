@@ -39,15 +39,14 @@ public class TestNetwork {
 
     private Network network;
     private List<L3DevicePort> devPorts;
-    private List<UUID> routers;
-    private PortDirectory portDir;
+    private List<UUID> routerIds;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
 
     @Before
     public void setUp() throws Exception {
         devPorts = new ArrayList<L3DevicePort>();
-        routers = new ArrayList<UUID>();
+        routerIds = new ArrayList<UUID>();
         reactor = new MockReactor();
         controllerStub = new MockControllerStub();
 
@@ -55,7 +54,7 @@ public class TestNetwork {
         dir.add("/midonet", null, CreateMode.PERSISTENT);
         dir.add("/midonet/ports", null, CreateMode.PERSISTENT);
         Directory portsSubdir = dir.getSubDirectory("/midonet/ports");
-        portDir = new PortDirectory(portsSubdir);
+        PortDirectory portDir = new PortDirectory(portsSubdir);
         dir.add("/midonet/routers", null, CreateMode.PERSISTENT);
         Directory routersSubdir = dir.getSubDirectory("/midonet/routers");
         RouterDirectory routerDir = new RouterDirectory(routersSubdir);
@@ -74,7 +73,7 @@ public class TestNetwork {
         MaterializedRouterPortConfig portConfig;
         for (int i = 0; i < 3; i++) {
             UUID rtrId = new UUID(1234, i);
-            routers.add(rtrId);
+            routerIds.add(rtrId);
             routerDir.addRouter(rtrId);
             // This router handles all traffic to 10.<i>.0.0/16
             int routerNw = 0x0a000000 + (i << 16);
@@ -119,17 +118,17 @@ public class TestNetwork {
         routes.clear();
         routes.add(rt);
         LogicalRouterPortConfig logPortConfig = new LogicalRouterPortConfig(
-                routers.get(0), 0xc0a80100, 30, 0xc0a80101, routes, portOn1to0);
+                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, routes, portOn1to0);
         portDir.addPort(portOn0to1, logPortConfig);
-        network.getRouter(routers.get(0)).table.addRoute(rt);
+        network.getRouter(routerIds.get(0)).table.addRoute(rt);
         // Now from 1 to 0. Note that this is router1's uplink.
         rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null);
         routes.clear();
         routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routers.get(1), 0xc0a80100,
+        logPortConfig = new LogicalRouterPortConfig(routerIds.get(1), 0xc0a80100,
                 30, 0xc0a80102, routes, portOn0to1);
         portDir.addPort(portOn1to0, logPortConfig);
-        network.getRouter(routers.get(1)).table.addRoute(rt);
+        network.getRouter(routerIds.get(1)).table.addRoute(rt);
         // Now add the logical links between router 0 and 2.
         UUID portOn0to2 = PortDirectory.intTo32BitUUID(333);
         UUID portOn2to0 = PortDirectory.intTo32BitUUID(334);
@@ -138,27 +137,27 @@ public class TestNetwork {
                 null);
         routes.clear();
         routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routers.get(0), 0xc0a80100,
+        logPortConfig = new LogicalRouterPortConfig(routerIds.get(0), 0xc0a80100,
                 30, 0xc0a80101, routes, portOn2to0);
         portDir.addPort(portOn0to2, logPortConfig);
-        network.getRouter(routers.get(0)).table.addRoute(rt);
+        network.getRouter(routerIds.get(0)).table.addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
         rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null);
         routes.clear();
         routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routers.get(2), 0xc0a80100,
+        logPortConfig = new LogicalRouterPortConfig(routerIds.get(2), 0xc0a80100,
                 30, 0xc0a80102, routes, portOn0to2);
         portDir.addPort(portOn2to0, logPortConfig);
-        network.getRouter(routers.get(2)).table.addRoute(rt);
+        network.getRouter(routerIds.get(2)).table.addRoute(rt);
 
         // Finally, instead of giving router0 an uplink. Add a route that
         // drops anything that isn't going to router0's local or logical ports.
         rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2, null);
-        routerDir.addRoute(routers.get(0), rt);
-        network.getRouter(routers.get(0)).table.addRoute(rt);
+        routerDir.addRoute(routerIds.get(0), rt);
+        network.getRouter(routerIds.get(0)).table.addRoute(rt);
     }
 
-    public ForwardInfo prepareFwdInfo(UUID inPortId, Ethernet ethPkt) {
+    public static ForwardInfo prepareFwdInfo(UUID inPortId, Ethernet ethPkt) {
         byte[] pktData = ethPkt.serialize();
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(pktData, (short) 0);
@@ -183,7 +182,7 @@ public class TestNetwork {
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         network.process(fInfo, traversedRtrs);
         Assert.assertEquals(1, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routers.get(0)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
     }
 
@@ -201,7 +200,7 @@ public class TestNetwork {
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         network.process(fInfo, traversedRtrs);
         Assert.assertEquals(1, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routers.get(0)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.REJECT, null, 0);
     }
 
@@ -220,7 +219,7 @@ public class TestNetwork {
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         network.process(fInfo, traversedRtrs);
         Assert.assertEquals(1, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routers.get(0)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
                 0x0a000105);
     }
@@ -239,8 +238,8 @@ public class TestNetwork {
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         network.process(fInfo, traversedRtrs);
         Assert.assertEquals(2, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routers.get(0)));
-        Assert.assertTrue(traversedRtrs.contains(routers.get(1)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
                 0x0a0000aa);
     }
@@ -259,9 +258,9 @@ public class TestNetwork {
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         network.process(fInfo, traversedRtrs);
         Assert.assertEquals(3, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routers.get(0)));
-        Assert.assertTrue(traversedRtrs.contains(routers.get(1)));
-        Assert.assertTrue(traversedRtrs.contains(routers.get(2)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
+        Assert.assertTrue(traversedRtrs.contains(routerIds.get(2)));
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
                 0x0a020188);
     }
