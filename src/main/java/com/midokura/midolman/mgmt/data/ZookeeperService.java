@@ -18,10 +18,10 @@ public class ZookeeperService {
      * Singleton implementation for Zookeeper connection.
      */
 	
-	private static ZkConnection conn = null;
+    private static ZkConnection conn = null;
 	
-	private ZookeeperService() {
-	}
+    private ZookeeperService() {
+    }
 
     /**
      * Get the Zookeeper connection.
@@ -30,12 +30,12 @@ public class ZookeeperService {
      * @return  ZkConnection object.
      * @throws  Exception  Any exception thrown from connecting to Zookeeper.
      */
-	public static synchronized ZkConnection getConnection(String connStr)
-	        throws Exception {    
-	    if (null == conn) {
-	        conn = new ZkConnection(connStr, null);
-	        conn.open();
-	    }
-	    return conn;
-	}
+    public static synchronized ZkConnection getConnection(String connStr)
+            throws Exception {    
+        if (null == conn) {
+            conn = new ZkConnection(connStr, null);
+            conn.open();
+        }
+        return conn;
+    }
 }

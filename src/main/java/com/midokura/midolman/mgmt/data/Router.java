@@ -18,22 +18,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Router {
 
-	private UUID id = null;
-	private String name = null;
+    private UUID id = null;
+    private String name = null;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String router_name) {
+        name = router_name;
+    }
 	
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String router_name) {
-		name = router_name;
-	}
-	
-	public UUID getId() {
-		return id;
-	}
-	
-	public void setId(UUID router_id) {
-		id = router_id;
-	}
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID router_id) {
+        id = router_id;
+    }
 }

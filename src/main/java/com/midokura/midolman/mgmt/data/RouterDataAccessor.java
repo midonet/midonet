@@ -20,33 +20,32 @@ public class RouterDataAccessor {
      * Implements CRUD operations on Router.
      */
 
-	private String zkConn = null;
-		
-	/**
-	 * Default constructor
-	 * 
-	 * @param  zkConn  Zookeeper connection string.
-	 */
-	public RouterDataAccessor(String zkConn) {
-		this.zkConn = zkConn;
-	}
+    private String zkConn = null;
 	
-	private RouterDirectory getRouterDirectory() throws Exception {
-	        ZkConnection zk = ZookeeperService.getConnection(zkConn);
-	    Directory dir = zk.getRootDirectory().getSubDirectory(
-	            "/midolman/routers");
-	    return new RouterDirectory(dir);
-    }	
+    /**
+     * Default constructor
+     * 
+     * @param  zkConn  Zookeeper connection string.
+     */ 
+    public RouterDataAccessor(String zkConn) {
+        this.zkConn = zkConn;
+    }
 
-	/**
-	 * Add Router object to Zookeeper directories.
-	 * 
-	 * @param   router  Router object to add.
-	 * @throws  Exception  Error adding data to Zookeeper.
-	 */
-	public void create(Router router) throws Exception {
-		RouterDirectory routerDir = getRouterDirectory();
-		routerDir.addRouter(router.getId());
-	}
+    private RouterDirectory getRouterDirectory() throws Exception {
+        ZkConnection zk = ZookeeperService.getConnection(zkConn);
+        Directory dir = zk.getRootDirectory().getSubDirectory(
+                "/midolman/routers");
+        return new RouterDirectory(dir);
+    }
 
+    /**
+     * Add Router object to Zookeeper directories.
+     * 
+     * @param   router  Router object to add.
+     * @throws  Exception  Error adding data to Zookeeper.
+     */
+    public void create(Router router) throws Exception {
+        RouterDirectory routerDir = getRouterDirectory();
+        routerDir.addRouter(router.getId());
+    }
 }
