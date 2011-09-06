@@ -39,9 +39,9 @@ public class RestApplication extends Application {
      */
 	@Override
 	public Set<Class<?>> getClasses() {
-		HashSet<Class<?>> set = new HashSet<Class<?>>();
-		set.add(RouterResource.class);
-		return set;
+	    HashSet<Class<?>> set = new HashSet<Class<?>>();
+	    set.add(RouterResource.class);
+	    return set;
 	}
 	
     /**
@@ -51,9 +51,9 @@ public class RestApplication extends Application {
      */
 	@Override
 	public Set<Object> getSingletons() {
-		HashSet<Object> singletons = new HashSet<Object>();
-		singletons.add(new JacksonJaxbJsonProvider());
-		return singletons;
+	    HashSet<Object> singletons = new HashSet<Object>();
+	    singletons.add(new JacksonJaxbJsonProvider());
+	    return singletons;
 	}
 
 }

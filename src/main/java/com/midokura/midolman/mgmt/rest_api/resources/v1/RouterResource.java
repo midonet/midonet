@@ -60,16 +60,16 @@ public class RouterResource extends RestResource {
     	RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
 
     	try {
-        	dao.create(router);
+    	    dao.create(router);
     	} catch (Exception ex) {
-    		// TODO: LOG
-    		System.err.println("Exception = " + ex.getMessage());
-    		throw new WebApplicationException(
-    				Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-    				.type(MediaType.APPLICATION_JSON).build());
+    	    // TODO: LOG
+    	    System.err.println("Exception = " + ex.getMessage());
+    	    throw new WebApplicationException(
+    	            Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+    	            .type(MediaType.APPLICATION_JSON).build());
     	}
     	
     	return Response.created(URI.create("/v1/routers/"
-    			+ router.getId())).build();
+    	        + router.getId())).build();
     }
 }

@@ -31,11 +31,11 @@ public class ZookeeperService {
      * @throws  Exception  Any exception thrown from connecting to Zookeeper.
      */
 	public static synchronized ZkConnection getConnection(String connStr)
-			throws Exception {
-		if (null == conn) {
-			conn = new ZkConnection(connStr, null);
-			conn.open();
-		}
-		return conn;
+	        throws Exception {    
+	    if (null == conn) {
+	        conn = new ZkConnection(connStr, null);
+	        conn.open();
+	    }
+	    return conn;
 	}
 }

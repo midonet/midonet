@@ -32,10 +32,10 @@ public class RouterDataAccessor {
 	}
 	
 	private RouterDirectory getRouterDirectory() throws Exception {
-    	ZkConnection zk = ZookeeperService.getConnection(zkConn);
-    	Directory dir = zk.getRootDirectory().getSubDirectory(
-    			"/midolman/routers");
-    	return new RouterDirectory(dir);
+	        ZkConnection zk = ZookeeperService.getConnection(zkConn);
+	    Directory dir = zk.getRootDirectory().getSubDirectory(
+	            "/midolman/routers");
+	    return new RouterDirectory(dir);
     }	
 
 	/**

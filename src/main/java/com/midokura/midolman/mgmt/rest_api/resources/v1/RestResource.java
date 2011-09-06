@@ -19,17 +19,16 @@ public abstract class RestResource {
      * Provide resources that can be shared for all the subclassed resources.
      */
 	
-	/** Zookeeper connection string **/
-	protected String zookeeperConn = null;
+    /** Zookeeper connection string **/
+    protected String zookeeperConn = null;
 	
-	/**
-	 * Set zookeeper connection from config at the application initialization.
-	 * 
-	 * @param  context  ServletContext object to which it gets data from.
-	 */
-	@Context
-	public void setZookeeperConn(ServletContext context) {
-		zookeeperConn = context.getInitParameter("zookeeper-connection");
-	}
-
+    /**
+     * Set zookeeper connection from config at the application initialization.
+     * 
+     * @param  context  ServletContext object to which it gets data from.
+     */
+    @Context
+    public void setZookeeperConn(ServletContext context) {
+        zookeeperConn = context.getInitParameter("zookeeper-connection");
+    }
 }

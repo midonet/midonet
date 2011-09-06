@@ -73,8 +73,8 @@ public final class KeystoneAuthFilter implements Filter {
         if (this.client.validateToken(token)) {
             chain.doFilter(request, response); // Keep the chain going.
         } else {
-        	HttpServletResponse resp = (HttpServletResponse) response;
-        	resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            HttpServletResponse resp = (HttpServletResponse) response;
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 
