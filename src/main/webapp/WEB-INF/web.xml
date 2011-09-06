@@ -57,10 +57,4 @@
         <filter-name>KeystoneAuth</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>  
-
-    <env-entry>
-        <env-entry-name>zookeeper-connection</env-entry-name>
-        <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value>127.0.0.1:2181</env-entry-value>
-    </env-entry>
 </web-app>
