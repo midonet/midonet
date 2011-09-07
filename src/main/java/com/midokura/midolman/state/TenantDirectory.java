@@ -11,10 +11,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * Class representing Zookeeper directory for tenants.
@@ -102,10 +106,11 @@ public class TenantDirectory {
      * @throws KeeperException  Zookeeper error.
      * @throws InterruptedException  Unresponsive thread error.
      * @throws IOException  Error deserializing data.
+     * @throws ClassNotFoundException Class was not found.
      */
     public TenantConfig getTenant(UUID id) 
             throws KeeperException, InterruptedException, IOException, 
-                ClassNotFoundException {
+                   ClassNotFoundException  {
         byte[] data = dir.get("/" + id.toString(), null);
         TenantConfig config = bytesToTenant(data);
         return config;
@@ -123,5 +128,25 @@ public class TenantDirectory {
             throws KeeperException, InterruptedException {
         return dir.has("/" + id.toString());
     }   
+    
+    /**
+     * Get a list of RouterConfig objects for a tenant.
+     * 
+     * @param id  Tenant ID to get the routers for.
+     * @return  A list of Router objects.
+     * @throws InterruptedException  Thread paused too long.
+     * @throws KeeperException Zookeeper error.
+     */
+    public Set<RouterConfig> getRouters(UUID id) 
+            throws KeeperException, InterruptedException {
+        Set<RouterConfig> routers = new HashSet<RouterConfig>();
+        String path = new StringBuilder("/")
+            .append(id.toString())
+            .append("/routers").toString();
+        Set<String> routerStrs = dir.getChildren(path, null);
+        for (String routerStr : routerStrs)
+            routers.add(new RouterConfig("foo", id)); // TODO: Fix this when JSON serialization is done.
+        return routers;
+    }
 }
 

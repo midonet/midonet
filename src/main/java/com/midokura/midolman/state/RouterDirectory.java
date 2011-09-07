@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +22,38 @@ import com.midokura.midolman.rules.Rule;
 
 public class RouterDirectory {
 
+    public static class RouterConfig implements Serializable {
+
+        private static final long serialVersionUID = -7029926675019840294L;
+
+        public RouterConfig(String name, UUID tenantId) {
+            super();
+            this.name = name;
+            this.tenantId = tenantId;
+        }
+
+        public String name;
+        public UUID tenantId;
+    }
+
+    private byte[] routerToBytes(RouterConfig tenant) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeObject(tenant);
+        out.close();
+        return bos.toByteArray();
+    }    
+
+    private RouterConfig bytesToRouter(byte[] data)
+            throws IOException, ClassNotFoundException, KeeperException,
+                InterruptedException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        ObjectInputStream in = new ObjectInputStream(bis);
+        RouterConfig router = (RouterConfig) in.readObject();
+        return router;
+    }
+        
+    
     Directory dir;
 
     public RouterDirectory(Directory dir) {
@@ -65,11 +98,33 @@ public class RouterDirectory {
         return strb.toString();
     }
 
-    public void addRouter(UUID routerId) throws InterruptedException {
+    /**
+     * Get a RouterConfig object for the given ID.
+     * 
+     * @param id  UUID of router to fetch.
+     * @return  RouterConfig object with the given ID.
+     * @throws IOException  Error serializing.
+     * @throws ClassNotFoundException  Class not found.
+     * @throws KeeperException  Zookeeper error.
+     * @throws InterruptedException  Thread paused too long.
+     */
+    public RouterConfig getRouter(UUID id) 
+            throws IOException, ClassNotFoundException, KeeperException, 
+                    InterruptedException {
+        byte[] data = dir.get("/" + id.toString(), null);
+        RouterConfig routerConfig = bytesToRouter(data);
+        return routerConfig;
+    }
+    
+    public void addRouter(UUID routerId, RouterConfig router) 
+            throws InterruptedException, KeeperException, IOException {
+        byte[] data = routerToBytes(router);
+        
         // Use try-catch blocks to avoid getting stuck in a half-created state.
         try {
-            dir.add("/" + routerId.toString(), null, CreateMode.PERSISTENT);
+            dir.add("/" + routerId.toString(), data, CreateMode.PERSISTENT);
         } catch (KeeperException e) {
+        	throw e;
         }
         try {
             dir.add(getRoutingTablePath(routerId), null, CreateMode.PERSISTENT);

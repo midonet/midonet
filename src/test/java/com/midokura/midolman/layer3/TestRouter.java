@@ -1,7 +1,5 @@
 package com.midokura.midolman.layer3;
 
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,6 +39,7 @@ import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 import com.midokura.midolman.util.Callback;
 
 public class TestRouter {
@@ -65,7 +65,9 @@ public class TestRouter {
         Directory routersSubdir = dir.getSubDirectory("/midonet/routers");
         RouterDirectory routerDir = new RouterDirectory(routersSubdir);
         UUID rtrId = new UUID(1234, 5678);
-        routerDir.addRouter(rtrId);
+        UUID tenantId = new UUID(1234, 6789);
+        RouterConfig cfg = new RouterConfig("Test Router", tenantId);
+        routerDir.addRouter(rtrId, cfg);
         // TODO(pino): replace the following with a real implementation.
         NatMapping natMap = new MockNatMapping();
         ruleEngine = new RuleEngine(routerDir, rtrId, natMap);

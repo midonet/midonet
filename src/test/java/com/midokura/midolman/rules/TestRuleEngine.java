@@ -13,20 +13,21 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-
 import org.junit.Test;
 
 import com.midokura.midolman.layer4.MockNatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterDirectory;
-import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 public class TestRuleEngine {
 
     static Random rand;
     static UUID rtrId;
+    static UUID tenantId;
     static MidoMatch pktMatch;
     static UUID inPort;
     static Condition cond;
@@ -73,6 +74,7 @@ public class TestRuleEngine {
     public static void setupOnce() throws Exception {
         rand = new Random();
         rtrId = new UUID(rand.nextLong(), rand.nextLong());
+        tenantId = new UUID(rand.nextLong(), rand.nextLong());
         // Build a packet to test the rules.
         pktMatch = new MidoMatch();
         pktMatch.setInputPort((short) 5);
@@ -108,7 +110,8 @@ public class TestRuleEngine {
         dir.add("/midolman/routers", null, CreateMode.PERSISTENT);
         Directory subDir = dir.getSubDirectory("/midolman/routers");
         rtrDir = new RouterDirectory(subDir);
-        rtrDir.addRouter(rtrId);
+        RouterConfig cfg = new RouterConfig("Test Router", tenantId);
+        rtrDir.addRouter(rtrId, cfg);
         natMap = new MockNatMapping();
         engine = new RuleEngine(rtrDir, rtrId, natMap);
         chain1 = new Vector<Rule>();

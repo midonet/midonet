@@ -1,7 +1,5 @@
 package com.midokura.midolman.layer3;
 
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
@@ -16,15 +15,11 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus;
 import org.openflow.protocol.action.OFAction;
 
-import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.layer3.Router.Action;
-import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -33,6 +28,7 @@ import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 public class TestNetworkController {
 
@@ -98,8 +94,11 @@ public class TestNetworkController {
         List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
             UUID rtrId = new UUID(1234, i);
+            UUID tenantId = new UUID(5678, i);
             routerIds.add(rtrId);
-            routerDir.addRouter(rtrId);
+            RouterConfig routerConfig = new RouterConfig("Test Router " + i, 
+                    tenantId);
+            routerDir.addRouter(rtrId, routerConfig);
             Directory tableDir = routerDir.getRoutingTableDirectory(rtrId);
             ReplicatedRoutingTable rTable = new ReplicatedRoutingTable(
                     rtrId, tableDir, CreateMode.PERSISTENT);

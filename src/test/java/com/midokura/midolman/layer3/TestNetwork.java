@@ -1,7 +1,5 @@
 package com.midokura.midolman.layer3;
 
-import org.junit.Assert;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,6 +9,7 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,9 +30,10 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 public class TestNetwork {
 
@@ -73,8 +73,11 @@ public class TestNetwork {
         MaterializedRouterPortConfig portConfig;
         for (int i = 0; i < 3; i++) {
             UUID rtrId = new UUID(1234, i);
+            UUID tenantId = new UUID(5678, i);
+            RouterConfig routerConfig = new RouterConfig("Test Router " + i, 
+                    tenantId);
             routerIds.add(rtrId);
-            routerDir.addRouter(rtrId);
+            routerDir.addRouter(rtrId, routerConfig);
             // This router handles all traffic to 10.<i>.0.0/16
             int routerNw = 0x0a000000 + (i << 16);
             // With low weight, reject anything that is in this router's NW.
