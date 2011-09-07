@@ -144,6 +144,27 @@ public class BridgeController extends AbstractController {
     }
 
     @Override
+    public void onPortStatus(OFPhysicalPort portDesc, OFPortReason reason) {
+        if (reason == OFPortReason.OFPPR_ADD) {
+            int portNum = portDesc.getPortNumber();
+            addPort(portDesc, portNum);
+
+            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+            if (uuid != null)
+                portNumToUuid.put(portNum, uuid);
+
+            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+            if (peerIp != null) {
+                // TODO: Error out if already tunneled to this peer.
+                tunnelPortNumToPeerIp.put(portNum, peerIp);
+            }
+        } else if (reason == OFPortReason.OFPPR_DELETE) {
+            deletePort(portDesc);
+        } else {
+            modifyPort(portDesc);
+        }
+    }
+
     protected void addPort(OFPhysicalPort portDesc, int portNum) {
         if (isTunnelPortNum(portNum))
             invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
@@ -154,12 +175,10 @@ public class BridgeController extends AbstractController {
         }
     }
 
-    @Override
     protected void deletePort(OFPhysicalPort portDesc) {
         // FIXME
     }
 
-    @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
         // FIXME
     }
@@ -170,5 +189,10 @@ public class BridgeController extends AbstractController {
 
     private void invalidateFlowsToPeer(InetAddress peer_ip) {
         // FIXME
+    }
+
+    private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
+        return new UUID(0, 0);  // FIXME
+        // Should be part of OVS interface.
     }
 }

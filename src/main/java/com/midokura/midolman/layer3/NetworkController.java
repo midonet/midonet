@@ -848,11 +848,11 @@ public class NetworkController extends AbstractController {
             }
         } else if (status.equals(OFPortReason.OFPPR_ADD)) {
             UUID portId = UUID.fromString(extId);
+            int portNum = port.getPortNumber();
             // Now get the port configuration from ZooKeeper.
             try {
-                devPort = new L3DevicePort(portDir, portId, port
-                        .getPortNumber(), port.getHardwareAddress(),
-                        super.controllerStub);
+                devPort = new L3DevicePort(portDir, portId, portNum,
+                        port.getHardwareAddress(), super.controllerStub);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -864,7 +864,7 @@ public class NetworkController extends AbstractController {
                 e.printStackTrace();
             }
             devPortById.put(portId, devPort);
-            devPortByNum.put(port.getPortNumber(), devPort);
+            devPortByNum.put(portNum, devPort);
         }
         // TODO(pino): else if (status.equals(OFPortReason.OFPPR_MODIFY)) { ...
     }

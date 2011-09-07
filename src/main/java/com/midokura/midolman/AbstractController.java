@@ -32,7 +32,7 @@ public abstract class AbstractController implements Controller {
     protected HashMap<Integer, UUID> portNumToUuid;
 
     // Tunnel management data structures
-    private HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
+    protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
     public AbstractController(
             int datapathId,
@@ -76,28 +76,6 @@ public abstract class AbstractController implements Controller {
             long byteCount);
 
     @Override
-    public void onPortStatus(OFPhysicalPort portDesc, OFPortReason reason) {
-        if (reason == OFPortReason.OFPPR_ADD) {
-            int portNum = portDesc.getPortNumber();
-            addPort(portDesc, portNum);
-
-            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-            if (uuid != null)
-                portNumToUuid.put(portNum, uuid);
-
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-            if (peerIp != null) {
-                // TODO: Error out if already tunneled to this peer.
-                tunnelPortNumToPeerIp.put(portNum, peerIp);
-            }
-        } else if (reason == OFPortReason.OFPPR_DELETE) {
-            deletePort(portDesc);
-        } else {
-            modifyPort(portDesc);
-        }
-    }
-
-    @Override
     public void onMessage(OFMessage m) {
         log.debug("onMessage: {}", m);
         // TODO Auto-generated method stub
@@ -126,13 +104,4 @@ public abstract class AbstractController implements Controller {
     protected InetAddress peerIpOfGrePortName(String portName) {
         return null;    // FIXME
     }
-
-    private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
-        return new UUID(0, 0);  // FIXME
-        // Should be part of OVS interface.
-    }
-
-    protected abstract void deletePort(OFPhysicalPort portDesc);
-    protected abstract void modifyPort(OFPhysicalPort portDesc);
-    protected abstract void addPort(OFPhysicalPort portDesc, int portNum);
 }
