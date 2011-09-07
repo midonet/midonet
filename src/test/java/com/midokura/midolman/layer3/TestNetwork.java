@@ -285,8 +285,7 @@ public class TestNetwork {
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         Ethernet expectedArp = TestRouter.makeArpRequest(devPort.getMacAddr(), devPort
                 .getVirtualConfig().portAddr, 0x0a020123);
-        Assert.assertTrue(Arrays.equals(expectedArp.serialize(), pkt.data));
-
+        Assert.assertArrayEquals(expectedArp.serialize(), pkt.data);
     }
 
     @Ignore

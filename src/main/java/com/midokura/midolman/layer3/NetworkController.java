@@ -33,6 +33,7 @@ import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
+import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.ARP;
@@ -119,16 +120,11 @@ public class NetworkController extends AbstractController {
             short hardTimeoutSecs, short idleTimeoutSecs,
             boolean sendFlowRemove, List<OFAction> actions, short inPort,
             byte[] data) {
-        /*
-         * void sendFlowModAdd(OFMatch match, long cookie, short
-         * idleTimeoutSecs, short priority, int bufferId, boolean
-         * sendFlowRemove, boolean checkOverlap, boolean emergency,
-         * List<OFAction> actions, short outPort);
-         */
-
         controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs, FLOW_PRIORITY,
                 bufferId, sendFlowRemove, false, false, actions, inPort);
-        if (bufferId == UNBUFFERED_PACKET)
+        // If packet was unbuffered, we need to explicitly send it otherwise the
+        // flow won't be applied to it.
+        if (bufferId == ControllerStub.UNBUFFERED_ID)
             controllerStub.sendPacketOut(bufferId, inPort, actions, data);
     }
 
@@ -169,7 +165,7 @@ public class NetworkController extends AbstractController {
                 fwdInfo.matchOut.setDataLayerDestination(mac);
                 List<OFAction> ofActions = makeActionsForFlow(match,
                         fwdInfo.matchOut, devPort.getNum());
-                boolean useWildcards = true; // TODO: get this from config.
+                boolean useWildcards = false; // TODO: get this from config.
                 if (useWildcards) {
                     // TODO: Should we check for non-load-balanced routes and
                     // wild-card flows matching them on layer 3 and lower?
@@ -201,7 +197,6 @@ public class NetworkController extends AbstractController {
     public static final short IDLE_TIMEOUT_SECS = 0;
     private static final short FLOW_PRIORITY = 0;
     private static final int ICMP_TUNNEL = 0x05;
-    private static final int UNBUFFERED_PACKET = 0xffffffff;
 
     private PortDirectory portDir;
     Network network;
@@ -282,7 +277,7 @@ public class NetworkController extends AbstractController {
         }
         ForwardInfo fwdInfo = new ForwardInfo();
         fwdInfo.inPortId = devPortIn.getId();
-        fwdInfo.matchIn = match;
+        fwdInfo.matchIn = match.clone();
         fwdInfo.pktIn = ethPkt;
         Set<UUID> routers = new HashSet<UUID>();
         try {
@@ -709,8 +704,8 @@ public class NetworkController extends AbstractController {
         action.setPort(portNum);
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(action);
-        controllerStub.sendPacketOut(0xffffffff, (short) 0 /* TODO */, actions,
-                ethPkt.serialize());
+        controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
+                (short) 0 /* TODO */, actions, ethPkt.serialize());
     }
 
     /**
@@ -791,8 +786,12 @@ public class NetworkController extends AbstractController {
     }
 
     private void freeBuffer(int bufferId) {
-        // TODO Auto-generated method stub
-
+        // If it's unbuffered, nothing to do.
+        if (bufferId == ControllerStub.UNBUFFERED_ID)
+            return;
+        // TODO(pino): can we pass null instead of an empty action list?
+        controllerStub.sendPacketOut(bufferId, (short) 0,
+                new ArrayList<OFAction>(), null);
     }
 
     private void notifyFlowAdded(MidoMatch origMatch, MidoMatch flowMatch,
@@ -805,8 +804,11 @@ public class NetworkController extends AbstractController {
             int hardTimeout) {
         // TODO(pino): can we just send a null list instead of an empty list?
         List<OFAction> actions = new ArrayList<OFAction>();
-        controllerStub.sendFlowModAdd(flowMatch, (long)0, IDLE_TIMEOUT_SECS,
-                (short)0, bufferId, true, false, false, actions, (short)0);
+        controllerStub.sendFlowModAdd(flowMatch, (long) 0, IDLE_TIMEOUT_SECS,
+                (short) 0, bufferId, true, false, false, actions, (short) 0);
+        // Note that if the packet was buffered, then the datapath will apply
+        // the flow and drop it. If the packet was unbuffered, we don't need
+        // to do anything.
     }
 
     private MidoMatch makeWildcarded(MidoMatch origMatch) {
@@ -840,18 +842,17 @@ public class NetworkController extends AbstractController {
                 devPortById.remove(devPort.getId());
                 try {
                     network.removePort(devPort);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        }
-        else if (status.equals(OFPortReason.OFPPR_ADD)) {
+        } else if (status.equals(OFPortReason.OFPPR_ADD)) {
             UUID portId = UUID.fromString(extId);
             // Now get the port configuration from ZooKeeper.
             try {
-                devPort = new L3DevicePort(portDir, portId, port.getPortNumber(),
-                        port.getHardwareAddress(), super.controllerStub);
+                devPort = new L3DevicePort(portDir, portId, port
+                        .getPortNumber(), port.getHardwareAddress(),
+                        super.controllerStub);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
