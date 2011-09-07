@@ -110,12 +110,11 @@
                 <configuration>
                 </configuration>
             </plugin>
-<!-- 
+            
             <plugin>
-                <groupId>com.googlecode.maven-overview-plugin</groupId>
-                <artifactId>maven-overview-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
             </plugin>
- -->
         </plugins>
     </build>
 
@@ -126,6 +125,20 @@
             <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
         </pluginRepository>
     </pluginRepositories>
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>mido-maven-local-snapshots</id>
+            <name>mido-maven-local-snapshots</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+        
+        <repository>
+            <id>mido-maven-local-releases</id>
+            <name>mido-maven-local-releases</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
 	      <repository>
