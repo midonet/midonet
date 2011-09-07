@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -102,6 +103,19 @@ public abstract class AbstractController implements Controller {
     }
 
     protected InetAddress peerIpOfGrePortName(String portName) {
-        return null;    // FIXME
+        String hexAddress = portName.substring(7, 15);
+        Integer intAddress = Integer.parseInt(hexAddress, 16); 
+        byte[] byteAddress = { (byte) (intAddress >> 24),
+                               (byte) ((intAddress >> 16)&0xff),
+                               (byte) ((intAddress >> 8)&0xff),
+                               (byte) (intAddress&0xff)
+                             };
+        try {
+            return InetAddress.getByAddress(byteAddress);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("getByAddress on a raw address threw " +
+                                       "an UnknownHostException", e);
+        }
+        // FIXME: Test this!
     }
 }
