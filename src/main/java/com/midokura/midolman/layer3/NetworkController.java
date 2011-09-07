@@ -848,7 +848,7 @@ public class NetworkController extends AbstractController {
             }
         } else if (status.equals(OFPortReason.OFPPR_ADD)) {
             UUID portId = UUID.fromString(extId);
-            int portNum = port.getPortNumber();
+            short portNum = port.getPortNumber();
             // Now get the port configuration from ZooKeeper.
             try {
                 devPort = new L3DevicePort(portDir, portId, portNum,
