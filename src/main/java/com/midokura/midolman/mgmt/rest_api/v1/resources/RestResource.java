@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.resources.v1;
+package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;

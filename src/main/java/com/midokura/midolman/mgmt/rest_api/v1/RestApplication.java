@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api;
+package com.midokura.midolman.mgmt.rest_api.v1;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,9 @@ import javax.ws.rs.core.Application;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
-import com.midokura.midolman.mgmt.rest_api.resources.v1.RouterResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
+
 
 
 /**
@@ -41,6 +43,8 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
         set.add(RouterResource.class);
+        set.add(TenantResource.class);
+
         return set;
     }
 	

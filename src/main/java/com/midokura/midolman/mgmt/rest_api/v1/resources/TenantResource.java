@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.resources.v1;
+package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
 import java.util.UUID;
@@ -22,21 +22,36 @@ import com.midokura.midolman.mgmt.data.Tenant;
 import com.midokura.midolman.mgmt.data.TenantDataAccessor;
 
 /**
- * Resource class for tenants.
+ * Root resource class for tenants.
  *
  * @version        1.6 07 Sept 2011
  * @author         Ryu Ishimoto
  */
-@Path("/v1/tenants")
+@Path("/tenants")
 public class TenantResource extends RestResource {
     /*
      * Implements REST API endpoints for tenants.
      */
 
+    /**
+     * Router resource locator for tenants
+     */
+    @Path("/{id}/routers")
+    public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
+        return new TenantRouterResource(zookeeperConn, id);
+    }
+    
+    /**
+     * Handler for get tenant API call.
+     * 
+     * @param   id  UUID of the tenant to get.
+     * @returns  Tenant object for the given ID.
+     */ 
+    
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Tenant getTenant(@PathParam("id") UUID id) {
+    public Tenant get(@PathParam("id") UUID id) {
         // Get Tenant object for a given ID.
         TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn);
         Tenant tenant = null;
@@ -55,13 +70,13 @@ public class TenantResource extends RestResource {
     /**
      * Handler for create tenant API call.
      * 
-     * @param   is  InputStream of the request.
+     * @param   tenant  Tenant object.
      * @returns  Response object with 201 status code set if successful.
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createTenant(Tenant tenant) {
+    public Response create(Tenant tenant) {
         // Add a new tenant entry into zookeeper.
         if(tenant.getId() == null) {
             tenant.setId(UUID.randomUUID());

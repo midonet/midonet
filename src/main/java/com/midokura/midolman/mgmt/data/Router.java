@@ -20,20 +20,59 @@ public class Router {
 
     private UUID id = null;
     private String name = null;
+    private UUID tenantId = null;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String router_name) {
-        name = router_name;
-    }
-	
+    /**
+     * Get router ID.
+     * 
+     * @return  Router ID.
+     */
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID router_id) {
-        id = router_id;
+    /**
+     * Set router ID.
+     * 
+     * @param  id  ID of the router.
+     */
+    public void setId(UUID id) {
+        this.id = id;
     }
+
+    /**
+     * Get router name.
+     * 
+     * @return  Router name.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set router name.
+     * 
+     * @param  name  Name of the router.
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    /**
+     * Get tenant ID.
+     * 
+     * @return  Tenant ID.
+     */
+    public UUID getTenantId() {
+        return tenantId;
+    }
+
+    /**
+     * Set tenant ID.
+     * 
+     * @param  tenantId  Tenant ID of the router.
+     */
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
+    }    
 }

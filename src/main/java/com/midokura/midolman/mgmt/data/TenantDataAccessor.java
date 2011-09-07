@@ -7,9 +7,7 @@ package com.midokura.midolman.mgmt.data;
 
 import java.util.UUID;
 
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.TenantDirectory;
-import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.TenantDirectory.TenantConfig;
 
 /**
@@ -18,34 +16,25 @@ import com.midokura.midolman.state.TenantDirectory.TenantConfig;
  * @version        1.6 07 Sept 2011
  * @author         Ryu Ishimoto
  */
-public class TenantDataAccessor {
+public class TenantDataAccessor extends DataAccessor {
     /*
      * Implements CRUD operations on Tenant.
      */
-    
-    private String zkConn = null;
-    
-    /**
-     * Default constructor
-     * 
-     * @param  zkConn  Zookeeper connection string.
-     */ 
-    public TenantDataAccessor(String zkConn) {
-        this.zkConn = zkConn;
-    }
 
-    private TenantDirectory getDirectory() throws Exception {
-        ZkConnection zk = ZookeeperService.getConnection(zkConn);
-        Directory dir = zk.getRootDirectory().getSubDirectory(
-                "/midolman/tenants");
-        return new TenantDirectory(dir);
+    /**
+     * Default constructor 
+     * 
+     * @param zkConn Zookeeper connection string
+     */
+    public TenantDataAccessor(String zkConn) {
+        super(zkConn);
     }
     
-    private TenantConfig convertToConfig(Tenant tenant) {
+    private static TenantConfig convertToConfig(Tenant tenant) {
         return new TenantConfig(tenant.getName());
     }
 
-    private Tenant convertToTenant(TenantConfig config) {
+    private static Tenant convertToTenant(TenantConfig config) {
         Tenant tenant = new Tenant();
         tenant.setName(config.name);        
         return tenant;
@@ -61,19 +50,19 @@ public class TenantDataAccessor {
         // Convert Tenant to TenantConfig.  This may be unnecessary once
         // TenantConfig becomes JSON serializable.
         TenantConfig config = convertToConfig(tenant);
-        TenantDirectory dir = getDirectory();
+        TenantDirectory dir = getTenantDirectory();
         dir.addTenant(tenant.getId(), config);
     }
 
     /**
      * Get a Tenant for the given ID.
-     * 
+     * private
      * @param   id  Tenant ID to search.
      * @return  Tenant object with the given ID.
      * @throws  Exception  Error getting data to Zookeeper.
      */
     public Tenant find(UUID id) throws Exception {
-        TenantDirectory dir = getDirectory();
+        TenantDirectory dir = getTenantDirectory();
         TenantConfig config = dir.getTenant(id);
         // TODO: Throw NotFound exception here.
         Tenant tenant = convertToTenant(config);
