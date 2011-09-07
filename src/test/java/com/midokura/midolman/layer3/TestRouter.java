@@ -70,7 +70,7 @@ public class TestRouter {
         NatMapping natMap = new MockNatMapping();
         ruleEngine = new RuleEngine(routerDir, rtrId, natMap);
         rTable = new ReplicatedRoutingTable(rtrId, routerDir
-                .getRoutingTableDirectory(rtrId));
+                .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
         reactor = new MockReactor();
         rtr = new Router(rtrId, ruleEngine, rTable, portDir, reactor);
         controllerStub = new MockControllerStub();

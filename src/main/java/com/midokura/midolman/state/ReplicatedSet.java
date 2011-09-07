@@ -51,13 +51,15 @@ public abstract class ReplicatedSet<T> {
 
     private Directory dir;
     private boolean running;
+    private CreateMode createMode;
     private Set<String> strings;
     private Set<Watcher<T>> changeWatchers;
     private DirectoryWatcher myWatcher;
 
-    public ReplicatedSet(Directory d) {
+    public ReplicatedSet(Directory d, CreateMode createMode) {
         super();
         dir = d;
+        this.createMode = createMode;
         running = false;
         strings = new HashSet<String>();
         changeWatchers = new HashSet<Watcher<T>>();
@@ -87,7 +89,7 @@ public abstract class ReplicatedSet<T> {
     public void add(T item) throws KeeperException, InterruptedException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
-        dir.add("/" + encode(item), null, CreateMode.EPHEMERAL);
+        dir.add("/" + encode(item), null, createMode);
     }
 
     public void remove(T item) throws KeeperException, InterruptedException {
