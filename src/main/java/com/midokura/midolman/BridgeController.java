@@ -159,6 +159,11 @@ public class BridgeController extends AbstractController {
         // FIXME
     }
 
+    @Override
+    protected void modifyPort(OFPhysicalPort portDesc) {
+        // FIXME
+    }
+
     private void invalidateFlowsToPortUuid(UUID port_uuid) {
         // FIXME
     }

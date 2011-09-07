@@ -93,8 +93,7 @@ public abstract class AbstractController implements Controller {
         } else if (reason == OFPortReason.OFPPR_DELETE) {
             deletePort(portDesc);
         } else {
-            /* Port modified. */
-            /* FIXME: Handle this. */
+            modifyPort(portDesc);
         }
     }
 
@@ -134,5 +133,6 @@ public abstract class AbstractController implements Controller {
     }
 
     protected abstract void deletePort(OFPhysicalPort portDesc);
+    protected abstract void modifyPort(OFPhysicalPort portDesc);
     protected abstract void addPort(OFPhysicalPort portDesc, int portNum);
 }
