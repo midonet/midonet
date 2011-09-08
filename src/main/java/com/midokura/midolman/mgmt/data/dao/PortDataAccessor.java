@@ -1,0 +1,145 @@
+/*
+ * @(#)PortDataAccessor        1.6 11/09/05
+ *
+ * Copyright 2011 Midokura KK
+ */
+package com.midokura.midolman.mgmt.data.dao;
+
+import java.util.HashSet;
+import java.util.UUID;
+
+import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.util.Net;
+import com.midokura.midolman.state.BGP;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
+
+/**
+ * Data access class for port.
+ *
+ * @version        1.6 08 Sept 2011
+ * @author         Ryu Ishimoto
+ */
+public class PortDataAccessor extends DataAccessor {
+
+    /**
+     * Default constructor 
+     * 
+     * @param zkConn Zookeeper connection string
+     */
+    public PortDataAccessor(String zkConn) {
+        super(zkConn);
+    }
+
+    private static LogicalRouterPortConfig toLogRouterPortConf(Port port) {                  
+        return new LogicalRouterPortConfig(port.getDeviceId(), 
+                Net.convertAddressToInt(port.getNetworkAddress()), 
+                port.getNetworkLength(),
+                Net.convertAddressToInt(port.getPortAddress()),
+                new HashSet<Route>(), port.getPeerId());
+    }
+
+    private static MaterializedRouterPortConfig toMatRouterPortConf(Port port) {
+        return new MaterializedRouterPortConfig(port.getDeviceId(), 
+                Net.convertAddressToInt(port.getNetworkAddress()), 
+                port.getNetworkLength(),
+                Net.convertAddressToInt(port.getPortAddress()),
+                new HashSet<Route>(), 
+                Net.convertAddressToInt(port.getLocalNetworkAddress()),
+                port.getLocalNetworkLength(),
+                new HashSet<BGP>());
+    }
+
+    private static Port toPort(LogicalRouterPortConfig config) {
+        Port port = new Port();
+        port.setDeviceId(config.device_id);
+        port.setNetworkAddress(Net.convertAddressToString(config.nwAddr));
+        port.setNetworkLength(config.nwLength);
+        port.setPortAddress(Net.convertAddressToString(config.portAddr));
+        port.setPeerId(config.peer_uuid);
+        port.setType(Port.LogicalRouterPort);
+        return port;
+    }
+    
+    private static Port toPort(MaterializedRouterPortConfig config) {
+        Port port = new Port();
+        port.setDeviceId(config.device_id);
+        port.setNetworkAddress(Net.convertAddressToString(config.nwAddr));
+        port.setNetworkLength(config.nwLength);
+        port.setPortAddress(Net.convertAddressToString(config.portAddr));
+        port.setLocalNetworkAddress(
+                Net.convertAddressToString(config.localNwAddr));
+        port.setLocalNetworkLength(config.localNwLength);        
+        port.setType(Port.MaterializedRouterPort);
+        return port;
+    }
+
+    private static PortConfig convertToPortConfig(Port port) {
+        String type = port.getType();
+        if (type.equals(Port.LogicalRouterPort)) {
+            return toLogRouterPortConf(port);
+        } else if (type.equals(Port.MaterializedRouterPort)) {
+            return toMatRouterPortConf(port);
+        }
+        return null;
+    }
+    
+    private static Port convertToPort(PortConfig config) {
+        if(config instanceof LogicalRouterPortConfig) {
+            return toPort((LogicalRouterPortConfig) config);
+        } else if (config instanceof MaterializedRouterPortConfig) {
+            return toPort((MaterializedRouterPortConfig) config);
+        }
+        return null;
+    }
+    
+    /**
+     * Add Port object to Zookeeper directories.
+     * 
+     * @param   port  LogicalRouterPort object to add.
+     * @throws  Exception  Error adding data to Zookeeper.
+     */
+    public void create(Port port) throws Exception {
+        PortConfig config = convertToPortConfig(port);
+        PortZkManager manager = getPortZkManager();
+        manager.create(port.getId(), config);
+    }
+
+    /**
+     * Get a Port for the given ID.
+     * 
+     * @param   id  Port ID to search.
+     * @return  Port object with the given ID.
+     * @throws  Exception  Error getting data to Zookeeper.
+     */
+    public Port find(UUID id) throws Exception {
+        PortDirectory dir = getPortDirectory();
+        PortConfig config = dir.getPortConfigNoRoutes(id, null);
+        // TODO: Throw NotFound exception here.
+        Port port = convertToPort(config);
+        port.setId(id);
+        return port;
+    }
+    
+    /**
+     * Get a list of Ports for a router.
+     * 
+     * @param routerId  UUID of router.
+     * @return  A Set of Ports
+     * @throws Exception  Zookeeper(or any) error.
+     */
+/*    public Port[] list(UUID routerId) throws Exception {
+        RouterDirectory dir = getRouterDirectory();
+        Set<Port> ports = new HashSet<Port>();
+        Set<RouterConfig> configs = dir.get(routerId);
+        for(RouterConfig config : configs) {
+            routers.add(convertToRouter(config));
+        }
+        return routers.toArray(new Router[routers.size()]);
+    }    
+*/
+}

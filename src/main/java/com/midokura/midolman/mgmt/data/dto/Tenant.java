@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data;
+package com.midokura.midolman.mgmt.data.dto;
 
 import java.util.UUID;
 

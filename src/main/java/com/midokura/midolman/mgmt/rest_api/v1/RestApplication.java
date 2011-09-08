@@ -12,6 +12,7 @@ import javax.ws.rs.core.Application;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
+import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
 
@@ -42,6 +43,7 @@ public class RestApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
+        set.add(PortResource.class);
         set.add(RouterResource.class);
         set.add(TenantResource.class);
 

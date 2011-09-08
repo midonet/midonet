@@ -3,13 +3,15 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data;
+package com.midokura.midolman.mgmt.data.dao;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.TenantDirectory;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
@@ -52,8 +54,8 @@ public class RouterDataAccessor extends DataAccessor {
      */
     public void create(Router router) throws Exception {
         RouterConfig config = convertToConfig(router);
-        RouterDirectory routerDir = getRouterDirectory();
-        routerDir.addRouter(router.getId(), config);
+        RouterZkManager manager = getRouterZkManager();
+        manager.create(router.getId(), config);
     }
 
     /**

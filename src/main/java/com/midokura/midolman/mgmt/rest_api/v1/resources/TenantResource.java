@@ -18,8 +18,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.midokura.midolman.mgmt.data.Tenant;
-import com.midokura.midolman.mgmt.data.TenantDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.TenantDataAccessor;
+import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
 
 /**
@@ -94,7 +94,6 @@ public class TenantResource extends RestResource {
                     .type(MediaType.APPLICATION_JSON).build());
         }
         
-        return Response.created(URI.create("/v1/tenant/"
-                + tenant.getId())).build();
+        return Response.created(URI.create("/" + tenant.getId())).build();
     }    
 }

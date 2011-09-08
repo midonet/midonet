@@ -3,11 +3,13 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data;
+package com.midokura.midolman.mgmt.data.dao;
 
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.state.TenantDirectory;
+import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.TenantDirectory.TenantConfig;
 
 /**
@@ -49,9 +51,9 @@ public class TenantDataAccessor extends DataAccessor {
     public void create(Tenant tenant) throws Exception  {
         // Convert Tenant to TenantConfig.  This may be unnecessary once
         // TenantConfig becomes JSON serializable.
-        TenantConfig config = convertToConfig(tenant);
-        TenantDirectory dir = getTenantDirectory();
-        dir.addTenant(tenant.getId(), config);
+        TenantConfig config = convertToConfig(tenant);        
+        TenantZkManager manager = getTenantZkManager();
+        manager.create(tenant.getId(), config);
     }
 
     /**

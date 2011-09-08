@@ -18,8 +18,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.midokura.midolman.mgmt.data.Router;
-import com.midokura.midolman.mgmt.data.RouterDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
+import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
  
 /**
  * Root resource class for Virtual Router.
@@ -32,7 +33,20 @@ public class RouterResource extends RestResource {
     /*
      * Implements REST API endpoints for routers.
      */
-    
+
+    /**
+     * Router resource locator for tenants
+     */
+    @Path("/{id}/ports")
+    public RouterPortResource getPortResource(@PathParam("id") UUID id) {
+        return new RouterPortResource(zookeeperConn, id);
+    }    
+
+    /**
+     * Get the Router with the given ID.
+     * @param id  Router UUID.
+     * @return  Router object.
+     */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,9 +117,7 @@ public class RouterResource extends RestResource {
         @Produces(MediaType.APPLICATION_JSON)
         public Response create(Router router) {
             // Add a new router entry into zookeeper.
-            if(router.getId() == null) {
-                router.setId(UUID.randomUUID());
-            }
+            router.setId(UUID.randomUUID());
             router.setTenantId(tenantId);
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
             try {
