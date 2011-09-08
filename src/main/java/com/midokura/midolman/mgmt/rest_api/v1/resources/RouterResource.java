@@ -55,7 +55,7 @@ public class RouterResource extends RestResource {
         RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
         Router router = null;
         try {
-            router = dao.find(id);
+            router = dao.get(id);
         } catch (Exception ex) {
             // TODO: LOG
             System.err.println("Exception = " + ex.getMessage());

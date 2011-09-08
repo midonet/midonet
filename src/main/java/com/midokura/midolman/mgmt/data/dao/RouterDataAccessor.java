@@ -5,14 +5,16 @@
  */
 package com.midokura.midolman.mgmt.data.dao;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.TenantDirectory;
+import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
@@ -34,7 +36,12 @@ public class RouterDataAccessor extends DataAccessor {
     public RouterDataAccessor(String zkConn) {
         super(zkConn);
     }
-
+    
+    private RouterZkManager getRouterZkManager() throws Exception {
+        ZkConnection conn = ZookeeperService.getConnection(zkConn);        
+        return new RouterZkManager(conn.getZooKeeper(), "/midolman");
+    } 
+    
     private static RouterConfig convertToConfig(Router router) {
         return new RouterConfig(router.getName(), router.getTenantId());
     }
@@ -65,9 +72,9 @@ public class RouterDataAccessor extends DataAccessor {
      * @return  Router object with the given ID.
      * @throws  Exception  Error getting data to Zookeeper.
      */
-    public Router find(UUID id) throws Exception {
-        RouterDirectory dir = getRouterDirectory();
-        RouterConfig config = dir.getRouter(id);
+    public Router get(UUID id) throws Exception {
+        RouterZkManager manager = getRouterZkManager();
+        RouterConfig config = manager.get(id);
         // TODO: Throw NotFound exception here.
         Router router = convertToRouter(config);
         router.setId(id);
@@ -82,11 +89,13 @@ public class RouterDataAccessor extends DataAccessor {
      * @throws Exception  Zookeeper(or any) error.
      */
     public Router[] list(UUID tenantId) throws Exception {
-        TenantDirectory dir = getTenantDirectory();
-        Set<Router> routers = new HashSet<Router>();
-        Set<RouterConfig> configs = dir.getRouters(tenantId);
-        for(RouterConfig config : configs) {
-            routers.add(convertToRouter(config));
+        RouterZkManager manager = getRouterZkManager();
+        List<Router> routers = new ArrayList<Router>();
+        HashMap<UUID, RouterConfig> configs = manager.list(tenantId);
+        for (Map.Entry<UUID, RouterConfig> entry : configs.entrySet()) {
+            Router router = convertToRouter(entry.getValue());
+            router.setId(entry.getKey());
+            routers.add(router);            
         }
         return routers.toArray(new Router[routers.size()]);
     }

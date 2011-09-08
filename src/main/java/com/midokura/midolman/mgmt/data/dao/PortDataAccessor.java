@@ -5,15 +5,20 @@
  */
 package com.midokura.midolman.mgmt.data.dao;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.util.Net;
 import com.midokura.midolman.state.BGP;
-import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
@@ -34,7 +39,12 @@ public class PortDataAccessor extends DataAccessor {
     public PortDataAccessor(String zkConn) {
         super(zkConn);
     }
-
+    
+    private PortZkManager getPortZkManager() throws Exception {
+        ZkConnection conn = ZookeeperService.getConnection(zkConn);        
+        return new PortZkManager(conn.getZooKeeper(), "/midolman");
+    } 
+    
     private static LogicalRouterPortConfig toLogRouterPortConf(Port port) {                  
         return new LogicalRouterPortConfig(port.getDeviceId(), 
                 Net.convertAddressToInt(port.getNetworkAddress()), 
@@ -116,9 +126,9 @@ public class PortDataAccessor extends DataAccessor {
      * @return  Port object with the given ID.
      * @throws  Exception  Error getting data to Zookeeper.
      */
-    public Port find(UUID id) throws Exception {
-        PortDirectory dir = getPortDirectory();
-        PortConfig config = dir.getPortConfigNoRoutes(id, null);
+    public Port get(UUID id) throws Exception {
+        PortZkManager manager = getPortZkManager();
+        PortConfig config = manager.get(id);
         // TODO: Throw NotFound exception here.
         Port port = convertToPort(config);
         port.setId(id);
@@ -132,14 +142,15 @@ public class PortDataAccessor extends DataAccessor {
      * @return  A Set of Ports
      * @throws Exception  Zookeeper(or any) error.
      */
-/*    public Port[] list(UUID routerId) throws Exception {
-        RouterDirectory dir = getRouterDirectory();
-        Set<Port> ports = new HashSet<Port>();
-        Set<RouterConfig> configs = dir.get(routerId);
-        for(RouterConfig config : configs) {
-            routers.add(convertToRouter(config));
-        }
-        return routers.toArray(new Router[routers.size()]);
-    }    
-*/
+     public Port[] list(UUID routerId) throws Exception {
+         PortZkManager manager = getPortZkManager();
+         List<Port> ports = new ArrayList<Port>();
+         HashMap<UUID, PortConfig> configs = manager.list(routerId);
+         for (Map.Entry<UUID, PortConfig> entry : configs.entrySet()) {
+             Port port = convertToPort(entry.getValue());
+             port.setId(entry.getKey());
+             ports.add(port);            
+         }
+        return ports.toArray(new Port[ports.size()]);
+    }
 }

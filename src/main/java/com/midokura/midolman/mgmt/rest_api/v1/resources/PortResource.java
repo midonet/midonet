@@ -46,7 +46,7 @@ public class PortResource extends RestResource {
         PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
         Port port = null;
         try {
-            port = dao.find(id);
+            port = dao.get(id);
         } catch (Exception ex) {
             // TODO: LOG
             System.err.println("Exception = " + ex.getMessage());
@@ -68,12 +68,34 @@ public class PortResource extends RestResource {
          * Default constructor.
          * 
          * @param   zkConn  Zookeeper connection string.
-         * @param   tenantId  UUID of a tenant.
+         * @param   routerId  UUID of a router.
          */
         public RouterPortResource(String zkConn, UUID routerId) {
             this.zookeeperConn = zkConn;
             this.routerId = routerId;        
         }
+
+        /**
+         * Return a list of ports.
+         * 
+         * @return  A list of Port objects.
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Port[] list() {
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            Port[] ports = null;
+            try {
+                ports = dao.list(routerId);
+            } catch (Exception ex) {
+                // TODO: LOG
+                System.err.println("Exception = " + ex.getMessage());
+                throw new WebApplicationException(
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.APPLICATION_JSON).build());           
+            }
+            return ports;
+        }        
         
         /**
          * Handler for create port API call.
@@ -101,9 +123,6 @@ public class PortResource extends RestResource {
                         .type(MediaType.APPLICATION_JSON).build());
             }
             return Response.created(URI.create("/" + port.getId())).build();
-        }        
-        
-        
-        
+        }
     }
 }

@@ -9,7 +9,6 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -40,32 +39,6 @@ public class TenantResource extends RestResource {
     @Path("/{id}/routers")
     public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
         return new TenantRouterResource(zookeeperConn, id);
-    }
-    
-    /**
-     * Handler for get tenant API call.
-     * 
-     * @param   id  UUID of the tenant to get.
-     * @returns  Tenant object for the given ID.
-     */ 
-    
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Tenant get(@PathParam("id") UUID id) {
-        // Get Tenant object for a given ID.
-        TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn);
-        Tenant tenant = null;
-        try {
-            tenant = dao.find(id);
-        } catch (Exception ex) {
-            // TODO: LOG
-            System.err.println("Exception = " + ex.getMessage());
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
-        }
-        return tenant;
     }
     
     /**
