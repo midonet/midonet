@@ -192,6 +192,7 @@ public class BridgeController extends AbstractController {
     }
 
     private UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
+        // String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
         return new UUID(0, 0);  // FIXME
         // Should be part of OVS interface.
     }

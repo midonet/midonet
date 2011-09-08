@@ -40,7 +40,8 @@ public abstract class AbstractController implements Controller {
             UUID switchUuid,
             int greKey,
             //ovsdb_connection_factory,
-            PortLocationMap dict,
+            PortLocationMap dict,  /* FIXME(jlm): Replace with PortToIntMap, 
+			use addWatcher for port_location_update() callback */
             long flowExpireMinMillis,
             long flowExpireMaxMillis,
             long idleFlowExpireMillis,
@@ -80,7 +81,6 @@ public abstract class AbstractController implements Controller {
     public void onMessage(OFMessage m) {
         log.debug("onMessage: {}", m);
         // TODO Auto-generated method stub
-
     }
 
     /* Clean up resources, especially the ZooKeeper state. */
