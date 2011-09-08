@@ -145,28 +145,6 @@ public class BridgeController extends AbstractController {
         // FIXME
     }
 
-    @Override
-    public void onPortStatus(OFPhysicalPort portDesc, OFPortReason reason) {
-        if (reason == OFPortReason.OFPPR_ADD) {
-            short portNum = portDesc.getPortNumber();
-            addPort(portDesc, portNum);
-
-            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-            if (uuid != null)
-                portNumToUuid.put(new Integer(portNum), uuid);
-
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-            if (peerIp != null) {
-                // TODO: Error out if already tunneled to this peer.
-                tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
-            }
-        } else if (reason == OFPortReason.OFPPR_DELETE) {
-            deletePort(portDesc);
-        } else {
-            modifyPort(portDesc);
-        }
-    }
-
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
         if (isTunnelPortNum(portNum))
             invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));

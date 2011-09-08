@@ -76,9 +76,31 @@ public abstract class AbstractController implements Controller {
                                     byte[] data);
 
     @Override
-    public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
-        // FIXME(jlm): implement this.
+    public final void onPortStatus(OFPhysicalPort portDesc,
+                                   OFPortReason reason) {
+        if (reason == OFPortReason.OFPPR_ADD) {
+            short portNum = portDesc.getPortNumber();
+            addPort(portDesc, portNum);
+
+            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+            if (uuid != null)
+                portNumToUuid.put(new Integer(portNum), uuid);
+
+            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+            if (peerIp != null) {
+                // TODO: Error out if already tunneled to this peer.
+                tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
+            }
+        } else if (reason == OFPortReason.OFPPR_DELETE) {
+            deletePort(portDesc);
+        } else {
+            modifyPort(portDesc);
+        }
     }
+
+    protected abstract void addPort(OFPhysicalPort portDesc, short portNum);
+    protected abstract void deletePort(OFPhysicalPort portDesc);
+    protected abstract void modifyPort(OFPhysicalPort portDesc);
 
     @Override
     public abstract void onFlowRemoved(OFMatch match, long cookie,
@@ -89,7 +111,7 @@ public abstract class AbstractController implements Controller {
     @Override
     public void onMessage(OFMessage m) {
         log.debug("onMessage: {}", m);
-        // TODO Auto-generated method stub
+        // Don't do anything else.
     }
 
     /* Clean up resources, especially the ZooKeeper state. */
