@@ -1,7 +1,9 @@
 package com.midokura.midolman.openflow;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFMatch;
@@ -61,6 +63,7 @@ public class MockControllerStub implements ControllerStub {
 
     public List<Flow> addedFlows = new ArrayList<Flow>();
     public List<Packet> sentPackets = new ArrayList<Packet>();
+    public List<Integer> droppedPktBufIds = new ArrayList<Integer>(); 
 
     @Override
     public void setController(Controller controller) {
@@ -89,7 +92,10 @@ public class MockControllerStub implements ControllerStub {
     @Override
     public void sendPacketOut(int bufferId, short inPort,
             List<OFAction> actions, byte[] data) {
-        sentPackets.add(new Packet(bufferId, inPort, actions, data));
+        if (null == actions || 0 == actions.size())
+            droppedPktBufIds.add(bufferId);
+        else
+            sentPackets.add(new Packet(bufferId, inPort, actions, data));
     }
 
 }

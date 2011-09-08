@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -29,6 +30,10 @@ public abstract class AbstractController implements Controller {
     protected ControllerStub controllerStub;
 
     protected HashMap<UUID, Integer> portUuidToNumberMap;
+    protected HashMap<Integer, UUID> portNumToUuid;
+
+    // Tunnel management data structures
+    protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
     public AbstractController(
             int datapathId,
@@ -42,6 +47,8 @@ public abstract class AbstractController implements Controller {
             InetAddress internalIp) {
         this.datapathId = datapathId;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
+        portNumToUuid = new HashMap<Integer, UUID>();
+        tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
     }
 
     @Override
@@ -52,24 +59,22 @@ public abstract class AbstractController implements Controller {
     @Override
     public void onConnectionMade() {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public void onConnectionLost() {
         // TODO Auto-generated method stub
-
     }
 
     @Override
-    public abstract void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data);
+    public abstract void onPacketIn(int bufferId, int totalLen, short inPort,
+                                    byte[] data);
 
     @Override
-    public abstract void onFlowRemoved(OFMatch match, long cookie, short priority, OFFlowRemovedReason reason,
-            int durationSeconds, int durationNanoseconds, short idleTimeout, long packetCount, long byteCount);
-
-    @Override
-    public abstract void onPortStatus(OFPhysicalPort port, OFPortReason status);
+    public abstract void onFlowRemoved(OFMatch match, long cookie,
+            short priority, OFFlowRemovedReason reason, int durationSeconds,
+            int durationNanoseconds, short idleTimeout, long packetCount,
+            long byteCount);
 
     @Override
     public void onMessage(OFMessage m) {
@@ -88,4 +93,29 @@ public abstract class AbstractController implements Controller {
 
     abstract public void sendFlowModDelete(boolean strict, OFMatch match,
  	                                   int priority, int outPort);
+
+    protected InetAddress peerOfTunnelPortNum(int portNum) {
+        return tunnelPortNumToPeerIp.get(portNum);
+    }
+
+    protected boolean isTunnelPortNum(int portNum) {
+        return tunnelPortNumToPeerIp.containsKey(new Integer(portNum));
+    }
+
+    protected InetAddress peerIpOfGrePortName(String portName) {
+        String hexAddress = portName.substring(7, 15);
+        Integer intAddress = Integer.parseInt(hexAddress, 16); 
+        byte[] byteAddress = { (byte) (intAddress >> 24),
+                               (byte) ((intAddress >> 16)&0xff),
+                               (byte) ((intAddress >> 8)&0xff),
+                               (byte) (intAddress&0xff)
+                             };
+        try {
+            return InetAddress.getByAddress(byteAddress);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("getByAddress on a raw address threw " +
+                                       "an UnknownHostException", e);
+        }
+        // FIXME: Test this!
+    }
 }

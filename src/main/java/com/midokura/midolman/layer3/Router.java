@@ -12,6 +12,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scala.actors.threadpool.Arrays;
+
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
@@ -316,7 +318,7 @@ public class Router {
         return !inNw;
     }
 
-    public void processArpRequest(ARP arpPkt, UUID inPortId) {
+    private void processArpRequest(ARP arpPkt, UUID inPortId) {
         // If the request is for the ingress port's own address, it's for us.
         // Respond with the port's Mac address.
         // If the request is for an IP address which we emulate
@@ -364,7 +366,8 @@ public class Router {
         MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         byte[] tha = arpPkt.getTargetHardwareAddress();
-        if (tpa != portConfig.portAddr || !tha.equals(devPort.getMacAddr()))
+        if (tpa != portConfig.portAddr || 
+                !Arrays.equals(tha, devPort.getMacAddr()))
             return;
 
         // Question: Should we make noise if an ARP reply disagrees with the

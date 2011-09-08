@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
@@ -24,6 +23,8 @@ import com.midokura.midolman.rules.LiteralRule;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
+import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 public class TestRouterDirectory {
 
@@ -41,7 +42,9 @@ public class TestRouterDirectory {
     public void testAddGetDeleteRoutes() throws IOException, KeeperException,
             InterruptedException, ClassNotFoundException {
         UUID rtrId = new UUID(rand.nextLong(), rand.nextLong());
-        rtrDir.addRouter(rtrId);
+        UUID tenantId = new UUID(rand.nextLong(), rand.nextLong());
+        RouterConfig cfg = new RouterConfig("Test Router", tenantId);        
+        rtrDir.addRouter(rtrId, cfg);
         StringBuilder strb = new StringBuilder();
         strb.append(0x0a000100).append(",24,");
         strb.append(0x0a000200).append(",24,");
@@ -77,7 +80,9 @@ public class TestRouterDirectory {
     public void testAddGetDeleteChains() throws IOException, KeeperException,
             InterruptedException, ClassNotFoundException {
         UUID rtrId = new UUID(rand.nextLong(), rand.nextLong());
-        rtrDir.addRouter(rtrId);
+        UUID tenantId = new UUID(rand.nextLong(), rand.nextLong());
+        RouterConfig cfg = new RouterConfig("Test Router", tenantId);
+        rtrDir.addRouter(rtrId, cfg);
         MyWatcher chainsWatcher = new MyWatcher();
         Collection<String> chainNames = rtrDir.getRuleChainNames(rtrId,
                 chainsWatcher);

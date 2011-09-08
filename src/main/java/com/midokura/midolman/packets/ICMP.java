@@ -106,22 +106,26 @@ public class ICMP extends BasePacket {
      */
     @Override
     public byte[] serialize() {
-        ByteBuffer bb = ByteBuffer.allocate(8);
-        
-        bb.putChar(type);
-        bb.putChar(code);
-        bb.putShort(checksum);
-        bb.putInt(quench); // padding. ICMP has an 8-byte header.
-
+        byte[] ipData = null;
         if (TYPE_UNREACH == type) {
-            bb.put(ip.serialize(true));
+            ipData = ip.serialize(true);
         }
+        int length = 8 + ((ipData == null) ? 0 : ipData.length) +
+                ((data == null) ? 0 : ipData.length);
+        ByteBuffer bb = ByteBuffer.allocate(length);
+        bb.put((byte)type);
+        bb.put((byte)code);
+        bb.putShort(checksum);
+        bb.putInt(quench);
+
+        if (null != ipData)
+            bb.put(ipData);
         if (null != data)
             bb.put(data);
 
         // ICMP checksum is calculated on header+data, with checksum=0.
-        if (this.checksum == 0) {
-            this.checksum = IPv4.computeChecksum(bb, bb.position(), 2);
+        if (checksum == 0) {
+            checksum = IPv4.computeChecksum(bb, bb.position(), 2);
             bb.putShort(2, this.checksum);
         }
         return bb.array();
@@ -130,8 +134,8 @@ public class ICMP extends BasePacket {
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
         ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        type = bb.getChar();
-        code = bb.getChar();
+        type = (char)bb.get();
+        code = (char)bb.get();
         checksum = bb.getShort();
         quench = bb.getInt();
         int remainingLength = bb.limit()-bb.position();

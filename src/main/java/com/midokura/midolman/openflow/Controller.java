@@ -20,12 +20,12 @@ public interface Controller {
 
     void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data);
 
-    void onFlowRemoved(OFMatch match, long cookie, short priority, OFFlowRemovedReason reason,
-            int durationSeconds, int durationNanoseconds, short idleTimeout, long packetCount,
+    void onFlowRemoved(OFMatch match, long cookie, short priority,
+            OFFlowRemovedReason reason, int durationSeconds,
+            int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount);
 
     void onPortStatus(OFPhysicalPort port, OFPortReason status);
 
     void onMessage(OFMessage m);
-
 }
