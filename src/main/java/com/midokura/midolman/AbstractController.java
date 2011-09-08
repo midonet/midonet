@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortLocationMap;
 
 public abstract class AbstractController implements Controller {
@@ -35,11 +36,13 @@ public abstract class AbstractController implements Controller {
     // Tunnel management data structures
     protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
+    private OpenvSwitchDatabaseConnection ovsdb;
+
     public AbstractController(
             int datapathId,
             UUID switchUuid,
             int greKey,
-            //ovsdb_connection_factory,
+            OpenvSwitchDatabaseConnection ovsdb,
             PortLocationMap dict,  /* FIXME(jlm): Replace with PortToIntMap, 
 			use addWatcher for port_location_update() callback */
             long flowExpireMinMillis,
@@ -47,6 +50,7 @@ public abstract class AbstractController implements Controller {
             long idleFlowExpireMillis,
             InetAddress internalIp) {
         this.datapathId = datapathId;
+        this.ovsdb = ovsdb;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
@@ -122,5 +126,12 @@ public abstract class AbstractController implements Controller {
                                        "an UnknownHostException", e);
         }
         // FIXME: Test this!
+    }
+
+    protected UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
+        String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
+        if (extId == null)
+            return null;
+        return UUID.fromString(extId);
     }
 }

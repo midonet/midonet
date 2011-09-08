@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.MacPortMap;
@@ -74,9 +75,10 @@ public class BridgeController extends AbstractController {
             PortLocationMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMinMillis, long flowExpireMaxMillis,
             long idleFlowExpireMillis, InetAddress publicIp,
-            long macPortTimeoutMillis) {
-        super(datapathId, switchUuid, greKey, port_loc_map, flowExpireMinMillis,
-              flowExpireMaxMillis, idleFlowExpireMillis, publicIp);
+            long macPortTimeoutMillis, OpenvSwitchDatabaseConnection ovsdb) {
+        super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
+	      flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis,
+              publicIp);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
@@ -189,11 +191,5 @@ public class BridgeController extends AbstractController {
 
     private void invalidateFlowsToPeer(InetAddress peer_ip) {
         // FIXME
-    }
-
-    private UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
-        // String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
-        return new UUID(0, 0);  // FIXME
-        // Should be part of OVS interface.
     }
 }

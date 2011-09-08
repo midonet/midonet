@@ -67,7 +67,6 @@ public class NetworkController extends AbstractController {
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
     private Reactor reactor;
-    private OpenvSwitchDatabaseConnection ovsdb;
     // Remove these once integrated with AbstractController
     Map<Integer, Short> peerIpToPortNum = new HashMap<Integer, Short>();
     Set<Short> tunnelPortNums = new HashSet<Short>();
@@ -78,15 +77,14 @@ public class NetworkController extends AbstractController {
             RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             PortToIntNwAddrMap locMap) {
-        super(datapathId, deviceId, greKey, dict, 0, 0, idleFlowExpireMillis,
-                null);
+        super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
+              idleFlowExpireMillis, null);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor);
         this.reactor = reactor;
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
-        this.ovsdb = ovsdb;
         portIdToUnderlayIp = locMap;
     }
 
@@ -823,9 +821,8 @@ public class NetworkController extends AbstractController {
 
     public void onPortStatusTEMP(OFPhysicalPort port, OFPortReason status) {
         // Get the Midolman UUID from OVSDB.
-        String extId = ovsdb.getPortExternalId(datapathId,
-                port.getPortNumber(), "midonet");
-        if (null == extId) {
+        UUID portId = getPortUuidFromOvsdb(datapathId, port.getPortNumber());
+        if (null == portId) {
             // TODO(pino): It might be a tunnel.
             return;
         }
@@ -845,7 +842,6 @@ public class NetworkController extends AbstractController {
                 }
             }
         } else if (status.equals(OFPortReason.OFPPR_ADD)) {
-            UUID portId = UUID.fromString(extId);
             short portNum = port.getPortNumber();
             // Now get the port configuration from ZooKeeper.
             try {
