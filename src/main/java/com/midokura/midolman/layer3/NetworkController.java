@@ -819,6 +819,53 @@ public class NetworkController extends AbstractController {
 
     }
 
+    private L3DevicePort devPortOfPortDesc(OFPhysicalPort portDesc) {
+        short portNum = portDesc.getPortNumber();
+        L3DevicePort devPort = devPortByNum.get(portNum);
+        if (devPort != null)
+            return devPort;
+
+        // Create a new one.
+        UUID portId = getPortUuidFromOvsdb(datapathId, portNum);
+        try {
+            devPort = new L3DevicePort(portDir, portId, portNum,
+                        portDesc.getHardwareAddress(), super.controllerStub);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        devPortById.put(portId, devPort);
+        devPortByNum.put(portNum, devPort);
+
+        return devPort;
+    }
+
+    @Override
+    protected void addPort(OFPhysicalPort portDesc, short portNum) {
+        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+        try {
+	    network.addPort(devPort);
+        } catch (Exception e) {
+	    e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void deletePort(OFPhysicalPort portDesc) {
+        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+	try {
+            network.removePort(devPort);
+        } catch (Exception e) {
+	    e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void modifyPort(OFPhysicalPort portDesc) {
+        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+	//network.modifyPort(devPort);
+        // FIXME: Call something in network.
+    }
+
     public void onPortStatusTEMP(OFPhysicalPort port, OFPortReason status) {
         // Get the Midolman UUID from OVSDB.
         UUID portId = getPortUuidFromOvsdb(datapathId, port.getPortNumber());
