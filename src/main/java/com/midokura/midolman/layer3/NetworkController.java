@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionDataLayer;
@@ -59,7 +60,7 @@ public class NetworkController extends AbstractController {
     private static final short ICMP_EXPIRY_SECONDS = 5;
     public static final short IDLE_TIMEOUT_SECS = 0;
     private static final short FLOW_PRIORITY = 0;
-    private static final int ICMP_TUNNEL = 0x05;
+    public static final int ICMP_TUNNEL = 0x05;
 
     private PortDirectory portDir;
     Network network;
@@ -608,11 +609,14 @@ public class NetworkController extends AbstractController {
         // generate ICMPs so in this case it isn't needed. Instead we'll encode
         // a special value so the other end of the tunnel can recognize this
         // as a tunneled ICMP.
-        setDlHeadersForTunnel(eth.getDestinationMACAddress(), eth
-                .getSourceMACAddress(), ICMP_TUNNEL, PortDirectory
+        setDlHeadersForTunnel(eth.getSourceMACAddress(), eth
+                .getDestinationMACAddress(), ICMP_TUNNEL, PortDirectory
                 .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
-        short tunNum = 0; // TODO: implement getTunPortNum(peerAddr);
-        if (-1 == tunNum) {
+        Integer peerAddr = portIdToUnderlayIp.get(fwdInfo.outPortId);
+        Short tunNum = null;
+        if (null != peerAddr)
+            tunNum = peerIpToPortNum.get(peerAddr);
+        if (null == tunNum) {
             log.warn("Dropping ICMP error message. Can't find tunnel to peer"
                     + "port.");
             return;
@@ -697,7 +701,7 @@ public class NetworkController extends AbstractController {
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(action);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
-                (short) 0 /* TODO */, actions, ethPkt.serialize());
+                OFPort.OFPP_CONTROLLER.getValue(), actions, ethPkt.serialize());
     }
 
     /**
@@ -817,8 +821,7 @@ public class NetworkController extends AbstractController {
 
     }
 
-    @Override
-    public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
+    public void onPortStatusTEMP(OFPhysicalPort port, OFPortReason status) {
         // Get the Midolman UUID from OVSDB.
         String extId = ovsdb.getPortExternalId(datapathId,
                 port.getPortNumber(), "midonet");
