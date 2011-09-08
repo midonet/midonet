@@ -76,5 +76,8 @@ public class ZkConnection implements Watcher {
     public Directory getRootDirectory() {
         return new ZkDirectory(this.zk, "", null);
     }
-
+    
+    public ZooKeeper getZooKeeper() {
+        return this.zk;
+    }
 }

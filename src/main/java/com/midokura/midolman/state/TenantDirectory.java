@@ -6,16 +6,13 @@
 package com.midokura.midolman.state;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
@@ -47,7 +44,7 @@ public class TenantDirectory {
         /**
          * Arbitrary name given to tenants.  Does not check for uniqueness.
          */
-        public String name;
+        public String name; 
     }
     
     Directory dir;
@@ -61,14 +58,6 @@ public class TenantDirectory {
         this.dir = dir;
     }
 
-    private byte[] tenantToBytes(TenantConfig tenant) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(tenant);
-        out.close();
-        return bos.toByteArray();
-    }    
-
     private TenantConfig bytesToTenant(byte[] data)
             throws IOException, ClassNotFoundException, KeeperException,
                 InterruptedException {
@@ -76,26 +65,6 @@ public class TenantDirectory {
         ObjectInputStream in = new ObjectInputStream(bis);
         TenantConfig tenant = (TenantConfig) in.readObject();
         return tenant;
-    }
-    
-    /**
-     * Add a new tenant entry in the Zookeeper directory.
-     * 
-     * @param id  Tenant UUID
-     * @param tenant  TenantConfig object to store tenant data.
-     * @throws KeeperException  General Zookeeper exception.
-     * @throws InterruptedException  Unresponsive thread getting
-     * interrupted by another thread.
-     * @throws IOException  Error while converting TenantConfig to bytes.
-     */
-    public void addTenant(UUID id, TenantConfig tenant) 
-        throws KeeperException, InterruptedException, IOException {
-        // Perform atomic insert.
-        // Add Routers child node.
-        byte[] data = tenantToBytes(tenant);
-        String path = "/" + id.toString();
-        dir.add(path, data, CreateMode.PERSISTENT);
-        dir.add(path + "/routers", null, CreateMode.PERSISTENT);
     }
     
     /**
