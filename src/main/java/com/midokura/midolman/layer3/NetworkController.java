@@ -44,10 +44,306 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.PortLocationMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.util.Callback;
 
 public class NetworkController extends AbstractController {
+
+    private static final Logger log = LoggerFactory
+            .getLogger(NetworkController.class);
+
+    // TODO(pino): This constant should be declared in openflow...
+    private static final short OFP_FLOW_PERMANENT = 0;
+    private static final short TUNNEL_EXPIRY_SECONDS = 5;
+    private static final short ICMP_EXPIRY_SECONDS = 5;
+    public static final short IDLE_TIMEOUT_SECS = 0;
+    private static final short FLOW_PRIORITY = 0;
+    private static final int ICMP_TUNNEL = 0x05;
+
+    private PortDirectory portDir;
+    Network network;
+    private Map<UUID, L3DevicePort> devPortById;
+    private Map<Short, L3DevicePort> devPortByNum;
+    private Reactor reactor;
+    private OpenvSwitchDatabaseConnection ovsdb;
+    // Remove these once integrated with AbstractController
+    Map<Integer, Short> peerIpToPortNum = new HashMap<Integer, Short>();
+    Set<Short> tunnelPortNums = new HashSet<Short>();
+    PortToIntNwAddrMap portIdToUnderlayIp;
+
+    public NetworkController(int datapathId, UUID deviceId, int greKey,
+            PortLocationMap dict, long idleFlowExpireMillis, int localNwAddr,
+            RouterDirectory routerDir, PortDirectory portDir,
+            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
+            PortToIntNwAddrMap locMap) {
+        super(datapathId, deviceId, greKey, dict, 0, 0, idleFlowExpireMillis,
+                null);
+        // TODO Auto-generated constructor stub
+        this.portDir = portDir;
+        this.network = new Network(deviceId, routerDir, portDir, reactor);
+        this.reactor = reactor;
+        this.devPortById = new HashMap<UUID, L3DevicePort>();
+        this.devPortByNum = new HashMap<Short, L3DevicePort>();
+        this.ovsdb = ovsdb;
+        portIdToUnderlayIp = locMap;
+    }
+
+    @Override
+    public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+        MidoMatch match = new MidoMatch();
+        match.loadFromPacket(data, inPort);
+        L3DevicePort devPortOut;
+        if (tunnelPortNums.contains(inPort)) {
+            // TODO: Check for multicast packets we generated ourself for a
+            // group we're in, and drop them.
+
+            // TODO: Check for the broadcast address, and if so use the
+            // broadcast
+            // ethernet address for the dst MAC.
+            // We can check the broadcast address by looking up the gateway in
+            // Zookeeper to get the prefix length of its network.
+
+            // TODO: Do address spoofing prevention: if the source
+            // address doesn't match the vport's, drop the flow.
+
+            // Extract the gateway IP and vport uuid.
+            DecodedMacAddrs portsAndGw = decodeMacAddrs(match
+                    .getDataLayerSource(), match.getDataLayerDestination());
+            // If we don't own the egress port, there was a forwarding mistake.
+            devPortOut = devPortById.get(portsAndGw.lastEgressPortId);
+            if (null == devPortOut) {
+                // TODO: raise an exception or install a Blackhole?
+                return;
+            }
+            TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
+                    totalLen, inPort, data, match, portsAndGw);
+            network.getMacForIp(portsAndGw.lastEgressPortId,
+                    portsAndGw.gatewayNwAddr, cb);
+            // The ARP will be completed asynchronously by the callback.
+            return;
+        }
+
+        // Else it's a packet from a materialized port.
+        L3DevicePort devPortIn = devPortByNum.get(inPort);
+        if (null == devPortIn) {
+            // drop packets entering on ports that we don't recognize.
+            // TODO: free the buffer.
+            return;
+        }
+        Ethernet ethPkt = new Ethernet();
+        ethPkt.deserialize(data, 0, data.length);
+        // Drop the packet if it's not addressed to an L2 mcast address or
+        // the ingress port's own address.
+        // TODO(pino): check this with Jacob.
+        if (!Arrays.equals(ethPkt.getDestinationMACAddress(), devPortIn
+                .getMacAddr())
+                && !ethPkt.isMcast()) {
+            installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
+            return;
+        }
+        ForwardInfo fwdInfo = new ForwardInfo();
+        fwdInfo.inPortId = devPortIn.getId();
+        fwdInfo.matchIn = match.clone();
+        fwdInfo.pktIn = ethPkt;
+        Set<UUID> routers = new HashSet<UUID>();
+        try {
+            network.process(fwdInfo, routers);
+        } catch (Exception e) {
+            return;
+        }
+        boolean useWildcards = false; // TODO(pino): replace with real config.
+
+        MidoMatch flowMatch;
+        switch (fwdInfo.action) {
+        case BLACKHOLE:
+            // TODO(pino): the following wildcarding seems too aggressive.
+            // If wildcards are enabled, wildcard everything but nw_src and
+            // nw_dst.
+            // This is meant to protect against DOS attacks by preventing ipc's
+            // to
+            // the Openfaucet controller if mac addresses or tcp ports are
+            // cycled.
+            if (useWildcards)
+                flowMatch = makeWildcarded(match);
+            else
+                flowMatch = match;
+            installBlackhole(flowMatch, bufferId, OFP_FLOW_PERMANENT);
+            notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
+                    routers);
+            return;
+        case CONSUMED:
+            freeBuffer(bufferId);
+            return;
+        case FORWARD:
+            // If the egress port is local, ARP and forward the packet.
+            devPortOut = devPortById.get(fwdInfo.outPortId);
+            if (null != devPortOut) {
+                LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
+                        totalLen, devPortIn, data, match, fwdInfo, ethPkt,
+                        routers);
+                network.getMacForIp(fwdInfo.outPortId, fwdInfo.gatewayNwAddr,
+                        cb);
+            } else { // devPortOut is null; the egress port is remote.
+                Short tunPortNum = null;
+                Integer peerAddr = portIdToUnderlayIp.get(fwdInfo.outPortId);
+                if (null != peerAddr)
+                     tunPortNum = peerIpToPortNum.get(peerAddr);
+                if (null == tunPortNum) {
+                    log.warn("Could not find location or tunnel port number "
+                            + "for Id " + fwdInfo.outPortId.toString());
+                    installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+                    // TODO: check whether this is the right error code (host?).
+                    sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
+                            devPortIn.getId(), ethPkt, fwdInfo.inPortId,
+                            fwdInfo.pktIn, fwdInfo.outPortId);
+                    return;
+                }
+                byte[] dlSrc = new byte[6];
+                byte[] dlDst = new byte[6];
+                setDlHeadersForTunnel(dlSrc, dlDst, PortDirectory
+                        .UUID32toInt(fwdInfo.inPortId), PortDirectory
+                        .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
+                fwdInfo.matchOut.setDataLayerSource(dlSrc);
+                fwdInfo.matchOut.setDataLayerDestination(dlDst);
+                List<OFAction> ofActions = makeActionsForFlow(match,
+                        fwdInfo.matchOut, tunPortNum);
+                // TODO(pino): should we do any wildcarding here?
+                // TODO(pino): choose the correct hard and idle timeouts.
+                addFlowAndSendPacket(bufferId, match, OFP_FLOW_PERMANENT,
+                        IDLE_TIMEOUT_SECS, true, ofActions, inPort, data);
+            }
+            return;
+        case NOT_IPV4:
+            // If wildcards are enabled, wildcard everything but dl_type. One
+            // rule per ethernet protocol type catches all non-IPv4 flows.
+            if (useWildcards) {
+                short dlType = match.getDataLayerType();
+                match = new MidoMatch();
+                match.setDataLayerType(dlType);
+            }
+            installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
+            return;
+        case NO_ROUTE:
+            // Intentionally use an exact match for this drop rule.
+            // TODO(pino): wildcard the L2 fields.
+            installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+            // Send an ICMP
+            sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
+                    .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
+                    fwdInfo.outPortId);
+            // This rule is temporary, don't notify the flow checker.
+            return;
+        case REJECT:
+            // Intentionally use an exact match for this drop rule.
+            installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+            // Send an ICMP
+            sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
+                    devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
+                    fwdInfo.outPortId);
+            // This rule is temporary, don't notify the flow checker.
+            return;
+        default:
+            throw new RuntimeException("Unrecognized forwarding Action type.");
+        }
+    }
+
+    private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
+            MidoMatch newMatch, short outPortNum) {
+        // Create OF actions for fields that changed from original to last
+        // match.
+        List<OFAction> actions = new ArrayList<OFAction>();
+        OFAction action = null;
+        if (!Arrays.equals(origMatch.getDataLayerSource(), newMatch
+                .getDataLayerSource())) {
+            action = new OFActionDataLayerSource();
+            ((OFActionDataLayer) action).setDataLayerAddress(newMatch
+                    .getDataLayerSource());
+            actions.add(action);
+        }
+        if (!Arrays.equals(origMatch.getDataLayerDestination(), newMatch
+                .getDataLayerDestination())) {
+            action = new OFActionDataLayerDestination();
+            ((OFActionDataLayer) action).setDataLayerAddress(newMatch
+                    .getDataLayerDestination());
+            actions.add(action);
+        }
+        if (origMatch.getNetworkSource() != newMatch.getNetworkSource()) {
+            action = new OFActionNetworkLayerSource();
+            ((OFActionNetworkLayerAddress) action).setNetworkAddress(newMatch
+                    .getNetworkSource());
+            actions.add(action);
+        }
+        if (origMatch.getNetworkDestination() != newMatch
+                .getNetworkDestination()) {
+            action = new OFActionNetworkLayerDestination();
+            ((OFActionNetworkLayerAddress) action).setNetworkAddress(newMatch
+                    .getNetworkDestination());
+            actions.add(action);
+        }
+        if (origMatch.getTransportSource() != newMatch.getTransportSource()) {
+            action = new OFActionTransportLayerSource();
+            ((OFActionTransportLayer) action).setTransportPort(newMatch
+                    .getTransportSource());
+            actions.add(action);
+        }
+        if (origMatch.getTransportDestination() != newMatch
+                .getTransportDestination()) {
+            action = new OFActionTransportLayerDestination();
+            ((OFActionTransportLayer) action).setTransportPort(newMatch
+                    .getTransportDestination());
+            actions.add(action);
+        }
+        action = new OFActionOutput(outPortNum, (short) 0);
+        actions.add(action);
+        return actions;
+    }
+
+    private MidoMatch makeWildcardedFromTunnel(MidoMatch m1) {
+        // TODO Auto-generated method stub
+        return m1;
+    }
+
+    public static void setDlHeadersForTunnel(byte[] dlSrc, byte[] dlDst,
+            int lastInPortId, int lastEgPortId, int gwNwAddr) {
+        // Set the data layer source and destination:
+        // The ingress port is used as the high 32 bits of the source mac.
+        // The egress port is used as the low 32 bits of the dst mac.
+        // The high 16 bits of the gwNwAddr are the low 16 bits of the src mac.
+        // The low 16 bits of the gwNwAddr are the high 16 bits of the dst mac.
+        for (int i = 0; i < 4; i++)
+            dlSrc[i] = (byte) (lastInPortId >> (3 - i) * 8);
+        dlSrc[4] = (byte) (gwNwAddr >> 24);
+        dlSrc[5] = (byte) (gwNwAddr >> 16);
+        dlDst[0] = (byte) (gwNwAddr >> 8);
+        dlDst[1] = (byte) (gwNwAddr);
+        for (int i = 2; i < 6; i++)
+            dlDst[i] = (byte) (lastEgPortId >> (5 - i) * 8);
+    }
+
+    public static class DecodedMacAddrs {
+        UUID lastIngressPortId;
+        UUID lastEgressPortId;
+        int gatewayNwAddr;
+    }
+
+    public static DecodedMacAddrs decodeMacAddrs(final byte[] src,
+            final byte[] dst) {
+        DecodedMacAddrs result = new DecodedMacAddrs();
+        int port32BitId = 0;
+        for (int i = 0; i < 4; i++)
+            port32BitId |= src[i] << (3 - i) * 8;
+        result.lastIngressPortId = PortDirectory.intTo32BitUUID(port32BitId);
+        result.gatewayNwAddr = src[4] << 24;
+        result.gatewayNwAddr |= src[5] << 16;
+        result.gatewayNwAddr |= dst[0] << 8;
+        result.gatewayNwAddr |= dst[1];
+        port32BitId = 0;
+        for (int i = 2; i < 6; i++)
+            port32BitId |= dst[i] << (5 - i) * 8;
+        result.lastEgressPortId = PortDirectory.intTo32BitUUID(port32BitId);
+        return result;
+    }
 
     private class TunneledPktArpCallback implements Callback<byte[]> {
         public TunneledPktArpCallback(int bufferId, int totalLen, short inPort,
@@ -185,310 +481,6 @@ public class NetworkController extends AbstractController {
             notifyFlowAdded(match, fwdInfo.matchOut, inPort.getId(), fwdInfo,
                     traversedRouters);
         }
-    }
-
-    private static final Logger log = LoggerFactory
-            .getLogger(NetworkController.class);
-
-    // TODO(pino): This constant should be declared in openflow...
-    private static final short OFP_FLOW_PERMANENT = 0;
-    private static final short TUNNEL_EXPIRY_SECONDS = 5;
-    private static final short ICMP_EXPIRY_SECONDS = 5;
-    public static final short IDLE_TIMEOUT_SECS = 0;
-    private static final short FLOW_PRIORITY = 0;
-    private static final int ICMP_TUNNEL = 0x05;
-
-    private PortDirectory portDir;
-    Network network;
-    private Map<UUID, L3DevicePort> devPortById;
-    private Map<Short, L3DevicePort> devPortByNum;
-    private Reactor reactor;
-    private OpenvSwitchDatabaseConnection ovsdb;
-
-    public NetworkController(int datapathId, UUID deviceId, int greKey,
-            PortLocationMap dict, long idleFlowExpireMillis, int localNwAddr,
-            RouterDirectory routerDir, PortDirectory portDir,
-            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor) {
-        super(datapathId, deviceId, greKey, dict, 0, 0, idleFlowExpireMillis,
-                null);
-        // TODO Auto-generated constructor stub
-        this.portDir = portDir;
-        this.network = new Network(deviceId, routerDir, portDir, reactor);
-        this.reactor = reactor;
-        this.devPortById = new HashMap<UUID, L3DevicePort>();
-        this.devPortByNum = new HashMap<Short, L3DevicePort>();
-        this.ovsdb = ovsdb;
-    }
-
-    @Override
-    public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, inPort);
-        boolean portIsTunnel = false; // TODO: call super.portIsTunnel(inPort);
-        L3DevicePort devPortOut;
-        if (portIsTunnel) {
-            // TODO: Check for multicast packets we generated ourself for a
-            // group
-            // we're in, and drop them.
-
-            // TODO: Check for the broadcast address, and if so use the
-            // broadcast
-            // ethernet address for the dst MAC.
-            // We can check the broadcast address by looking up the gateway in
-            // Zookeeper to get the prefix length of its network.
-
-            // TODO: Do address spoofing prevention: if the source
-            // address doesn't match the vport's, drop the flow.
-
-            // Extract the gateway IP and vport uuid.
-            DecodedMacAddrs portsAndGw = decodeMacAddrs(match
-                    .getDataLayerSource(), match.getDataLayerDestination());
-            // If we don't own the egress port, there was a forwarding mistake.
-            devPortOut = devPortById.get(portsAndGw.lastEgressPortId);
-            if (null == devPortOut) {
-                // TODO: raise an exception or install a Blackhole?
-                return;
-            }
-            TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
-                    totalLen, inPort, data, match, portsAndGw);
-            network.getMacForIp(portsAndGw.lastEgressPortId,
-                    portsAndGw.gatewayNwAddr, cb);
-            // The ARP will be completed asynchronously by the callback.
-            return;
-        }
-
-        // Else it's a packet from a materialized port.
-        L3DevicePort devPortIn = devPortByNum.get(inPort);
-        if (null == devPortIn) {
-            // drop packets entering on ports that we don't recognize.
-            // TODO: free the buffer.
-            return;
-        }
-        Ethernet ethPkt = new Ethernet();
-        ethPkt.deserialize(data, 0, data.length);
-        // Drop the packet if it's not addressed to an L2 mcast address or
-        // the ingress port's own address.
-        // TODO(pino): check this with Jacob.
-        if (!Arrays.equals(ethPkt.getDestinationMACAddress(), devPortIn
-                .getMacAddr())
-                && !ethPkt.isMcast()) {
-            installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
-            return;
-        }
-        ForwardInfo fwdInfo = new ForwardInfo();
-        fwdInfo.inPortId = devPortIn.getId();
-        fwdInfo.matchIn = match.clone();
-        fwdInfo.pktIn = ethPkt;
-        Set<UUID> routers = new HashSet<UUID>();
-        try {
-            network.process(fwdInfo, routers);
-        } catch (Exception e) {
-            return;
-        }
-        boolean useWildcards = false; // TODO(pino): replace with real config.
-
-        MidoMatch flowMatch;
-        switch (fwdInfo.action) {
-        case BLACKHOLE:
-            // TODO(pino): the following wildcarding seems too aggressive.
-            // If wildcards are enabled, wildcard everything but nw_src and
-            // nw_dst.
-            // This is meant to protect against DOS attacks by preventing ipc's
-            // to
-            // the Openfaucet controller if mac addresses or tcp ports are
-            // cycled.
-            if (useWildcards)
-                flowMatch = makeWildcarded(match);
-            else
-                flowMatch = match;
-            installBlackhole(flowMatch, bufferId, OFP_FLOW_PERMANENT);
-            notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
-                    routers);
-            return;
-        case CONSUMED:
-            freeBuffer(bufferId);
-            return;
-        case FORWARD:
-            // If the egress port is local, ARP and forward the packet.
-            devPortOut = devPortById.get(fwdInfo.outPortId);
-            if (null != devPortOut) {
-                LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
-                        totalLen, devPortIn, data, match, fwdInfo, ethPkt,
-                        routers);
-                network.getMacForIp(fwdInfo.outPortId, fwdInfo.gatewayNwAddr,
-                        cb);
-            } else { // devPortOut is null; the egress port is remote.
-                int peerAddr = 0; // TODO: get from
-                                  // PortLocationMap(lastEgPortId)
-                short tunPortNum = 0; // TODO: implement
-                                      // getTunPortNum(peerAddr);
-                try {
-                    peerAddr = getPortLocation(fwdInfo.outPortId);
-                    tunPortNum = getTunPortNum(peerAddr);
-                } catch (Exception e) {
-                    log.warn("Could not find location or tunnel port number "
-                            + "for Id " + fwdInfo.outPortId.toString());
-                    installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
-                    // TODO: check whether this is the right error code (host?).
-                    sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
-                            devPortIn.getId(), ethPkt, fwdInfo.inPortId,
-                            fwdInfo.pktIn, fwdInfo.outPortId);
-                    return;
-                }
-                byte[] dlSrc = new byte[6];
-                byte[] dlDst = new byte[6];
-                setDlHeadersForTunnel(dlSrc, dlDst, PortDirectory
-                        .UUID32toInt(fwdInfo.inPortId), PortDirectory
-                        .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
-                fwdInfo.matchOut.setDataLayerSource(dlSrc);
-                fwdInfo.matchOut.setDataLayerDestination(dlDst);
-                List<OFAction> ofActions = makeActionsForFlow(match,
-                        fwdInfo.matchOut, tunPortNum);
-                // TODO(pino): should we do any wildcarding here?
-                // TODO(pino): choose the correct hard and idle timeouts.
-                addFlowAndSendPacket(bufferId, match, OFP_FLOW_PERMANENT,
-                        IDLE_TIMEOUT_SECS, true, ofActions, inPort, data);
-            }
-            return;
-        case NOT_IPV4:
-            // If wildcards are enabled, wildcard everything but dl_type. One
-            // rule per ethernet protocol type catches all non-IPv4 flows.
-            if (useWildcards) {
-                short dlType = match.getDataLayerType();
-                match = new MidoMatch();
-                match.setDataLayerType(dlType);
-            }
-            installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
-            return;
-        case NO_ROUTE:
-            // Intentionally use an exact match for this drop rule.
-            // TODO(pino): wildcard the L2 fields.
-            installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
-            // Send an ICMP
-            sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
-                    .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-                    fwdInfo.outPortId);
-            // This rule is temporary, don't notify the flow checker.
-            return;
-        case REJECT:
-            // Intentionally use an exact match for this drop rule.
-            installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
-            // Send an ICMP
-            sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
-                    devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-                    fwdInfo.outPortId);
-            // This rule is temporary, don't notify the flow checker.
-            return;
-        default:
-            throw new RuntimeException("Unrecognized forwarding Action type.");
-        }
-    }
-
-    private int getPortLocation(UUID outPortId) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    private short getTunPortNum(int peerAddr) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
-            MidoMatch newMatch, short outPortNum) {
-        // Create OF actions for fields that changed from original to last
-        // match.
-        List<OFAction> actions = new ArrayList<OFAction>();
-        OFAction action = null;
-        if (!Arrays.equals(origMatch.getDataLayerSource(), newMatch
-                .getDataLayerSource())) {
-            action = new OFActionDataLayerSource();
-            ((OFActionDataLayer) action).setDataLayerAddress(newMatch
-                    .getDataLayerSource());
-            actions.add(action);
-        }
-        if (!Arrays.equals(origMatch.getDataLayerDestination(), newMatch
-                .getDataLayerDestination())) {
-            action = new OFActionDataLayerDestination();
-            ((OFActionDataLayer) action).setDataLayerAddress(newMatch
-                    .getDataLayerDestination());
-            actions.add(action);
-        }
-        if (origMatch.getNetworkSource() != newMatch.getNetworkSource()) {
-            action = new OFActionNetworkLayerSource();
-            ((OFActionNetworkLayerAddress) action).setNetworkAddress(newMatch
-                    .getNetworkSource());
-            actions.add(action);
-        }
-        if (origMatch.getNetworkDestination() != newMatch
-                .getNetworkDestination()) {
-            action = new OFActionNetworkLayerDestination();
-            ((OFActionNetworkLayerAddress) action).setNetworkAddress(newMatch
-                    .getNetworkDestination());
-            actions.add(action);
-        }
-        if (origMatch.getTransportSource() != newMatch.getTransportSource()) {
-            action = new OFActionTransportLayerSource();
-            ((OFActionTransportLayer) action).setTransportPort(newMatch
-                    .getTransportSource());
-            actions.add(action);
-        }
-        if (origMatch.getTransportDestination() != newMatch
-                .getTransportDestination()) {
-            action = new OFActionTransportLayerDestination();
-            ((OFActionTransportLayer) action).setTransportPort(newMatch
-                    .getTransportDestination());
-            actions.add(action);
-        }
-        action = new OFActionOutput(outPortNum, (short) 0);
-        actions.add(action);
-        return actions;
-    }
-
-    private MidoMatch makeWildcardedFromTunnel(MidoMatch m1) {
-        // TODO Auto-generated method stub
-        return m1;
-    }
-
-    public static void setDlHeadersForTunnel(byte[] dlSrc, byte[] dlDst,
-            int lastInPortId, int lastEgPortId, int gwNwAddr) {
-        // Set the data layer source and destination:
-        // The ingress port is used as the high 32 bits of the source mac.
-        // The egress port is used as the low 32 bits of the dst mac.
-        // The high 16 bits of the gwNwAddr are the low 16 bits of the src mac.
-        // The low 16 bits of the gwNwAddr are the high 16 bits of the dst mac.
-        for (int i = 0; i < 4; i++)
-            dlSrc[i] = (byte) (lastInPortId >> (3 - i) * 8);
-        dlSrc[4] = (byte) (gwNwAddr >> 24);
-        dlSrc[5] = (byte) (gwNwAddr >> 16);
-        dlDst[0] = (byte) (gwNwAddr >> 8);
-        dlDst[1] = (byte) (gwNwAddr);
-        for (int i = 2; i < 6; i++)
-            dlDst[i] = (byte) (lastEgPortId >> (5 - i) * 8);
-    }
-
-    public static class DecodedMacAddrs {
-        UUID lastIngressPortId;
-        UUID lastEgressPortId;
-        int gatewayNwAddr;
-    }
-
-    public static DecodedMacAddrs decodeMacAddrs(final byte[] src,
-            final byte[] dst) {
-        DecodedMacAddrs result = new DecodedMacAddrs();
-        int port32BitId = 0;
-        for (int i = 0; i < 4; i++)
-            port32BitId |= src[i] << (3 - i) * 8;
-        result.lastIngressPortId = PortDirectory.intTo32BitUUID(port32BitId);
-        result.gatewayNwAddr = src[4] << 24;
-        result.gatewayNwAddr |= src[5] << 16;
-        result.gatewayNwAddr |= dst[0] << 8;
-        result.gatewayNwAddr |= dst[1];
-        port32BitId = 0;
-        for (int i = 2; i < 6; i++)
-            port32BitId |= dst[i] << (5 - i) * 8;
-        result.lastEgressPortId = PortDirectory.intTo32BitUUID(port32BitId);
-        return result;
     }
 
     /**
@@ -835,6 +827,9 @@ public class NetworkController extends AbstractController {
             return;
         }
         L3DevicePort devPort = null;
+        // TODO(pino): need to look at both port.getState() and port.getConfig()
+        // in order to figure out whether the port really is up/down for our
+        // purposes.
         if (status.equals(OFPortReason.OFPPR_DELETE)) {
             // TODO(pino): handle the case of a tunnel port.
             devPort = devPortByNum.remove(port.getPortNumber());

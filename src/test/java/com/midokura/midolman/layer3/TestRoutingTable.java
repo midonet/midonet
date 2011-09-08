@@ -16,7 +16,7 @@ public class TestRoutingTable {
 
     @Test
     public void testFindMSB() {
-        Assert.assertEquals(-1, RoutingTable.findMSB(0));
+        Assert.assertEquals(32, RoutingTable.findMSB(0));
         Assert.assertEquals(31, RoutingTable.findMSB(0x01));
         Assert.assertEquals(28, RoutingTable.findMSB(0x0a));
         Assert.assertEquals(24, RoutingTable.findMSB(0xc3));
