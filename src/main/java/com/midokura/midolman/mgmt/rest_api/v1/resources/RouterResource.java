@@ -5,9 +5,12 @@
  */
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
+import java.net.URI;
 import java.util.UUID;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -48,4 +51,74 @@ public class RouterResource extends RestResource {
         }
         return router;
     }
+
+    /**
+     * Sub-resource class for tenant's virtual router.
+     */
+    public static class TenantRouterResource extends RestResource {
+        
+        private UUID tenantId = null;
+        
+        /**
+         * Default constructor.
+         * 
+         * @param   zkConn  Zookeeper connection string.
+         * @param   tenantId  UUID of a tenant.
+         */
+        public TenantRouterResource(String zkConn, UUID tenantId) {
+            this.zookeeperConn = zkConn;
+            this.tenantId = tenantId;        
+        }
+        
+        /**
+         * Return a list of routers.
+         * 
+         * @return  A list of Router objects.
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Router[] list() {
+            RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+            Router[] routers = null;
+            try {
+                routers = dao.list(tenantId);
+            } catch (Exception ex) {
+                // TODO: LOG
+                System.err.println("Exception = " + ex.getMessage());
+                throw new WebApplicationException(
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.APPLICATION_JSON).build());           
+            }
+            return routers;
+        }
+        
+        /**
+         * Handler for create router API call.
+         * 
+         * @param   router  Router object mapped to the request input.
+         * @returns Response object with 201 status code set if successful.
+         */
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response create(Router router) {
+            // Add a new router entry into zookeeper.
+            if(router.getId() == null) {
+                router.setId(UUID.randomUUID());
+            }
+            router.setTenantId(tenantId);
+            RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+            try {
+                dao.create(router);
+            } catch (Exception ex) {
+                // TODO: LOG
+                System.err.println("Exception = " + ex.getMessage());
+                throw new WebApplicationException(
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.APPLICATION_JSON).build());
+            }
+            
+            return Response.created(URI.create("/" + router.getId())).build();
+        }        
+    }    
 }

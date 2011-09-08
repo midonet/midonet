@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response;
 
 import com.midokura.midolman.mgmt.data.Tenant;
 import com.midokura.midolman.mgmt.data.TenantDataAccessor;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
 
 /**
  * Root resource class for tenants.
