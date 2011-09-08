@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionDataLayerDestination;
@@ -29,6 +30,8 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
@@ -146,7 +149,7 @@ public class TestNetworkController {
                     phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
                             (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
                             (byte) portNum });
-                    networkCtrl.onPortStatus(phyPort,
+                    networkCtrl.onPortStatusTEMP(phyPort,
                             OFPortStatus.OFPortReason.OFPPR_ADD);
                     phyPorts.add(phyPort);
                 } else {
@@ -534,14 +537,105 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 4444, true, actions);
     }
 
+    public static void checkICMP(char type, char code, IPv4 triggerIPPkt,
+            byte[] dlSrc, byte[] dlDst, int nwSrc, int nwDst, byte[] icmpData){
+        Ethernet eth = new Ethernet();
+        eth.deserialize(icmpData,  0, icmpData.length);
+        Assert.assertTrue(Arrays.equals(dlSrc, eth.getSourceMACAddress()));
+        Assert.assertTrue(Arrays.equals(dlDst, eth.getDestinationMACAddress()));
+        Assert.assertEquals(IPv4.ETHERTYPE, eth.getEtherType());
+        IPv4 ip = IPv4.class.cast(eth.getPayload());
+        Assert.assertEquals(nwSrc,  ip.getSourceAddress());
+        Assert.assertEquals(nwDst,  ip.getDestinationAddress());
+        Assert.assertEquals(ICMP.PROTOCOL_NUMBER, ip.getProtocol());
+        ICMP icmp = ICMP.class.cast(ip.getPayload());
+        Assert.assertEquals(type, icmp.getType());
+        Assert.assertEquals(code, icmp.getCode());
+        Assert.assertTrue(Arrays.equals(triggerIPPkt.serialize(true),
+                icmp.getIp().serialize(true)));
+        byte[] expInnerData = triggerIPPkt.getPayload().serialize();
+        expInnerData = Arrays.copyOf(expInnerData, 8);
+        //Assert.assertTrue(Arrays.equals(expInnerData, icmp.getData()));
+    }
+
     @Test
     public void testPacketFromTunnelArpTimeout() {
-        
+        // Send a packet into the tunnel port corresponding to router2's
+        // second port and destined for router2's first port.
+        byte[] dlSrc = new byte[6];
+        byte[] dlDst = new byte[6];
+        short inPortNum = 21;
+        short outPortNum = 20;
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, inPortNum,
+                outPortNum, 0x0a020011);
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        Ethernet eth = TestRouter.makeUDP(dlSrc, dlDst, 0x0a020133, 0x0a020011,
+                (short) 101, (short) 212, payload);
+        byte[] data = eth.serialize();
+        networkCtrl.onPacketIn(32331, data.length, inPortNum, data);
+        // The router will have to ARP, so no flows installed yet, but one
+        // unbuffered packet should have been emitted.
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        byte[] arpData = TestRouter.makeArpRequest(
+                phyPortOut.getHardwareAddress(), 0x0a020001, 0x0a020011)
+                .serialize();
+        Assert.assertArrayEquals(arpData, pkt.data);
+        // If we let 10 seconds go by without an ARP reply, another request
+        // will have been emitted.
+        reactor.incrementTime(Router.ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(1, pkt.actions.size());
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertArrayEquals(arpData, pkt.data);
+        // If we let another 50 seconds go by another ARP request will have
+        // been emitted, but also an ICMP !H and a 'drop' flow installed.
+        reactor.incrementTime(Router.ARP_TIMEOUT_MILLIS
+                - Router.ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(2);
+        Assert.assertEquals(1, pkt.actions.size());
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertArrayEquals(arpData, pkt.data);
+        // Now check the ICMP.
+        pkt = controllerStub.sentPackets.get(3);
+        Assert.assertEquals(1, pkt.actions.size());
+        ofAction = new OFActionOutput(inPortNum, (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        dlSrc = new byte[6];
+        dlDst = new byte[6];
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst,
+                NetworkController.ICMP_TUNNEL, 21, 0x0a020133);
+        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
+                IPv4.class.cast(eth.getPayload()), dlSrc, dlDst, 0x0a020101,
+                0x0a020133, pkt.data);
+        // Now check the Drop Flow.
+        MidoMatch match = new MidoMatch();
+        match.loadFromPacket(data, inPortNum);
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                NetworkController.IDLE_TIMEOUT_SECS, 32331, true,
+                new ArrayList<OFAction>());
     }
 
     @Test
     public void testLocalPacketArpTimeout() {
-        
+
     }
 
 }

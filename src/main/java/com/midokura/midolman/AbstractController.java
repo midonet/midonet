@@ -71,6 +71,11 @@ public abstract class AbstractController implements Controller {
                                     byte[] data);
 
     @Override
+    public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
+        // FIXME(jlm): implement this.
+    }
+
+    @Override
     public abstract void onFlowRemoved(OFMatch match, long cookie,
             short priority, OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
