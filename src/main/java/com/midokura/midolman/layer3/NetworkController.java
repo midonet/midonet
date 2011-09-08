@@ -857,6 +857,8 @@ public class NetworkController extends AbstractController {
         } catch (Exception e) {
 	    e.printStackTrace();
         }
+        devPortById.remove(devPort.getId());
+        devPortByNum.remove(portDesc.getPortNumber());
     }
 
     @Override
@@ -879,15 +881,7 @@ public class NetworkController extends AbstractController {
         // purposes.
         if (status.equals(OFPortReason.OFPPR_DELETE)) {
             // TODO(pino): handle the case of a tunnel port.
-            devPort = devPortByNum.remove(port.getPortNumber());
-            if (null != devPort) {
-                devPortById.remove(devPort.getId());
-                try {
-                    network.removePort(devPort);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+	    deletePort(port);
         } else if (status.equals(OFPortReason.OFPPR_ADD)) {
             short portNum = port.getPortNumber();
             addPort(port, portNum);
