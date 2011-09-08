@@ -5,10 +5,9 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,14 +41,6 @@ public class RouterZkManager {
         this.zk = zk;
     }
     
-    private static byte[] routerToBytes(RouterConfig tenant) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(tenant);
-        out.close();
-        return bos.toByteArray();
-    }   
-    
     /**
      * Add a new router to Zookeeper directory.
      * @param id  Router UUID
@@ -60,7 +51,7 @@ public class RouterZkManager {
      */
     public void create(UUID id, RouterConfig router) 
         throws InterruptedException, KeeperException, IOException {
-        byte[] data = routerToBytes(router);
+        byte[] data = RouterDirectory.routerToBytes(router);
         List<Op> ops = new ArrayList<Op>();
         // Create /routers/<routerId>
         ops.add(Op.create(pathManager.getRouterPath(id), data, 
@@ -85,5 +76,46 @@ public class RouterZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         zk.multi(ops);
+    }
+
+    /**
+     * Get a RouterConfig object.
+     * @param id  Router UUID,
+     * @return  A RouterConfig
+     * @throws KeeperException  Zookeeper exception.
+     * @throws InterruptedException  Paused thread interrupted.
+     * @throws ClassNotFoundException  Unknown class.
+     * @throws IOException  Serialization error.
+     */
+    public RouterConfig get(UUID id) 
+            throws KeeperException, InterruptedException,
+                IOException, ClassNotFoundException {
+        byte[] data = zk.getData(pathManager.getRouterPath(id), null, null);
+        return RouterDirectory.bytesToRouter(data);      
+    }
+    
+    
+    /**
+     * Get a list of RouterConfig objects for a tenant.
+     * @param tenantId  Tenant UUID,
+     * @return  An array of RouterConfigs
+     * @throws KeeperException  Zookeeper exception.
+     * @throws InterruptedException  Paused thread interrupted.
+     * @throws ClassNotFoundException  Unknown class.
+     * @throws IOException  Serialization error.
+     */
+    public HashMap<UUID, RouterConfig> list(UUID tenantId) 
+            throws KeeperException, InterruptedException, 
+                IOException, ClassNotFoundException {
+        HashMap<UUID, RouterConfig> configs = 
+            new HashMap<UUID, RouterConfig>();
+        List<String> routerIds = zk.getChildren(
+                pathManager.getTenantRouterPath(tenantId), null);
+        for (String routerId : routerIds) {
+            // For now get each one.
+            UUID id = UUID.fromString(routerId);
+            configs.put(id, get(id));
+        }
+        return configs;
     }
 }

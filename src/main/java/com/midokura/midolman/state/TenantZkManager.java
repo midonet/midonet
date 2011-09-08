@@ -5,9 +5,7 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,8 +15,6 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
-
-import com.midokura.midolman.state.TenantDirectory.TenantConfig;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -42,14 +38,6 @@ public class TenantZkManager {
         this.zk = zk;
     }
     
-    private byte[] tenantToBytes(TenantConfig tenant) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(tenant);
-        out.close();
-        return bos.toByteArray();
-    }  
-    
     /**
      * Add a new tenant entry in the Zookeeper directory.
      * 
@@ -60,18 +48,15 @@ public class TenantZkManager {
      * interrupted by another thread.
      * @throws IOException  Error while converting TenantConfig to bytes.
      */
-    public void create(UUID id, TenantConfig tenant) 
-        throws KeeperException, InterruptedException, IOException {
-        // Add Routers child node.
-        byte[] data = tenantToBytes(tenant);
-        
+    public void create(UUID id) 
+        throws KeeperException, InterruptedException, IOException {        
         List<Op> ops = new ArrayList<Op>();
         // Create /tenants/<tenantId>
-        ops.add(Op.create(pathManager.getTenantPath(id), data, 
+        ops.add(Op.create(pathManager.getTenantPath(id), null, 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));        
         // Create /tenants/<routerId>/routers
         ops.add(Op.create(pathManager.getTenantRouterPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         this.zk.multi(ops);
-    }    
+    }
 }

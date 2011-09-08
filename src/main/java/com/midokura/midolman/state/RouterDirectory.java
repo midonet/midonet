@@ -36,7 +36,7 @@ public class RouterDirectory {
         public UUID tenantId;
     }
 
-    private byte[] routerToBytes(RouterConfig tenant) throws IOException {
+    public static byte[] routerToBytes(RouterConfig tenant) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
         out.writeObject(tenant);
@@ -44,7 +44,7 @@ public class RouterDirectory {
         return bos.toByteArray();
     }    
 
-    private RouterConfig bytesToRouter(byte[] data)
+    public static RouterConfig bytesToRouter(byte[] data)
             throws IOException, ClassNotFoundException, KeeperException,
                 InterruptedException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);

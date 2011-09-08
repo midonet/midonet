@@ -5,10 +5,11 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +46,14 @@ public class PortZkManager {
     public PortZkManager(ZooKeeper zk, String basePath) {
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
+    }
+
+    private PortConfig bytesToPort(byte[] data)
+            throws IOException, ClassNotFoundException, KeeperException,
+                InterruptedException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        ObjectInputStream in = new ObjectInputStream(bis);
+        return (PortConfig) in.readObject();
     }
     
     /**
@@ -84,5 +93,45 @@ public class PortZkManager {
            }
         }
         this.zk.multi(ops);        
+    }
+    
+    /**
+     * Get a PortConfig object.
+     * @param id  Router UUID,
+     * @return  A PortConfigs
+     * @throws KeeperException  Zookeeper exception.
+     * @throws InterruptedException  Paused thread interrupted.
+     * @throws ClassNotFoundException  Unknown class.
+     * @throws IOException  Serialization error.
+     */
+    public PortConfig get(UUID id) 
+            throws KeeperException, InterruptedException,
+                IOException, ClassNotFoundException {
+        byte[] data = zk.getData(pathManager.getPortPath(id), null, null);
+        return bytesToPort(data);      
+    }
+    
+    
+    /**
+     * Get a list of PortConfig objects for a tenant.
+     * @param routerId  Router UUID,
+     * @return  An array of PortConfigs
+     * @throws KeeperException  Zookeeper exception.
+     * @throws InterruptedException  Paused thread interrupted.
+     * @throws ClassNotFoundException  Unknown class.
+     * @throws IOException  Serialization error.
+     */
+    public HashMap<UUID, PortConfig> list(UUID routerId) 
+            throws KeeperException, InterruptedException, 
+                IOException, ClassNotFoundException {
+        HashMap<UUID, PortConfig> configs = new HashMap<UUID, PortConfig>();
+        List<String> portIds = zk.getChildren(
+                pathManager.getRouterPortPath(routerId), null);
+        for (String portId : portIds) {
+            // For now get each one.
+            UUID id = UUID.fromString(portId);
+            configs.put(id, get(id));
+        }
+        return configs;
     }
 }
