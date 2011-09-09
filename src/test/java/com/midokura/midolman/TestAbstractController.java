@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
@@ -83,14 +84,14 @@ public class TestAbstractController {
     private AbstractControllerTester controller;
 
     @Test
-    public void testController() {
+    public void testController() throws UnknownHostException {
         int dp_id = 43;
         MockOpenvSwitchDatabaseConnection ovsdb = 
             new MockOpenvSwitchDatabaseConnection();
         controller = new AbstractControllerTester(
 	                     dp_id /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
-       			     5 /* greKey */,
+       			     0x01234 /* greKey */,
  			     ovsdb /* ovsdb */,
  			     null /* PortLocationMap dict */,
  			     260 * 1000 /* flowExpireMinMillis */,
@@ -104,12 +105,24 @@ public class TestAbstractController {
         UUID port1uuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 37, "midonet", port1uuid.toString());
 
+        OFPhysicalPort port2 = new OFPhysicalPort();
+        port2.setPortNumber((short) 47);
+        port2.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 47 });
+        port2.setName("tn012340a001122");
+        UUID port2uuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 47, "midonet", port2uuid.toString());
+
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsAdded.toArray());
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
-        assertArrayEquals(new OFPhysicalPort[] { port1 },
+        controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
 			  controller.portsAdded.toArray());
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
+        assertEquals(port2uuid, controller.portNumToUuid.get(47));
+        assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
+        assertEquals(InetAddress.getByName("10.0.17.34"),
+	             controller.tunnelPortNumToPeerIp.get(47));
 
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsModified.toArray());
