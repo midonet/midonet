@@ -84,11 +84,14 @@ public class TestAbstractController {
 
     @Test
     public void testController() {
+        int dp_id = 43;
+        MockOpenvSwitchDatabaseConnection ovsdb = 
+            new MockOpenvSwitchDatabaseConnection();
         controller = new AbstractControllerTester(
-	                     43 /* datapathId */,
+	                     dp_id /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
        			     5 /* greKey */,
- 			     new MockOpenvSwitchDatabaseConnection() /* ovsdb */,
+ 			     ovsdb /* ovsdb */,
  			     null /* PortLocationMap dict */,
  			     260 * 1000 /* flowExpireMinMillis */,
  			     320 * 1000 /* flowExpireMaxMillis */,
@@ -98,12 +101,15 @@ public class TestAbstractController {
         OFPhysicalPort port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);
         port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
+        UUID port1uuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 37, "midonet", port1uuid.toString());
 
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsAdded.toArray());
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         assertArrayEquals(new OFPhysicalPort[] { port1 },
 			  controller.portsAdded.toArray());
+        assertEquals(port1uuid, controller.portNumToUuid.get(37));
 
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsModified.toArray());
