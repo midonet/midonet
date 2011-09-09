@@ -98,9 +98,23 @@ public class TestAbstractController {
         OFPhysicalPort port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);
         port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
-        controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
 
+        assertArrayEquals(new OFPhysicalPort[] { },
+			  controller.portsAdded.toArray());
+        controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         assertArrayEquals(new OFPhysicalPort[] { port1 },
 			  controller.portsAdded.toArray());
+
+        assertArrayEquals(new OFPhysicalPort[] { },
+			  controller.portsModified.toArray());
+        controller.onPortStatus(port1, OFPortReason.OFPPR_MODIFY);
+        assertArrayEquals(new OFPhysicalPort[] { port1 },
+			  controller.portsModified.toArray());
+
+        assertArrayEquals(new OFPhysicalPort[] { },
+			  controller.portsRemoved.toArray());
+        controller.onPortStatus(port1, OFPortReason.OFPPR_DELETE);
+        assertArrayEquals(new OFPhysicalPort[] { port1 },
+			  controller.portsRemoved.toArray());
     }
 }
