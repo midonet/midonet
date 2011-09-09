@@ -234,12 +234,12 @@ public class TestNetworkController {
     public void testOneRouterBlackhole() {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.
-        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        byte[] payload = { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         OFPhysicalPort phyPort = phyPorts.get(0);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), phyPort
-                .getHardwareAddress(), 0x0a000005, 0x0a040005, (short) 101,
-                (short) 212, payload);
+        Ethernet eth = TestRouter.makeUDP(
+                Ethernet.toMACAddress("02:00:11:22:00:01"),
+                phyPort.getHardwareAddress(), 0x0a000005, 0x0a040005,
+                (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(55, data.length, phyPort.getPortNumber(), data);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
