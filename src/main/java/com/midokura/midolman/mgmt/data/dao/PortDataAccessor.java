@@ -128,7 +128,6 @@ public class PortDataAccessor extends DataAccessor {
     public void update(UUID id, Port port) throws Exception {
         PortConfig config = convertToPortConfig(port);
         PortZkManager manager = getPortZkManager();
-        System.err.println("AGDGSGD" + id + "==>" + port.getPeerId());
         manager.update(id, config);
     }
     
