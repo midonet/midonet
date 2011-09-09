@@ -17,6 +17,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 import com.midokura.midolman.util.JSONSerializer;
 
@@ -81,6 +82,23 @@ public class RouterZkManager {
         zk.multi(ops);
     }
 
+    /**
+     * Update a router data.
+     * @param id  Router UUID
+     * @param router  RouterConfig object.
+     * @throws IOException  Serialization error.
+     * @throws InterruptedException 
+     * @throws KeeperException 
+     */
+    public void update(UUID id, RouterConfig router) 
+    		throws IOException, KeeperException, InterruptedException {
+        JSONSerializer<RouterConfig> serializer = 
+        	new JSONSerializer<RouterConfig>();
+        byte[] data = serializer.objToBytes(router);  
+        // Update any version for now.
+        zk.setData(pathManager.getRouterPath(id), data, -1);
+    }
+    
     /**
      * Get a RouterConfig object.
      * @param id  Router UUID,
