@@ -64,6 +64,7 @@ public class RouterResource extends RestResource {
      * Get the Router with the given ID.
      * @param id  Router UUID.
      * @return  Router object.
+     * @throws Exception 
      */
     @GET
     @Path("{id}")

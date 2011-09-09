@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -37,6 +38,9 @@ public class PortResource extends RestResource {
     /*
      * Implements REST API endpoints for ports.
      */
+	
+	@Context
+	UriInfo uriInfo;
     
     private final static Logger log = LoggerFactory.getLogger(
             PortResource.class);
@@ -45,6 +49,7 @@ public class PortResource extends RestResource {
      * Get the port with the given ID.
      * @param id  Port UUID.
      * @return  Port object.
+     * @throws Exception 
      */
     @GET
     @Path("{id}")
@@ -62,6 +67,23 @@ public class PortResource extends RestResource {
                     .type(MediaType.APPLICATION_JSON).build());
         }
         return port;
+    }
+    
+    @PUT
+    @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response update(@PathParam("id") UUID id, Port port){
+        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+        try {
+            dao.update(id, port);
+        } catch (Exception ex) {
+            log.error("Error updating port", ex);
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.APPLICATION_JSON).build());
+        }
+        
+        return Response.created(uriInfo.getAbsolutePath()).build();
     }
     
     /**
@@ -86,14 +108,16 @@ public class PortResource extends RestResource {
          * Return a list of ports.
          * 
          * @return  A list of Port objects.
+         * @throws Exception 
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() {
+        public Port[] list() throws Exception {
             PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
             Port[] ports = null;
+            ports = dao.list(routerId);
+
             try {
-                ports = dao.list(routerId);
             } catch (Exception ex) {
                 log.error("Error listing ports", ex);
                 throw new WebApplicationException(
@@ -112,7 +136,6 @@ public class PortResource extends RestResource {
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
         public Response create(Port port, @Context UriInfo uriInfo) 
                 throws Exception {
             // Add a new port entry into zookeeper.

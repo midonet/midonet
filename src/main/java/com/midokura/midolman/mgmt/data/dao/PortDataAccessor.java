@@ -120,6 +120,19 @@ public class PortDataAccessor extends DataAccessor {
     }
 
     /**
+     * Update Port entry in ZooKeeper.
+     * 
+     * @param   port  Port object to update.
+     * @throws  Exception  Error adding data to ZooKeeper.
+     */
+    public void update(UUID id, Port port) throws Exception {
+        PortConfig config = convertToPortConfig(port);
+        PortZkManager manager = getPortZkManager();
+        System.err.println("AGDGSGD" + id + "==>" + port.getPeerId());
+        manager.update(id, config);
+    }
+    
+    /**
      * Get a Port for the given ID.
      * 
      * @param   id  Port ID to search.
