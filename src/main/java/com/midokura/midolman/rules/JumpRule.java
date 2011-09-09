@@ -14,6 +14,9 @@ public class JumpRule extends Rule {
         this.jumpToChain = jumpToChain;
     }
 
+	// Default constructor for the Jackson deserialization.
+	public JumpRule() { super(); }
+
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         res.action = Action.JUMP;

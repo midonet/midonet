@@ -74,6 +74,8 @@ public class Condition implements Serializable {
                 outPortIds.add((UUID) in.readObject());
         }
     }
+	// Default constructor for the Jackson deserialization.
+	public Condition() { super(); }
 
     public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch) {
         /*

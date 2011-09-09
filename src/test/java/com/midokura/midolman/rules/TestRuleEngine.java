@@ -46,6 +46,9 @@ public class TestRuleEngine {
             super(condition, action);
             timesApplied = 0;
         }
+		
+        // Default constructor for the JSON serialization.
+        public MyLiteralRule() { super(); }
 
         @Override
         public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
@@ -62,6 +65,9 @@ public class TestRuleEngine {
             super(condition, action, false);
             timesApplied = 0;
         }
+
+        // Default constructor for the JSON serialization.
+        public MyRevSnatRule() { super(); }
 
         @Override
         public void apply(UUID inPortId, UUID outPortId, RuleResult res) {

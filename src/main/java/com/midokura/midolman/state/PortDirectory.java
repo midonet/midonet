@@ -50,7 +50,8 @@ public class PortDirectory {
             super();
             this.device_id = device_id;
         }
-
+        // Default constructor for the Jackson deserialization.
+        private PortConfig() { super(); }
         public UUID device_id;
     }
 
@@ -64,6 +65,8 @@ public class PortDirectory {
         public BridgePortConfig(UUID device_id) {
             super(device_id);
         }
+        // Default constructor for the Jackson deserialization.
+        private BridgePortConfig() { super(); }
 
         @Override
         public boolean equals(Object other) {
@@ -98,6 +101,9 @@ public class PortDirectory {
             this.portAddr = portAddr;
             this.routes = new HashSet<Route>(routes);
         }
+		
+        // Default constructor for the Jackson deserialization.
+        public RouterPortConfig() { super(); }
 
         private void readObject(java.io.ObjectInputStream stream)
                 throws IOException, ClassNotFoundException {
@@ -122,15 +128,15 @@ public class PortDirectory {
         private static final long serialVersionUID = 1576824002284331148L;
         public UUID peer_uuid;
         
-        public LogicalRouterPortConfig() {
-        }
-        
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
                 UUID peer_uuid) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.peer_uuid = peer_uuid;
         }
+
+        // Default constructor for the Jackson deserialization.
+        public LogicalRouterPortConfig() { super(); }
 
         @Override
         public boolean equals(Object other) {
@@ -166,6 +172,9 @@ public class PortDirectory {
             this.localNwLength = localNetworkLength;
             this.bgps = bgps;
         }
+
+        // Default constructor for the Jackson deserialization
+        public MaterializedRouterPortConfig() { super(); }
 
         @Override
         public boolean equals(Object other) {

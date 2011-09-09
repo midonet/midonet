@@ -17,6 +17,9 @@ public class NatTarget implements Serializable {
         this.tpStart = tpStart;
         this.tpEnd = tpEnd;
     }
+	
+	// Default constructor for the Jackson deserialization.
+	public NatTarget() { super(); }
 
     @Override
     public boolean equals(Object other) {

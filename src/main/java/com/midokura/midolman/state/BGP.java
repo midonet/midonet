@@ -28,4 +28,7 @@ public class BGP {
     String tcpMd5SigKey;
     InetAddress[] advertisedNetworkAddrs;
     byte[] advertisedNetworkLengths;
+
+	// Default constructor for the Jackson deserialization.
+	public BGP() { super(); }
 }

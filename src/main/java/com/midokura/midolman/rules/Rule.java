@@ -22,6 +22,9 @@ public abstract class Rule implements Serializable {
         this.action = action;
         this.chainId = chainId;
     }
+	
+	// Default constructor for the Jackson deserialization.
+	public Rule() { super(); }
 
     public void process(UUID inPortId, UUID outPortId, RuleResult res) {
         if (condition.matches(inPortId, outPortId, res.match)) {

@@ -22,9 +22,6 @@ public class Route implements Serializable {
     public String attributes;
     public UUID routerId;
 
-    public Route(){
-    }
-
     public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
             int dstNetworkLength, NextHop nextHop, UUID nextHopPort,
             int nextHopGateway, int weight, String attributes, UUID routerId) {
@@ -40,6 +37,9 @@ public class Route implements Serializable {
         this.attributes = attributes;
         this.routerId = routerId;
     }
+
+	// Default constructor for the Jackson deserialization.
+	public Route() { super(); }
 
     @Override
     public boolean equals(Object other) {

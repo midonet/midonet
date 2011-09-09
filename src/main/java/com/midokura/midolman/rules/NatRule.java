@@ -20,6 +20,9 @@ public abstract class NatRule extends Rule {
                     + "must be one of: ACCEPT, CONTINUE, or RETURN.");
     }
 
+	// Default constructor for the Jackson deserialization.
+	public NatRule() { super(); }
+
     public void setNatMapping(NatMapping nat) {
         natMap = nat;
     }
