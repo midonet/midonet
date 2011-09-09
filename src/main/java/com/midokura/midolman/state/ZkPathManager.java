@@ -7,8 +7,6 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.layer3.Route;
-
 /**
  * This class was created to have all state classes
  * share the Zk path information.
@@ -213,14 +211,14 @@ public class ZkPathManager {
      * /ports/portId/routes/routeId
      * 
      * @param portId  Port UUID
-     * @param Route  Route object to store.
+     * @param routeId  Route ID.
      * @return  Port routes path in ZK.
      */
-    public String getPortRoutesPath(UUID portId, Route route) {
+    public String getPortRoutesPath(UUID portId, UUID routeId) {
         StringBuilder sb = new StringBuilder(getPortPath(portId))
             .append("/routes");
-        if (route != null) {
-            sb.append(route);
+        if (routeId != null) {
+            sb.append("/").append(routeId);
         }
         return sb.toString();
     }

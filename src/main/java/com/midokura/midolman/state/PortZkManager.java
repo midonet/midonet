@@ -19,7 +19,6 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
@@ -86,11 +85,6 @@ public class PortZkManager {
             // Create /ports/<portId>/routes
            ops.add(Op.create(pathManager.getPortRoutesPath(id), null,
                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-           for (Route rt : ((RouterPortConfig) port).routes) {
-               // Create /ports<portId>/routes/<route_value>
-               ops.add(Op.create(pathManager.getPortRoutesPath(id, rt), null,
-                       Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-           }
         }
         this.zk.multi(ops);        
     }

@@ -5,9 +5,7 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +18,10 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.util.JSONSerializer;
 
 
 /**
@@ -36,18 +35,15 @@ public class RouteZkManager {
     public static class RouteRefConfig implements Serializable {
 
         private static final long serialVersionUID = 1L;
-        public UUID routerId = null;
-        public UUID portId = null;
+        public String path = null;
 
-        public RouteRefConfig(UUID routerId, UUID portId) {
-            this.routerId = routerId;
-            this.portId = portId;
+        public RouteRefConfig(String path) {
+            this.path = path;
         }
     }
     
     private ZkPathManager pathManager = null;
     private ZooKeeper zk = null;
-
     /**
      * Default constructor.
      * 
@@ -57,14 +53,6 @@ public class RouteZkManager {
     public RouteZkManager(ZooKeeper zk, String basePath) {
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
-    }
-    
-    private static byte[] objToBytes(Object obj) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(obj);
-        out.close();
-        return bos.toByteArray();
     }
     
     /**
@@ -91,7 +79,6 @@ public class RouteZkManager {
             // Check what kind of port this is.
             PortZkManager portManager = 
                 new PortZkManager(zk, pathManager.getBasePath());
-            System.err.println("---> port UUID is " + route.nextHopPort);
             port = portManager.get(route.nextHopPort);
             if (!(port instanceof RouterPortConfig)) {
                 // Cannot add route to bridge ports
@@ -102,19 +89,28 @@ public class RouteZkManager {
          
         String path = null;
         if (port instanceof MaterializedRouterPortConfig) {            
-            path = pathManager.getPortRoutesPath(route.nextHopPort, route);
+            path = pathManager.getPortRoutesPath(route.nextHopPort, id);
         } else {
             path = pathManager.getRouterRoutesPath(routerId, id);
-        }        
-        ops.add(Op.create(path, objToBytes(route), 
+        }
+        JSONSerializer<Route> serializer = new JSONSerializer<Route>();
+        ops.add(Op.create(path, serializer.objToBytes(route), 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        // Add reference to this
-        RouteRefConfig routeRef = new RouteRefConfig(routerId,
-                route.nextHopPort);
-        ops.add(Op.create(pathManager.getRoutePath(id), objToBytes(routeRef),
+        // Add reference to this        
+        RouteRefConfig routeRef = new RouteRefConfig(path);
+        JSONSerializer<RouteRefConfig> refSerializer = 
+            new JSONSerializer<RouteRefConfig>();
+        ops.add(Op.create(pathManager.getRoutePath(id), 
+                refSerializer.objToBytes(routeRef),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         zk.multi(ops);
     }
+    
+/*    public Route get(UUID id) {
+        byte[] data = zk.getData(pathManager.getRoutePath(id), null, null);
+        
+        return RouterDirectory.bytesToRouter(data);  
+    }*/
     
 }
