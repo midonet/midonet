@@ -14,6 +14,7 @@ import static org.junit.Assert.*;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortLocationMap;
 
 
@@ -70,7 +71,7 @@ public class TestAbstractController {
 	                     43 /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
        			     5 /* greKey */,
- 			     null /* ovsdb */,
+ 			     new MockOpenvSwitchDatabaseConnection() /* ovsdb */,
  			     null /* PortLocationMap dict */,
  			     260 * 1000 /* flowExpireMinMillis */,
  			     320 * 1000 /* flowExpireMaxMillis */,
