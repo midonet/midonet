@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortLocationMap;
 
 public abstract class AbstractController implements Controller {
@@ -35,17 +36,21 @@ public abstract class AbstractController implements Controller {
     // Tunnel management data structures
     protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
+    private OpenvSwitchDatabaseConnection ovsdb;
+
     public AbstractController(
             int datapathId,
             UUID switchUuid,
             int greKey,
-            //ovsdb_connection_factory,
-            PortLocationMap dict,
+            OpenvSwitchDatabaseConnection ovsdb,
+            PortLocationMap dict,  /* FIXME(jlm): Replace with PortToIntMap, 
+			use addWatcher for port_location_update() callback */
             long flowExpireMinMillis,
             long flowExpireMaxMillis,
             long idleFlowExpireMillis,
             InetAddress internalIp) {
         this.datapathId = datapathId;
+        this.ovsdb = ovsdb;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
@@ -71,6 +76,33 @@ public abstract class AbstractController implements Controller {
                                     byte[] data);
 
     @Override
+    public final void onPortStatus(OFPhysicalPort portDesc,
+                                   OFPortReason reason) {
+        if (reason == OFPortReason.OFPPR_ADD) {
+            short portNum = portDesc.getPortNumber();
+            addPort(portDesc, portNum);
+
+            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+            if (uuid != null)
+                portNumToUuid.put(new Integer(portNum), uuid);
+
+            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+            if (peerIp != null) {
+                // TODO: Error out if already tunneled to this peer.
+                tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
+            }
+        } else if (reason == OFPortReason.OFPPR_DELETE) {
+            deletePort(portDesc);
+        } else {
+            modifyPort(portDesc);
+        }
+    }
+
+    protected abstract void addPort(OFPhysicalPort portDesc, short portNum);
+    protected abstract void deletePort(OFPhysicalPort portDesc);
+    protected abstract void modifyPort(OFPhysicalPort portDesc);
+
+    @Override
     public abstract void onFlowRemoved(OFMatch match, long cookie,
             short priority, OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
@@ -79,8 +111,7 @@ public abstract class AbstractController implements Controller {
     @Override
     public void onMessage(OFMessage m) {
         log.debug("onMessage: {}", m);
-        // TODO Auto-generated method stub
-
+        // Don't do anything else.
     }
 
     /* Clean up resources, especially the ZooKeeper state. */
@@ -117,5 +148,12 @@ public abstract class AbstractController implements Controller {
                                        "an UnknownHostException", e);
         }
         // FIXME: Test this!
+    }
+
+    protected UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
+        String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
+        if (extId == null)
+            return null;
+        return UUID.fromString(extId);
     }
 }

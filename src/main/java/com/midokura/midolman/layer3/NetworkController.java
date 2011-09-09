@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionDataLayer;
@@ -59,14 +60,13 @@ public class NetworkController extends AbstractController {
     private static final short ICMP_EXPIRY_SECONDS = 5;
     public static final short IDLE_TIMEOUT_SECS = 0;
     private static final short FLOW_PRIORITY = 0;
-    private static final int ICMP_TUNNEL = 0x05;
+    public static final int ICMP_TUNNEL = 0x05;
 
     private PortDirectory portDir;
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
     private Reactor reactor;
-    private OpenvSwitchDatabaseConnection ovsdb;
     // Remove these once integrated with AbstractController
     Map<Integer, Short> peerIpToPortNum = new HashMap<Integer, Short>();
     Set<Short> tunnelPortNums = new HashSet<Short>();
@@ -77,15 +77,14 @@ public class NetworkController extends AbstractController {
             RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             PortToIntNwAddrMap locMap) {
-        super(datapathId, deviceId, greKey, dict, 0, 0, idleFlowExpireMillis,
-                null);
+        super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
+              idleFlowExpireMillis, null);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor);
         this.reactor = reactor;
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
-        this.ovsdb = ovsdb;
         portIdToUnderlayIp = locMap;
     }
 
@@ -608,11 +607,14 @@ public class NetworkController extends AbstractController {
         // generate ICMPs so in this case it isn't needed. Instead we'll encode
         // a special value so the other end of the tunnel can recognize this
         // as a tunneled ICMP.
-        setDlHeadersForTunnel(eth.getDestinationMACAddress(), eth
-                .getSourceMACAddress(), ICMP_TUNNEL, PortDirectory
+        setDlHeadersForTunnel(eth.getSourceMACAddress(), eth
+                .getDestinationMACAddress(), ICMP_TUNNEL, PortDirectory
                 .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
-        short tunNum = 0; // TODO: implement getTunPortNum(peerAddr);
-        if (-1 == tunNum) {
+        Integer peerAddr = portIdToUnderlayIp.get(fwdInfo.outPortId);
+        Short tunNum = null;
+        if (null != peerAddr)
+            tunNum = peerIpToPortNum.get(peerAddr);
+        if (null == tunNum) {
             log.warn("Dropping ICMP error message. Can't find tunnel to peer"
                     + "port.");
             return;
@@ -664,6 +666,7 @@ public class NetworkController extends AbstractController {
             // Can't send the ICMP if we can't find the last ingress port.
             return;
         }
+        // TODO(pino): what do we do if this isn't a public/global address?
         ip.setSourceAddress(portConfig.portAddr);
         // At this point, we should be using the source network address
         // from the ICMP payload as the ICMP's destination network address.
@@ -691,13 +694,11 @@ public class NetworkController extends AbstractController {
     }
 
     private void sendUnbufferedPacketFromPort(Ethernet ethPkt, short portNum) {
-        OFActionOutput action = new OFActionOutput();
-        action.setMaxLength((short) 0);
-        action.setPort(portNum);
+        OFActionOutput action = new OFActionOutput(portNum, (short)0);
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(action);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
-                (short) 0 /* TODO */, actions, ethPkt.serialize());
+                OFPort.OFPP_CONTROLLER.getValue(), actions, ethPkt.serialize());
     }
 
     /**
@@ -817,12 +818,59 @@ public class NetworkController extends AbstractController {
 
     }
 
+    private L3DevicePort devPortOfPortDesc(OFPhysicalPort portDesc) {
+        short portNum = portDesc.getPortNumber();
+        L3DevicePort devPort = devPortByNum.get(portNum);
+        if (devPort != null)
+            return devPort;
+
+        // Create a new one.
+        UUID portId = getPortUuidFromOvsdb(datapathId, portNum);
+        try {
+            devPort = new L3DevicePort(portDir, portId, portNum,
+                        portDesc.getHardwareAddress(), super.controllerStub);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        devPortById.put(portId, devPort);
+        devPortByNum.put(portNum, devPort);
+
+        return devPort;
+    }
+
     @Override
-    public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
+    protected void addPort(OFPhysicalPort portDesc, short portNum) {
+        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+        try {
+	    network.addPort(devPort);
+        } catch (Exception e) {
+	    e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void deletePort(OFPhysicalPort portDesc) {
+        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+	try {
+            network.removePort(devPort);
+        } catch (Exception e) {
+	    e.printStackTrace();
+        }
+        devPortById.remove(devPort.getId());
+        devPortByNum.remove(portDesc.getPortNumber());
+    }
+
+    @Override
+    protected void modifyPort(OFPhysicalPort portDesc) {
+        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+	//network.modifyPort(devPort);
+        // FIXME: Call something in network.
+    }
+
+    public void onPortStatusTEMP(OFPhysicalPort port, OFPortReason status) {
         // Get the Midolman UUID from OVSDB.
-        String extId = ovsdb.getPortExternalId(datapathId,
-                port.getPortNumber(), "midonet");
-        if (null == extId) {
+        UUID portId = getPortUuidFromOvsdb(datapathId, port.getPortNumber());
+        if (null == portId) {
             // TODO(pino): It might be a tunnel.
             return;
         }
@@ -832,34 +880,10 @@ public class NetworkController extends AbstractController {
         // purposes.
         if (status.equals(OFPortReason.OFPPR_DELETE)) {
             // TODO(pino): handle the case of a tunnel port.
-            devPort = devPortByNum.remove(port.getPortNumber());
-            if (null != devPort) {
-                devPortById.remove(devPort.getId());
-                try {
-                    network.removePort(devPort);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+	    deletePort(port);
         } else if (status.equals(OFPortReason.OFPPR_ADD)) {
-            UUID portId = UUID.fromString(extId);
             short portNum = port.getPortNumber();
-            // Now get the port configuration from ZooKeeper.
-            try {
-                devPort = new L3DevicePort(portDir, portId, portNum,
-                        port.getHardwareAddress(), super.controllerStub);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            try {
-                network.addPort(devPort);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            devPortById.put(portId, devPort);
-            devPortByNum.put(portNum, devPort);
+            addPort(port, portNum);
         }
         // TODO(pino): else if (status.equals(OFPortReason.OFPPR_MODIFY)) { ...
     }
@@ -867,7 +891,6 @@ public class NetworkController extends AbstractController {
     @Override
     public void clear() {
         // TODO Auto-generated method stub
-
     }
 
     @Override
