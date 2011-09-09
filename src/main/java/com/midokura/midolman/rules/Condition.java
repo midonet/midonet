@@ -53,6 +53,13 @@ public class Condition implements Serializable {
                 out.writeObject(id);
         }
     }
+    // Getter and setter for the transient property inPortIds.
+    public Set<UUID> getInPortIds() { return inPortIds; }
+    public void setInPortIds(Set<UUID> inPortIds) { this.inPortIds = inPortIds; }
+	
+    // Getter and setter for the transient property outPortIds.
+    public Set<UUID> getOutPortIds() { return outPortIds; }
+    public void setOutPortIds(Set<UUID> outPortIds) { this.outPortIds = outPortIds; }
 
     private void readObject(ObjectInputStream in) throws IOException,
             ClassNotFoundException {

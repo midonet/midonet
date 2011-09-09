@@ -143,7 +143,7 @@ public class Router {
             InterruptedException {
         devicePorts.put(port.getId(), port);
         port.addListener(portListener);
-        for (Route rt : port.getVirtualConfig().routes) {
+        for (Route rt : port.getVirtualConfig().getRoutes()) {
             table.addRoute(rt);
         }
         arpCaches.put(port.getId(), new HashMap<Integer, ArpCacheEntry>());
@@ -156,7 +156,7 @@ public class Router {
             InterruptedException {
         devicePorts.remove(port.getId());
         port.removeListener(portListener);
-        for (Route rt : port.getVirtualConfig().routes) {
+        for (Route rt : port.getVirtualConfig().getRoutes()) {
             table.deleteRoute(rt);
         }
         arpCaches.remove(port.getId());

@@ -88,11 +88,9 @@ public class PortDirectory {
         public int nwLength;
         public int portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.
+        
         public transient Set<Route> routes;
-        
-        public RouterPortConfig() {
-        }
-        
+
         public RouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes) {
             super(device_id);
@@ -100,6 +98,7 @@ public class PortDirectory {
             this.nwLength = networkLength;
             this.portAddr = portAddr;
             this.routes = new HashSet<Route>(routes);
+            setRoutes(routes);
         }
 		
         // Default constructor for the Jackson deserialization.
@@ -121,6 +120,9 @@ public class PortDirectory {
             for (Route rt : routes)
                 stream.writeObject(rt);
         }
+        // Setter and getter for the transient property.
+        public Set<Route> getRoutes() { return routes; }
+        public void setRoutes(Set<Route> routes) { this.routes = routes; }
     }
 
     public static class LogicalRouterPortConfig extends RouterPortConfig
@@ -150,7 +152,8 @@ public class PortDirectory {
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength
                     && peer_uuid.equals(port.peer_uuid)
-                    && portAddr == port.portAddr && routes.equals(port.routes);
+                    && portAddr == port.portAddr
+                    && getRoutes().equals(port.getRoutes());
         }
     }
 
@@ -161,20 +164,21 @@ public class PortDirectory {
         public int localNwLength;
         public transient Set<BGP> bgps;
         
-        public MaterializedRouterPortConfig() {
-        }
-        
         public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
                 int localNetworkAddr, int localNetworkLength, Set<BGP> bgps) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.localNwAddr = localNetworkAddr;
             this.localNwLength = localNetworkLength;
-            this.bgps = bgps;
+            setBgps(bgps);
         }
 
         // Default constructor for the Jackson deserialization
         public MaterializedRouterPortConfig() { super(); }
+
+        // Getter and setter for the Jackson deserialization
+        public Set<BGP> getBgps() { return bgps; }
+        public void setBgps(Set<BGP> bgps) { this.bgps = bgps; }
 
         @Override
         public boolean equals(Object other) {
@@ -188,7 +192,8 @@ public class PortDirectory {
                     .cast(other);
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength && portAddr == port.portAddr
-                    && routes.equals(port.routes) && bgps.equals(port.bgps)
+                    && getRoutes().equals(port.getRoutes())
+                    && getBgps().equals(port.getBgps())
                     && localNwAddr == port.localNwAddr
                     && localNwLength == port.localNwLength;
         }

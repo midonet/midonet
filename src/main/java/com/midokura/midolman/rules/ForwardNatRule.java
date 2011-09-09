@@ -77,6 +77,9 @@ public class ForwardNatRule extends NatRule {
         return targets;
     }
 
+	// Setter for the JSON serialization.
+	public void setNatTargets(Set<NatTarget> targets) { this.targets = targets; }
+
     @Override
     public int hashCode() {
         int hash = super.hashCode();

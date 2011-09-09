@@ -84,7 +84,7 @@ public class L3DevicePort {
         portCfg = MaterializedRouterPortConfig.class.cast(cfg);
         // Keep the old routes.
         if (null != oldCfg)
-            portCfg.routes = oldCfg.routes;
+            portCfg.setRoutes(oldCfg.getRoutes());
         for (Listener listener : listeners)
             // TODO(pino): should we schedule this instead?
             listener.configChanged(portId, oldCfg, portCfg);
@@ -106,13 +106,16 @@ public class L3DevicePort {
 
     private void updateRoutes() throws KeeperException, InterruptedException {
         Set<Route> routes = portDir.getRoutes(portId, routesWatcher);
-        if (routes.equals(portCfg.routes))
+        if (routes.equals(portCfg.getRoutes()))
             return;
-        Set<Route> oldRoutes = portCfg.routes;
-        portCfg.routes = routes;
-        routes = new HashSet<Route>(portCfg.routes);
-        routes.removeAll(oldRoutes);
-        oldRoutes.removeAll(portCfg.routes);
+        Set<Route> oldRoutes = portCfg.getRoutes();
+        if (oldRoutes == null)  oldRoutes = new HashSet<Route>();
+        portCfg.setRoutes(routes);
+        routes = new HashSet<Route>(portCfg.getRoutes());
+        if (routes != null)
+            routes.removeAll(oldRoutes);
+        if (oldRoutes != null)
+        oldRoutes.removeAll(portCfg.getRoutes());
         for (Listener listener : listeners)
             // TODO(pino): should we schedule this instead?
             listener.routesChanged(portId, oldRoutes, routes);

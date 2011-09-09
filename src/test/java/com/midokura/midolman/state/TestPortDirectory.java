@@ -151,9 +151,9 @@ public class TestPortDirectory {
         Assert.assertEquals(2, portWatch.numCalls);
         Assert.assertEquals(1, routesWatch.numCalls);
         // The watcher won't be called again if we don't re-register.
-        port.routes.remove(rt);
+        port.getRoutes().remove(rt);
         rt.dstNetworkLength = 24;
-        port.routes.add(rt);
+        port.getRoutes().add(rt);
         port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(2, portWatch.numCalls);
@@ -215,10 +215,10 @@ public class TestPortDirectory {
         Assert.assertEquals(2, portWatch.numCalls);
         Assert.assertEquals(1, routesWatch.numCalls);
         // The watcher won't be called again if we don't re-register.
-        port.routes.remove(rt1);
+        port.getRoutes().remove(rt1);
         rt1.attributes = "other attrs";
         rt1.nextHopGateway = 0x010203fe;
-        port.routes.add(rt1);
+        port.getRoutes().add(rt1);
         port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,
