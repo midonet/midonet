@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.MacPortMap;
@@ -74,9 +75,10 @@ public class BridgeController extends AbstractController {
             PortLocationMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMinMillis, long flowExpireMaxMillis,
             long idleFlowExpireMillis, InetAddress publicIp,
-            long macPortTimeoutMillis) {
-        super(datapathId, switchUuid, greKey, port_loc_map, flowExpireMinMillis,
-              flowExpireMaxMillis, idleFlowExpireMillis, publicIp);
+            long macPortTimeoutMillis, OpenvSwitchDatabaseConnection ovsdb) {
+        super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
+	      flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis,
+              publicIp);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
@@ -143,28 +145,6 @@ public class BridgeController extends AbstractController {
         // FIXME
     }
 
-    @Override
-    public void onPortStatus(OFPhysicalPort portDesc, OFPortReason reason) {
-        if (reason == OFPortReason.OFPPR_ADD) {
-            short portNum = portDesc.getPortNumber();
-            addPort(portDesc, portNum);
-
-            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-            if (uuid != null)
-                portNumToUuid.put(new Integer(portNum), uuid);
-
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-            if (peerIp != null) {
-                // TODO: Error out if already tunneled to this peer.
-                tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
-            }
-        } else if (reason == OFPortReason.OFPPR_DELETE) {
-            deletePort(portDesc);
-        } else {
-            modifyPort(portDesc);
-        }
-    }
-
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
         if (isTunnelPortNum(portNum))
             invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
@@ -189,10 +169,5 @@ public class BridgeController extends AbstractController {
 
     private void invalidateFlowsToPeer(InetAddress peer_ip) {
         // FIXME
-    }
-
-    private UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
-        return new UUID(0, 0);  // FIXME
-        // Should be part of OVS interface.
     }
 }

@@ -72,7 +72,7 @@ public class RoutingTable {
     static final int[] MSB = new int[256];
     static {
         int i, j, numToSet;
-        MSB[0] = -1;
+        MSB[0] = 32;
         for (i = 0; i < 8; i++) {
             numToSet = 0x01 << i;
             for (j = 0; j < numToSet; j++)
@@ -80,18 +80,25 @@ public class RoutingTable {
         }
     }
 
+    /**
+     * Returns the index of the most significant set bit (left to right).
+     * Equivalently, the number of leading zeros in the 2's complement.
+     * 
+     * @param v
+     * @return
+     */
     public static int findMSB(int v) {
-        /*
-         * This returns the index of the most significant set bit. The index is
-         * increasing from MSB to LSB in the array (left to right).
-         */
+        //* Add/remove '/' at the start of this line to toggle implementations.
+        return Integer.numberOfLeadingZeros(v);
+        /*/
+        // Custom implementation:
         // This is fast without being clever. It uses more space than algorithms
         // that use binary magic numbers or De Bruijn sequences but we can
         // afford the 1kb (255 integers). For this and other approaches see:
         // http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogLookup
         // "Bit Twiddling Hacks" by Sean Eron Anderson of Stanford University.
         if (0 == v)
-            return -1;
+            return MSB[0];
         for (int i = 3; i > 0; i--) {
             int shift = i * 8;
             int b = v >>> shift;
@@ -99,6 +106,7 @@ public class RoutingTable {
                 return 24 - shift + MSB[b & 0xff];
         }
         return 24 + MSB[v & 0xff];
+        //*/
     }
 
     public void addRoute(Route rt) {

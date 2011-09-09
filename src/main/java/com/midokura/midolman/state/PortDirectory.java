@@ -196,6 +196,14 @@ public class PortDirectory {
         this.dir = dir;
     }
 
+    public static byte[] portToBytes(PortConfig port) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeObject(port);
+        out.close();
+        return bos.toByteArray();
+    }
+    
     public void addPort(UUID portId, PortConfig port) throws IOException,
             KeeperException, InterruptedException {
         if (!(port instanceof BridgePortConfig
@@ -209,7 +217,7 @@ public class PortDirectory {
             dir.add(path, null, CreateMode.PERSISTENT);
             for (Route rt : ((RouterPortConfig) port).routes) {
                 dir.add(path + "/" + rt.toString(), null, CreateMode.PERSISTENT);
-            }
+            }            
         }
     }
 
@@ -253,14 +261,6 @@ public class PortDirectory {
         for (String rtStr : rtStrings)
             routes.add(Route.fromString(rtStr));
         return routes;
-    }
-
-    private byte[] portToBytes(PortConfig port) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(port);
-        out.close();
-        return bos.toByteArray();
     }
 
     public void updatePort(UUID portId, PortConfig newPort) throws IOException,
