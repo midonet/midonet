@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
@@ -61,13 +60,8 @@ public class PortDirectory {
     public static UUID intTo32BitUUID(int id) {
         return new UUID(0, (long) id);
     }
-
-    public static abstract class PortConfig implements Serializable {
-        private static final long serialVersionUID = 3124283622213097848L;
-
-        public PortConfig() {
-        }
-
+	
+    public static abstract class PortConfig {
         private PortConfig(UUID device_id) {
             super();
             this.device_id = device_id;
@@ -77,13 +71,7 @@ public class PortDirectory {
         public UUID device_id;
     }
 
-    public static class BridgePortConfig extends PortConfig implements
-            Serializable {
-        private static final long serialVersionUID = -7817609888045028903L;
-
-        public BridgePortConfig() {
-        }
-        
+    public static class BridgePortConfig extends PortConfig {
         public BridgePortConfig(UUID device_id) {
             super(device_id);
         }
@@ -103,9 +91,7 @@ public class PortDirectory {
         }
     }
 
-    public static abstract class RouterPortConfig extends PortConfig implements
-            Serializable {
-        private static final long serialVersionUID = -4536197977961670285L;
+    public static abstract class RouterPortConfig extends PortConfig {
         public int nwAddr;
         public int nwLength;
         public int portAddr;
@@ -126,30 +112,12 @@ public class PortDirectory {
         // Default constructor for the Jackson deserialization.
         public RouterPortConfig() { super(); }
 
-        private void readObject(java.io.ObjectInputStream stream)
-                throws IOException, ClassNotFoundException {
-            stream.defaultReadObject();
-            int numRoutes = stream.readInt();
-            routes = new HashSet<Route>();
-            for (int i = 0; i < numRoutes; i++)
-                routes.add((Route) stream.readObject());
-        }
-
-        private void writeObject(java.io.ObjectOutputStream stream)
-                throws IOException {
-            stream.defaultWriteObject();
-            stream.writeInt(routes.size());
-            for (Route rt : routes)
-                stream.writeObject(rt);
-        }
         // Setter and getter for the transient property.
         public Set<Route> getRoutes() { return routes; }
         public void setRoutes(Set<Route> routes) { this.routes = routes; }
     }
 
-    public static class LogicalRouterPortConfig extends RouterPortConfig
-            implements Serializable {
-        private static final long serialVersionUID = 1576824002284331148L;
+    public static class LogicalRouterPortConfig extends RouterPortConfig {
         public UUID peer_uuid;
         
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
@@ -179,9 +147,7 @@ public class PortDirectory {
         }
     }
 
-    public static class MaterializedRouterPortConfig extends RouterPortConfig
-            implements Serializable {
-        private static final long serialVersionUID = 3050185323095662934L;
+    public static class MaterializedRouterPortConfig extends RouterPortConfig {
         public int localNwAddr;
         public int localNwLength;
         public transient Set<BGP> bgps;
@@ -218,26 +184,6 @@ public class PortDirectory {
                     && getBgps().equals(port.getBgps())
                     && localNwAddr == port.localNwAddr
                     && localNwLength == port.localNwLength;
-        }
-
-        private void readObject(java.io.ObjectInputStream stream)
-                throws IOException, ClassNotFoundException {
-            stream.defaultReadObject();
-            int numBGP = stream.readInt();
-            bgps = new HashSet<BGP>();
-            for (int i = 0; i < numBGP; i++)
-                bgps.add((BGP) stream.readObject());
-        }
-
-        private void writeObject(java.io.ObjectOutputStream stream)
-                throws IOException {
-            stream.defaultWriteObject();
-            if (null != bgps) {
-                stream.writeInt(bgps.size());
-                for (BGP bgp : bgps)
-                    stream.writeObject(bgp);
-            } else
-                stream.writeInt(0);
         }
     }
 

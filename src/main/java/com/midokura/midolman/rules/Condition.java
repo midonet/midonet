@@ -3,17 +3,13 @@ package com.midokura.midolman.rules;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.openflow.MidoMatch;
 
-public class Condition implements Serializable {
-
-    private static final long serialVersionUID = 5676283307439852254L;
-
+public class Condition {
     public boolean conjunctionInv;
     public transient Set<UUID> inPortIds;
     public boolean inPortInv;
@@ -36,23 +32,6 @@ public class Condition implements Serializable {
     public short tpDstEnd;
     public boolean tpDstInv;
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        if (null == inPortIds)
-            out.writeInt(0);
-        else {
-            out.writeInt(inPortIds.size());
-            for (UUID id : inPortIds)
-                out.writeObject(id);
-        }
-        if (null == outPortIds)
-            out.writeInt(0);
-        else {
-            out.writeInt(outPortIds.size());
-            for (UUID id : outPortIds)
-                out.writeObject(id);
-        }
-    }
     // Getter and setter for the transient property inPortIds.
     public Set<UUID> getInPortIds() { return inPortIds; }
     public void setInPortIds(Set<UUID> inPortIds) { this.inPortIds = inPortIds; }
@@ -61,26 +40,6 @@ public class Condition implements Serializable {
     public Set<UUID> getOutPortIds() { return outPortIds; }
     public void setOutPortIds(Set<UUID> outPortIds) { this.outPortIds = outPortIds; }
 
-    private void readObject(ObjectInputStream in) throws IOException,
-            ClassNotFoundException {
-        in.defaultReadObject();
-        int numInPortIds = in.readInt();
-        if (0 == numInPortIds)
-            inPortIds = null;
-        else {
-            inPortIds = new HashSet<UUID>();
-            for (int i = 0; i < numInPortIds; i++)
-                inPortIds.add((UUID) in.readObject());
-        }
-        int numOutPortIds = in.readInt();
-        if (0 == numOutPortIds)
-            outPortIds = null;
-        else {
-            outPortIds = new HashSet<UUID>();
-            for (int i = 0; i < numOutPortIds; i++)
-                outPortIds.add((UUID) in.readObject());
-        }
-    }
 	// Default constructor for the Jackson deserialization.
 	public Condition() { super(); }
 

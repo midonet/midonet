@@ -2,7 +2,7 @@ package com.midokura.midolman.state;
 
 import java.io.Serializable;
 
-public class ZkNodeEntry<X, Y extends Serializable> {
+public class ZkNodeEntry<X, Y> {
     public X key;
     public Y value;
 

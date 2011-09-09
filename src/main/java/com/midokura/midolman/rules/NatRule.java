@@ -5,8 +5,6 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public abstract class NatRule extends Rule {
-
-    private static final long serialVersionUID = 8176550999088632045L;
     // The NatMapping is irrelevant to the hashCode, equals and serialization.
     protected transient NatMapping natMap;
     public boolean dnat;

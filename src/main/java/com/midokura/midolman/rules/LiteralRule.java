@@ -5,9 +5,6 @@ import java.util.UUID;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class LiteralRule extends Rule {
-
-    private static final long serialVersionUID = -4902104131572973862L;
-
     public LiteralRule(Condition condition, Action action) {
         super(condition, action);
         if (action != Action.ACCEPT && action != Action.DROP

@@ -1,10 +1,6 @@
 package com.midokura.midolman.rules;
 
-import java.io.Serializable;
-
-public class NatTarget implements Serializable {
-
-    private static final long serialVersionUID = -4883760656481357158L;
+public class NatTarget {
 
     public int nwStart;
     public int nwEnd;
