@@ -2,6 +2,8 @@
 
 package com.midokura.midolman;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.net.InetAddress;
 
@@ -20,6 +22,10 @@ import com.midokura.midolman.state.PortLocationMap;
 
 
 class AbstractControllerTester extends AbstractController {
+    public List<OFPhysicalPort> portsAdded;
+    public List<OFPhysicalPort> portsRemoved;
+    public List<OFPhysicalPort> portsModified;
+ 
     public AbstractControllerTester(
             int datapathId,
             UUID switchUuid,
@@ -32,6 +38,9 @@ class AbstractControllerTester extends AbstractController {
             InetAddress internalIp) {
         super(datapathId, switchUuid, greKey, ovsdb, dict, flowExpireMinMillis,
 	      flowExpireMaxMillis, idleFlowExpireMillis, internalIp);
+        portsAdded = new ArrayList<OFPhysicalPort>();
+        portsRemoved = new ArrayList<OFPhysicalPort>();
+        portsModified = new ArrayList<OFPhysicalPort>();
     }
 
     @Override 
@@ -52,7 +61,10 @@ class AbstractControllerTester extends AbstractController {
                                   int priority, int outPort) { }
 
     @Override
-    protected void addPort(OFPhysicalPort portDesc, short portNum) { }
+    protected void addPort(OFPhysicalPort portDesc, short portNum) { 
+        assertEquals(portDesc.getPortNumber(), portNum);
+        portsAdded.add(portDesc);
+    }
 
     @Override
     protected void deletePort(OFPhysicalPort portDesc) { }
