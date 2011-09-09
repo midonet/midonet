@@ -1,24 +1,46 @@
 package com.midokura.midolman.state;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
 
 public class PortDirectory {
-
     public static Random random = new Random();
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
+    static {
+        objectMapper.setVisibilityChecker(
+            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    }
 
     public static UUID generate32BitUUID() {
         // TODO: make this non-static and use ZK to generate sequence numbers.
@@ -225,13 +247,15 @@ public class PortDirectory {
         this.dir = dir;
     }
 
-    public static byte[] portToBytes(PortConfig port) throws IOException {
+	public static byte[] portToBytes(PortConfig port) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(port);
-        out.close();
+        OutputStream out = new BufferedOutputStream(bos);
+        JsonGenerator jsonGenerator =
+            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        jsonGenerator.writeObject(port);
         return bos.toByteArray();
     }
+
     
     public void addPort(UUID portId, PortConfig port) throws IOException,
             KeeperException, InterruptedException {
@@ -322,8 +346,10 @@ public class PortDirectory {
             InterruptedException {
         byte[] data = dir.get("/" + portId.toString(), portWatcher);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        ObjectInputStream in = new ObjectInputStream(bis);
-        PortConfig port = (PortConfig) in.readObject();
+        InputStream in = new BufferedInputStream(bis);
+        JsonParser jsonParser =
+            jsonFactory.createJsonParser(new InputStreamReader(in));
+        PortConfig port = jsonParser.readValueAs(PortConfig.class);
         return port;
     }
 

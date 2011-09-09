@@ -2,10 +2,11 @@ package com.midokura.midolman.state;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.OutputStreamWriter;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +20,12 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.rules.NatTarget;
@@ -46,7 +53,9 @@ public class RouterDirectory {
     public static byte[] routerToBytes(RouterConfig tenant) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(tenant);
+        JsonGenerator jsonGenerator =
+            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        jsonGenerator.writeObject(tenant);
         out.close();
         return bos.toByteArray();
     }
@@ -55,11 +64,22 @@ public class RouterDirectory {
             ClassNotFoundException, KeeperException, InterruptedException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
+        JsonParser jsonParser =
+            jsonFactory.createJsonParser(new InputStreamReader(in));
         RouterConfig router = (RouterConfig) in.readObject();
         return router;
     }
 
     Directory dir;
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
+    static {
+        objectMapper.setVisibilityChecker(
+            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    }
 
     public RouterDirectory(Directory dir) {
         this.dir = dir;
@@ -214,10 +234,9 @@ public class RouterDirectory {
     private byte[] serializeRuleChain(List<Rule> rules) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeInt(rules.size());
-        for (Rule r : rules) {
-            out.writeObject(r);
-        }
+        JsonGenerator jsonGenerator =
+            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        jsonGenerator.writeObject(rules);
         out.close();
         return bos.toByteArray();
     }
@@ -245,10 +264,9 @@ public class RouterDirectory {
         byte[] data = dir.get(getPathForChain(routerId, chainName), watcher);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
-        int numRules = in.readInt();
-        List<Rule> rules = new Vector<Rule>(numRules);
-        for (int i = 0; i < numRules; i++)
-            rules.add((Rule) in.readObject());
+        JsonParser jsonParser =
+            jsonFactory.createJsonParser(new InputStreamReader(in));
+        List<Rule> rules = jsonParser.readValueAs(List.class);
         return rules;
     }
 

@@ -1,14 +1,26 @@
 package com.midokura.midolman.rules;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -19,6 +31,14 @@ public class TestCondition {
 
     static MidoMatch pktMatch;
     static Random rand;
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
+    static {
+        objectMapper.setVisibilityChecker(
+            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    }
 
     @BeforeClass
     public static void setup() {
@@ -253,13 +273,18 @@ public class TestCondition {
     public void testSerialization() throws IOException, ClassNotFoundException {
         Condition cond = new Condition();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(cond);
+		OutputStream out = new BufferedOutputStream(bos);
+        JsonGenerator jsonGenerator =
+            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        jsonGenerator.writeObject(cond);
         out.close();
         byte[] data = bos.toByteArray();
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        ObjectInputStream in = new ObjectInputStream(bis);
-        Condition c = (Condition) in.readObject();
+        InputStream in = new BufferedInputStream(bis);
+        JsonParser jsonParser =
+            jsonFactory.createJsonParser(new InputStreamReader(in));
+        Condition c = jsonParser.readValueAs(Condition.class);
+		in.close();
         Assert.assertTrue(cond.equals(c));
     }
 }
