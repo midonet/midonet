@@ -28,6 +28,22 @@ public class ZkPathManager {
     public ZkPathManager(String basePath) {
         this.basePath = basePath;
     }
+
+    /**
+     * Set the base path.
+     * @param basePath Base path to set.
+     */
+    public void setBasePath(String basePath) {
+        this.basePath = basePath;
+    }
+    
+    /**
+     * Get the currently set base path.
+     * @return Base path.
+     */
+    public String getBasePath() {
+        return basePath;
+    }
     
     /**
      * Get ZK tenant path.
@@ -66,7 +82,7 @@ public class ZkPathManager {
         StringBuilder sb = new StringBuilder(basePath)
             .append("/ports");
         if (id != null) {
-            sb.append("/").append(id.toString());
+            sb.append("/").append(id);
         }
         return sb.toString();   
     }
@@ -92,7 +108,7 @@ public class ZkPathManager {
         StringBuilder sb = new StringBuilder(getTenantPath(tenantId))
             .append("/routers");
         if (routerId != null) {
-            sb.append("/").append(routerId.toString());
+            sb.append("/").append(routerId);
         }
         return sb.toString();
     }
@@ -118,7 +134,7 @@ public class ZkPathManager {
         StringBuilder sb = new StringBuilder(getRouterPath(routerId))
             .append("/ports");
         if (portId != null) {
-            sb.append("/").append(portId.toString());
+            sb.append("/").append(portId);
         }
         return sb.toString();
     }
@@ -136,13 +152,28 @@ public class ZkPathManager {
 
     /**
      * Get ZK router routes path.
-     * 
+     * /routers/routerId/routes
      * @param routerId  Router UUID
      * @return  Router routes path in ZK.
      */
     public String getRouterRoutesPath(UUID routerId) {
         return new StringBuilder(getRouterPath(routerId))
             .append("/routes").toString();        
+    }
+
+    /**
+     * Get ZK router routes path.
+     * /routers/routerId/routes/routeId
+     * @param routerId  Router UUID
+     * @return  Router routes path in ZK.
+     */
+    public String getRouterRoutesPath(UUID routerId, UUID routeId) {
+        StringBuilder sb = new StringBuilder(getRouterPath(routerId))        
+            .append("/routes");
+        if (routeId != null) {
+            sb.append("/").append(routeId);
+        }
+        return sb.toString();
     }
 
     /**
@@ -179,6 +210,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port routes path.
+     * /ports/portId/routes/routeId
      * 
      * @param portId  Port UUID
      * @param Route  Route object to store.
@@ -188,9 +220,24 @@ public class ZkPathManager {
         StringBuilder sb = new StringBuilder(getPortPath(portId))
             .append("/routes");
         if (route != null) {
-            sb.append(route.toString());
+            sb.append(route);
         }
         return sb.toString();
     }
 
+    /**
+     * Get ZK routes path.
+     * /routes/routeId
+     * @param portId  Port UUID
+     * @param Route  Route object to store.
+     * @return  Port routes path in ZK.
+     */
+    public String getRoutePath(UUID id) {
+        StringBuilder sb = new StringBuilder(basePath)
+            .append("/routes");
+        if (id != null) {
+            sb.append("/").append(id);
+        }
+        return sb.toString();        
+    }
 }
