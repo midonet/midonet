@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -23,7 +24,9 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
 import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
+import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
@@ -40,6 +43,9 @@ public class RouterResource extends RestResource {
     private final static Logger log = LoggerFactory.getLogger(
             RouterResource.class);
     
+	@Context
+	UriInfo uriInfo;
+	
     /*
      * Implements REST API endpoints for routers.
      */
@@ -84,6 +90,23 @@ public class RouterResource extends RestResource {
         return router;
     }
 
+    @PUT
+    @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response update(@PathParam("id") UUID id, Router router){
+    	RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+        try {
+            dao.update(id, router);
+        } catch (Exception ex) {
+            log.error("Error updating port", ex);
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.APPLICATION_JSON).build());
+        }
+        
+        return Response.created(uriInfo.getAbsolutePath()).build();
+    }
+    
     /**
      * Sub-resource class for tenant's virtual router.
      */

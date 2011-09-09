@@ -66,6 +66,18 @@ public class RouterDataAccessor extends DataAccessor {
     }
 
     /**
+     * Update Router entry in ZooKeeper.
+     * 
+     * @param   router  Router object to update.
+     * @throws  Exception  Error adding data to ZooKeeper.
+     */
+    public void update(UUID id, Router router) throws Exception {
+        RouterConfig config = convertToConfig(router);
+        RouterZkManager manager = getRouterZkManager();
+        manager.update(id, config);
+    }
+    
+    /**
      * Get a Router for the given ID.
      * 
      * @param   id  Router ID to search.
