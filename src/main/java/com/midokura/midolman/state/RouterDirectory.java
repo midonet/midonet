@@ -26,6 +26,9 @@ public class RouterDirectory {
 
         private static final long serialVersionUID = -7029926675019840294L;
 
+        public RouterConfig() {
+        }
+        
         public RouterConfig(String name, UUID tenantId) {
             super();
             this.name = name;
