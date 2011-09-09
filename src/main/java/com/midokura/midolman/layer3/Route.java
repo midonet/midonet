@@ -21,6 +21,9 @@ public class Route implements Serializable {
     public int weight;
     public String attributes;
 
+    public Route(){
+    }
+
     public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
             int dstNetworkLength, NextHop nextHop, UUID nextHopPort,
             int nextHopGateway, int weight, String attributes) {

@@ -18,6 +18,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.util.JSONSerializer;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -51,7 +52,9 @@ public class RouterZkManager {
      */
     public void create(UUID id, RouterConfig router) 
         throws InterruptedException, KeeperException, IOException {
-        byte[] data = RouterDirectory.routerToBytes(router);
+        JSONSerializer<RouterConfig> serializer = 
+        	new JSONSerializer<RouterConfig>();
+        byte[] data = serializer.objToBytes(router);
         List<Op> ops = new ArrayList<Op>();
         // Create /routers/<routerId>
         ops.add(Op.create(pathManager.getRouterPath(id), data, 
@@ -91,7 +94,9 @@ public class RouterZkManager {
             throws KeeperException, InterruptedException,
                 IOException, ClassNotFoundException {
         byte[] data = zk.getData(pathManager.getRouterPath(id), null, null);
-        return RouterDirectory.bytesToRouter(data);      
+        JSONSerializer<RouterConfig> serializer = 
+        	new JSONSerializer<RouterConfig>();
+        return serializer.bytesToObj(data, RouterConfig.class);      
     }
     
     

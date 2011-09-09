@@ -43,6 +43,9 @@ public class PortDirectory {
     public static abstract class PortConfig implements Serializable {
         private static final long serialVersionUID = 3124283622213097848L;
 
+        public PortConfig() {
+        }
+
         private PortConfig(UUID device_id) {
             super();
             this.device_id = device_id;
@@ -55,6 +58,9 @@ public class PortDirectory {
             Serializable {
         private static final long serialVersionUID = -7817609888045028903L;
 
+        public BridgePortConfig() {
+        }
+        
         public BridgePortConfig(UUID device_id) {
             super(device_id);
         }
@@ -80,7 +86,10 @@ public class PortDirectory {
         public int portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.
         public transient Set<Route> routes;
-
+        
+        public RouterPortConfig() {
+        }
+        
         public RouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes) {
             super(device_id);
@@ -112,7 +121,10 @@ public class PortDirectory {
             implements Serializable {
         private static final long serialVersionUID = 1576824002284331148L;
         public UUID peer_uuid;
-
+        
+        public LogicalRouterPortConfig() {
+        }
+        
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
                 UUID peer_uuid) {
@@ -142,7 +154,10 @@ public class PortDirectory {
         public int localNwAddr;
         public int localNwLength;
         public transient Set<BGP> bgps;
-
+        
+        public MaterializedRouterPortConfig() {
+        }
+        
         public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
                 int localNetworkAddr, int localNetworkLength, Set<BGP> bgps) {

@@ -49,7 +49,9 @@ public class TenantZkManager {
      * @throws IOException  Error while converting TenantConfig to bytes.
      */
     public void create(UUID id) 
-        throws KeeperException, InterruptedException, IOException {        
+        throws KeeperException, InterruptedException, IOException {   
+    	List<String> l = zk.getChildren("/midolman", null);
+
         List<Op> ops = new ArrayList<Op>();
         // Create /tenants/<tenantId>
         ops.add(Op.create(pathManager.getTenantPath(id), null, 

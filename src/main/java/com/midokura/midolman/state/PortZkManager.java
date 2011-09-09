@@ -24,6 +24,8 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.util.JSONSerializer;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -46,14 +48,6 @@ public class PortZkManager {
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
     }
-
-    private PortConfig bytesToPort(byte[] data)
-            throws IOException, ClassNotFoundException, KeeperException,
-                InterruptedException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        ObjectInputStream in = new ObjectInputStream(bis);
-        return (PortConfig) in.readObject();
-    }
     
     /**
      * Add a new port.
@@ -70,7 +64,9 @@ public class PortZkManager {
                 || port instanceof MaterializedRouterPortConfig))
             throw new IllegalArgumentException("Unrecognized port type.");
 
-        byte[] data = PortDirectory.portToBytes(port);
+        JSONSerializer<PortConfig> serializer = 
+        	new JSONSerializer<PortConfig>();
+        byte[] data = serializer.objToBytes(port);
         List<Op> ops = new ArrayList<Op>();
 
         // Create /ports/<portId>
@@ -102,9 +98,27 @@ public class PortZkManager {
             throws KeeperException, InterruptedException,
                 IOException, ClassNotFoundException {
         byte[] data = zk.getData(pathManager.getPortPath(id), null, null);
-        return bytesToPort(data);      
+        JSONSerializer<PortConfig> serializer = 
+        	new JSONSerializer<PortConfig>();
+        return serializer.bytesToObj(data, PortConfig.class);
     }
-    
+
+    /**
+     * Update a port data.
+     * @param id  Port UUID
+     * @param port  PortConfig object.
+     * @throws IOException  Serialization error.
+     * @throws InterruptedException 
+     * @throws KeeperException 
+     */
+    public void update(UUID id, PortConfig port) 
+    		throws IOException, KeeperException, InterruptedException {
+        JSONSerializer<PortConfig> serializer = 
+        	new JSONSerializer<PortConfig>();
+        byte[] data = serializer.objToBytes(port);  
+        // Update any version for now.
+        zk.setData(pathManager.getPortPath(id), data, -1);
+    }
     
     /**
      * Get a list of PortConfig objects for a tenant.

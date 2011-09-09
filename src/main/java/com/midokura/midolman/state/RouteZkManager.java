@@ -37,6 +37,9 @@ public class RouteZkManager {
         private static final long serialVersionUID = 1L;
         public String path = null;
 
+        public RouteRefConfig() {
+        }
+        
         public RouteRefConfig(String path) {
             this.path = path;
         }
