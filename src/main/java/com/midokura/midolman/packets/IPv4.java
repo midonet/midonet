@@ -319,12 +319,8 @@ public class IPv4 extends BasePacket {
      */
     @Override
     public byte[] serialize() {
-        return serialize(false);
-    }
-
-    public byte[] serialize(boolean ignorePayload) {
         byte[] payloadData = null;
-        if (!ignorePayload && payload != null) {
+        if (payload != null) {
             payload.setParent(this);
             payloadData = payload.serialize();
         }
@@ -356,7 +352,7 @@ public class IPv4 extends BasePacket {
         bb.putInt(this.destinationAddress);
         if (this.options != null)
             bb.put(this.options);
-        if (!ignorePayload && payloadData != null)
+        if (payloadData != null)
             bb.put(payloadData);
 
         // compute checksum if needed
@@ -369,11 +365,6 @@ public class IPv4 extends BasePacket {
 
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
-        return deserialize(data, offset, length, false);
-    }
-
-    public IPacket deserialize(byte[] data, int offset, int length,
-            boolean ignorePayload) {
         ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         short sscratch;
 
@@ -397,9 +388,6 @@ public class IPv4 extends BasePacket {
             this.options = new byte[optionsLength];
             bb.get(this.options);
         }
-
-        if(ignorePayload)
-            return this;
 
         IPacket payload;
         if (IPv4.protocolClassMap.containsKey(this.protocol)) {

@@ -306,8 +306,8 @@ public class TestNetworkController {
         // that has no route.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         OFPhysicalPort phyPort = phyPorts.get(0);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), phyPort
+        byte[] mac = Ethernet.toMACAddress("02:00:11:22:00:01");
+        Ethernet eth = TestRouter.makeUDP(mac, phyPort
                 .getHardwareAddress(), 0x0a000005, 0x0b000005, (short) 101,
                 (short) 212, payload);
         byte[] data = eth.serialize();
@@ -315,10 +315,19 @@ public class TestNetworkController {
                 data);
         // This time along with the 'drop' flow, we expect an ICMP N addressed
         // to the source of the UDP.
-        // TODO(pino): check the internals of the ICMP for correctness.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
-        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        OFAction ofAction = new OFActionOutput(phyPort.getPortNumber(), (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
+                IPv4.class.cast(eth.getPayload()), phyPort.getHardwareAddress(),
+                mac, 0x0a000001, 0x0a000005, pkt.data);
+
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
@@ -332,16 +341,26 @@ public class TestNetworkController {
         // that will be rejected (in 10.1.0.0/16, not in 10.1.<0 or 1>.0/24).
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         OFPhysicalPort phyPort = phyPorts.get(1);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), phyPort
+        byte[] mac = Ethernet
+                .toMACAddress("02:00:11:22:00:01");
+        Ethernet eth = TestRouter.makeUDP(mac, phyPort
                 .getHardwareAddress(), 0x0a010005, 0x0a010305, (short) 101,
                 (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(11111, data.length, phyPort.getPortNumber(),
                 data);
         // Along with the 'drop' flow, we expect an ICMP X.
-        // TODO(pino): check the internals of the ICMP for correctness.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        OFAction ofAction = new OFActionOutput(phyPort.getPortNumber(), (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toChar(),
+                IPv4.class.cast(eth.getPayload()), phyPort.getHardwareAddress(),
+                mac, 0x0a010001, 0x0a010005, pkt.data);
+
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         MidoMatch match = new MidoMatch();
@@ -545,17 +564,17 @@ public class TestNetworkController {
         Assert.assertTrue(Arrays.equals(dlDst, eth.getDestinationMACAddress()));
         Assert.assertEquals(IPv4.ETHERTYPE, eth.getEtherType());
         IPv4 ip = IPv4.class.cast(eth.getPayload());
-        Assert.assertEquals(nwSrc,  ip.getSourceAddress());
-        Assert.assertEquals(nwDst,  ip.getDestinationAddress());
+        Assert.assertEquals(nwSrc, ip.getSourceAddress());
+        Assert.assertEquals(nwDst, ip.getDestinationAddress());
         Assert.assertEquals(ICMP.PROTOCOL_NUMBER, ip.getProtocol());
         ICMP icmp = ICMP.class.cast(ip.getPayload());
         Assert.assertEquals(type, icmp.getType());
         Assert.assertEquals(code, icmp.getCode());
-        Assert.assertTrue(Arrays.equals(triggerIPPkt.serialize(true),
-                icmp.getIp().serialize(true)));
-        byte[] expInnerData = triggerIPPkt.getPayload().serialize();
-        expInnerData = Arrays.copyOf(expInnerData, 8);
-        //Assert.assertTrue(Arrays.equals(expInnerData, icmp.getData()));
+        byte[] data = triggerIPPkt.serialize();
+        int length = triggerIPPkt.getHeaderLength()*4 + 8;
+        if (length < data.length)
+            data = Arrays.copyOf(data, length);
+        Assert.assertTrue(Arrays.equals(data, icmp.getData()));
     }
 
     @Test
@@ -635,6 +654,64 @@ public class TestNetworkController {
 
     @Test
     public void testLocalPacketArpTimeout() {
+        // Send a packet to router1's first port to an address on router2's
+        // first port. Note that we traverse 3 routers.
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        OFPhysicalPort phyPortIn = phyPorts.get(1);
+        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        byte[] mac = Ethernet
+                .toMACAddress("02:00:11:22:00:01");
+        Ethernet eth = TestRouter.makeUDP(mac, phyPortIn
+                .getHardwareAddress(), 0x0a010005, 0x0a020008, (short) 101,
+                (short) 212, payload);
+        byte[] data = eth.serialize();
+        networkCtrl.onPacketIn(123456, data.length,
+                phyPortIn.getPortNumber(), data);
+        // The router will have to ARP, so no flows installed yet, but one
+        // unbuffered packet should have been emitted.
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        OFAction ofAction = new OFActionOutput(phyPortOut.getPortNumber(),
+                (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        byte[] arpData = TestRouter.makeArpRequest(
+                phyPortOut.getHardwareAddress(), 0x0a020001, 0x0a020008)
+                .serialize();
+        Assert.assertArrayEquals(arpData, pkt.data);
+
+        // If we let 60 seconds go by another ARP request will have
+        // been emitted, but also an ICMP !H and a 'drop' flow installed.
+        reactor.incrementTime(Router.ARP_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(3, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(1, pkt.actions.size());
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertArrayEquals(arpData, pkt.data);
+        // Now check the ICMP.
+        pkt = controllerStub.sentPackets.get(2);
+        Assert.assertEquals(1, pkt.actions.size());
+        ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        // The network source address is that of the port on router2 that
+        // generated the ICMP (the logical port): 0xc0a80102.
+        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
+                IPv4.class.cast(eth.getPayload()), phyPortIn.getHardwareAddress(),
+                mac, 0xc0a80102, 0x0a010005, pkt.data);
+        // Now check the Drop Flow.
+        MidoMatch match = new MidoMatch();
+        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                NetworkController.IDLE_TIMEOUT_SECS, 123456, true,
+                new ArrayList<OFAction>());
 
     }
 

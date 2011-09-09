@@ -666,6 +666,7 @@ public class NetworkController extends AbstractController {
             // Can't send the ICMP if we can't find the last ingress port.
             return;
         }
+        // TODO(pino): what do we do if this isn't a public/global address?
         ip.setSourceAddress(portConfig.portAddr);
         // At this point, we should be using the source network address
         // from the ICMP payload as the ICMP's destination network address.
@@ -693,9 +694,7 @@ public class NetworkController extends AbstractController {
     }
 
     private void sendUnbufferedPacketFromPort(Ethernet ethPkt, short portNum) {
-        OFActionOutput action = new OFActionOutput();
-        action.setMaxLength((short) 0);
-        action.setPort(portNum);
+        OFActionOutput action = new OFActionOutput(portNum, (short)0);
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(action);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,

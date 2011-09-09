@@ -35,7 +35,6 @@ public class ICMP extends BasePacket {
     short checksum;
     int quench;
     byte[] data;
-    IPv4 ip;
 
     public boolean isError() {
         return TYPE_UNREACH == code || TYPE_SOURCE_QUENCH == code ||
@@ -63,23 +62,17 @@ public class ICMP extends BasePacket {
         return data;
     }
 
-    public final IPv4 getIp() {
-        return ip;
-    }
-
     public void setUnreachable(UNREACH_CODE unreachCode, IPv4 ipPkt) {
         type = TYPE_UNREACH;
         code = unreachCode.value;
         checksum = 0;
         quench = 0;
-        ip = ipPkt;
-        IPacket ipPayload = ipPkt.getPayload();
-        if (null != ipPayload) {
-            data = ipPayload.serialize();
-            data = Arrays.copyOf(data, 8);
-        }
+        byte[] data = ipPkt.serialize();
+        int length = ipPkt.headerLength*4 + 8;
+        if (length >= data.length)
+            this.data = data;
         else
-            data = null;
+            this.data = Arrays.copyOf(data, length);
     }
 
     public void setEchoRequest(short id, short seq, byte[] data) {
@@ -106,20 +99,13 @@ public class ICMP extends BasePacket {
      */
     @Override
     public byte[] serialize() {
-        byte[] ipData = null;
-        if (TYPE_UNREACH == type) {
-            ipData = ip.serialize(true);
-        }
-        int length = 8 + ((ipData == null) ? 0 : ipData.length) +
-                ((data == null) ? 0 : ipData.length);
+        int length = 8 + ((data == null) ? 0 : data.length);
         ByteBuffer bb = ByteBuffer.allocate(length);
         bb.put((byte)type);
         bb.put((byte)code);
         bb.putShort(checksum);
         bb.putInt(quench);
 
-        if (null != ipData)
-            bb.put(ipData);
         if (null != data)
             bb.put(data);
 
@@ -138,14 +124,11 @@ public class ICMP extends BasePacket {
         code = (char)bb.get();
         checksum = bb.getShort();
         quench = bb.getInt();
-        int remainingLength = bb.limit()-bb.position();
-        if (TYPE_UNREACH == type) {
-            ip = new IPv4();
-            ip.deserialize(data, bb.position(), remainingLength, true);
-            remainingLength -= ip.headerLength;
+        int remainingBytes = bb.limit() - bb.position();
+        if (remainingBytes > 0) {
+            this.data = new byte[remainingBytes];
+            bb.get(this.data);
         }
-        if (0 < remainingLength)
-            data = Arrays.copyOfRange(data, length-remainingLength, length);
         return this;
     }
 
