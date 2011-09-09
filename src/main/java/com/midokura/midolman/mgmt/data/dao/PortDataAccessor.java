@@ -110,7 +110,7 @@ public class PortDataAccessor extends DataAccessor {
     /**
      * Add Port object to Zookeeper directories.
      * 
-     * @param   port  LogicalRouterPort object to add.
+     * @param   port  Port object to add.
      * @throws  Exception  Error adding data to Zookeeper.
      */
     public void create(Port port) throws Exception {

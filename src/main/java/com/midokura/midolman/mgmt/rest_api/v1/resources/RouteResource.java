@@ -1,5 +1,5 @@
 /*
- * @(#)PortResource        1.6 11/09/05
+ * @(#)RouteResource        1.6 11/09/10
  *
  * Copyright 2011 Midokura KK
  */
@@ -23,8 +23,8 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
-import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dao.RouteDataAccessor;
+import com.midokura.midolman.mgmt.data.dto.Route;
 
 /**
  * Root resource class for ports.
@@ -32,42 +32,42 @@ import com.midokura.midolman.mgmt.data.dto.Port;
  * @version        1.6 08 Sept 2011
  * @author         Ryu Ishimoto
  */
-@Path("/ports")
-public class PortResource extends RestResource {
+@Path("/routes")
+public class RouteResource extends RestResource {
     /*
-     * Implements REST API endpoints for ports.
+     * Implements REST API endpoints for routes.
      */
-    
+
     private final static Logger log = LoggerFactory.getLogger(
-            PortResource.class);
+            RouteResource.class);
     
     /**
-     * Get the port with the given ID.
-     * @param id  Port UUID.
-     * @return  Port object.
+     * Get the route with the given ID.
+     * @param id  Route UUID.
+     * @return  Route object.
      */
-    @GET
+/*    @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Port get(@PathParam("id") UUID id) {
-        // Get a port for the given ID.
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-        Port port = null;
+    public Route get(@PathParam("id") UUID id) {
+        // Get a route for the given ID.
+        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+        Route route = null;
         try {
-            port = dao.get(id);
+            route = dao.get(id);
         } catch (Exception ex) {
-            log.error("Error getting port", ex);
+            log.error("Error getting route", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
         }
-        return port;
-    }
+        return route;
+    } */   
     
     /**
-     * Sub-resource class for tenant's port.
+     * Sub-resource class for router's route.
      */
-    public static class RouterPortResource extends RestResource {
+    public static class RouterRouteResource extends RestResource {
         
         private UUID routerId = null;
         
@@ -77,34 +77,13 @@ public class PortResource extends RestResource {
          * @param   zkConn  Zookeeper connection string.
          * @param   routerId  UUID of a router.
          */
-        public RouterPortResource(String zkConn, UUID routerId) {
+        public RouterRouteResource(String zkConn, UUID routerId) {
             this.zookeeperConn = zkConn;
             this.routerId = routerId;        
         }
-
-        /**
-         * Return a list of ports.
-         * 
-         * @return  A list of Port objects.
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-            Port[] ports = null;
-            try {
-                ports = dao.list(routerId);
-            } catch (Exception ex) {
-                log.error("Error listing ports", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());           
-            }
-            return ports;
-        }        
         
         /**
-         * Handler for create port API call.
+         * Handler for create route API call.
          * 
          * @param   port  Router object mapped to the request input.
          * @throws Exception 
@@ -113,25 +92,25 @@ public class PortResource extends RestResource {
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(Port port, @Context UriInfo uriInfo) 
+        public Response create(Route route, @Context UriInfo uriInfo)
                 throws Exception {
-            // Add a new port entry into zookeeper.
-            port.setId(UUID.randomUUID());
-            port.setDeviceId(routerId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            // Add a new route entry into zookeeper.
+            route.setId(UUID.randomUUID());
+            route.setRouterId(routerId);
+            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
 
             try {
-                dao.create(port);
+                dao.create(route);
             } catch (Exception ex) {
-                log.error("Error creating ports", ex);
+                log.error("Error creating route", ex);
                 throw new WebApplicationException(
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());
             }
-
+            
             URI uri = uriInfo.getBaseUriBuilder()
-                .path("ports/" + port.getId()).build();            
+                .path("routes/" + route.getId()).build();
             return Response.created(uri).build();
-        }
+        }        
     }
 }

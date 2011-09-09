@@ -15,12 +15,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
  
 /**
  * Root resource class for Virtual Router.
@@ -30,16 +36,28 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortR
  */
 @Path("/routers")
 public class RouterResource extends RestResource {
+    
+    private final static Logger log = LoggerFactory.getLogger(
+            RouterResource.class);
+    
     /*
      * Implements REST API endpoints for routers.
      */
 
     /**
-     * Router resource locator for tenants
+     * Port resource locator for routers
      */
     @Path("/{id}/ports")
     public RouterPortResource getPortResource(@PathParam("id") UUID id) {
         return new RouterPortResource(zookeeperConn, id);
+    }    
+
+    /**
+     * Route resource locator for routers
+     */
+    @Path("/{id}/routes")
+    public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
+        return new RouterRouteResource(zookeeperConn, id);
     }    
 
     /**
@@ -57,8 +75,7 @@ public class RouterResource extends RestResource {
         try {
             router = dao.get(id);
         } catch (Exception ex) {
-            // TODO: LOG
-            System.err.println("Exception = " + ex.getMessage());
+            log.error("Error getting router", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
@@ -97,8 +114,7 @@ public class RouterResource extends RestResource {
             try {
                 routers = dao.list(tenantId);
             } catch (Exception ex) {
-                // TODO: LOG
-                System.err.println("Exception = " + ex.getMessage());
+                log.error("Error getting routers", ex);
                 throw new WebApplicationException(
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());           
@@ -115,7 +131,7 @@ public class RouterResource extends RestResource {
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(Router router) {
+        public Response create(Router router, @Context UriInfo uriInfo) {
             // Add a new router entry into zookeeper.
             router.setId(UUID.randomUUID());
             router.setTenantId(tenantId);
@@ -123,14 +139,15 @@ public class RouterResource extends RestResource {
             try {
                 dao.create(router);
             } catch (Exception ex) {
-                // TODO: LOG
-                System.err.println("Exception = " + ex.getMessage());
+                log.error("Error creating router", ex);
                 throw new WebApplicationException(
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());
             }
-            
-            return Response.created(URI.create("/" + router.getId())).build();
+
+            URI uri = uriInfo.getBaseUriBuilder()
+                .path("routers/" + router.getId()).build();            
+            return Response.created(uri).build();
         }        
     }    
 }

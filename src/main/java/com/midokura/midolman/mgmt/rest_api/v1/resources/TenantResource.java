@@ -17,6 +17,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.mgmt.data.dao.TenantDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
@@ -33,6 +36,9 @@ public class TenantResource extends RestResource {
      * Implements REST API endpoints for tenants.
      */
 
+    private final static Logger log = LoggerFactory.getLogger(
+            TenantResource.class);
+    
     /**
      * Router resource locator for tenants
      */
@@ -60,8 +66,7 @@ public class TenantResource extends RestResource {
         try {
             dao.create(tenant);
         } catch (Exception ex) {
-            // TODO: LOG
-            System.err.println("Exception = " + ex.getMessage());
+            log.error("Error creating tenant", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
