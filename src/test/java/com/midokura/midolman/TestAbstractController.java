@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.net.InetAddress;
 
 import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFPhysicalPort;
 
@@ -66,7 +67,7 @@ public class TestAbstractController {
     private AbstractController controller;
 
     @Test
-    public void testConstruction() {
+    public void testController() {
         controller = new AbstractControllerTester(
 	                     43 /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
@@ -77,6 +78,10 @@ public class TestAbstractController {
  			     320 * 1000 /* flowExpireMaxMillis */,
  			     60 * 1000 /* idleFlowExpireMillis */,
 			     null /* internalIp */);
-        assertTrue(true);
+
+        OFPhysicalPort port1 = new OFPhysicalPort();
+        port1.setPortNumber((short) 37);
+        port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
+        controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
     }
 }
