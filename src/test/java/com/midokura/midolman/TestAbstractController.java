@@ -67,16 +67,20 @@ class AbstractControllerTester extends AbstractController {
     }
 
     @Override
-    protected void deletePort(OFPhysicalPort portDesc) { }
+    protected void deletePort(OFPhysicalPort portDesc) { 
+        portsRemoved.add(portDesc);
+    }
 
     @Override
-    protected void modifyPort(OFPhysicalPort portDesc) { }
+    protected void modifyPort(OFPhysicalPort portDesc) {
+        portsModified.add(portDesc);
+    }
 }
 
 
 public class TestAbstractController {
 
-    private AbstractController controller;
+    private AbstractControllerTester controller;
 
     @Test
     public void testController() {
@@ -95,5 +99,8 @@ public class TestAbstractController {
         port1.setPortNumber((short) 37);
         port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
+
+        assertArrayEquals(new OFPhysicalPort[] { port1 },
+			  controller.portsAdded.toArray());
     }
 }
