@@ -39,8 +39,6 @@ public class PortResource extends RestResource {
      * Implements REST API endpoints for ports.
      */
 	
-	@Context
-	private UriInfo uriInfo;
     
     private final static Logger log = LoggerFactory.getLogger(
             PortResource.class);
@@ -74,6 +72,7 @@ public class PortResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Port port){
         PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+        
         try {
             dao.update(id, port);
         } catch (Exception ex) {
@@ -83,7 +82,7 @@ public class PortResource extends RestResource {
                     .type(MediaType.APPLICATION_JSON).build());
         }
         
-        return Response.created(uriInfo.getAbsolutePath()).build();
+        return Response.ok().build();
     }
     
     /**
@@ -153,7 +152,7 @@ public class PortResource extends RestResource {
             }
 
             URI uri = uriInfo.getBaseUriBuilder()
-                .path("ports/" + port.getId()).build();            
+                .path("ports/" + port.getId()).build();        
             return Response.created(uri).build();
         }
     }

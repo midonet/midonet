@@ -40,9 +40,6 @@ public class RouterResource extends RestResource {
     
     private final static Logger log = LoggerFactory.getLogger(
             RouterResource.class);
-    
-	@Context
-	private UriInfo uriInfo;
 	
     /*
      * Implements REST API endpoints for routers.
@@ -102,7 +99,7 @@ public class RouterResource extends RestResource {
                     .type(MediaType.APPLICATION_JSON).build());
         }
         
-        return Response.created(uriInfo.getAbsolutePath()).build();
+        return Response.ok().build();
     }
     
     /**
@@ -152,7 +149,6 @@ public class RouterResource extends RestResource {
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
         public Response create(Router router, @Context UriInfo uriInfo) {
             // Add a new router entry into zookeeper.
             router.setId(UUID.randomUUID());
