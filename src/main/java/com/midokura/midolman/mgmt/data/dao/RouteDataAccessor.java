@@ -5,6 +5,12 @@
  */
 package com.midokura.midolman.mgmt.data.dao;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Route;
@@ -34,7 +40,8 @@ public class RouteDataAccessor extends DataAccessor {
         return new RouteZkManager(conn.getZooKeeper(), "/midolman");
     }
     
-    private com.midokura.midolman.layer3.Route convertToZkRoute(Route route) {
+    private static com.midokura.midolman.layer3.Route 
+    		convertToZkRoute(Route route) {
         NextHop nextHop = null;
         String type = route.getType();
         if (type.equals(Route.Reject)) {
@@ -54,8 +61,34 @@ public class RouteDataAccessor extends DataAccessor {
                 route.getNextHopPort(),
                 Net.convertAddressToInt(route.getNextHopGateway()),
                 route.getWeight(),
-                "some,attr"         // FIXME: Some reason this is required.
+                "some,attr",         // FIXME: Some reason this is required.
+                route.getRouterId()
                 );
+    }
+    
+    private static Route convertToRoute(
+    		com.midokura.midolman.layer3.Route rt) {
+        Route route = new Route();
+        route.setDstNetworkAddr(
+        		Net.convertAddressToString(rt.dstNetworkAddr));
+        route.setDstNetworkLength(rt.dstNetworkLength);
+        route.setNextHopGateway(
+        		Net.convertAddressToString(rt.nextHopGateway));
+        route.setNextHopPort(rt.nextHopPort);
+        route.setSrcNetworkAddr(
+        		Net.convertAddressToString(rt.srcNetworkAddr));
+        route.setSrcNetworkLength(rt.srcNetworkLength);
+        route.setWeight(rt.weight);
+        route.setRouterId(rt.routerId);
+        
+        if (rt.nextHop == NextHop.BLACKHOLE) {
+        	route.setType(Route.BlackHole);
+        } else if(rt.nextHop == NextHop.REJECT) {
+        	route.setType(Route.Reject);
+        } else {
+        	route.setType(Route.Normal);
+        }
+        return route;
     }
     
     /**
@@ -77,12 +110,33 @@ public class RouteDataAccessor extends DataAccessor {
      * @return  Route object with the given ID.
      * @throws  Exception  Error getting data to Zookeeper.
      */
-/*    public Route get(UUID id) throws Exception {
+     public Route get(UUID id) throws Exception {
         RouteZkManager manager = getRouteZkManager();
         com.midokura.midolman.layer3.Route rt = manager.get(id);
         // TODO: Throw NotFound exception here.
-        Port port = convertToPort(config);
-        port.setId(id);
-        return port;
-    } */   
+        Route route = convertToRoute(rt);
+        route.setId(id);
+        return route;
+    }
+     
+     /**
+      * Get a list of routes of a router.
+      * 
+      * @param routerId  UUID of router.
+      * @return  A list of router.
+      * @throws Exception  Zookeeper(or any) error.
+      */
+     public Route[] list(UUID routerId) throws Exception {
+         RouteZkManager manager = getRouteZkManager();
+         List<Route> routes = new ArrayList<Route>();
+         HashMap<UUID, com.midokura.midolman.layer3.Route> zkRoutes = 
+        	 	manager.list(routerId);
+         for (Map.Entry<UUID, com.midokura.midolman.layer3.Route> entry : 
+        	 	zkRoutes.entrySet()) {
+             Route router = convertToRoute(entry.getValue());
+             router.setId(entry.getKey());
+             routes.add(router);            
+         }
+         return routes.toArray(new Route[routes.size()]);
+     }     
 }

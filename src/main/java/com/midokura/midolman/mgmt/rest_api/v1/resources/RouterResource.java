@@ -37,14 +37,13 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRout
  */
 @Path("/routers")
 public class RouterResource extends RestResource {
-    
-    private final static Logger log = LoggerFactory.getLogger(
-            RouterResource.class);
-	
     /*
      * Implements REST API endpoints for routers.
      */
-
+	
+    private final static Logger log = LoggerFactory.getLogger(
+            RouterResource.class);
+	
     /**
      * Port resource locator for routers
      */

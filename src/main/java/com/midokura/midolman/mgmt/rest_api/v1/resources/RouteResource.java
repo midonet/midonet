@@ -9,8 +9,10 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -44,7 +46,7 @@ public class RouteResource extends RestResource {
      * @param id  Route UUID.
      * @return  Route object.
      */
-/*    @GET
+    @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Route get(@PathParam("id") UUID id) {
@@ -60,7 +62,7 @@ public class RouteResource extends RestResource {
                     .type(MediaType.APPLICATION_JSON).build());
         }
         return route;
-    } */   
+    }
     
     /**
      * Sub-resource class for router's route.
@@ -79,6 +81,27 @@ public class RouteResource extends RestResource {
             this.zookeeperConn = zkConn;
             this.routerId = routerId;        
         }
+  
+        /**
+         * Return a list of routes.
+         * 
+         * @return  A list of Route objects.
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Route[] list() {
+            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+            Route[] routes = null;
+            try {
+                routes = dao.list(routerId);
+            } catch (Exception ex) {
+                log.error("Error getting routes", ex);
+                throw new WebApplicationException(
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.APPLICATION_JSON).build());           
+            }
+            return routes;
+        }
         
         /**
          * Handler for create route API call.
@@ -89,7 +112,6 @@ public class RouteResource extends RestResource {
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
         public Response create(Route route, @Context UriInfo uriInfo)
                 throws Exception {
             // Add a new route entry into zookeeper.
