@@ -80,7 +80,8 @@ public class TestNetworkController {
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
 
         // Now create the Open vSwitch database connection
-        MockOpenvSwitchDatabaseConnection ovsdb = new MockOpenvSwitchDatabaseConnection();
+        MockOpenvSwitchDatabaseConnection ovsdb = 
+            new MockOpenvSwitchDatabaseConnection();
 
         // Now we can create the NetworkController itself.
         int localNwAddr = 0xc0a80104;

@@ -38,6 +38,8 @@ public abstract class AbstractController implements Controller {
 
     private OpenvSwitchDatabaseConnection ovsdb;
 
+    protected int greKey;
+
     public AbstractController(
             int datapathId,
             UUID switchUuid,
@@ -51,6 +53,7 @@ public abstract class AbstractController implements Controller {
             InetAddress internalIp) {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
+        this.greKey = greKey;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
@@ -86,8 +89,8 @@ public abstract class AbstractController implements Controller {
             if (uuid != null)
                 portNumToUuid.put(new Integer(portNum), uuid);
 
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-            if (peerIp != null) {
+            if (isGREPortOfKey(portDesc.getName())) {
+                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
                 // TODO: Error out if already tunneled to this peer.
                 tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
             }
@@ -131,6 +134,13 @@ public abstract class AbstractController implements Controller {
 
     protected boolean isTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.containsKey(new Integer(portNum));
+    }
+
+    private boolean isGREPortOfKey(String portName) {
+        if (portName == null || portName.length() != 15)
+            return false;
+        String greString = String.format("tn%05x", greKey);
+        return portName.startsWith(greString);
     }
 
     protected InetAddress peerIpOfGrePortName(String portName) {

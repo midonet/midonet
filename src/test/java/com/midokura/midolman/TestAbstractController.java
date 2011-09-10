@@ -2,10 +2,14 @@
 
 package com.midokura.midolman;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFPhysicalPort;
 
@@ -14,10 +18,15 @@ import static org.junit.Assert.*;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortLocationMap;
 
 
 class AbstractControllerTester extends AbstractController {
+    public List<OFPhysicalPort> portsAdded;
+    public List<OFPhysicalPort> portsRemoved;
+    public List<OFPhysicalPort> portsModified;
+ 
     public AbstractControllerTester(
             int datapathId,
             UUID switchUuid,
@@ -30,6 +39,9 @@ class AbstractControllerTester extends AbstractController {
             InetAddress internalIp) {
         super(datapathId, switchUuid, greKey, ovsdb, dict, flowExpireMinMillis,
 	      flowExpireMaxMillis, idleFlowExpireMillis, internalIp);
+        portsAdded = new ArrayList<OFPhysicalPort>();
+        portsRemoved = new ArrayList<OFPhysicalPort>();
+        portsModified = new ArrayList<OFPhysicalPort>();
     }
 
     @Override 
@@ -50,32 +62,78 @@ class AbstractControllerTester extends AbstractController {
                                   int priority, int outPort) { }
 
     @Override
-    protected void addPort(OFPhysicalPort portDesc, short portNum) { }
+    protected void addPort(OFPhysicalPort portDesc, short portNum) { 
+        assertEquals(portDesc.getPortNumber(), portNum);
+        portsAdded.add(portDesc);
+    }
 
     @Override
-    protected void deletePort(OFPhysicalPort portDesc) { }
+    protected void deletePort(OFPhysicalPort portDesc) { 
+        portsRemoved.add(portDesc);
+    }
 
     @Override
-    protected void modifyPort(OFPhysicalPort portDesc) { }
+    protected void modifyPort(OFPhysicalPort portDesc) {
+        portsModified.add(portDesc);
+    }
 }
 
 
 public class TestAbstractController {
 
-    private AbstractController controller;
+    private AbstractControllerTester controller;
 
     @Test
-    public void testConstruction() {
+    public void testController() throws UnknownHostException {
+        int dp_id = 43;
+        MockOpenvSwitchDatabaseConnection ovsdb = 
+            new MockOpenvSwitchDatabaseConnection();
         controller = new AbstractControllerTester(
-	                     43 /* datapathId */,
+	                     dp_id /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
-       			     5 /* greKey */,
- 			     null /* ovsdb */,
+       			     0x01234 /* greKey */,
+ 			     ovsdb /* ovsdb */,
  			     null /* PortLocationMap dict */,
  			     260 * 1000 /* flowExpireMinMillis */,
  			     320 * 1000 /* flowExpireMaxMillis */,
  			     60 * 1000 /* idleFlowExpireMillis */,
 			     null /* internalIp */);
-        assertTrue(true);
+
+        OFPhysicalPort port1 = new OFPhysicalPort();
+        port1.setPortNumber((short) 37);
+        port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
+        UUID port1uuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 37, "midonet", port1uuid.toString());
+
+        OFPhysicalPort port2 = new OFPhysicalPort();
+        port2.setPortNumber((short) 47);
+        port2.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 47 });
+        port2.setName("tn012340a001122");
+        UUID port2uuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 47, "midonet", port2uuid.toString());
+
+        assertArrayEquals(new OFPhysicalPort[] { },
+			  controller.portsAdded.toArray());
+        controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
+        controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+			  controller.portsAdded.toArray());
+        assertEquals(port1uuid, controller.portNumToUuid.get(37));
+        assertEquals(port2uuid, controller.portNumToUuid.get(47));
+        assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
+        assertEquals(InetAddress.getByName("10.0.17.34"),
+	             controller.tunnelPortNumToPeerIp.get(47));
+
+        assertArrayEquals(new OFPhysicalPort[] { },
+			  controller.portsModified.toArray());
+        controller.onPortStatus(port1, OFPortReason.OFPPR_MODIFY);
+        assertArrayEquals(new OFPhysicalPort[] { port1 },
+			  controller.portsModified.toArray());
+
+        assertArrayEquals(new OFPhysicalPort[] { },
+			  controller.portsRemoved.toArray());
+        controller.onPortStatus(port1, OFPortReason.OFPPR_DELETE);
+        assertArrayEquals(new OFPhysicalPort[] { port1 },
+			  controller.portsRemoved.toArray());
     }
 }
