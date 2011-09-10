@@ -40,7 +40,7 @@ public class PortResource extends RestResource {
      */
 	
 	@Context
-	UriInfo uriInfo;
+	private UriInfo uriInfo;
     
     private final static Logger log = LoggerFactory.getLogger(
             PortResource.class);

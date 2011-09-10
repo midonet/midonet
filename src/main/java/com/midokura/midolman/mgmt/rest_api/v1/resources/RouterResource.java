@@ -42,7 +42,7 @@ public class RouterResource extends RestResource {
             RouterResource.class);
     
 	@Context
-	UriInfo uriInfo;
+	private UriInfo uriInfo;
 	
     /*
      * Implements REST API endpoints for routers.
