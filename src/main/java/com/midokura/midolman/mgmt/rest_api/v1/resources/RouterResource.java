@@ -24,9 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
 import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
-import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
