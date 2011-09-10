@@ -74,9 +74,9 @@ public class TestReplicatedSet {
         routeDir = dir.getSubDirectory("/top/routes");
         routeSet = new ReplicatedRouteSet(routeDir, CreateMode.EPHEMERAL);
         testRoutes = new HashSet<Route>();
-        testRoutes.add(new Route(0, 0, 0, 0, null, null, 0, 0, null));
-        testRoutes.add(new Route(0x01, 0, 0, 0, null, null, 0, 0, null));
-        testRoutes.add(new Route(0, 0, 0x01, 0, null, null, 0, 0, null));
+        testRoutes.add(new Route(0, 0, 0, 0, null, null, 0, 0, null, null));
+        testRoutes.add(new Route(0x01, 0, 0, 0, null, null, 0, 0, null, null));
+        testRoutes.add(new Route(0, 0, 0x01, 0, null, null, 0, 0, null, null));
     }
 
     @Test

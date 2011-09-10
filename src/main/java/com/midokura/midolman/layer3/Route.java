@@ -20,13 +20,14 @@ public class Route implements Serializable {
     public int nextHopGateway;
     public int weight;
     public String attributes;
+    public UUID routerId;
 
     public Route(){
     }
 
     public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
             int dstNetworkLength, NextHop nextHop, UUID nextHopPort,
-            int nextHopGateway, int weight, String attributes) {
+            int nextHopGateway, int weight, String attributes, UUID routerId) {
         super();
         this.srcNetworkAddr = srcNetworkAddr;
         this.srcNetworkLength = srcNetworkLength;
@@ -37,6 +38,7 @@ public class Route implements Serializable {
         this.nextHopGateway = nextHopGateway;
         this.weight = weight;
         this.attributes = attributes;
+        this.routerId = routerId;
     }
 
     @Override
@@ -63,6 +65,12 @@ public class Route implements Serializable {
                 return false;
         } else if (!attributes.equals(rt.attributes))
             return false;
+        if (null == routerId || null == rt.routerId) {
+            if (routerId != rt.routerId)
+                return false;
+        } else if (!routerId.equals(rt.routerId))
+            return false;
+        
         return dstNetworkAddr == rt.dstNetworkAddr
                 && dstNetworkLength == rt.dstNetworkLength
                 && srcNetworkAddr == rt.srcNetworkAddr
@@ -79,6 +87,9 @@ public class Route implements Serializable {
         hash = 23 * hash + dstNetworkLength;
         hash = 37 * hash + nextHopGateway;
         hash = 11 * hash + weight;
+        
+        if (null != routerId)
+        	hash = 47 * hash + routerId.hashCode();
         if (null != nextHop)
             hash = 29 * hash + nextHop.hashCode();
         if (null != nextHopPort)
@@ -105,6 +116,8 @@ public class Route implements Serializable {
         sb.append(weight).append(",");
         if (null != attributes)
             sb.append(attributes);
+        if (null != routerId)
+            sb.append(routerId);
         return sb.toString();
     }
 
@@ -116,7 +129,7 @@ public class Route implements Serializable {
                         : NextHop.valueOf(parts[4]), parts[5].isEmpty() ? null
                         : UUID.fromString(parts[5]),
                 Integer.parseInt(parts[6]), Integer.parseInt(parts[7]),
-                parts.length > 8? parts[8] : null);
+                parts.length > 8? parts[8] : null, null);
         return rt;
     }
 

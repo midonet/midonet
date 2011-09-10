@@ -120,7 +120,7 @@ public class TestNetworkController {
             // With low weight, reject anything that is in this router's NW.
             // Routes associated with ports can override this.
             rt = new Route(0, 0, routerNw, 16, NextHop.REJECT, null, 0, 100,
-                    null);
+                    null, null);
             routerDir.addRoute(rtrId, rt);
             // Manually add this route to the replicated routing table since
             // it's not associated with any port.
@@ -135,7 +135,7 @@ public class TestNetworkController {
                 UUID portId = PortDirectory.intTo32BitUUID(portNum);
                 routes.clear();
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 2,
-                        null);
+                        null, null);
                 routes.add(rt);
                 portConfig = new MaterializedRouterPortConfig(rtrId, portNw,
                         24, portAddr, routes, portNw, 24, null);
@@ -170,7 +170,7 @@ public class TestNetworkController {
         UUID portOn1to0 = PortDirectory.intTo32BitUUID(332);
         // First from 0 to 1
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1, 0, 2,
-                null);
+                null, null);
         routes.clear();
         routes.add(rt);
         LogicalRouterPortConfig logPortConfig = new LogicalRouterPortConfig(
@@ -180,7 +180,8 @@ public class TestNetworkController {
         // Manually add this route since it no local controller owns it.
         rTables.get(0).addRoute(rt);
         // Now from 1 to 0. Note that this is router1's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null);
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null,
+        		null);
         routes.clear();
         routes.add(rt);
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(1),
@@ -193,7 +194,7 @@ public class TestNetworkController {
         UUID portOn2to0 = PortDirectory.intTo32BitUUID(334);
         // First from 0 to 2
         rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 0, 2,
-                null);
+                null, null);
         routes.clear();
         routes.add(rt);
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(0),
@@ -202,7 +203,8 @@ public class TestNetworkController {
         // Manually add this route since it no local controller owns it.
         rTables.get(0).addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null);
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null,
+        		null);
         routes.clear();
         routes.add(rt);
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(2),
@@ -213,7 +215,8 @@ public class TestNetworkController {
 
         // Finally, instead of giving router0 an uplink. Add a route that
         // drops anything that isn't going to router0's local or logical ports.
-        rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2, null);
+        rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2, null,
+        		null);
         routerDir.addRoute(routerIds.get(0), rt);
         // Manually add this route since it no local controller owns it.
         rTables.get(0).addRoute(rt);

@@ -63,11 +63,11 @@ public class TestRoutingTable {
     public void testSameDstPrefixAndLength() throws UnknownHostException {
         Route rt1, rt2, rt3;
         rt1 = new Route(0, 0, 0x0a140085, 25, NextHop.PORT, new UUID((long) 40,
-                (long) 50), 0, 100, null);
+                (long) 50), 0, 100, null, null);
         rt2 = new Route(0xf01e0081, 0, 0x0a14008d, 25, NextHop.PORT, new UUID(
-                (long) 40, (long) 60), 0, 200, null);
+                (long) 40, (long) 60), 0, 200, null, null);
         rt3 = new Route(0x01020304, 0, 0x0a140090, 25, NextHop.PORT, new UUID(
-                (long) 40, (long) 70), 0, 300, null);
+                (long) 40, (long) 70), 0, 300, null, null);
         Set<Route> routes = new HashSet<Route>();
         routes.add(rt1);
         routes.add(rt2);
@@ -127,15 +127,15 @@ public class TestRoutingTable {
     public void testSameDstPrefixVaryingLengths() throws UnknownHostException {
         Route rt1, rt2, rt3, rt4, rt5;
         rt1 = new Route(0, 0, 0x0a140085, 7, NextHop.PORT, new UUID((long) 40,
-                (long) 50), 0, 100, null);
+                (long) 50), 0, 100, null, null);
         rt2 = new Route(0, 0, 0x0a14008d, 18, NextHop.PORT, new UUID((long) 40,
-                (long) 60), 0, 200, null);
+                (long) 60), 0, 200, null, null);
         rt3 = new Route(0, 0, 0x0a14007d, 18, NextHop.PORT, new UUID((long) 40,
-                (long) 70), 0, 300, null);
+                (long) 70), 0, 300, null, null);
         rt4 = new Route(0, 0, 0x0a140096, 25, NextHop.PORT, new UUID((long) 40,
-                (long) 80), 0, 300, null);
+                (long) 80), 0, 300, null, null);
         rt5 = new Route(0x80c00304, 10, 0x0a14009f, 28, NextHop.PORT, new UUID(
-                (long) 40, (long) 80), 0, 300, null);
+                (long) 40, (long) 80), 0, 300, null, null);
         Set<Route> routes = new HashSet<Route>();
         routes.add(rt1);
         routes.add(rt2);
@@ -214,7 +214,7 @@ public class TestRoutingTable {
     public void testManyPrefixesManyLengths() throws UnknownHostException {
         Vector<Route> routes = new Vector<Route>();
         routes.add(new Route(0, 0, 0, 0, NextHop.PORT, new UUID((long) 40,
-                (long) 50), 0, 100, null));
+                (long) 50), 0, 100, null, null));
         RoutingTable table = new RoutingTable();
         for (Route rt : routes)
             table.addRoute(rt);

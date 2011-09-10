@@ -79,7 +79,7 @@ public class TestRouter {
 
         // Add a route directly to the router.
         Route rt = new Route(0x0a000000, 24, 0x0a000100, 24, NextHop.BLACKHOLE,
-                null, 0, 1, null);
+                null, 0, 1, null, null);
         routerDir.addRoute(rtrId, rt);
         // rTable.addRoute(rt);
 
@@ -90,7 +90,7 @@ public class TestRouter {
         uplinkPortAddr = 0xb4000102; // 180.0.1.2
         int nwAddr = 0x00000000; // 0.0.0.0/0
         uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, portId,
-                uplinkGatewayAddr, 1, null);
+                uplinkGatewayAddr, 1, null, null);
         Set<Route> routes = new HashSet<Route>();
         routes.add(uplinkRoute);
         MaterializedRouterPortConfig portConfig = new MaterializedRouterPortConfig(
@@ -117,20 +117,20 @@ public class TestRouter {
                 routes.clear();
                 // Default route to port based on destination only. Weight 2.
                 rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId, 0,
-                        2, null);
+                        2, null, null);
                 routes.add(rt);
                 // Anything from 10.0.0.0/16 is allowed through. Weight 1.
                 rt = new Route(0x0a000000, 16, segmentAddr, 30, NextHop.PORT,
-                        portId, 0, 1, null);
+                        portId, 0, 1, null, null);
                 routes.add(rt);
                 // Anything from 11.0.0.0/24 is silently dropped. Weight 1.
                 rt = new Route(0x0b000000, 24, segmentAddr, 30,
-                        NextHop.BLACKHOLE, null, 0, 1, null);
+                        NextHop.BLACKHOLE, null, 0, 1, null, null);
                 routes.add(rt);
                 // Anything from 12.0.0.0/24 is rejected (ICMP filter
                 // prohibited).
                 rt = new Route(0x0c000000, 24, segmentAddr, 30, NextHop.REJECT,
-                        null, 0, 1, null);
+                        null, 0, 1, null, null);
                 routes.add(rt);
                 portConfig = new MaterializedRouterPortConfig(rtrId, nwAddr,
                         24, portAddr, routes, segmentAddr, 30, null);

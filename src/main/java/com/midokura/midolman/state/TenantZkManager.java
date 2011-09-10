@@ -22,20 +22,16 @@ import org.apache.zookeeper.ZooDefs.Ids;
  * @version        1.6 08 Sept 2011
  * @author         Ryu Ishimoto
  */
-public class TenantZkManager {
-
-    private ZkPathManager pathManager = null;
-    private ZooKeeper zk = null;
+public class TenantZkManager extends ZkManager {
     
     /**
-     * Default constructor.
+     * TenantZkManager constructor.
      * 
      * @param zk Zookeeper object.
      * @param basePath  Directory to set as the base.
      */
     public TenantZkManager(ZooKeeper zk, String basePath) {
-        this.pathManager = new ZkPathManager(basePath);
-        this.zk = zk;
+    	super(zk, basePath);
     }
     
     /**
@@ -50,7 +46,6 @@ public class TenantZkManager {
      */
     public void create(UUID id) 
         throws KeeperException, InterruptedException, IOException {   
-    	List<String> l = zk.getChildren("/midolman", null);
 
         List<Op> ops = new ArrayList<Op>();
         // Create /tenants/<tenantId>

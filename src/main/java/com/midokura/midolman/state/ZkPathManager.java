@@ -77,12 +77,16 @@ public class ZkPathManager {
      * @return  Port path in ZK.
      */
     public String getPortPath(UUID id) {
+    	return getPortPath(id.toString());
+    }
+    
+    public String getPortPath(String id) {
         StringBuilder sb = new StringBuilder(basePath)
-            .append("/ports");
+        	.append("/ports");
         if (id != null) {
-            sb.append("/").append(id);
+        	sb.append("/").append(id);
         }
-        return sb.toString();   
+        return sb.toString();   	
     }
 
     /**
@@ -215,14 +219,18 @@ public class ZkPathManager {
      * @return  Port routes path in ZK.
      */
     public String getPortRoutesPath(UUID portId, UUID routeId) {
-        StringBuilder sb = new StringBuilder(getPortPath(portId))
-            .append("/routes");
-        if (routeId != null) {
-            sb.append("/").append(routeId);
-        }
-        return sb.toString();
+    	return getPortRoutesPath(portId.toString(), routeId);
     }
 
+    public String getPortRoutesPath(String portId, UUID routeId) {
+        StringBuilder sb = new StringBuilder(getPortPath(portId))
+        	.append("/routes");
+        if (routeId != null) {
+        	sb.append("/").append(routeId);
+        }
+        return sb.toString();    	
+    }
+    
     /**
      * Get ZK routes path.
      * /routes/routeId

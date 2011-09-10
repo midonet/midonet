@@ -145,7 +145,7 @@ public class TestPortDirectory {
         // Re-register the port watcher.
         portDir.getPortConfig(portId, portWatch, null);
         Route rt = new Route(0, 0, 0x0102030f, 32, Route.NextHop.PORT, portId,
-                0, 5, "attrs");
+                0, 5, "attrs", null);
         port.routes.add(rt);
         portDir.updatePort(portId, port);
         Assert.assertEquals(2, portWatch.numCalls);
@@ -206,9 +206,9 @@ public class TestPortDirectory {
         // Re-register the port watcher.
         portDir.getPortConfig(portId, portWatch, null);
         Route rt1 = new Route(0, 0, 0x0102030f, 32, Route.NextHop.PORT, portId,
-                0, 5, "attrs");
+                0, 5, "attrs", null);
         Route rt2 = new Route(0, 0, 0x01020300, 24, Route.NextHop.PORT, portId,
-                0, 5, "attrs");
+                0, 5, "attrs", null);
         port.routes.add(rt1);
         port.routes.add(rt2);
         portDir.updatePort(portId, port);

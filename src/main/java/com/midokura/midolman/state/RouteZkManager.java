@@ -8,6 +8,7 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +22,6 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.util.JSONSerializer;
 
 
 /**
@@ -30,7 +30,7 @@ import com.midokura.midolman.util.JSONSerializer;
  * @version        1.6 10 Sept 2011
  * @author         Ryu Ishimoto
  */
-public class RouteZkManager {
+public class RouteZkManager extends ZkManager {
 
     public static class RouteRefConfig implements Serializable {
 
@@ -45,17 +45,13 @@ public class RouteZkManager {
         }
     }
     
-    private ZkPathManager pathManager = null;
-    private ZooKeeper zk = null;
     /**
-     * Default constructor.
-     * 
-     * @param zk Zookeeper object.
-     * @param basePath  Directory to set as the base.
+     * Constructor to set ZooKeeper and basepath.
+     * @param zk  ZooKeeper object.
+     * @param basePath  The root path.
      */
     public RouteZkManager(ZooKeeper zk, String basePath) {
-        this.pathManager = new ZkPathManager(basePath);
-        this.zk = zk;
+    	super(zk, basePath);
     }
     
     /**
@@ -86,7 +82,7 @@ public class RouteZkManager {
             if (!(port instanceof RouterPortConfig)) {
                 // Cannot add route to bridge ports
                 throw new IllegalArgumentException(
-                        "Cannot add route to non-router.");                
+                        "Can only add a route to a router");                
             }
         }
          
@@ -96,24 +92,80 @@ public class RouteZkManager {
         } else {
             path = pathManager.getRouterRoutesPath(routerId, id);
         }
-        JSONSerializer<Route> serializer = new JSONSerializer<Route>();
-        ops.add(Op.create(path, serializer.objToBytes(route), 
+        ops.add(Op.create(path, serialize(route),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Add reference to this        
-        RouteRefConfig routeRef = new RouteRefConfig(path);
-        JSONSerializer<RouteRefConfig> refSerializer = 
-            new JSONSerializer<RouteRefConfig>();
         ops.add(Op.create(pathManager.getRoutePath(id), 
-                refSerializer.objToBytes(routeRef),
+        		serialize(new RouteRefConfig(path)),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         zk.multi(ops);
     }
     
-/*    public Route get(UUID id) {
-        byte[] data = zk.getData(pathManager.getRoutePath(id), null, null);
-        
-        return RouterDirectory.bytesToRouter(data);  
-    }*/
+    /**
+     * Get a Route object with the given id.
+     * @param id  UUID of the Route object.
+     * @return  Route object stored in ZK.
+     * @throws KeeperException  ZooKeeper exception.
+     * @throws InterruptedException  Thread paused too long.
+     * @throws IOException   Serialization error.
+     */
+    public Route get(UUID id) 
+    		throws KeeperException, InterruptedException, IOException {
+    	byte[] data = zk.getData(pathManager.getRoutePath(id), null, null);
+    	System.err.println(data);
+        RouteRefConfig routeRef = deserialize(data, RouteRefConfig.class);
+        byte[] routeData = zk.getData(routeRef.path, null, null);
+        return deserialize(routeData, Route.class);
+    }
     
+    /**
+     * Get a list of Route objects of a router.  With the current ZK schema,
+     * this requires that it gets all the routes for a router first,
+     * and then finding all the MaterializedRouterPort for that router and
+     * getting all the ports' routes as well.
+     * @param tenantId  Tenant UUID,
+     * @return  An array of RouterConfigs
+     * @throws KeeperException  Zookeeper exception.
+     * @throws InterruptedException  Paused thread interrupted.
+     * @throws ClassNotFoundException  Unknown class.
+     * @throws IOException  Serialization error.
+     */
+    public HashMap<UUID, Route> list(UUID routerId) 
+            throws KeeperException, InterruptedException, 
+                IOException, ClassNotFoundException {
+        HashMap<UUID, Route> configs = new HashMap<UUID, Route>();
+        List<String> routeIds = zk.getChildren(
+                pathManager.getRouterRoutesPath(routerId), null);
+        for (String routeId : routeIds) {
+            // For now get each one.
+            UUID id = UUID.fromString(routeId);
+            byte[] data = 
+            		zk.getData(pathManager.getRouterRoutesPath(routerId, id),
+            				null, null);
+            configs.put(id, deserialize(data, Route.class));
+        }
+        List<String> portIds = zk.getChildren(
+                pathManager.getRouterPortPath(routerId), null);
+        for (String portId : portIds) {
+        	// For each MaterializedRouterPort, process it.
+        	UUID portUUID = UUID.fromString(portId);
+        	byte[] data = zk.getData(
+        			pathManager.getPortPath(portUUID), null, null);
+        	PortConfig port = deserialize(data, PortConfig.class);
+        	if (!(port instanceof MaterializedRouterPortConfig)) {
+        		continue;
+        	}
+        	
+        	routeIds = zk.getChildren(pathManager.getPortRoutesPath(portUUID),
+        			null);
+        	for (String routeId : routeIds) {
+        		UUID id = UUID.fromString(routeId);
+        		data = zk.getData(pathManager.getPortRoutesPath(portUUID, id),
+        				null, null);
+        		configs.put(id, deserialize(data, Route.class));
+        	}
+        }
+        return configs;
+    }
 }

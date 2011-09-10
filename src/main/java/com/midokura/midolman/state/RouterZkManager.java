@@ -17,9 +17,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
-import com.midokura.midolman.util.JSONSerializer;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -27,20 +25,16 @@ import com.midokura.midolman.util.JSONSerializer;
  * @version        1.6 08 Sept 2011
  * @author         Ryu Ishimoto
  */
-public class RouterZkManager {
-    
-    private ZkPathManager pathManager = null;
-    private ZooKeeper zk = null;
+public class RouterZkManager extends ZkManager {
     
     /**
-     * Default constructor.
+     * RouterZkManager constructor.
      * 
      * @param zk Zookeeper object.
      * @param basePath  Directory to set as the base.
      */
     public RouterZkManager(ZooKeeper zk, String basePath) {
-        this.pathManager = new ZkPathManager(basePath);
-        this.zk = zk;
+    	super(zk, basePath);
     }
     
     /**
@@ -53,12 +47,9 @@ public class RouterZkManager {
      */
     public void create(UUID id, RouterConfig router) 
         throws InterruptedException, KeeperException, IOException {
-        JSONSerializer<RouterConfig> serializer = 
-        	new JSONSerializer<RouterConfig>();
-        byte[] data = serializer.objToBytes(router);
         List<Op> ops = new ArrayList<Op>();
         // Create /routers/<routerId>
-        ops.add(Op.create(pathManager.getRouterPath(id), data, 
+        ops.add(Op.create(pathManager.getRouterPath(id), serialize(router), 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         // Create /tenants/<tenantId>/routers/<routerId>
         ops.add(Op.create(pathManager.getTenantRouterPath(router.tenantId, id),
@@ -92,11 +83,8 @@ public class RouterZkManager {
      */
     public void update(UUID id, RouterConfig router) 
     		throws IOException, KeeperException, InterruptedException {
-        JSONSerializer<RouterConfig> serializer = 
-        	new JSONSerializer<RouterConfig>();
-        byte[] data = serializer.objToBytes(router);  
         // Update any version for now.
-        zk.setData(pathManager.getRouterPath(id), data, -1);
+        zk.setData(pathManager.getRouterPath(id), serialize(router), -1);
     }
     
     /**
@@ -112,12 +100,9 @@ public class RouterZkManager {
             throws KeeperException, InterruptedException,
                 IOException, ClassNotFoundException {
         byte[] data = zk.getData(pathManager.getRouterPath(id), null, null);
-        JSONSerializer<RouterConfig> serializer = 
-        	new JSONSerializer<RouterConfig>();
-        return serializer.bytesToObj(data, RouterConfig.class);      
+        return deserialize(data, RouterConfig.class);      
     }
-    
-    
+
     /**
      * Get a list of RouterConfig objects for a tenant.
      * @param tenantId  Tenant UUID,
