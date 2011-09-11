@@ -7,12 +7,15 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Class representing port.
  * 
  * @version        1.6 08 Sept 2011
  * @author         Ryu Ishimoto
  */
+@XmlRootElement
 public class Port {
 
     public static final String LogicalRouterPort = "LogicalRouterPort";

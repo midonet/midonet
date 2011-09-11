@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -62,6 +63,20 @@ public class RouteResource extends RestResource {
                     .type(MediaType.APPLICATION_JSON).build());
         }
         return route;
+    }
+    
+    @DELETE
+    @Path("{id}")
+    public void delete(@PathParam("id") UUID id) {
+        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+        try {
+            dao.delete(id);
+        } catch (Exception ex) {
+            log.error("Error deleting route", ex);
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.APPLICATION_JSON).build());
+        }
     }
     
     /**

@@ -22,7 +22,7 @@ public class TenantDataAccessor extends DataAccessor {
      */
 
     /**
-     * Default constructor 
+     * Constructor 
      * 
      * @param zkConn Zookeeper connection string
      */

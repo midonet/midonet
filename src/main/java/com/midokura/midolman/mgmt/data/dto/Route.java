@@ -7,12 +7,15 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Class representing route.
  * 
  * @version        1.6 10 Sept 2011
  * @author         Ryu Ishimoto
  */
+@XmlRootElement
 public class Route {
 
     public static final String Normal = "Normal";

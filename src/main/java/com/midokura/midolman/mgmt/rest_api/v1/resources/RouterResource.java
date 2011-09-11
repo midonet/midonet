@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -40,10 +41,10 @@ public class RouterResource extends RestResource {
     /*
      * Implements REST API endpoints for routers.
      */
-	
+
     private final static Logger log = LoggerFactory.getLogger(
             RouterResource.class);
-	
+
     /**
      * Port resource locator for routers
      */
@@ -88,17 +89,31 @@ public class RouterResource extends RestResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Router router){
-    	RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
         try {
             dao.update(id, router);
         } catch (Exception ex) {
-            log.error("Error updating port", ex);
+            log.error("Error updating router", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
         }
         
         return Response.ok().build();
+    }
+    
+    @DELETE
+    @Path("{id}")
+    public void delete(@PathParam("id") UUID id) {
+        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+        try {
+            dao.delete(id);
+        } catch (Exception ex) {
+            log.error("Error deleting router", ex);
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.APPLICATION_JSON).build());
+        }
     }
     
     /**

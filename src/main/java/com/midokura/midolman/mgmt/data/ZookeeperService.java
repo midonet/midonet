@@ -17,9 +17,9 @@ public class ZookeeperService {
     /*
      * Singleton implementation for Zookeeper connection.
      */
-	
+
     private static ZkConnection conn = null;
-	
+
     private ZookeeperService() {
     }
 
@@ -31,7 +31,7 @@ public class ZookeeperService {
      * @throws  Exception  Any exception thrown from connecting to Zookeeper.
      */
     public static synchronized ZkConnection getConnection(String connStr)
-            throws Exception {    
+            throws Exception {
         if (null == conn) {
             conn = new ZkConnection(connStr, null);
             conn.open();

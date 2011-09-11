@@ -39,7 +39,7 @@ public final class KeystoneJsonParser {
      * @throws  IOException  JSON parsing IO error.
      */
     public void parse(String src) throws IOException {
-    	// Parse with Jackson library.
+        // Parse with Jackson library.
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory factory = mapper.getJsonFactory();
         JsonParser jp = factory.createJsonParser(src);
@@ -97,7 +97,7 @@ public final class KeystoneJsonParser {
      * @return  A string array of roles.
      */
     public String[] getUserRoles() {
-    	// Parse out roles from the JSON string and return as an array.
+        // Parse out roles from the JSON string and return as an array.
         JsonNode roleNode =  this.node.get("user").get("roleRefs");
         String[] roles = new String[roleNode.size()];
         Iterator<JsonNode> roleNodeItr = roleNode.getElements();

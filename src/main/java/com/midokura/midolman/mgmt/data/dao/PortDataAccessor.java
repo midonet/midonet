@@ -32,7 +32,7 @@ import com.midokura.midolman.state.PortDirectory.PortConfig;
 public class PortDataAccessor extends DataAccessor {
 
     /**
-     * Default constructor 
+     * Constructor 
      * 
      * @param zkConn Zookeeper connection string
      */
@@ -119,6 +119,12 @@ public class PortDataAccessor extends DataAccessor {
         manager.create(port.getId(), config);
     }
 
+    public void delete(UUID id) throws Exception {
+        PortZkManager manager = getPortZkManager();
+        // TODO: catch NoNodeException if does not exist.
+        manager.delete(id);
+    }
+    
     /**
      * Update Port entry in ZooKeeper.
      * 
@@ -154,15 +160,15 @@ public class PortDataAccessor extends DataAccessor {
      * @return  A Set of Ports
      * @throws Exception  Zookeeper(or any) error.
      */
-     public Port[] list(UUID routerId) throws Exception {
-         PortZkManager manager = getPortZkManager();
-         List<Port> ports = new ArrayList<Port>();
-         HashMap<UUID, PortConfig> configs = manager.list(routerId);
-         for (Map.Entry<UUID, PortConfig> entry : configs.entrySet()) {
-             Port port = convertToPort(entry.getValue());
-             port.setId(entry.getKey());
-             ports.add(port);            
-         }
+    public Port[] list(UUID routerId) throws Exception {
+        PortZkManager manager = getPortZkManager();
+        List<Port> ports = new ArrayList<Port>();
+        HashMap<UUID, PortConfig> configs = manager.list(routerId);
+        for (Map.Entry<UUID, PortConfig> entry : configs.entrySet()) {
+            Port port = convertToPort(entry.getValue());
+            port.setId(entry.getKey());
+            ports.add(port);            
+        }
         return ports.toArray(new Port[ports.size()]);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)PortResource        1.6 11/09/05
+ * @(#)ChainResource        1.6 11/09/05
  *
  * Copyright 2011 Midokura KK
  */
@@ -25,58 +25,47 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
-import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dao.ChainDataAccessor;
+import com.midokura.midolman.mgmt.data.dto.Chain;
 
 /**
- * Root resource class for ports.
+ * Root resource class for chains.
  *
- * @version        1.6 08 Sept 2011
+ * @version        1.6 11 Sept 2011
  * @author         Ryu Ishimoto
  */
-@Path("/ports")
-public class PortResource extends RestResource {
-    /*
-     * Implements REST API endpoints for ports.
-     */
+@Path("/chains")
+public class ChainResource extends RestResource {
 
     private final static Logger log = LoggerFactory.getLogger(
-            PortResource.class);
+            ChainResource.class);
     
-    /**
-     * Get the port with the given ID.
-     * @param id  Port UUID.
-     * @return  Port object.
-     * @throws Exception 
-     */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Port get(@PathParam("id") UUID id) {
-        // Get a port for the given ID.
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-        Port port = null;
+    public Chain get(@PathParam("id") UUID id) {
+        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
+        Chain chain = null;
         try {
-            port = dao.get(id);
+            chain = dao.get(id);
         } catch (Exception ex) {
-            log.error("Error getting port", ex);
+            log.error("Error getting chain", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
         }
-        return port;
+        return chain;
     }
-    
+
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Port port){
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-        
+    public Response update(@PathParam("id") UUID id, Chain chain){
+        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
         try {
-            dao.update(id, port);
+            dao.update(id, chain);
         } catch (Exception ex) {
-            log.error("Error updating port", ex);
+            log.error("Error updating chain", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
@@ -88,11 +77,11 @@ public class PortResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
         try {
             dao.delete(id);
         } catch (Exception ex) {
-            log.error("Error deleting port", ex);
+            log.error("Error deleting chain", ex);
             throw new WebApplicationException(
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
@@ -100,74 +89,51 @@ public class PortResource extends RestResource {
     }
     
     /**
-     * Sub-resource class for tenant's port.
+     * Sub-resource class for router's chains.
      */
-    public static class RouterPortResource extends RestResource {
+    public static class RouterChainResource extends RestResource {
         
         private UUID routerId = null;
         
-        /**
-         * Default constructor.
-         * 
-         * @param   zkConn  Zookeeper connection string.
-         * @param   routerId  UUID of a router.
-         */
-        public RouterPortResource(String zkConn, UUID routerId) {
+        public RouterChainResource(String zkConn, UUID routerId) {
             this.zookeeperConn = zkConn;
             this.routerId = routerId;        
         }
-
-        /**
-         * Return a list of ports.
-         * 
-         * @return  A list of Port objects.
-         * @throws Exception 
-         */
+        
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() throws Exception {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-            Port[] ports = null;
-            ports = dao.list(routerId);
-
+        public Chain[] list() {
+            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
+            Chain[] chains = null;
             try {
+                chains = dao.list(routerId);
             } catch (Exception ex) {
-                log.error("Error listing ports", ex);
+                log.error("Error getting chains", ex);
                 throw new WebApplicationException(
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());           
             }
-            return ports;
-        }        
+            return chains;
+        }
         
-        /**
-         * Handler for create port API call.
-         * 
-         * @param   port  Router object mapped to the request input.
-         * @throws Exception 
-         * @returns Response object with 201 status code set if successful.
-         */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Port port, @Context UriInfo uriInfo) 
-                throws Exception {
-            // Add a new port entry into zookeeper.
-            port.setId(UUID.randomUUID());
-            port.setDeviceId(routerId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-
+        public Response create(Chain chain, @Context UriInfo uriInfo) {
+            chain.setId(UUID.randomUUID());
+            chain.setRouterId(routerId);
+            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
             try {
-                dao.create(port);
+                dao.create(chain);
             } catch (Exception ex) {
-                log.error("Error creating ports", ex);
+                log.error("Error creating chain", ex);
                 throw new WebApplicationException(
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());
             }
 
             URI uri = uriInfo.getBaseUriBuilder()
-                .path("ports/" + port.getId()).build();        
+                .path("chains/" + chain.getId()).build();            
             return Response.created(uri).build();
-        }
-    }
+        }        
+    }    
 }

@@ -29,7 +29,7 @@ public class RouterDataAccessor extends DataAccessor {
      */
     
     /**
-     * Default constructor 
+     * Constructor 
      * 
      * @param zkConn Zookeeper connection string
      */
@@ -75,6 +75,12 @@ public class RouterDataAccessor extends DataAccessor {
         RouterConfig config = convertToConfig(router);
         RouterZkManager manager = getRouterZkManager();
         manager.update(id, config);
+    }
+    
+    public void delete(UUID id) throws Exception {
+        RouterZkManager manager = getRouterZkManager();
+        // TODO: catch NoNodeException if does not exist.
+        manager.delete(id);
     }
     
     /**
