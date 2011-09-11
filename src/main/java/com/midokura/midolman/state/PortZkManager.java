@@ -118,7 +118,7 @@ public class PortZkManager extends ZkManager {
                 IOException, ClassNotFoundException {
         HashMap<UUID, PortConfig> configs = new HashMap<UUID, PortConfig>();
         List<String> portIds = zk.getChildren(
-                pathManager.getRouterPortPath(routerId), null);
+                pathManager.getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
             // For now get each one.
             UUID id = UUID.fromString(portId);

@@ -10,17 +10,17 @@ import java.util.UUID;
 /**
  * This class was created to have all state classes
  * share the Zk path information.
- * 
+ *
  * @version        1.6 08 Sept 2011
  * @author         Ryu Ishimoto
  */
 public class ZkPathManager {
-    
+
     private String basePath = null;
-    
+
     /**
-     * Default constructor.
-     * 
+     * Constructor.
+     *
      * @param basePath Base path of Zk.
      */
     public ZkPathManager(String basePath) {
@@ -28,222 +28,277 @@ public class ZkPathManager {
     }
 
     /**
-     * Set the base path.
-     * @param basePath Base path to set.
-     */
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
-    }
-    
-    /**
-     * Get the currently set base path.
-     * @return Base path.
+     * @return the basePath
      */
     public String getBasePath() {
         return basePath;
     }
-    
+
+    /**
+     * @param basePath the basePath to set
+     */
+    public void setBasePath(String basePath) {
+        this.basePath = basePath;
+    }
+
     /**
      * Get ZK tenant path.
-     * 
+     * @return  /tenants
+     */
+    public String getTenantsPath() {
+        return new StringBuilder(basePath)
+                .append("/tenants").toString();
+    }
+
+    /**
+     * Get ZK tenant path.
      * @param id  Tenant UUID
-     * @return  Tenant path in ZK.
+     * @return  /tenants/tenantId
      */
     public String getTenantPath(UUID id) {
-        return new StringBuilder(basePath)
-            .append("/tenants/")
-            .append(id.toString()).toString();
+        return new StringBuilder(getTenantsPath())
+                .append("/").append(id).toString();
     }
 
     /**
      * Get ZK router path.
-     * 
+     * @return /routers
+     */
+    public String getRoutersPath() {
+        return new StringBuilder(basePath)
+                .append("/routers").toString();
+    }
+
+    /**
+     * Get ZK router path.
      * @param id  Router UUID
-     * @return  Router path in ZK.
+     * @return  /routers/routerId
      */
     public String getRouterPath(UUID id) {
-        StringBuilder sb = new StringBuilder(basePath)
-            .append("/routers");
-        if (id != null) {
-            sb.append("/").append(id.toString());
-        }
-        return sb.toString();   
+        return new StringBuilder(getRoutersPath())
+                .append("/").append(id).toString();
+    }
+
+    /**
+     * Get ZK tenant router path.
+     * @param tenantId  Tenant UUID
+     * @return  /tenants/tenantId/routers
+     */
+    public String getTenantRoutersPath(UUID tenantId) {
+        return new StringBuilder(getTenantPath(tenantId))
+                .append("/routers").toString();
+    }
+
+    /**
+     * Get ZK tenant router path.
+     * @param tenantId  Tenant UUID
+     * @param routerId  Router UUID
+     * @return  /tenants/tenantId/routers/routerId
+     */
+    public String getTenantRouterPath(UUID tenantId, UUID routerId) {
+        return new StringBuilder(getTenantRoutersPath(tenantId))
+                .append("/").append(routerId).toString();
     }
 
     /**
      * Get ZK port path.
-     * 
-     * @param id  Port UUID
-     * @return  Port path in ZK.
+     * @return  /ports
+     */
+    public String getPortsPath() {
+        return new StringBuilder(basePath)
+                .append("/ports").toString();    
+    }
+
+    /**
+     * Get ZK port path.
+     * @param id  Port ID.
+     * @return  /ports/portId
      */
     public String getPortPath(UUID id) {
-    	return getPortPath(id.toString());
-    }
-    
-    public String getPortPath(String id) {
-        StringBuilder sb = new StringBuilder(basePath)
-        	.append("/ports");
-        if (id != null) {
-        	sb.append("/").append(id);
-        }
-        return sb.toString();   	
-    }
-
-    /**
-     * Get ZK tenant router path.
-     * 
-     * @param tenantId  Tenant UUID
-     * @return  Tenant router path in ZK.
-     */
-    public String getTenantRouterPath(UUID tenantId) {
-        return getTenantRouterPath(tenantId, null);
-    }
-    
-    /**
-     * Get ZK tenant router path.
-     * 
-     * @param tenantId  Tenant UUID
-     * @param routerId  Router UUID
-     * @return  Tenant router path in ZK.
-     */
-    public String getTenantRouterPath(UUID tenantId, UUID routerId) {
-        StringBuilder sb = new StringBuilder(getTenantPath(tenantId))
-            .append("/routers");
-        if (routerId != null) {
-            sb.append("/").append(routerId);
-        }
-        return sb.toString();
+        return new StringBuilder(getPortsPath())
+                .append("/").append(id).toString();
     }
 
     /**
      * Get ZK router port path.
-     * 
      * @param routerId  Router UUID
-     * @return  Router port path in ZK.
+     * @return  /routers/routerId/ports
      */
-    public String getRouterPortPath(UUID routerId) {
-        return getRouterPortPath(routerId, null);
+    public String getRouterPortsPath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId))
+                .append("/ports").toString();    
     }
 
     /**
      * Get ZK router port path.
-     * 
      * @param routerId  Router UUID
      * @param portId  Port UUID.
-     * @return  Router port path in ZK.
+     * @return  /routers/routerId/ports/portId
      */
     public String getRouterPortPath(UUID routerId, UUID portId) {
-        StringBuilder sb = new StringBuilder(getRouterPath(routerId))
-            .append("/ports");
-        if (portId != null) {
-            sb.append("/").append(portId);
-        }
-        return sb.toString();
+        return new StringBuilder(getRouterPortsPath(routerId))
+                .append("/").append(portId).toString();
     }
 
     /**
-     * Get ZK router routing table path.
-     * 
-     * @param routerId  Router UUID
-     * @return  Router routing table path in ZK.
+     * Get ZK routes path.
+     * @return  /routes
      */
-    public String getRouterRoutingTablePath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId))
-            .append("/routing_table").toString();
+    public String getRoutesPath() {
+        return new StringBuilder(basePath)
+                .append("/routes").toString();
     }
 
-    /**
-     * Get ZK router routes path.
-     * /routers/routerId/routes
-     * @param routerId  Router UUID
-     * @return  Router routes path in ZK.
-     */
-    public String getRouterRoutesPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId))
-            .append("/routes").toString();        
-    }
-
-    /**
-     * Get ZK router routes path.
-     * /routers/routerId/routes/routeId
-     * @param routerId  Router UUID
-     * @return  Router routes path in ZK.
-     */
-    public String getRouterRoutesPath(UUID routerId, UUID routeId) {
-        StringBuilder sb = new StringBuilder(getRouterPath(routerId))        
-            .append("/routes");
-        if (routeId != null) {
-            sb.append("/").append(routeId);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Get ZK router rule chains path.
-     * 
-     * @param routerId  Router UUID
-     * @return  Router rule chains path in ZK.
-     */
-    public String getRouterRuleChainsPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId))
-            .append("/rule_chains").toString();        
-    }
-    
-    /**
-     * Get ZK router SNAT blocks path.
-     * 
-     * @param routerId  Router UUID
-     * @return  Router SNAT blocks path in ZK.
-     */
-    public String getRouterSnatBlocksPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId))
-            .append("/snat_blocks").toString();        
-    }     
-
-    /**
-     * Get ZK port routes path.
-     * 
-     * @param portId  Port UUID
-     * @return  Port routes path in ZK.
-     */
-    public String getPortRoutesPath(UUID portId) {
-        return getPortRoutesPath(portId, null);
-    }
-
-    /**
-     * Get ZK port routes path.
-     * /ports/portId/routes/routeId
-     * 
-     * @param portId  Port UUID
-     * @param routeId  Route ID.
-     * @return  Port routes path in ZK.
-     */
-    public String getPortRoutesPath(UUID portId, UUID routeId) {
-    	return getPortRoutesPath(portId.toString(), routeId);
-    }
-
-    public String getPortRoutesPath(String portId, UUID routeId) {
-        StringBuilder sb = new StringBuilder(getPortPath(portId))
-        	.append("/routes");
-        if (routeId != null) {
-        	sb.append("/").append(routeId);
-        }
-        return sb.toString();    	
-    }
-    
     /**
      * Get ZK routes path.
      * /routes/routeId
      * @param portId  Port UUID
      * @param Route  Route object to store.
-     * @return  Port routes path in ZK.
+     * @return  /routes/routeId
      */
     public String getRoutePath(UUID id) {
-        StringBuilder sb = new StringBuilder(basePath)
-            .append("/routes");
-        if (id != null) {
-            sb.append("/").append(id);
-        }
-        return sb.toString();        
+        return new StringBuilder(getRoutesPath())
+            .append("/").append(id).toString();
+    }
+
+    /**
+     * Get ZK router routes path.
+     * @param routerId  Router UUID
+     * @return  /routers/routerId/routes
+     */
+    public String getRouterRoutesPath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId))
+                .append("/routes").toString(); 
+    }
+
+    /**
+     * Get ZK router routes path.
+     * @param routerId  Router UUID
+     * @return  /routers/routerId/routes/routeId
+     */
+    public String getRouterRoutePath(UUID routerId, UUID routeId) {
+        return new StringBuilder(getRouterRoutesPath(routerId))
+            .append("/").append(routeId).toString();
+    }
+
+    /**
+     * Get ZK port routes path.
+     * @param portId  Port UUID
+     * @return  /ports/portId/routes
+     */
+    public String getPortRoutesPath(UUID portId) {
+        return new StringBuilder(getPortPath(portId))
+                .append("/routes").toString();
+    }
+
+    /**
+     * Get ZK port routes path.
+     * @param portId  Port UUID
+     * @param routeId  Route ID.
+     * @return  /ports/portId/routes/routeId
+     */
+    public String getPortRoutePath(UUID portId, UUID routeId) {
+        return new StringBuilder(getPortRoutesPath(portId))
+                .append("/").append(routeId).toString();
+    }
+
+    /**
+     * Get ZK rule chain path.
+     * @return /rule_chains
+     */
+    public String getChainsPath() {
+        return new StringBuilder(basePath)
+                .append("/rule_chains").toString();
+    }
+
+    /**
+     * Get ZK rule chain path.
+     * @param id  Chain UUID.
+     * @return  /rule_chains/chainId
+     */
+    public String getChainPath(UUID id) {
+        return new StringBuilder(getChainsPath())
+                .append("/").append(id).toString();
+    }
+
+    /**
+     * Get ZK router rule chains path.
+     * @param routerId  Router UUID
+     * @return  /routers/routerId/rule_chains
+     */
+    public String getRouterChainsPath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId))
+                .append("/rule_chains").toString();
+    }
+
+    /**
+     * Get ZK router rule chains path.
+     * @param routerId  Router UUID
+     * @param chainId  Chain UUID.
+     * @return  /routers/routerId/chains/chainId
+     */
+    public String getRouterChainPath(UUID routerId, UUID chainId) {
+        return new StringBuilder(getRouterChainsPath(routerId))
+                .append("/").append(chainId).toString();
+    }
+
+    /**
+     * Get ZK rule path.
+     * @return /rules
+     */
+    public String getRulesPath() {
+        return new StringBuilder(basePath)
+                .append("/rules").toString();
+    }
+
+    /**
+     * Get ZK rule path.
+     * @param id  Rule UUID.
+     * @return  /rules/ruleId
+     */
+    public String getRulePath(UUID id) {
+        return new StringBuilder(getRulesPath())
+                .append("/").append(id).toString();
+    }
+
+    /**
+     * Get ZK chain rule path.
+     * @param chainId  Chain UUID
+     * @return  /rule_chains/chainId/rules
+     */
+    public String getChainRulesPath(UUID chainId) {
+        return new StringBuilder(getChainPath(chainId))
+                .append("/rules").toString();
+    }
+
+    /**
+     * Get ZK chain rule path.
+     * @param chainId  Chain UUID
+     * @param ruleId  Rule UUID.
+     * @return  /chains/chainId/rules/ruleId
+     */
+    public String getChainRulePath(UUID chainId, UUID ruleId) {
+        return new StringBuilder(getChainRulesPath(chainId))
+                .append("/").append(ruleId).toString();
+    }
+
+    /**
+     * Get ZK router routing table path.
+     * @param routerId  Router UUID
+     * @return  /routers/routerId/routing_table
+     */
+    public String getRouterRoutingTablePath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId))
+                .append("/routing_table").toString();
+    }
+
+    /**
+     * Get ZK router SNAT blocks path.
+     * @param routerId  Router UUID
+     * @return  /routers/routerId/snat_blocks
+     */
+    public String getRouterSnatBlocksPath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId))
+                .append("/snat_blocks").toString();
     }
 }

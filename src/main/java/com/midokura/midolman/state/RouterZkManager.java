@@ -55,7 +55,7 @@ public class RouterZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getTenantRouterPath(router.tenantId, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         // Create /routers/<routerId>/ports
-        ops.add(Op.create(pathManager.getRouterPortPath(id), null, 
+        ops.add(Op.create(pathManager.getRouterPortsPath(id), null, 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         // Create /routers/<routerId>/routing_table
         ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null, 
@@ -118,7 +118,7 @@ public class RouterZkManager extends ZkManager {
         HashMap<UUID, RouterConfig> configs = 
             new HashMap<UUID, RouterConfig>();
         List<String> routerIds = zk.getChildren(
-                pathManager.getTenantRouterPath(tenantId), null);
+                pathManager.getTenantRoutersPath(tenantId), null);
         for (String routerId : routerIds) {
             // For now get each one.
             UUID id = UUID.fromString(routerId);

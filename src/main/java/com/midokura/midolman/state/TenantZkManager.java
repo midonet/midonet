@@ -52,7 +52,7 @@ public class TenantZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getTenantPath(id), null, 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));        
         // Create /tenants/<routerId>/routers
-        ops.add(Op.create(pathManager.getTenantRouterPath(id), null,
+        ops.add(Op.create(pathManager.getTenantRoutersPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         this.zk.multi(ops);
     }

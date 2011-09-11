@@ -88,9 +88,9 @@ public class RouteZkManager extends ZkManager {
          
         String path = null;
         if (port instanceof MaterializedRouterPortConfig) {            
-            path = pathManager.getPortRoutesPath(route.nextHopPort, id);
+            path = pathManager.getPortRoutePath(route.nextHopPort, id);
         } else {
-            path = pathManager.getRouterRoutesPath(routerId, id);
+            path = pathManager.getRouterRoutePath(routerId, id);
         }
         ops.add(Op.create(path, serialize(route),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -141,12 +141,12 @@ public class RouteZkManager extends ZkManager {
             // For now get each one.
             UUID id = UUID.fromString(routeId);
             byte[] data = 
-            		zk.getData(pathManager.getRouterRoutesPath(routerId, id),
+            		zk.getData(pathManager.getRouterRoutePath(routerId, id),
             				null, null);
             configs.put(id, deserialize(data, Route.class));
         }
         List<String> portIds = zk.getChildren(
-                pathManager.getRouterPortPath(routerId), null);
+                pathManager.getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
         	// For each MaterializedRouterPort, process it.
         	UUID portUUID = UUID.fromString(portId);
@@ -161,7 +161,7 @@ public class RouteZkManager extends ZkManager {
         			null);
         	for (String routeId : routeIds) {
         		UUID id = UUID.fromString(routeId);
-        		data = zk.getData(pathManager.getPortRoutesPath(portUUID, id),
+        		data = zk.getData(pathManager.getPortRoutePath(portUUID, id),
         				null, null);
         		configs.put(id, deserialize(data, Route.class));
         	}
