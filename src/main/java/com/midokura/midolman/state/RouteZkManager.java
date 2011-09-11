@@ -102,6 +102,40 @@ public class RouteZkManager extends ZkManager {
         zk.multi(ops);
     }
     
+    public List<Op> getRouterRouteDeleteOps(UUID id, UUID routerId) {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getRouterRoutePath(routerId, id), -1));
+        ops.add(Op.delete(pathManager.getRoutePath(id), -1));
+        return ops;
+    }
+    
+    public List<Op> getPortRouteDeleteOps(UUID id, UUID portId) {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getPortRoutePath(portId, id), -1));
+        ops.add(Op.delete(pathManager.getRoutePath(id), -1));
+        return ops;
+    }
+    
+    public List<Op> getDeleteOps(UUID id) 
+            throws KeeperException, InterruptedException, IOException {
+        RouteRefConfig routeRef = getRouteRefConfig(id);
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(routeRef.path, -1));
+        ops.add(Op.delete(pathManager.getRoutePath(id), -1));
+        return ops;
+    }
+    
+    public void delete(UUID id) 
+            throws InterruptedException, KeeperException, IOException {
+        this.zk.multi(getDeleteOps(id));
+    }
+    
+    public RouteRefConfig getRouteRefConfig(UUID id) 
+            throws KeeperException, InterruptedException, IOException {
+        byte[] data = zk.getData(pathManager.getRoutePath(id), null, null);
+        return deserialize(data, RouteRefConfig.class);      
+    }
+    
     /**
      * Get a Route object with the given id.
      * @param id  UUID of the Route object.
@@ -112,11 +146,37 @@ public class RouteZkManager extends ZkManager {
      */
     public Route get(UUID id) 
     		throws KeeperException, InterruptedException, IOException {
-    	byte[] data = zk.getData(pathManager.getRoutePath(id), null, null);
-    	System.err.println(data);
-        RouteRefConfig routeRef = deserialize(data, RouteRefConfig.class);
+        RouteRefConfig routeRef = getRouteRefConfig(id);
         byte[] routeData = zk.getData(routeRef.path, null, null);
         return deserialize(routeData, Route.class);
+    }
+    
+    public HashMap<UUID, Route> listRouterRoutes(UUID routerId) 
+            throws KeeperException, InterruptedException, IOException {
+        HashMap<UUID, Route> result = new HashMap<UUID, Route>();
+        List<String> routeIds = zk.getChildren(
+                pathManager.getRouterRoutesPath(routerId), null);
+        for (String routeId : routeIds) {
+            UUID id = UUID.fromString(routeId);
+            byte[] data = zk.getData(
+                    pathManager.getRouterRoutePath(routerId, id), null, null);
+            result.put(id, deserialize(data, Route.class));
+        }
+        return result;
+    }
+    
+    public HashMap<UUID, Route> listPortRoutes(UUID portId) 
+            throws KeeperException, InterruptedException, IOException {
+        HashMap<UUID, Route> result = new HashMap<UUID, Route>();
+        List<String> routeIds = zk.getChildren(
+                pathManager.getPortRoutesPath(portId), null);
+        for (String routeId : routeIds) {
+            UUID id = UUID.fromString(routeId);
+            byte[] data = zk.getData(pathManager.getPortRoutePath(portId, id),
+                    null, null);
+            result.put(id, deserialize(data, Route.class));
+        }
+        return result;
     }
     
     /**
@@ -134,17 +194,7 @@ public class RouteZkManager extends ZkManager {
     public HashMap<UUID, Route> list(UUID routerId) 
             throws KeeperException, InterruptedException, 
                 IOException, ClassNotFoundException {
-        HashMap<UUID, Route> configs = new HashMap<UUID, Route>();
-        List<String> routeIds = zk.getChildren(
-                pathManager.getRouterRoutesPath(routerId), null);
-        for (String routeId : routeIds) {
-            // For now get each one.
-            UUID id = UUID.fromString(routeId);
-            byte[] data = 
-            		zk.getData(pathManager.getRouterRoutePath(routerId, id),
-            				null, null);
-            configs.put(id, deserialize(data, Route.class));
-        }
+        HashMap<UUID, Route> routes = listRouterRoutes(routerId);
         List<String> portIds = zk.getChildren(
                 pathManager.getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
@@ -157,15 +207,9 @@ public class RouteZkManager extends ZkManager {
         		continue;
         	}
         	
-        	routeIds = zk.getChildren(pathManager.getPortRoutesPath(portUUID),
-        			null);
-        	for (String routeId : routeIds) {
-        		UUID id = UUID.fromString(routeId);
-        		data = zk.getData(pathManager.getPortRoutePath(portUUID, id),
-        				null, null);
-        		configs.put(id, deserialize(data, Route.class));
-        	}
+            HashMap<UUID, Route> portRoutes = listPortRoutes(portUUID);
+            routes.putAll(portRoutes);
         }
-        return configs;
+        return routes;
     }
 }

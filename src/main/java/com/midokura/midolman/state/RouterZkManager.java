@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -17,6 +18,9 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
@@ -48,29 +52,60 @@ public class RouterZkManager extends ZkManager {
     public void create(UUID id, RouterConfig router) 
         throws InterruptedException, KeeperException, IOException {
         List<Op> ops = new ArrayList<Op>();
-        // Create /routers/<routerId>
         ops.add(Op.create(pathManager.getRouterPath(id), serialize(router), 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        // Create /tenants/<tenantId>/routers/<routerId>
         ops.add(Op.create(pathManager.getTenantRouterPath(router.tenantId, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        // Create /routers/<routerId>/ports
         ops.add(Op.create(pathManager.getRouterPortsPath(id), null, 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        // Create /routers/<routerId>/routing_table
-        ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null, 
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));       
-        // Create /routers/<routerId>/routes
         ops.add(Op.create(pathManager.getRouterRoutesPath(id), null, 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));    
-        // Create /routers/<routerId>/rule_chains
-        ops.add(Op.create(pathManager.getRouterRuleChainsPath(id), null, 
+        ops.add(Op.create(pathManager.getRouterChainsPath(id), null, 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));    
-        // Create /routers/<routerId>/snat_blocks
-        ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null, 
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+//        ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null, 
+//                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)); 
+//        ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null, 
+//                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         zk.multi(ops);
+    }
+
+    public List<Op> getDeleteOps(UUID id, UUID tenantId) 
+            throws KeeperException, InterruptedException, IOException, 
+                ClassNotFoundException {
+        List<Op> ops = new ArrayList<Op>();
+        // Get rhains delete ops.
+        ChainZkManager chainZk = new ChainZkManager(zk, basePath);
+        HashMap<UUID, ChainConfig> chains = chainZk.list(id);
+        for (Map.Entry<UUID, ChainConfig> entry : chains.entrySet()) {
+            ops.addAll(chainZk.getDeleteOps(entry.getKey(), id));
+        }
+        // Get routes delete ops.
+        RouteZkManager routeZk = new RouteZkManager(zk, basePath);
+        HashMap<UUID, Route> routes = routeZk.listRouterRoutes(id);
+        for (Map.Entry<UUID, Route> entry : routes.entrySet()) {
+            ops.addAll(routeZk.getRouterRouteDeleteOps(entry.getKey(), id));
+        }
+        // Get ports delete ops
+        PortZkManager portZk = new PortZkManager(zk, basePath);
+        HashMap<UUID, PortConfig> ports = portZk.list(id);
+        for (Map.Entry<UUID, PortConfig> entry : ports.entrySet()) {
+            ops.addAll(portZk.getDeleteOps(entry.getKey(), id));
+        }
+        ops.add(Op.delete(pathManager.getTenantRouterPath(tenantId, id), -1));
+        ops.add(Op.delete(pathManager.getRouterPath(id), -1));
+        return ops;
+    }
+
+    public void delete(UUID id) throws InterruptedException, KeeperException, 
+            IOException, ClassNotFoundException {
+        RouterConfig router = get(id);
+        delete(id, router.tenantId);
+    }
+
+    public void delete(UUID id, UUID tenantId) throws InterruptedException, 
+            KeeperException, IOException, ClassNotFoundException {
+        this.zk.multi(getDeleteOps(id, tenantId));
     }
 
     /**

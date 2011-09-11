@@ -208,13 +208,13 @@ public class ZkPathManager {
      */
     public String getChainsPath() {
         return new StringBuilder(basePath)
-                .append("/rule_chains").toString();
+                .append("/chains").toString();
     }
 
     /**
      * Get ZK rule chain path.
      * @param id  Chain UUID.
-     * @return  /rule_chains/chainId
+     * @return  /chains/chainId
      */
     public String getChainPath(UUID id) {
         return new StringBuilder(getChainsPath())
@@ -224,11 +224,11 @@ public class ZkPathManager {
     /**
      * Get ZK router rule chains path.
      * @param routerId  Router UUID
-     * @return  /routers/routerId/rule_chains
+     * @return  /routers/routerId/chains
      */
     public String getRouterChainsPath(UUID routerId) {
         return new StringBuilder(getRouterPath(routerId))
-                .append("/rule_chains").toString();
+                .append("/chains").toString();
     }
 
     /**
@@ -264,7 +264,7 @@ public class ZkPathManager {
     /**
      * Get ZK chain rule path.
      * @param chainId  Chain UUID
-     * @return  /rule_chains/chainId/rules
+     * @return  /chains/chainId/rules
      */
     public String getChainRulesPath(UUID chainId) {
         return new StringBuilder(getChainPath(chainId))

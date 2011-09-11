@@ -14,27 +14,27 @@ public class Condition implements Serializable {
 
     private static final long serialVersionUID = 5676283307439852254L;
 
-    boolean conjunctionInv;
-    transient Set<UUID> inPortIds;
-    boolean inPortInv;
-    transient Set<UUID> outPortIds;
-    boolean outPortInv;
-    byte nwTos;
-    boolean nwTosInv;
-    byte nwProto;
-    boolean nwProtoInv;
-    int nwSrcIp;
-    byte nwSrcLength;
-    boolean nwSrcInv;
-    int nwDstIp;
-    byte nwDstLength;
-    boolean nwDstInv;
-    short tpSrcStart;
-    short tpSrcEnd;
-    boolean tpSrcInv;
-    short tpDstStart;
-    short tpDstEnd;
-    boolean tpDstInv;
+    public boolean conjunctionInv;
+    public transient Set<UUID> inPortIds;
+    public boolean inPortInv;
+    public transient Set<UUID> outPortIds;
+    public boolean outPortInv;
+    public byte nwTos;
+    public boolean nwTosInv;
+    public byte nwProto;
+    public boolean nwProtoInv;
+    public int nwSrcIp;
+    public byte nwSrcLength;
+    public boolean nwSrcInv;
+    public int nwDstIp;
+    public byte nwDstLength;
+    public boolean nwDstInv;
+    public short tpSrcStart;
+    public short tpSrcEnd;
+    public boolean tpSrcInv;
+    public short tpDstStart;
+    public short tpDstEnd;
+    public boolean tpDstInv;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();

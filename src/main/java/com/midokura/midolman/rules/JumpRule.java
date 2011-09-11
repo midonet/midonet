@@ -7,7 +7,7 @@ import com.midokura.midolman.rules.RuleResult.Action;
 public class JumpRule extends Rule {
 
     private static final long serialVersionUID = -7212783590950701193L;
-    String jumpToChain;
+    public String jumpToChain;
 
     public JumpRule(Condition condition, String jumpToChain) {
         super(condition, null);

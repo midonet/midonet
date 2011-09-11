@@ -9,7 +9,7 @@ public abstract class NatRule extends Rule {
     private static final long serialVersionUID = 8176550999088632045L;
     // The NatMapping is irrelevant to the hashCode, equals and serialization.
     protected transient NatMapping natMap;
-    protected boolean dnat;
+    public boolean dnat;
 
     public NatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action);

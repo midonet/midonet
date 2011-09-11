@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -17,6 +18,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
@@ -58,20 +60,43 @@ public class PortZkManager extends ZkManager {
         
         List<Op> ops = new ArrayList<Op>();
 
-        // Create /ports/<portId>
         ops.add(Op.create(pathManager.getPortPath(id), serialize(port), 
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         if (port instanceof RouterPortConfig) {
-            // Create /routers/<routerId>/ports/<portId>
             ops.add(Op.create(
                         pathManager.getRouterPortPath(port.device_id, id),
                         null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            
-            // Create /ports/<portId>/routes
-           ops.add(Op.create(pathManager.getPortRoutesPath(id), null,
-                   Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            ops.add(Op.create(pathManager.getPortRoutesPath(id), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
         this.zk.multi(ops);        
+    }
+
+    public List<Op> getDeleteOps(UUID id, UUID routerId) 
+            throws KeeperException, InterruptedException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+        // Get delete ops for port routes.
+        RouteZkManager routeZk = new RouteZkManager(zk, basePath);
+        HashMap<UUID, Route> routes = routeZk.listPortRoutes(id);
+        for (Map.Entry<UUID, Route> entry : routes.entrySet()) {
+            ops.addAll(routeZk.getPortRouteDeleteOps(entry.getKey(), id));
+        }        
+        ops.add(Op.delete(pathManager.getRouterPortPath(routerId, id), -1));
+        ops.add(Op.delete(pathManager.getPortPath(id), -1));
+        return ops;
+    }
+    
+    public void delete(UUID id) 
+            throws InterruptedException, KeeperException, 
+                IOException, ClassNotFoundException {
+        PortConfig port = get(id);
+        delete(id, port.device_id);
+    }
+    
+    public void delete(UUID id, UUID routerId)
+            throws InterruptedException, KeeperException, 
+                IOException, ClassNotFoundException {
+        this.zk.multi(getDeleteOps(id, routerId));
     }
     
     /**
@@ -105,7 +130,7 @@ public class PortZkManager extends ZkManager {
     }
     
     /**
-     * Get a list of PortConfig objects for a tenant.
+     * Get a list of PortConfig objects of a router.
      * @param routerId  Router UUID,
      * @return  An array of PortConfigs
      * @throws KeeperException  Zookeeper exception.

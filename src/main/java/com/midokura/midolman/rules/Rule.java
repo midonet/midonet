@@ -10,11 +10,17 @@ public abstract class Rule implements Serializable {
     private static final long serialVersionUID = -5679026587128317121L;
 
     private Condition condition;
-    protected Action action;
-
+    public Action action;
+    public UUID chainId; 
+    
     public Rule(Condition condition, Action action) {
+        this(condition, action, null);
+    }
+    
+    public Rule(Condition condition, Action action, UUID chainId) {
         this.condition = condition;
         this.action = action;
+        this.chainId = chainId;
     }
 
     public void process(UUID inPortId, UUID outPortId, RuleResult res) {
@@ -23,6 +29,10 @@ public abstract class Rule implements Serializable {
         }
     }
 
+    public Condition getCondition() {
+        return condition;
+    }
+    
     // Call process instead - it calls 'apply' if appropriate.
     public abstract void apply(UUID inPortId, UUID outPortId, RuleResult res);
 
