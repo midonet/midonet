@@ -202,12 +202,18 @@ public class RuleDataAccessor extends DataAccessor {
                     ((ForwardNatRule) zkRule).getNatTargets());
             rule.setNatTargets(targets);
             rule.setFlowAction(convertFromAction(zkRule.action));
-            String t = (((NatRule) zkRule)).dnat) ? Rule.DNAT : Rule.SNAT;
-            rule.setType(t); 
+            if (((NatRule) zkRule).dnat) {
+                rule.setType(Rule.DNAT);
+            } else {
+                rule.setType(Rule.SNAT);
+            } 
         } else if (zkRule instanceof ReverseNatRule) {
-            String t = (((NatRule) zkRule)).dnat) ? Rule.DNAT : Rule.SNAT;
+            if (((NatRule) zkRule).dnat) {
+                rule.setType(Rule.DNAT);
+            } else {
+                rule.setType(Rule.SNAT);
+            }          
             rule.setFlowAction(convertFromAction(zkRule.action));
-            rule.setType(t);
         } else {
             // TODO: how about JumpToChain UUID??
             rule.setJumpChainName(((JumpRule) zkRule).jumpToChain);
