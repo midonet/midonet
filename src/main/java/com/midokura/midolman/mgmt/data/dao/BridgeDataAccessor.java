@@ -42,6 +42,13 @@ public class BridgeDataAccessor extends DataAccessor {
         return new BridgeConfig(bridge.getName(), bridge.getTenantId());
     }
 
+    private static Bridge convertToBridge(BridgeConfig config) {
+        Bridge b = new Bridge();
+        b.setName(config.name);
+        b.setTenantId(config.tenantId);
+        return b;
+    }
+
     /**
      * Add a JAXB object the ZK directories.
      * 
@@ -55,5 +62,22 @@ public class BridgeDataAccessor extends DataAccessor {
         ZkNodeEntry<UUID, BridgeConfig> entry = manager
                 .create(convertToConfig(bridge));
         return entry.key;
+    }
+
+    /**
+     * Fetch a JAXB object from the ZooKeeper.
+     * 
+     * @param id
+     *            Bridge UUID to fetch..
+     * @throws Exception
+     *             Error connecting to Zookeeper.
+     */
+    public Bridge get(UUID id) throws Exception {
+        BridgeZkManager manager = getBridgeZkManager();
+        BridgeConfig config = manager.get(id);
+        // TODO: Throw NotFound exception here.
+        Bridge bridge = convertToBridge(config);
+        bridge.setId(id);
+        return bridge;
     }
 }

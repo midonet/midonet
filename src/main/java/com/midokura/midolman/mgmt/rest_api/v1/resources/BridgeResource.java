@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortResource;
 
 /**
@@ -59,7 +58,6 @@ public class BridgeResource extends RestResource {
      * @param id
      *            Bridge UUID.
      * @return Bridge object.
-     * @throws Exception
      */
     @GET
     @Path("{id}")
@@ -68,13 +66,14 @@ public class BridgeResource extends RestResource {
         // Get a bridge for the given ID.
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
         Bridge bridge = null;
-        /*
-         * try { bridge = dao.get(id); } catch (Exception ex) {
-         * log.error("Error getting bridge", ex); throw new
-         * WebApplicationException(
-         * Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-         * .type(MediaType.APPLICATION_JSON).build()); }
-         */
+        try {
+            bridge = dao.get(id);
+        } catch (Exception ex) {
+            log.error("Error getting bridge", ex);
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
+        }
         return bridge;
     }
 
@@ -153,13 +152,11 @@ public class BridgeResource extends RestResource {
          * 
          * @param bridge
          *            Bridge object mapped to the request input.
-         * @throws Exception
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Bridge bridge, @Context UriInfo uriInfo)
-                throws Exception {
+        public Response create(Bridge bridge, @Context UriInfo uriInfo) {
             bridge.setTenantId(tenantId);
             BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
             UUID id = null;
