@@ -18,7 +18,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.GreZkManager.GreKey;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * ZK bridge management class.
@@ -104,15 +103,30 @@ public class BridgeZkManager extends ZkManager {
         return bridgeNode;
     }
 
-    public BridgeConfig get(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException, IOException {
+    public ZkNodeEntry<UUID, BridgeConfig> get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
         byte[] data = zk.getData(pathManager.getBridgePath(id), null, null);
+        BridgeConfig config = null;
         try {
-            return deserialize(data, BridgeConfig.class);
+            config = deserialize(data, BridgeConfig.class);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not deserialize bridge " + id + " to BridgeConfig",
                     e, BridgeConfig.class);
         }
+        return new ZkNodeEntry<UUID, BridgeConfig>(id, config);
+    }
+
+    public List<ZkNodeEntry<UUID, BridgeConfig>> list(UUID tenantId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, BridgeConfig>> result = new ArrayList<ZkNodeEntry<UUID, BridgeConfig>>();
+        List<String> bridgeIds = zk.getChildren(pathManager
+                .getTenantBridgesPath(tenantId), null);
+        for (String bridgeId : bridgeIds) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(bridgeId)));
+        }
+        return result;
     }
 }
