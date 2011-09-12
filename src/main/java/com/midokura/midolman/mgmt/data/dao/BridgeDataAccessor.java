@@ -6,6 +6,8 @@
 
 package com.midokura.midolman.mgmt.data.dao;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
@@ -49,6 +51,12 @@ public class BridgeDataAccessor extends DataAccessor {
         return b;
     }
 
+    private static Bridge convertToBridge(ZkNodeEntry<UUID, BridgeConfig> entry) {
+        Bridge b = convertToBridge(entry.value);
+        b.setId(entry.key);
+        return b;
+    }
+
     /**
      * Add a JAXB object the ZK directories.
      * 
@@ -74,10 +82,17 @@ public class BridgeDataAccessor extends DataAccessor {
      */
     public Bridge get(UUID id) throws Exception {
         BridgeZkManager manager = getBridgeZkManager();
-        BridgeConfig config = manager.get(id);
         // TODO: Throw NotFound exception here.
-        Bridge bridge = convertToBridge(config);
-        bridge.setId(id);
-        return bridge;
+        return convertToBridge(manager.get(id));
+    }
+
+    public Bridge[] list(UUID tenantId) throws Exception {
+        BridgeZkManager manager = getBridgeZkManager();
+        List<Bridge> bridges = new ArrayList<Bridge>();
+        List<ZkNodeEntry<UUID, BridgeConfig>> entries = manager.list(tenantId);
+        for (ZkNodeEntry<UUID, BridgeConfig> entry : entries) {
+            bridges.add(convertToBridge(entry));
+        }
+        return bridges.toArray(new Bridge[bridges.size()]);
     }
 }
