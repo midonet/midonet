@@ -18,6 +18,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.GreZkManager.GreKey;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * ZK bridge management class.
@@ -30,6 +31,9 @@ public class BridgeZkManager extends ZkManager {
     public static class BridgeConfig implements Serializable {
 
         private static final long serialVersionUID = 1L;
+
+        public BridgeConfig() {
+        }
 
         public BridgeConfig(String name, UUID tenantId) {
             this(name, tenantId, -1);
@@ -100,4 +104,15 @@ public class BridgeZkManager extends ZkManager {
         return bridgeNode;
     }
 
+    public BridgeConfig get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException, IOException {
+        byte[] data = zk.getData(pathManager.getBridgePath(id), null, null);
+        try {
+            return deserialize(data, BridgeConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize bridge " + id + " to BridgeConfig",
+                    e, BridgeConfig.class);
+        }
+    }
 }

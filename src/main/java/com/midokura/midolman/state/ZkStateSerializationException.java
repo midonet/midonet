@@ -25,6 +25,6 @@ public class ZkStateSerializationException extends Exception {
 
     @Override
     public String getMessage() {
-        return "Class " + this.clazz + " could not be serialized.";
+        return this.clazz + " could not be (de)serialized.";
     }
 }
