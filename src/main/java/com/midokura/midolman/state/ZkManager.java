@@ -6,48 +6,46 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midolman.util.Serializer;
 
 /**
  * Abstract base class for ZkManagers.
- * @version        1.6 11 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 11 Sept 2011
+ * @author Ryu Ishimoto
  */
 public abstract class ZkManager {
 
     protected ZkPathManager pathManager = null;
     protected ZooKeeper zk = null;
     protected String basePath = null;
-    
+
     /**
      * Default constructor.
      * 
-     * @param zk Zookeeper object.
-     * @param basePath  Directory to set as the base.
+     * @param zk
+     *            Zookeeper object.
+     * @param basePath
+     *            Directory to set as the base.
      */
     public ZkManager(ZooKeeper zk, String basePath) {
         this.basePath = basePath;
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
     }
-    
+
     protected static <T> byte[] serialize(T obj) throws IOException {
         Serializer<T> s = new JSONSerializer<T>();
-		return s.objToBytes(obj);  	
+        return s.objToBytes(obj);
     }
-  
-    protected static <T> T deserialize(byte[] obj, Class<T> clazz) 
-    		throws IOException {
+
+    protected static <T> T deserialize(byte[] obj, Class<T> clazz)
+            throws IOException {
         Serializer<T> s = new JSONSerializer<T>();
-		return s.bytesToObj(obj, clazz);  	
+        return s.bytesToObj(obj, clazz);
     }
 }
