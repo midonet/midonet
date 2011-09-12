@@ -64,14 +64,19 @@ public class MockControllerStub implements ControllerStub {
     public List<Flow> addedFlows = new ArrayList<Flow>();
     public List<Packet> sentPackets = new ArrayList<Packet>();
     public List<Integer> droppedPktBufIds = new ArrayList<Integer>(); 
+    public OFFeaturesReply features = null;
 
     @Override
     public void setController(Controller controller) {
     }
 
+    public void setFeatures(OFFeaturesReply features) {
+        this.features = features;
+    }
+
     @Override
     public OFFeaturesReply getFeatures() {
-        return null;
+        return features;
     }
 
     @Override

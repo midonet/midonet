@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
+import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
 import org.junit.Before;
@@ -21,6 +22,7 @@ import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortLocationMap;
+import com.midokura.midolman.openflow.MockControllerStub;
 
 
 class AbstractControllerTester extends AbstractController {
@@ -84,6 +86,10 @@ class AbstractControllerTester extends AbstractController {
     protected void modifyPort(OFPhysicalPort portDesc) {
         portsModified.add(portDesc);
     }
+
+    public void setFeatures(OFFeaturesReply features) {
+	((MockControllerStub) controllerStub).setFeatures(features);
+    }
 }
 
 
@@ -112,6 +118,7 @@ public class TestAbstractController {
  			     320 * 1000 /* flowExpireMaxMillis */,
  			     60 * 1000 /* idleFlowExpireMillis */,
 			     null /* internalIp */);
+        controller.setControllerStub(new MockControllerStub());
 
         port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);
@@ -128,6 +135,22 @@ public class TestAbstractController {
 
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
+    }
+
+    @Test
+    public void testConnectionMade() {
+        OFFeaturesReply features = new OFFeaturesReply();
+        ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();
+	portList.add(port1);
+	portList.add(port2);
+        features.setPorts(portList);
+        controller.setFeatures(features);
+        controller.onConnectionLost();
+        assertArrayEquals(new OFPhysicalPort[] { },
+                          controller.portsAdded.toArray());
+        controller.onConnectionMade();
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+                          controller.portsAdded.toArray());
     }
 
     @Test
