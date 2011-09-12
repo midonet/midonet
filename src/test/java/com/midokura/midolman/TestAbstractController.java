@@ -132,8 +132,18 @@ public class TestAbstractController {
 
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsRemoved.toArray());
+	assertTrue(controller.portNumToUuid.containsKey(37));
+	assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
         controller.onPortStatus(port1, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new OFPhysicalPort[] { port1 },
 			  controller.portsRemoved.toArray());
+	assertFalse(controller.portNumToUuid.containsKey(37));
+	assertTrue(controller.portNumToUuid.containsKey(47));
+	assertTrue(controller.tunnelPortNumToPeerIp.containsKey(47));
+        controller.onPortStatus(port2, OFPortReason.OFPPR_DELETE);
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+			  controller.portsRemoved.toArray());
+	assertFalse(controller.portNumToUuid.containsKey(47));
+	assertFalse(controller.portNumToUuid.containsKey(47));
     }
 }

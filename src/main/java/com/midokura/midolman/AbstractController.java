@@ -96,7 +96,7 @@ public abstract class AbstractController implements Controller {
             }
         } else if (reason == OFPortReason.OFPPR_DELETE) {
             deletePort(portDesc);
-	    short portNum = portDesc.getPortNumber();
+	    Integer portNum = new Integer(portDesc.getPortNumber());
 	    portNumToUuid.remove(portNum);
 	    tunnelPortNumToPeerIp.remove(portNum);
         } else {
