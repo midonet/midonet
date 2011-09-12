@@ -66,7 +66,15 @@ public abstract class AbstractController implements Controller {
 
     @Override
     public void onConnectionMade() {
-        // TODO Auto-generated method stub
+        // TODO: Maybe find and record the datapath_id?
+	//	 The python implementation did, but here we get the dp_id
+	//	 in the constructor.
+
+        // FIXME: Delete all currently installed flows.
+
+        // Add all the ports.
+        for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
+            addPort(portDesc, portDesc.getPortNumber());
     }
 
     @Override
