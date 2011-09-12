@@ -34,6 +34,7 @@ import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.util.MockCache;
 
 public class TestNetwork {
 
@@ -58,7 +59,8 @@ public class TestNetwork {
         dir.add("/midonet/routers", null, CreateMode.PERSISTENT);
         Directory routersSubdir = dir.getSubDirectory("/midonet/routers");
         RouterDirectory routerDir = new RouterDirectory(routersSubdir);
-        network = new Network(new UUID(19, 19), routerDir, portDir, reactor);
+        network = new Network(new UUID(19, 19), routerDir, portDir, reactor,
+                new MockCache());
 
         /*
          * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16

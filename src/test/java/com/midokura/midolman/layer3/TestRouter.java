@@ -24,6 +24,7 @@ import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer4.MockNatMapping;
+import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
@@ -40,7 +41,10 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.MockCache;
 
 public class TestRouter {
 
@@ -69,7 +73,9 @@ public class TestRouter {
         RouterConfig cfg = new RouterConfig("Test Router", tenantId);
         routerDir.addRouter(rtrId, cfg);
         // TODO(pino): replace the following with a real implementation.
-        NatMapping natMap = new MockNatMapping();
+        Cache cache = new MockCache();
+        cache = new CacheWithPrefix(cache, rtrId.toString());
+        NatMapping natMap = new NatLeaseManager(routerDir, rtrId, cache);
         ruleEngine = new RuleEngine(routerDir, rtrId, natMap);
         rTable = new ReplicatedRoutingTable(rtrId, routerDir
                 .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);

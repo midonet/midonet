@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
@@ -250,11 +251,11 @@ public class RouterDirectory {
         dir.delete(getPathForChain(routerId, chainName));
     }
 
-    public Collection<NatTarget> getSnatBlocks(UUID routerId, Runnable watcher) {
+    public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip) {
         return null;
     }
 
-    public void addSnatReservation(UUID routerId, NatTarget reservation) {
+    public void addSnatReservation(UUID routerId, int ip, short startPort) {
 
     }
 

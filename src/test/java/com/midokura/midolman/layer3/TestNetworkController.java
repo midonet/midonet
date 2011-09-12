@@ -41,6 +41,7 @@ import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.util.MockCache;
 
 public class TestNetworkController {
 
@@ -88,7 +89,7 @@ public class TestNetworkController {
         int datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, null, 60 * 1000, localNwAddr, routerDir,
-                portDir, ovsdb, reactor, portLocMap);
+                portDir, ovsdb, reactor, portLocMap, new MockCache());
         networkCtrl.setControllerStub(controllerStub);
 
         /*
