@@ -41,7 +41,7 @@ public class BridgeResource extends RestResource {
     /*
      * Implements REST API endpoints for bridges.
      */
-    
+
     private final static Logger log = LoggerFactory
             .getLogger(BridgeResource.class);
 
@@ -153,15 +153,18 @@ public class BridgeResource extends RestResource {
          * 
          * @param bridge
          *            Bridge object mapped to the request input.
+         * @throws Exception
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Bridge bridge, @Context UriInfo uriInfo) {
+        public Response create(Bridge bridge, @Context UriInfo uriInfo)
+                throws Exception {
             bridge.setTenantId(tenantId);
             BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
+            UUID id = null;
             try {
-                dao.create(bridge);
+                id = dao.create(bridge);
             } catch (Exception ex) {
                 log.error("Error creating bridge", ex);
                 throw new WebApplicationException(Response.status(
@@ -169,8 +172,7 @@ public class BridgeResource extends RestResource {
                         MediaType.APPLICATION_JSON).build());
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path(
-                    "bridges/" + bridge.getId()).build();
+            URI uri = uriInfo.getBaseUriBuilder().path("bridges/" + id).build();
             return Response.created(uri).build();
         }
     }
