@@ -124,11 +124,17 @@ public class TestAbstractController {
         assertEquals(InetAddress.getByName("10.0.17.34"),
 	             controller.tunnelPortNumToPeerIp.get(47));
 
+        port2.setName("tn012340a001123");
+        UUID port2newUuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsModified.toArray());
-        controller.onPortStatus(port1, OFPortReason.OFPPR_MODIFY);
-        assertArrayEquals(new OFPhysicalPort[] { port1 },
+        controller.onPortStatus(port2, OFPortReason.OFPPR_MODIFY);
+        assertArrayEquals(new OFPhysicalPort[] { port2 },
 			  controller.portsModified.toArray());
+        assertEquals(port2newUuid, controller.portNumToUuid.get(47));
+        assertEquals(InetAddress.getByName("10.0.17.35"),
+                     controller.tunnelPortNumToPeerIp.get(47));
 
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsRemoved.toArray());
@@ -144,6 +150,6 @@ public class TestAbstractController {
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
 			  controller.portsRemoved.toArray());
 	assertFalse(controller.portNumToUuid.containsKey(47));
-	assertFalse(controller.portNumToUuid.containsKey(47));
+	assertFalse(controller.tunnelPortNumToPeerIp.containsKey(47));
     }
 }

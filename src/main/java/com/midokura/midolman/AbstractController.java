@@ -101,6 +101,20 @@ public abstract class AbstractController implements Controller {
 	    tunnelPortNumToPeerIp.remove(portNum);
         } else {
             modifyPort(portDesc);
+            UUID uuid = getPortUuidFromOvsdb(datapathId, 
+				             portDesc.getPortNumber());
+            Integer portNum = new Integer(portDesc.getPortNumber());
+            if (uuid != null)
+                portNumToUuid.put(portNum, uuid);
+            else
+                portNumToUuid.remove(portNum);
+
+            if (isGREPortOfKey(portDesc.getName())) {
+                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+	 	tunnelPortNumToPeerIp.put(portNum, peerIp);
+            } else {
+		tunnelPortNumToPeerIp.remove(portNum);
+ 	    }
         }
     }
 
