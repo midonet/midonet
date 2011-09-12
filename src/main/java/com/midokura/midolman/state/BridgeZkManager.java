@@ -93,14 +93,13 @@ public class BridgeZkManager extends ZkManager {
         return ops;
     }
 
-    public ZkNodeEntry<UUID, BridgeConfig> create(BridgeConfig bridge)
-            throws InterruptedException, KeeperException,
-            ZkStateSerializationException {
+    public UUID create(BridgeConfig bridge) throws InterruptedException,
+            KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, BridgeConfig> bridgeNode = new ZkNodeEntry<UUID, BridgeConfig>(
                 id, bridge);
         zk.multi(prepareBridgeCreate(bridgeNode));
-        return bridgeNode;
+        return id;
     }
 
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id) throws KeeperException,
@@ -128,5 +127,19 @@ public class BridgeZkManager extends ZkManager {
             result.add(get(UUID.fromString(bridgeId)));
         }
         return result;
+    }
+
+    public void update(ZkNodeEntry<UUID, BridgeConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // Update any version for now.
+        try {
+            zk.setData(pathManager.getBridgePath(entry.key),
+                    serialize(entry.value), -1);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize bridge " + entry.key
+                            + " to BridgeConfig", e, BridgeConfig.class);
+        }
     }
 }
