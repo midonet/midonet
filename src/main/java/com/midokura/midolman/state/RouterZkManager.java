@@ -88,9 +88,9 @@ public class RouterZkManager extends ZkManager {
         }
         // Get ports delete ops
         PortZkManager portZk = new PortZkManager(zk, basePath);
-        HashMap<UUID, PortConfig> ports = portZk.list(id);
+        HashMap<UUID, PortConfig> ports = portZk.listRouterPorts(id);
         for (Map.Entry<UUID, PortConfig> entry : ports.entrySet()) {
-            ops.addAll(portZk.getDeleteOps(entry.getKey(), id));
+            ops.addAll(portZk.getRouterPortDeleteOps(entry.getKey(), id));
         }
         ops.add(Op.delete(pathManager.getTenantRouterPath(tenantId, id), -1));
         ops.add(Op.delete(pathManager.getRouterPath(id), -1));
