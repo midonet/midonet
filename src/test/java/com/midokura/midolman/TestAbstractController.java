@@ -13,6 +13,7 @@ import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFPhysicalPort;
 
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -26,6 +27,7 @@ class AbstractControllerTester extends AbstractController {
     public List<OFPhysicalPort> portsAdded;
     public List<OFPhysicalPort> portsRemoved;
     public List<OFPhysicalPort> portsModified;
+    public int numClearCalls;
  
     public AbstractControllerTester(
             int datapathId,
@@ -42,6 +44,7 @@ class AbstractControllerTester extends AbstractController {
         portsAdded = new ArrayList<OFPhysicalPort>();
         portsRemoved = new ArrayList<OFPhysicalPort>();
         portsModified = new ArrayList<OFPhysicalPort>();
+        numClearCalls = 0;
     }
 
     @Override 
@@ -55,7 +58,12 @@ class AbstractControllerTester extends AbstractController {
             long byteCount) { }
 
     @Override
-    public void clear() { }
+    public void clear() {
+        portsAdded = new ArrayList<OFPhysicalPort>();
+        portsRemoved = new ArrayList<OFPhysicalPort>();
+        portsModified = new ArrayList<OFPhysicalPort>();
+	numClearCalls++;
+    }
 
     @Override
     public void sendFlowModDelete(boolean strict, OFMatch match,
@@ -83,11 +91,17 @@ public class TestAbstractController {
 
     private AbstractControllerTester controller;
 
-    @Test
-    public void testController() throws UnknownHostException {
-        int dp_id = 43;
-        MockOpenvSwitchDatabaseConnection ovsdb = 
-            new MockOpenvSwitchDatabaseConnection();
+    private OFPhysicalPort port1;
+    private OFPhysicalPort port2;
+    private UUID port1uuid;
+    private UUID port2uuid;
+    private int dp_id;
+    private MockOpenvSwitchDatabaseConnection ovsdb;
+
+    @Before
+    public void setUp() {
+        dp_id = 43;
+        ovsdb = new MockOpenvSwitchDatabaseConnection();
         controller = new AbstractControllerTester(
 	                     dp_id /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
@@ -99,19 +113,30 @@ public class TestAbstractController {
  			     60 * 1000 /* idleFlowExpireMillis */,
 			     null /* internalIp */);
 
-        OFPhysicalPort port1 = new OFPhysicalPort();
+        port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);
         port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
-        UUID port1uuid = UUID.randomUUID();
+        port1uuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 37, "midonet", port1uuid.toString());
 
-        OFPhysicalPort port2 = new OFPhysicalPort();
+        port2 = new OFPhysicalPort();
         port2.setPortNumber((short) 47);
         port2.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 47 });
         port2.setName("tn012340a001122");
-        UUID port2uuid = UUID.randomUUID();
+        port2uuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2uuid.toString());
 
+        controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
+        controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
+    }
+
+    @Test
+    public void testClearAdd() throws UnknownHostException {
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+			  controller.portsAdded.toArray());
+        assertEquals(0, controller.numClearCalls);
+        controller.onConnectionLost();
+        assertEquals(1, controller.numClearCalls);
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsAdded.toArray());
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
@@ -123,7 +148,10 @@ public class TestAbstractController {
         assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
         assertEquals(InetAddress.getByName("10.0.17.34"),
 	             controller.tunnelPortNumToPeerIp.get(47));
+    }
 
+    @Test
+    public void testModifyPort() throws UnknownHostException {
         port2.setName("tn012340a001123");
         UUID port2newUuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
@@ -135,7 +163,10 @@ public class TestAbstractController {
         assertEquals(port2newUuid, controller.portNumToUuid.get(47));
         assertEquals(InetAddress.getByName("10.0.17.35"),
                      controller.tunnelPortNumToPeerIp.get(47));
+    }
 
+    @Test
+    public void testDeletePort() {
         assertArrayEquals(new OFPhysicalPort[] { },
 			  controller.portsRemoved.toArray());
 	assertTrue(controller.portNumToUuid.containsKey(37));

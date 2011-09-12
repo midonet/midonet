@@ -71,7 +71,9 @@ public abstract class AbstractController implements Controller {
 
     @Override
     public void onConnectionLost() {
-        // TODO Auto-generated method stub
+        clear();
+        portNumToUuid.clear();
+        tunnelPortNumToPeerIp.clear();
     }
 
     @Override
