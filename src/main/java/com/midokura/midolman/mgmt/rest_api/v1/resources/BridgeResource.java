@@ -53,7 +53,7 @@ public class BridgeResource extends RestResource {
     }
 
     /**
-     * Get the brdige with the given ID.
+     * Get the brkdge with the given ID.
      * 
      * @param id
      *            Bridge UUID.
@@ -82,14 +82,14 @@ public class BridgeResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Bridge bridge) {
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
-        /*
-         * try { dao.update(id, bridge); } catch (Exception ex) {
-         * log.error("Error updating bridge", ex); throw new
-         * WebApplicationException(
-         * Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-         * .type(MediaType.APPLICATION_JSON).build()); }
-         */
-
+        try {
+            dao.update(id, bridge);
+        } catch (Exception ex) {
+            log.error("Error updating bridge", ex);
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
+        }
         return Response.ok().build();
     }
 

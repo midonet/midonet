@@ -67,9 +67,8 @@ public class BridgeDataAccessor extends DataAccessor {
      */
     public UUID create(Bridge bridge) throws Exception {
         BridgeZkManager manager = getBridgeZkManager();
-        ZkNodeEntry<UUID, BridgeConfig> entry = manager
-                .create(convertToConfig(bridge));
-        return entry.key;
+        UUID id = manager.create(convertToConfig(bridge));
+        return id;
     }
 
     /**
@@ -94,5 +93,11 @@ public class BridgeDataAccessor extends DataAccessor {
             bridges.add(convertToBridge(entry));
         }
         return bridges.toArray(new Bridge[bridges.size()]);
+    }
+
+    public void update(UUID id, Bridge bridge) throws Exception {
+        BridgeZkManager manager = getBridgeZkManager();
+        BridgeConfig config = convertToConfig(bridge);
+        manager.update(new ZkNodeEntry<UUID, BridgeConfig>(id, config));
     }
 }
