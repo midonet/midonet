@@ -99,51 +99,25 @@ public class PortResource extends RestResource {
         }
     }
     
-    /**
-     * Sub-resource class for tenant's port.
-     */
-    public static class RouterPortResource extends RestResource {
+    public static class DevicePortResource extends RestResource {
         
-        private UUID routerId = null;
-        
+        protected UUID deviceId = null;
+
         /**
-         * Default constructor.
+         * constructor.
          * 
          * @param   zkConn  Zookeeper connection string.
-         * @param   routerId  UUID of a router.
+         * @param   deviceId  UUID of a device.
          */
-        public RouterPortResource(String zkConn, UUID routerId) {
+        public DevicePortResource(String zkConn, UUID deviceId) {
             this.zookeeperConn = zkConn;
-            this.routerId = routerId;        
-        }
-
-        /**
-         * Return a list of ports.
-         * 
-         * @return  A list of Port objects.
-         * @throws Exception 
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() throws Exception {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-            Port[] ports = null;
-            ports = dao.list(routerId);
-
-            try {
-            } catch (Exception ex) {
-                log.error("Error listing ports", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());           
-            }
-            return ports;
-        }        
+            this.deviceId = deviceId;        
+        }   
         
         /**
          * Handler for create port API call.
          * 
-         * @param   port  Router object mapped to the request input.
+         * @param   port  Device object mapped to the request input.
          * @throws Exception 
          * @returns Response object with 201 status code set if successful.
          */
@@ -153,7 +127,7 @@ public class PortResource extends RestResource {
                 throws Exception {
             // Add a new port entry into zookeeper.
             port.setId(UUID.randomUUID());
-            port.setDeviceId(routerId);
+            port.setDeviceId(deviceId);
             PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
 
             try {
@@ -168,6 +142,82 @@ public class PortResource extends RestResource {
             URI uri = uriInfo.getBaseUriBuilder()
                 .path("ports/" + port.getId()).build();        
             return Response.created(uri).build();
+        }    
+    }
+
+    /**
+     * Sub-resource class for router's ports.
+     */
+    public static class RouterPortResource extends DevicePortResource {
+        
+        /**
+         * Constructor.
+         * 
+         * @param   zkConn  Zookeeper connection string.
+         * @param   routerId  UUID of a router.
+         */
+        public RouterPortResource(String zkConn, UUID routerId) {
+            super(zkConn, routerId);
+        }
+
+        /**
+         * Return a list of ports.
+         * 
+         * @return  A list of Port objects.
+         * @throws Exception 
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Port[] list() throws Exception {
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            Port[] ports = null;
+            try {
+                ports = dao.listRouterPorts(deviceId);
+            } catch (Exception ex) {
+                log.error("Error listing ports", ex);
+                throw new WebApplicationException(
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.APPLICATION_JSON).build());           
+            }
+            return ports;
+        }
+    }
+    
+    /**
+     * Sub-resource class for bridge ports.
+     */
+    public static class BridgePortResource extends DevicePortResource {
+        
+        /**
+         * Constructor.
+         * 
+         * @param   zkConn  Zookeeper connection string.
+         * @param   routerId  UUID of a router.
+         */
+        public BridgePortResource(String zkConn, UUID routerId) {
+            super(zkConn, routerId);
+        }
+
+        /**
+         * Return a list of ports.
+         * 
+         * @return  A list of Port objects.
+         * @throws Exception 
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Port[] list() throws Exception {
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            Port[] ports = null;
+            try {
+                ports = dao.listBridgePorts(deviceId);
+            } catch (Exception ex) {
+                log.error("Error listing ports", ex);
+                throw new WebApplicationException(
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.APPLICATION_JSON).build());           
+            }
+            return ports;
         }
     }
 }

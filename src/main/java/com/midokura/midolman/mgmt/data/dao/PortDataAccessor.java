@@ -19,6 +19,7 @@ import com.midokura.midolman.mgmt.util.Net;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
@@ -44,6 +45,10 @@ public class PortDataAccessor extends DataAccessor {
         ZkConnection conn = ZookeeperService.getConnection(zkConn);        
         return new PortZkManager(conn.getZooKeeper(), "/midolman");
     } 
+
+    private static BridgePortConfig toBridgePortConf(Port port) {                  
+        return new BridgePortConfig(port.getDeviceId());
+    }
     
     private static LogicalRouterPortConfig toLogRouterPortConf(Port port) {                  
         return new LogicalRouterPortConfig(port.getDeviceId(), 
@@ -62,6 +67,12 @@ public class PortDataAccessor extends DataAccessor {
                 Net.convertAddressToInt(port.getLocalNetworkAddress()),
                 port.getLocalNetworkLength(),
                 new HashSet<BGP>());
+    }
+
+    private static Port toPort(BridgePortConfig config) {
+        Port port = new Port();
+        port.setDeviceId(config.device_id);
+        return port;
     }
 
     private static Port toPort(LogicalRouterPortConfig config) {
@@ -94,6 +105,8 @@ public class PortDataAccessor extends DataAccessor {
             return toLogRouterPortConf(port);
         } else if (type.equals(Port.MaterializedRouterPort)) {
             return toMatRouterPortConf(port);
+        } else if (type.equals(Port.BridgePort)) {
+            return toBridgePortConf(port);
         }
         return null;
     }
@@ -103,6 +116,8 @@ public class PortDataAccessor extends DataAccessor {
             return toPort((LogicalRouterPortConfig) config);
         } else if (config instanceof MaterializedRouterPortConfig) {
             return toPort((MaterializedRouterPortConfig) config);
+        } else if (config instanceof BridgePortConfig) {
+            return toPort((BridgePortConfig) config);
         }
         return null;
     }
@@ -153,6 +168,21 @@ public class PortDataAccessor extends DataAccessor {
         return port;
     }
     
+    private static Port[] generatePortArray(Map<UUID, PortConfig> configs) {
+        List<Port> ports = new ArrayList<Port>();
+        for (Map.Entry<UUID, PortConfig> entry : configs.entrySet()) {
+            Port port = convertToPort(entry.getValue());
+            port.setId(entry.getKey());
+            ports.add(port);            
+        }
+        return ports.toArray(new Port[ports.size()]);       
+    }
+    
+    public Port[] listBridgePorts(UUID bridgeId) throws Exception {
+        PortZkManager manager = getPortZkManager();
+        return generatePortArray(manager.listBridgePorts(bridgeId));
+    }
+    
     /**
      * Get a list of Ports for a router.
      * 
@@ -160,15 +190,8 @@ public class PortDataAccessor extends DataAccessor {
      * @return  A Set of Ports
      * @throws Exception  Zookeeper(or any) error.
      */
-    public Port[] list(UUID routerId) throws Exception {
+    public Port[] listRouterPorts(UUID routerId) throws Exception {
         PortZkManager manager = getPortZkManager();
-        List<Port> ports = new ArrayList<Port>();
-        HashMap<UUID, PortConfig> configs = manager.list(routerId);
-        for (Map.Entry<UUID, PortConfig> entry : configs.entrySet()) {
-            Port port = convertToPort(entry.getValue());
-            port.setId(entry.getKey());
-            ports.add(port);            
-        }
-        return ports.toArray(new Port[ports.size()]);
+        return generatePortArray(manager.listRouterPorts(routerId));
     }
 }

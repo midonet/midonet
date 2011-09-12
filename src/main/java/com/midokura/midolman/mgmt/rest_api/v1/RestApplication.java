@@ -12,6 +12,7 @@ import javax.ws.rs.core.Application;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
+import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource;
@@ -52,6 +53,7 @@ public class RestApplication extends Application {
         set.add(RouterResource.class);
         set.add(TenantResource.class);
         set.add(ChainResource.class);
+        set.add(BridgeResource.class);
         return set;
     }
 

@@ -17,7 +17,7 @@ public class Tenant {
     /**
      * Get tenant ID.
      * 
-     * @return  Tenant ID.
+     * @return Tenant ID.
      */
     public UUID getId() {
         return id;
@@ -26,10 +26,11 @@ public class Tenant {
     /**
      * Set tenant ID.
      * 
-     * @param  id  ID of the tenant.
+     * @param id
+     *            ID of the tenant.
      */
     public void setId(UUID id) {
         this.id = id;
     }
-    
+
 }

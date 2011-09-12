@@ -22,13 +22,14 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.TenantDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
 
 /**
  * Root resource class for tenants.
- *
- * @version        1.6 07 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 07 Sept 2011
+ * @author Ryu Ishimoto
  */
 @Path("/tenants")
 public class TenantResource extends RestResource {
@@ -36,9 +37,9 @@ public class TenantResource extends RestResource {
      * Implements REST API endpoints for tenants.
      */
 
-    private final static Logger log = LoggerFactory.getLogger(
-            TenantResource.class);
-    
+    private final static Logger log = LoggerFactory
+            .getLogger(TenantResource.class);
+
     /**
      * Router resource locator for tenants
      */
@@ -46,32 +47,37 @@ public class TenantResource extends RestResource {
     public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
         return new TenantRouterResource(zookeeperConn, id);
     }
-    
+
+    /**
+     * Bridge resource locator for tenants
+     */
+    @Path("/{id}/bridges")
+    public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
+        return new TenantBridgeResource(zookeeperConn, id);
+    }
+
     /**
      * Handler for create tenant API call.
      * 
-     * @param   tenant  Tenant object.
-     * @returns  Response object with 201 status code set if successful.
+     * @param tenant
+     *            Tenant object.
+     * @returns Response object with 201 status code set if successful.
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(Tenant tenant) {
-        // Add a new tenant entry into zookeeper.
-        if(tenant.getId() == null) {
-            tenant.setId(UUID.randomUUID());
-        }
-
         TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn);
+        UUID id = null;
         try {
-            dao.create(tenant);
+            id = dao.create(tenant);
         } catch (Exception ex) {
             log.error("Error creating tenant", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
-        
-        return Response.created(URI.create("/" + tenant.getId())).build();
-    }    
+
+        return Response.created(URI.create("/" + id)).build();
+    }
 }
