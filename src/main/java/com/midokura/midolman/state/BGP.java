@@ -22,16 +22,16 @@ public class BGP {
         address is an IPv4 address as a human-readable string, and
         length is a positive integer.
         */
-    short localPort;
-    int localAS;
-    InetAddress peerAddr;
-    short peerPort;
-	int peerAS;
-    String tcpMd5SigKey;
-    InetAddress[] advertisedNetworkAddrs;
+    public short localPort;
+    public int localAS;
+    public InetAddress peerAddr;
+    public short peerPort;
+	public int peerAS;
+    public String tcpMd5SigKey;
+    public InetAddress[] advertisedNetworkAddrs;
 	// This should be Byte[] not byte[] because of Jackson will produce a byte array
 	// string in the case of you specify this propoerty as byte[].
-    Byte[] advertisedNetworkLengths;
+    public Byte[] advertisedNetworkLengths;
 
 	public BGP(short localPort, int localAS, InetAddress peerAddr,
                short peerPort, int peerAs, String tcpMd5SigKey,
