@@ -42,6 +42,24 @@ public class ZkPathManager {
     }
 
     /**
+     * Get GRE path.
+     * @return  /gre
+     */
+    public String getGrePath() {
+        return new StringBuilder(basePath)
+                .append("/gre").toString();
+    }
+    
+    /**
+     * Get GRE key path.
+     * @return  /gre/greKey
+     */
+    public String getGreKeyPath(int greKeyId) {
+        return new StringBuilder(getGrePath())
+                .append("/").append(greKeyId).toString();
+    }  
+
+    /**
      * Get ZK tenant path.
      * @return  /tenants
      */
@@ -60,6 +78,25 @@ public class ZkPathManager {
                 .append("/").append(id).toString();
     }
 
+    /**
+     * Get ZK bridges path.
+     * @return /birdges
+     */
+    public String getBridgesPath() {
+        return new StringBuilder(basePath)
+                .append("/bridges").toString();
+    }
+
+    /**
+     * Get ZK bridge path.
+     * @param id  Bridge UUID
+     * @return  /bridges/bridgeId
+     */
+    public String getBridgePath(UUID id) {
+        return new StringBuilder(getBridgesPath())
+                .append("/").append(id).toString();
+    }
+    
     /**
      * Get ZK router path.
      * @return /routers
@@ -99,6 +136,27 @@ public class ZkPathManager {
         return new StringBuilder(getTenantRoutersPath(tenantId))
                 .append("/").append(routerId).toString();
     }
+    
+    /**
+     * Get ZK tenant bridge path.
+     * @param tenantId  Tenant UUID
+     * @return  /tenants/tenantId/bridges
+     */
+    public String getTenantBridgesPath(UUID tenantId) {
+        return new StringBuilder(getTenantPath(tenantId))
+                .append("/bridges").toString();
+    }
+
+    /**
+     * Get ZK tenant bridge path.
+     * @param tenantId  Tenant UUID
+     * @param routerId  Bridge UUID
+     * @return  /tenants/tenantId/bridges/bridgeId
+     */
+    public String getTenantBridgePath(UUID tenantId, UUID bridgeId) {
+        return new StringBuilder(getTenantBridgesPath(tenantId))
+                .append("/").append(bridgeId).toString();
+    }
 
     /**
      * Get ZK port path.
@@ -137,6 +195,27 @@ public class ZkPathManager {
      */
     public String getRouterPortPath(UUID routerId, UUID portId) {
         return new StringBuilder(getRouterPortsPath(routerId))
+                .append("/").append(portId).toString();
+    }
+    
+    /**
+     * Get ZK bridge port path.
+     * @param bridgeId  Bridge UUID
+     * @return  /bridges/bridgeId/ports
+     */
+    public String getBridgePortsPath(UUID bridgeId) {
+        return new StringBuilder(getRouterPath(bridgeId))
+                .append("/ports").toString();    
+    }
+
+    /**
+     * Get ZK bridge port path.
+     * @param bridgeId  Bridge UUID
+     * @param portId  Port UUID.
+     * @return  /bridges/bridgeId/ports/portId
+     */
+    public String getBridgePortPath(UUID bridgeId, UUID portId) {
+        return new StringBuilder(getBridgePortsPath(bridgeId))
                 .append("/").append(portId).toString();
     }
 
