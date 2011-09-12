@@ -9,12 +9,16 @@ import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.Vector;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.rules.NatTarget;
@@ -28,7 +32,7 @@ public class RouterDirectory {
 
         public RouterConfig() {
         }
-        
+
         public RouterConfig(String name, UUID tenantId) {
             super();
             this.name = name;
@@ -45,18 +49,16 @@ public class RouterDirectory {
         out.writeObject(tenant);
         out.close();
         return bos.toByteArray();
-    }    
+    }
 
-    public static RouterConfig bytesToRouter(byte[] data)
-            throws IOException, ClassNotFoundException, KeeperException,
-                InterruptedException {
+    public static RouterConfig bytesToRouter(byte[] data) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
         RouterConfig router = (RouterConfig) in.readObject();
         return router;
     }
-        
-    
+
     Directory dir;
 
     public RouterDirectory(Directory dir) {
@@ -104,30 +106,34 @@ public class RouterDirectory {
     /**
      * Get a RouterConfig object for the given ID.
      * 
-     * @param id  UUID of router to fetch.
-     * @return  RouterConfig object with the given ID.
-     * @throws IOException  Error serializing.
-     * @throws ClassNotFoundException  Class not found.
-     * @throws KeeperException  Zookeeper error.
-     * @throws InterruptedException  Thread paused too long.
+     * @param id
+     *            UUID of router to fetch.
+     * @return RouterConfig object with the given ID.
+     * @throws IOException
+     *             Error serializing.
+     * @throws ClassNotFoundException
+     *             Class not found.
+     * @throws KeeperException
+     *             Zookeeper error.
+     * @throws InterruptedException
+     *             Thread paused too long.
      */
-    public RouterConfig getRouter(UUID id) 
-            throws IOException, ClassNotFoundException, KeeperException, 
-                    InterruptedException {
+    public RouterConfig getRouter(UUID id) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException {
         byte[] data = dir.get("/" + id.toString(), null);
         RouterConfig routerConfig = bytesToRouter(data);
         return routerConfig;
     }
-    
-    public void addRouter(UUID routerId, RouterConfig router) 
+
+    public void addRouter(UUID routerId, RouterConfig router)
             throws InterruptedException, KeeperException, IOException {
         byte[] data = routerToBytes(router);
-        
+
         // Use try-catch blocks to avoid getting stuck in a half-created state.
         try {
             dir.add("/" + routerId.toString(), data, CreateMode.PERSISTENT);
         } catch (KeeperException e) {
-        	throw e;
+            throw e;
         }
         try {
             dir.add(getRoutingTablePath(routerId), null, CreateMode.PERSISTENT);
@@ -147,7 +153,8 @@ public class RouterDirectory {
         }
     }
 
-    public boolean exists(UUID routerId) throws KeeperException, InterruptedException {
+    public boolean exists(UUID routerId) throws KeeperException,
+            InterruptedException {
         return dir.has("/" + routerId.toString());
     }
 
@@ -250,12 +257,33 @@ public class RouterDirectory {
         dir.delete(getPathForChain(routerId, chainName));
     }
 
-    public Collection<NatTarget> getSnatBlocks(UUID routerId, Runnable watcher) {
-        return null;
+    public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
+            throws KeeperException, InterruptedException {
+        StringBuilder sb = new StringBuilder(getSnatBlocksPath(routerId));
+        sb.append("/").append(Integer.toHexString(ip));
+        TreeSet<Short> ports = new TreeSet<Short>();
+        Set<String> blocks = null;
+        try {
+            blocks = dir.getChildren(sb.toString(), null);
+        }
+        catch (NoNodeException e) {
+            return ports;
+        }
+        for (String str : blocks)
+            ports.add((short) Integer.parseInt(str));
+        return ports;
     }
 
-    public void addSnatReservation(UUID routerId, NatTarget reservation) {
-
+    public void addSnatReservation(UUID routerId, int ip, short startPort)
+            throws KeeperException, InterruptedException {
+        StringBuilder sb = new StringBuilder(getSnatBlocksPath(routerId));
+        sb.append("/").append(Integer.toHexString(ip));
+        try {
+            dir.add(sb.toString(), null, CreateMode.PERSISTENT);
+        }
+        catch (NodeExistsException e) {}
+        sb.append("/").append(startPort);
+        dir.add(sb.toString(), null, CreateMode.EPHEMERAL);
     }
 
 }

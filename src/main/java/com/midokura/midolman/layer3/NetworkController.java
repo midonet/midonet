@@ -47,6 +47,7 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
 
 public class NetworkController extends AbstractController {
@@ -76,12 +77,12 @@ public class NetworkController extends AbstractController {
             PortLocationMap dict, long idleFlowExpireMillis, int localNwAddr,
             RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
-            PortToIntNwAddrMap locMap) {
+            PortToIntNwAddrMap locMap, Cache cache) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
               idleFlowExpireMillis, null);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
-        this.network = new Network(deviceId, routerDir, portDir, reactor);
+        this.network = new Network(deviceId, routerDir, portDir, reactor, cache);
         this.reactor = reactor;
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();

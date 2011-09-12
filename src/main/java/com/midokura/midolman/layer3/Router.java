@@ -26,6 +26,16 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Callback;
 
+/**
+ * This class coordinates the routing logic for a single virtual router. It
+ * uses an instance of ReplicatedRoutingTable and an instance of RuleEngine
+ * to delegate matching the best route and applying pre- and post-routing
+ * filtering and nat rules.
+ * 
+ * 
+ * @author pino
+ *
+ */
 public class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
