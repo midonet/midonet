@@ -10,11 +10,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.util.Cache;
 
 public class NatLeaseManager implements NatMapping {
+
+    private static final Logger log = LoggerFactory
+            .getLogger(NatLeaseManager.class);
 
     // The following maps IP addresses to ordered lists of free ports.
     // These structures are meant to be shared by all rules/nat targets.
@@ -80,21 +87,46 @@ public class NatLeaseManager implements NatMapping {
                 newNwDst, newTpDst));
     }
 
-    public NwTpPair findFreeBlock(Set<NatTarget> nats) {
+    @Override
+    public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
+            short tpDst, Set<NatTarget> nats) {
+        // First try to find a port in a block we've already leased.
+        for (NatTarget tg : nats) {
+            for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
+                NavigableSet<Short> freePorts = ipToFreePortsMap.get(ip);
+                if (null != freePorts) {
+                    // Look for a port in the desired range
+                    Short port = freePorts.ceiling(tg.tpStart);
+                    if (null != port && port <= tg.tpEnd) {
+                        // We've found a free port.
+                        freePorts.remove(port);
+                        // Check memcached to make sure the port's really free.
+                        return new NwTpPair(ip, port);
+                    }
+                    // Else - no free ports for this ip and port range
+                }
+            }
+            // No free ports for this NatTarget
+        }
+        // None of our leased blocks were suitable. Try leasing another block.
         // TODO: Do something smarter. See:
         // https://sites.google.com/a/midokura.jp/wiki/midonet/srcnat-block-reservations
         int block_size = 100; // TODO: make this configurable?
         int numExceptions = 0;
         for (NatTarget tg : nats) {
-            for (int ip = tg.nwStart; ip < tg.nwEnd; ip++) {
-                NavigableSet<Short> reservedBlocks = routerDir.getSnatBlocks(
-                        routerId, ip);
+            for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
+                NavigableSet<Short> reservedBlocks;
+                try {
+                    reservedBlocks = routerDir.getSnatBlocks(routerId, ip);
+                } catch (Exception e) {
+                    return null;
+                }
                 // Note that Shorts in this sorted set should only be
                 // multiples of 100 because that's how we avoid
                 // collisions/re-leasing. A Short s represents a lease on
                 // the port range [s, s+99] inclusive.
                 // Round down tpStart to the nearest 100.
-                short block = (short) (tg.tpStart / block_size);
+                short block = (short) ((tg.tpStart / block_size) * block_size);
                 Iterator<Short> iter = reservedBlocks.tailSet(block, true)
                         .iterator();
                 // Find the first lowPort + 100*x that isn't in the tail-set
@@ -136,48 +168,41 @@ public class NatLeaseManager implements NatMapping {
                 }
                 for (int i = 0; i < block_size; i++)
                     freePorts.add((short) (block + i));
-                return (block < tg.tpStart) ? new NwTpPair(ip, tg.tpStart)
-                        : new NwTpPair(ip, block);
-            }
-            // Try the next nat.
-        }
-        return null;
-    }
-
-    @Override
-    public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats) {
-        // First try to find a port in a block we've already leased.
-        for (NatTarget tg : nats) {
-            for (int ip = tg.nwStart; ip < tg.nwEnd; ip++) {
-                NavigableSet<Short> freePorts = ipToFreePortsMap.get(ip);
-                if (null != freePorts) {
-                    // Look for a port in the desired range
-                    Short port = freePorts.ceiling(tg.tpStart);
-                    if (port <= tg.tpEnd) {
-                        // We've found a free port.
-                        freePorts.remove(port);
-                        // Check memcached to make sure the port's really free.
-                        return new NwTpPair(ip, port);
+                // Now, starting with the smaller of 'block' and tg.tpStart
+                // see if the mapping really is free in Memcached by making sure
+                // that the reverse mapping isn't already taken. Note that the
+                // common case for snat requires 4 calls to Memcached (one to
+                // check whether we've already seen the forward flow, one to
+                // make sure the newIp, newPort haven't already been used with
+                // the nwDst and tpDst, and 2 to actually store the forward
+                // and reverse mappings).
+                short freePort = block;
+                if (freePort < tg.tpStart)
+                    freePort = tg.tpStart;
+                String reverseKey;
+                while (true) {
+                    freePorts.remove(freePort);
+                    reverseKey = String.format("snatrev%8x%d%8x%d", ip,
+                            freePort, nwDst, tpDst);
+                    if (null != cache.get(reverseKey)) {
+                        log.warn("Snat encountered a collision in the reverse"
+                                + " mapping for %8x,%d.", ip, freePort);
+                        freePort++;
+                        if (0 == freePort % block_size || freePort > tg.tpEnd)
+                            return null;
+                        continue;
                     }
-                    // Else - no free ports for this ip and port range
+                    // If we got here, we can use this port.
+                    cache.set(String.format("snatfwd%8x%d%8x%d", oldNwSrc,
+                            oldTpSrc, nwDst, tpDst), String.format("%8x/%d",
+                            ip, freePort));
+                    cache.set(reverseKey, String.format("%8x/%d", oldNwSrc,
+                            oldTpSrc));
+                    return new NwTpPair(ip, freePort);
                 }
-            }
-            // No free ports for this NatTarget
-        }
-        // None of our leased blocks were suitable. Try leasing another block.
-        NwTpPair block = findFreeBlock(nats);
-        if (null == block)
-            return null;
-        int newNwSrc = block.nwAddr;
-        short newTpSrc = block.tpPort;
-        // TODO(pino): check memcached, is the port really free? Otherwise,
-        // try the next port. Might need compare-and-set operation on cache.
-        cache.set(String.format("snatfwd%8x%d%8x%d", oldNwSrc, oldTpSrc, nwDst,
-                tpDst), String.format("%8x/%d", newNwSrc, newTpSrc));
-        cache.set(String.format("snatrev%8x%d%8x%d", newNwSrc, newTpSrc, nwDst,
-                tpDst), String.format("%8x/%d", oldNwSrc, oldTpSrc));
-        return new NwTpPair(newNwSrc, newTpSrc);
+            } // End for loop over ip addresses in a nat target.
+        } // End for loop over nat targets.
+        return null;
     }
 
     @Override
