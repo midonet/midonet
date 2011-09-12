@@ -59,6 +59,7 @@ public class GreZkManager extends ZkManager {
             this.path = path;
         }
         
+        @Override
         public String getMessage() {
           return "Bad path: " + this.path;
         }
@@ -82,14 +83,21 @@ public class GreZkManager extends ZkManager {
         }
     }
 
-    public List<Op> getCreateBridgeKeyOps(UUID bridgeId) throws IOException {
+    public List<Op> getCreateBridgeKeyOps(UUID bridgeId) 
+            throws ZkStateSerializationException {
         return getCreateKeyOps(new GreKey(bridgeId));
     }
         
-    public List<Op> getCreateKeyOps(GreKey key) throws IOException {
+    public List<Op> getCreateKeyOps(GreKey key) 
+            throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getGrePath(), serialize(key), 
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL)); 
+        try {
+            ops.add(Op.create(pathManager.getGrePath(), serialize(key), 
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException("Could not serialize GRE",
+                    e, GreKey.class);
+        }
         return ops;
     }
  
@@ -107,8 +115,8 @@ public class GreZkManager extends ZkManager {
     }
     
     public int createBridgeKey(UUID bridgeId) 
-            throws InterruptedException, KeeperException, IOException, 
-            InvalidGreZkPathException {
+            throws InterruptedException, KeeperException, 
+                ZkStateSerializationException, InvalidGreZkPathException {
         List<OpResult> results = zk.multi(getCreateBridgeKeyOps(bridgeId));
         return extractGreKeyFromOpResults(results);
 
