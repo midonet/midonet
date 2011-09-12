@@ -38,7 +38,7 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortR
 @Path("/bridges")
 public class BridgeResource extends RestResource {
     /*
-     * Implements REST API endpoints for bridges.
+     * Implements REST API end points for bridges.
      */
 
     private final static Logger log = LoggerFactory
@@ -53,7 +53,7 @@ public class BridgeResource extends RestResource {
     }
 
     /**
-     * Get the brkdge with the given ID.
+     * Get the bridge with the given ID.
      * 
      * @param id
      *            Bridge UUID.
@@ -117,7 +117,7 @@ public class BridgeResource extends RestResource {
          * Constructor.
          * 
          * @param zkConn
-         *            Zookeeper connection string.
+         *            ZooKeeper connection string.
          * @param tenantId
          *            UUID of a tenant.
          */

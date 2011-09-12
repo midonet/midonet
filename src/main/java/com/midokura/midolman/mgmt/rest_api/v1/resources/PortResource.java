@@ -27,12 +27,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dto.RouterPort;
 
 /**
  * Root resource class for ports.
- *
- * @version        1.6 08 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 08 Sept 2011
+ * @author Ryu Ishimoto
  */
 @Path("/ports")
 public class PortResource extends RestResource {
@@ -40,14 +41,16 @@ public class PortResource extends RestResource {
      * Implements REST API endpoints for ports.
      */
 
-    private final static Logger log = LoggerFactory.getLogger(
-            PortResource.class);
-    
+    private final static Logger log = LoggerFactory
+            .getLogger(PortResource.class);
+
     /**
      * Get the port with the given ID.
-     * @param id  Port UUID.
-     * @return  Port object.
-     * @throws Exception 
+     * 
+     * @param id
+     *            Port UUID.
+     * @return Port object.
+     * @throws Exception
      */
     @GET
     @Path("{id}")
@@ -60,31 +63,31 @@ public class PortResource extends RestResource {
             port = dao.get(id);
         } catch (Exception ex) {
             log.error("Error getting port", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
         return port;
     }
-    
+
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Port port){
+    public Response update(@PathParam("id") UUID id, Port port) {
         PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-        
+
         try {
             dao.update(id, port);
         } catch (Exception ex) {
             log.error("Error updating port", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
-        
+
         return Response.ok().build();
     }
-    
+
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
@@ -93,78 +96,100 @@ public class PortResource extends RestResource {
             dao.delete(id);
         } catch (Exception ex) {
             log.error("Error deleting port", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
     }
-    
-    public static class DevicePortResource extends RestResource {
-        
+
+    public abstract static class DevicePortResource extends RestResource {
         protected UUID deviceId = null;
+
+        public DevicePortResource(String zkConn, UUID deviceId) {
+            this.zookeeperConn = zkConn;
+            this.deviceId = deviceId;
+        } 
+        
+        public Response create(Port port, UriInfo uriInfo)
+                throws Exception {
+            port.setDeviceId(deviceId);
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            
+            UUID id = null;
+            try {
+                id = dao.create(port);
+            } catch (Exception ex) {
+                log.error("Error creating ports", ex);
+                throw new WebApplicationException(Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
+            }
+
+            URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id)
+                    .build();
+            return Response.created(uri).build();
+        }     
+    }
+    
+    public static class BridgePortResource extends DevicePortResource {
 
         /**
          * constructor.
          * 
-         * @param   zkConn  Zookeeper connection string.
-         * @param   deviceId  UUID of a device.
+         * @param zkConn
+         *            ZooKeeper connection string.
+         * @param bridgeId
+         *            UUID of a device.
          */
-        public DevicePortResource(String zkConn, UUID deviceId) {
-            this.zookeeperConn = zkConn;
-            this.deviceId = deviceId;        
-        }   
-        
+        public BridgePortResource(String zkConn, UUID bridgeId) {
+            super(zkConn, bridgeId);
+        }
+
         /**
          * Handler for create port API call.
          * 
-         * @param   port  Device object mapped to the request input.
-         * @throws Exception 
+         * @param port
+         *            Device object mapped to the request input.
+         * @throws Exception
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Port port, @Context UriInfo uriInfo) 
+        public Response create(Port port, @Context UriInfo uriInfo)
                 throws Exception {
-            // Add a new port entry into zookeeper.
-            port.setId(UUID.randomUUID());
-            port.setDeviceId(deviceId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-
-            try {
-                dao.create(port);
-            } catch (Exception ex) {
-                log.error("Error creating ports", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());
-            }
-
-            URI uri = uriInfo.getBaseUriBuilder()
-                .path("ports/" + port.getId()).build();        
-            return Response.created(uri).build();
-        }    
+            return super.create(port, uriInfo);
+        }
     }
 
     /**
      * Sub-resource class for router's ports.
      */
     public static class RouterPortResource extends DevicePortResource {
-        
+
         /**
          * Constructor.
          * 
-         * @param   zkConn  Zookeeper connection string.
-         * @param   routerId  UUID of a router.
+         * @param zkConn
+         *            ZooKeeper connection string.
+         * @param routerId
+         *            UUID of a router.
          */
         public RouterPortResource(String zkConn, UUID routerId) {
             super(zkConn, routerId);
         }
 
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response create(RouterPort port, @Context UriInfo uriInfo)
+                throws Exception {
+            return super.create(port, uriInfo);
+        }
+
         /**
          * Return a list of ports.
          * 
-         * @return  A list of Port objects.
-         * @throws Exception 
+         * @return A list of Port objects.
+         * @throws Exception
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
@@ -175,47 +200,9 @@ public class PortResource extends RestResource {
                 ports = dao.listRouterPorts(deviceId);
             } catch (Exception ex) {
                 log.error("Error listing ports", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());           
-            }
-            return ports;
-        }
-    }
-    
-    /**
-     * Sub-resource class for bridge ports.
-     */
-    public static class BridgePortResource extends DevicePortResource {
-        
-        /**
-         * Constructor.
-         * 
-         * @param   zkConn  Zookeeper connection string.
-         * @param   routerId  UUID of a router.
-         */
-        public BridgePortResource(String zkConn, UUID routerId) {
-            super(zkConn, routerId);
-        }
-
-        /**
-         * Return a list of ports.
-         * 
-         * @return  A list of Port objects.
-         * @throws Exception 
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() throws Exception {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
-            Port[] ports = null;
-            try {
-                ports = dao.listBridgePorts(deviceId);
-            } catch (Exception ex) {
-                log.error("Error listing ports", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());           
+                throw new WebApplicationException(Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
             }
             return ports;
         }

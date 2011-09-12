@@ -67,8 +67,7 @@ public class BridgeDataAccessor extends DataAccessor {
      */
     public UUID create(Bridge bridge) throws Exception {
         BridgeZkManager manager = getBridgeZkManager();
-        UUID id = manager.create(convertToConfig(bridge));
-        return id;
+        return manager.create(convertToConfig(bridge));
     }
 
     /**
