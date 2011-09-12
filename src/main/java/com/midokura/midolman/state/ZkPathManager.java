@@ -58,7 +58,8 @@ public class ZkPathManager {
      * @return /gre/greKey
      */
     public String getGreKeyPath(int greKeyId) {
-        return new StringBuilder(getGrePath()).append("/").append(greKeyId)
+        String formatted = String.format("%010d", greKeyId);
+        return new StringBuilder(getGrePath()).append("/").append(formatted)
                 .toString();
     }
 
@@ -232,7 +233,7 @@ public class ZkPathManager {
      * @return /bridges/bridgeId/ports
      */
     public String getBridgePortsPath(UUID bridgeId) {
-        return new StringBuilder(getRouterPath(bridgeId)).append("/ports")
+        return new StringBuilder(getBridgePath(bridgeId)).append("/ports")
                 .toString();
     }
 

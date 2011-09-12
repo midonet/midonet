@@ -35,6 +35,10 @@ public class TenantZkManager extends ZkManager {
         super(zk, basePath);
     }
 
+    public UUID create() throws KeeperException, InterruptedException {
+        return create(null);
+    }
+
     /**
      * Add a new tenant entry in the ZooKeeper directory.
      * 
@@ -47,7 +51,10 @@ public class TenantZkManager extends ZkManager {
      * @throws InterruptedException
      *             Unresponsive thread getting interrupted by another thread.
      */
-    public void create(UUID id) throws KeeperException, InterruptedException {
+    public UUID create(UUID id) throws KeeperException, InterruptedException {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(pathManager.getTenantPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -56,5 +63,6 @@ public class TenantZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getTenantBridgesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         this.zk.multi(ops);
+        return id;
     }
 }

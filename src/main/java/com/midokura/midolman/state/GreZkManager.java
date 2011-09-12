@@ -15,6 +15,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 /**
  * ZooKeeper manager class for GRE keys.
@@ -50,8 +51,8 @@ public class GreZkManager extends ZkManager {
 
     public ZkNodeEntry<Integer, GreKey> createGreKey() throws KeeperException,
             InterruptedException {
-        String path = zk.create(pathManager.getGrePath() + "/", null, null,
-                CreateMode.PERSISTENT_SEQUENTIAL);
+        String path = zk.create(pathManager.getGrePath() + "/", null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
         int key = extractGreKeyFromPath(path);
         return new ZkNodeEntry<Integer, GreKey>(key, new GreKey());
     }

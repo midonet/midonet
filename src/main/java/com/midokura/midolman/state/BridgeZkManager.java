@@ -20,7 +20,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
- * This class was created to handle multiple ops feature in Zookeeper.
+ * ZK bridge management class.
  * 
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
@@ -31,10 +31,11 @@ public class BridgeZkManager extends ZkManager {
 
         private static final long serialVersionUID = 1L;
 
-        public BridgeConfig() {
+        public BridgeConfig(String name, UUID tenantId) {
+            this(name, tenantId, -1);
         }
 
-        public BridgeConfig(String name, int greKey, UUID tenantId) {
+        public BridgeConfig(String name, UUID tenantId, int greKey) {
             super();
             this.name = name;
             this.tenantId = tenantId;
