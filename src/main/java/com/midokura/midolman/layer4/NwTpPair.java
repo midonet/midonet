@@ -19,7 +19,7 @@ public class NwTpPair {
     public boolean equals(Object other) {
         if (this == other)
             return true;
-        if (!(other instanceof PacketSignature))
+        if (!(other instanceof NwTpPair))
             return false;
         NwTpPair p = (NwTpPair) other;
         return nwAddr == p.nwAddr && tpPort == p.tpPort;

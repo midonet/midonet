@@ -57,11 +57,21 @@ public class NatLeaseManager implements NatMapping {
             nat = iter.next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
         short newTpDst = (short) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
-        cache.set(String.format("dnatfwd%8x%d%8x%d", nwSrc, tpSrc, oldNwDst,
-                oldTpDst), String.format("%8x/%d", newNwDst, newTpDst));
-        cache.set(String.format("dnatrev%8x%d%8x%d", nwSrc, tpSrc, newNwDst,
-                newTpDst), String.format("%8x/%d", oldNwDst, oldTpDst));
+        cache.set(makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst, oldTpDst),
+                makeCacheValue(newNwDst, newTpDst));
+        cache.set(makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst, newTpDst),
+                makeCacheValue(oldNwDst, oldTpDst));
         return new NwTpPair(newNwDst, newTpDst);
+    }
+
+    private String makeCacheKey(String prefix, int nwSrc, short tpSrc,
+            int nwDst, short tpDst) {
+        return String.format("%s%08x%d%08x%d", prefix, nwSrc, tpSrc, nwDst,
+                tpDst);
+    }
+
+    private String makeCacheValue(int nwAddr, short tpPort) {
+        return String.format("%08x/%d", nwAddr, tpPort);
     }
 
     private NwTpPair lookupNwTpPair(String key) {
@@ -76,15 +86,31 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst) {
-        return lookupNwTpPair(String.format("dnatfwd%8x%d%8x%d", nwSrc, tpSrc,
-                oldNwDst, oldTpDst));
+        return lookupNwTpPair(makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst,
+                oldTpDst));
     }
 
     @Override
     public NwTpPair lookupDnatRev(int nwSrc, short tpSrc, int newNwDst,
             short newTpDst) {
-        return lookupNwTpPair(String.format("dnatrev%8x%d%8x%d", nwSrc, tpSrc,
-                newNwDst, newTpDst));
+        return lookupNwTpPair(makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst,
+                newTpDst));
+    }
+
+    private boolean makeSnatReservation(int oldNwSrc, short oldTpSrc,
+            int newNwSrc, short newTpSrc, int nwDst, short tpDst) {
+        String reverseKey = makeCacheKey("snatrev", newNwSrc, newTpSrc, nwDst,
+                tpDst);
+        if (null != cache.get(reverseKey)) {
+            log.warn("Snat encountered a collision in the reverse"
+                    + " mapping for %8x,%d.", newNwSrc, newTpSrc);
+            return false;
+        }
+        // If we got here, we can use this port.
+        cache.set(makeCacheKey("snatfwd", oldNwSrc, oldTpSrc, nwDst, tpDst),
+                makeCacheValue(newNwSrc, newTpSrc));
+        cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
+        return true;
     }
 
     @Override
@@ -101,7 +127,9 @@ public class NatLeaseManager implements NatMapping {
                         // We've found a free port.
                         freePorts.remove(port);
                         // Check memcached to make sure the port's really free.
-                        return new NwTpPair(ip, port);
+                        if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
+                                nwDst, tpDst))
+                            return new NwTpPair(ip, port);
                     }
                     // Else - no free ports for this ip and port range
                 }
@@ -182,23 +210,12 @@ public class NatLeaseManager implements NatMapping {
                 String reverseKey;
                 while (true) {
                     freePorts.remove(freePort);
-                    reverseKey = String.format("snatrev%8x%d%8x%d", ip,
-                            freePort, nwDst, tpDst);
-                    if (null != cache.get(reverseKey)) {
-                        log.warn("Snat encountered a collision in the reverse"
-                                + " mapping for %8x,%d.", ip, freePort);
-                        freePort++;
-                        if (0 == freePort % block_size || freePort > tg.tpEnd)
-                            return null;
-                        continue;
-                    }
-                    // If we got here, we can use this port.
-                    cache.set(String.format("snatfwd%8x%d%8x%d", oldNwSrc,
-                            oldTpSrc, nwDst, tpDst), String.format("%8x/%d",
-                            ip, freePort));
-                    cache.set(reverseKey, String.format("%8x/%d", oldNwSrc,
-                            oldTpSrc));
-                    return new NwTpPair(ip, freePort);
+                    if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,
+                            nwDst, tpDst))
+                        return new NwTpPair(ip, freePort);
+                    freePort++;
+                    if (0 == freePort % block_size || freePort > tg.tpEnd)
+                        return null;
                 }
             } // End for loop over ip addresses in a nat target.
         } // End for loop over nat targets.
@@ -208,15 +225,15 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
             short tpDst) {
-        return lookupNwTpPair(String.format("snatfwd%8x%d%8x%d", oldNwSrc,
-                oldTpSrc, nwDst, tpDst));
+        return lookupNwTpPair(makeCacheKey("snatfwd", oldNwSrc, oldTpSrc,
+                nwDst, tpDst));
     }
 
     @Override
     public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
             short tpDst) {
-        return lookupNwTpPair(String.format("snatrev%8x%d%8x%d", newNwSrc,
-                newTpSrc, nwDst, tpDst));
+        return lookupNwTpPair(makeCacheKey("snatrev", newNwSrc, newTpSrc,
+                nwDst, tpDst));
     }
 
     @Override
