@@ -893,12 +893,4 @@ public class NetworkController extends AbstractController {
     public void clear() {
         // TODO Auto-generated method stub
     }
-
-    @Override
-    public void sendFlowModDelete(boolean strict, OFMatch match, int priority,
-            int outPort) {
-        // TODO Auto-generated method stub
-
-    }
-
 }
