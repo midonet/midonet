@@ -572,6 +572,18 @@ public class TestRouter {
     @Ignore
     @Test
     public void testPortConfigChanges() {
-        
+        Assert.fail();
+    }
+
+    @Ignore
+    @Test
+    public void testFilterBadSrcForPort() {
+        Assert.fail();
+    }
+
+    @Ignore
+    @Test
+    public void testFilterBadDestinations() {
+        Assert.fail();
     }
 }
