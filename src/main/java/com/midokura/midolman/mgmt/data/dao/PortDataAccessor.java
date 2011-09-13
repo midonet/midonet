@@ -8,7 +8,6 @@ package com.midokura.midolman.mgmt.data.dao;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
@@ -18,6 +17,7 @@ import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
@@ -50,7 +50,7 @@ public class PortDataAccessor extends DataAccessor {
     private static BridgePortConfig convertToBridgePortConfig(Port port) {
         return new BridgePortConfig(port.getDeviceId());
     }
-    
+
     private static LogicalRouterPortConfig convertToLogRouterPortConfig(
             RouterPort port) {
         return new LogicalRouterPortConfig(port.getDeviceId(), Net
@@ -73,27 +73,11 @@ public class PortDataAccessor extends DataAccessor {
         PortZkManager manager = getPortZkManager();
         return manager.create(port);
     }
-    
-    /**
-     * Add bridge port to ZooKeeper directories.
-     * 
-     * @param port
-     *            Port object to add.
-     * @throws Exception
-     *             Error adding data to ZooKeeper.
-     */
+
     public UUID create(Port port) throws Exception {
         return create(convertToBridgePortConfig(port));
     }
-    
-    /**
-     * Add router port to ZooKeeper directories.
-     * 
-     * @param port
-     *            Port object to add.
-     * @throws Exception
-     *             Error adding data to ZooKeeper.
-     */
+
     public UUID create(RouterPort port) throws Exception {
         String type = port.getType();
         if (type.equals(RouterPort.Materialized)) {
@@ -102,7 +86,6 @@ public class PortDataAccessor extends DataAccessor {
             return create(convertToLogRouterPortConfig(port));
         }
     }
-
 
     private static Port convertToPort(BridgePortConfig config) {
         Port port = new Port();
@@ -145,58 +128,53 @@ public class PortDataAccessor extends DataAccessor {
         return null;
     }
 
-
-    public void delete(UUID id) throws Exception {
-        PortZkManager manager = getPortZkManager();
-        // TODO: catch NoNodeException if does not exist.
-        manager.delete(id);
+    private static Port convertToPort(ZkNodeEntry<UUID, PortConfig> entry) {
+        Port p = convertToPort(entry.value);
+        p.setId(entry.key);
+        return p;
     }
 
-    /**
-     * Update Port entry in ZooKeeper.
-     * 
-     * @param port
-     *            Port object to update.
-     * @throws Exception
-     *             Error adding data to ZooKeeper.
-     */
-    public void update(UUID id, Port port) throws Exception {
-        PortZkManager manager = getPortZkManager();
-        PortConfig config = convertToBridgePortConfig(port);
-        manager.update(id, config);
+    private static void copyLogicalRouterPort(RouterPort port,
+            LogicalRouterPortConfig config) {
+        // Just allow copy of the peerId
+        config.peer_uuid = port.getPeerId();
     }
 
-    /**
-     * Get a Port for the given ID.
-     * 
-     * @param id
-     *            Port ID to search.
-     * @return Port object with the given ID.
-     * @throws Exception
-     *             Error getting data to Zookeeper.
-     */
     public Port get(UUID id) throws Exception {
-        PortZkManager manager = getPortZkManager();
-        PortConfig config = manager.get(id);
         // TODO: Throw NotFound exception here.
-        Port port = convertToPort(config);
-        port.setId(id);
-        return port;
+        return convertToPort(getPortZkManager().get(id));
     }
 
-    private static Port[] generatePortArray(Map<UUID, PortConfig> configs) {
+    private static Port[] generatePortArray(
+            List<ZkNodeEntry<UUID, PortConfig>> entries) {
         List<Port> ports = new ArrayList<Port>();
-        for (Map.Entry<UUID, PortConfig> entry : configs.entrySet()) {
-            Port port = convertToPort(entry.getValue());
-            port.setId(entry.getKey());
-            ports.add(port);
+        for (ZkNodeEntry<UUID, PortConfig> entry : entries) {
+            ports.add(convertToPort(entry));
         }
         return ports.toArray(new Port[ports.size()]);
     }
 
     public Port[] listBridgePorts(UUID bridgeId) throws Exception {
+        return generatePortArray(getPortZkManager().listBridgePorts(bridgeId));
+    }
+
+    public void update(UUID id, Port port) throws Exception {
+        // Only allow an update of LogicalRouterPort's peer ID field.
         PortZkManager manager = getPortZkManager();
-        return generatePortArray(manager.listBridgePorts(bridgeId));
+        ZkNodeEntry<UUID, PortConfig> entry = manager.get(id);
+        if (!(entry.value instanceof LogicalRouterPortConfig && port instanceof RouterPort)) {
+            throw new UnsupportedOperationException(
+                    "Only LogicalRouterPort can be updated.");
+        }
+        copyLogicalRouterPort((RouterPort) port,
+                (LogicalRouterPortConfig) entry.value);
+        manager.update(entry);
+    }
+
+    public void delete(UUID id) throws Exception {
+        PortZkManager manager = getPortZkManager();
+        // TODO: catch NoNodeException if does not exist.
+        manager.delete(id);
     }
 
     /**
