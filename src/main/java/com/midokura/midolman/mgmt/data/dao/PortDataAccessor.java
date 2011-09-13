@@ -14,8 +14,6 @@ import java.util.UUID;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.dto.RouterPort;
-import com.midokura.midolman.mgmt.util.Net;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkConnection;
@@ -23,6 +21,7 @@ import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.util.Net;
 
 /**
  * Data access class for port.

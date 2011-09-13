@@ -14,9 +14,9 @@ import java.util.UUID;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.util.Net;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.util.Net;
 
 /**
  * Data access class for routes.

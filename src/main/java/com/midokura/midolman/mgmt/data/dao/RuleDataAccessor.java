@@ -16,7 +16,6 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Rule;
-import com.midokura.midolman.mgmt.util.Net;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
@@ -27,6 +26,7 @@ import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.util.Net;
 
 /**
  * Data access class for rules.
