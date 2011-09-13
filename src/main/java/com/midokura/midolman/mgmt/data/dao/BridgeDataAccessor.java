@@ -56,6 +56,11 @@ public class BridgeDataAccessor extends DataAccessor {
         b.setId(entry.key);
         return b;
     }
+    
+    private static void copyBridge(Bridge bridge, BridgeConfig config) {
+        // Just allow copy of the name.
+        config.name = bridge.getName();
+    }
 
     /**
      * Add a JAXB object the ZK directories.
@@ -96,7 +101,9 @@ public class BridgeDataAccessor extends DataAccessor {
 
     public void update(UUID id, Bridge bridge) throws Exception {
         BridgeZkManager manager = getBridgeZkManager();
-        BridgeConfig config = convertToConfig(bridge);
-        manager.update(new ZkNodeEntry<UUID, BridgeConfig>(id, config));
+        // Only allow an update of 'name'
+        ZkNodeEntry<UUID, BridgeConfig> entry = manager.get(id);
+        copyBridge(bridge, entry.value);
+        manager.update(entry);
     }
 }
