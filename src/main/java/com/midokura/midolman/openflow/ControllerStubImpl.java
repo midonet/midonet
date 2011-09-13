@@ -208,6 +208,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         log.debug("sendFlowModAdd");
 
         short flags = 0;
+
+        // Whether to send a OFPT_FLOW_REMOVED message when the flow expires 
+        // or is deleted.
         if (sendFlowRemove)
             flags |= 1;
 
