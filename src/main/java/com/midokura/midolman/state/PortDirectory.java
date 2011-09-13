@@ -333,6 +333,7 @@ public class PortDirectory {
             Set<String> routes = dir.getChildren(routesPath, null);
             for (String rt : routes)
                 dir.delete(routesPath + "/" + rt);
+            dir.delete(routesPath);
         } catch (KeeperException.NoNodeException e) {
             // Ignore the exception - the port may not have routes.
         }
