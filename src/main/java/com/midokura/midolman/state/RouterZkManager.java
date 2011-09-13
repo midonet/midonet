@@ -72,7 +72,7 @@ public class RouterZkManager extends ZkManager {
 
     public List<Op> getDeleteOps(UUID id, UUID tenantId) 
             throws KeeperException, InterruptedException, IOException, 
-                ClassNotFoundException {
+                ClassNotFoundException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         // Get rhains delete ops.
         ChainZkManager chainZk = new ChainZkManager(zk, basePath);
@@ -82,15 +82,15 @@ public class RouterZkManager extends ZkManager {
         }
         // Get routes delete ops.
         RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-        HashMap<UUID, Route> routes = routeZk.listRouterRoutes(id);
-        for (Map.Entry<UUID, Route> entry : routes.entrySet()) {
-            ops.addAll(routeZk.getRouterRouteDeleteOps(entry.getKey(), id));
+        List<ZkNodeEntry<UUID, Route>> routes = routeZk.listRouterRoutes(id);
+        for (ZkNodeEntry<UUID, Route> entry : routes) {
+            ops.addAll(routeZk.getRouterRouteDeleteOps(entry.key, id));
         }
         // Get ports delete ops
         PortZkManager portZk = new PortZkManager(zk, basePath);
-        HashMap<UUID, PortConfig> ports = portZk.listRouterPorts(id);
-        for (Map.Entry<UUID, PortConfig> entry : ports.entrySet()) {
-            ops.addAll(portZk.getRouterPortDeleteOps(entry.getKey(), id));
+        List<ZkNodeEntry<UUID, PortConfig>> ports = portZk.listRouterPorts(id);
+        for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
+            ops.addAll(portZk.prepareRouterPortDelete(entry));
         }
         ops.add(Op.delete(pathManager.getTenantRouterPath(tenantId, id), -1));
         ops.add(Op.delete(pathManager.getRouterPath(id), -1));
@@ -98,13 +98,14 @@ public class RouterZkManager extends ZkManager {
     }
 
     public void delete(UUID id) throws InterruptedException, KeeperException, 
-            IOException, ClassNotFoundException {
+            IOException, ClassNotFoundException, ZkStateSerializationException {
         RouterConfig router = get(id);
         delete(id, router.tenantId);
     }
 
     public void delete(UUID id, UUID tenantId) throws InterruptedException, 
-            KeeperException, IOException, ClassNotFoundException {
+            KeeperException, IOException, ClassNotFoundException,
+            ZkStateSerializationException {
         this.zk.multi(getDeleteOps(id, tenantId));
     }
 

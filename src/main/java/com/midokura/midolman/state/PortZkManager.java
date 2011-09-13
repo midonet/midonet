@@ -7,9 +7,7 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -20,6 +18,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 
@@ -82,100 +81,109 @@ public class PortZkManager extends ZkManager {
         return id;
     }
 
-    public List<Op> getRouterPortDeleteOps(UUID id, UUID routerId)
-            throws KeeperException, InterruptedException, IOException {
-        List<Op> ops = new ArrayList<Op>();
-        // Get delete ops for port routes.
-        RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-        HashMap<UUID, Route> routes = routeZk.listPortRoutes(id);
-        for (Map.Entry<UUID, Route> entry : routes.entrySet()) {
-            ops.addAll(routeZk.getPortRouteDeleteOps(entry.getKey(), id));
-        }
-        ops.add(Op.delete(pathManager.getRouterPortPath(routerId, id), -1));
-        ops.add(Op.delete(pathManager.getPortPath(id), -1));
-        return ops;
-    }
-
-    public List<Op> getBridgePortDeleteOps(UUID id, UUID bridgeId)
-            throws KeeperException, InterruptedException, IOException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getBridgePortPath(bridgeId, id), -1));
-        ops.add(Op.delete(pathManager.getPortPath(id), -1));
-        return ops;
-    }
-
-    public void delete(UUID id) throws InterruptedException, KeeperException,
-            IOException, ClassNotFoundException {
-        PortConfig port = get(id);
-        // Check if this is a bridge port.
-        if (port instanceof BridgePortConfig) {
-            this.zk.multi(getBridgePortDeleteOps(id, port.device_id));
-        } else {
-            this.zk.multi(getRouterPortDeleteOps(id, port.device_id));
-        }
-    }
-
-    /**
-     * Get a PortConfig object.
-     * 
-     * @param id
-     *            Router UUID,
-     * @return A PortConfigs
-     * @throws KeeperException
-     *             Zookeeper exception.
-     * @throws InterruptedException
-     *             Paused thread interrupted.
-     * @throws ClassNotFoundException
-     *             Unknown class.
-     * @throws IOException
-     *             Serialization error.
-     */
-    public PortConfig get(UUID id) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException {
+    public ZkNodeEntry<UUID, PortConfig> get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
         byte[] data = zk.getData(pathManager.getPortPath(id), null, null);
-        return deserialize(data, PortConfig.class);
+        PortConfig config = null;
+        try {
+            config = deserialize(data, PortConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize port " + id + " to PortConfig", e,
+                    PortConfig.class);
+        }
+        return new ZkNodeEntry<UUID, PortConfig>(id, config);
     }
 
-    /**
-     * Update a port data.
-     * 
-     * @param id
-     *            Port UUID
-     * @param port
-     *            PortConfig object.
-     * @throws IOException
-     *             Serialization error.
-     * @throws InterruptedException
-     * @throws KeeperException
-     */
-    public void update(UUID id, PortConfig port) throws IOException,
-            KeeperException, InterruptedException {
-        // Update any version for now.
-        zk.setData(pathManager.getPortPath(id), serialize(port), -1);
-    }
-
-    public HashMap<UUID, PortConfig> listPorts(String path)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
-        HashMap<UUID, PortConfig> configs = new HashMap<UUID, PortConfig>();
+    public List<ZkNodeEntry<UUID, PortConfig>> listPorts(String path)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, PortConfig>> result = new ArrayList<ZkNodeEntry<UUID, PortConfig>>();
         List<String> portIds = zk.getChildren(path, null);
         for (String portId : portIds) {
-            // For now get each one.
-            UUID id = UUID.fromString(portId);
-            configs.put(id, get(id));
+            // For now, get each one.
+            result.add(get(UUID.fromString(portId)));
         }
-        return configs;
+        return result;
     }
 
-    public HashMap<UUID, PortConfig> listRouterPorts(UUID routerId)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
+    public List<ZkNodeEntry<UUID, PortConfig>> listRouterPorts(UUID routerId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         return listPorts(pathManager.getRouterPortsPath(routerId));
     }
 
-    public HashMap<UUID, PortConfig> listBridgePorts(UUID bridgeId)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
+    public List<ZkNodeEntry<UUID, PortConfig>> listBridgePorts(UUID bridgeId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         return listPorts(pathManager.getBridgePortsPath(bridgeId));
     }
+
+    public void update(ZkNodeEntry<UUID, PortConfig> entry) throws IOException,
+            KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // Update any version for now.
+        try {
+            zk.setData(pathManager.getPortPath(entry.key),
+                    serialize(entry.value), -1);
+
+        } catch (IOException e) {
+            throw new ZkStateSerializationException("Could not serialize port "
+                    + entry.key + " to PortConfig", e, PortConfig.class);
+        }
+    }
+
+    public List<Op> prepareRouterPortDelete(
+            ZkNodeEntry<UUID, PortConfig> entry) throws KeeperException,
+            InterruptedException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+        
+        if (entry.value instanceof MaterializedRouterPortConfig) {
+            RouteZkManager routeZk = new RouteZkManager(zk, basePath);
+            List<ZkNodeEntry<UUID, Route>> routes = routeZk
+                    .listPortRoutes(entry.key);
+            for (ZkNodeEntry<UUID, Route> route : routes) {
+                ops.addAll(routeZk.getPortRouteDeleteOps(entry.key, route.key));
+            }
+        }
+        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        return ops;
+    }
+
+    public List<Op> prepareLogicalRouterPortDelete(
+            ZkNodeEntry<UUID, PortConfig> entry) throws KeeperException,
+            InterruptedException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
+                entry.key), -1));
+        
+        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        return ops;
+    }
+
+    public List<Op> prepareBridgePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
+            throws KeeperException, InterruptedException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getBridgePortPath(entry.value.device_id,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        return ops;
+    }
+
+    public List<Op> preparePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
+            throws KeeperException, InterruptedException, IOException {
+        if (entry.value instanceof BridgePortConfig) {
+            return prepareBridgePortDelete(entry);
+        } else {
+            return prepareRouterPortDelete(entry);
+        }
+    }
+
+    public void delete(UUID id) throws InterruptedException, KeeperException,
+            ZkStateSerializationException, IOException {
+        this.zk.multi(preparePortDelete(get(id)));
+    }
+
 }
