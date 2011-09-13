@@ -31,7 +31,6 @@ public class BridgeController extends AbstractController {
     PortLocationMap port_locs;
     MacPortMap mac_to_port;
     long mac_port_timeout;
-    private final int nonePort = OFPort.OFPP_NONE.getValue();
 
     // The delayed deletes for mac_to_port.
     HashMap<byte[], UUID> delayedDeletes;
@@ -116,7 +115,7 @@ public class BridgeController extends AbstractController {
                   macAsAscii(mac));
         OFMatch match = new MidoMatch();
         match.setDataLayerSource(mac);
-        sendFlowModDelete(false, match, 0, nonePort);
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     private void invalidateFlowsToMac(byte[] mac) {
@@ -124,7 +123,7 @@ public class BridgeController extends AbstractController {
                   macAsAscii(mac));
         OFMatch match = new MidoMatch();
         match.setDataLayerDestination(mac);
-        sendFlowModDelete(false, match, 0, nonePort);
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     private boolean port_is_local(UUID port) {
@@ -138,11 +137,6 @@ public class BridgeController extends AbstractController {
                                   mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
                                  );
         return rv;
-    }
-
-    public void sendFlowModDelete(boolean strict, OFMatch match, int priority,
-                                  int outPort) {
-        // FIXME
     }
 
     protected void addPort(OFPhysicalPort portDesc, short portNum) {

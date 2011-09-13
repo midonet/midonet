@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.slf4j.Logger;
@@ -39,6 +40,8 @@ public abstract class AbstractController implements Controller {
     private OpenvSwitchDatabaseConnection ovsdb;
 
     protected int greKey;
+
+    public final short nonePort = OFPort.OFPP_NONE.getValue();
 
     public AbstractController(
             int datapathId,
@@ -71,6 +74,8 @@ public abstract class AbstractController implements Controller {
 	//	 in the constructor.
 
         // Delete all currently installed flows.
+        OFMatch match = new OFMatch();
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
 
         // Add all the ports.
         for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
@@ -151,9 +156,6 @@ public abstract class AbstractController implements Controller {
     public int portUuidToNumber(UUID port_uuid) {
         return portUuidToNumberMap.get(port_uuid);
     }
-
-    abstract public void sendFlowModDelete(boolean strict, OFMatch match,
- 	                                   int priority, int outPort);
 
     protected InetAddress peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
