@@ -18,6 +18,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.GreZkManager.GreKey;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
  * ZK bridge management class.
@@ -141,5 +142,40 @@ public class BridgeZkManager extends ZkManager {
                     "Could not serialize bridge " + entry.key
                             + " to BridgeConfig", e, BridgeConfig.class);
         }
+    }
+
+    public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Delete the ports
+        PortZkManager portManager = new PortZkManager(zk, basePath);
+        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portManager
+                .listBridgePorts(entry.key);
+        for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
+            ops.addAll(portManager.prepareBridgePortDelete(portEntry));
+        }
+        ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
+
+        // Delete GRE
+        GreZkManager greManager = new GreZkManager(zk, basePath);
+        GreKey gre = new GreKey(entry.key);
+        ops.addAll(greManager
+                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
+                        entry.value.greKey, gre)));
+
+        // Delete the tenant bridge entry
+        ops.add(Op.delete(pathManager.getTenantBridgePath(entry.value.tenantId,
+                entry.key), -1));
+
+        // Delete the bridge
+        ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));
+        return ops;
+    }
+
+    public void delete(UUID id) throws InterruptedException, KeeperException,
+            ZkStateSerializationException, IOException {
+        this.zk.multi(prepareBridgeDelete(get(id)));
     }
 }

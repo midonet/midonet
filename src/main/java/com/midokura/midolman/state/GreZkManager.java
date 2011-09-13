@@ -71,4 +71,10 @@ public class GreZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareGreDelete(ZkNodeEntry<Integer, GreKey> entry) {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getGreKeyPath(entry.key), -1));
+        return ops;
+    }
+
 }
