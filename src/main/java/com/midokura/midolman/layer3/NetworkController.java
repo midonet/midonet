@@ -79,7 +79,7 @@ public class NetworkController extends AbstractController {
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             PortToIntNwAddrMap locMap, Cache cache) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
-              idleFlowExpireMillis, null);
+                idleFlowExpireMillis, null);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor, cache);
@@ -188,7 +188,7 @@ public class NetworkController extends AbstractController {
                 Short tunPortNum = null;
                 Integer peerAddr = portIdToUnderlayIp.get(fwdInfo.outPortId);
                 if (null != peerAddr)
-                     tunPortNum = peerIpToPortNum.get(peerAddr);
+                    tunPortNum = peerIpToPortNum.get(peerAddr);
                 if (null == tunPortNum) {
                     log.warn("Could not find location or tunnel port number "
                             + "for Id " + fwdInfo.outPortId.toString());
@@ -332,15 +332,15 @@ public class NetworkController extends AbstractController {
         DecodedMacAddrs result = new DecodedMacAddrs();
         int port32BitId = 0;
         for (int i = 0; i < 4; i++)
-            port32BitId |= src[i] << (3 - i) * 8;
+            port32BitId |= (src[i] & 0xff) << ((3 - i) * 8);
         result.lastIngressPortId = PortDirectory.intTo32BitUUID(port32BitId);
-        result.gatewayNwAddr = src[4] << 24;
-        result.gatewayNwAddr |= src[5] << 16;
-        result.gatewayNwAddr |= dst[0] << 8;
-        result.gatewayNwAddr |= dst[1];
+        result.gatewayNwAddr = (src[4] & 0xff) << 24;
+        result.gatewayNwAddr |= (src[5] & 0xff) << 16;
+        result.gatewayNwAddr |= (dst[0] & 0xff) << 8;
+        result.gatewayNwAddr |= (dst[1] & 0xff);
         port32BitId = 0;
         for (int i = 2; i < 6; i++)
-            port32BitId |= dst[i] << (5 - i) * 8;
+            port32BitId |= (dst[i] & 0xff) << (5 - i) * 8;
         result.lastEgressPortId = PortDirectory.intTo32BitUUID(port32BitId);
         return result;
     }
@@ -695,7 +695,7 @@ public class NetworkController extends AbstractController {
     }
 
     private void sendUnbufferedPacketFromPort(Ethernet ethPkt, short portNum) {
-        OFActionOutput action = new OFActionOutput(portNum, (short)0);
+        OFActionOutput action = new OFActionOutput(portNum, (short) 0);
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(action);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
@@ -828,8 +828,8 @@ public class NetworkController extends AbstractController {
         // Create a new one.
         UUID portId = getPortUuidFromOvsdb(datapathId, portNum);
         try {
-            devPort = new L3DevicePort(portDir, portId, portNum,
-                        portDesc.getHardwareAddress(), super.controllerStub);
+            devPort = new L3DevicePort(portDir, portId, portNum, portDesc
+                    .getHardwareAddress(), super.controllerStub);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -843,19 +843,19 @@ public class NetworkController extends AbstractController {
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
         L3DevicePort devPort = devPortOfPortDesc(portDesc);
         try {
-	    network.addPort(devPort);
+            network.addPort(devPort);
         } catch (Exception e) {
-	    e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
     @Override
     protected void deletePort(OFPhysicalPort portDesc) {
         L3DevicePort devPort = devPortOfPortDesc(portDesc);
-	try {
+        try {
             network.removePort(devPort);
         } catch (Exception e) {
-	    e.printStackTrace();
+            e.printStackTrace();
         }
         devPortById.remove(devPort.getId());
         devPortByNum.remove(portDesc.getPortNumber());
@@ -864,7 +864,7 @@ public class NetworkController extends AbstractController {
     @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
         L3DevicePort devPort = devPortOfPortDesc(portDesc);
-	//network.modifyPort(devPort);
+        // network.modifyPort(devPort);
         // FIXME: Call something in network.
     }
 
@@ -881,7 +881,7 @@ public class NetworkController extends AbstractController {
         // purposes.
         if (status.equals(OFPortReason.OFPPR_DELETE)) {
             // TODO(pino): handle the case of a tunnel port.
-	    deletePort(port);
+            deletePort(port);
         } else if (status.equals(OFPortReason.OFPPR_ADD)) {
             short portNum = port.getPortNumber();
             addPort(port, portNum);
