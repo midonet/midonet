@@ -106,4 +106,9 @@ public class BridgeDataAccessor extends DataAccessor {
         copyBridge(bridge, entry.value);
         manager.update(entry);
     }
+    
+    public void delete(UUID id) throws Exception {
+        // TODO: catch NoNodeException if does not exist.
+        getBridgeZkManager().delete(id);
+    }
 }

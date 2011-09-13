@@ -97,13 +97,14 @@ public class BridgeResource extends RestResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
-        /*
-         * try { dao.delete(id); } catch (Exception ex) {
-         * log.error("Error deleting bridge", ex); throw new
-         * WebApplicationException(
-         * Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-         * .type(MediaType.APPLICATION_JSON).build()); }
-         */
+        try {
+            dao.delete(id);
+        } catch (Exception ex) {
+            log.error("Error deleting bridge", ex);
+            throw new WebApplicationException(ex, Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
+        }
     }
 
     /**

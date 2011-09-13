@@ -172,9 +172,8 @@ public class PortDataAccessor extends DataAccessor {
     }
 
     public void delete(UUID id) throws Exception {
-        PortZkManager manager = getPortZkManager();
         // TODO: catch NoNodeException if does not exist.
-        manager.delete(id);
+        getPortZkManager().delete(id);
     }
 
     /**
