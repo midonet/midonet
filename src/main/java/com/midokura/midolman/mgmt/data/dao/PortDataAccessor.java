@@ -14,6 +14,7 @@ import java.util.UUID;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkConnection;
@@ -95,7 +96,7 @@ public class PortDataAccessor extends DataAccessor {
      */
     public UUID create(RouterPort port) throws Exception {
         String type = port.getType();
-        if (type.equals(RouterPort.MaterializedRouterPort)) {
+        if (type.equals(RouterPort.Materialized)) {
             return create(convertToMatRouterPortConfig(port));
         } else {
             return create(convertToLogRouterPortConfig(port));
@@ -116,7 +117,7 @@ public class PortDataAccessor extends DataAccessor {
         port.setNetworkLength(config.nwLength);
         port.setPortAddress(Net.convertAddressToString(config.portAddr));
         port.setPeerId(config.peer_uuid);
-        port.setType(RouterPort.LogicalRouterPort);
+        port.setType(RouterPort.Logical);
         return port;
     }
 
@@ -129,7 +130,7 @@ public class PortDataAccessor extends DataAccessor {
         port.setLocalNetworkAddress(Net
                 .convertAddressToString(config.localNwAddr));
         port.setLocalNetworkLength(config.localNwLength);
-        port.setType(RouterPort.MaterializedRouterPort);
+        port.setType(RouterPort.Materialized);
         return port;
     }
 
