@@ -70,7 +70,7 @@ public abstract class AbstractController implements Controller {
 	//	 The python implementation did, but here we get the dp_id
 	//	 in the constructor.
 
-        // FIXME: Delete all currently installed flows.
+        // Delete all currently installed flows.
 
         // Add all the ports.
         for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
