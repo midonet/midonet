@@ -441,4 +441,98 @@ public class ZkPathManager {
         return new StringBuilder(getRouterPath(routerId))
                 .append("/snat_blocks").toString();
     }
+
+    /**
+     * Get ZK BGP path.
+     *
+     * @return /bgps
+     */
+    public String getBgpPath() {
+        return new StringBuilder(basePath).append("/bgps").toString();
+    }
+
+    /**
+     * Get ZK BGP path.
+     *
+     * @param id
+     *            BGP UUID
+     * @return /bgps/bgpId
+     */
+    public String getBgpPath(UUID id) {
+            return new StringBuilder(getBgpPath()).append("/").append(id)
+                    .toString();
+    }
+
+    /**
+     * Get ZK port BGP path.
+     *
+     * @param portId
+     *            Port UUID
+     * @return /ports/portId/bgps
+     */
+    public String getPortBgpPath(UUID portId) {
+        return new StringBuilder(getPortPath(portId)).append("/bgps")
+                .toString();
+    }
+
+    /**
+     * Get ZK port BGP path.
+     *
+     * @param portId
+     *            Port UUID
+     * @param bgpId
+     *            BGP UUID
+     * @return /ports/portId/bgps/bgpId
+     */
+    public String getPortBgpPath(UUID portId, UUID bgpId) {
+        return new StringBuilder(getPortBgpPath(portId)).append("/")
+                .append(bgpId).toString();
+    }
+
+    /**
+     * Get ZK advertising routes path.
+     *
+     * @return /ad_routes
+     */
+    public String getAdRoutesPath() {
+        return new StringBuilder(basePath).append("/ad_routes").toString();
+    }
+
+    /**
+     * Get ZK advertising routes path.
+     *
+     * @param id
+     *            AdRoutes UUID
+     * @return /ad_routes/adRouteId
+     */
+    public String getAdRoutePath(UUID id) {
+            return new StringBuilder(getAdRoutesPath()).append("/").append(id)
+                    .toString();
+    }
+
+    /**
+     * Get ZK BGP advertising routes path.
+     *
+     * @param bgpId
+     *            BGP UUID
+     * @return /bgps/bgpId/ad_routes
+     */
+    public String getBgpAdRoutesPath(UUID bgpId) {
+        return new StringBuilder(getBgpPath(bgpId)).append("/ad_routes")
+                .toString();
+    }
+
+    /**
+     * Get ZK bgp advertising route path.
+     *
+     * @param bgpId
+     *            BGP UUID
+     * @param adRouteId
+     *            Advertising route UUID
+     * @return /bgps/bgpId/ad_routes/adRouteId
+     */
+    public String getBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
+        return new StringBuilder(getBgpPath(bgpId)).append("/")
+                .append(adRouteId).toString();
+    }
 }
