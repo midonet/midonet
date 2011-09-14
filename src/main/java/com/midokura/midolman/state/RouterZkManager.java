@@ -81,6 +81,47 @@ public class RouterZkManager extends ZkManager {
         return id;
     }
 
+    public ZkNodeEntry<UUID, RouterConfig> get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        byte[] data = zk.getData(pathManager.getRouterPath(id), null, null);
+        RouterConfig config = null;
+        try {
+            config = deserialize(data, RouterConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize router " + id + " to RouterConfig",
+                    e, RouterConfig.class);
+        }
+        return new ZkNodeEntry<UUID, RouterConfig>(id, config);
+    }
+
+    public List<ZkNodeEntry<UUID, RouterConfig>> list(UUID tenantId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, RouterConfig>> result = new ArrayList<ZkNodeEntry<UUID, RouterConfig>>();
+        List<String> routerIds = zk.getChildren(pathManager
+                .getTenantRoutersPath(tenantId), null);
+        for (String routerId : routerIds) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(routerId)));
+        }
+        return result;
+    }
+
+    public void update(ZkNodeEntry<UUID, RouterConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // Update any version for now.
+        try {
+            zk.setData(pathManager.getRouterPath(entry.key),
+                    serialize(entry.value), -1);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize router " + entry.key
+                            + " to RouterConfig", e, RouterConfig.class);
+        }
+    }
+
     public List<Op> getDeleteOps(UUID id, UUID tenantId)
             throws KeeperException, InterruptedException, IOException,
             ClassNotFoundException, ZkStateSerializationException {
@@ -110,81 +151,13 @@ public class RouterZkManager extends ZkManager {
 
     public void delete(UUID id) throws InterruptedException, KeeperException,
             IOException, ClassNotFoundException, ZkStateSerializationException {
-        RouterConfig router = get(id);
-        delete(id, router.tenantId);
+        ZkNodeEntry<UUID, RouterConfig> router = get(id);
+        delete(id, router.value.tenantId);
     }
 
     public void delete(UUID id, UUID tenantId) throws InterruptedException,
             KeeperException, IOException, ClassNotFoundException,
             ZkStateSerializationException {
         this.zk.multi(getDeleteOps(id, tenantId));
-    }
-
-    /**
-     * Update a router data.
-     * 
-     * @param id
-     *            Router UUID
-     * @param router
-     *            RouterConfig object.
-     * @throws IOException
-     *             Serialization error.
-     * @throws InterruptedException
-     * @throws KeeperException
-     */
-    public void update(UUID id, RouterConfig router) throws IOException,
-            KeeperException, InterruptedException {
-        // Update any version for now.
-        zk.setData(pathManager.getRouterPath(id), serialize(router), -1);
-    }
-
-    /**
-     * Get a RouterConfig object.
-     * 
-     * @param id
-     *            Router UUID,
-     * @return A RouterConfig
-     * @throws KeeperException
-     *             Zookeeper exception.
-     * @throws InterruptedException
-     *             Paused thread interrupted.
-     * @throws ClassNotFoundException
-     *             Unknown class.
-     * @throws IOException
-     *             Serialization error.
-     */
-    public RouterConfig get(UUID id) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException {
-        byte[] data = zk.getData(pathManager.getRouterPath(id), null, null);
-        return deserialize(data, RouterConfig.class);
-    }
-
-    /**
-     * Get a list of RouterConfig objects for a tenant.
-     * 
-     * @param tenantId
-     *            Tenant UUID,
-     * @return An array of RouterConfigs
-     * @throws KeeperException
-     *             Zookeeper exception.
-     * @throws InterruptedException
-     *             Paused thread interrupted.
-     * @throws ClassNotFoundException
-     *             Unknown class.
-     * @throws IOException
-     *             Serialization error.
-     */
-    public HashMap<UUID, RouterConfig> list(UUID tenantId)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
-        HashMap<UUID, RouterConfig> configs = new HashMap<UUID, RouterConfig>();
-        List<String> routerIds = zk.getChildren(pathManager
-                .getTenantRoutersPath(tenantId), null);
-        for (String routerId : routerIds) {
-            // For now get each one.
-            UUID id = UUID.fromString(routerId);
-            configs.put(id, get(id));
-        }
-        return configs;
     }
 }
