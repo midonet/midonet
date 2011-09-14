@@ -29,7 +29,6 @@ public class Net {
 	    num += octet & 0xff;
         }
         return num;
-	// FIXME(jlm): Test this!
     }
  
     /**
