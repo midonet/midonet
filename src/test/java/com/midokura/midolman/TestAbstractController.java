@@ -19,10 +19,11 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import com.midokura.midolman.AbstractController;
+import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.openflow.MockControllerStub;
+import com.midokura.midolman.util.Net;
 
 
 class AbstractControllerTester extends AbstractController {
@@ -86,6 +87,16 @@ class AbstractControllerTester extends AbstractController {
     public void setFeatures(OFFeaturesReply features) {
 	((MockControllerStub) controllerStub).setFeatures(features);
     }
+
+    @Override
+    public String makeGREPortName(int a) {
+	return super.makeGREPortName(a);
+    }
+
+    @Override
+    public InetAddress peerIpOfGrePortName(String s) {
+	return super.peerIpOfGrePortName(s);
+    }
 }
 
 
@@ -107,7 +118,7 @@ public class TestAbstractController {
         controller = new AbstractControllerTester(
 	                     dp_id /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
-       			     0x01234 /* greKey */,
+       			     0xe1234 /* greKey */,
  			     ovsdb /* ovsdb */,
  			     null /* PortLocationMap dict */,
  			     260 * 1000 /* flowExpireMinMillis */,
@@ -125,7 +136,7 @@ public class TestAbstractController {
         port2 = new OFPhysicalPort();
         port2.setPortNumber((short) 47);
         port2.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 47 });
-        port2.setName("tn012340a001122");
+        port2.setName("tne12340a001122");
         port2uuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2uuid.toString());
 
@@ -177,7 +188,7 @@ public class TestAbstractController {
 
     @Test
     public void testModifyPort() throws UnknownHostException {
-        port2.setName("tn012340a001123");
+        port2.setName("tne12340a001123");
         UUID port2newUuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
         assertArrayEquals(new OFPhysicalPort[] { },
@@ -207,5 +218,17 @@ public class TestAbstractController {
 			  controller.portsRemoved.toArray());
 	assertFalse(controller.portNumToUuid.containsKey(47));
 	assertFalse(controller.tunnelPortNumToPeerIp.containsKey(47));
+    }
+
+    @Test
+    public void testMakeGREPortName() {
+	assertEquals("tne1234ff0011aa", controller.makeGREPortName(0xff0011aa));
+    }
+
+    @Test
+    public void testPeerIpOfGrePortName() {
+	assertEquals(0xff0011aa,
+	    Net.convertInetAddressToInt(
+		controller.peerIpOfGrePortName("tne1234ff0011aa")));
     }
 }
