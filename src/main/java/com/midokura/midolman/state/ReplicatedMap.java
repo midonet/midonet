@@ -217,7 +217,7 @@ public abstract class ReplicatedMap<K, V> {
 
     public boolean containsValue(V address) {
         for (Map.Entry<K, MapValue> entry : map.entrySet())
-            if (entry.getValue().value == address)
+            if (entry.getValue().value.equals(address))
                 return true;
 
         return false;
