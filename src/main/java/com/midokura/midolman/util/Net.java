@@ -36,9 +36,9 @@ public class Net {
         String[] addrArray = address.split("\\.");
         int num = 0;
         for (int i=0;i<addrArray.length;i++) {
-            int power = 3-i;
-            num += ((Integer.parseInt(addrArray[i])%256 
-                                        * Math.pow(256,power)));
+			// Shift one octet to the left.
+			num <<= 8;
+			num += (Integer.parseInt(addrArray[i]) & 0xff);
         }
         return num;       
     }
