@@ -217,6 +217,11 @@ public abstract class AbstractController implements Controller {
 	return "XXXX";
     }
 
+    private boolean portLocMapContainsPeer(int peerAddress) {
+	// XXX
+	return false;
+    }
+
     protected UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
         String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
         if (extId == null)
@@ -245,7 +250,14 @@ public abstract class AbstractController implements Controller {
 	}    
 
         if (oldAddr != null && oldAddr != publicIp) {
-	    // XXX
-	}    
+            // Peer might still be in portLocMap under a different portUuid.
+	    if (portLocMapContainsPeer(oldAddr))
+	        return;
+
+	    // Tear down the GRE tunnel.
+	    String grePortName = makeGREPortName(oldAddr);
+	    log.debug("Tearing down tunnel " + grePortName);
+	    ovsdb.delPort(grePortName);
+	}
     }
 }
