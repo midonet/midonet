@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.state.PortLocationMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 
 public abstract class AbstractController implements Controller {
 
@@ -33,6 +33,7 @@ public abstract class AbstractController implements Controller {
 
     protected HashMap<UUID, Integer> portUuidToNumberMap;
     protected HashMap<Integer, UUID> portNumToUuid;
+    protected PortToIntNwAddrMap portLocMap;
 
     // Tunnel management data structures
     protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
@@ -48,8 +49,7 @@ public abstract class AbstractController implements Controller {
             UUID switchUuid,
             int greKey,
             OpenvSwitchDatabaseConnection ovsdb,
-            PortLocationMap dict,  /* FIXME(jlm): Replace with PortToIntMap, 
-			use addWatcher for port_location_update() callback */
+            PortToIntNwAddrMap portLocMap,
             long flowExpireMinMillis,
             long flowExpireMaxMillis,
             long idleFlowExpireMillis,
@@ -57,6 +57,7 @@ public abstract class AbstractController implements Controller {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
         this.greKey = greKey;
+        this.portLocMap = portLocMap;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();

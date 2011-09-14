@@ -72,7 +72,7 @@ public class NetworkController extends AbstractController {
     PortToIntNwAddrMap portIdToUnderlayIp;
 
     public NetworkController(int datapathId, UUID deviceId, int greKey,
-            PortLocationMap dict, long idleFlowExpireMillis, int localNwAddr,
+            PortToIntNwAddrMap dict, long idleFlowExpireMillis, int localNwAddr,
             RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             PortToIntNwAddrMap locMap, Cache cache) {
