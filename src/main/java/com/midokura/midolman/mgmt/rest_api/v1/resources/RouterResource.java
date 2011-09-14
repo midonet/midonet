@@ -164,12 +164,11 @@ public class RouterResource extends RestResource {
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Router router, @Context UriInfo uriInfo) {
-            // Add a new router entry into zookeeper.
-            router.setId(UUID.randomUUID());
             router.setTenantId(tenantId);
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+            UUID id = null;
             try {
-                dao.create(router);
+                id = dao.create(router);
             } catch (Exception ex) {
                 log.error("Error creating router", ex);
                 throw new WebApplicationException(
@@ -178,7 +177,7 @@ public class RouterResource extends RestResource {
             }
 
             URI uri = uriInfo.getBaseUriBuilder()
-                .path("routers/" + router.getId()).build();            
+                .path("routers/" + id).build();            
             return Response.created(uri).build();
         }        
     }    

@@ -70,17 +70,15 @@ public class PortDataAccessor extends DataAccessor {
     }
 
     private UUID create(PortConfig port) throws Exception {
-        PortZkManager manager = getPortZkManager();
-        return manager.create(port);
+        return getPortZkManager().create(port);
     }
 
-    public UUID create(Port port) throws Exception {
+    public UUID createBridgePort(Port port) throws Exception {
         return create(convertToBridgePortConfig(port));
     }
 
-    public UUID create(RouterPort port) throws Exception {
-        String type = port.getType();
-        if (type.equals(RouterPort.Materialized)) {
+    public UUID createRouterPort(RouterPort port) throws Exception {
+        if (port.getType().equals(RouterPort.Materialized)) {
             return create(convertToMatRouterPortConfig(port));
         } else {
             return create(convertToLogRouterPortConfig(port));
@@ -122,10 +120,9 @@ public class PortDataAccessor extends DataAccessor {
             return convertToPort((LogicalRouterPortConfig) config);
         } else if (config instanceof MaterializedRouterPortConfig) {
             return convertToPort((MaterializedRouterPortConfig) config);
-        } else if (config instanceof BridgePortConfig) {
+        } else {
             return convertToPort((BridgePortConfig) config);
         }
-        return null;
     }
 
     private static Port convertToPort(ZkNodeEntry<UUID, PortConfig> entry) {

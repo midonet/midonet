@@ -65,16 +65,14 @@ public class BridgeResource extends RestResource {
     public Bridge get(@PathParam("id") UUID id) {
         // Get a bridge for the given ID.
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
-        Bridge bridge = null;
         try {
-            bridge = dao.get(id);
+            return dao.get(id);
         } catch (Exception ex) {
             log.error("Error getting bridge", ex);
             throw new WebApplicationException(Response.status(
                     Response.Status.INTERNAL_SERVER_ERROR).type(
                     MediaType.APPLICATION_JSON).build());
         }
-        return bridge;
     }
 
     @PUT
@@ -136,16 +134,14 @@ public class BridgeResource extends RestResource {
         @Produces(MediaType.APPLICATION_JSON)
         public Bridge[] list() {
             BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
-            Bridge[] bridges = null;
             try {
-                bridges = dao.list(tenantId);
+                return dao.list(tenantId);
             } catch (Exception ex) {
                 log.error("Error getting bridges", ex);
                 throw new WebApplicationException(Response.status(
                         Response.Status.INTERNAL_SERVER_ERROR).type(
                         MediaType.APPLICATION_JSON).build());
             }
-            return bridges;
         }
 
         /**

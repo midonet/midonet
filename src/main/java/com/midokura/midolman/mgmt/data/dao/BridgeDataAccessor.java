@@ -71,8 +71,7 @@ public class BridgeDataAccessor extends DataAccessor {
      *             Error connecting to Zookeeper.
      */
     public UUID create(Bridge bridge) throws Exception {
-        BridgeZkManager manager = getBridgeZkManager();
-        return manager.create(convertToConfig(bridge));
+        return getBridgeZkManager().create(convertToConfig(bridge));
     }
 
     /**
@@ -84,9 +83,8 @@ public class BridgeDataAccessor extends DataAccessor {
      *             Error connecting to Zookeeper.
      */
     public Bridge get(UUID id) throws Exception {
-        BridgeZkManager manager = getBridgeZkManager();
         // TODO: Throw NotFound exception here.
-        return convertToBridge(manager.get(id));
+        return convertToBridge(getBridgeZkManager().get(id));
     }
 
     public Bridge[] list(UUID tenantId) throws Exception {
