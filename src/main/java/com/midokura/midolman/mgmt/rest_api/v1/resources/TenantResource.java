@@ -73,7 +73,7 @@ public class TenantResource extends RestResource {
             id = dao.create(tenant);
         } catch (Exception ex) {
             log.error("Error creating tenant", ex);
-            throw new WebApplicationException(Response.status(
+            throw new WebApplicationException(ex, Response.status(
                     Response.Status.INTERNAL_SERVER_ERROR).type(
                     MediaType.APPLICATION_JSON).build());
         }

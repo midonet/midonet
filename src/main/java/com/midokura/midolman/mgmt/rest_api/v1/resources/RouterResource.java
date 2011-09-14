@@ -29,12 +29,12 @@ import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
- 
+
 /**
  * Root resource class for Virtual Router.
- *
- * @version        1.6 05 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 05 Sept 2011
+ * @author Ryu Ishimoto
  */
 @Path("/routers")
 public class RouterResource extends RestResource {
@@ -42,8 +42,8 @@ public class RouterResource extends RestResource {
      * Implements REST API endpoints for routers.
      */
 
-    private final static Logger log = LoggerFactory.getLogger(
-            RouterResource.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(RouterResource.class);
 
     /**
      * Port resource locator for routers
@@ -51,7 +51,7 @@ public class RouterResource extends RestResource {
     @Path("/{id}/ports")
     public RouterPortResource getPortResource(@PathParam("id") UUID id) {
         return new RouterPortResource(zookeeperConn, id);
-    }    
+    }
 
     /**
      * Route resource locator for routers
@@ -59,13 +59,15 @@ public class RouterResource extends RestResource {
     @Path("/{id}/routes")
     public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
         return new RouterRouteResource(zookeeperConn, id);
-    }    
+    }
 
     /**
      * Get the Router with the given ID.
-     * @param id  Router UUID.
-     * @return  Router object.
-     * @throws Exception 
+     * 
+     * @param id
+     *            Router UUID.
+     * @return Router object.
+     * @throws Exception
      */
     @GET
     @Path("{id}")
@@ -78,9 +80,9 @@ public class RouterResource extends RestResource {
             router = dao.get(id);
         } catch (Exception ex) {
             log.error("Error getting router", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(ex, Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
         return router;
     }
@@ -88,20 +90,20 @@ public class RouterResource extends RestResource {
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Router router){
+    public Response update(@PathParam("id") UUID id, Router router) {
         RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
         try {
             dao.update(id, router);
         } catch (Exception ex) {
             log.error("Error updating router", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(ex, Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
-        
+
         return Response.ok().build();
     }
-    
+
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
@@ -110,34 +112,36 @@ public class RouterResource extends RestResource {
             dao.delete(id);
         } catch (Exception ex) {
             log.error("Error deleting router", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(ex, Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
     }
-    
+
     /**
      * Sub-resource class for tenant's virtual router.
      */
     public static class TenantRouterResource extends RestResource {
-        
+
         private UUID tenantId = null;
-        
+
         /**
          * Default constructor.
          * 
-         * @param   zkConn  Zookeeper connection string.
-         * @param   tenantId  UUID of a tenant.
+         * @param zkConn
+         *            Zookeeper connection string.
+         * @param tenantId
+         *            UUID of a tenant.
          */
         public TenantRouterResource(String zkConn, UUID tenantId) {
             this.zookeeperConn = zkConn;
-            this.tenantId = tenantId;        
+            this.tenantId = tenantId;
         }
-        
+
         /**
          * Return a list of routers.
          * 
-         * @return  A list of Router objects.
+         * @return A list of Router objects.
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
@@ -148,17 +152,18 @@ public class RouterResource extends RestResource {
                 routers = dao.list(tenantId);
             } catch (Exception ex) {
                 log.error("Error getting routers", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());           
+                throw new WebApplicationException(ex, Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
             }
             return routers;
         }
-        
+
         /**
          * Handler for create router API call.
          * 
-         * @param   router  Router object mapped to the request input.
+         * @param router
+         *            Router object mapped to the request input.
          * @returns Response object with 201 status code set if successful.
          */
         @POST
@@ -171,14 +176,13 @@ public class RouterResource extends RestResource {
                 id = dao.create(router);
             } catch (Exception ex) {
                 log.error("Error creating router", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());
+                throw new WebApplicationException(ex, Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
             }
 
-            URI uri = uriInfo.getBaseUriBuilder()
-                .path("routers/" + id).build();            
+            URI uri = uriInfo.getBaseUriBuilder().path("routers/" + id).build();
             return Response.created(uri).build();
-        }        
-    }    
+        }
+    }
 }

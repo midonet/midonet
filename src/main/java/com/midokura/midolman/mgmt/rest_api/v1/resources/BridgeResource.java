@@ -69,7 +69,7 @@ public class BridgeResource extends RestResource {
             return dao.get(id);
         } catch (Exception ex) {
             log.error("Error getting bridge", ex);
-            throw new WebApplicationException(Response.status(
+            throw new WebApplicationException(ex, Response.status(
                     Response.Status.INTERNAL_SERVER_ERROR).type(
                     MediaType.APPLICATION_JSON).build());
         }
@@ -84,7 +84,7 @@ public class BridgeResource extends RestResource {
             dao.update(id, bridge);
         } catch (Exception ex) {
             log.error("Error updating bridge", ex);
-            throw new WebApplicationException(Response.status(
+            throw new WebApplicationException(ex, Response.status(
                     Response.Status.INTERNAL_SERVER_ERROR).type(
                     MediaType.APPLICATION_JSON).build());
         }
@@ -138,7 +138,7 @@ public class BridgeResource extends RestResource {
                 return dao.list(tenantId);
             } catch (Exception ex) {
                 log.error("Error getting bridges", ex);
-                throw new WebApplicationException(Response.status(
+                throw new WebApplicationException(ex, Response.status(
                         Response.Status.INTERNAL_SERVER_ERROR).type(
                         MediaType.APPLICATION_JSON).build());
             }
@@ -161,7 +161,7 @@ public class BridgeResource extends RestResource {
                 id = dao.create(bridge);
             } catch (Exception ex) {
                 log.error("Error creating bridge", ex);
-                throw new WebApplicationException(Response.status(
+                throw new WebApplicationException(ex, Response.status(
                         Response.Status.INTERNAL_SERVER_ERROR).type(
                         MediaType.APPLICATION_JSON).build());
             }
