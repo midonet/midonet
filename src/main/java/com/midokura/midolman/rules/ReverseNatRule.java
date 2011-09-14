@@ -6,12 +6,12 @@ import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ReverseNatRule extends NatRule {
-
-    private static final long serialVersionUID = 7487526421247959225L;
-
     public ReverseNatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action, dnat);
     }
+
+	// default constructor for the JSON serialization.
+	public ReverseNatRule() { super(); }
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {

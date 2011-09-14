@@ -188,7 +188,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
     { val me = new Thread(this); me.setDaemon(true); me.start }
 
-    timer.schedule(new TimerTask() {
+    timer.scheduleAtFixedRate(new TimerTask() {
         override def run = synchronized {
             val transact = Map(
                 "method" -> "echo",
@@ -201,7 +201,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     { log.warn("echo", e); throw new RuntimeException(e) }
             }
         }
-    }, echo_interval)
+    }, 0, echo_interval)
 
     def stop = { continue = false }
 
@@ -223,7 +223,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             // requestId.
             pendingJsonRpcRequests.put(requestId, queue)
         }
-        log.debug("doJsonRpc request: ", request)
+        log.debug("doJsonRpc request: %s".format(request))
         try {
             // Serialize the JSON-RPC 1.0 request into JSON text in the output
             // channel.
@@ -262,18 +262,22 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         while (continue) {
             try {
                 val json = jsonParser.readValueAsTree
-                log.debug("OVSDB response: ", json)
+                log.debug("OVSDB response: %s".format(json))
 
                 if (json.get("result") != null) {
-                    assume(json.get("id") != null, "Invalid JSON object.")
-                    val requestId = json.get("id").getValueAsLong
-                    pendingJsonRpcRequests.synchronized {
-                        pendingJsonRpcRequests.get(requestId) match {
-                            // Pass the JSON object to the caller, and
-                            // notify it.
-                            case Some(queue) => queue.add(json)
-                            case None => throw new RuntimeException(
-                                "Invalid requestId %d".format(requestId))
+                    val id = json.get("id")
+                    assume(id != null, "Invalid JSON object.")
+                    // Ignore echo response.
+                    if (id.getTextValue != "echo") {
+                        val requestId = json.get("id").getValueAsLong
+                        pendingJsonRpcRequests.synchronized {
+                            pendingJsonRpcRequests.get(requestId) match {
+                                // Pass the JSON object to the caller, and
+                                // notify it.
+                                case Some(queue) => queue.add(json)
+                                case None => throw new RuntimeException(
+                                    "Invalid requestId %d".format(requestId))
+                            }
                         }
                     }
                 }
@@ -281,6 +285,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             } catch {
                 case e: InterruptedException =>
                     { log.warn("run", e) }
+                case e: SocketException =>
+                    // Ignore this when the parent thread close the socket.
                 case e: IOException =>
                     { log.warn("run", e) }
             }

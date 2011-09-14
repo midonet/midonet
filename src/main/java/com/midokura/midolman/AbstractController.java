@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.slf4j.Logger;
@@ -38,6 +39,10 @@ public abstract class AbstractController implements Controller {
 
     private OpenvSwitchDatabaseConnection ovsdb;
 
+    protected int greKey;
+
+    public final short nonePort = OFPort.OFPP_NONE.getValue();
+
     public AbstractController(
             int datapathId,
             UUID switchUuid,
@@ -51,6 +56,7 @@ public abstract class AbstractController implements Controller {
             InetAddress internalIp) {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
+        this.greKey = greKey;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
@@ -63,12 +69,24 @@ public abstract class AbstractController implements Controller {
 
     @Override
     public void onConnectionMade() {
-        // TODO Auto-generated method stub
+        // TODO: Maybe find and record the datapath_id?
+	//	 The python implementation did, but here we get the dp_id
+	//	 in the constructor.
+
+        // Delete all currently installed flows.
+        OFMatch match = new OFMatch();
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
+
+        // Add all the ports.
+        for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
+            addPort(portDesc, portDesc.getPortNumber());
     }
 
     @Override
     public void onConnectionLost() {
-        // TODO Auto-generated method stub
+        clear();
+        portNumToUuid.clear();
+        tunnelPortNumToPeerIp.clear();
     }
 
     @Override
@@ -86,15 +104,32 @@ public abstract class AbstractController implements Controller {
             if (uuid != null)
                 portNumToUuid.put(new Integer(portNum), uuid);
 
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-            if (peerIp != null) {
+            if (isGREPortOfKey(portDesc.getName())) {
+                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
                 // TODO: Error out if already tunneled to this peer.
                 tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
             }
         } else if (reason == OFPortReason.OFPPR_DELETE) {
             deletePort(portDesc);
+	    Integer portNum = new Integer(portDesc.getPortNumber());
+	    portNumToUuid.remove(portNum);
+	    tunnelPortNumToPeerIp.remove(portNum);
         } else {
             modifyPort(portDesc);
+            UUID uuid = getPortUuidFromOvsdb(datapathId, 
+				             portDesc.getPortNumber());
+            Integer portNum = new Integer(portDesc.getPortNumber());
+            if (uuid != null)
+                portNumToUuid.put(portNum, uuid);
+            else
+                portNumToUuid.remove(portNum);
+
+            if (isGREPortOfKey(portDesc.getName())) {
+                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+	 	tunnelPortNumToPeerIp.put(portNum, peerIp);
+            } else {
+		tunnelPortNumToPeerIp.remove(portNum);
+ 	    }
         }
     }
 
@@ -122,15 +157,19 @@ public abstract class AbstractController implements Controller {
         return portUuidToNumberMap.get(port_uuid);
     }
 
-    abstract public void sendFlowModDelete(boolean strict, OFMatch match,
- 	                                   int priority, int outPort);
-
     protected InetAddress peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
 
     protected boolean isTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.containsKey(new Integer(portNum));
+    }
+
+    private boolean isGREPortOfKey(String portName) {
+        if (portName == null || portName.length() != 15)
+            return false;
+        String greString = String.format("tn%05x", greKey);
+        return portName.startsWith(greString);
     }
 
     protected InetAddress peerIpOfGrePortName(String portName) {

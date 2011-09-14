@@ -1,5 +1,5 @@
 /*
- * @(#)Serialization        1.6 11/09/08
+ * @(#)JSONSerializer        1.6 11/09/08
  *
  * Copyright 2011 Midokura KK
  */
@@ -15,9 +15,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
-import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -26,9 +26,9 @@ import org.codehaus.jackson.map.ObjectMapper;
  * Serialization utility class.
  * 
  * @version        1.6 10 Sept 2011
- * @author         Ryu Ishimoto
+ * @author         Taku Fukushima
  */
-public class JSONSerializer<T> {
+public class JSONSerializer<T> implements Serializer<T> {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
@@ -39,7 +39,7 @@ public class JSONSerializer<T> {
     }
     
     
-    public byte[] objToBytes(Object obj) throws IOException {
+    public byte[] objToBytes(T obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =
@@ -49,13 +49,12 @@ public class JSONSerializer<T> {
         return bos.toByteArray();
     }
 
-    public Object bytesToObj(byte[] data, Class<T> clazz)
-        throws IOException, ClassNotFoundException, KeeperException,
-            InterruptedException {
+    public T bytesToObj(byte[] data, Class<T> clazz) 
+    		throws JsonParseException, IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
         JsonParser jsonParser =
             jsonFactory.createJsonParser(new InputStreamReader(in));
-        return jsonParser.readValueAs(clazz);        
+        return jsonParser.readValueAs(clazz);
     }
 }

@@ -26,6 +26,8 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
 
 public class Network {
@@ -37,6 +39,7 @@ public class Network {
     private RouterDirectory routerDir;
     private PortDirectory portDir;
     private Reactor reactor;
+    private Cache cache;
     private Map<UUID, Router> routers;
     private Map<UUID, Router> routersByPortId;
     // These watchers are interested in routing table and rule changes.
@@ -47,11 +50,12 @@ public class Network {
     private Map<UUID, RouterPortConfig> portIdToConfig;
 
     public Network(UUID netId, RouterDirectory routerDir,
-            PortDirectory portDir, Reactor reactor) {
+            PortDirectory portDir, Reactor reactor, Cache cache) {
         this.netId = netId;
         this.routerDir = routerDir;
         this.portDir = portDir;
         this.reactor = reactor;
+        this.cache = cache;
         this.routers = new HashMap<UUID, Router>();
         this.routersByPortId = new HashMap<UUID, Router>();
         this.watchers = new HashSet<Callback<UUID>>();
@@ -136,7 +140,8 @@ public class Network {
         if (null != rtr)
             return rtr;
         // TODO(pino): replace the following with a real implementation.
-        NatMapping natMap = new NatLeaseManager();
+        Cache cache = new CacheWithPrefix(this.cache, routerId.toString());
+        NatMapping natMap = new NatLeaseManager(routerDir, routerId, cache);
         RuleEngine ruleEngine = new RuleEngine(routerDir, routerId, natMap);
         ruleEngine.addWatcher(routerWatcher);
         ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,

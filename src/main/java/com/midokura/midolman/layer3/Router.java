@@ -26,6 +26,16 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Callback;
 
+/**
+ * This class coordinates the routing logic for a single virtual router. It
+ * uses an instance of ReplicatedRoutingTable and an instance of RuleEngine
+ * to delegate matching the best route and applying pre- and post-routing
+ * filtering and nat rules.
+ * 
+ * 
+ * @author pino
+ *
+ */
 public class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
@@ -34,6 +44,9 @@ public class Router {
     public static final long ARP_TIMEOUT_MILLIS = 60 * 1000;
     public static final long ARP_EXPIRATION_MILLIS = 3600 * 1000;
     public static final long ARP_STALE_MILLIS = 1800 * 1000;
+
+    public static final String PRE_ROUTING = "pre_routing";
+    public static final String POST_ROUTING = "post_routing";
 
     public enum Action {
         BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED;
@@ -133,7 +146,7 @@ public class Router {
             InterruptedException {
         devicePorts.put(port.getId(), port);
         port.addListener(portListener);
-        for (Route rt : port.getVirtualConfig().routes) {
+        for (Route rt : port.getVirtualConfig().getRoutes()) {
             table.addRoute(rt);
         }
         arpCaches.put(port.getId(), new HashMap<Integer, ArpCacheEntry>());
@@ -146,7 +159,7 @@ public class Router {
             InterruptedException {
         devicePorts.remove(port.getId());
         port.removeListener(portListener);
-        for (Route rt : port.getVirtualConfig().routes) {
+        for (Route rt : port.getVirtualConfig().getRoutes()) {
             table.deleteRoute(rt);
         }
         arpCaches.remove(port.getId());
@@ -214,7 +227,7 @@ public class Router {
         }
 
         // Apply pre-routing rules.
-        RuleResult res = ruleEngine.applyChain("pre_routing", fwdInfo.matchIn,
+        RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.matchIn,
                 fwdInfo.inPortId, null);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
@@ -253,7 +266,7 @@ public class Router {
         // TODO(pino): log next hop portId and gateway addr..
 
         // Apply post-routing rules.
-        res = ruleEngine.applyChain("post_routing", res.match,
+        res = ruleEngine.applyChain(POST_ROUTING, res.match,
                 fwdInfo.inPortId, rt.nextHopPort);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;

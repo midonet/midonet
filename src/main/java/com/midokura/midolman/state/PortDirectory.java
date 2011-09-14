@@ -1,24 +1,45 @@
 package com.midokura.midolman.state;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
 
 public class PortDirectory {
-
     public static Random random = new Random();
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
+    static {
+        objectMapper.setVisibilityChecker(
+            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    }
 
     public static UUID generate32BitUUID() {
         // TODO: make this non-static and use ZK to generate sequence numbers.
@@ -39,25 +60,23 @@ public class PortDirectory {
     public static UUID intTo32BitUUID(int id) {
         return new UUID(0, (long) id);
     }
-
-    public static abstract class PortConfig implements Serializable {
-        private static final long serialVersionUID = 3124283622213097848L;
-
+	
+    public static abstract class PortConfig {
         private PortConfig(UUID device_id) {
             super();
             this.device_id = device_id;
         }
-
+        // Default constructor for the Jackson deserialization.
+        private PortConfig() { super(); }
         public UUID device_id;
     }
 
-    public static class BridgePortConfig extends PortConfig implements
-            Serializable {
-        private static final long serialVersionUID = -7817609888045028903L;
-
+    public static class BridgePortConfig extends PortConfig {
         public BridgePortConfig(UUID device_id) {
             super(device_id);
         }
+        // Default constructor for the Jackson deserialization.
+        private BridgePortConfig() { super(); }
 
         @Override
         public boolean equals(Object other) {
@@ -72,13 +91,12 @@ public class PortDirectory {
         }
     }
 
-    public static abstract class RouterPortConfig extends PortConfig implements
-            Serializable {
-        private static final long serialVersionUID = -4536197977961670285L;
+    public static abstract class RouterPortConfig extends PortConfig {
         public int nwAddr;
         public int nwLength;
         public int portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.
+        
         public transient Set<Route> routes;
 
         public RouterPortConfig(UUID device_id, int networkAddr,
@@ -88,37 +106,29 @@ public class PortDirectory {
             this.nwLength = networkLength;
             this.portAddr = portAddr;
             this.routes = new HashSet<Route>(routes);
+            setRoutes(routes);
         }
+		
+        // Default constructor for the Jackson deserialization.
+        public RouterPortConfig() { super(); }
 
-        private void readObject(java.io.ObjectInputStream stream)
-                throws IOException, ClassNotFoundException {
-            stream.defaultReadObject();
-            int numRoutes = stream.readInt();
-            routes = new HashSet<Route>();
-            for (int i = 0; i < numRoutes; i++)
-                routes.add((Route) stream.readObject());
-        }
-
-        private void writeObject(java.io.ObjectOutputStream stream)
-                throws IOException {
-            stream.defaultWriteObject();
-            stream.writeInt(routes.size());
-            for (Route rt : routes)
-                stream.writeObject(rt);
-        }
+        // Setter and getter for the transient property.
+        public Set<Route> getRoutes() { return routes; }
+        public void setRoutes(Set<Route> routes) { this.routes = routes; }
     }
 
-    public static class LogicalRouterPortConfig extends RouterPortConfig
-            implements Serializable {
-        private static final long serialVersionUID = 1576824002284331148L;
+    public static class LogicalRouterPortConfig extends RouterPortConfig {
         public UUID peer_uuid;
-
+        
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
                 UUID peer_uuid) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.peer_uuid = peer_uuid;
         }
+
+        // Default constructor for the Jackson deserialization.
+        public LogicalRouterPortConfig() { super(); }
 
         @Override
         public boolean equals(Object other) {
@@ -132,25 +142,31 @@ public class PortDirectory {
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength
                     && peer_uuid.equals(port.peer_uuid)
-                    && portAddr == port.portAddr && routes.equals(port.routes);
+                    && portAddr == port.portAddr
+                    && getRoutes().equals(port.getRoutes());
         }
     }
 
-    public static class MaterializedRouterPortConfig extends RouterPortConfig
-            implements Serializable {
-        private static final long serialVersionUID = 3050185323095662934L;
+    public static class MaterializedRouterPortConfig extends RouterPortConfig {
         public int localNwAddr;
         public int localNwLength;
         public transient Set<BGP> bgps;
-
+        
         public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
                 int localNetworkAddr, int localNetworkLength, Set<BGP> bgps) {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.localNwAddr = localNetworkAddr;
             this.localNwLength = localNetworkLength;
-            this.bgps = bgps;
+            setBgps(bgps);
         }
+
+        // Default constructor for the Jackson deserialization
+        public MaterializedRouterPortConfig() { super(); }
+
+        // Getter and setter for the Jackson deserialization
+        public Set<BGP> getBgps() { return bgps; }
+        public void setBgps(Set<BGP> bgps) { this.bgps = bgps; }
 
         @Override
         public boolean equals(Object other) {
@@ -164,29 +180,10 @@ public class PortDirectory {
                     .cast(other);
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength && portAddr == port.portAddr
-                    && routes.equals(port.routes) && bgps.equals(port.bgps)
+                    && getRoutes().equals(port.getRoutes())
+                    && getBgps().equals(port.getBgps())
                     && localNwAddr == port.localNwAddr
                     && localNwLength == port.localNwLength;
-        }
-
-        private void readObject(java.io.ObjectInputStream stream)
-                throws IOException, ClassNotFoundException {
-            stream.defaultReadObject();
-            int numBGP = stream.readInt();
-            bgps = new HashSet<BGP>();
-            for (int i = 0; i < numBGP; i++)
-                bgps.add((BGP) stream.readObject());
-        }
-
-        private void writeObject(java.io.ObjectOutputStream stream)
-                throws IOException {
-            stream.defaultWriteObject();
-            if (null != bgps) {
-                stream.writeInt(bgps.size());
-                for (BGP bgp : bgps)
-                    stream.writeObject(bgp);
-            } else
-                stream.writeInt(0);
         }
     }
 
@@ -196,13 +193,15 @@ public class PortDirectory {
         this.dir = dir;
     }
 
-    public static byte[] portToBytes(PortConfig port) throws IOException {
+	public static byte[] portToBytes(PortConfig port) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(port);
-        out.close();
+        OutputStream out = new BufferedOutputStream(bos);
+        JsonGenerator jsonGenerator =
+            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        jsonGenerator.writeObject(port);
         return bos.toByteArray();
     }
+
     
     public void addPort(UUID portId, PortConfig port) throws IOException,
             KeeperException, InterruptedException {
@@ -293,8 +292,10 @@ public class PortDirectory {
             InterruptedException {
         byte[] data = dir.get("/" + portId.toString(), portWatcher);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        ObjectInputStream in = new ObjectInputStream(bis);
-        PortConfig port = (PortConfig) in.readObject();
+        InputStream in = new BufferedInputStream(bis);
+        JsonParser jsonParser =
+            jsonFactory.createJsonParser(new InputStreamReader(in));
+        PortConfig port = jsonParser.readValueAs(PortConfig.class);
         return port;
     }
 
@@ -318,6 +319,7 @@ public class PortDirectory {
             Set<String> routes = dir.getChildren(routesPath, null);
             for (String rt : routes)
                 dir.delete(routesPath + "/" + rt);
+            dir.delete(routesPath);
         } catch (KeeperException.NoNodeException e) {
             // Ignore the exception - the port may not have routes.
         }

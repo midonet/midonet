@@ -11,8 +11,6 @@ import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ForwardNatRule extends NatRule {
-
-    private static final long serialVersionUID = -6779063463988814100L;
     protected transient Set<NatTarget> targets;
 
     public ForwardNatRule(Condition condition, Set<NatTarget> targets,
@@ -23,6 +21,9 @@ public class ForwardNatRule extends NatRule {
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
     }
+	
+	// Default constructor for the Jackson deserialization.
+	public ForwardNatRule() { super(); }
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
@@ -74,6 +75,9 @@ public class ForwardNatRule extends NatRule {
         return targets;
     }
 
+	// Setter for the JSON serialization.
+	public void setNatTargets(Set<NatTarget> targets) { this.targets = targets; }
+
     @Override
     public int hashCode() {
         int hash = super.hashCode();
@@ -90,21 +94,5 @@ public class ForwardNatRule extends NatRule {
             return false;
         ForwardNatRule r = (ForwardNatRule) other;
         return targets.equals(r.targets);
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeInt(targets.size());
-        for (NatTarget nat : targets)
-            out.writeObject(nat);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException,
-            ClassNotFoundException {
-        in.defaultReadObject();
-        targets = new HashSet<NatTarget>();
-        int numTargets = in.readInt();
-        for (int i = 0; i < numTargets; i++)
-            targets.add((NatTarget) in.readObject());
     }
 }

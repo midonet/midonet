@@ -34,6 +34,7 @@ import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.util.MockCache;
 
 public class TestNetwork {
 
@@ -58,7 +59,8 @@ public class TestNetwork {
         dir.add("/midonet/routers", null, CreateMode.PERSISTENT);
         Directory routersSubdir = dir.getSubDirectory("/midonet/routers");
         RouterDirectory routerDir = new RouterDirectory(routersSubdir);
-        network = new Network(new UUID(19, 19), routerDir, portDir, reactor);
+        network = new Network(new UUID(19, 19), routerDir, portDir, reactor,
+                new MockCache());
 
         /*
          * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16
@@ -83,7 +85,7 @@ public class TestNetwork {
             // With low weight, reject anything that is in this router's NW.
             // Routes associated with ports can override this.
             rt = new Route(0, 0, routerNw, 16, NextHop.REJECT, null, 0, 100,
-                    null);
+                    null, null);
             routerDir.addRoute(rtrId, rt);
             // Manually add this route to the replicated routing table since
             // it's not associated with any port.
@@ -98,7 +100,7 @@ public class TestNetwork {
                 UUID portId = PortDirectory.intTo32BitUUID(portNum);
                 routes.clear();
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 2,
-                        null);
+                        null, null);
                 routes.add(rt);
                 portConfig = new MaterializedRouterPortConfig(rtrId, portNw,
                         24, portAddr, routes, portNw, 24, null);
@@ -117,7 +119,7 @@ public class TestNetwork {
         UUID portOn1to0 = PortDirectory.intTo32BitUUID(332);
         // First from 0 to 1
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1, 0, 2,
-                null);
+                null, null);
         routes.clear();
         routes.add(rt);
         LogicalRouterPortConfig logPortConfig = new LogicalRouterPortConfig(
@@ -125,7 +127,7 @@ public class TestNetwork {
         portDir.addPort(portOn0to1, logPortConfig);
         network.getRouter(routerIds.get(0)).table.addRoute(rt);
         // Now from 1 to 0. Note that this is router1's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null);
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null, null);
         routes.clear();
         routes.add(rt);
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(1), 0xc0a80100,
@@ -137,7 +139,7 @@ public class TestNetwork {
         UUID portOn2to0 = PortDirectory.intTo32BitUUID(334);
         // First from 0 to 2
         rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 0, 2,
-                null);
+                null, null);
         routes.clear();
         routes.add(rt);
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(0), 0xc0a80100,
@@ -145,7 +147,7 @@ public class TestNetwork {
         portDir.addPort(portOn0to2, logPortConfig);
         network.getRouter(routerIds.get(0)).table.addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null);
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null, null);
         routes.clear();
         routes.add(rt);
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(2), 0xc0a80100,
@@ -155,7 +157,8 @@ public class TestNetwork {
 
         // Finally, instead of giving router0 an uplink. Add a route that
         // drops anything that isn't going to router0's local or logical ports.
-        rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2, null);
+        rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2, null,
+        		null);
         routerDir.addRoute(routerIds.get(0), rt);
         network.getRouter(routerIds.get(0)).table.addRoute(rt);
     }

@@ -145,15 +145,15 @@ public class TestPortDirectory {
         // Re-register the port watcher.
         portDir.getPortConfig(portId, portWatch, null);
         Route rt = new Route(0, 0, 0x0102030f, 32, Route.NextHop.PORT, portId,
-                0, 5, "attrs");
+                0, 5, "attrs", null);
         port.routes.add(rt);
         portDir.updatePort(portId, port);
         Assert.assertEquals(2, portWatch.numCalls);
         Assert.assertEquals(1, routesWatch.numCalls);
         // The watcher won't be called again if we don't re-register.
-        port.routes.remove(rt);
+        port.getRoutes().remove(rt);
         rt.dstNetworkLength = 24;
-        port.routes.add(rt);
+        port.getRoutes().add(rt);
         port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(2, portWatch.numCalls);
@@ -206,19 +206,19 @@ public class TestPortDirectory {
         // Re-register the port watcher.
         portDir.getPortConfig(portId, portWatch, null);
         Route rt1 = new Route(0, 0, 0x0102030f, 32, Route.NextHop.PORT, portId,
-                0, 5, "attrs");
+                0, 5, "attrs", null);
         Route rt2 = new Route(0, 0, 0x01020300, 24, Route.NextHop.PORT, portId,
-                0, 5, "attrs");
+                0, 5, "attrs", null);
         port.routes.add(rt1);
         port.routes.add(rt2);
         portDir.updatePort(portId, port);
         Assert.assertEquals(2, portWatch.numCalls);
         Assert.assertEquals(1, routesWatch.numCalls);
         // The watcher won't be called again if we don't re-register.
-        port.routes.remove(rt1);
+        port.getRoutes().remove(rt1);
         rt1.attributes = "other attrs";
         rt1.nextHopGateway = 0x010203fe;
-        port.routes.add(rt1);
+        port.getRoutes().add(rt1);
         port.nwLength = 16;
         portDir.updatePort(portId, port);
         Assert.assertEquals(port,

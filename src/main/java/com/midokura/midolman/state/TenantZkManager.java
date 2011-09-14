@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,46 +16,53 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 /**
- * This class was created to handle multiple ops feature in Zookeeper.
+ * ZK tenant management class.
  * 
- * @version        1.6 08 Sept 2011
- * @author         Ryu Ishimoto
+ * @version 1.6 08 Sept 2011
+ * @author Ryu Ishimoto
  */
-public class TenantZkManager {
+public class TenantZkManager extends ZkManager {
 
-    private ZkPathManager pathManager = null;
-    private ZooKeeper zk = null;
-    
     /**
-     * Default constructor.
+     * TenantZkManager constructor.
      * 
-     * @param zk Zookeeper object.
-     * @param basePath  Directory to set as the base.
+     * @param zk
+     *            ZooKeeper object.
+     * @param basePath
+     *            Directory to set as the base.
      */
     public TenantZkManager(ZooKeeper zk, String basePath) {
-        this.pathManager = new ZkPathManager(basePath);
-        this.zk = zk;
+        super(zk, basePath);
     }
-    
+
+    public UUID create() throws KeeperException, InterruptedException {
+        return create(null);
+    }
+
     /**
-     * Add a new tenant entry in the Zookeeper directory.
+     * Add a new tenant entry in the ZooKeeper directory.
      * 
-     * @param id  Tenant UUID
-     * @param tenant  TenantConfig object to store tenant data.
-     * @throws KeeperException  General Zookeeper exception.
-     * @throws InterruptedException  Unresponsive thread getting
-     * interrupted by another thread.
-     * @throws IOException  Error while converting TenantConfig to bytes.
+     * @param id
+     *            Tenant UUID
+     * @param tenant
+     *            TenantConfig object to store tenant data.
+     * @throws KeeperException
+     *             General ZooKeeper exception.
+     * @throws InterruptedException
+     *             Unresponsive thread getting interrupted by another thread.
      */
-    public void create(UUID id) 
-        throws KeeperException, InterruptedException, IOException {        
+    public UUID create(UUID id) throws KeeperException, InterruptedException {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
         List<Op> ops = new ArrayList<Op>();
-        // Create /tenants/<tenantId>
-        ops.add(Op.create(pathManager.getTenantPath(id), null, 
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));        
-        // Create /tenants/<routerId>/routers
-        ops.add(Op.create(pathManager.getTenantRouterPath(id), null,
+        ops.add(Op.create(pathManager.getTenantPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getTenantRoutersPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getTenantBridgesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         this.zk.multi(ops);
+        return id;
     }
 }
