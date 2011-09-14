@@ -23,6 +23,7 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
+import com.midokura.midolman.util.Net;
 
 public abstract class AbstractController implements Controller {
 
@@ -44,6 +45,7 @@ public abstract class AbstractController implements Controller {
     private OpenvSwitchDatabaseConnection ovsdb;
 
     protected int greKey;
+    protected int publicIp;
 
     public final short nonePort = OFPort.OFPP_NONE.getValue();
 
@@ -55,7 +57,7 @@ public abstract class AbstractController implements Controller {
         }
 
         public void processChange(UUID key, Integer oldAddr, Integer newAddr) {
-	    // XXX
+	    controller.portLocationUpdate(key, oldAddr, newAddr);
         }
     }
 
@@ -73,9 +75,14 @@ public abstract class AbstractController implements Controller {
         this.ovsdb = ovsdb;
         this.greKey = greKey;
         this.portLocMap = portLocMap;
+	publicIp = internalIp != null ? Net.convertInetAddressToInt(internalIp)
+				      : 0;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
+        listener = new PortLocMapListener(this);
+        if (portLocMap != null)
+            portLocMap.addWatcher(listener);
     }
 
     @Override
@@ -210,5 +217,23 @@ public abstract class AbstractController implements Controller {
         if (extId == null)
             return null;
         return UUID.fromString(extId);
+    }
+
+    private void portLocationUpdate(UUID portUuid, Integer oldAddr,
+				    Integer newAddr) {
+        /* oldAddr: Former address of the port as an 
+	 *	    integer (32-bit, big-endian); or null if a new port mapping.
+         * newAddr: Current address of the port as an
+	 *	    integer (32-bit, big-endian); or null if port mapping 
+	 *	    was deleted.
+         */
+
+        if (newAddr != null && newAddr != publicIp) {
+	    // XXX
+	}    
+
+        if (oldAddr != null && oldAddr != publicIp) {
+	    // XXX
+	}    
     }
 }

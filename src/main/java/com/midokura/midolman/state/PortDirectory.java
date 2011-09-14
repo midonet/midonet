@@ -114,10 +114,10 @@ public class PortDirectory {
 
         // Setter and getter for the transient property.
         public String getPortAddr() {
-            return Net.convertAddressToString(this.portAddr);
+            return Net.convertIntAddressToString(this.portAddr);
         }
         public void setPortAddr(String addr) {
-            this.portAddr = Net.convertAddressToInt(addr);
+            this.portAddr = Net.convertStringAddressToInt(addr);
         }
         
         public Set<Route> getRoutes() { return routes; }
