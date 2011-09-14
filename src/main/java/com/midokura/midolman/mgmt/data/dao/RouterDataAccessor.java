@@ -6,15 +6,14 @@
 package com.midokura.midolman.mgmt.data.dao;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
@@ -54,28 +53,19 @@ public class RouterDataAccessor extends DataAccessor {
         return router;
     }
 
+    private static Router convertToRouter(ZkNodeEntry<UUID, RouterConfig> entry) {
+        Router r = convertToRouter(entry.value);
+        r.setId(entry.key);
+        return r;
+    }
+
     public UUID create(Router router) throws Exception {
         return getRouterZkManager().create(convertToConfig(router));
     }
 
-    /**
-     * Update Router entry in ZooKeeper.
-     * 
-     * @param router
-     *            Router object to update.
-     * @throws Exception
-     *             Error adding data to ZooKeeper.
-     */
-    public void update(UUID id, Router router) throws Exception {
-        RouterConfig config = convertToConfig(router);
-        RouterZkManager manager = getRouterZkManager();
-        manager.update(id, config);
-    }
-
-    public void delete(UUID id) throws Exception {
-        RouterZkManager manager = getRouterZkManager();
-        // TODO: catch NoNodeException if does not exist.
-        manager.delete(id);
+    private static void copyRouter(Router router, RouterConfig config) {
+        // Just allow copy of the name.
+        config.name = router.getName();
     }
 
     /**
@@ -88,12 +78,8 @@ public class RouterDataAccessor extends DataAccessor {
      *             Error getting data to Zookeeper.
      */
     public Router get(UUID id) throws Exception {
-        RouterZkManager manager = getRouterZkManager();
-        RouterConfig config = manager.get(id);
         // TODO: Throw NotFound exception here.
-        Router router = convertToRouter(config);
-        router.setId(id);
-        return router;
+        return convertToRouter(getRouterZkManager().get(id));
     }
 
     /**
@@ -108,12 +94,32 @@ public class RouterDataAccessor extends DataAccessor {
     public Router[] list(UUID tenantId) throws Exception {
         RouterZkManager manager = getRouterZkManager();
         List<Router> routers = new ArrayList<Router>();
-        HashMap<UUID, RouterConfig> configs = manager.list(tenantId);
-        for (Map.Entry<UUID, RouterConfig> entry : configs.entrySet()) {
-            Router router = convertToRouter(entry.getValue());
-            router.setId(entry.getKey());
-            routers.add(router);
+        List<ZkNodeEntry<UUID, RouterConfig>> entries = manager.list(tenantId);
+        for (ZkNodeEntry<UUID, RouterConfig> entry : entries) {
+            routers.add(convertToRouter(entry));
         }
         return routers.toArray(new Router[routers.size()]);
+    }
+
+    /**
+     * Update Router entry in MidoNet ZK data storage.
+     * 
+     * @param router
+     *            Router object to update.
+     * @throws Exception
+     *             Error adding data to ZooKeeper.
+     */
+    public void update(UUID id, Router router) throws Exception {
+        RouterZkManager manager = getRouterZkManager();
+        // Only allow an update of 'name'
+        ZkNodeEntry<UUID, RouterConfig> entry = manager.get(id);
+        copyRouter(router, entry.value);
+        manager.update(entry);
+    }
+
+    public void delete(UUID id) throws Exception {
+        RouterZkManager manager = getRouterZkManager();
+        // TODO: catch NoNodeException if does not exist.
+        manager.delete(id);
     }
 }

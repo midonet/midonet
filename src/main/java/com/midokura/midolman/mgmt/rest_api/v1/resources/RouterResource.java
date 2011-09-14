@@ -147,16 +147,14 @@ public class RouterResource extends RestResource {
         @Produces(MediaType.APPLICATION_JSON)
         public Router[] list() {
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
-            Router[] routers = null;
             try {
-                routers = dao.list(tenantId);
+                return dao.list(tenantId);
             } catch (Exception ex) {
                 log.error("Error getting routers", ex);
                 throw new WebApplicationException(ex, Response.status(
                         Response.Status.INTERNAL_SERVER_ERROR).type(
                         MediaType.APPLICATION_JSON).build());
             }
-            return routers;
         }
 
         /**
