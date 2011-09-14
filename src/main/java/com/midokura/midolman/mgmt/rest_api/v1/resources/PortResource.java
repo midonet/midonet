@@ -73,7 +73,7 @@ public class PortResource extends RestResource {
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Port port) {
+    public Response update(@PathParam("id") UUID id, RouterPort port) {
         PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
 
         try {

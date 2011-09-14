@@ -9,7 +9,7 @@
     </context-param>
     <display-name>Restful Web Application</display-name>
     <servlet>
-        <servlet-name>jersey-serlvet-v1</servlet-name>
+        <servlet-name>jersey-servlet-v1</servlet-name>
         <servlet-class>
             com.sun.jersey.spi.container.servlet.ServletContainer
         </servlet-class>
@@ -24,7 +24,7 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
-        <servlet-name>jersey-serlvet-v1</servlet-name>
+        <servlet-name>jersey-servlet-v1</servlet-name>
         <url-pattern>/v1/*</url-pattern>
     </servlet-mapping>
 
