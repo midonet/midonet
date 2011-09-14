@@ -14,6 +14,8 @@ import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -23,6 +25,8 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.util.Net;
 
 
@@ -110,17 +114,23 @@ public class TestAbstractController {
     private UUID port2uuid;
     private int dp_id;
     private MockOpenvSwitchDatabaseConnection ovsdb;
+    private PortToIntNwAddrMap portLocMap;
+    private MockDirectory mockDir;
 
     @Before
     public void setUp() {
         dp_id = 43;
         ovsdb = new MockOpenvSwitchDatabaseConnection();
+
+	mockDir = new MockDirectory();
+        portLocMap = new PortToIntNwAddrMap(mockDir);
+
         controller = new AbstractControllerTester(
 	                     dp_id /* datapathId */,
 			     UUID.randomUUID() /* switchUuid */,
        			     0xe1234 /* greKey */,
  			     ovsdb /* ovsdb */,
- 			     null /* PortLocationMap dict */,
+ 			     portLocMap /* portLocationMap */,
  			     260 * 1000 /* flowExpireMinMillis */,
  			     320 * 1000 /* flowExpireMaxMillis */,
  			     60 * 1000 /* idleFlowExpireMillis */,
@@ -230,5 +240,25 @@ public class TestAbstractController {
 	assertEquals(0xff0011aa,
 	    Net.convertInetAddressToInt(
 		controller.peerIpOfGrePortName("tne1234ff0011aa")));
+    }
+
+    @Test
+    public void testPortLocMapListener() throws KeeperException {
+	UUID portUuid = UUID.randomUUID();
+
+	// Port comes up.  Verify tunnel made.
+	mockDir.add("/"+portUuid.toString()+",4278194602,", null, 
+		    CreateMode.PERSISTENT_SEQUENTIAL);
+	portLocMap.start();
+	assertEquals(1, ovsdb.addedGrePorts.size());
+
+	// Port moves.  Verify old tunnel rm'd, new tunnel made.
+	// XXX
+
+	// Port doesn't move.  Verify tunnel not rm'd.
+	// XXX
+
+	// Port goes down.  Verify tunnel rm'd.
+	// XXX
     }
 }
