@@ -1,7 +1,6 @@
 package com.midokura.midolman.layer3;
 
 import java.io.IOException;
-import java.nio.channels.GatheringByteChannel;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,11 +34,11 @@ import scala.actors.threadpool.Arrays;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.NetworkController.DecodedMacAddrs;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
@@ -56,7 +55,6 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
-import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
@@ -81,6 +79,7 @@ public class TestNetworkController {
     private int uplinkPortAddr;
     private UUID portOn0to2;
     private int rtr2LogPortNwAddr;
+    private int rtr0to2LogPortNwAddr;
 
     @Before
     public void setUp() throws Exception {
@@ -226,8 +225,9 @@ public class TestNetworkController {
                 null, null);
         routes.clear();
         routes.add(rt);
+        rtr0to2LogPortNwAddr = 0xc0a80101;
         logPortConfig = new LogicalRouterPortConfig(routerIds.get(0),
-                0xc0a80100, 30, 0xc0a80101, routes, portOn2to0);
+                0xc0a80100, 30, rtr0to2LogPortNwAddr, routes, portOn2to0);
         portDir.addPort(portOn0to2, logPortConfig);
         // Manually add this route since it no local controller owns it.
         rTables.get(0).addRoute(rt);
@@ -510,7 +510,6 @@ public class TestNetworkController {
         Assert.assertEquals(0, controllerStub.sentPackets.size());
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        UUID outPortId = PortDirectory.intTo32BitUUID(21);
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, phyPortIn.getPortNumber());
         byte[] dlSrc = new byte[6];
@@ -569,6 +568,236 @@ public class TestNetworkController {
         actions.add(ofAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 37654, true, actions);
+    }
+
+    @Test
+    public void testRemoteOutputTunnelDown() {
+        // First, with the tunnel up.
+        // Send a packet to router1's first port destined to an address on
+        // router2's second port.
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd };
+        OFPhysicalPort phyPortIn = phyPorts.get(1);
+        byte[] dlSrc = Ethernet.toMACAddress("02:00:11:22:00:01");
+        int nwSrc = 0x0a0100c5;
+        int nwDst = 0x0a0201e4;
+        Ethernet eth = TestRouter.makeUDP(dlSrc,
+                phyPortIn.getHardwareAddress(), nwSrc, nwDst, (short) 101,
+                (short) 212, payload);
+        byte[] data = eth.serialize();
+        networkCtrl.onPacketIn(22333, data.length, phyPortIn.getPortNumber(),
+                data);
+        // No packets were dropped or sent (the processed packet was buffered
+        // and therefore did not need to be sent manually. A fow was installed.
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch match = new MidoMatch();
+        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        byte[] codedSrc = new byte[6];
+        byte[] codedDst = new byte[6];
+        // Encode the logical router port as the last ingress.
+        NetworkController.setDlHeadersForTunnel(codedSrc, codedDst, 334, 21,
+                nwDst);
+        List<OFAction> actions = new ArrayList<OFAction>();
+        OFAction ofAction = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(codedSrc);
+        actions.add(ofAction);
+        ofAction = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(codedDst);
+        actions.add(ofAction);
+        // Router2's second port is reachable via the tunnel OF port number 21.
+        short tunnelNum = 21;
+        ofAction = new OFActionOutput(tunnelNum, (short) 0);
+        actions.add(ofAction); // the Output action goes at the end.
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                NetworkController.IDLE_TIMEOUT_SECS, 22333, true, actions);
+
+        // Now bring the tunnel down.
+        int peerIp = portLocMap.get(PortDirectory.intTo32BitUUID(tunnelNum));
+        networkCtrl.peerIpToPortNum.remove(peerIp);
+        // Send the packet again.
+        networkCtrl.onPacketIn(22111, data.length, phyPortIn.getPortNumber(),
+                data);
+        // Since the tunnel is down, a temporary drop flow should have been
+        // installed and an ICMP !N packet sent to the source of the trigger
+        // packet.
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(2, controllerStub.addedFlows.size());
+        // Now check the Drop Flow.
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match,
+                NetworkController.IDLE_TIMEOUT_SECS, 22111, true,
+                new ArrayList<OFAction>());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        // The ICMP's source address is that of router2's logical port.
+        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
+                IPv4.class.cast(eth.getPayload()), phyPortIn
+                        .getHardwareAddress(), dlSrc, rtr2LogPortNwAddr, nwSrc,
+                pkt.data);
+    }
+
+    @Test
+    public void testDeliverTunneledICMP() {
+        // Send a packet into the tunnel port corresponding to router2's
+        // second port and destined for router0's first port. The ethernet
+        // header also encodes that it's an ICMP so that no flow is installed.
+        byte[] dlSrc = new byte[6];
+        byte[] dlDst = new byte[6];
+        short outPortNum = 0;
+        short tunnelPortNum = 21;
+        int nwDst = 0x0a000041;
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst,
+                NetworkController.ICMP_TUNNEL, outPortNum, nwDst);
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        // The packet should look like it came from router0's logical port.
+        // Note that the controller's logic trusts the ethernet headers and
+        // doesn't inspect the contents of the packet to verify it's ICMP.
+        Ethernet eth = TestRouter.makeUDP(dlSrc, dlDst, rtr2LogPortNwAddr,
+                nwDst, (short) 101, (short) 212, payload);
+        byte[] data = eth.serialize();
+        networkCtrl.onPacketIn(8888, data.length, tunnelPortNum, data);
+        // The router will have to ARP, so no flows installed yet, but one
+        // unbuffered packet should have been emitted.
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        OFPhysicalPort phyPortOut = phyPorts.get(0);
+        byte[] arpData = TestRouter.makeArpRequest(
+                phyPortOut.getHardwareAddress(), 0x0a000001, nwDst).serialize();
+        Assert.assertArrayEquals(arpData, pkt.data);
+
+        // Now send an ARP reply. The ICMP will be delivered as a result but
+        // no flow will be installed.
+        byte[] mac = Ethernet.toMACAddress("02:dd:dd:dd:dd:01");
+        arpData = TestRouter.makeArpReply(mac, phyPortOut.getHardwareAddress(),
+                nwDst, 0x0a000001).serialize();
+        networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
+                phyPortOut.getPortNumber(), arpData);
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        List<OFAction> actions = new ArrayList<OFAction>();
+        OFAction tmp = ofAction;
+        ofAction = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortOut
+                .getHardwareAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac);
+        actions.add(ofAction);
+        actions.add(tmp); // the Output action goes at the end.
+        Assert.assertEquals(3, pkt.actions.size());
+        for (int i = 0; i < 3; i++)
+            Assert.assertEquals(actions.get(i), pkt.actions.get(i));
+        Assert.assertEquals(8888, pkt.bufferId);
+        Assert.assertArrayEquals(data, pkt.data);
+    }
+
+    @Test
+    public void testDontSendICMP() {
+        // Only IPv4 packets trigger ICMPs.
+        Ethernet eth = new Ethernet();
+        byte[] dlSrc = Ethernet.toMACAddress("02:aa:aa:aa:aa:01");
+        byte[] dlDst = Ethernet.toMACAddress("02:aa:aa:aa:aa:23");
+        eth.setDestinationMACAddress(dlDst);
+        eth.setSourceMACAddress(dlSrc);
+        eth.setEtherType(ARP.ETHERTYPE);
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
+
+        // Make a normal UDP packet from a host on router2's second port
+        // to a host on router0's second port. This can trigger ICMP.
+        short srcPort = 21;
+        short dstPort = 1;
+        int nwSrc = 0x0a020109;
+        int nwDst = 0x0a00010d;
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        eth = TestRouter.makeUDP(dlSrc, dlDst, nwSrc, nwDst,
+                (short) 2345, (short) 1221, payload);
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+
+        // Now change the destination address to router0's second port's
+        // broadcast address.
+        IPv4 origIpPkt = IPv4.class.cast(eth.getPayload());
+        origIpPkt.setDestinationAddress(0x0a0001ff);
+        // Still triggers ICMP if we don't supply the output port.
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
+        // Still triggers ICMP if we supply the wrong output port.
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(10)));
+        // Doesn't trigger ICMP if we supply the output port.
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+
+        // Now change the destination address to a multicast address.
+        origIpPkt.setDestinationAddress((225 << 24) + 0x000001ff);
+        Assert.assertTrue(origIpPkt.isMcast());
+        // Won't trigger ICMP regardless of the output port id.
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+
+        // Now change the network dst address back to normal and then change
+        // the ethernet dst address to a multicast/broadcast.
+        origIpPkt.setDestinationAddress(nwDst);
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+        // Use any address that has an odd number if first byte.
+        byte[] mcastMac = Ethernet.toMACAddress("07:cd:cd:ab:ab:34");
+        eth.setDestinationMACAddress(mcastMac);
+        Assert.assertTrue(eth.isMcast());
+        // Won't trigger ICMP regardless of the output port id.
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+
+        // Now change the ethernet dst address back to normal and then change
+        // the ip packet's fragment offset.
+        eth.setDestinationMACAddress(dlDst);
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+        origIpPkt.setFragmentOffset((short)3);
+        // Won't trigger ICMP regardless of the output port id.
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+
+        // Change the fragment offset back to zero. Then make and ICMP error in
+        // response to the original UDP.
+        origIpPkt.setFragmentOffset((short)0);
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(dstPort)));
+        ICMP icmp = new ICMP();
+        icmp.setUnreachable(ICMP.UNREACH_CODE.UNREACH_HOST, origIpPkt);
+        // The icmp packet will be emitted from the lastIngress port:
+        // router0's logical port to router2.
+        IPv4 ip = new IPv4();
+        ip.setSourceAddress(rtr0to2LogPortNwAddr);
+        ip.setDestinationAddress(origIpPkt.getSourceAddress());
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
+        ip.setPayload(icmp);
+        eth = new Ethernet();
+        eth.setEtherType(IPv4.ETHERTYPE);
+        eth.setPayload(ip);
+        eth.setSourceMACAddress("02:a1:b2:c3:d4:e5");
+        eth.setDestinationMACAddress("02:a1:b2:c3:d4:e6");
+        // ICMP errors can't trigger ICMP errors.
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
+                .intTo32BitUUID(srcPort)));
+
     }
 
     @Test
