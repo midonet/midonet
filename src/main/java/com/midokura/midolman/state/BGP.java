@@ -34,7 +34,7 @@ public class BGP {
     public Byte[] advertisedNetworkLengths;
 
 	public BGP(short localPort, int localAS, InetAddress peerAddr,
-               short peerPort, int peerAs, String tcpMd5SigKey,
+               short peerPort, int peerAS, String tcpMd5SigKey,
                InetAddress[] advertisedNetworkAddrs,
                Byte[] advertisedNetworkLengths) {
         this.localPort = localPort;
