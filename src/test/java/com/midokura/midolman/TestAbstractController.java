@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
-import com.midokura.midolman.state.PortLocationMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.openflow.MockControllerStub;
 
 
@@ -36,7 +36,7 @@ class AbstractControllerTester extends AbstractController {
             UUID switchUuid,
             int greKey,
             OpenvSwitchDatabaseConnection ovsdb,
-            PortLocationMap dict,  /* FIXME(jlm): Replace with PortToIntMap */
+            PortToIntNwAddrMap dict,
             long flowExpireMinMillis,
             long flowExpireMaxMillis,
             long idleFlowExpireMillis,

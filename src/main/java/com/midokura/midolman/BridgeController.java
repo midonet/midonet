@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.ReplicatedMap;
-import com.midokura.midolman.state.PortLocationMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MacPortMap;
 
 
@@ -28,7 +28,7 @@ public class BridgeController extends AbstractController {
 
     Logger log = LoggerFactory.getLogger(BridgeController.class);
 
-    PortLocationMap port_locs;
+    PortToIntNwAddrMap port_locs;
     MacPortMap mac_to_port;
     long mac_port_timeout;
 
@@ -71,7 +71,7 @@ public class BridgeController extends AbstractController {
     }
 
     public BridgeController(int datapathId, UUID switchUuid, int greKey,
-            PortLocationMap port_loc_map, MacPortMap mac_port_map,
+            PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMinMillis, long flowExpireMaxMillis,
             long idleFlowExpireMillis, InetAddress publicIp,
             long macPortTimeoutMillis, OpenvSwitchDatabaseConnection ovsdb) {

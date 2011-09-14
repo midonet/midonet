@@ -43,7 +43,6 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.util.Cache;
