@@ -212,6 +212,11 @@ public abstract class AbstractController implements Controller {
         // FIXME: Test this!
     }
 
+    private String makeGREPortName(int address) {
+        // XXX
+	return "XXXX";
+    }
+
     protected UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
         String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
         if (extId == null)
@@ -229,7 +234,14 @@ public abstract class AbstractController implements Controller {
          */
 
         if (newAddr != null && newAddr != publicIp) {
-	    // XXX
+	    // Try opening the tunnel even if we already have one in order to
+	    // cancel any in-progress tunnel deletion requests.
+	    String grePortName = makeGREPortName(newAddr);
+ 	    String newAddrStr = Net.convertIntAddressToString(newAddr);
+	    log.debug("Requesting tunnel from " + 
+		      Net.convertIntAddressToString(publicIp) + " to " + 
+                      newAddrStr + " with name " + grePortName);
+	    ovsdb.addGrePort(datapathId, grePortName, newAddrStr);
 	}    
 
         if (oldAddr != null && oldAddr != publicIp) {
