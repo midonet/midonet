@@ -215,6 +215,14 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
+    public boolean containsValue(V address) {
+        for (Map.Entry<K, MapValue> entry : map.entrySet())
+            if (entry.getValue().value == address)
+                return true;
+
+        return false;
+    }
+
     // TODO(pino): document that the encoding may not contain ','.
     protected abstract String encodeKey(K key);
     protected abstract K decodeKey(String str);

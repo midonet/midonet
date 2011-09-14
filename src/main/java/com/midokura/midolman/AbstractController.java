@@ -217,8 +217,7 @@ public abstract class AbstractController implements Controller {
     }
 
     private boolean portLocMapContainsPeer(int peerAddress) {
-	// XXX
-	return false;
+	return portLocMap.containsValue(peerAddress);
     }
 
     protected UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
