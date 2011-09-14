@@ -152,17 +152,6 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareLogicalRouterPortDelete(
-            ZkNodeEntry<UUID, PortConfig> entry) throws KeeperException,
-            InterruptedException, IOException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
-                entry.key), -1));
-        
-        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
-        return ops;
-    }
-
     public List<Op> prepareBridgePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
             throws KeeperException, InterruptedException, IOException {
         List<Op> ops = new ArrayList<Op>();
