@@ -22,6 +22,7 @@ import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.ReplicatedMap.Watcher;
 
 public abstract class AbstractController implements Controller {
 
@@ -38,11 +39,25 @@ public abstract class AbstractController implements Controller {
     // Tunnel management data structures
     protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
+    protected PortToIntNwAddrMap.Watcher listener;
+
     private OpenvSwitchDatabaseConnection ovsdb;
 
     protected int greKey;
 
     public final short nonePort = OFPort.OFPP_NONE.getValue();
+
+    class PortLocMapListener implements Watcher<UUID, Integer> {
+        public AbstractController controller;
+
+        PortLocMapListener(AbstractController controller) {
+            this.controller = controller;
+        }
+
+        public void processChange(UUID key, Integer oldAddr, Integer newAddr) {
+	    // XXX
+        }
+    }
 
     public AbstractController(
             int datapathId,
