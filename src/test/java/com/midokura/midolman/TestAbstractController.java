@@ -68,10 +68,6 @@ class AbstractControllerTester extends AbstractController {
     }
 
     @Override
-    public void sendFlowModDelete(boolean strict, OFMatch match,
-                                  int priority, int outPort) { }
-
-    @Override
     protected void addPort(OFPhysicalPort portDesc, short portNum) { 
         assertEquals(portDesc.getPortNumber(), portNum);
         portsAdded.add(portDesc);
@@ -148,9 +144,15 @@ public class TestAbstractController {
         controller.onConnectionLost();
         assertArrayEquals(new OFPhysicalPort[] { },
                           controller.portsAdded.toArray());
+        MockControllerStub stub = 
+		(MockControllerStub) controller.controllerStub;
+        assertEquals(0, stub.deletedFlows.size());
         controller.onConnectionMade();
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
                           controller.portsAdded.toArray());
+        assertEquals(1, stub.deletedFlows.size());
+        assertEquals(OFMatch.OFPFW_ALL, 
+		     stub.deletedFlows.get(0).match.getWildcards());
     }
 
     @Test

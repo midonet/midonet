@@ -47,7 +47,6 @@ public class MockControllerStub implements ControllerStub {
                 short priority, int bufferId, boolean sendFlowRemove,
                 boolean checkOverlap, boolean emergency,
                 List<OFAction> actions, short outPort) {
-            super();
             this.match = match;
             this.cookie = cookie;
             this.idleTimeoutSecs = idleTimeoutSecs;
@@ -62,6 +61,7 @@ public class MockControllerStub implements ControllerStub {
     }
 
     public List<Flow> addedFlows = new ArrayList<Flow>();
+    public List<Flow> deletedFlows = new ArrayList<Flow>();
     public List<Packet> sentPackets = new ArrayList<Packet>();
     public List<Integer> droppedPktBufIds = new ArrayList<Integer>(); 
     public OFFeaturesReply features = null;
@@ -92,6 +92,13 @@ public class MockControllerStub implements ControllerStub {
         addedFlows.add(new Flow(match, cookie, idleTimeoutSecs, priority,
                 bufferId, sendFlowRemove, checkOverlap, emergency, actions,
                 outPort));
+    }
+
+    @Override
+    public void sendFlowModDelete(OFMatch match, boolean strict,
+				  short priority, short port) {
+	deletedFlows.add(new Flow(match, 0, (short)0, priority, 0, strict, 
+				  false, false, null, port));
     }
 
     @Override
