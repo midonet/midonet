@@ -10,14 +10,20 @@ public class MockOpenvSwitchDatabaseConnection implements
 {
     Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
         new HashMap<Long, Map<Integer, Map<String, String>>>();
-    class GrePort {
+    static public class GrePort {
 	String bridgeName;
 	String portName;
 	String address;
-	GrePort(String a, String b, String c) {
+	public GrePort(String a, String b, String c) {
 	    bridgeName = a;
 	    portName = b;
 	    address = c;
+	}
+
+	public boolean equals(GrePort rhs) {
+	    return bridgeName.equals(rhs.bridgeName) &&
+		   portName.equals(rhs.portName) &&
+		   address.equals(rhs.address);
 	}
     }
     public ArrayList <GrePort> addedGrePorts = new ArrayList <GrePort>();

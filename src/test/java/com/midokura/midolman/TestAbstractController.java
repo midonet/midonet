@@ -247,10 +247,14 @@ public class TestAbstractController {
 	UUID portUuid = UUID.randomUUID();
 
 	// Port comes up.  Verify tunnel made.
-	mockDir.add("/"+portUuid.toString()+",4278194602,", null, 
+	mockDir.add("/"+portUuid.toString()+",ff0011aa,", null, 
 		    CreateMode.PERSISTENT_SEQUENTIAL);
 	portLocMap.start();
 	assertEquals(1, ovsdb.addedGrePorts.size());
+	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
+			    "43", "tne1234ff0011aa", "255.0.17.170")).equals(
+	           ovsdb.addedGrePorts.get(0)));
+	assertEquals(0xff0011aa, portLocMap.get(portUuid).intValue());
 
 	// Port moves.  Verify old tunnel rm'd, new tunnel made.
 	// XXX
