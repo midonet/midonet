@@ -159,6 +159,14 @@ public class TestAbstractController {
     }
 
     @Test
+    public void testPortMap() {
+        assertEquals(37, controller.portUuidToNumber(port1uuid));
+        assertEquals(47, controller.portUuidToNumber(port2uuid));
+	assertFalse(controller.isTunnelPortNum(37));
+	assertTrue(controller.isTunnelPortNum(47));
+    }
+
+    @Test
     public void testConnectionMade() {
         OFFeaturesReply features = new OFFeaturesReply();
         ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();

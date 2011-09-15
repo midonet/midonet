@@ -103,13 +103,14 @@ public abstract class AbstractController implements Controller {
 
         // Add all the ports.
         for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
-            addPort(portDesc, portDesc.getPortNumber());
+            callAddPort(portDesc, portDesc.getPortNumber());
     }
 
     @Override
     public void onConnectionLost() {
         clear();
         portNumToUuid.clear();
+        portUuidToNumberMap.clear();
         tunnelPortNumToPeerIp.clear();
     }
 
@@ -117,35 +118,44 @@ public abstract class AbstractController implements Controller {
     public abstract void onPacketIn(int bufferId, int totalLen, short inPort,
                                     byte[] data);
 
+    private void callAddPort(OFPhysicalPort portDesc, short portNum) {
+        UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+        if (uuid != null) {
+            portNumToUuid.put(new Integer(portNum), uuid);
+            portUuidToNumberMap.put(uuid, new Integer(portNum));
+        }
+
+        if (isGREPortOfKey(portDesc.getName())) {
+            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+            // TODO: Error out if already tunneled to this peer.
+            tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
+        }
+
+        addPort(portDesc, portNum);
+    }
+
     @Override
     public final void onPortStatus(OFPhysicalPort portDesc,
                                    OFPortReason reason) {
         if (reason == OFPortReason.OFPPR_ADD) {
             short portNum = portDesc.getPortNumber();
-            addPort(portDesc, portNum);
-
-            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-            if (uuid != null)
-                portNumToUuid.put(new Integer(portNum), uuid);
-
-            if (isGREPortOfKey(portDesc.getName())) {
-                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-                // TODO: Error out if already tunneled to this peer.
-                tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
-            }
+            callAddPort(portDesc, portNum);
         } else if (reason == OFPortReason.OFPPR_DELETE) {
             deletePort(portDesc);
 	    Integer portNum = new Integer(portDesc.getPortNumber());
 	    portNumToUuid.remove(portNum);
+	    portUuidToNumberMap.remove(
+		getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
 	    tunnelPortNumToPeerIp.remove(portNum);
         } else {
             modifyPort(portDesc);
             UUID uuid = getPortUuidFromOvsdb(datapathId, 
 				             portDesc.getPortNumber());
             Integer portNum = new Integer(portDesc.getPortNumber());
-            if (uuid != null)
+            if (uuid != null) {
                 portNumToUuid.put(portNum, uuid);
-            else
+                portUuidToNumberMap.put(uuid, portNum);
+            } else
                 portNumToUuid.remove(portNum);
 
             if (isGREPortOfKey(portDesc.getName())) {
