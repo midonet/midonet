@@ -20,15 +20,16 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.rules.Rule;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
  * 
- * @version        1.6 11 Sept 2011
- * @author         Ryu Ishimoto
+ * @version 1.6 11 Sept 2011
+ * @author Ryu Ishimoto
  */
 public class ChainZkManager extends ZkManager {
-    
+
     public static class ChainConfig implements Serializable {
 
         private static final long serialVersionUID = 1L;
@@ -37,45 +38,97 @@ public class ChainZkManager extends ZkManager {
 
         public ChainConfig() {
         }
-        
+
         public ChainConfig(String name, UUID routerId) {
             this.name = name;
             this.routerId = routerId;
         }
     }
-    
+
     /**
      * Constructor to set ZooKeeper and base path.
-     * @param zk  ZooKeeper object.
-     * @param basePath  The root path.
+     * 
+     * @param zk
+     *            ZooKeeper object.
+     * @param basePath
+     *            The root path.
      */
     public ChainZkManager(ZooKeeper zk, String basePath) {
-    	super(zk, basePath);
+        super(zk, basePath);
     }
-    
-    /**
-     * Create a new chain in ZK.
-     * @param id  Chain UUID.
-     * @param chain  ChainConfig object to add.
-     * @throws IOException Serialization error.
-     * @throws KeeperException ZooKeeper error.
-     * @throws InterruptedException Thread paused too long.
-     */
-    public void create(UUID id, ChainConfig chain) 
-            throws IOException, InterruptedException, KeeperException {
+
+    public List<Op> prepareChainCreate(ZkNodeEntry<UUID, ChainConfig> chainEntry)
+            throws ZkStateSerializationException, KeeperException,
+            InterruptedException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getChainPath(id), serialize(chain), 
+        try {
+            ops.add(Op.create(pathManager.getChainPath(chainEntry.key),
+                    serialize(chainEntry.value), Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize ChainConfig", e, ChainConfig.class);
+        }
+        ops.add(Op.create(pathManager.getChainRulesPath(chainEntry.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getChainRulesPath(id), null, 
+        ops.add(Op.create(pathManager.getRouterChainPath(
+                chainEntry.value.routerId, chainEntry.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterChainPath(chain.routerId, id),
-                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        this.zk.multi(ops);
+        return ops;
     }
-    
-    public List<Op> getDeleteOps(UUID id, UUID routerId) 
-            throws KeeperException, InterruptedException, 
-                IOException, ClassNotFoundException {
+
+    public UUID create(ChainConfig chain) throws InterruptedException,
+            KeeperException, ZkStateSerializationException {
+        UUID id = UUID.randomUUID();
+        ZkNodeEntry<UUID, ChainConfig> chainNode = new ZkNodeEntry<UUID, ChainConfig>(
+                id, chain);
+        zk.multi(prepareChainCreate(chainNode));
+        return id;
+    }
+
+    public ZkNodeEntry<UUID, ChainConfig> get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        byte[] data = zk.getData(pathManager.getChainPath(id), null, null);
+        ChainConfig config = null;
+        try {
+            config = deserialize(data, ChainConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize chain " + id + " to ChainConfig", e,
+                    ChainConfig.class);
+        }
+        return new ZkNodeEntry<UUID, ChainConfig>(id, config);
+    }
+
+    public List<ZkNodeEntry<UUID, ChainConfig>> list(UUID routerId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, ChainConfig>> result = new ArrayList<ZkNodeEntry<UUID, ChainConfig>>();
+        List<String> chains = zk.getChildren(pathManager
+                .getRouterChainsPath(routerId), null);
+        for (String chainId : chains) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(chainId)));
+        }
+        return result;
+    }
+
+    public void update(ZkNodeEntry<UUID, ChainConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        try {
+            zk.setData(pathManager.getChainPath(entry.key),
+                    serialize(entry.value), -1);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize chain " + entry.key
+                            + " to ChainConfig", e, ChainConfig.class);
+        }
+    }
+
+    public List<Op> getDeleteOps(UUID id, UUID routerId)
+            throws KeeperException, InterruptedException, IOException,
+            ClassNotFoundException {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZk = new RuleZkManager(zk, basePath);
         HashMap<UUID, Rule> rules = ruleZk.list(id);
@@ -86,69 +139,15 @@ public class ChainZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getChainPath(id), -1));
         return ops;
     }
-    
-    public void delete(UUID id) 
-            throws KeeperException, InterruptedException, 
-                IOException, ClassNotFoundException {
-        ChainConfig chain = get(id);
-        delete(id, chain.routerId);
+
+    public void delete(UUID id) throws KeeperException, InterruptedException,
+            ClassNotFoundException, ZkStateSerializationException, IOException {
+        ZkNodeEntry<UUID, ChainConfig> chain = get(id);
+        delete(id, chain.value.routerId);
     }
-    
-    public void delete(UUID id, UUID routerId) 
-            throws InterruptedException, KeeperException, IOException, 
-                ClassNotFoundException { 
+
+    public void delete(UUID id, UUID routerId) throws InterruptedException,
+            KeeperException, IOException, ClassNotFoundException {
         this.zk.multi(getDeleteOps(id, routerId));
     }
-    
-    /**
-     * Get the ChainConfig object for the given UUID
-     * @param id  Chain ID.
-     * @return  ChainConfig object.
-     * @throws KeeperException   ZooKeeper error.
-     * @throws InterruptedException  Thread paused too long.
-     * @throws IOException  Serialization error.
-     * @throws ClassNotFoundException   Class not found.
-     */
-    public ChainConfig get(UUID id) 
-            throws KeeperException, InterruptedException,
-                IOException, ClassNotFoundException {
-        byte[] data = zk.getData(pathManager.getChainPath(id), null, null);
-        return deserialize(data, ChainConfig.class);
-    }
-    
-    /**
-     * Update a chain data.
-     * @param id  Chain UUID
-     * @param chain  ChainConfig object.
-     * @throws IOException  Serialization error.
-     * @throws InterruptedException 
-     * @throws KeeperException 
-     */
-    public void update(UUID id, ChainConfig chain)
-            throws IOException, KeeperException, InterruptedException {
-        zk.setData(pathManager.getChainPath(id), serialize(chain), -1);
-    }
-    
-    /**
-     * Get a list of ChainConfig objects of a router.
-     * @param routerId  Router UUID,
-     * @return  An array of ChainConfigs
-     * @throws KeeperException  Zookeeper exception.
-     * @throws InterruptedException  Paused thread interrupted.
-     * @throws ClassNotFoundException  Unknown class.
-     * @throws IOException  Serialization error.
-     */
-    public HashMap<UUID, ChainConfig> list(UUID routerId) 
-            throws KeeperException, InterruptedException, 
-                IOException, ClassNotFoundException {
-        HashMap<UUID, ChainConfig> configs = new HashMap<UUID, ChainConfig>();
-        List<String> chainIds = zk.getChildren(
-                pathManager.getRouterChainsPath(routerId), null);
-        for (String chainId : chainIds) {
-            // For now get each one.
-            UUID id = UUID.fromString(chainId);
-            configs.put(id, get(id));
-        }
-        return configs;
-    }    
 }
