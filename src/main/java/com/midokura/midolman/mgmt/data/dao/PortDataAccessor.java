@@ -54,18 +54,18 @@ public class PortDataAccessor extends DataAccessor {
     private static LogicalRouterPortConfig convertToLogRouterPortConfig(
             RouterPort port) {
         return new LogicalRouterPortConfig(port.getDeviceId(), Net
-                .convertAddressToInt(port.getNetworkAddress()), port
-                .getNetworkLength(), Net.convertAddressToInt(port
+                .convertStringAddressToInt(port.getNetworkAddress()), port
+                .getNetworkLength(), Net.convertStringAddressToInt(port
                 .getPortAddress()), new HashSet<Route>(), port.getPeerId());
     }
 
     private static MaterializedRouterPortConfig convertToMatRouterPortConfig(
             RouterPort port) {
         return new MaterializedRouterPortConfig(port.getDeviceId(), Net
-                .convertAddressToInt(port.getNetworkAddress()), port
-                .getNetworkLength(), Net.convertAddressToInt(port
+                .convertStringAddressToInt(port.getNetworkAddress()), port
+                .getNetworkLength(), Net.convertStringAddressToInt(port
                 .getPortAddress()), new HashSet<Route>(), Net
-                .convertAddressToInt(port.getLocalNetworkAddress()), port
+                .convertStringAddressToInt(port.getLocalNetworkAddress()), port
                 .getLocalNetworkLength(), new HashSet<BGP>());
     }
 
@@ -94,9 +94,9 @@ public class PortDataAccessor extends DataAccessor {
     private static Port convertToPort(LogicalRouterPortConfig config) {
         RouterPort port = new RouterPort();
         port.setDeviceId(config.device_id);
-        port.setNetworkAddress(Net.convertAddressToString(config.nwAddr));
+        port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
         port.setNetworkLength(config.nwLength);
-        port.setPortAddress(Net.convertAddressToString(config.portAddr));
+        port.setPortAddress(Net.convertIntAddressToString(config.portAddr));
         port.setPeerId(config.peer_uuid);
         port.setType(RouterPort.Logical);
         return port;
@@ -105,11 +105,11 @@ public class PortDataAccessor extends DataAccessor {
     private static Port convertToPort(MaterializedRouterPortConfig config) {
         RouterPort port = new RouterPort();
         port.setDeviceId(config.device_id);
-        port.setNetworkAddress(Net.convertAddressToString(config.nwAddr));
+        port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
         port.setNetworkLength(config.nwLength);
-        port.setPortAddress(Net.convertAddressToString(config.portAddr));
+        port.setPortAddress(Net.convertIntAddressToString(config.portAddr));
         port.setLocalNetworkAddress(Net
-                .convertAddressToString(config.localNwAddr));
+                .convertIntAddressToString(config.localNwAddr));
         port.setLocalNetworkLength(config.localNwLength);
         port.setType(RouterPort.Materialized);
         return port;

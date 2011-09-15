@@ -31,6 +31,7 @@ public class Route {
     private UUID nextHopPort = null;
     private String nextHopGateway = null;
     private int weight;
+    private String attributes;
     private String type;
 
     /**
@@ -154,6 +155,17 @@ public class Route {
      */
     public void setType(String type) {
         this.type = type;
-    }  
-    
+    }
+    /**
+     * @return the attributes
+     */
+    public String getAttributes() {
+        return attributes;
+    }
+    /**
+     * @param attributes the attributes to set
+     */
+    public void setAttributes(String attributes) {
+        this.attributes = attributes;
+    }
 }

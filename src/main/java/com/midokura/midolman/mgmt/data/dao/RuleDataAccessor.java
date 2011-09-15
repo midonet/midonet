@@ -54,8 +54,8 @@ public class RuleDataAccessor extends DataAccessor {
         for (String natTarget : natTargets) {
             String[] elems = natTarget.split(",");
             NatTarget t = new NatTarget(
-                    Net.convertAddressToInt(elems[0]),
-                    Net.convertAddressToInt(elems[1]),
+                    Net.convertStringAddressToInt(elems[0]),
+                    Net.convertStringAddressToInt(elems[1]),
                     (short)Integer.parseInt(elems[2]),
                     (short)Integer.parseInt(elems[3]));
             targets.add(t);
@@ -66,8 +66,8 @@ public class RuleDataAccessor extends DataAccessor {
     private static String[] makeNatTargetStrings(Set<NatTarget> natTargets) {
         List<String> targets = new ArrayList<String>(natTargets.size());
         for (NatTarget t : natTargets) {
-            targets.add(Net.convertAddressToString(t.nwStart) + "," 
-                    + Net.convertAddressToString(t.nwEnd) +  "," 
+            targets.add(Net.convertIntAddressToString(t.nwStart) + "," 
+                    + Net.convertIntAddressToString(t.nwEnd) +  "," 
                     + t.tpStart + "," + t.tpEnd);
         }
         return targets.toArray(new String[targets.size()]);
@@ -118,12 +118,12 @@ public class RuleDataAccessor extends DataAccessor {
         c.inPortIds = new HashSet<UUID>(Arrays.asList(rule.getInPorts()));
         c.inPortInv = rule.isInvInPorts();
         c.nwDstInv = rule.isInvNwDst();
-        c.nwDstIp = Net.convertAddressToInt(rule.getNwDstAddress());
+        c.nwDstIp = Net.convertStringAddressToInt(rule.getNwDstAddress());
         c.nwDstLength = (byte) rule.getNwDstLength();
         c.nwProto = (byte) rule.getNwProto();
         c.nwProtoInv = rule.isInvNwProto();
         c.nwSrcInv = rule.isInvNwSrc();
-        c.nwSrcIp = Net.convertAddressToInt(rule.getNwSrcAddress());
+        c.nwSrcIp = Net.convertStringAddressToInt(rule.getNwSrcAddress());
         c.nwSrcLength = (byte) rule.getNwSrcLength();
         c.nwTos = (byte) rule.getNwTos();
         c.nwTosInv = rule.isInvNwTos();
@@ -151,11 +151,11 @@ public class RuleDataAccessor extends DataAccessor {
         rule.setInvTpDst(c.tpDstInv);
         rule.setInvTpSrc(c.tpSrcInv);
         rule.setNwDstAddress(
-                Net.convertAddressToString(c.nwDstIp));
+                Net.convertIntAddressToString(c.nwDstIp));
         rule.setNwDstLength(c.nwDstLength);
         rule.setNwProto(c.nwProto);
         rule.setNwSrcAddress(
-                Net.convertAddressToString(c.nwSrcIp));
+                Net.convertIntAddressToString(c.nwSrcIp));
         rule.setNwSrcLength(c.nwSrcLength);
         rule.setNwTos(c.nwTos);
         rule.setOutPorts(

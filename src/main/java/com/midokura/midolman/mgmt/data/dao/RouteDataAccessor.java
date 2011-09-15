@@ -44,39 +44,38 @@ public class RouteDataAccessor extends DataAccessor {
             Route route) {
         NextHop nextHop = null;
         String type = route.getType();
+        int gateway = -1;
         if (type.equals(Route.Reject)) {
             nextHop = NextHop.REJECT;
         } else if (type.equals(Route.BlackHole)) {
             nextHop = NextHop.BLACKHOLE;
         } else {
+            gateway = Net.convertStringAddressToInt(route.getNextHopGateway());
             nextHop = NextHop.PORT;
         }
 
         return new com.midokura.midolman.layer3.Route(Net
-                .convertAddressToInt(route.getSrcNetworkAddr()), route
-                .getSrcNetworkLength(), Net.convertAddressToInt(route
+                .convertStringAddressToInt(route.getSrcNetworkAddr()), route
+                .getSrcNetworkLength(), Net.convertStringAddressToInt(route
                 .getDstNetworkAddr()), route.getDstNetworkLength(), nextHop,
-                route.getNextHopPort(), Net.convertAddressToInt(route
-                        .getNextHopGateway()), route.getWeight(), "some,attr", // FIXME:
-                // Some
-                // reason
-                // this
-                // is
-                // required.
-                route.getRouterId());
+                route.getNextHopPort(), gateway, route.getWeight(), route
+                        .getAttributes(), route.getRouterId());
     }
 
     private static Route convertToRoute(com.midokura.midolman.layer3.Route rt) {
         Route route = new Route();
-        route.setDstNetworkAddr(Net.convertAddressToString(rt.dstNetworkAddr));
+        route.setDstNetworkAddr(Net
+                .convertIntAddressToString(rt.dstNetworkAddr));
         route.setDstNetworkLength(rt.dstNetworkLength);
-        route.setNextHopGateway(Net.convertAddressToString(rt.nextHopGateway));
+        route.setNextHopGateway(Net
+                .convertIntAddressToString(rt.nextHopGateway));
         route.setNextHopPort(rt.nextHopPort);
-        route.setSrcNetworkAddr(Net.convertAddressToString(rt.srcNetworkAddr));
+        route.setSrcNetworkAddr(Net
+                .convertIntAddressToString(rt.srcNetworkAddr));
         route.setSrcNetworkLength(rt.srcNetworkLength);
         route.setWeight(rt.weight);
         route.setRouterId(rt.routerId);
-
+        route.setAttributes(rt.attributes);
         if (rt.nextHop == NextHop.BLACKHOLE) {
             route.setType(Route.BlackHole);
         } else if (rt.nextHop == NextHop.REJECT) {
@@ -87,6 +86,13 @@ public class RouteDataAccessor extends DataAccessor {
         return route;
     }
 
+    private static Route convertToRoute(
+            ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route> entry) {
+        Route r = convertToRoute(entry.value);
+        r.setId(entry.key);
+        return r;
+    }
+
     /**
      * Add Route object to Zookeeper directories.
      * 
@@ -95,10 +101,8 @@ public class RouteDataAccessor extends DataAccessor {
      * @throws Exception
      *             Error adding data to Zookeeper.
      */
-    public void create(Route route) throws Exception {
-        com.midokura.midolman.layer3.Route rt = convertToZkRoute(route);
-        RouteZkManager manager = getRouteZkManager();
-        manager.create(route.getId(), route.getRouterId(), rt);
+    public UUID create(Route route) throws Exception {
+        return getRouteZkManager().create(convertToZkRoute(route));
     }
 
     /**
@@ -112,17 +116,12 @@ public class RouteDataAccessor extends DataAccessor {
      */
     public Route get(UUID id) throws Exception {
         RouteZkManager manager = getRouteZkManager();
-        com.midokura.midolman.layer3.Route rt = manager.get(id);
+        ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route> rt = manager
+                .get(id);
         // TODO: Throw NotFound exception here.
         Route route = convertToRoute(rt);
         route.setId(id);
         return route;
-    }
-
-    public void delete(UUID id) throws Exception {
-        RouteZkManager manager = getRouteZkManager();
-        // TODO: catch NoNodeException if does not exist.
-        manager.delete(id);
     }
 
     /**
@@ -145,5 +144,11 @@ public class RouteDataAccessor extends DataAccessor {
             routes.add(router);
         }
         return routes.toArray(new Route[routes.size()]);
+    }
+    
+    public void delete(UUID id) throws Exception {
+        RouteZkManager manager = getRouteZkManager();
+        // TODO: catch NoNodeException if does not exist.
+        manager.delete(id);
     }
 }

@@ -29,9 +29,9 @@ import com.midokura.midolman.mgmt.data.dto.Route;
 
 /**
  * Root resource class for ports.
- *
- * @version        1.6 08 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 08 Sept 2011
+ * @author Ryu Ishimoto
  */
 @Path("/routes")
 public class RouteResource extends RestResource {
@@ -39,13 +39,15 @@ public class RouteResource extends RestResource {
      * Implements REST API endpoints for routes.
      */
 
-    private final static Logger log = LoggerFactory.getLogger(
-            RouteResource.class);
-    
+    private final static Logger log = LoggerFactory
+            .getLogger(RouteResource.class);
+
     /**
      * Get the route with the given ID.
-     * @param id  Route UUID.
-     * @return  Route object.
+     * 
+     * @param id
+     *            Route UUID.
+     * @return Route object.
      */
     @GET
     @Path("{id}")
@@ -53,18 +55,16 @@ public class RouteResource extends RestResource {
     public Route get(@PathParam("id") UUID id) {
         // Get a route for the given ID.
         RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
-        Route route = null;
         try {
-            route = dao.get(id);
+            return dao.get(id);
         } catch (Exception ex) {
             log.error("Error getting route", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
-        return route;
     }
-    
+
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
@@ -73,79 +73,77 @@ public class RouteResource extends RestResource {
             dao.delete(id);
         } catch (Exception ex) {
             log.error("Error deleting route", ex);
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .type(MediaType.APPLICATION_JSON).build());
+            throw new WebApplicationException(Response.status(
+                    Response.Status.INTERNAL_SERVER_ERROR).type(
+                    MediaType.APPLICATION_JSON).build());
         }
     }
-    
+
     /**
      * Sub-resource class for router's route.
      */
     public static class RouterRouteResource extends RestResource {
-        
+
         private UUID routerId = null;
-        
+
         /**
          * Default constructor.
          * 
-         * @param   zkConn  Zookeeper connection string.
-         * @param   routerId  UUID of a router.
+         * @param zkConn
+         *            Zookeeper connection string.
+         * @param routerId
+         *            UUID of a router.
          */
         public RouterRouteResource(String zkConn, UUID routerId) {
             this.zookeeperConn = zkConn;
-            this.routerId = routerId;        
+            this.routerId = routerId;
         }
-  
+
         /**
          * Return a list of routes.
          * 
-         * @return  A list of Route objects.
+         * @return A list of Route objects.
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Route[] list() {
             RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
-            Route[] routes = null;
             try {
-                routes = dao.list(routerId);
+                return dao.list(routerId);
             } catch (Exception ex) {
                 log.error("Error getting routes", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());           
+                throw new WebApplicationException(ex, Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
             }
-            return routes;
         }
-        
+
         /**
          * Handler for create route API call.
          * 
-         * @param   port  Router object mapped to the request input.
-         * @throws Exception 
+         * @param port
+         *            Router object mapped to the request input.
+         * @throws Exception
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Route route, @Context UriInfo uriInfo)
-                throws Exception {
-            // Add a new route entry into zookeeper.
-            route.setId(UUID.randomUUID());
+        public Response create(Route route, @Context UriInfo uriInfo) {
             route.setRouterId(routerId);
             RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
 
+            UUID id = null;
             try {
-                dao.create(route);
+                id = dao.create(route);
             } catch (Exception ex) {
                 log.error("Error creating route", ex);
-                throw new WebApplicationException(
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .type(MediaType.APPLICATION_JSON).build());
+                throw new WebApplicationException(ex, Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
             }
-            
-            URI uri = uriInfo.getBaseUriBuilder()
-                .path("routes/" + route.getId()).build();
+
+            URI uri = uriInfo.getBaseUriBuilder().path("routes/" + id).build();
             return Response.created(uri).build();
-        }        
+        }
     }
 }
