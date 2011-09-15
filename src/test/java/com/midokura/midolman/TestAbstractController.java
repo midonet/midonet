@@ -16,6 +16,8 @@ import org.openflow.protocol.OFPhysicalPort;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -116,6 +118,8 @@ public class TestAbstractController {
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private PortToIntNwAddrMap portLocMap;
     private MockDirectory mockDir;
+
+    public Logger log = LoggerFactory.getLogger(TestAbstractController.class);
 
     @Before
     public void setUp() {
@@ -249,7 +253,8 @@ public class TestAbstractController {
 	String path2 = "/"+portUuid.toString()+",ff0011ac,";
 
 	// Port comes up.  Verify tunnel made.
-	mockDir.add(path1, null, CreateMode.PERSISTENT_SEQUENTIAL);
+	String fullpath1 = mockDir.add(path1, null,
+				       CreateMode.PERSISTENT_SEQUENTIAL);
 	portLocMap.start();
 	assertEquals(1, ovsdb.addedGrePorts.size());
 	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
@@ -259,7 +264,9 @@ public class TestAbstractController {
 	assertEquals(0, ovsdb.deletedPorts.size());
 
 	// Port moves.  Verify old tunnel rm'd, new tunnel made.
-	mockDir.add(path2, null, CreateMode.PERSISTENT_SEQUENTIAL);
+	String fullpath2 = mockDir.add(path2, null,
+				       CreateMode.PERSISTENT_SEQUENTIAL);
+        mockDir.delete(fullpath1);
 	assertEquals(2, ovsdb.addedGrePorts.size());
 	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
 			    "43", "tne1234ff0011ac", "255.0.17.172")).equals(
@@ -271,11 +278,13 @@ public class TestAbstractController {
 	// Port doesn't move.  Verify tunnel not rm'd.
 	String path3 = mockDir.add(path2, null,
 				   CreateMode.PERSISTENT_SEQUENTIAL);
+        mockDir.delete(fullpath2);
 	assertEquals(1, ovsdb.deletedPorts.size());
 
 	// Port goes down.  Verify tunnel rm'd.
-	System.err.println("Deleting path " + path3.toString());
+	log.info("Deleting path {}", path3);
         mockDir.delete(path3);
-	//assertEquals(2, ovsdb.deletedPorts.size());
+	assertEquals(2, ovsdb.deletedPorts.size());
+	assertEquals("tne1234ff0011ac", ovsdb.deletedPorts.get(1));
     }
 }
