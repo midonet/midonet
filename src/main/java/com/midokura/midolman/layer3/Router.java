@@ -27,14 +27,14 @@ import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Callback;
 
 /**
- * This class coordinates the routing logic for a single virtual router. It
- * uses an instance of ReplicatedRoutingTable and an instance of RuleEngine
- * to delegate matching the best route and applying pre- and post-routing
- * filtering and nat rules.
+ * This class coordinates the routing logic for a single virtual router. It uses
+ * an instance of ReplicatedRoutingTable and an instance of RuleEngine to
+ * delegate matching the best route and applying pre- and post-routing filtering
+ * and nat rules.
  * 
  * 
  * @author pino
- *
+ * 
  */
 public class Router {
 
@@ -226,9 +226,10 @@ public class Router {
             return;
         }
 
-        // Apply pre-routing rules.
-        RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.matchIn,
-                fwdInfo.inPortId, null);
+        // Apply pre-routing rules. Clone the original match in order to avoid
+        // changing it.
+        RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.matchIn
+                .clone(), fwdInfo.inPortId, null);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
@@ -243,7 +244,7 @@ public class Router {
         fwdInfo.trackConnection = res.trackConnection;
 
         // Do a routing table lookup.
-        Route rt = loadBalancer.lookup(fwdInfo.matchIn);
+        Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {
             fwdInfo.action = Action.NO_ROUTE;
             return;
@@ -266,8 +267,8 @@ public class Router {
         // TODO(pino): log next hop portId and gateway addr..
 
         // Apply post-routing rules.
-        res = ruleEngine.applyChain(POST_ROUTING, res.match,
-                fwdInfo.inPortId, rt.nextHopPort);
+        res = ruleEngine.applyChain(POST_ROUTING, res.match, fwdInfo.inPortId,
+                rt.nextHopPort);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
@@ -379,8 +380,8 @@ public class Router {
         MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         byte[] tha = arpPkt.getTargetHardwareAddress();
-        if (tpa != portConfig.portAddr || 
-                !Arrays.equals(tha, devPort.getMacAddr()))
+        if (tpa != portConfig.portAddr
+                || !Arrays.equals(tha, devPort.getMacAddr()))
             return;
 
         // Question: Should we make noise if an ARP reply disagrees with the

@@ -1,10 +1,15 @@
 package com.midokura.midolman.layer3;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
@@ -23,7 +28,6 @@ import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
-import com.midokura.midolman.layer4.MockNatMapping;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.ControllerStub;
@@ -34,7 +38,15 @@ import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.rules.Condition;
+import com.midokura.midolman.rules.ForwardNatRule;
+import com.midokura.midolman.rules.JumpRule;
+import com.midokura.midolman.rules.LiteralRule;
+import com.midokura.midolman.rules.NatTarget;
+import com.midokura.midolman.rules.ReverseNatRule;
+import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleEngine;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
@@ -48,15 +60,21 @@ import com.midokura.midolman.util.MockCache;
 
 public class TestRouter {
 
+    private UUID uplinkId;
     private int uplinkGatewayAddr;
     private int uplinkPortAddr;
     private Route uplinkRoute;
     private Router rtr;
     private RuleEngine ruleEngine;
     private ReplicatedRoutingTable rTable;
+    private RouterDirectory routerDir;
     private PortDirectory portDir;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
+    private Map<Short, MaterializedRouterPortConfig> portConfigs;
+    private String filterSrcByPortIdChainName;
+    private int publicDnatAddr;
+    private int internDnatAddr;
 
     @Before
     public void setUp() throws Exception {
@@ -67,7 +85,7 @@ public class TestRouter {
         portDir = new PortDirectory(portsSubdir);
         dir.add("/midonet/routers", null, CreateMode.PERSISTENT);
         Directory routersSubdir = dir.getSubDirectory("/midonet/routers");
-        RouterDirectory routerDir = new RouterDirectory(routersSubdir);
+        routerDir = new RouterDirectory(routersSubdir);
         UUID rtrId = new UUID(1234, 5678);
         UUID tenantId = new UUID(1234, 6789);
         RouterConfig cfg = new RouterConfig("Test Router", tenantId);
@@ -91,11 +109,11 @@ public class TestRouter {
 
         // Create ports in ZK.
         // Create one port that works as an uplink for the router.
-        UUID portId = PortDirectory.intTo32BitUUID(1000);
+        uplinkId = PortDirectory.intTo32BitUUID(1000);
         uplinkGatewayAddr = 0x0a0b0c0d;
         uplinkPortAddr = 0xb4000102; // 180.0.1.2
         int nwAddr = 0x00000000; // 0.0.0.0/0
-        uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, portId,
+        uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, uplinkId,
                 uplinkGatewayAddr, 1, null, null);
         Set<Route> routes = new HashSet<Route>();
         routes.add(uplinkRoute);
@@ -110,6 +128,7 @@ public class TestRouter {
         // 21, 22, 23 will be in subnet 10.0.2.0/24
         // Each of the ports 'spoofs' a /30 range of its subnet, for example
         // port 21 will route to 10.0.2.4/30, 22 to 10.0.2.8/30, etc.
+        portConfigs = new HashMap<Short, MaterializedRouterPortConfig>();
         for (int i = 0; i < 3; i++) {
             // Nw address is 10.0.<i>.0/24
             nwAddr = 0x0a000000 + (i << 8);
@@ -117,7 +136,7 @@ public class TestRouter {
             int portAddr = nwAddr + 1;
             for (int j = 1; j < 4; j++) {
                 short portNum = (short) (i * 10 + j);
-                portId = PortDirectory.intTo32BitUUID(portNum);
+                UUID portId = PortDirectory.intTo32BitUUID(portNum);
                 // The port will route to 10.0.<i>.<j*4>/30
                 int segmentAddr = nwAddr + (j * 4);
                 routes.clear();
@@ -140,6 +159,7 @@ public class TestRouter {
                 routes.add(rt);
                 portConfig = new MaterializedRouterPortConfig(rtrId, nwAddr,
                         24, portAddr, routes, segmentAddr, 30, null);
+                portConfigs.put(portNum, portConfig);
                 portDir.addPort(portId, portConfig);
                 if (1 == j) {
                     // We pretend that the first port is up but managed by a
@@ -206,11 +226,11 @@ public class TestRouter {
 
     public static void checkForwardInfo(ForwardInfo fInfo, Action action,
             UUID outPortId, int nextHopNwAddr) {
-        Assert.assertTrue(fInfo.action.equals(action));
+        Assert.assertEquals(action, fInfo.action);
         if (null == outPortId)
             Assert.assertNull(fInfo.outPortId);
         else
-            Assert.assertTrue(fInfo.outPortId.equals(outPortId));
+            Assert.assertEquals(outPortId, fInfo.outPortId);
         Assert.assertEquals(nextHopNwAddr, fInfo.gatewayNwAddr);
     }
 
@@ -265,7 +285,7 @@ public class TestRouter {
         // 12.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID uplinkId = PortDirectory.intTo32BitUUID(1000);
-        UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        // UUID port12Id = PortDirectory.intTo32BitUUID(12);
         Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0c0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
@@ -355,7 +375,8 @@ public class TestRouter {
         return pkt;
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(
+            expected = IllegalArgumentException.class)
     public void testArpRequestNonLocalPort() {
         // Try to get the MAC for a nwAddr on port 11 (i.e. in 10.0.1.4/30).
         // Port 11 is not local to this controller (it was never added to the
@@ -365,7 +386,8 @@ public class TestRouter {
         rtr.getMacForIp(port1Id, 0x0a000105, cb);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(
+            expected = IllegalArgumentException.class)
     public void testArpRequestNonLocalAddress() {
         // Try to get the MAC via port 12 for an address that isn't in that
         // port's local network segment (i.e. not in 10.0.1.8/30).
@@ -575,15 +597,270 @@ public class TestRouter {
         Assert.fail();
     }
 
-    @Ignore
-    @Test
-    public void testFilterBadSrcForPort() {
-        Assert.fail();
+    private void createRules() throws IOException, KeeperException,
+            InterruptedException {
+        // Create a bunch of arbitrary rules:
+        // 'down-ports' can only receive packets from hosts 'local' to them.
+        // arbitrarily drop flows to some hosts that are 'quarantined'.
+        // arbitrarily don't allow some ports to communicate with each other.
+        // Apply Dnat.
+        Condition cond;
+        // Here's the pre-routing chain.
+        List<Rule> preChain = new Vector<Rule>();
+        // Down-ports can only receive packets from network addresses that are
+        // 'local' to them. This chain drops packets that don't conform.
+        List<Rule> filterSrcByPortIdChain = new Vector<Rule>();
+        filterSrcByPortIdChainName = "filterSrcByPortId";
+        Iterator<Map.Entry<Short, MaterializedRouterPortConfig>> iter = portConfigs
+                .entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Short, MaterializedRouterPortConfig> entry = iter.next();
+            UUID portId = PortDirectory.intTo32BitUUID(entry.getKey());
+            MaterializedRouterPortConfig config = entry.getValue();
+            // A down-port can only receive packets from network addresses that
+            // are 'local' to the port.
+            cond = new Condition();
+            cond.inPortIds = new HashSet<UUID>();
+            cond.inPortIds.add(portId);
+            cond.nwSrcIp = config.localNwAddr;
+            cond.nwSrcLength = (byte) config.localNwLength;
+            filterSrcByPortIdChain.add(new LiteralRule(cond,
+                    RuleResult.Action.RETURN));
+        }
+        // The localAddresses chain should accept entering the uplink from
+        // outside 10.0.0.0/16.
+        cond = new Condition();
+        cond.inPortIds = new HashSet<UUID>();
+        cond.inPortIds.add(uplinkId);
+        cond.nwSrcIp = 0x0a000000;
+        cond.nwSrcLength = 16;
+        cond.nwSrcInv = true;
+        filterSrcByPortIdChain.add(new LiteralRule(cond,
+                RuleResult.Action.RETURN));
+        // Finally, anything that gets to the end of this chain is dropped.
+        filterSrcByPortIdChain.add(new LiteralRule(new Condition(),
+                RuleResult.Action.DROP));
+        // Add the chains to ZK.
+        routerDir.addRuleChain(rtr.routerId, filterSrcByPortIdChainName,
+                filterSrcByPortIdChain);
+        // The pre-routing chain needs a jump rule to the localAddressesChain
+        preChain.add(new JumpRule(new Condition(), filterSrcByPortIdChainName));
+        // Add a dnat rule to map udp requests coming from the uplink for
+        // 180.0.0.1:80 to 10.0.2.6/32.
+        publicDnatAddr = 0xb4000001;
+        internDnatAddr = 0x0a000206;
+        short natPublicTpPort = 80;
+        Set<NatTarget> nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(internDnatAddr, internDnatAddr, natPublicTpPort,
+                natPublicTpPort));
+        cond = new Condition();
+        cond.inPortIds = new HashSet<UUID>();
+        cond.inPortIds.add(uplinkId);
+        cond.nwProto = UDP.PROTOCOL_NUMBER;
+        cond.nwDstIp = publicDnatAddr;
+        cond.nwDstLength = 32;
+        cond.tpDstStart = natPublicTpPort;
+        cond.tpDstEnd = natPublicTpPort;
+        preChain.add(new ForwardNatRule(cond, nats, RuleResult.Action.ACCEPT, true /* dnat */));
+        routerDir.addRuleChain(rtr.routerId, Router.PRE_ROUTING, preChain);
+
+        List<Rule> postChain = new Vector<Rule>();
+        // Now add a post-routing rule that stops communication between
+        // ports 1, 11, and 21. None of them can send to any of the others.
+        cond = new Condition();
+        cond.inPortIds = new HashSet<UUID>();
+        cond.inPortIds.add(PortDirectory.intTo32BitUUID(1));
+        cond.inPortIds.add(PortDirectory.intTo32BitUUID(11));
+        cond.inPortIds.add(PortDirectory.intTo32BitUUID(21));
+        cond.outPortIds = new HashSet<UUID>();
+        cond.outPortIds.add(PortDirectory.intTo32BitUUID(1));
+        cond.outPortIds.add(PortDirectory.intTo32BitUUID(11));
+        cond.outPortIds.add(PortDirectory.intTo32BitUUID(21));
+        postChain.add(new LiteralRule(cond, RuleResult.Action.DROP));
+        // Now add a post-routing rule to quarantine host 10.0.2.5.
+        cond = new Condition();
+        cond.nwDstIp = 0x0a000205;
+        cond.nwDstLength = 32;
+        postChain.add(new LiteralRule(cond, RuleResult.Action.REJECT));
+        // Try to reverse dnat udp packets from 10.0.2.6/32.
+        cond = new Condition();
+        cond.nwProto = UDP.PROTOCOL_NUMBER;
+        cond.nwSrcIp = internDnatAddr;
+        cond.nwSrcLength = 32;
+        cond.tpSrcStart = natPublicTpPort;
+        cond.tpSrcEnd = natPublicTpPort;
+        postChain
+                .add(new ReverseNatRule(cond, RuleResult.Action.CONTINUE, true /* dnat */));
+        routerDir.addRuleChain(rtr.routerId, Router.POST_ROUTING, postChain);
     }
 
-    @Ignore
     @Test
-    public void testFilterBadDestinations() {
-        Assert.fail();
+    public void testFilterBadSrcForPort() throws IOException, KeeperException,
+            InterruptedException {
+        // Make a packet that comes in on port 23 but with a nwSrc outside
+        // the expected range (10.0.2.12/30) and a nwDst that matches port 12
+        // (i.e. inside 10.0.1.8/30).
+        byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
+        UUID port23Id = PortDirectory.intTo32BitUUID(23);
+        UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
+        Ethernet badEthTo12 = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), devPort23.getMacAddr(),
+                0x0a000202, 0x0a000109, (short) 1111, (short) 2222, payload);
+        // This packet has a good source address and is always routed correctly.
+        Ethernet goodEthTo12 = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), devPort23.getMacAddr(),
+                0x0a00020f, 0x0a000109, (short) 1111, (short) 2222, payload);
+        ForwardInfo fInfo = routePacket(port23Id, badEthTo12);
+        checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
+        fInfo = routePacket(port23Id, goodEthTo12);
+        checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
+
+        // Make a packet that comes in on port 12 but with a nwSrc outside
+        // the expected range (10.0.1.8/30) and a nwDst that matches port 2
+        // (i.e. inside 10.0.0.8/30).
+        UUID port2Id = PortDirectory.intTo32BitUUID(2);
+        L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
+        Ethernet badEthTo2 = makeUDP(
+                Ethernet.toMACAddress("02:00:11:22:00:01"), devPort12
+                        .getMacAddr(), 0x0a000103, 0x0a00000a, (short) 1111,
+                (short) 2222, payload);
+        // This packet has a good source address and is always routed correctly.
+        Ethernet goodEthTo2 = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), devPort12.getMacAddr(),
+                0x0a000109, 0x0a00000a, (short) 1111, (short) 2222, payload);
+        fInfo = routePacket(port12Id, badEthTo2);
+        checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
+        fInfo = routePacket(port12Id, goodEthTo2);
+        checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
+
+        // Make a packet that comes in on port 11 but with a nwSrc outside
+        // the expected range (10.0.1.4/30) and a nwDst that matches the
+        // uplink (e.g. 144.0.16.3).
+        UUID port11Id = PortDirectory.intTo32BitUUID(11);
+        Ethernet badEthToUplink = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), Ethernet
+                .toMACAddress("02:00:11:22:00:64"), 0x0a0001d2, 0x90001003,
+                (short) 1111, (short) 2222, payload);
+        // This packet has a good source address and is always routed correctly.
+        Ethernet goodEthToUplink = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), Ethernet
+                .toMACAddress("02:00:11:22:00:64"), 0x0a000104, 0x90001003,
+                (short) 1111, (short) 2222, payload);
+        fInfo = routePacket(port11Id, badEthToUplink);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+        fInfo = routePacket(port11Id, goodEthToUplink);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+
+        // After adding the filtering rules the 'bad' packets are dropped but
+        // the 'good' ones are still forwarded.
+        createRules();
+        fInfo = routePacket(port23Id, badEthTo12);
+        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        fInfo = routePacket(port23Id, goodEthTo12);
+        checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
+        fInfo = routePacket(port12Id, badEthTo2);
+        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        fInfo = routePacket(port12Id, goodEthTo2);
+        checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
+        fInfo = routePacket(port11Id, badEthToUplink);
+        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        fInfo = routePacket(port11Id, goodEthToUplink);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+
+        // Now remove the filterSrcByPortId rules and verify that all the
+        // packets are again forwarded.
+        routerDir.setRuleChain(rtr.routerId, filterSrcByPortIdChainName,
+                new ArrayList<Rule>());
+        fInfo = routePacket(port23Id, badEthTo12);
+        checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
+        fInfo = routePacket(port12Id, goodEthTo2);
+        checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
+        fInfo = routePacket(port11Id, badEthToUplink);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+        fInfo = routePacket(port23Id, goodEthTo12);
+        checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
+        fInfo = routePacket(port12Id, badEthTo2);
+        checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
+        fInfo = routePacket(port11Id, goodEthToUplink);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+    }
+
+    @Test
+    public void testFilterBadDestinations() throws IOException,
+            KeeperException, InterruptedException {
+        // Send a packet from port 11 to port 21.
+        byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
+        UUID port11Id = PortDirectory.intTo32BitUUID(11);
+        UUID port21Id = PortDirectory.intTo32BitUUID(21);
+        Ethernet ethTo21 = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
+                Ethernet.toMACAddress("02:00:11:22:00:28"), 0x0a000106,
+                0x0a000207, (short) 1111, (short) 2222, payload);
+        ForwardInfo fInfo = routePacket(port11Id, ethTo21);
+        checkForwardInfo(fInfo, Action.FORWARD, port21Id, 0x0a000207);
+
+        // Send a packet 10.0.2.5 from the uplink.
+        Ethernet ethToQuarantined = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), Ethernet
+                .toMACAddress("02:00:11:22:00:a3"), 0x94001006, 0x0a000205,
+                (short) 1111, (short) 2222, payload);
+        fInfo = routePacket(port11Id, ethToQuarantined);
+        checkForwardInfo(fInfo, Action.FORWARD, port21Id, 0x0a000205);
+
+        // After adding the filtering rules these packets are dropped.
+        createRules();
+        fInfo = routePacket(port11Id, ethTo21);
+        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        fInfo = routePacket(uplinkId, ethToQuarantined);
+        checkForwardInfo(fInfo, Action.REJECT, null, 0);
+    }
+
+    @Test
+    public void testDnat() throws IOException, KeeperException,
+            InterruptedException {
+        createRules();
+        // Send a packet from 10.0.2.6 to 192.11.11.10.
+        int extNwAddr = 0xc00b0b0a;
+        byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
+        UUID port21Id = PortDirectory.intTo32BitUUID(21);
+        Ethernet ethToExtAddr = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), Ethernet
+                .toMACAddress("02:00:11:22:00:85"),
+                0x0a000206, extNwAddr, (short) 80, (short) 2222, payload);
+        ForwardInfo fInfo = routePacket(port21Id, ethToExtAddr);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+        // No translation has occurred - the int/out OFMatch's are the same.
+        Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
+
+        // Now send a packet from 192.11.11.10 to the dnat-ed address
+        // (180.0.0.1:80).
+        Ethernet ethToPublicAddr = makeUDP(Ethernet
+                .toMACAddress("02:00:11:22:00:01"), Ethernet
+                .toMACAddress("02:00:11:22:00:cf"), extNwAddr, publicDnatAddr,
+                (short) 2222, (short) 80, payload);
+        fInfo = routePacket(uplinkId, ethToPublicAddr);
+        checkForwardInfo(fInfo, Action.FORWARD, port21Id, internDnatAddr);
+        Assert.assertEquals(internDnatAddr, fInfo.matchOut
+                .getNetworkDestination());
+        Assert.assertEquals(publicDnatAddr, fInfo.matchIn
+                .getNetworkDestination());
+        // Since the destination UDP port is 80 before and after the mapping,
+        // the match should be the same before/after routing except for nwDst.
+        fInfo.matchOut.setNetworkDestination(0);
+        fInfo.matchIn.setNetworkDestination(0);
+        Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
+
+        // Now send the original packet from 10.0.2.6. This time it should
+        // be reverse dnat'ed.
+        fInfo = routePacket(port21Id, ethToExtAddr);
+        checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
+        // For this packet, the source network address changed.
+        Assert.assertEquals(internDnatAddr, fInfo.matchIn.getNetworkSource());
+        Assert.assertEquals(publicDnatAddr, fInfo.matchOut.getNetworkSource());
+        // Since the source UDP port is 80 before and after the mapping,
+        // the match should be the same before/after routing except for nwSrc.
+        fInfo.matchOut.setNetworkSource(0);
+        fInfo.matchIn.setNetworkSource(0);
+        Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
     }
 }
