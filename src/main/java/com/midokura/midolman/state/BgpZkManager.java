@@ -48,7 +48,7 @@ public class BgpZkManager extends ZkManager {
         public UUID portId;
 
         public BgpConfig(UUID portId, int localAS,
-                         InetAddress peerAddr, int peerAs) {
+                         InetAddress peerAddr, int peerAS) {
             this.portId = portId;
             this.localAS = localAS;
             this.peerAddr = peerAddr;
