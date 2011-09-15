@@ -29,6 +29,26 @@ public class TestBridgeController {
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private InetAddress publicIp;
 
+    String[] peerStrList = { "192.168.1.50", 	// local
+			     "192.168.1.50",	// local
+			     "192.168.1.50",	// local
+			     "192.168.1.53",
+			     "192.168.1.54",
+			     "192.168.1.55",
+			     "192.168.1.55",
+			     "192.168.1.55" };
+    // TODO: Make this less ugly.
+    byte macList[][] = 
+      {{(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x00},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x01},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x02},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x03},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x04},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x05},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x06},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x07}
+      };
+
     @Before
     public void setUp() throws UnknownHostException {
 	portLocDir = new MockDirectory();
