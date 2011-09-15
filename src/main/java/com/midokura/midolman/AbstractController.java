@@ -222,17 +222,6 @@ public abstract class AbstractController implements Controller {
         }
     }
 
-    /* Clean up resources, especially the ZooKeeper state. */
-    abstract public void clear();
-
-    /* Maps a port UUID to its number on the local datapath. */
-    public int portUuidToNumber(UUID port_uuid) {
-        return portUuidToNumberMap.get(port_uuid);
-    }
-
-    abstract public void sendFlowModDelete(boolean strict, OFMatch match,
-                                           int priority, int outPort);
-
     protected String makeGREPortName(int address) {
         return String.format("tn%05x%08x", greKey, address);
     }
