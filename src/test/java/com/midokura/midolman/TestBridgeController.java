@@ -56,7 +56,20 @@ public class TestBridgeController {
 	macPortDir = new MockDirectory();
 	macPortMap = new MacPortMap(macPortDir);
 	ovsdb = new MockOpenvSwitchDatabaseConnection();
-	publicIp = InetAddress.getByAddress(new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
+	publicIp = InetAddress.getByAddress(
+		       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
+
+	// 'util_setup_controller_test':
+	// 	TODO: Create portUuids.
+	// 	TODO: Register ports into datapath in ovsdb.
+	// 	TODO: Create ControllerManager
+	// 	TODO: Create mockMemcacheClient (?)
+	// 	TODO: Create ports.
+	// 	TODO: Create mockProtocol.
+	// 	TODO: Create packets, flows.
+
+	// TODO: Manager.add_bridge()
+	// TODO: Manager.add_bridge_port() for each port.
 
 	controller = new BridgeController(
 		/* datapathId */		43, 
@@ -71,5 +84,10 @@ public class TestBridgeController {
 		/* macPortTimeoutMillis */	40*1000,
 		/* ovsdb */			ovsdb);
 	controller.setControllerStub(new MockControllerStub());
+
+	portLocMap.start();
+
+	// TODO: Insert ports 3..8 into portLocMap, macPortMap.
+	// TODO: Call controller.addPort on all ports.
     }
 }
