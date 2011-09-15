@@ -13,79 +13,91 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * Data access class for chains.
- *
- * @version        1.6 08 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 08 Sept 2011
+ * @author Ryu Ishimoto
  */
 public class ChainDataAccessor extends DataAccessor {
 
     /**
      * Constructor
-     * @param zkConn Zookeeper connection string
+     * 
+     * @param zkConn
+     *            Zookeeper connection string
      */
     public ChainDataAccessor(String zkConn) {
         super(zkConn);
     }
-    
+
     private ChainZkManager getChainZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);        
+        ZkConnection conn = ZookeeperService.getConnection(zkConn);
         return new ChainZkManager(conn.getZooKeeper(), "/midolman");
-    } 
-    
+    }
+
     private static ChainConfig convertToConfig(Chain chain) {
         return new ChainConfig(chain.getName(), chain.getRouterId());
     }
-    
+
     private static Chain convertToChain(ChainConfig config) {
         Chain chain = new Chain();
         chain.setName(config.name);
         chain.setRouterId(config.routerId);
         return chain;
     }
-    
-    public void create(Chain chain) throws Exception {
-        ChainConfig config = convertToConfig(chain);
-        ChainZkManager manager = getChainZkManager();
-        manager.create(chain.getId(), config);
+
+    private static Chain convertToChain(ZkNodeEntry<UUID, ChainConfig> entry) {
+        Chain c = convertToChain(entry.value);
+        c.setId(entry.key);
+        return c;
     }
 
+    public UUID create(Chain chain) throws Exception {
+        return getChainZkManager().create(convertToConfig(chain));
+    }
+
+    public Chain get(UUID id) throws Exception {
+        // TODO: Throw NotFound exception here.
+        return convertToChain(getChainZkManager().get(id));
+    }
+
+    public Chain[] list(UUID routerId) throws Exception {
+        ChainZkManager manager = getChainZkManager();
+        List<Chain> chains = new ArrayList<Chain>();
+        List<ZkNodeEntry<UUID, ChainConfig>> entries = manager.list(routerId);
+        for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
+            chains.add(convertToChain(entry));
+        }
+        return chains.toArray(new Chain[chains.size()]);
+    }
+
+    private static void copyChain(Chain chain, ChainConfig config) {
+        // Just allow copy of the name.
+        config.name = chain.getName();
+    }
+   
+    public void update(UUID id, Chain chain) throws Exception {
+        ChainZkManager manager = getChainZkManager();
+        // Only allow an update of 'name'
+        ZkNodeEntry<UUID, ChainConfig> entry = manager.get(id);
+        copyChain(chain, entry.value);
+        manager.update(entry);
+    }
+
+   
     public void delete(UUID id) throws Exception {
         ChainZkManager manager = getChainZkManager();
         // TODO: catch NoNodeException if does not exist.
         manager.delete(id);
     }
-    
-    public void update(UUID id, Chain chain) throws Exception {
-        ChainConfig config = convertToConfig(chain);
-        ChainZkManager manager = getChainZkManager();
-        manager.update(id, config);
-    }
-    
-    public Chain get(UUID id) throws Exception {
-        ChainZkManager manager = getChainZkManager();
-        ChainConfig config = manager.get(id);
-        // TODO: Throw NotFound exception here.
-        Chain chain = convertToChain(config);
-        chain.setId(id);
-        return chain;
-    }
-    
-    public Chain[] list(UUID chainId) throws Exception {
-        ChainZkManager manager = getChainZkManager();
-        List<Chain> chains = new ArrayList<Chain>();
-        HashMap<UUID, ChainConfig> configs = manager.list(chainId);
-        for (Map.Entry<UUID, ChainConfig> entry : configs.entrySet()) {
-            Chain chain = convertToChain(entry.getValue());
-            chain.setId(entry.getKey());
-            chains.add(chain);            
-        }
-        return chains.toArray(new Chain[chains.size()]);
-    }   
-    
+
 }

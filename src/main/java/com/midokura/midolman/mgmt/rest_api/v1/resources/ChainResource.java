@@ -45,16 +45,14 @@ public class ChainResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Chain get(@PathParam("id") UUID id) {
         ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
-        Chain chain = null;
         try {
-            chain = dao.get(id);
+            return dao.get(id);
         } catch (Exception ex) {
             log.error("Error getting chain", ex);
-            throw new WebApplicationException(
+            throw new WebApplicationException(ex,
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
         }
-        return chain;
     }
 
     @PUT
@@ -66,7 +64,7 @@ public class ChainResource extends RestResource {
             dao.update(id, chain);
         } catch (Exception ex) {
             log.error("Error updating chain", ex);
-            throw new WebApplicationException(
+            throw new WebApplicationException(ex,
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
         }
@@ -82,7 +80,7 @@ public class ChainResource extends RestResource {
             dao.delete(id);
         } catch (Exception ex) {
             log.error("Error deleting chain", ex);
-            throw new WebApplicationException(
+            throw new WebApplicationException(ex,
                     Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.APPLICATION_JSON).build());
         }
@@ -104,16 +102,14 @@ public class ChainResource extends RestResource {
         @Produces(MediaType.APPLICATION_JSON)
         public Chain[] list() {
             ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn);
-            Chain[] chains = null;
             try {
-                chains = dao.list(routerId);
+                return dao.list(routerId);
             } catch (Exception ex) {
                 log.error("Error getting chains", ex);
-                throw new WebApplicationException(
+                throw new WebApplicationException(ex,
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());           
             }
-            return chains;
         }
         
         @POST
@@ -126,7 +122,7 @@ public class ChainResource extends RestResource {
                 dao.create(chain);
             } catch (Exception ex) {
                 log.error("Error creating chain", ex);
-                throw new WebApplicationException(
+                throw new WebApplicationException(ex,
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .type(MediaType.APPLICATION_JSON).build());
             }
