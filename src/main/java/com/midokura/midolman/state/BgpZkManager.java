@@ -84,6 +84,8 @@ public class BgpZkManager extends ZkManager {
             throw new ZkStateSerializationException(
                     "Could not serialize BgpConfig", e, BgpConfig.class);
         }
+        ops.add(Op.create(pathManager.getBgpAdRoutesPath(bgpNode.key),
+                          null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getPortBgpPath(
                 bgpNode.value.portId, bgpNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
