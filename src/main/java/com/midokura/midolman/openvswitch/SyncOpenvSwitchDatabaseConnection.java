@@ -111,6 +111,9 @@ public class SyncOpenvSwitchDatabaseConnection
             HashMap<Long, BlockingQueue<JsonNode>>();
     
     private Timer timer = new Timer();
+    private TimerTask echoTask;
+    
+    private Thread me;
     
     private boolean stop = false;
 
@@ -127,20 +130,18 @@ public class SyncOpenvSwitchDatabaseConnection
         jsonGenerator = jsonFactory.createJsonGenerator(new OutputStreamWriter(
                 socket.getOutputStream()));
         
-        Thread me = new Thread(this);
+        me = new Thread(this);
         me.setDaemon(true);
         me.start();
         
-        timer.schedule(new TimerTask() {
+        echoTask = new TimerTask() {
             @Override
             public void run() {
                 echo();
             }
-        }, 1000);
-    }
-    
-    public void stop() {
-        this.stop = true;
+        };
+        
+        timer.schedule(echoTask, 1000);
     }
 
     /**
@@ -402,7 +403,6 @@ public class SyncOpenvSwitchDatabaseConnection
             // Return a "transact" JSON-RPC 1.0 request to perform those
             // changes.
             ObjectNode transact = objectMapper.createObjectNode();
-//            Map<String, Object> transact = new HashMap<String, Object>();
             transact.put("method", "transact");
             transact.put("params", params);
             transact.put("id", requestId);
@@ -751,7 +751,7 @@ public class SyncOpenvSwitchDatabaseConnection
                     + (bridgeName == null ? Long.toString(bridgeId)
                     : bridgeName));
         }
-        return bridgeRows.get(0).findValue("_uuid").get(2).getTextValue();
+        return bridgeRows.get(0).get("_uuid").get(1).getTextValue();
     }
     
     public List<String> getBridges() {
@@ -773,24 +773,48 @@ public class SyncOpenvSwitchDatabaseConnection
         return brs;
     }
 
-    public List<String> getPortsForBridge(String bridge) {
+    public List<String> getPortsForBridge(String bridgeName) {
 
         ArrayNode where = objectMapper.createArrayNode();
-        where.add("");
+        ArrayNode clause1 = objectMapper.createArrayNode();
+        clause1.add("name");
+        clause1.add("==");
+        clause1.add(bridgeName);
+        where.add(clause1);
         
         ArrayNode columns = objectMapper.createArrayNode();
         columns.add("_uuid");
         columns.add("name");
+        columns.add("ports");
         
-        ArrayNode bridgeRows = select(TABLE_PORT, where, columns);
+        ArrayNode bridgeRows = select(TABLE_BRIDGE, where, columns);
 
-        List<String> brs = new ArrayList<String>();
+        //TODO: assert that there is only one row
         
-        for (JsonNode row : bridgeRows) {
-            brs.add(row.get("name").getTextValue());
+        ArrayNode portIdArray = (ArrayNode) bridgeRows.get(0).get("ports").get(1);
+        
+        List<String> ports = new ArrayList<String>();
+        
+        for (JsonNode portId : portIdArray) {
+//            ports.add(row.get("name").getTextValue());
+            
+            where = objectMapper.createArrayNode();
+            clause1 = objectMapper.createArrayNode();
+            clause1.add("_uuid");
+            clause1.add("==");
+            clause1.add(portId);
+            where.add(clause1);
+            
+            ArrayNode columns1 = objectMapper.createArrayNode();
+            columns1.add("_uuid");
+            columns1.add("name");
+            
+            ArrayNode portRows = select(TABLE_PORT, where, columns1);
+            
+            ports.add(portRows.get(0).get("name").getTextValue());
         }
         
-        return brs;
+        return ports;
     }
     
     /**
@@ -1340,6 +1364,23 @@ public class SyncOpenvSwitchDatabaseConnection
 
     @Override
     public void delPort(String portName) {
+        ArrayNode where = objectMapper.createArrayNode();
+        where.add("name");
+        where.add("==");
+        where.add(portName);
+        
+        ArrayNode columns = objectMapper.createArrayNode();
+        columns.add("_uuid");
+        columns.add("interfaces");
+        
+        ArrayNode rows = this.select(TABLE_PORT, where, columns);
+        
+        for (JsonNode row : rows) {
+            
+            
+            
+        }
+        
         throw new RuntimeException("not implemented"); // TODO
     }
 
@@ -1412,6 +1453,10 @@ public class SyncOpenvSwitchDatabaseConnection
                                     String externalIdKey) {
         throw new RuntimeException("not implemented"); // TODO
     }
+    
+    public String getPortExternalIds(long bridgeId, short portNum) {
+        throw new RuntimeException("not implemented"); // TODO
+    }
 
     @Override
     public QosBuilder addQos(String type) {
@@ -1470,8 +1515,15 @@ public class SyncOpenvSwitchDatabaseConnection
 
     @Override
     public void close() {
+        this.stop = true;
+        
         try {
+            echoTask.cancel();
+            timer.cancel();
+            
             socket.close();
+            
+            me.stop();
         } catch (IOException e) {
             log.warn("close", e);
         }

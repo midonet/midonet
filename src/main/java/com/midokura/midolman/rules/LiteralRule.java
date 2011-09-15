@@ -2,17 +2,36 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
-public class LiteralRule extends Rule {
+import com.midokura.midolman.rules.RuleResult.Action;
 
-    public LiteralRule(Condition condition) {
-        super(condition);
-        // TODO Auto-generated constructor stub
+public class LiteralRule extends Rule {
+    public LiteralRule(Condition condition, Action action) {
+        super(condition, action);
+        if (action != Action.ACCEPT && action != Action.DROP
+                && action != Action.REJECT && action != Action.RETURN)
+            throw new IllegalArgumentException("A literal rule's action "
+                    + "must be one of: ACCEPT, DROP, REJECT or RETURN.");
+    }
+
+	// Default constructor for the Jackson deserialization.
+	public LiteralRule() { super(); }
+
+    @Override
+    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        res.action = action;
     }
 
     @Override
-    protected void apply(UUID inPortId, UUID outPortId, RuleResult res) {
-        // TODO Auto-generated method stub
-        
+    public int hashCode() {
+        return 11 * super.hashCode() + "LiteralRule".hashCode();
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (!(other instanceof LiteralRule))
+            return false;
+        return super.equals(other);
+    }
 }

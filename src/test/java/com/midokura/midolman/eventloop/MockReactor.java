@@ -106,4 +106,9 @@ public class MockReactor implements Reactor {
         }
     }
 
+    @Override
+    public long currentTimeMillis() {
+        return currentTimeMillis;
+    }
+
 }

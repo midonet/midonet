@@ -11,18 +11,26 @@ import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
 
 public interface ControllerStub {
+    public static final int UNBUFFERED_ID = 0xffffffff;
+    public static final short CONTROLLER_PORT = -1; // TODO: check this.
 
     void setController(Controller controller);
 
     OFFeaturesReply getFeatures();
 
-    void getConfigAsync(ConfigHandler configHandler, TimeoutHandler timeoutHandler,
+    void getConfigAsync(
+            ConfigHandler configHandler, 
+            TimeoutHandler timeoutHandler,
             long timeoutMillis);
 
-    void sendFlowModAdd(OFMatch match, long cookie, short idleTimeoutSecs, short priority,
-            int bufferId, boolean sendFlowRemove, boolean checkOverlap, boolean emergency,
-            List<OFAction> actions, short outPort);
+    void sendFlowModAdd(OFMatch match, long cookie, short idleTimeoutSecs, 
+                        short priority, int bufferId, boolean sendFlowRemove, 
+			boolean checkOverlap, boolean emergency, 
+			List<OFAction> actions, short outPort);
 
-    void sendPacketOut(int bufferId, short inPort, List<OFAction> actions, byte[] data);
+    void sendFlowModDelete(OFMatch match, boolean strict,
+			   short priority, short outPort);
 
+    void sendPacketOut(int bufferId, short inPort, List<OFAction> actions, 
+                       byte[] data);
 }

@@ -188,5 +188,10 @@ public class SelectLoop implements Reactor {
         this.dontStop = false;
         wakeup();
     }
+
+    @Override
+    public long currentTimeMillis() {
+        return System.currentTimeMillis();
+    }
     
 }

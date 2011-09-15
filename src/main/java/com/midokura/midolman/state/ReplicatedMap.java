@@ -12,6 +12,21 @@ import org.apache.zookeeper.KeeperException;
 
 public abstract class ReplicatedMap<K, V> {
 
+    /*
+     * TODO(pino): don't allow deletes to be lost.
+     * 
+     * Problem with current code is that calling remove on a key only removes
+     * the value with the highest sequence number. If the owner of the previous
+     * sequence number never saw the most recent sequence number than it won't
+     * have removed its value and hence the 'delete' will result in that old
+     * value coming back.
+     * 
+     * Typical fix is to implement remove by writing a tombstone (e.g. empty
+     * string for value) with a higher sequence number.
+     * 
+     * Unresolved issue: who cleans up the tombstones.
+     */
+
     public interface Watcher<K1, V1> {
         void processChange(K1 key, V1 oldValue, V1 newValue);
     }
@@ -23,7 +38,7 @@ public abstract class ReplicatedMap<K, V> {
             }
             Set<String> curPaths = null;
             try {
-                 curPaths = dir.getChildren("/", this);
+                curPaths = dir.getChildren("/", this);
             } catch (KeeperException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
@@ -37,14 +52,25 @@ public abstract class ReplicatedMap<K, V> {
                 Path p = decodePath(path);
                 curKeys.add(p.key);
                 MapValue mv = map.get(p.key);
-                if(null == mv || mv.version < p.version) {
+                /*
+                 * TODO(pino): if(null == mv || mv.version < p.version) This way
+                 * of determining the winning value is flawed: if the controller
+                 * that writes the most recent value fails some maps may never
+                 * see it. They will be inconsistent with maps that saw the most
+                 * recent value. The fix is to choose the winning value based on
+                 * the highest version in ZK. Only use the most recent version
+                 * this map remembers in order to decide whether to notify our
+                 * watchers.
+                 */
+                if (null == mv || mv.version < p.version) {
                     map.put(p.key, new MapValue(p.value, p.version, false));
-                    if(null == mv)
+                    if (null == mv)
                         notifyWatchers(p.key, null, p.value);
                     else {
                         // Remember my obsolete paths and clean them up later.
-                        if(mv.owner)
-                            cleanupPaths.add(encodePath(p.key, mv.value, mv.version));
+                        if (mv.owner)
+                            cleanupPaths.add(encodePath(p.key, mv.value,
+                                    mv.version));
                         notifyWatchers(p.key, mv.value, p.value);
                     }
                 }
@@ -112,14 +138,15 @@ public abstract class ReplicatedMap<K, V> {
         return mv.value;
     }
 
-    public Map<K,V> getMap() {
-        Map<K,V> result = new HashMap<K,V>();
+    public Map<K, V> getMap() {
+        Map<K, V> result = new HashMap<K, V>();
         for (Map.Entry<K, MapValue> entry : map.entrySet())
             result.put(entry.getKey(), entry.getValue().value);
         return result;
     }
 
-    public void put(K key, V value) throws KeeperException, InterruptedException {
+    public void put(K key, V value) throws KeeperException,
+            InterruptedException {
         MapValue oldMv = map.get(key);
         String path = dir.add(new Path(key, value, 0).encode(false), null,
                 CreateMode.EPHEMERAL_SEQUENTIAL);
@@ -130,8 +157,7 @@ public abstract class ReplicatedMap<K, V> {
         if (null != oldMv && oldMv.owner) {
             try {
                 dir.delete(encodePath(key, oldMv.value, oldMv.version));
-            }
-            catch (KeeperException.NoNodeException e) {
+            } catch (KeeperException.NoNodeException e) {
                 // Ignore this exception. The watcher may already have been
                 // triggered and it cleaned up this old node.
             }
@@ -139,8 +165,7 @@ public abstract class ReplicatedMap<K, V> {
         if (null != oldMv) {
             if (!value.equals(oldMv.value))
                 notifyWatchers(key, oldMv.value, value);
-        }
-        else if (value != null)
+        } else if (value != null)
             notifyWatchers(key, null, value);
     }
 
@@ -215,10 +240,21 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
+    public boolean containsValue(V address) {
+        for (Map.Entry<K, MapValue> entry : map.entrySet())
+            if (entry.getValue().value.equals(address))
+                return true;
+
+        return false;
+    }
+
     // TODO(pino): document that the encoding may not contain ','.
     protected abstract String encodeKey(K key);
+
     protected abstract K decodeKey(String str);
+
     protected abstract String encodeValue(V value);
+
     protected abstract V decodeValue(String str);
 
 }

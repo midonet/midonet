@@ -18,8 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.ReplicatedMap;
-import com.midokura.midolman.state.PortLocationMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MacPortMap;
 
 
@@ -27,18 +28,14 @@ public class BridgeController extends AbstractController {
 
     Logger log = LoggerFactory.getLogger(BridgeController.class);
 
-    PortLocationMap port_locs;
+    PortToIntNwAddrMap port_locs;
     MacPortMap mac_to_port;
     long mac_port_timeout;
-    private final int nonePort = OFPort.OFPP_NONE.getValue();
 
     // The delayed deletes for mac_to_port.
     HashMap<byte[], UUID> delayedDeletes;
 
     HashMap<MacPort, Integer> flowCount;
-
-    HashMap<Integer, UUID> portNumToUuid;
-    HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
 
     BridgeControllerWatcher macToPortWatcher;
 
@@ -74,19 +71,18 @@ public class BridgeController extends AbstractController {
     }
 
     public BridgeController(int datapathId, UUID switchUuid, int greKey,
-            PortLocationMap port_loc_map, MacPortMap mac_port_map,
+            PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMinMillis, long flowExpireMaxMillis,
             long idleFlowExpireMillis, InetAddress publicIp,
-            long macPortTimeoutMillis) {
-        super(datapathId, switchUuid, greKey, port_loc_map, flowExpireMinMillis,
-              flowExpireMaxMillis, idleFlowExpireMillis, publicIp);
+            long macPortTimeoutMillis, OpenvSwitchDatabaseConnection ovsdb) {
+        super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
+	      flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis,
+              publicIp);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
         delayedDeletes = new HashMap<byte[], UUID>();
         flowCount = new HashMap<MacPort, Integer>();
-        portNumToUuid = new HashMap<Integer, UUID>();
-        tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
         macToPortWatcher = new BridgeControllerWatcher();
         mac_to_port.addWatcher(macToPortWatcher);
     }
@@ -119,7 +115,7 @@ public class BridgeController extends AbstractController {
                   macAsAscii(mac));
         OFMatch match = new MidoMatch();
         match.setDataLayerSource(mac);
-        sendFlowModDelete(false, match, 0, nonePort);
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     private void invalidateFlowsToMac(byte[] mac) {
@@ -127,7 +123,7 @@ public class BridgeController extends AbstractController {
                   macAsAscii(mac));
         OFMatch match = new MidoMatch();
         match.setDataLayerDestination(mac);
-        sendFlowModDelete(false, match, 0, nonePort);
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     private boolean port_is_local(UUID port) {
@@ -143,25 +139,7 @@ public class BridgeController extends AbstractController {
         return rv;
     }
 
-    public void sendFlowModDelete(boolean strict, OFMatch match, int priority,
-                                  int outPort) {
-        // FIXME
-    }
-
-    @Override
-    public void onPortStatus(OFPhysicalPort port, OFPortReason reason) {
-        if (reason == OFPortReason.OFPPR_ADD)
-            addPort(port);
-        else if (reason == OFPortReason.OFPPR_DELETE)
-            deletePort(port);
-        else {
-            /* Port modified. */
-            /* TODO: Handle this. */
-        }
-    }
-
-    private void addPort(OFPhysicalPort portDesc) {
-        int portNum = portDesc.getPortNumber();
+    protected void addPort(OFPhysicalPort portDesc, short portNum) {
         if (isTunnelPortNum(portNum))
             invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
         else {
@@ -169,19 +147,13 @@ public class BridgeController extends AbstractController {
             if (portUuid != null)
                 invalidateFlowsToPortUuid(portUuid);
         }
-
-        UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-        if (uuid != null)
-            portNumToUuid.put(portNum, uuid);
-
-        InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
-        if (peerIp != null) {
-            // TODO: Error out if already tunneled to this peer.
-            tunnelPortNumToPeerIp.put(portNum, peerIp);
-        }
     }
 
-    private void deletePort(OFPhysicalPort portDesc) {
+    protected void deletePort(OFPhysicalPort portDesc) {
+        // FIXME
+    }
+
+    protected void modifyPort(OFPhysicalPort portDesc) {
         // FIXME
     }
 
@@ -191,22 +163,5 @@ public class BridgeController extends AbstractController {
 
     private void invalidateFlowsToPeer(InetAddress peer_ip) {
         // FIXME
-    }
-
-    private InetAddress peerOfTunnelPortNum(int portNum) {
-        return tunnelPortNumToPeerIp.get(portNum);
-    }
-
-    private boolean isTunnelPortNum(int portNum) {
-        return tunnelPortNumToPeerIp.containsKey(new Integer(portNum));
-    }
-
-    private UUID getPortUuidFromOvsdb(int datapathId, int portNum) {
-        return new UUID(0, 0);  // FIXME
-        // Should be part of OVS interface.
-    }
-
-    private InetAddress peerIpOfGrePortName(String portName) {
-        return null;    // FIXME
     }
 }

@@ -13,11 +13,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitSuite
 
 import com.midokura.midolman.openvswitch._
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 
 /**
  * Test for the Open vSwitch database connection.
  */
-object TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
+object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
     private final val port = 12344
@@ -64,8 +65,8 @@ object TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
     }
 }
 
-class TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
-    import TestOpenvSwitchDatabaaseConnection._
+class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
+    import TestOpenvSwitchDatabaseConnection._
 
     /**
      * Test addSystemPort().
@@ -207,5 +208,139 @@ class TestOpenvSwitchDatabaaseConnection extends JUnitSuite {
             portExtIdKey, portExtIdValue).contains(portName))
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
+    }
+
+    /**
+     * Test addQos and delQos.
+     */
+    @Test def testAddQos() = {
+        val qosType = "linux-htb"
+        val qosExtIdKey = bridgeExtIdKey
+        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val qb = ovsdb.addQos(qosType)
+        qb.externalId(qosExtIdKey, qosExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQos(uuid))
+        ovsdb.delQos(uuid)
+        assertFalse(ovsdb.hasQos(uuid))
+    }
+
+    /**
+     * Test addQos and delQos.
+     */
+    @Test def testUpdateQos() = {
+        val qosType = "linux-htb"
+        val qosExtIdKey = bridgeExtIdKey
+        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val updatedQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
+        var qb = ovsdb.addQos(qosType)
+        qb.externalId(qosExtIdKey, qosExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQos(uuid))
+        assertTrue(!ovsdb.getQosUUIDsByExternalId(
+            qosExtIdKey, qosExtIdValue).isEmpty)
+        qb = ovsdb.updateQos(uuid,
+            externalIds=Some(Map(qosExtIdKey -> updatedQosExtIdValue)))
+        qb.update(uuid)
+        assertFalse(!ovsdb.getQosUUIDsByExternalId(
+            qosExtIdKey, qosExtIdValue).isEmpty)
+        assertTrue(!ovsdb.getQosUUIDsByExternalId(
+            qosExtIdKey, updatedQosExtIdValue).isEmpty)
+        ovsdb.delQos(uuid)
+        assertFalse(ovsdb.hasQos(uuid))
+    }
+
+    /**
+     * Test addQueue and delQueue.
+     */
+    @Test def testAddQueue() = {
+        val queueMinRate: Long = 100000000
+        val queueExtIdKey = bridgeExtIdKey
+        val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val qb = ovsdb.addQueue()
+        qb.minRate(queueMinRate)
+        qb.externalId(queueExtIdKey, queueExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQueue(uuid))
+        ovsdb.delQueue(uuid)
+        assertFalse(ovsdb.hasQueue(uuid))
+    }
+
+    /**
+     * Test setPortQos and unsetPortQos.
+     */
+    @Test def testSetPortQos() = {
+        val qosType = "linux-htb"
+        val qosExtIdKey = bridgeExtIdKey
+        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        var pb = ovsdb.addSystemPort(bridgeName, portName)
+        pb.build
+        assertTrue(ovsdb.hasPort(portName))
+        val qb = ovsdb.addQos(qosType)
+        qb.externalId(qosExtIdKey, qosExtIdValue)
+        val qosUUID = qb.build
+        assertTrue(ovsdb.hasQos(qosUUID))
+        ovsdb.setPortQos(portName, qosUUID)
+        assertFalse(ovsdb.isEmptyColumn(TablePort, portName, "qos"))
+        ovsdb.unsetPortQos(portName)
+        assertTrue(ovsdb.isEmptyColumn(TablePort, portName, "qos"))
+        ovsdb.delQos(qosUUID)
+        assertFalse(ovsdb.hasQos(qosUUID))
+        ovsdb.delPort(portName)
+        assertFalse(ovsdb.hasPort(portName))
+    }
+
+    /**
+     * Test updateQueue
+     */
+    @Test def testUpdateQueue() = {
+        val queueMinRate: Long = 100000000
+        val queueExtIdKey = bridgeExtIdKey
+        val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        val updatedQueueExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
+        var qb = ovsdb.addQueue()
+        qb.minRate(queueMinRate)
+        qb.externalId(queueExtIdKey, queueExtIdValue)
+        val uuid = qb.build
+        assertTrue(ovsdb.hasQueue(uuid))
+        assertTrue(!ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, queueExtIdValue).isEmpty)
+        qb = ovsdb.updateQueue(uuid, minRate=Some(queueMinRate/10),
+                               externalIds=Some(
+                                   Map(queueExtIdKey -> updatedQueueExtIdValue)))
+        qb.update(uuid)
+        assertFalse(!ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, queueExtIdValue).isEmpty)
+        assertTrue(!ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, updatedQueueExtIdValue).isEmpty)
+        ovsdb.delQueue(uuid)
+        assertFalse(ovsdb.hasQueue(uuid))
+    }
+
+    /**
+     * Test cleaQosQueues
+     */
+    @Test def testClearQosQueeus() = {
+        val qosType = "linux-htb"
+        var qosBuilder = ovsdb.addQos(qosType)
+        val qosUUID = qosBuilder.build
+        qosBuilder.clear
+        assertTrue(ovsdb.hasQos(qosUUID))
+        val queueMinRate: Long = 100000000
+        var queueBuilder = ovsdb.addQueue()
+        queueBuilder.minRate(queueMinRate)
+        val queueUUID = queueBuilder.build
+        queueBuilder.clear
+        assertTrue(ovsdb.hasQueue(queueUUID))
+        qosBuilder = ovsdb.updateQos(
+            qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
+        qosBuilder.update(qosUUID)
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        ovsdb.clearQosQueues(qosUUID)
+        assertFalse(!ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        ovsdb.delQueue(queueUUID)
+        assertFalse(ovsdb.hasQueue(queueUUID))
+        ovsdb.delQos(qosUUID)
+        assertFalse(ovsdb.hasQos(qosUUID))
     }
 }

@@ -2,8 +2,6 @@
 
 package com.midokura.midolman.openflow;
 
-import com.midokura.midolman.openflow.MidoMatch;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;

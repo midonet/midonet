@@ -122,4 +122,13 @@ public class MidoMatch extends OFMatch {
                         ((32-prefixLen) << OFPFW_NW_DST_SHIFT);
         return this;
     }
+
+    /**
+     * Implement clonable interface
+     */
+    @Override
+    public MidoMatch clone() {
+        return (MidoMatch) super.clone();
+    }
+
 }

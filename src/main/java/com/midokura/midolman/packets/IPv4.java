@@ -262,6 +262,54 @@ public class IPv4 extends BasePacket {
         return this;
     }
 
+    public boolean isMcast() {
+        int byte1 = getDestinationAddress() >>> 24;
+        // TODO(pino): check on this range.
+        return byte1 >= 224 && byte1 < 240;
+    }
+
+    public boolean isSubnetBcast(int nwAddr, int nwLength) {
+        int mask = 0xffffffff >>> nwLength;
+        int subnetBcast = mask | nwAddr;
+        return getDestinationAddress() == subnetBcast;
+    }
+
+    /**
+     * Compute the IPv4-style checksum of the first lengthBytes of a ByteBuffer.
+     * From RFC 1071: "The checksum field is the 16-bit one's complement of the
+     * one's complement sum of all 16-bit words in the header. For purposes of
+     * computing the checksum, the value of the checksum field is zero."
+     * @param bb The ByteBuffer
+     * @param lengthBytes An even number of bytes on which to compute the cksum.
+     * @param cksumPos The even starting index of the 2-byte checksum within
+     * the stream of bytes. For example, in IPv4 header the cksum starts at 
+     * the 11th byte, so cksumPos=10 (zero-indexed). If the header includes a
+     * non-zero checksum it is skipped (treated as zero).
+     * @return The computed checksum as a short.
+     */
+    public static short computeChecksum(ByteBuffer bb, int lengthBytes,
+            int cksumPos) {
+        bb.rewind();
+        int accumulation = 0;
+        for (int i = 0; i < lengthBytes / 2; ++i) {
+            if (i != cksumPos / 2)
+                accumulation += 0xffff & bb.getShort();
+        }
+        accumulation = ((accumulation >> 16) & 0xffff)
+                + (accumulation & 0xffff);
+        return (short) (~accumulation & 0xffff);
+    }
+
+    public static String addrToString(int addr) {
+        StringBuffer sbuf = new StringBuffer();
+        for (int i=0; i<4; i++) {
+            sbuf.append((addr >>> (3-i)*8) & 0xff);
+            if (i != 3)
+                sbuf.append(".");
+        }
+        return sbuf.toString(); 
+    }
+
     /**
      * Serializes the packet. Will compute and set the following fields if they
      * are set to specific values at the time serialize is called:
@@ -269,6 +317,7 @@ public class IPv4 extends BasePacket {
      *      -headerLength : 0
      *      -totalLength : 0
      */
+    @Override
     public byte[] serialize() {
         byte[] payloadData = null;
         if (payload != null) {
@@ -308,14 +357,7 @@ public class IPv4 extends BasePacket {
 
         // compute checksum if needed
         if (this.checksum == 0) {
-            bb.rewind();
-            int accumulation = 0;
-            for (int i = 0; i < this.headerLength * 2; ++i) {
-                accumulation += 0xffff & bb.getShort();
-            }
-            accumulation = ((accumulation >> 16) & 0xffff)
-                    + (accumulation & 0xffff);
-            this.checksum = (short) (~accumulation & 0xffff);
+            this.checksum = computeChecksum(bb, this.headerLength * 4, 10);
             bb.putShort(10, this.checksum);
         }
         return data;
@@ -396,6 +438,21 @@ public class IPv4 extends BasePacket {
         }
         return ip;
     }
+
+    /**
+     * Accepts an IPv4 address and returns the correspondent bytes.
+     * 
+     * @param ipAddress
+     * @return
+     */
+    public static byte[] toIPv4AddressBytes(int ipAddress) {
+        byte[] bytes = new byte[4];
+        for (int i = 0; i < 4; i++) {
+            bytes[i] = (byte) ((ipAddress >>> (3-i)*8) & 0xff);
+        }
+        return bytes;
+    }
+
 
     /**
      * Accepts an IPv4 address and returns of string of the form xxx.xxx.xxx.xxx
