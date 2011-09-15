@@ -59,9 +59,13 @@ public class PortZkManager extends ZkManager {
             ops.add(Op.create(pathManager.getRouterPortPath(
                     portNode.value.device_id, portNode.key), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            ops.add(Op.create(pathManager.getPortRoutesPath(portNode.key),
+                    null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            
             if (portNode.value instanceof MaterializedRouterPortConfig) {
-                ops.add(Op.create(pathManager.getPortRoutesPath(portNode.key),
+                ops.add(Op.create(pathManager.getPortBgpPath(portNode.key),
                         null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+             
             }
         } else if (portNode.value instanceof BridgePortConfig) {
             ops.add(Op.create(pathManager.getBridgePortPath(
