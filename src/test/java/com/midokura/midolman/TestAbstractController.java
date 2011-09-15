@@ -245,24 +245,37 @@ public class TestAbstractController {
     @Test
     public void testPortLocMapListener() throws KeeperException {
 	UUID portUuid = UUID.randomUUID();
+	String path1 = "/"+portUuid.toString()+",ff0011aa,1";
+	String path2 = "/"+portUuid.toString()+",ff0011ac,2";
+	String path3 = "/"+portUuid.toString()+",ff0011ac,3";
 
 	// Port comes up.  Verify tunnel made.
-	mockDir.add("/"+portUuid.toString()+",ff0011aa,", null, 
-		    CreateMode.PERSISTENT_SEQUENTIAL);
+	mockDir.add(path1, null, CreateMode.PERSISTENT_SEQUENTIAL);
 	portLocMap.start();
 	assertEquals(1, ovsdb.addedGrePorts.size());
 	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
 			    "43", "tne1234ff0011aa", "255.0.17.170")).equals(
 	           ovsdb.addedGrePorts.get(0)));
 	assertEquals(0xff0011aa, portLocMap.get(portUuid).intValue());
+	assertEquals(0, ovsdb.deletedPorts.size());
 
 	// Port moves.  Verify old tunnel rm'd, new tunnel made.
-	// XXX
+	mockDir.add(path2, null, CreateMode.PERSISTENT_SEQUENTIAL);
+	assertEquals(2, ovsdb.addedGrePorts.size());
+	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
+			    "43", "tne1234ff0011ac", "255.0.17.172")).equals(
+	           ovsdb.addedGrePorts.get(1)));
+	assertEquals(0xff0011ac, portLocMap.get(portUuid).intValue());
+	assertEquals(1, ovsdb.deletedPorts.size());
+	assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
 
 	// Port doesn't move.  Verify tunnel not rm'd.
-	// XXX
+	mockDir.add(path3, null, CreateMode.PERSISTENT_SEQUENTIAL);
+	assertEquals(1, ovsdb.deletedPorts.size());
 
 	// Port goes down.  Verify tunnel rm'd.
-	// XXX
+        //mockDir.delete(path3); // XXX: Why is this throwing NoNode?
+				 //	 We just added it.
+	//assertEquals(2, ovsdb.deletedPorts.size());
     }
 }
