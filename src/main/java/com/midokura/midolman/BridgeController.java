@@ -91,8 +91,9 @@ public class BridgeController extends AbstractController {
     public void clear() {
         port_locs.stop();
         mac_to_port.stop();
+        // .stop() includes a .clear() of the underlying map, so we don't
+        // need to clear out the entries here.
         mac_to_port.removeWatcher(macToPortWatcher);
-        // FIXME(jlm): remove all mac->port entries
         // FIXME(jlm): Clear all flows.
     }
 
