@@ -19,7 +19,7 @@ import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
- * Data access class for bridge.
+ * Data access class for BGP.
  * 
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
