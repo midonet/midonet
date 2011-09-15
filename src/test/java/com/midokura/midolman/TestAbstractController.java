@@ -159,11 +159,15 @@ public class TestAbstractController {
     }
 
     @Test
-    public void testPortMap() {
+    public void testPortMap() throws UnknownHostException {
         assertEquals(37, controller.portUuidToNumber(port1uuid));
         assertEquals(47, controller.portUuidToNumber(port2uuid));
 	assertFalse(controller.isTunnelPortNum(37));
 	assertTrue(controller.isTunnelPortNum(47));
+	assertEquals(null, controller.peerOfTunnelPortNum(37));
+	assertEquals(InetAddress.getByAddress(
+			 new byte[] { 0x0a, 0x00, 0x11, 0x22}),
+		     controller.peerOfTunnelPortNum(47));
     }
 
     @Test
