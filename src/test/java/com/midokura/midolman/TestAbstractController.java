@@ -269,10 +269,12 @@ public class TestAbstractController {
 	assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
 
 	// Port doesn't move.  Verify tunnel not rm'd.
-	String path3 = mockDir.add(path2, null, CreateMode.PERSISTENT_SEQUENTIAL);
+	String path3 = mockDir.add(path2, null,
+				   CreateMode.PERSISTENT_SEQUENTIAL);
 	assertEquals(1, ovsdb.deletedPorts.size());
 
 	// Port goes down.  Verify tunnel rm'd.
+	System.err.println("Deleting path " + path3.toString());
         mockDir.delete(path3);
 	//assertEquals(2, ovsdb.deletedPorts.size());
     }

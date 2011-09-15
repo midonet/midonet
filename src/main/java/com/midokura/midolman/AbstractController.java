@@ -58,9 +58,6 @@ public abstract class AbstractController implements Controller {
         }
 
         public void processChange(UUID key, Integer oldAddr, Integer newAddr) {
-	    //log.info("PortLocationUpdate: {} moved from {} to {}",
-			//key.toString(), Net.convertIntAddressToString(oldAddr),
-			//Net.convertIntAddressToString(newAddr));
 	    controller.portLocationUpdate(key, oldAddr, newAddr);
         }
     }
@@ -239,6 +236,13 @@ public abstract class AbstractController implements Controller {
 	 *	    was deleted.
          */
 
+	log.info("PortLocationUpdate: {} moved from {} to {}",
+            new Object[] { 
+		portUuid, 
+	        oldAddr == null ? "null" 
+				: Net.convertIntAddressToString(oldAddr),
+		newAddr == null ? "null"
+				: Net.convertIntAddressToString(newAddr)});
         if (newAddr != null && newAddr != publicIp) {
 	    // Try opening the tunnel even if we already have one in order to
 	    // cancel any in-progress tunnel deletion requests.
