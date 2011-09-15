@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.midokura</groupId>
+    <artifactId>midokura-util</artifactId>
+    <packaging>jar</packaging>
+    <version>0.1.0-SNAPSHOT</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <scm>
+        <connection>git://github.com:midokura/midokura-util.git</connection>
+        <url>http://github.com/midokura/midokura-util</url>
+    </scm>
+
+    <build>
+        <defaultGoal>package</defaultGoal>
+
+
+        <plugins>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+                <version>2.3</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                </configuration>
+                <version>2.3</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.8.1</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+        </pluginRepository>
+    </pluginRepositories>
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>mido-maven-local-snapshots</id>
+            <name>mido-maven-local-snapshots</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+        
+        <repository>
+            <id>mido-maven-local-releases</id>
+            <name>mido-maven-local-releases</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+	      <repository>
+	        <id>mido-maven</id>
+	        <name>mido-maven</name>
+	        <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+	      </repository>
+    </repositories>
+
+    <dependencies>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.6</version>
+		</dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
