@@ -532,7 +532,7 @@ public class ZkPathManager {
      * @return /bgps/bgpId/ad_routes/adRouteId
      */
     public String getBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
-        return new StringBuilder(getBgpPath(bgpId)).append("/")
+        return new StringBuilder(getBgpAdRoutesPath(bgpId)).append("/")
                 .append(adRouteId).toString();
     }
 }
