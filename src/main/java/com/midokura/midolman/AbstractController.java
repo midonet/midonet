@@ -58,6 +58,9 @@ public abstract class AbstractController implements Controller {
         }
 
         public void processChange(UUID key, Integer oldAddr, Integer newAddr) {
+	    //log.info("PortLocationUpdate: {} moved from {} to {}",
+			//key.toString(), Net.convertIntAddressToString(oldAddr),
+			//Net.convertIntAddressToString(newAddr));
 	    controller.portLocationUpdate(key, oldAddr, newAddr);
         }
     }

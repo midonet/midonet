@@ -245,9 +245,8 @@ public class TestAbstractController {
     @Test
     public void testPortLocMapListener() throws KeeperException {
 	UUID portUuid = UUID.randomUUID();
-	String path1 = "/"+portUuid.toString()+",ff0011aa,1";
-	String path2 = "/"+portUuid.toString()+",ff0011ac,2";
-	String path3 = "/"+portUuid.toString()+",ff0011ac,3";
+	String path1 = "/"+portUuid.toString()+",ff0011aa,";
+	String path2 = "/"+portUuid.toString()+",ff0011ac,";
 
 	// Port comes up.  Verify tunnel made.
 	mockDir.add(path1, null, CreateMode.PERSISTENT_SEQUENTIAL);
@@ -270,12 +269,11 @@ public class TestAbstractController {
 	assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
 
 	// Port doesn't move.  Verify tunnel not rm'd.
-	mockDir.add(path3, null, CreateMode.PERSISTENT_SEQUENTIAL);
+	String path3 = mockDir.add(path2, null, CreateMode.PERSISTENT_SEQUENTIAL);
 	assertEquals(1, ovsdb.deletedPorts.size());
 
 	// Port goes down.  Verify tunnel rm'd.
-        //mockDir.delete(path3); // XXX: Why is this throwing NoNode?
-				 //	 We just added it.
+        mockDir.delete(path3);
 	//assertEquals(2, ovsdb.deletedPorts.size());
     }
 }
