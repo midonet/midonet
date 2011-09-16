@@ -13,10 +13,11 @@ public class MacPortMap extends ReplicatedMap<byte[], UUID> {
     @Override
     protected String encodeKey(byte[] key) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%2x", key[0]));
+        sb.append(String.format("%02x", key[0]));
         for (int i=1; i<key.length; i++)
-            sb.append(":").append(String.format("%2x", key[0]));
+            sb.append(":").append(String.format("%02x", key[0]));
         return sb.toString();
+	// TODO: Test this.
     }
 
     @Override
@@ -26,6 +27,7 @@ public class MacPortMap extends ReplicatedMap<byte[], UUID> {
         for (int i=0; i<parts.length; i++)
             mac[i] = Byte.parseByte(parts[i], 16);
         return mac;
+	// TODO: Test this.
     }
 
     @Override

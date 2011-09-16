@@ -1,5 +1,6 @@
 package com.midokura.midolman.openvswitch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -9,6 +10,24 @@ public class MockOpenvSwitchDatabaseConnection implements
 {
     Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
         new HashMap<Long, Map<Integer, Map<String, String>>>();
+    static public class GrePort {
+	String bridgeName;
+	String portName;
+	String address;
+	public GrePort(String a, String b, String c) {
+	    bridgeName = a;
+	    portName = b;
+	    address = c;
+	}
+
+	public boolean equals(GrePort rhs) {
+	    return bridgeName.equals(rhs.bridgeName) &&
+		   portName.equals(rhs.portName) &&
+		   address.equals(rhs.address);
+	}
+    }
+    public ArrayList <GrePort> addedGrePorts = new ArrayList <GrePort>();
+    public ArrayList <String> deletedPorts = new ArrayList <String>();
 
     @Override
     public BridgeBuilder addBridge(String name) {
@@ -55,21 +74,21 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public GrePortBuilder addGrePort(long bridgeId, String portName,
             String remoteIp) {
-        // TODO Auto-generated method stub
+	addedGrePorts.add(new GrePort(Long.toString(bridgeId), portName, 
+			              remoteIp));
         return null;
     }
 
     @Override
     public GrePortBuilder addGrePort(String bridgeName, String portName,
             String remoteIp) {
-        // TODO Auto-generated method stub
-        return null;
+	addedGrePorts.add(new GrePort(bridgeName, portName, remoteIp));
+	return null;
     }
 
     @Override
     public void delPort(String portName) {
-        // TODO Auto-generated method stub
-        
+        deletedPorts.add(portName);
     }
 
     @Override
@@ -246,7 +265,5 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public void close() {
         // TODO Auto-generated method stub
-        
     }
-
 }

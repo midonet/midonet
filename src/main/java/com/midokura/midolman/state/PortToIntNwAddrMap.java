@@ -34,5 +34,4 @@ public class PortToIntNwAddrMap extends ReplicatedMap<UUID, Integer> {
         // value.
         return (int)Long.parseLong(str, 16);
     }
-    
 }

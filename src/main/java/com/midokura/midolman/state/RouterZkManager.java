@@ -128,9 +128,9 @@ public class RouterZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         // Get rhains delete ops.
         ChainZkManager chainZk = new ChainZkManager(zk, basePath);
-        HashMap<UUID, ChainConfig> chains = chainZk.list(id);
-        for (Map.Entry<UUID, ChainConfig> entry : chains.entrySet()) {
-            ops.addAll(chainZk.getDeleteOps(entry.getKey(), id));
+        List<ZkNodeEntry<UUID, ChainConfig>> chains = chainZk.list(id);
+        for (ZkNodeEntry<UUID, ChainConfig> entry : chains) {
+            ops.addAll(chainZk.getDeleteOps(entry.key, id));
         }
         // Get routes delete ops.
         RouteZkManager routeZk = new RouteZkManager(zk, basePath);

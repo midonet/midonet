@@ -29,6 +29,7 @@ import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.util.Net;
 
 public class PortDirectory {
     public static Random random = new Random();
@@ -94,9 +95,8 @@ public class PortDirectory {
     public static abstract class RouterPortConfig extends PortConfig {
         public int nwAddr;
         public int nwLength;
-        public int portAddr;
-        // Routes are stored in a ZK sub-directory. Don't serialize them.
-        
+        public transient int portAddr;
+        // Routes are stored in a ZK sub-directory. Don't serialize them.        
         public transient Set<Route> routes;
 
         public RouterPortConfig(UUID device_id, int networkAddr,
@@ -113,6 +113,13 @@ public class PortDirectory {
         public RouterPortConfig() { super(); }
 
         // Setter and getter for the transient property.
+        public String getPortAddr() {
+            return Net.convertIntAddressToString(this.portAddr);
+        }
+        public void setPortAddr(String addr) {
+            this.portAddr = Net.convertStringAddressToInt(addr);
+        }
+        
         public Set<Route> getRoutes() { return routes; }
         public void setRoutes(Set<Route> routes) { this.routes = routes; }
     }

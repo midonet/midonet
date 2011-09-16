@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.util;
 
+import java.net.InetAddress;
+
 /**
  * Net utility class.
  *
@@ -12,18 +14,34 @@ package com.midokura.midolman.util;
  * @author         Ryu Ishimoto
  */
 public class Net {
-    
+
+    /**
+     * Converts InetAddress IP address to int.
+     * 
+     * @param address IP address in InetAddress.
+     * @return  IP address in int.
+     */
+    public static int convertInetAddressToInt(InetAddress address) {
+	byte[] rawAddr = address.getAddress();
+        int num = 0;
+        for (byte octet : rawAddr) {
+	    num <<= 8;
+	    num += octet & 0xff;
+        }
+        return num;
+    }
+ 
     /**
      * Converts int IP address to string.
      * 
      * @param address IP address in int.
      * @return  IP address in String.
      */
-    public static String convertAddressToString(int address) {
-        return ((address >> 24 ) & 0xFF) + "."
-            + ((address >> 16 ) & 0xFF) + "."
-            + ((address >>  8 ) & 0xFF) + "."
-            + ( address & 0xFF);
+    public static String convertIntAddressToString(int address) {
+        return ((address >> 24) & 0xFF) + "."
+            + ((address >> 16) & 0xFF) + "."
+            + ((address >>  8) & 0xFF) + "."
+            + (address & 0xFF);
     }
 
     /**
@@ -32,13 +50,13 @@ public class Net {
      * @param address IP address in string.
      * @return  IP address in int.
      */
-    public static int convertAddressToInt(String address) {
+    public static int convertStringAddressToInt(String address) {
         String[] addrArray = address.split("\\.");
         int num = 0;
         for (int i=0;i<addrArray.length;i++) {
-            int power = 3-i;
-            num += ((Integer.parseInt(addrArray[i])%256 
-                                        * Math.pow(256,power)));
+			// Shift one octet to the left.
+			num <<= 8;
+			num += (Integer.parseInt(addrArray[i]) & 0xff);
         }
         return num;       
     }

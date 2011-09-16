@@ -37,14 +37,12 @@ import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.state.PortLocationMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.util.Cache;
@@ -67,14 +65,13 @@ public class NetworkController extends AbstractController {
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
-    private Reactor reactor;
     // Remove these once integrated with AbstractController
     Map<Integer, Short> peerIpToPortNum = new HashMap<Integer, Short>();
     Set<Short> tunnelPortNums = new HashSet<Short>();
     PortToIntNwAddrMap portIdToUnderlayIp;
 
     public NetworkController(int datapathId, UUID deviceId, int greKey,
-            PortLocationMap dict, long idleFlowExpireMillis, int localNwAddr,
+            PortToIntNwAddrMap dict, long idleFlowExpireMillis, int localNwAddr,
             RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             PortToIntNwAddrMap locMap, Cache cache) {
@@ -83,7 +80,6 @@ public class NetworkController extends AbstractController {
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor, cache);
-        this.reactor = reactor;
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
         portIdToUnderlayIp = locMap;
@@ -719,7 +715,7 @@ public class NetworkController extends AbstractController {
      * @return True if-and-only-if the packet meets none of the above conditions
      *         - i.e. it can trigger an ICMP error message.
      */
-    private boolean canSendICMP(Ethernet ethPkt, UUID egressPortId) {
+    boolean canSendICMP(Ethernet ethPkt, UUID egressPortId) {
         if (ethPkt.getEtherType() != IPv4.ETHERTYPE)
             return false;
         IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
@@ -733,8 +729,6 @@ public class NetworkController extends AbstractController {
             }
         }
         // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
-        // HERE
-        // HERE
         // Ignore packets to IP mcast addresses.
         if (ipPkt.isMcast()) {
             log.info("Don't generate ICMP Unreachable for packets to an IP "
@@ -863,7 +857,7 @@ public class NetworkController extends AbstractController {
 
     @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
-        L3DevicePort devPort = devPortOfPortDesc(portDesc);
+        //L3DevicePort devPort = devPortOfPortDesc(portDesc);
         // network.modifyPort(devPort);
         // FIXME: Call something in network.
     }
@@ -875,7 +869,6 @@ public class NetworkController extends AbstractController {
             // TODO(pino): It might be a tunnel.
             return;
         }
-        L3DevicePort devPort = null;
         // TODO(pino): need to look at both port.getState() and port.getConfig()
         // in order to figure out whether the port really is up/down for our
         // purposes.
