@@ -34,9 +34,11 @@ public class Net {
     }
 
     public static InetAddress convertIntToInetAddress(int intAddress) {
-        byte[] byteAddress = { (byte) (intAddress >> 24),
+        byte[] byteAddress = {
+                (byte) (intAddress >> 24),
                 (byte) ((intAddress >> 16) & 0xff),
-                (byte) ((intAddress >> 8) & 0xff), (byte) (intAddress & 0xff) };
+                (byte) ((intAddress >> 8) & 0xff),
+                (byte) (intAddress & 0xff) };
         try {
             return InetAddress.getByAddress(byteAddress);
         } catch (UnknownHostException e) {
@@ -53,8 +55,10 @@ public class Net {
      * @return IP address in String.
      */
     public static String convertIntAddressToString(int address) {
-        return ((address >> 24) & 0xFF) + "." + ((address >> 16) & 0xFF) + "."
-                + ((address >> 8) & 0xFF) + "." + (address & 0xFF);
+        return ((address >> 24) & 0xFF) + "." +
+               ((address >> 16) & 0xFF) + "." +
+               ((address >> 8) & 0xFF) + "." +
+               (address & 0xFF);
     }
 
     /**

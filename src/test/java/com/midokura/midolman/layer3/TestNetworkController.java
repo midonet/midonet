@@ -177,13 +177,13 @@ public class TestNetworkController {
                 OFPhysicalPort phyPort = new OFPhysicalPort();
                 phyPorts.get(i).add(phyPort);
                 phyPort.setPortNumber(portNum);
-                phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
-                        (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
-                        (byte) portNum });
+                phyPort.setHardwareAddress(new byte[] {
+                    (byte)0x02, (byte)0xee, (byte)0xdd, (byte)0xcc, (byte)0xff,
+                    (byte) portNum });
                 if (0 == portNum % 2) {
                     // Even-numbered ports will be local to the controller.
                     ovsdb.setPortExternalId(datapathId, portNum, "midonet",
-                            portId.toString());
+                                            portId.toString());
                     phyPort.setName("port" + Integer.toString(portNum));
                 } else {
                     // Odd-numbered ports are remote. Place port num x at
@@ -193,11 +193,14 @@ public class TestNetworkController {
                     // The new port id in portLocMap should have resulted
                     // in a call to to the mock ovsdb to open a gre port.
                     phyPort.setName(networkCtrl.makeGREPortName(underlayIp));
-                    GrePort expectGrePort = new GrePort(Long
-                            .toString(datapathId), phyPort.getName(), Net
-                            .convertIntAddressToString(underlayIp));
-                    Assert.assertEquals(expectGrePort, ovsdb.addedGrePorts
-                            .get(ovsdb.addedGrePorts.size() - 1));
+                    GrePort expectGrePort =
+                        new GrePort(Long.toString(datapathId),
+                                    phyPort.getName(),
+                                    Net.convertIntAddressToString(underlayIp));
+                    Assert.assertEquals(
+                        expectGrePort,
+                        ovsdb.addedGrePorts.get(ovsdb.addedGrePorts.size() - 1)
+                    );
                     // Manually add the remote port's route
                     rTable.addRoute(rt);
                 }
@@ -280,10 +283,10 @@ public class TestNetworkController {
         // that's blackholed.
         byte[] payload = { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         OFPhysicalPort phyPort = phyPorts.get(0).get(0);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), phyPort
-                .getHardwareAddress(), 0x0a000005, 0x0a040005, (short) 101,
-                (short) 212, payload);
+        Ethernet eth = TestRouter.makeUDP(
+                Ethernet.toMACAddress("02:00:11:22:00:01"),
+                phyPort.getHardwareAddress(), 0x0a000005, 0x0a040005,
+                (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(55, data.length, phyPort.getPortNumber(), data);
         Assert.assertEquals(0, controllerStub.sentPackets.size());

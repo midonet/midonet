@@ -7,7 +7,8 @@ import java.util.Set;
 
 public class MockOpenvSwitchDatabaseConnection implements
         OpenvSwitchDatabaseConnection {
-    Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds = new HashMap<Long, Map<Integer, Map<String, String>>>();
+    Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
+        new HashMap<Long, Map<Integer, Map<String, String>>>();
 
     static public class GrePort {
         public String bridgeName;
@@ -170,9 +171,9 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     @Override
     public String getPortExternalId(long bridgeId, int portNum,
-            String externalIdKey) {
-        Map<Integer, Map<String, String>> portToExternalIds = bridgeToExternalIds
-                .get(bridgeId);
+                                    String externalIdKey) {
+        Map<Integer, Map<String, String>> portToExternalIds =
+                bridgeToExternalIds.get(bridgeId);
         if (null == portToExternalIds)
             return null;
         Map<String, String> externalIds = portToExternalIds.get(portNum);
@@ -182,9 +183,9 @@ public class MockOpenvSwitchDatabaseConnection implements
     }
 
     public void setPortExternalId(long bridgeId, int portNum,
-            String externalIdKey, String value) {
-        Map<Integer, Map<String, String>> portToExternalIds = bridgeToExternalIds
-                .get(bridgeId);
+                                  String externalIdKey, String value) {
+        Map<Integer, Map<String, String>> portToExternalIds =
+                bridgeToExternalIds.get(bridgeId);
         if (null == portToExternalIds) {
             portToExternalIds = new HashMap<Integer, Map<String, String>>();
             bridgeToExternalIds.put(bridgeId, portToExternalIds);

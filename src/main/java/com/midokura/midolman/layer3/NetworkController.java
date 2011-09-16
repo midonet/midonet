@@ -174,8 +174,8 @@ public class NetworkController extends AbstractController {
                 network.getMacForIp(fwdInfo.outPortId, fwdInfo.gatewayNwAddr,
                         cb);
             } else { // devPortOut is null; the egress port is remote.
-                Integer tunPortNum = super
-                        .portUuidToTunnelPortNumber(fwdInfo.outPortId);
+                Integer tunPortNum = 
+			    super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
                     log.warn("Could not find location or tunnel port number "
                             + "for Id " + fwdInfo.outPortId.toString());
