@@ -22,7 +22,6 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Callback;
 
@@ -117,7 +116,6 @@ public class Router {
     protected UUID routerId;
     protected RuleEngine ruleEngine;
     protected ReplicatedRoutingTable table;
-    private PortDirectory portDir;
     // Note that only materialized ports are tracked. Package visibility for
     // testing.
     Map<UUID, L3DevicePort> devicePorts;
@@ -128,11 +126,10 @@ public class Router {
     private LoadBalancer loadBalancer;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
-            ReplicatedRoutingTable table, PortDirectory portDir, Reactor reactor) {
+            ReplicatedRoutingTable table, Reactor reactor) {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
-        this.portDir = portDir;
         this.devicePorts = new HashMap<UUID, L3DevicePort>();
         this.portListener = new PortListener();
         this.arpCaches = new HashMap<UUID, Map<Integer, ArpCacheEntry>>();

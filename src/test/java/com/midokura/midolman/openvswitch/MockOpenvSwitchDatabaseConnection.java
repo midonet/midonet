@@ -6,28 +6,37 @@ import java.util.Map;
 import java.util.Set;
 
 public class MockOpenvSwitchDatabaseConnection implements
-        OpenvSwitchDatabaseConnection
-{
-    Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
-        new HashMap<Long, Map<Integer, Map<String, String>>>();
-    static public class GrePort {
-	String bridgeName;
-	String portName;
-	String address;
-	public GrePort(String a, String b, String c) {
-	    bridgeName = a;
-	    portName = b;
-	    address = c;
-	}
+        OpenvSwitchDatabaseConnection {
+    Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds = new HashMap<Long, Map<Integer, Map<String, String>>>();
 
-	public boolean equals(GrePort rhs) {
-	    return bridgeName.equals(rhs.bridgeName) &&
-		   portName.equals(rhs.portName) &&
-		   address.equals(rhs.address);
-	}
+    static public class GrePort {
+        public String bridgeName;
+        public String portName;
+        public String address;
+
+        public GrePort(String a, String b, String c) {
+            bridgeName = a;
+            portName = b;
+            address = c;
+        }
+
+        @Override
+        public boolean equals(Object rhs) {
+            if (rhs == null)
+                return false;
+            if (rhs == this)
+                return true;
+            if (!(rhs instanceof GrePort))
+                return false;
+            GrePort other = GrePort.class.cast(rhs);
+            return bridgeName.equals(other.bridgeName)
+                    && portName.equals(other.portName)
+                    && address.equals(other.address);
+        }
     }
-    public ArrayList <GrePort> addedGrePorts = new ArrayList <GrePort>();
-    public ArrayList <String> deletedPorts = new ArrayList <String>();
+
+    public ArrayList<GrePort> addedGrePorts = new ArrayList<GrePort>();
+    public ArrayList<String> deletedPorts = new ArrayList<String>();
 
     @Override
     public BridgeBuilder addBridge(String name) {
@@ -74,16 +83,16 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public GrePortBuilder addGrePort(long bridgeId, String portName,
             String remoteIp) {
-	addedGrePorts.add(new GrePort(Long.toString(bridgeId), portName, 
-			              remoteIp));
+        addedGrePorts.add(new GrePort(Long.toString(bridgeId), portName,
+                remoteIp));
         return null;
     }
 
     @Override
     public GrePortBuilder addGrePort(String bridgeName, String portName,
             String remoteIp) {
-	addedGrePorts.add(new GrePort(bridgeName, portName, remoteIp));
-	return null;
+        addedGrePorts.add(new GrePort(bridgeName, portName, remoteIp));
+        return null;
     }
 
     @Override
@@ -108,13 +117,13 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public void delBridgeOpenflowControllers(long bridgeId) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void delBridgeOpenflowControllers(String bridgeName) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -132,13 +141,13 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public void delBridge(long bridgeId) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void delBridge(String bridgeName) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -162,8 +171,8 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public String getPortExternalId(long bridgeId, int portNum,
             String externalIdKey) {
-        Map<Integer, Map<String, String>> portToExternalIds =
-                bridgeToExternalIds.get(bridgeId);
+        Map<Integer, Map<String, String>> portToExternalIds = bridgeToExternalIds
+                .get(bridgeId);
         if (null == portToExternalIds)
             return null;
         Map<String, String> externalIds = portToExternalIds.get(portNum);
@@ -174,8 +183,8 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     public void setPortExternalId(long bridgeId, int portNum,
             String externalIdKey, String value) {
-        Map<Integer, Map<String, String>> portToExternalIds =
-                bridgeToExternalIds.get(bridgeId);
+        Map<Integer, Map<String, String>> portToExternalIds = bridgeToExternalIds
+                .get(bridgeId);
         if (null == portToExternalIds) {
             portToExternalIds = new HashMap<Integer, Map<String, String>>();
             bridgeToExternalIds.put(bridgeId, portToExternalIds);
@@ -187,7 +196,6 @@ public class MockOpenvSwitchDatabaseConnection implements
         }
         externalIds.put(externalIdKey, value);
     }
-
 
     @Override
     public String getPortExternalId(String bridgeName, int portNum,
@@ -211,25 +219,25 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public void clearQosQueues(String qosUuid) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void delQos(String qosUuid) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void setPortQos(String portName, String qosUuid) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void unsetPortQos(String portName) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -247,7 +255,7 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public void delQueue(String queueUuid) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override

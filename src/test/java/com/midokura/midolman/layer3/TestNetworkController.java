@@ -38,6 +38,7 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
@@ -61,11 +62,12 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 import com.midokura.midolman.util.MockCache;
+import com.midokura.midolman.util.Net;
 
 public class TestNetworkController {
 
     private NetworkController networkCtrl;
-    private List<OFPhysicalPort> phyPorts;
+    private List<List<OFPhysicalPort>> phyPorts;
     private List<UUID> routerIds;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
@@ -74,6 +76,7 @@ public class TestNetworkController {
     private PortDirectory portDir;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private int datapathId;
+    private OFPhysicalPort uplinkPhyPort;
     private UUID uplinkId;
     private int uplinkGatewayAddr;
     private int uplinkPortAddr;
@@ -83,7 +86,7 @@ public class TestNetworkController {
 
     @Before
     public void setUp() throws Exception {
-        phyPorts = new ArrayList<OFPhysicalPort>();
+        phyPorts = new ArrayList<List<OFPhysicalPort>>();
         routerIds = new ArrayList<UUID>();
         reactor = new MockReactor();
         controllerStub = new MockControllerStub();
@@ -116,8 +119,8 @@ public class TestNetworkController {
         int localNwAddr = 0xc0a80104;
         datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
-                5 /* greKey */, null, 60 * 1000, localNwAddr, routerDir,
-                portDir, ovsdb, reactor, portLocMap, new MockCache());
+                5 /* greKey */, portLocMap, 60 * 1000, localNwAddr, routerDir,
+                portDir, ovsdb, reactor, new MockCache());
         networkCtrl.setControllerStub(controllerStub);
 
         /*
@@ -133,6 +136,7 @@ public class TestNetworkController {
         MaterializedRouterPortConfig portConfig;
         List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
+            phyPorts.add(new ArrayList<OFPhysicalPort>());
             UUID rtrId = new UUID(1234, i);
             UUID tenantId = new UUID(5678, i);
             routerIds.add(rtrId);
@@ -170,28 +174,35 @@ public class TestNetworkController {
                         24, portAddr, routes, portNw, 24, null);
                 portDir.addPort(portId, portConfig);
 
-                // Add even-numbered materialized ports to the local controller.
+                OFPhysicalPort phyPort = new OFPhysicalPort();
+                phyPorts.get(i).add(phyPort);
+                phyPort.setPortNumber(portNum);
+                phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
+                        (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
+                        (byte) portNum });
                 if (0 == portNum % 2) {
+                    // Even-numbered ports will be local to the controller.
                     ovsdb.setPortExternalId(datapathId, portNum, "midonet",
                             portId.toString());
-                    OFPhysicalPort phyPort = new OFPhysicalPort();
-                    phyPort.setPortNumber(portNum);
-                    phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
-                            (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
-                            (byte) portNum });
-                    networkCtrl.onPortStatusTEMP(phyPort,
-                            OFPortStatus.OFPortReason.OFPPR_ADD);
-                    phyPorts.add(phyPort);
+                    phyPort.setName("port" + Integer.toString(portNum));
                 } else {
-                    // Odd-numbered ports are remote.
-                    // Place port num x at 192.168.1.x
+                    // Odd-numbered ports are remote. Place port num x at
+                    // 192.168.1.x.
                     int underlayIp = 0xc0a80100 + portNum;
                     portLocMap.put(portId, underlayIp);
-                    networkCtrl.peerIpToPortNum.put(underlayIp, portNum);
-                    networkCtrl.tunnelPortNums.add(portNum);
+                    // The new port id in portLocMap should have resulted
+                    // in a call to to the mock ovsdb to open a gre port.
+                    phyPort.setName(networkCtrl.makeGREPortName(underlayIp));
+                    GrePort expectGrePort = new GrePort(Long
+                            .toString(datapathId), phyPort.getName(), Net
+                            .convertIntAddressToString(underlayIp));
+                    Assert.assertEquals(expectGrePort, ovsdb.addedGrePorts
+                            .get(ovsdb.addedGrePorts.size() - 1));
                     // Manually add the remote port's route
                     rTable.addRoute(rt);
                 }
+                networkCtrl.onPortStatus(phyPort,
+                        OFPortStatus.OFPortReason.OFPPR_ADD);
             }
         }
         // Now add the logical links between router 0 and 1.
@@ -242,8 +253,8 @@ public class TestNetworkController {
         // Manually add this route since it no local controller owns it.
         rTables.get(2).addRoute(rt);
 
-        // Finally, instead of giving router0 an uplink. Add a route that
-        // drops anything that isn't going to router0's local or logical ports.
+        // For now, don't add an uplink. Instead add a route that drops anything
+        // in 10.0.0.0/8 that isn't going to router0's local or logical ports.
         rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2,
                 null, null);
         routerDir.addRoute(routerIds.get(0), rt);
@@ -268,7 +279,7 @@ public class TestNetworkController {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.
         byte[] payload = { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPort = phyPorts.get(0);
+        OFPhysicalPort phyPort = phyPorts.get(0).get(0);
         Ethernet eth = TestRouter.makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), phyPort
                 .getHardwareAddress(), 0x0a000005, 0x0a040005, (short) 101,
@@ -292,7 +303,7 @@ public class TestNetworkController {
         Ethernet eth = TestRouter.makeArpRequest(Ethernet
                 .toMACAddress("02:aa:bb:aa:bb:0c"), 0x01234567, 0x76543210);
         byte[] data = eth.serialize();
-        OFPhysicalPort phyPort = phyPorts.get(0);
+        OFPhysicalPort phyPort = phyPorts.get(0).get(0);
         networkCtrl
                 .onPacketIn(1001, data.length, phyPort.getPortNumber(), data);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
@@ -315,7 +326,7 @@ public class TestNetworkController {
         // IPv6 class in com.midokura.midolman.packets.
         Data payload = new Data();
         payload.deserialize(new byte[100], 0, 100);
-        OFPhysicalPort phyPort = phyPorts.get(0);
+        OFPhysicalPort phyPort = phyPorts.get(0).get(0);
         Ethernet eth = new Ethernet();
         eth.setSourceMACAddress("02:ab:cd:ef:01:23");
         eth.setDestinationMACAddress(phyPort.getHardwareAddress());
@@ -338,7 +349,7 @@ public class TestNetworkController {
         // Send a packet to router0's first materialized port to a destination
         // that has no route.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPort = phyPorts.get(0);
+        OFPhysicalPort phyPort = phyPorts.get(0).get(0);
         byte[] mac = Ethernet.toMACAddress("02:00:11:22:00:01");
         Ethernet eth = TestRouter.makeUDP(mac, phyPort.getHardwareAddress(),
                 0x0a000005, 0x0b000005, (short) 101, (short) 212, payload);
@@ -374,7 +385,7 @@ public class TestNetworkController {
         // Send a packet to router1's first materialized port to a destination
         // that will be rejected (in 10.1.0.0/16, not in 10.1.<0 or 1>.0/24).
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPort = phyPorts.get(1);
+        OFPhysicalPort phyPort = phyPorts.get(1).get(0);
         byte[] mac = Ethernet.toMACAddress("02:00:11:22:00:01");
         Ethernet eth = TestRouter.makeUDP(mac, phyPort.getHardwareAddress(),
                 0x0a010005, 0x0a010305, (short) 101, (short) 212, payload);
@@ -408,8 +419,8 @@ public class TestNetworkController {
         // Send a packet to router1's first port to an address on router2's
         // first port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPortIn = phyPorts.get(1);
-        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         Ethernet eth = TestRouter.makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), phyPortIn
                 .getHardwareAddress(), 0x0a010005, 0x0a020008, (short) 101,
@@ -475,7 +486,7 @@ public class TestNetworkController {
         // router2's
         // first port. No ARP will be needed this time so the flow gets
         // installed immediately. No additional sent/dropped packets.
-        phyPortIn = phyPorts.get(0);
+        phyPortIn = phyPorts.get(0).get(0);
         eth = TestRouter.makeUDP(Ethernet.toMACAddress("02:44:33:ff:22:01"),
                 phyPortIn.getHardwareAddress(), 0x0a0000d4, 0x0a020008,
                 (short) 101, (short) 212, payload);
@@ -496,7 +507,7 @@ public class TestNetworkController {
         // Send a packet to router2's first port to an address on router2's
         // second port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPortIn = phyPorts.get(2);
+        OFPhysicalPort phyPortIn = phyPorts.get(2).get(0);
         Ethernet eth = TestRouter.makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), phyPortIn
                 .getHardwareAddress(), 0x0a020012, 0x0a020145, (short) 101,
@@ -535,7 +546,7 @@ public class TestNetworkController {
         // Send a packet to router1's first port to an address on router2's
         // second port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd };
-        OFPhysicalPort phyPortIn = phyPorts.get(1);
+        OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
         Ethernet eth = TestRouter.makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), phyPortIn
                 .getHardwareAddress(), 0x0a0100c5, 0x0a0201e4, (short) 101,
@@ -576,7 +587,8 @@ public class TestNetworkController {
         // Send a packet to router1's first port destined to an address on
         // router2's second port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd };
-        OFPhysicalPort phyPortIn = phyPorts.get(1);
+        OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(1);
         byte[] dlSrc = Ethernet.toMACAddress("02:00:11:22:00:01");
         int nwSrc = 0x0a0100c5;
         int nwDst = 0x0a0201e4;
@@ -605,16 +617,14 @@ public class TestNetworkController {
         ofAction = new OFActionDataLayerDestination();
         ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(codedDst);
         actions.add(ofAction);
-        // Router2's second port is reachable via the tunnel OF port number 21.
-        short tunnelNum = 21;
-        ofAction = new OFActionOutput(tunnelNum, (short) 0);
+        ofAction = new OFActionOutput(phyPortOut.getPortNumber(), (short) 0);
         actions.add(ofAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 22333, true, actions);
 
         // Now bring the tunnel down.
-        int peerIp = portLocMap.get(PortDirectory.intTo32BitUUID(tunnelNum));
-        networkCtrl.peerIpToPortNum.remove(peerIp);
+        networkCtrl.onPortStatus(phyPortOut,
+                OFPortStatus.OFPortReason.OFPPR_DELETE);
         // Send the packet again.
         networkCtrl.onPacketIn(22111, data.length, phyPortIn.getPortNumber(),
                 data);
@@ -671,7 +681,7 @@ public class TestNetworkController {
         OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(0);
+        OFPhysicalPort phyPortOut = phyPorts.get(0).get(0);
         byte[] arpData = TestRouter.makeArpRequest(
                 phyPortOut.getHardwareAddress(), 0x0a000001, nwDst).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
@@ -722,8 +732,8 @@ public class TestNetworkController {
         int nwSrc = 0x0a020109;
         int nwDst = 0x0a00010d;
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        eth = TestRouter.makeUDP(dlSrc, dlDst, nwSrc, nwDst,
-                (short) 2345, (short) 1221, payload);
+        eth = TestRouter.makeUDP(dlSrc, dlDst, nwSrc, nwDst, (short) 2345,
+                (short) 1221, payload);
         Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
         Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
                 .intTo32BitUUID(dstPort)));
@@ -768,7 +778,7 @@ public class TestNetworkController {
         eth.setDestinationMACAddress(dlDst);
         Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
                 .intTo32BitUUID(dstPort)));
-        origIpPkt.setFragmentOffset((short)3);
+        origIpPkt.setFragmentOffset((short) 3);
         // Won't trigger ICMP regardless of the output port id.
         Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
         Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
@@ -776,7 +786,7 @@ public class TestNetworkController {
 
         // Change the fragment offset back to zero. Then make and ICMP error in
         // response to the original UDP.
-        origIpPkt.setFragmentOffset((short)0);
+        origIpPkt.setFragmentOffset((short) 0);
         Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
                 .intTo32BitUUID(dstPort)));
         ICMP icmp = new ICMP();
@@ -825,7 +835,7 @@ public class TestNetworkController {
         OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         byte[] arpData = TestRouter.makeArpRequest(
                 phyPortOut.getHardwareAddress(), 0x0a020001, 0x0a020011)
                 .serialize();
@@ -923,7 +933,7 @@ public class TestNetworkController {
         OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         byte[] arpData = TestRouter.makeArpRequest(
                 phyPortOut.getHardwareAddress(), 0x0a020001, 0x0a020011)
                 .serialize();
@@ -1005,7 +1015,7 @@ public class TestNetworkController {
         OFAction ofAction = new OFActionOutput(outPort, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         byte[] arpData = TestRouter.makeArpRequest(
                 phyPortOut.getHardwareAddress(), 0x0a020001, dstNwAddr)
                 .serialize();
@@ -1050,8 +1060,8 @@ public class TestNetworkController {
         // Send a packet to router1's first port to an address on router2's
         // first port. Note that we traverse 3 routers.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPortIn = phyPorts.get(1);
-        OFPhysicalPort phyPortOut = phyPorts.get(2);
+        OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         byte[] mac = Ethernet.toMACAddress("02:00:11:22:00:01");
         Ethernet eth = TestRouter.makeUDP(mac, phyPortIn.getHardwareAddress(),
                 0x0a010005, 0x0a020008, (short) 101, (short) 212, payload);
@@ -1141,13 +1151,12 @@ public class TestNetworkController {
                 0xc0a80004, 30, null);
         portDir.addPort(uplinkId, portConfig);
         ovsdb.setPortExternalId(datapathId, 897, "midonet", uplinkId.toString());
-        OFPhysicalPort phyPort = new OFPhysicalPort();
-        phyPort.setPortNumber((short) 897);
-        phyPort.setHardwareAddress(new byte[] { (byte) 0x02, (byte) 0xad,
+        uplinkPhyPort = new OFPhysicalPort();
+        uplinkPhyPort.setPortNumber((short) 897);
+        uplinkPhyPort.setName("uplinkPort");
+        uplinkPhyPort.setHardwareAddress(new byte[] { (byte) 0x02, (byte) 0xad,
                 (byte) 0xee, (byte) 0xda, (byte) 0xde, (byte) 0xed });
-        networkCtrl.onPortStatusTEMP(phyPort,
-                OFPortStatus.OFPortReason.OFPPR_ADD);
-        phyPorts.add(phyPort);
+        networkCtrl.onPortStatus(uplinkPhyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
     }
 
     @Test
@@ -1189,16 +1198,15 @@ public class TestNetworkController {
 
         // Now send a packet into the uplink directed to the natted addr/port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPortIn = phyPorts.get(phyPorts.size() - 1);
-        OFPhysicalPort phyPortOut = phyPorts.get(1);
+        OFPhysicalPort phyPortOut = phyPorts.get(1).get(0);
         int extNwAddr = 0xd2000004; // addr of original sender.
         short extTpPort = 3427; // port of original sender.
         byte[] extDlAddr = Ethernet.toMACAddress("02:aa:bb:cc:dd:01");
-        Ethernet eth = TestRouter.makeUDP(extDlAddr, phyPortIn
+        Ethernet eth = TestRouter.makeUDP(extDlAddr, uplinkPhyPort
                 .getHardwareAddress(), extNwAddr, natPublicNwAddr, extTpPort,
                 natPublicTpPort, payload);
         byte[] data = eth.serialize();
-        networkCtrl.onPacketIn(12121, data.length, phyPortIn.getPortNumber(),
+        networkCtrl.onPacketIn(12121, data.length, uplinkPhyPort.getPortNumber(),
                 data);
         // The router will have to ARP, so no flows installed yet, but one
         // unbuffered packet should have been emitted.
@@ -1228,7 +1236,7 @@ public class TestNetworkController {
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -1263,10 +1271,10 @@ public class TestNetworkController {
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         pkt = controllerStub.sentPackets.get(1);
         Assert.assertEquals(1, pkt.actions.size());
-        ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
+        ofAction = new OFActionOutput(uplinkPhyPort.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        arpData = TestRouter.makeArpRequest(phyPortIn.getHardwareAddress(),
+        arpData = TestRouter.makeArpRequest(uplinkPhyPort.getHardwareAddress(),
                 uplinkPortAddr, uplinkGatewayAddr).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
@@ -1275,10 +1283,10 @@ public class TestNetworkController {
         // there should be no additional packets in the sent/dropped queues.
         byte[] uplinkGatewayMac = Ethernet.toMACAddress("02:dd:55:66:dd:01");
         arpData = TestRouter.makeArpReply(uplinkGatewayMac,
-                phyPortIn.getHardwareAddress(), uplinkGatewayAddr,
+                uplinkPhyPort.getHardwareAddress(), uplinkGatewayAddr,
                 uplinkPortAddr).serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
-                phyPortIn.getPortNumber(), arpData);
+                uplinkPhyPort.getPortNumber(), arpData);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
@@ -1288,7 +1296,7 @@ public class TestNetworkController {
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortIn
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
                 .getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
@@ -1360,23 +1368,22 @@ public class TestNetworkController {
         // This packet will be dropped since it won't find any reverse snat
         // mapping.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        OFPhysicalPort phyPortUplink = phyPorts.get(phyPorts.size() - 1);
-        OFPhysicalPort phyPortRtr2 = phyPorts.get(2); // 0x0a020000/24
+        OFPhysicalPort phyPortRtr2 = phyPorts.get(2).get(0); // 0x0a020000/24
         int extNwAddr = 0xd2000004; // addr of a host outside the network.
         short extTpPort = 3427; // port of host outside the network.
         byte[] uplinkGatewayMac = Ethernet.toMACAddress("02:dd:55:66:dd:01");
-        Ethernet eth = TestRouter.makeUDP(uplinkGatewayMac, phyPortUplink
+        Ethernet eth = TestRouter.makeUDP(uplinkGatewayMac, uplinkPhyPort
                 .getHardwareAddress(), extNwAddr, natPublicNwAddr, extTpPort,
                 (short) 45000, payload);
         byte[] data = eth.serialize();
-        networkCtrl.onPacketIn(12121, data.length, phyPortUplink
+        networkCtrl.onPacketIn(12121, data.length, uplinkPhyPort
                 .getPortNumber(), data);
         // Look for the drop flow.
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortUplink.getPortNumber());
+        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 12121, true, actions);
@@ -1397,12 +1404,12 @@ public class TestNetworkController {
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
         Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(phyPortUplink.getPortNumber(),
+        OFAction ofAction = new OFActionOutput(uplinkPhyPort.getPortNumber(),
                 (short) 0);
         Assert.assertEquals(ofAction, pkt.actions.get(0));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         byte[] arpData = TestRouter.makeArpRequest(
-                phyPortUplink.getHardwareAddress(), uplinkPortAddr,
+                uplinkPhyPort.getHardwareAddress(), uplinkPortAddr,
                 uplinkGatewayAddr).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
@@ -1410,10 +1417,10 @@ public class TestNetworkController {
         // and since the original packet and the ARP reply are both unbuffered,
         // there should be no additional packets in the sent/dropped queues.
         arpData = TestRouter.makeArpReply(uplinkGatewayMac,
-                phyPortUplink.getHardwareAddress(), uplinkGatewayAddr,
+                uplinkPhyPort.getHardwareAddress(), uplinkGatewayAddr,
                 uplinkPortAddr).serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
-                phyPortUplink.getPortNumber(), arpData);
+                uplinkPhyPort.getPortNumber(), arpData);
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
@@ -1422,7 +1429,7 @@ public class TestNetworkController {
         actions.clear();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortUplink
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
                 .getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
@@ -1447,11 +1454,11 @@ public class TestNetworkController {
                 13131, true, actions);
 
         // Now create a reply packet from the external addr/port.
-        eth = TestRouter.makeUDP(uplinkGatewayMac, phyPortUplink
+        eth = TestRouter.makeUDP(uplinkGatewayMac, uplinkPhyPort
                 .getHardwareAddress(), extNwAddr, natPublicNwAddr, extTpPort,
                 natPublicTpPort, payload);
         data = eth.serialize();
-        networkCtrl.onPacketIn(14141, data.length, phyPortUplink
+        networkCtrl.onPacketIn(14141, data.length, uplinkPhyPort
                 .getPortNumber(), data);
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
@@ -1479,7 +1486,7 @@ public class TestNetworkController {
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(3, controllerStub.addedFlows.size());
         match = new MidoMatch();
-        match.loadFromPacket(data, phyPortUplink.getPortNumber());
+        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();

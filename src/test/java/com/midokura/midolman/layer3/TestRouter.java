@@ -98,7 +98,7 @@ public class TestRouter {
         rTable = new ReplicatedRoutingTable(rtrId, routerDir
                 .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
         reactor = new MockReactor();
-        rtr = new Router(rtrId, ruleEngine, rTable, portDir, reactor);
+        rtr = new Router(rtrId, ruleEngine, rTable, reactor);
         controllerStub = new MockControllerStub();
 
         // Add a route directly to the router.

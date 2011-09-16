@@ -40,6 +40,7 @@ public abstract class AbstractController implements Controller {
 
     // Tunnel management data structures
     protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
+    protected HashMap<InetAddress, Integer> peerIpToTunnelPortNum;
 
     protected PortToIntNwAddrMap.Watcher listener;
 
@@ -81,6 +82,7 @@ public abstract class AbstractController implements Controller {
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
+        peerIpToTunnelPortNum = new HashMap<InetAddress, Integer>();
         listener = new PortLocMapListener(this);
         if (portLocMap != null)
             portLocMap.addWatcher(listener);
@@ -112,6 +114,7 @@ public abstract class AbstractController implements Controller {
         portNumToUuid.clear();
         portUuidToNumberMap.clear();
         tunnelPortNumToPeerIp.clear();
+        peerIpToTunnelPortNum.clear();
     }
 
     @Override
@@ -124,11 +127,12 @@ public abstract class AbstractController implements Controller {
             portNumToUuid.put(new Integer(portNum), uuid);
             portUuidToNumberMap.put(uuid, new Integer(portNum));
         }
-
+        // TODO(pino, jlm): should this be an else-if?
         if (isGREPortOfKey(portDesc.getName())) {
             InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
             // TODO: Error out if already tunneled to this peer.
             tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
+            peerIpToTunnelPortNum.put(peerIp, new Integer(portNum));
         }
 
         addPort(portDesc, portNum);
@@ -146,7 +150,8 @@ public abstract class AbstractController implements Controller {
             portNumToUuid.remove(portNum);
             portUuidToNumberMap.remove(
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
-            tunnelPortNumToPeerIp.remove(portNum);
+            InetAddress peerIp = tunnelPortNumToPeerIp.remove(portNum);
+            peerIpToTunnelPortNum.remove(peerIp);
         } else {
             modifyPort(portDesc);
             UUID uuid = getPortUuidFromOvsdb(datapathId, 
@@ -161,8 +166,11 @@ public abstract class AbstractController implements Controller {
             if (isGREPortOfKey(portDesc.getName())) {
                 InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
                 tunnelPortNumToPeerIp.put(portNum, peerIp);
+                peerIpToTunnelPortNum.put(peerIp, portNum);
+                
             } else {
-                tunnelPortNumToPeerIp.remove(portNum);
+                InetAddress peerIp = tunnelPortNumToPeerIp.remove(portNum);
+                peerIpToTunnelPortNum.remove(peerIp);
             }
         }
     }
@@ -191,6 +199,16 @@ public abstract class AbstractController implements Controller {
         return portUuidToNumberMap.get(port_uuid);
     }
 
+    /* Maps a remote port UUID to the number of the tunnel port where it
+     * can be reached, if any. */
+    public Integer portUuidToTunnelPortNumber(UUID port_uuid) {
+        Integer intAddress = portLocMap.get(port_uuid);
+        if(intAddress == null)
+            return null;
+        InetAddress peerIp = Net.convertIntToInetAddress(intAddress);
+        return peerIpToTunnelPortNum.get(peerIp);
+    }
+
     protected InetAddress peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
@@ -209,20 +227,10 @@ public abstract class AbstractController implements Controller {
     protected InetAddress peerIpOfGrePortName(String portName) {
         String hexAddress = portName.substring(7, 15);
         int intAddress = new BigInteger(hexAddress, 16).intValue();
-        byte[] byteAddress = { (byte) (intAddress >> 24),
-                               (byte) ((intAddress >> 16)&0xff),
-                               (byte) ((intAddress >> 8)&0xff),
-                               (byte) (intAddress&0xff)
-                             };
-        try {
-            return InetAddress.getByAddress(byteAddress);
-        } catch (UnknownHostException e) {
-            throw new RuntimeException("getByAddress on a raw address threw " +
-                                       "an UnknownHostException", e);
-        }
+        return Net.convertIntToInetAddress(intAddress);
     }
 
-    protected String makeGREPortName(int address) {
+    public String makeGREPortName(int address) {
         return String.format("tn%05x%08x", greKey, address);
     }
 

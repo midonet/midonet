@@ -148,7 +148,7 @@ public class Network {
                 routerDir.getRoutingTableDirectory(routerId), 
                 CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
-        rtr = new Router(routerId, ruleEngine, table, portDir, reactor);
+        rtr = new Router(routerId, ruleEngine, table, reactor);
         routers.put(routerId, rtr);
         return rtr;
     }
