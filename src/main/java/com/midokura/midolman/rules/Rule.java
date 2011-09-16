@@ -7,20 +7,24 @@ import com.midokura.midolman.rules.RuleResult.Action;
 public abstract class Rule {
     private Condition condition;
     public Action action;
-    public UUID chainId; 
-    
+    public UUID chainId;
+    public int position;
+
     public Rule(Condition condition, Action action) {
-        this(condition, action, null);
+        this(condition, action, null, -1);
     }
-    
-    public Rule(Condition condition, Action action, UUID chainId) {
+
+    public Rule(Condition condition, Action action, UUID chainId, int position) {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
+        this.position = position;
     }
-	
-	// Default constructor for the Jackson deserialization.
-	public Rule() { super(); }
+
+    // Default constructor for the Jackson deserialization.
+    public Rule() {
+        super();
+    }
 
     public void process(UUID inPortId, UUID outPortId, RuleResult res) {
         if (condition.matches(inPortId, outPortId, res.match)) {
@@ -31,7 +35,7 @@ public abstract class Rule {
     public Condition getCondition() {
         return condition;
     }
-    
+
     // Call process instead - it calls 'apply' if appropriate.
     public abstract void apply(UUID inPortId, UUID outPortId, RuleResult res);
 

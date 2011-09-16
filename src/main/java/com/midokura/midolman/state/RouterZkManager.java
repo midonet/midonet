@@ -7,9 +7,7 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -128,8 +126,8 @@ public class RouterZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         // Get rhains delete ops.
         ChainZkManager chainZk = new ChainZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, ChainConfig>> chains = chainZk.list(id);
-        for (ZkNodeEntry<UUID, ChainConfig> entry : chains) {
+        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZk.list(id);
+        for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
             ops.addAll(chainZk.getDeleteOps(entry.key, id));
         }
         // Get routes delete ops.

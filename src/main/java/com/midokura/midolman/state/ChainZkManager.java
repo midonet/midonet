@@ -20,7 +20,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -127,13 +126,13 @@ public class ChainZkManager extends ZkManager {
     }
 
     public List<Op> getDeleteOps(UUID id, UUID routerId)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
+            throws KeeperException, InterruptedException,
+            ClassNotFoundException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZk = new RuleZkManager(zk, basePath);
-        HashMap<UUID, Rule> rules = ruleZk.list(id);
-        for (Map.Entry<UUID, Rule> entry : rules.entrySet()) {
-            ops.addAll(ruleZk.getDeleteOps(entry.getKey(), id));
+        List<ZkNodeEntry<UUID, Rule>> entries = ruleZk.list(id);
+        for (ZkNodeEntry<UUID, Rule> entry : entries) {
+            ops.addAll(ruleZk.getDeleteOps(entry.key, id));
         }
         ops.add(Op.delete(pathManager.getRouterChainPath(routerId, id), -1));
         ops.add(Op.delete(pathManager.getChainPath(id), -1));
@@ -147,7 +146,8 @@ public class ChainZkManager extends ZkManager {
     }
 
     public void delete(UUID id, UUID routerId) throws InterruptedException,
-            KeeperException, IOException, ClassNotFoundException {
+            KeeperException, ClassNotFoundException,
+            ZkStateSerializationException {
         this.zk.multi(getDeleteOps(id, routerId));
     }
 }

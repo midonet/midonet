@@ -18,6 +18,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
@@ -144,7 +145,7 @@ public class PortZkManager extends ZkManager {
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
-        if (entry.value instanceof MaterializedRouterPortConfig) {
+        if (entry.value instanceof RouterPortConfig) {
             RouteZkManager routeZk = new RouteZkManager(zk, basePath);
             List<ZkNodeEntry<UUID, Route>> routes = routeZk
                     .listPortRoutes(entry.key);
@@ -155,6 +156,18 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
                 entry.key), -1));
         ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+
+        if (entry.value instanceof LogicalRouterPortConfig) {
+            UUID peerPortId = ((LogicalRouterPortConfig) entry.value).peer_uuid;
+            // For logical router ports, we need to delete the peer Port.
+            if (peerPortId != null) {
+                ZkNodeEntry<UUID, PortConfig> peerPortEntry = get(peerPortId);
+                if (peerPortEntry != null) {
+                    ops.addAll(prepareRouterPortDelete(peerPortEntry));
+                }
+            }
+        }
+
         return ops;
     }
 
