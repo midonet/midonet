@@ -16,6 +16,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
@@ -71,6 +73,19 @@ public class BgpZkManager extends ZkManager {
         super(zk, basePath);
     }
 
+    private class BgpWatcher implements Watcher {
+        Runnable watcher;
+
+        BgpWatcher(Runnable watch) {
+            watcher = watch;
+        }
+
+        @Override
+        public void process(WatchedEvent arg0) {
+            watcher.run();
+        }
+    }
+
     public List<Op> prepareBgpCreate(ZkNodeEntry<UUID, BgpConfig> bgpNode)
             throws ZkStateSerializationException, KeeperException,
             InterruptedException {
@@ -102,9 +117,12 @@ public class BgpZkManager extends ZkManager {
         return id;
     }
 
-    public ZkNodeEntry<UUID, BgpConfig> get(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getBgpPath(id), null, null);
+    public ZkNodeEntry<UUID, BgpConfig> get(UUID id, Runnable watcher)
+        throws KeeperException, InterruptedException,
+        ZkStateSerializationException {
+        byte[] data = zk.getData(
+            pathManager.getBgpPath(id),
+            (watcher != null)? new BgpWatcher(watcher) : null, null);
         BgpConfig config = null;
         try {
             config = deserialize(data, BgpConfig.class);
@@ -116,18 +134,31 @@ public class BgpZkManager extends ZkManager {
         return new ZkNodeEntry<UUID, BgpConfig>(id, config);
     }
 
-    public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId)
+    public ZkNodeEntry<UUID, BgpConfig> get(UUID id) throws KeeperException,
+        InterruptedException, ZkStateSerializationException {
+        return get(id, null);
+    }
+
+    public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId,
+                                                   Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, BgpConfig>> result =
             new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
         List<String> bgpIds = zk.getChildren(
-            pathManager.getPortBgpPath(portId), null);
+            pathManager.getPortBgpPath(portId),
+            (watcher != null)? new BgpWatcher(watcher) : null);
         for (String bgpId : bgpIds) {
             // For now, get each one.
             result.add(get(UUID.fromString(bgpId)));
         }
         return result;
+    }
+
+    public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId)
+        throws KeeperException, InterruptedException,
+        ZkStateSerializationException {
+        return list(portId, null);
     }
 
     public void update(ZkNodeEntry<UUID, BgpConfig> entry)
