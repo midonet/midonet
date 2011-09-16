@@ -109,6 +109,14 @@ public class TestBridgeController {
 	MockDirectory zkDir = new MockDirectory();
 	zkDir.add(midoConfig.getString("zookeeper_root_key", "zk_root"), null,
 		  CreateMode.PERSISTENT_SEQUENTIAL);
+	zkDir.add(midoConfig.getString("bridges_root_key", "bridges"), null,
+		  CreateMode.PERSISTENT_SEQUENTIAL);
+	zkDir.add(midoConfig.getString("mac_port_root_key", "mac_port"), null,
+		  CreateMode.PERSISTENT_SEQUENTIAL);
+	zkDir.add(midoConfig.getString("port_locations_root_key", "port_locs"),
+                  null, CreateMode.PERSISTENT_SEQUENTIAL);
+	zkDir.add(midoConfig.getString("ports_root_key", "ports"), null,
+		  CreateMode.PERSISTENT_SEQUENTIAL);
 
 	portLocDir = zkDir.getSubDirectory(
 		midoConfig.getString("port_locations_root_key", "port_locs"));
