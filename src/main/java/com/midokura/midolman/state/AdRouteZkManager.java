@@ -16,6 +16,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
@@ -49,6 +51,19 @@ public class AdRouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
+    private class AdRouteWatcher implements Watcher {
+        Runnable watcher;
+
+        AdRouteWatcher(Runnable watch) {
+            watcher = watch;
+        }
+
+        @Override
+        public void process(WatchedEvent arg0) {
+            watcher.run();
+        }
+    }
+
     public List<Op> prepareAdRouteCreate(
         ZkNodeEntry<UUID, AdRouteConfig> adRouteNode)
             throws ZkStateSerializationException, KeeperException,
@@ -80,9 +95,12 @@ public class AdRouteZkManager extends ZkManager {
         return id;
     }
 
-    public ZkNodeEntry<UUID, AdRouteConfig> get(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getAdRoutePath(id), null, null);
+    public ZkNodeEntry<UUID, AdRouteConfig> get(UUID id, Runnable watcher)
+        throws KeeperException, InterruptedException,
+        ZkStateSerializationException {
+        byte[] data = zk.getData(
+            pathManager.getAdRoutePath(id),
+            (watcher != null)? new AdRouteWatcher(watcher) : null, null);
         AdRouteConfig config = null;
         try {
             config = deserialize(data, AdRouteConfig.class);
@@ -94,18 +112,31 @@ public class AdRouteZkManager extends ZkManager {
         return new ZkNodeEntry<UUID, AdRouteConfig>(id, config);
     }
 
-    public List<ZkNodeEntry<UUID, AdRouteConfig>> list(UUID bgpId)
+    public ZkNodeEntry<UUID, AdRouteConfig> get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return this.get(id, null);
+    }
+
+    public List<ZkNodeEntry<UUID, AdRouteConfig>> list(UUID bgpId,
+                                                       Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, AdRouteConfig>> result =
             new ArrayList<ZkNodeEntry<UUID, AdRouteConfig>>();
         List<String> adRouteIds = zk.getChildren(
-            pathManager.getBgpAdRoutesPath(bgpId), null);
+            pathManager.getBgpAdRoutesPath(bgpId),
+            (watcher != null)? new AdRouteWatcher(watcher) : null);
         for (String adRouteId : adRouteIds) {
             // For now, get each one.
             result.add(get(UUID.fromString(adRouteId)));
         }
         return result;
+    }
+
+    public List<ZkNodeEntry<UUID, AdRouteConfig>> list(UUID bgpId)
+        throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        return this.list(bgpId, null);
     }
 
     public void update(ZkNodeEntry<UUID, AdRouteConfig> entry)
