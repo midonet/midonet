@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterChainResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
 
@@ -61,6 +62,14 @@ public class RouterResource extends RestResource {
         return new RouterRouteResource(zookeeperConn, id);
     }
 
+    /**
+     * Chain resource locator for routers
+     */
+    @Path("/{id}/chains")
+    public RouterChainResource getChainResource(@PathParam("id") UUID id) {
+        return new RouterChainResource(zookeeperConn, id);
+    }
+    
     /**
      * Get the Router with the given ID.
      * 

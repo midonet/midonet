@@ -6,20 +6,15 @@
 package com.midokura.midolman.mgmt.data.dao;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
  * Data access class for chains.
