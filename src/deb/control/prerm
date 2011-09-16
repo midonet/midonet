@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Midokura
+
+/etc/init.d/midolman stop 2>/dev/null >/dev/null
