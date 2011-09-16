@@ -7,6 +7,7 @@ package com.midokura.midolman;
 import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
@@ -38,6 +39,7 @@ public class ControllerTrampoline implements Controller {
 
     private ControllerStub controllerStub;
 
+    /* directory is the "midonet root", not zkConnection.getRootDirectory() */
     public ControllerTrampoline(HierarchicalConfiguration config,
 			        OpenvSwitchDatabaseConnection ovsdb,
                                 Directory directory) throws KeeperException {
@@ -45,13 +47,15 @@ public class ControllerTrampoline implements Controller {
         this.ovsdb = ovsdb;
         this.directory = directory;
         
-        String portRoot = config.configurationAt("midolman").getString("ports_root_key", "ports");
+        SubnodeConfiguration midoConfig = config.configurationAt("midolman");
+
+        String portRoot = midoConfig.getString("ports_subdirectory", "ports");
         this.portDirectory = new PortDirectory(directory.getSubDirectory(portRoot));
         
-        String bridgeRoot = config.configurationAt("midolman").getString("bridges_root_key", "bridges");
+        String bridgeRoot = midoConfig.getString("bridges_subdirectory", "bridges");
         this.bridgeDirectory = new DeviceToGreKeyMap(directory.getSubDirectory(bridgeRoot));
         
-        String routerRoot = config.configurationAt("midolman").getString("routers_root_key", "routers");
+        String routerRoot = midoConfig.getString("routers_subdirectory", "routers");
         this.routerDirectory = new RouterDirectory(directory.getSubDirectory(routerRoot));
     }
 

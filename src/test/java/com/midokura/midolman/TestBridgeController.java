@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -56,7 +57,8 @@ public class TestBridgeController {
       };
 
     @Before
-    public void setUp() throws UnknownHostException, KeeperException {
+    public void setUp() throws UnknownHostException, KeeperException,
+			       InterruptedException {
 	ovsdb = new MockOpenvSwitchDatabaseConnection();
 	publicIp = InetAddress.getByAddress(
 		       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
@@ -87,8 +89,6 @@ public class TestBridgeController {
 	// 	TODO: Register ports into datapath in ovsdb.
 
 	// Configuration for the Manager.
-	HierarchicalConfiguration hierarchicalConfiguration = 
-		new HierarchicalConfiguration();
 	String configString = 
 	    "[zookeeper]\n" +
 	    "midolman_root: /midolman\n" +
@@ -102,20 +102,26 @@ public class TestBridgeController {
 	    "[openvswitch]\n" +
 	    "openvswitchdb_url: some://ovsdb.url/\n";
 	// TODO: Populate hierarchicalConfiguration with configString.
+	//	 To do this, we write it to a File, then pass that as the
+	//	 constructor's argument.
+	HierarchicalConfiguration hierarchicalConfiguration = 
+		new HierarchicalINIConfiguration(/* file */);
 	SubnodeConfiguration midoConfig = 
             hierarchicalConfiguration.configurationAt("midolman");
 
 	// Set up the (mock) ZooKeeper directories.
 	MockDirectory zkDir = new MockDirectory();
-	zkDir.add(midoConfig.getString("zookeeper_root_key", "zk_root"), null,
+	String midoDirName = zkDir.add(
+	    midoConfig.getString("midonet_root_key", "/zk_root"), null,
+	    CreateMode.PERSISTENT_SEQUENTIAL);
+	Directory midoDir = zkDir.getSubDirectory(midoDirName);
+	midoDir.add(midoConfig.getString("bridges_subdirectory", "bridges"), null,
 		  CreateMode.PERSISTENT_SEQUENTIAL);
-	zkDir.add(midoConfig.getString("bridges_root_key", "bridges"), null,
+	midoDir.add(midoConfig.getString("mac_port_subdirectory", "mac_port"), null,
 		  CreateMode.PERSISTENT_SEQUENTIAL);
-	zkDir.add(midoConfig.getString("mac_port_root_key", "mac_port"), null,
-		  CreateMode.PERSISTENT_SEQUENTIAL);
-	zkDir.add(midoConfig.getString("port_locations_root_key", "port_locs"),
+	midoDir.add(midoConfig.getString("port_locations_subdirectory", "port_locs"),
                   null, CreateMode.PERSISTENT_SEQUENTIAL);
-	zkDir.add(midoConfig.getString("ports_root_key", "ports"), null,
+	midoDir.add(midoConfig.getString("ports_subdirectory", "ports"), null,
 		  CreateMode.PERSISTENT_SEQUENTIAL);
 
 	portLocDir = zkDir.getSubDirectory(
@@ -129,7 +135,7 @@ public class TestBridgeController {
 		hierarchicalConfiguration, ovsdb, zkDir);
 
 	// 	TODO: Create ports.
-	// 	TODO: Create mockProtocol.
+	// 	TODO: Create mockProtocol / mockControllerStub.
 	// 	TODO: Create packets, flows.
 
 	// TODO: Manager.add_bridge()
