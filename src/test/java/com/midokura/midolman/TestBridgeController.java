@@ -6,11 +6,17 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+
 import com.midokura.midolman.BridgeController;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 
 
@@ -23,7 +29,7 @@ public class TestBridgeController {
 
     private BridgeController controller;
 
-    private MockDirectory portLocDir, macPortDir;
+    private Directory portLocDir, macPortDir;
     private PortToIntNwAddrMap portLocMap;
     private MacPortMap macPortMap;
     private MockOpenvSwitchDatabaseConnection ovsdb;
@@ -50,20 +56,70 @@ public class TestBridgeController {
       };
 
     @Before
-    public void setUp() throws UnknownHostException {
-	portLocDir = new MockDirectory();
-	portLocMap = new PortToIntNwAddrMap(portLocDir);
-	macPortDir = new MockDirectory();
-	macPortMap = new MacPortMap(macPortDir);
+    public void setUp() throws UnknownHostException, KeeperException {
 	ovsdb = new MockOpenvSwitchDatabaseConnection();
 	publicIp = InetAddress.getByAddress(
 		       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
 
 	// 'util_setup_controller_test':
-	// 	TODO: Create portUuids.
+	// Create portUuids.
+/* Python code:
+  self.port_uuids = [port.short_uuid_to_port_uuid(0x00fb7c6d62765180),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765181),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765182),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765183),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765184),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765185),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765186),
+                     port.short_uuid_to_port_uuid(0x00fb7c6d62765186)]
+*/
+	// (Note that deliberately has 0x00fb7c6d62765186 twice.)
+
+	// Pino said the equiv. of port.short_uuid_to_port_uuid
+	// was in PortDirectory.java, but I don't see it.
+	// Create seven random UUIDs instead.
+	UUID portUuids[] = { UUID.randomUUID(), UUID.randomUUID(),
+	                     UUID.randomUUID(), UUID.randomUUID(),
+	                     UUID.randomUUID(), UUID.randomUUID(),
+	                     UUID.randomUUID(), UUID.randomUUID() };
+	portUuids[7] = portUuids[6];
+
 	// 	TODO: Register ports into datapath in ovsdb.
-	// 	TODO: Create ControllerManager
-	// 	TODO: Create mockMemcacheClient (?)
+
+	// Configuration for the Manager.
+	HierarchicalConfiguration hierarchicalConfiguration = 
+		new HierarchicalConfiguration();
+	String configString = 
+	    "[zookeeper]\n" +
+	    "midolman_root: /midolman\n" +
+	    "[bridge]\n" +
+	    "mac_port_mapping_expire: 40\n" +
+	    "[openflow]\n" +
+	    "flow_expire: 300\n" +
+	    "flow_idle_expire: 60\n" +
+	    "public_ip_address: 192.168.1.50\n" +
+	    "use_flow_wildcards: true\n" +
+	    "[openvswitch]\n" +
+	    "openvswitchdb_url: some://ovsdb.url/\n";
+	// TODO: Populate hierarchicalConfiguration with configString.
+	SubnodeConfiguration midoConfig = 
+            hierarchicalConfiguration.configurationAt("midolman");
+
+	// Set up the (mock) ZooKeeper directories.
+	MockDirectory zkDir = new MockDirectory();
+	zkDir.add(midoConfig.getString("zookeeper_root_key", "zk_root"), null,
+		  CreateMode.PERSISTENT_SEQUENTIAL);
+
+	portLocDir = zkDir.getSubDirectory(
+		midoConfig.getString("port_locations_root_key", "port_locs"));
+	portLocMap = new PortToIntNwAddrMap(portLocDir);
+	macPortDir = zkDir.getSubDirectory(
+		midoConfig.getString("mac_port_root_key", "mac_port"));
+	macPortMap = new MacPortMap(macPortDir);
+	// Create controllerManager.
+	ControllerTrampoline controllerManager = new ControllerTrampoline(
+		hierarchicalConfiguration, ovsdb, zkDir);
+
 	// 	TODO: Create ports.
 	// 	TODO: Create mockProtocol.
 	// 	TODO: Create packets, flows.

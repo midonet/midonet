@@ -7,6 +7,7 @@ package com.midokura.midolman;
 import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -37,7 +38,9 @@ public class ControllerTrampoline implements Controller {
 
     private ControllerStub controllerStub;
 
-    public ControllerTrampoline(HierarchicalConfiguration config, OpenvSwitchDatabaseConnection ovsdb, Directory directory) throws Exception {
+    public ControllerTrampoline(HierarchicalConfiguration config,
+			        OpenvSwitchDatabaseConnection ovsdb,
+                                Directory directory) throws KeeperException {
         this.config = config;
         this.ovsdb = ovsdb;
         this.directory = directory;
