@@ -1,18 +1,11 @@
 package com.midokura.midolman.openflow;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
-
-import com.midokura.midolman.openflow.ConfigHandler;
-import com.midokura.midolman.openflow.Controller;
-import com.midokura.midolman.openflow.ControllerStub;
-import com.midokura.midolman.openflow.TimeoutHandler;
 
 public class MockControllerStub implements ControllerStub {
     public class Packet {
@@ -77,11 +70,6 @@ public class MockControllerStub implements ControllerStub {
     @Override
     public OFFeaturesReply getFeatures() {
         return features;
-    }
-
-    @Override
-    public void getConfigAsync(ConfigHandler configHandler,
-            TimeoutHandler timeoutHandler, long timeoutMillis) {
     }
 
     @Override
