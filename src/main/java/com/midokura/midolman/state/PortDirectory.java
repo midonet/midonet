@@ -55,7 +55,7 @@ public class PortDirectory {
     public static UUID intTo32BitUUID(int id) {
         return new UUID(0, (long) id);
     }
-	
+
     public static abstract class PortConfig {
         private PortConfig(UUID device_id) {
             super();
@@ -102,7 +102,7 @@ public class PortDirectory {
             this.routes = new HashSet<Route>(routes);
             setRoutes(routes);
         }
-		
+
         // Default constructor for the Jackson deserialization.
         public RouterPortConfig() { super(); }
 
@@ -194,7 +194,7 @@ public class PortDirectory {
         this.dir = dir;
     }
 
-	public static byte[] portToBytes(PortConfig port) throws IOException {
+    public static byte[] portToBytes(PortConfig port) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =

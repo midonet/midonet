@@ -21,9 +21,9 @@ public class ForwardNatRule extends NatRule {
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
     }
-	
-	// Default constructor for the Jackson deserialization.
-	public ForwardNatRule() { super(); }
+
+    // Default constructor for the Jackson deserialization.
+    public ForwardNatRule() { super(); }
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
@@ -75,8 +75,8 @@ public class ForwardNatRule extends NatRule {
         return targets;
     }
 
-	// Setter for the JSON serialization.
-	public void setNatTargets(Set<NatTarget> targets) { this.targets = targets; }
+    // Setter for the JSON serialization.
+    public void setNatTargets(Set<NatTarget> targets) { this.targets = targets; }
 
     @Override
     public int hashCode() {

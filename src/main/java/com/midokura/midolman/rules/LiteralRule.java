@@ -13,8 +13,8 @@ public class LiteralRule extends Rule {
                     + "must be one of: ACCEPT, DROP, REJECT or RETURN.");
     }
 
-	// Default constructor for the Jackson deserialization.
-	public LiteralRule() { super(); }
+    // Default constructor for the Jackson deserialization.
+    public LiteralRule() { super(); }
 
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {

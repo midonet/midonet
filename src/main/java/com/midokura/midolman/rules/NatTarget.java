@@ -13,9 +13,9 @@ public class NatTarget {
         this.tpStart = tpStart;
         this.tpEnd = tpEnd;
     }
-	
-	// Default constructor for the Jackson deserialization.
-	public NatTarget() { super(); }
+
+    // Default constructor for the Jackson deserialization.
+    public NatTarget() { super(); }
 
     @Override
     public boolean equals(Object other) {

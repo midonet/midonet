@@ -17,7 +17,7 @@ public class MacPortMap extends ReplicatedMap<byte[], UUID> {
         for (int i=1; i<key.length; i++)
             sb.append(":").append(String.format("%02x", key[0]));
         return sb.toString();
-	// TODO: Test this.
+        // TODO: Test this.
     }
 
     @Override
@@ -27,7 +27,7 @@ public class MacPortMap extends ReplicatedMap<byte[], UUID> {
         for (int i=0; i<parts.length; i++)
             mac[i] = Byte.parseByte(parts[i], 16);
         return mac;
-	// TODO: Test this.
+        // TODO: Test this.
     }
 
     @Override

@@ -175,7 +175,7 @@ public class NetworkController extends AbstractController {
                         cb);
             } else { // devPortOut is null; the egress port is remote.
                 Integer tunPortNum = 
-			    super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
+                            super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
                     log.warn("Could not find location or tunnel port number "
                             + "for Id " + fwdInfo.outPortId.toString());
