@@ -89,8 +89,8 @@ public class TestBridgeController {
 
 	// Configuration for the Manager.
 	String configString = 
-	    "[zookeeper]\n" +
-	    "midolman_root: /midolman\n" +
+	    "[midolman]\n" +
+	    "midonet_root_key: /midolman\n" +
 	    "[bridge]\n" +
 	    "mac_port_mapping_expire: 40\n" +
 	    "[openflow]\n" +
