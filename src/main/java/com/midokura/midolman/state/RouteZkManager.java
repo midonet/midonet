@@ -6,7 +6,6 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,33 +17,20 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 
 /**
- * This class was created to handle multiple ops feature in Zookeeper.
+ * Class to manage the routing ZooKeeper data.
  * 
  * @version 1.6 10 Sept 2011
  * @author Ryu Ishimoto
  */
 public class RouteZkManager extends ZkManager {
 
-    public static class RouteRefConfig implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-        public String path = null;
-
-        public RouteRefConfig() {
-        }
-
-        public RouteRefConfig(String path) {
-            this.path = path;
-        }
-    }
-
     /**
-     * Constructor to set ZooKeeper and basepath.
+     * Initializes a RouteZkManager object with a ZooKeeper client and the root
+     * path of the ZooKeeper directory.
      * 
      * @param zk
      *            ZooKeeper object.
@@ -55,142 +41,218 @@ public class RouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry)
-            throws ZkStateSerializationException, KeeperException,
-            InterruptedException {
-
-        List<Op> ops = new ArrayList<Op>();
-        ZkNodeEntry<UUID, PortConfig> port = null;
-        String path = null;
+    private String getSubDirectoryRoutePath(ZkNodeEntry<UUID, Route> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // Determine whether to add the Route data under routers or ports.
         if (entry.value.nextHop == Route.NextHop.PORT) {
             // Check what kind of port this is.
             PortZkManager portManager = new PortZkManager(zk, pathManager
                     .getBasePath());
-            port = portManager.get(entry.value.nextHopPort);
+            ZkNodeEntry<UUID, PortConfig> port = portManager
+                    .get(entry.value.nextHopPort);
             if (!(port.value instanceof RouterPortConfig)) {
                 // Cannot add route to bridge ports
                 throw new IllegalArgumentException(
                         "Can only add a route to a router");
             }
-            path = pathManager.getPortRoutePath(entry.value.nextHopPort,
+            return pathManager.getPortRoutePath(entry.value.nextHopPort,
                     entry.key);
         } else {
-            path = pathManager.getRouterRoutePath(entry.value.routerId,
+            return pathManager.getRouterRoutePath(entry.value.routerId,
                     entry.key);
         }
+    }
 
+    /**
+     * Constructs a list of ZooKeeper update operations to perform when adding a
+     * new route.
+     * 
+     * @param entry
+     *            ZooKeeper node representing a key-value entry of Route UUID
+     *            and Route object.
+     * @return A list of Op objects to represent the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry)
+            throws ZkStateSerializationException, KeeperException,
+            InterruptedException {
+
+        List<Op> ops = new ArrayList<Op>();
+
+        // Add to root
         try {
-            ops.add(Op.create(path, serialize(entry.value),
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize Route data", e, RouteRefConfig.class);
-        }
-        try {
-            // Add reference to this
             ops.add(Op.create(pathManager.getRoutePath(entry.key),
-                    serialize(new RouteRefConfig(path)), Ids.OPEN_ACL_UNSAFE,
+                    serialize(serialize(entry.value)), Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize RouteRefConfig data", e,
-                    RouteRefConfig.class);
+                    "Could not serialize Route data", e, Route.class);
         }
+
+        // Add under port or router
+        ops.add(Op.create(getSubDirectoryRoutePath(entry), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
 
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new route entry.
+     * 
+     * @param route
+     *            Route object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public UUID create(Route route) throws InterruptedException,
-            KeeperException, IOException, ClassNotFoundException,
-            ZkStateSerializationException {
+            KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, Route> entry = new ZkNodeEntry<UUID, Route>(id, route);
         zk.multi(prepareRouteCreate(entry));
         return id;
     }
 
-    public RouteRefConfig getRouteRefConfig(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getRoutePath(id), null, null);
-        try {
-            return deserialize(data, RouteRefConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize route ref " + id
-                            + " to RouteRefConfig", e, RouteRefConfig.class);
-        }
-    }
-
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a route with the given ID.
+     * 
+     * @param id
+     *            The ID of the route.
+     * @return Route object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public ZkNodeEntry<UUID, Route> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
-        RouteRefConfig routeRef = getRouteRefConfig(id);
-        byte[] routeData = zk.getData(routeRef.path, null, null);
+        return get(id, null);
+    }
+
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a route with the given ID
+     * and sets a watcher on the node.
+     * 
+     * @param id
+     *            The ID of the route.
+     * @param watcher
+     *            The watcher that gets notified when there is a change in the
+     *            node.
+     * @return Route object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public ZkNodeEntry<UUID, Route> get(UUID id, Runnable watcher)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        byte[] routeData = getData(pathManager.getRoutePath(id), watcher);
         Route r = null;
         try {
             r = deserialize(routeData, Route.class);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not deserialize port " + id + " to PortConfig", e,
-                    PortConfig.class);
+                    "Could not deserialize route " + id + " to Route", e,
+                    Route.class);
         }
         return new ZkNodeEntry<UUID, Route>(id, r);
-
     }
 
-    public List<ZkNodeEntry<UUID, Route>> listRouterRoutes(UUID routerId)
-            throws KeeperException, InterruptedException,
+    /**
+     * Gets a list of ZooKeeper router nodes belonging under the router
+     * directory with the given ID.
+     * 
+     * @param routerId
+     *            The ID of the router to find the routes of.
+     * @param watcher
+     *            The watcher to set on the changes to the routes for this
+     *            router.
+     * @return A list of ZooKeeper route nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<ZkNodeEntry<UUID, Route>> listRouterRoutes(UUID routerId,
+            Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
-        List<String> routeIds = zk.getChildren(pathManager
-                .getRouterRoutesPath(routerId), null);
+        List<String> routeIds = getChildren(pathManager
+                .getRouterRoutesPath(routerId), watcher);
         for (String routeId : routeIds) {
-            UUID id = UUID.fromString(routeId);
-            byte[] data = zk.getData(pathManager.getRouterRoutePath(routerId,
-                    id), null, null);
-            try {
-                result.add(new ZkNodeEntry<UUID, Route>(id, deserialize(data,
-                        Route.class)));
-            } catch (IOException e) {
-                throw new ZkStateSerializationException(
-                        "Could not deserialize route " + id + " to Route", e,
-                        Route.class);
-            }
+            result.add(get(UUID.fromString(routeId)));
         }
         return result;
     }
 
-    public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId)
-            throws KeeperException, InterruptedException,
+    /**
+     * Gets a list of ZooKeeper route nodes belonging under the port directory
+     * with the given ID.
+     * 
+     * @param portId
+     *            The ID of the port to find the routes of.
+     * @param watcher
+     *            The watcher to set on the changes to the routes for this port.
+     * @return A list of ZooKeeper route nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId,
+            Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
-        List<String> routeIds = zk.getChildren(pathManager
-                .getPortRoutesPath(portId), null);
+        List<String> routeIds = getChildren(pathManager
+                .getPortRoutesPath(portId), watcher);
         for (String routeId : routeIds) {
-            UUID id = UUID.fromString(routeId);
-            byte[] data = zk.getData(pathManager.getPortRoutePath(portId, id),
-                    null, null);
-            try {
-                result.add(new ZkNodeEntry<UUID, Route>(id, deserialize(data,
-                        Route.class)));
-            } catch (IOException e) {
-                throw new ZkStateSerializationException(
-                        "Could not deserialize route " + id + " to Route", e,
-                        Route.class);
-            }
+            result.add(get(UUID.fromString(routeId)));
         }
         return result;
     }
 
+    /**
+     * Gets a list of ZooKeeper route nodes belonging to a router with the
+     * given ID.
+     * 
+     * @param portId
+     *            The ID of the router to find the routes of.
+     * @return A list of ZooKeeper route nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, Route>> list(UUID routerId)
             throws KeeperException, InterruptedException,
             ClassNotFoundException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, Route>> routes = listRouterRoutes(routerId);
-        List<String> portIds = zk.getChildren(pathManager
+        List<ZkNodeEntry<UUID, Route>> routes = listRouterRoutes(routerId, null);
+        List<String> portIds = getChildren(pathManager
                 .getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
-            // For each MaterializedRouterPort, process it.
+            // For each MaterializedRouterPort, process it. Needs optimization.
             UUID portUUID = UUID.fromString(portId);
-            byte[] data = zk.getData(pathManager.getPortPath(portUUID), null,
-                    null);
+            byte[] data = getData(pathManager.getPortPath(portUUID), null);
             PortConfig port = null;
             try {
                 port = deserialize(data, PortConfig.class);
@@ -203,38 +265,57 @@ public class RouteZkManager extends ZkManager {
                 continue;
             }
 
-            List<ZkNodeEntry<UUID, Route>> portRoutes = listPortRoutes(portUUID);
+            List<ZkNodeEntry<UUID, Route>> portRoutes = listPortRoutes(
+                    portUUID, null);
             routes.addAll(portRoutes);
         }
         return routes;
     }
 
-    public List<Op> getRouterRouteDeleteOps(UUID id, UUID routerId) {
+    /**
+     * Constructs a list of operations to perform in a route deletion.
+     * 
+     * @param entry
+     *            Route ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getRouterRoutePath(routerId, id), -1));
-        ops.add(Op.delete(pathManager.getRoutePath(id), -1));
+        ops.add(Op.delete(pathManager.getRoutePath(entry.key), -1));
+        if (entry.value.nextHop == Route.NextHop.PORT) {
+            ops.add(Op.delete(pathManager.getPortRoutePath(
+                    entry.value.nextHopPort, entry.key), -1));
+        } else {
+            ops.add(Op.delete(pathManager.getRouterRoutePath(
+                    entry.value.routerId, entry.key), -1));
+        }
         return ops;
     }
 
-    public List<Op> getPortRouteDeleteOps(UUID id, UUID portId) {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getPortRoutePath(portId, id), -1));
-        ops.add(Op.delete(pathManager.getRoutePath(id), -1));
-        return ops;
-    }
-
-    public List<Op> getDeleteOps(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
-        RouteRefConfig routeRef = getRouteRefConfig(id);
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(routeRef.path, -1));
-        ops.add(Op.delete(pathManager.getRoutePath(id), -1));
-        return ops;
-    }
-
+    /***
+     * Deletes a route and its related data from the ZooKeeper directories
+     * atomically.
+     * 
+     * @param id
+     *            ID of the route to delete.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void delete(UUID id) throws InterruptedException, KeeperException,
-            IOException, ZkStateSerializationException {
-        this.zk.multi(getDeleteOps(id));
+            ZkStateSerializationException {
+        this.zk.multi(prepareRouteDelete(get(id)));
     }
 
 }
