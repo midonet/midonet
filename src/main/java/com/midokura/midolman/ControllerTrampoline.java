@@ -61,13 +61,13 @@ public class ControllerTrampoline implements Controller {
         
         Configuration midoConfig = config.configurationAt("midolman");
 
-        String portRoot = midoConfig.getString("ports_subdirectory", "ports");
+        String portRoot = midoConfig.getString("ports_subdirectory");
         this.portDirectory = new PortDirectory(directory.getSubDirectory(portRoot));
         
-        String bridgeRoot = midoConfig.getString("bridges_subdirectory", "bridges");
+        String bridgeRoot = midoConfig.getString("bridges_subdirectory");
         this.bridgeDirectory = new DeviceToGreKeyMap(directory.getSubDirectory(bridgeRoot));
         
-        String routerRoot = midoConfig.getString("routers_subdirectory", "routers");
+        String routerRoot = midoConfig.getString("routers_subdirectory");
         this.routerDirectory = new RouterDirectory(directory.getSubDirectory(routerRoot));
     }
 
