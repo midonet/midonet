@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.UnimplementedException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -97,7 +96,7 @@ public class ControllerTrampoline implements Controller {
             //TODO: is this the right way to check that a DP is for a VRN?
             if(uuid.equals(config.configurationAt("vrn").getString("router_network_id"))) {
                 
-                Directory portLocationDirectory = directory.getSubDirectory(midolmanConfig.getString("port_location_dicts_root_key")).getSubDirectory(uuid);
+                Directory portLocationDirectory = directory.getSubDirectory(midolmanConfig.getString("port_location_dicts_root_key")).getSubDirectory("/" + uuid);
 
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
