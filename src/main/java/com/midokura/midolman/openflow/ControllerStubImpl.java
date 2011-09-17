@@ -254,4 +254,12 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         stream.write(po);
     }
 
+    @Override
+    public void close() {
+        try {
+            socketChannel.close();
+        } catch (IOException e) {
+            log.warn("close", e);
+        }
+    }
 }

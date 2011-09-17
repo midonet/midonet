@@ -34,4 +34,7 @@ public interface ControllerStub {
 
     void sendPacketOut(int bufferId, short inPort, List<OFAction> actions, 
                        byte[] data);
+    
+    void close();
+
 }
