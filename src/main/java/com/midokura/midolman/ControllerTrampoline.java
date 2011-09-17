@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.UnimplementedException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -78,6 +79,8 @@ public class ControllerTrampoline implements Controller {
 
     @Override
     public void onConnectionMade() {
+        log.info("onConnectionMade");
+
         try {
             long datapathId = controllerStub.getFeatures().getDatapathId();
 
@@ -92,7 +95,7 @@ public class ControllerTrampoline implements Controller {
             UUID deviceId = UUID.fromString(uuid);
             
             //TODO: is this the right way to check that a DP is for a VRN?
-            if(deviceId.equals(config.configurationAt("vrn").getString("router_network_id"))) {
+            if(uuid.equals(config.configurationAt("vrn").getString("router_network_id"))) {
                 
                 Directory portLocationDirectory = directory.getSubDirectory(midolmanConfig.getString("port_location_dicts_root_key")).getSubDirectory(uuid);
 
@@ -121,6 +124,9 @@ public class ControllerTrampoline implements Controller {
                 
                 controllerStub.setController(newController);
                 controllerStub = null;
+            } else {
+                log.info("can't handle this datapath, disconnecting");
+                controllerStub.close();
             }
             
         } catch (KeeperException e) {
@@ -132,34 +138,29 @@ public class ControllerTrampoline implements Controller {
 
     @Override
     public void onConnectionLost() {
-        // TODO Auto-generated method stub
-
+        log.info("onConnectionLost");
     }
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds, int durationNanoseconds,
             short idleTimeout, long packetCount, long byteCount) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void onMessage(OFMessage m) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
 }
