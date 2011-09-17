@@ -222,7 +222,12 @@ public abstract class BaseProtocolImpl implements SelectListener {
         log.info("Switch disconnected");
     }
 
-    protected synchronized void handleMessage(OFMessage m) {
+    /**
+     * 
+     * @param m the messages
+     * @return true if the message was handled, and false otherwise
+     */
+    protected synchronized boolean handleMessage(OFMessage m) {
         log.debug("handleMessage: xid = " + m.getXid());
 
         switch (m.getType()) {
@@ -232,7 +237,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
                     OFType.ECHO_REPLY);
             reply.setXid(m.getXid());
             stream.write(reply);
-            break;
+            return true;
         case ECHO_REPLY:
             log.debug("handleMessage: ECHO_REPLY");
             OFEchoReply r = (OFEchoReply) m;
@@ -240,12 +245,12 @@ public abstract class BaseProtocolImpl implements SelectListener {
             if (successHandler != null) {
                 successHandler.onSuccess(r.getPayload());
             }
-            break;
+            return true;
         case ERROR:
             log.debug("handleMessage: ERROR");
             OFError error = (OFError) m;
             logError(error);
-            break;
+            return true;
         case VENDOR:
             log.debug("handleMessage: VENDOR");
             OFVendor vm = (OFVendor) m;
@@ -253,9 +258,10 @@ public abstract class BaseProtocolImpl implements SelectListener {
             if (vh != null) {
                 vh.onVendorMessage(vm.getXid(), vm.getData());
             }
-            break;
+            return true;
         default:
             log.debug("handleMessage: default: " + m.getType());
+            return false;
         }
     }
 

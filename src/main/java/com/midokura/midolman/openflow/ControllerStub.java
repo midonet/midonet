@@ -19,11 +19,6 @@ public interface ControllerStub {
 
     OFFeaturesReply getFeatures();
 
-    void getConfigAsync(
-            ConfigHandler configHandler, 
-            TimeoutHandler timeoutHandler,
-            long timeoutMillis);
-
     void sendFlowModAdd(OFMatch match, long cookie, short idleTimeoutSecs, 
                         short priority, int bufferId, boolean sendFlowRemove, 
 			boolean checkOverlap, boolean emergency, 
