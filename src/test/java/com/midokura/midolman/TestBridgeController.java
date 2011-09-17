@@ -13,6 +13,7 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
+import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectLoop;
@@ -22,6 +23,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.util.Net;
 
 
 public class TestBridgeController {
@@ -33,6 +35,10 @@ public class TestBridgeController {
     private MacPortMap macPortMap;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private InetAddress publicIp;
+    OFPhysicalPort[] phyPorts = {
+        new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
+        new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
+        new OFPhysicalPort(), new OFPhysicalPort() };
 
     String[] peerStrList = { "192.168.1.50",    // local
                              "192.168.1.50",    // local
@@ -61,27 +67,24 @@ public class TestBridgeController {
                        new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
 
         // 'util_setup_controller_test':
-        // Create portUuids.
-/* Python code:
-  self.port_uuids = [port.short_uuid_to_port_uuid(0x00fb7c6d62765180),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765181),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765182),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765183),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765184),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765185),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765186),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765186)]
-*/
-        // (Note that deliberately has 0x00fb7c6d62765186 twice.)
-
-        // Pino said the equiv. of port.short_uuid_to_port_uuid
-        // was in PortDirectory.java, but I don't see it.
-        // Create seven random UUIDs instead.
+        // Create portUuids:
+        //      Seven random UUIDs, and an eighth being a dup of the seventh.
         UUID portUuids[] = { UUID.randomUUID(), UUID.randomUUID(),
                              UUID.randomUUID(), UUID.randomUUID(),
                              UUID.randomUUID(), UUID.randomUUID(),
                              UUID.randomUUID(), UUID.randomUUID() };
         portUuids[7] = portUuids[6];
+
+        // Populate ports
+        for (int i = 0; i < 8; i++) {
+            phyPorts[i].setPortNumber((short)i);
+            phyPorts[i].setHardwareAddress(macList[i]);
+            // First three ports are local.  The rest are tunneled.
+            phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
+                                      : controller.makeGREPortName(
+                                            Net.convertStringAddressToInt(
+                                                    peerStrList[i])));
+        }
 
         //      TODO: Register ports into datapath in ovsdb.
 
