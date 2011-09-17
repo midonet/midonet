@@ -35,6 +35,8 @@ public class TestBridgeController {
     private MacPortMap macPortMap;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private InetAddress publicIp;
+    int dp_id = 43;
+
     OFPhysicalPort[] phyPorts = {
         new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
         new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
@@ -86,7 +88,10 @@ public class TestBridgeController {
                                                     peerStrList[i])));
         }
 
-        //      TODO: Register ports into datapath in ovsdb.
+        // Register local ports (ports 0, 1, 2) into datapath in ovsdb.
+        ovsdb.setPortExternalId(dp_id, 0, "midonet", portUuids[0].toString());
+        ovsdb.setPortExternalId(dp_id, 1, "midonet", portUuids[1].toString());
+        ovsdb.setPortExternalId(dp_id, 2, "midonet", portUuids[2].toString());
 
         // Configuration for the Manager.
         String configString = 
@@ -152,7 +157,7 @@ public class TestBridgeController {
         // TODO: Manager.add_bridge_port() for each port.
 
         controller = new BridgeController(
-                /* datapathId */                43, 
+                /* datapathId */                dp_id, 
                 /* switchUuid */                UUID.randomUUID(),
                 /* greKey */                    0xe1234,
                 /* port_loc_map */              portLocMap,
