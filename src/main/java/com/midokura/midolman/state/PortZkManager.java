@@ -118,7 +118,7 @@ public class PortZkManager extends ZkManager {
      * 
      * @param id
      *            The ID of the port.
-     * @return Route object found.
+     * @return Port object found.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException
@@ -196,8 +196,8 @@ public class PortZkManager extends ZkManager {
      * ID.
      * 
      * @param routerId
-     *            The ID of the router to find the routes of.
-     * @return A list of ZooKeeper route nodes.
+     *            The ID of the router to find the ports of.
+     * @return A list of ZooKeeper port nodes.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException
@@ -216,7 +216,7 @@ public class PortZkManager extends ZkManager {
      * ID.
      * 
      * @param routerId
-     *            The ID of the router to find the routes of.
+     *            The ID of the router to find the ports of.
      * @param watcher
      *            The watcher to set on the changes to the ports for this
      *            router.
@@ -239,8 +239,8 @@ public class PortZkManager extends ZkManager {
      * ID.
      * 
      * @param bridgeId
-     *            The ID of the bridge to find the routes of.
-     * @return A list of ZooKeeper route nodes.
+     *            The ID of the bridge to find the ports of.
+     * @return A list of ZooKeeper port nodes.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException
@@ -263,7 +263,7 @@ public class PortZkManager extends ZkManager {
      * @param watcher
      *            The watcher to set on the changes to the ports for this
      *            router.
-     * @return A list of ZooKeeper route nodes.
+     * @return A list of ZooKeeper port nodes.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException
@@ -277,6 +277,18 @@ public class PortZkManager extends ZkManager {
         return listPorts(pathManager.getBridgePortsPath(bridgeId), watcher);
     }
 
+    /**
+     * Updates the PortConfig values with the given PortConfig object.
+     * 
+     * @param entry
+     *            PortConfig object to save.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void update(ZkNodeEntry<UUID, PortConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {

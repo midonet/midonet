@@ -18,22 +18,30 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 /**
- * ZooKeeper manager class for GRE keys.
+ * Class to manage the GRE ZooKeeper data.
  * 
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
 public class GreZkManager extends ZkManager {
 
+    /**
+     * Initializes a GreZkManager object with a ZooKeeper client and the root
+     * path of the ZooKeeper directory.
+     * 
+     * @param zk
+     *            ZooKeeper object.
+     * @param basePath
+     *            The root path.
+     */
     public GreZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
 
-    public static class GreKey implements Serializable {
-
-        private static final long serialVersionUID = 1L;
+    public static class GreKey {
 
         public GreKey() {
+            super();
         }
 
         public GreKey(UUID bridgeId) {

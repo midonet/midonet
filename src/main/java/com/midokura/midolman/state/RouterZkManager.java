@@ -108,6 +108,19 @@ public class RouterZkManager extends ZkManager {
         return id;
     }
 
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a router with the given ID.
+     * 
+     * @param id
+     *            The ID of the router.
+     * @return RouterConfig object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public ZkNodeEntry<UUID, RouterConfig> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -123,11 +136,45 @@ public class RouterZkManager extends ZkManager {
         return new ZkNodeEntry<UUID, RouterConfig>(id, config);
     }
 
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a router with the given ID
+     * and sets a watcher on the node.
+     * 
+     * @param id
+     *            The ID of the router.
+     * @param watcher
+     *            The watcher that gets notified when there is a change in the
+     *            node.
+     * @return Route object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public ZkNodeEntry<UUID, RouterConfig> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
         return get(id, null);
     }
 
+    /**
+     * Gets a list of ZooKeeper router nodes belonging to a tenant with the
+     * given ID.
+     * 
+     * @param tenantId
+     *            The ID of the tenant to find the routers of.
+     * @param watcher
+     *            The watcher to set on the changes to the routers for this
+     *            router.
+     * @return A list of ZooKeeper router nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, RouterConfig>> list(UUID tenantId,
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -141,12 +188,38 @@ public class RouterZkManager extends ZkManager {
         return result;
     }
 
+    /**
+     * Gets a list of ZooKeeper router nodes belonging to a tenant with the
+     * given ID.
+     * 
+     * @param tenantId
+     *            The ID of the tenant to find the routers of.
+     * @return A list of ZooKeeper router nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, RouterConfig>> list(UUID tenantId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         return list(tenantId, null);
     }
 
+    /**
+     * Updates the BridgeConfig values with the given BridgeConfig object.
+     * 
+     * @param entry
+     *            BridgeConfig object to save.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void update(ZkNodeEntry<UUID, RouterConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -161,6 +234,19 @@ public class RouterZkManager extends ZkManager {
         }
     }
 
+    /**
+     * Constructs a list of operations to perform in a router deletion.
+     * 
+     * @param entry
+     *            Router ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<Op> prepareRouterDelete(
             ZkNodeEntry<UUID, RouterConfig> routerNode) throws KeeperException,
             InterruptedException, ClassNotFoundException,
@@ -193,6 +279,19 @@ public class RouterZkManager extends ZkManager {
         return ops;
     }
 
+    /***
+     * Deletes a router and its related data from the ZooKeeper directories
+     * atomically.
+     * 
+     * @param id
+     *            ID of the router to delete.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             IOException, ClassNotFoundException, ZkStateSerializationException {
         this.zk.multi(prepareRouterDelete(get(id)));

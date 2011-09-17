@@ -2,8 +2,8 @@ package com.midokura.midolman.state;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
@@ -23,18 +23,19 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.Rule;
 
 public class RouterDirectory {
 
     public static class RouterConfig {
-		public RouterConfig() { }
+        public RouterConfig() {
+            super();
+        }
+
         public RouterConfig(String name, UUID tenantId) {
             super();
             this.name = name;
@@ -48,8 +49,8 @@ public class RouterDirectory {
     public static byte[] routerToBytes(RouterConfig tenant) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
-        JsonGenerator jsonGenerator =
-            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        JsonGenerator jsonGenerator = jsonFactory
+                .createJsonGenerator(new OutputStreamWriter(out));
         jsonGenerator.writeObject(tenant);
         out.close();
         return bos.toByteArray();
@@ -59,8 +60,8 @@ public class RouterDirectory {
             ClassNotFoundException, KeeperException, InterruptedException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
-        JsonParser jsonParser =
-            jsonFactory.createJsonParser(new InputStreamReader(in));
+        JsonParser jsonParser = jsonFactory
+                .createJsonParser(new InputStreamReader(in));
         RouterConfig router = (RouterConfig) in.readObject();
         return router;
     }
@@ -71,8 +72,8 @@ public class RouterDirectory {
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
 
     static {
-        objectMapper.setVisibilityChecker(
-            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
+        objectMapper.setVisibilityChecker(objectMapper.getVisibilityChecker()
+                .withFieldVisibility(Visibility.ANY));
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
@@ -229,8 +230,8 @@ public class RouterDirectory {
     private byte[] serializeRuleChain(List<Rule> rules) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
-        JsonGenerator jsonGenerator =
-            jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
+        JsonGenerator jsonGenerator = jsonFactory
+                .createJsonGenerator(new OutputStreamWriter(out));
         jsonGenerator.writeObject(rules);
         out.close();
         return bos.toByteArray();
@@ -259,8 +260,8 @@ public class RouterDirectory {
         byte[] data = dir.get(getPathForChain(routerId, chainName), watcher);
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream in = new ObjectInputStream(bis);
-        JsonParser jsonParser =
-            jsonFactory.createJsonParser(new InputStreamReader(in));
+        JsonParser jsonParser = jsonFactory
+                .createJsonParser(new InputStreamReader(in));
         List<Rule> rules = jsonParser.readValueAs(List.class);
         return rules;
     }
@@ -278,8 +279,7 @@ public class RouterDirectory {
         Set<String> blocks = null;
         try {
             blocks = dir.getChildren(sb.toString(), null);
-        }
-        catch (NoNodeException e) {
+        } catch (NoNodeException e) {
             return ports;
         }
         for (String str : blocks)
@@ -293,8 +293,8 @@ public class RouterDirectory {
         sb.append("/").append(Integer.toHexString(ip));
         try {
             dir.add(sb.toString(), null, CreateMode.PERSISTENT);
+        } catch (NodeExistsException e) {
         }
-        catch (NodeExistsException e) {}
         sb.append("/").append(startPort);
         dir.add(sb.toString(), null, CreateMode.EPHEMERAL);
     }

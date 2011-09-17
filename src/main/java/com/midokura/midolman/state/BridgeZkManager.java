@@ -33,6 +33,7 @@ public class BridgeZkManager extends ZkManager {
         private static final long serialVersionUID = 1L;
 
         public BridgeConfig() {
+            super();
         }
 
         public BridgeConfig(String name, UUID tenantId) {
@@ -132,11 +133,41 @@ public class BridgeZkManager extends ZkManager {
         return id;
     }
 
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a bridge with the given ID.
+     * 
+     * @param id
+     *            The ID of the bridge.
+     * @return Bridge object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
         return get(id, null);
     }
 
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a bridge with the given ID
+     * and sets a watcher on the node.
+     * 
+     * @param id
+     *            The ID of the bridge.
+     * @param watcher
+     *            The watcher that gets notified when there is a change in the
+     *            node.
+     * @return Route object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -152,12 +183,43 @@ public class BridgeZkManager extends ZkManager {
         return new ZkNodeEntry<UUID, BridgeConfig>(id, config);
     }
 
+    /**
+     * Gets a list of ZooKeeper bridge nodes belonging to a tenant with the
+     * given ID.
+     * 
+     * @param tenantId
+     *            The ID of the tenant to find the bridges of.
+     * @return A list of ZooKeeper route nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, BridgeConfig>> list(UUID tenantId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         return list(tenantId, null);
     }
 
+    /**
+     * Gets a list of ZooKeeper bridge nodes belonging to a tenant with the
+     * given ID.
+     * 
+     * @param tenantId
+     *            The ID of the tenant to find the bridges of.
+     * @param watcher
+     *            The watcher to set on the changes to the bridges for this
+     *            router.
+     * @return A list of ZooKeeper bridge nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, BridgeConfig>> list(UUID tenantId,
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -171,6 +233,18 @@ public class BridgeZkManager extends ZkManager {
         return result;
     }
 
+    /**
+     * Updates the BridgeConfig values with the given BridgeConfig object.
+     * 
+     * @param entry
+     *            BridgeConfig object to save.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void update(ZkNodeEntry<UUID, BridgeConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -185,6 +259,19 @@ public class BridgeZkManager extends ZkManager {
         }
     }
 
+    /**
+     * Constructs a list of operations to perform in a bridge deletion.
+     * 
+     * @param entry
+     *            Bridge ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException, IOException {
@@ -215,6 +302,19 @@ public class BridgeZkManager extends ZkManager {
         return ops;
     }
 
+    /***
+     * Deletes a bridge and its related data from the ZooKeeper directories
+     * atomically.
+     * 
+     * @param id
+     *            ID of the bridge to delete.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException, IOException {
         this.zk.multi(prepareBridgeDelete(get(id)));
