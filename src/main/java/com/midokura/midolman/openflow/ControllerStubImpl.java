@@ -74,37 +74,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         stream.write(msg);
     }
 
-    @Override
-    public void getConfigAsync(final ConfigHandler configHandler, TimeoutHandler timeoutHandler,
-            long timeoutMillis) {
-        log.debug("getConfigAsync");
-
-        OFGetConfigRequest m = (OFGetConfigRequest) factory.getMessage(OFType.GET_CONFIG_REQUEST);
-        m.setXid(initiateOperation(new SuccessHandler<OFGetConfigReply>() {
-            @Override
-            public void onSuccess(OFGetConfigReply data) {
-                configHandler.onConfig(data);
-            }
-        }, timeoutHandler, timeoutMillis, OFType.GET_CONFIG_REQUEST));
-
-        stream.write(m);
-    }
-
-    public void getFeaturesAsync(final FeaturesHandler featuresHandler,
-            TimeoutHandler timeoutHandler, long timeoutMillis) {
-        log.debug("getFeaturesAsync");
-
-        OFFeaturesRequest m = (OFFeaturesRequest) factory.getMessage(OFType.FEATURES_REQUEST);
-        m.setXid(initiateOperation(new SuccessHandler<OFFeaturesReply>() {
-            @Override
-            public void onSuccess(OFFeaturesReply data) {
-                featuresHandler.onFeatures(data);
-            }
-        }, timeoutHandler, timeoutMillis, featuresHandler));
-
-        stream.write(m);
-    }
-
     public OFFeaturesReply getFeatures() {
         return featuresReply;
     }
@@ -147,7 +116,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                     sendFeaturesRequest();
                 }
             }
-        }, null, OFType.FEATURES_REQUEST));
+        }, Long.valueOf(500), OFType.FEATURES_REQUEST));
     }
     
     protected void sendConfigRequest() {
@@ -176,13 +145,15 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                     sendConfigRequest();
                 }
             }
-        }, null, OFType.GET_CONFIG_REQUEST));
+        }, Long.valueOf(500), OFType.GET_CONFIG_REQUEST));
     }
 
-    protected synchronized void handleMessage(OFMessage m) {
+    protected boolean handleMessage(OFMessage m) {
         log.debug("handleMessage");
 
-        super.handleMessage(m);
+        if (super.handleMessage(m)) {
+            return true;
+        }
 
         SuccessHandler successHandler = null;
 
@@ -190,23 +161,22 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         case HELLO:
             log.debug("handleMessage: HELLO");            
             sendFeaturesRequest();
-            break;
+            return true;
         case FEATURES_REPLY:
             log.debug("handleMessage: FEATURES_REPLY");
             successHandler = terminateOperation(m.getXid(), OFType.FEATURES_REQUEST);
             if (successHandler != null) {
                 successHandler.onSuccess((OFFeaturesReply) m);
             }
-            break;
-        case GET_CONFIG_REPLY: {
+            return true;
+        case GET_CONFIG_REPLY:
             log.debug("handleMessage: GET_CONFIG_REPLY");
             OFGetConfigReply cr = (OFGetConfigReply) m;
             successHandler = terminateOperation(m.getXid(), OFType.GET_CONFIG_REQUEST);
             if (successHandler != null) {
                 successHandler.onSuccess(cr);
             }
-        }
-            break;
+            return true;
         case BARRIER_REPLY:
             log.debug("handleMessage: BARRIER_REPLY");
             OFBarrierReply br = (OFBarrierReply) m;
@@ -214,24 +184,25 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             if (successHandler != null) {
                 successHandler.onSuccess(null);
             }
-            break;
+            return true;
         case PACKET_IN:
             log.debug("handleMessage: PACKET_IN");
             OFPacketIn pi = (OFPacketIn) m;
             controller.onPacketIn(pi.getBufferId(), pi.getTotalLength(), pi.getInPort(),
                     pi.getPacketData());
-            break;
+            return true;
         case FLOW_REMOVED:
             log.debug("handleMessage: FLOW_REMOVED");
             OFFlowRemoved fr = (OFFlowRemoved) m;
             controller.onFlowRemoved(fr.getMatch(), fr.getCookie(), fr.getPriority(),
                     fr.getReason(), fr.getDurationSeconds(), fr.getDurationNanoseconds(),
                     fr.getIdleTimeout(), fr.getPacketCount(), fr.getByteCount());
-            break;
+            return true;
         default:
             log.debug("handleMessages: default: " + m.getType());
             // let the controller handle any messages not handled here
             controller.onMessage(m);
+            return true;
         }
     }
 
