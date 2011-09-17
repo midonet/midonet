@@ -109,5 +109,10 @@ public class MockControllerStub implements ControllerStub {
         else
             sentPackets.add(new Packet(bufferId, inPort, actions, data));
     }
+    
+    @Override
+    public void close() {
+        
+    }
 
 }
