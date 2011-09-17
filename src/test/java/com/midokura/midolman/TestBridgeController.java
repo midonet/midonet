@@ -5,6 +5,7 @@ package com.midokura.midolman;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
+import java.util.concurrent.Executors;
 import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -14,6 +15,7 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.Directory;
@@ -133,7 +135,7 @@ public class TestBridgeController {
                 midoConfig.getString("mac_port_subdirectory", "/mac_port"));
         macPortMap = new MacPortMap(macPortDir);
         
-        Reactor reactor = null; //TODO: create mock reactor
+        Reactor reactor = new SelectLoop(Executors.newScheduledThreadPool(1));
         
         // Create controllerManager.
         ControllerTrampoline controllerManager = new ControllerTrampoline(
