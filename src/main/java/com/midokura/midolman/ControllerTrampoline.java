@@ -59,15 +59,15 @@ public class ControllerTrampoline implements Controller {
         this.directory = directory;
         this.reactor = reactor;
         
-        Configuration midoConfig = config.configurationAt("midolman");
+        midolmanConfig = config.configurationAt("midolman");
 
-        String portRoot = midoConfig.getString("ports_subdirectory");
+        String portRoot = midolmanConfig.getString("ports_subdirectory");
         this.portDirectory = new PortDirectory(directory.getSubDirectory(portRoot));
         
-        String bridgeRoot = midoConfig.getString("bridges_subdirectory");
+        String bridgeRoot = midolmanConfig.getString("bridges_subdirectory");
         this.bridgeDirectory = new DeviceToGreKeyMap(directory.getSubDirectory(bridgeRoot));
         
-        String routerRoot = midoConfig.getString("routers_subdirectory");
+        String routerRoot = midolmanConfig.getString("routers_subdirectory");
         this.routerDirectory = new RouterDirectory(directory.getSubDirectory(routerRoot));
     }
 
