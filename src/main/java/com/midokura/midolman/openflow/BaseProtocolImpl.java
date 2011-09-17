@@ -105,8 +105,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
         factory = new BasicFactory();
         stream = new OFMessageAsyncStream(sock, factory);
 
-        stream.write(factory.getMessage(OFType.HELLO));
-
         sendEchoRequest();
     }
 
@@ -129,8 +127,10 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
                 @Override
                 public void run() {
-                    if (pendingOperations.remove(nextXid) != null)
+                    if (pendingOperations.remove(nextXid) != null) {
+                        log.debug("pending operation {} timed out", nextXid);
                         timeoutHandler.onTimeout();
+                    }
                 }
 
             }, timeoutMillis, TimeUnit.MILLISECONDS);
@@ -204,6 +204,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
                 key.interestOps(SelectionKey.OP_READ);
         } catch (IOException e) {
             // if we have an exception, disconnect the switch
+            log.warn("handleEvent", e);
             disconnectSwitch();
         }
     }
@@ -302,7 +303,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
         m.setXid(initiateOperation(new SuccessHandler() {
             @Override
             public void onSuccess(Object data) {
-                if (!data.equals(randPayload)) {
+//                if (!data.equals(randPayload)) {
+                if (false) { //TODO: temporarily turn off this check, as OVS doesn't seem to echo back the payload
                     log.error("echo reply with invalid data");
                     disconnectSwitch();
                 } else {

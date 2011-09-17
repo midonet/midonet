@@ -43,6 +43,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     protected ConcurrentMap<Object, Object> attributes;
     protected Date connectedSince;
     protected OFFeaturesReply featuresReply;
+    protected OFGetConfigReply configReply;
     protected SocketChannel socketChannel;
     protected HashMap<Short, OFPhysicalPort> ports = new HashMap<Short, OFPhysicalPort>();
 
@@ -51,13 +52,8 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         super(sock, reactor);
 
         setController(controller);
-
-        getFeaturesAsync(null, new TimeoutHandler() {
-            @Override
-            public void onTimeout() {
-                disconnectSwitch();
-            }
-        }, defaultOperationTimeoutMillis);
+        
+        stream.write(factory.getMessage(OFType.HELLO));
     }
 
     @Override
@@ -119,6 +115,69 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             controller.onConnectionLost();
         }
     }
+    
+    protected void sendFeaturesRequest() {
+        log.info("sendFeaturesRequest");
+        
+        OFFeaturesRequest m = (OFFeaturesRequest) factory.getMessage(OFType.FEATURES_REQUEST);
+        m.setXid(initiateOperation(new SuccessHandler<OFFeaturesReply>() {
+            @Override
+            public void onSuccess(OFFeaturesReply data) {
+                log.debug("received features reply");
+                
+                featuresReply = data;
+                
+                // Delete all pre-existing flows
+                OFMatch match = new OFMatch().setWildcards(OFMatch.OFPFW_ALL);
+                OFMessage fm = ((OFFlowMod) factory.getMessage(OFType.FLOW_MOD))
+                      .setMatch(match).setCommand(OFFlowMod.OFPFC_DELETE)
+                      .setOutPort(OFPort.OFPP_NONE).setLength(U16.t(OFFlowMod.MINIMUM_LENGTH));
+                stream.write(fm);
+                
+                sendConfigRequest();
+            }
+        },
+
+        new TimeoutHandler() {
+            @Override
+            public void onTimeout() {
+                log.warn("features request timeout");
+                
+                if (socketChannel.isConnected()) {
+                    sendFeaturesRequest();
+                }
+            }
+        }, null, OFType.FEATURES_REQUEST));
+    }
+    
+    protected void sendConfigRequest() {
+        log.info("sendConfigRequest");
+        
+        OFGetConfigRequest m = (OFGetConfigRequest) factory.getMessage(OFType.GET_CONFIG_REQUEST);
+        m.setXid(initiateOperation(new SuccessHandler<OFGetConfigReply>() {
+            @Override
+            public void onSuccess(OFGetConfigReply data) {
+                log.debug("received config reply");
+                
+                boolean firstTime = (null == configReply);
+                
+                if (firstTime) {
+                    controller.onConnectionMade();
+                }
+            }
+        },
+
+        new TimeoutHandler() {
+            @Override
+            public void onTimeout() {
+                log.warn("config request timeout");
+                
+                if (socketChannel.isConnected()) {
+                    sendConfigRequest();
+                }
+            }
+        }, null, OFType.GET_CONFIG_REQUEST));
+    }
 
     protected synchronized void handleMessage(OFMessage m) {
         log.debug("handleMessage");
@@ -129,29 +188,14 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
 
         switch (m.getType()) {
         case HELLO:
-            log.debug("handleMessage: HELLO");
-            // Send initial Features Request
-            stream.write(factory.getMessage(OFType.FEATURES_REQUEST));
-
-            // Delete all pre-existing flows
-            OFMatch match = new OFMatch().setWildcards(OFMatch.OFPFW_ALL);
-            OFMessage fm = ((OFFlowMod) stream.getMessageFactory().getMessage(OFType.FLOW_MOD))
-                    .setMatch(match).setCommand(OFFlowMod.OFPFC_DELETE)
-                    .setOutPort(OFPort.OFPP_NONE).setLength(U16.t(OFFlowMod.MINIMUM_LENGTH));
-            stream.write(fm);
+            log.debug("handleMessage: HELLO");            
+            sendFeaturesRequest();
             break;
         case FEATURES_REPLY:
             log.debug("handleMessage: FEATURES_REPLY");
             successHandler = terminateOperation(m.getXid(), OFType.FEATURES_REQUEST);
             if (successHandler != null) {
-                boolean firstTime = (null == featuresReply);
-                featuresReply = (OFFeaturesReply) m;
-
-                if (firstTime) {
-                    controller.onConnectionMade();
-                }
-
-                successHandler.onSuccess(featuresReply);
+                successHandler.onSuccess((OFFeaturesReply) m);
             }
             break;
         case GET_CONFIG_REPLY: {
