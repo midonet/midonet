@@ -10,7 +10,6 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.BridgeController;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
@@ -21,9 +20,10 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.UUID;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 
 public class TestBridgeController {
@@ -57,8 +57,7 @@ public class TestBridgeController {
       };
 
     @Before
-    public void setUp() throws UnknownHostException, KeeperException,
-			       InterruptedException {
+    public void setUp() throws java.lang.Exception {
 	ovsdb = new MockOpenvSwitchDatabaseConnection();
 	publicIp = InetAddress.getByAddress(
 		       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
@@ -101,11 +100,16 @@ public class TestBridgeController {
 	    "use_flow_wildcards: true\n" +
 	    "[openvswitch]\n" +
 	    "openvswitchdb_url: some://ovsdb.url/\n";
-	// TODO: Populate hierarchicalConfiguration with configString.
-	//	 To do this, we write it to a File, then pass that as the
-	//	 constructor's argument.
+	// Populate hierarchicalConfiguration with configString.
+	// To do this, we write it to a File, then pass that as the
+	// constructor's argument.
+	File confFile = File.createTempFile("bridge_test", "conf");
+	confFile.deleteOnExit();
+	FileOutputStream fos = new FileOutputStream(confFile);
+	fos.write(configString.getBytes());
+	fos.close();
 	HierarchicalConfiguration hierarchicalConfiguration = 
-		new HierarchicalINIConfiguration(/* file */);
+		new HierarchicalINIConfiguration(confFile);
 	SubnodeConfiguration midoConfig = 
             hierarchicalConfiguration.configurationAt("midolman");
 
@@ -115,14 +119,15 @@ public class TestBridgeController {
 	    midoConfig.getString("midonet_root_key", "/zk_root"), null,
 	    CreateMode.PERSISTENT_SEQUENTIAL);
 	Directory midoDir = zkDir.getSubDirectory(midoDirName);
-	midoDir.add(midoConfig.getString("bridges_subdirectory", "bridges"), null,
-		  CreateMode.PERSISTENT_SEQUENTIAL);
-	midoDir.add(midoConfig.getString("mac_port_subdirectory", "mac_port"), null,
-		  CreateMode.PERSISTENT_SEQUENTIAL);
-	midoDir.add(midoConfig.getString("port_locations_subdirectory", "port_locs"),
-                  null, CreateMode.PERSISTENT_SEQUENTIAL);
+	midoDir.add(midoConfig.getString("bridges_subdirectory", "bridges"),
+		    null, CreateMode.PERSISTENT_SEQUENTIAL);
+	midoDir.add(midoConfig.getString("mac_port_subdirectory", "mac_port"),
+                    null, CreateMode.PERSISTENT_SEQUENTIAL);
+	midoDir.add(midoConfig.getString("port_locations_subdirectory",
+					 "port_locs"),
+                    null, CreateMode.PERSISTENT_SEQUENTIAL);
 	midoDir.add(midoConfig.getString("ports_subdirectory", "ports"), null,
-		  CreateMode.PERSISTENT_SEQUENTIAL);
+		    CreateMode.PERSISTENT_SEQUENTIAL);
 
 	portLocDir = zkDir.getSubDirectory(
 		midoConfig.getString("port_locations_root_key", "port_locs"));
