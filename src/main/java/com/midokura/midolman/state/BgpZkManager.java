@@ -7,7 +7,6 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +15,6 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
@@ -25,32 +22,28 @@ import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 public class BgpZkManager extends ZkManager {
 
-    public static final class BgpConfig implements Serializable {
+    public static final class BgpConfig {
         /*
-          The bgp is a list of BGP information dictionaries enabled on this
-          port.  The keys for the dictionary are:
-
-          local_port: local TCP port number for BGP, as a positive
-          integer.
-          local_as: local AS number that belongs to, as a positive
-          integer.
-          peer_addr: IPv4 address of the peer, as a human-readable
-          string.
-          peer_port: TCP port number at the peer, as a positive integer,
-          as a string.
-          tcp_md5sig_key: TCP MD5 signature to authenticate a session.
-          ad_routes: A list of routes to be advertised.  Each item is a
-          list [address, length] that represents a network prefix, where
-          address is an IPv4 address as a human-readable string, and
-          length is a positive integer.
-        */
+         * The bgp is a list of BGP information dictionaries enabled on this
+         * port. The keys for the dictionary are:
+         * 
+         * local_port: local TCP port number for BGP, as a positive integer.
+         * local_as: local AS number that belongs to, as a positive integer.
+         * peer_addr: IPv4 address of the peer, as a human-readable string.
+         * peer_port: TCP port number at the peer, as a positive integer, as a
+         * string. tcp_md5sig_key: TCP MD5 signature to authenticate a session.
+         * ad_routes: A list of routes to be advertised. Each item is a list
+         * [address, length] that represents a network prefix, where address is
+         * an IPv4 address as a human-readable string, and length is a positive
+         * integer.
+         */
         public int localAS;
         public InetAddress peerAddr;
         public int peerAS;
         public UUID portId;
 
-        public BgpConfig(UUID portId, int localAS,
-                         InetAddress peerAddr, int peerAS) {
+        public BgpConfig(UUID portId, int localAS, InetAddress peerAddr,
+                int peerAS) {
             this.portId = portId;
             this.localAS = localAS;
             this.peerAddr = peerAddr;
@@ -58,12 +51,14 @@ public class BgpZkManager extends ZkManager {
         }
 
         // Default constructor for the Jackson deserialization.
-        public BgpConfig() { super(); }
+        public BgpConfig() {
+            super();
+        }
     }
 
     /**
      * BgpZkManager constructor.
-     *
+     * 
      * @param zk
      *            Zookeeper object.
      * @param basePath
@@ -71,19 +66,6 @@ public class BgpZkManager extends ZkManager {
      */
     public BgpZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
-    }
-
-    private class BgpWatcher implements Watcher {
-        Runnable watcher;
-
-        BgpWatcher(Runnable watch) {
-            watcher = watch;
-        }
-
-        @Override
-        public void process(WatchedEvent arg0) {
-            watcher.run();
-        }
     }
 
     public List<Op> prepareBgpCreate(ZkNodeEntry<UUID, BgpConfig> bgpNode)
@@ -99,11 +81,12 @@ public class BgpZkManager extends ZkManager {
             throw new ZkStateSerializationException(
                     "Could not serialize BgpConfig", e, BgpConfig.class);
         }
-        ops.add(Op.create(pathManager.getBgpAdRoutesPath(bgpNode.key),
-                          null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getPortBgpPath(
-                bgpNode.value.portId, bgpNode.key), null,
+        ops.add(Op.create(pathManager.getBgpAdRoutesPath(bgpNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops
+                .add(Op.create(pathManager.getPortBgpPath(bgpNode.value.portId,
+                        bgpNode.key), null, Ids.OPEN_ACL_UNSAFE,
+                        CreateMode.PERSISTENT));
 
         return ops;
     }
@@ -111,43 +94,38 @@ public class BgpZkManager extends ZkManager {
     public UUID create(BgpConfig bgp) throws InterruptedException,
             KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, BgpConfig> bgpNode =
-            new ZkNodeEntry<UUID, BgpConfig>(id, bgp);
+        ZkNodeEntry<UUID, BgpConfig> bgpNode = new ZkNodeEntry<UUID, BgpConfig>(
+                id, bgp);
         zk.multi(prepareBgpCreate(bgpNode));
         return id;
     }
 
     public ZkNodeEntry<UUID, BgpConfig> get(UUID id, Runnable watcher)
-        throws KeeperException, InterruptedException,
-        ZkStateSerializationException {
-        byte[] data = zk.getData(
-            pathManager.getBgpPath(id),
-            (watcher != null)? new BgpWatcher(watcher) : null, null);
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        byte[] data = getData(pathManager.getBgpPath(id), watcher);
         BgpConfig config = null;
         try {
             config = deserialize(data, BgpConfig.class);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not deserialize bgp " + id + " to BgpConfig",
-                    e, BgpConfig.class);
+                    "Could not deserialize bgp " + id + " to BgpConfig", e,
+                    BgpConfig.class);
         }
         return new ZkNodeEntry<UUID, BgpConfig>(id, config);
     }
 
     public ZkNodeEntry<UUID, BgpConfig> get(UUID id) throws KeeperException,
-        InterruptedException, ZkStateSerializationException {
+            InterruptedException, ZkStateSerializationException {
         return get(id, null);
     }
 
-    public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId,
-                                                   Runnable watcher)
+    public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, BgpConfig>> result =
-            new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
-        List<String> bgpIds = zk.getChildren(
-            pathManager.getPortBgpPath(portId),
-            (watcher != null)? new BgpWatcher(watcher) : null);
+        List<ZkNodeEntry<UUID, BgpConfig>> result = new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
+        List<String> bgpIds = getChildren(pathManager.getPortBgpPath(portId),
+                watcher);
         for (String bgpId : bgpIds) {
             // For now, get each one.
             result.add(get(UUID.fromString(bgpId)));
@@ -156,8 +134,8 @@ public class BgpZkManager extends ZkManager {
     }
 
     public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId)
-        throws KeeperException, InterruptedException,
-        ZkStateSerializationException {
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         return list(portId, null);
     }
 
@@ -167,11 +145,10 @@ public class BgpZkManager extends ZkManager {
         // Update any version for now.
         try {
             zk.setData(pathManager.getBgpPath(entry.key),
-                       serialize(entry.value), -1);
+                    serialize(entry.value), -1);
         } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize bgp " + entry.key
-                            + " to BgpConfig", e, BgpConfig.class);
+            throw new ZkStateSerializationException("Could not serialize bgp "
+                    + entry.key + " to BgpConfig", e, BgpConfig.class);
         }
     }
 
@@ -182,8 +159,8 @@ public class BgpZkManager extends ZkManager {
 
         // Delete the advertising routes
         AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes =
-            adRouteManager.list(entry.key);
+        List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
+                .list(entry.key);
         for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {
             ops.addAll(adRouteManager.prepareAdRouteDelete(adRoute));
         }

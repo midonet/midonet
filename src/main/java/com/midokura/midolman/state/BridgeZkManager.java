@@ -21,7 +21,7 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
- * ZK bridge management class.
+ * Class to manage the bridge ZooKeeper data.
  * 
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
@@ -52,17 +52,33 @@ public class BridgeZkManager extends ZkManager {
     }
 
     /**
-     * BridgeZkManager constructor.
+     * Initializes a BridgeZkManager object with a ZooKeeper client and the root
+     * path of the ZooKeeper directory.
      * 
      * @param zk
-     *            Zookeeper object.
+     *            ZooKeeper object.
      * @param basePath
-     *            Directory to set as the base.
+     *            The root path.
      */
     public BridgeZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
 
+    /**
+     * Constructs a list of ZooKeeper update operations to perform when adding a
+     * new bridge.
+     * 
+     * @param bridgeNode
+     *            ZooKeeper node representing a key-value entry of Bridge UUID
+     *            and BridgeConfig object.
+     * @return A list of Op objects to represent the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<Op> prepareBridgeCreate(
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
             throws ZkStateSerializationException, KeeperException,
@@ -94,6 +110,19 @@ public class BridgeZkManager extends ZkManager {
         return ops;
     }
 
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new bridge entry.
+     * 
+     * @param bridge
+     *            Bridge object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public UUID create(BridgeConfig bridge) throws InterruptedException,
             KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
@@ -105,7 +134,13 @@ public class BridgeZkManager extends ZkManager {
 
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getBridgePath(id), null, null);
+        return get(id, null);
+    }
+
+    public ZkNodeEntry<UUID, BridgeConfig> get(UUID id, Runnable watcher)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        byte[] data = getData(pathManager.getBridgePath(id), watcher);
         BridgeConfig config = null;
         try {
             config = deserialize(data, BridgeConfig.class);
@@ -120,9 +155,15 @@ public class BridgeZkManager extends ZkManager {
     public List<ZkNodeEntry<UUID, BridgeConfig>> list(UUID tenantId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
+        return list(tenantId, null);
+    }
+
+    public List<ZkNodeEntry<UUID, BridgeConfig>> list(UUID tenantId,
+            Runnable watcher) throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         List<ZkNodeEntry<UUID, BridgeConfig>> result = new ArrayList<ZkNodeEntry<UUID, BridgeConfig>>();
-        List<String> bridgeIds = zk.getChildren(pathManager
-                .getTenantBridgesPath(tenantId), null);
+        List<String> bridgeIds = getChildren(pathManager
+                .getTenantBridgesPath(tenantId), watcher);
         for (String bridgeId : bridgeIds) {
             // For now, get each one.
             result.add(get(UUID.fromString(bridgeId)));

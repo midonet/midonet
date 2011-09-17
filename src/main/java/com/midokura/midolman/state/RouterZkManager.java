@@ -22,7 +22,7 @@ import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 /**
- * This class was created to handle multiple ops feature in Zookeeper.
+ * Class to manage the router ZooKeeper data.
  * 
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
@@ -30,17 +30,33 @@ import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 public class RouterZkManager extends ZkManager {
 
     /**
-     * RouterZkManager constructor.
+     * Initializes a RouterZkManager object with a ZooKeeper client and the root
+     * path of the ZooKeeper directory.
      * 
      * @param zk
-     *            Zookeeper object.
+     *            ZooKeeper object.
      * @param basePath
-     *            Directory to set as the base.
+     *            The root path.
      */
     public RouterZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
 
+    /**
+     * Constructs a list of ZooKeeper update operations to perform when adding a
+     * new router.
+     * 
+     * @param routerNode
+     *            ZooKeeper node representing a key-value entry of router UUID
+     *            and RouterConfig object.
+     * @return A list of Op objects to represent the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<Op> prepareRouterCreate(
             ZkNodeEntry<UUID, RouterConfig> routerNode)
             throws ZkStateSerializationException, KeeperException,
@@ -70,6 +86,19 @@ public class RouterZkManager extends ZkManager {
         return ops;
     }
 
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new router entry.
+     * 
+     * @param router
+     *            Router object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public UUID create(RouterConfig router) throws InterruptedException,
             KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
@@ -79,9 +108,10 @@ public class RouterZkManager extends ZkManager {
         return id;
     }
 
-    public ZkNodeEntry<UUID, RouterConfig> get(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getRouterPath(id), null, null);
+    public ZkNodeEntry<UUID, RouterConfig> get(UUID id, Runnable watcher)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        byte[] data = getData(pathManager.getRouterPath(id), watcher);
         RouterConfig config = null;
         try {
             config = deserialize(data, RouterConfig.class);
@@ -93,17 +123,28 @@ public class RouterZkManager extends ZkManager {
         return new ZkNodeEntry<UUID, RouterConfig>(id, config);
     }
 
-    public List<ZkNodeEntry<UUID, RouterConfig>> list(UUID tenantId)
-            throws KeeperException, InterruptedException,
+    public ZkNodeEntry<UUID, RouterConfig> get(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return get(id, null);
+    }
+
+    public List<ZkNodeEntry<UUID, RouterConfig>> list(UUID tenantId,
+            Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, RouterConfig>> result = new ArrayList<ZkNodeEntry<UUID, RouterConfig>>();
-        List<String> routerIds = zk.getChildren(pathManager
-                .getTenantRoutersPath(tenantId), null);
+        List<String> routerIds = getChildren(pathManager
+                .getTenantRoutersPath(tenantId), watcher);
         for (String routerId : routerIds) {
             // For now, get each one.
             result.add(get(UUID.fromString(routerId)));
         }
         return result;
+    }
+
+    public List<ZkNodeEntry<UUID, RouterConfig>> list(UUID tenantId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        return list(tenantId, null);
     }
 
     public void update(ZkNodeEntry<UUID, RouterConfig> entry)
@@ -120,42 +161,40 @@ public class RouterZkManager extends ZkManager {
         }
     }
 
-    public List<Op> getDeleteOps(UUID id, UUID tenantId)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException, ZkStateSerializationException {
+    public List<Op> prepareRouterDelete(
+            ZkNodeEntry<UUID, RouterConfig> routerNode) throws KeeperException,
+            InterruptedException, ClassNotFoundException,
+            ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         // Get rhains delete ops.
         ChainZkManager chainZk = new ChainZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZk.list(id);
+        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZk
+                .list(routerNode.key);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
-            ops.addAll(chainZk.getDeleteOps(entry.key, id));
+            ops.addAll(chainZk.getDeleteOps(entry.key, routerNode.key));
         }
         // Get routes delete ops.
         RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, Route>> routes = routeZk.listRouterRoutes(id);
+        List<ZkNodeEntry<UUID, Route>> routes = routeZk.listRouterRoutes(
+                routerNode.key, null);
         for (ZkNodeEntry<UUID, Route> entry : routes) {
-            ops.addAll(routeZk.getRouterRouteDeleteOps(entry.key, id));
+            ops.addAll(routeZk.prepareRouteDelete(entry));
         }
         // Get ports delete ops
         PortZkManager portZk = new PortZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, PortConfig>> ports = portZk.listRouterPorts(id);
+        List<ZkNodeEntry<UUID, PortConfig>> ports = portZk
+                .listRouterPorts(routerNode.key);
         for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
             ops.addAll(portZk.prepareRouterPortDelete(entry));
         }
-        ops.add(Op.delete(pathManager.getTenantRouterPath(tenantId, id), -1));
-        ops.add(Op.delete(pathManager.getRouterPath(id), -1));
+        ops.add(Op.delete(pathManager.getTenantRouterPath(
+                routerNode.value.tenantId, routerNode.key), -1));
+        ops.add(Op.delete(pathManager.getRouterPath(routerNode.key), -1));
         return ops;
     }
 
     public void delete(UUID id) throws InterruptedException, KeeperException,
             IOException, ClassNotFoundException, ZkStateSerializationException {
-        ZkNodeEntry<UUID, RouterConfig> router = get(id);
-        delete(id, router.value.tenantId);
-    }
-
-    public void delete(UUID id, UUID tenantId) throws InterruptedException,
-            KeeperException, IOException, ClassNotFoundException,
-            ZkStateSerializationException {
-        this.zk.multi(getDeleteOps(id, tenantId));
+        this.zk.multi(prepareRouterDelete(get(id)));
     }
 }

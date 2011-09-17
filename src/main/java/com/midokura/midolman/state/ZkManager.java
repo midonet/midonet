@@ -6,7 +6,11 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.midokura.midolman.util.JSONSerializer;
@@ -24,6 +28,19 @@ public abstract class ZkManager {
     protected ZooKeeper zk = null;
     protected String basePath = null;
 
+    protected class MyWatcher implements Watcher {
+        Runnable watcher;
+
+        MyWatcher(Runnable watch) {
+            watcher = watch;
+        }
+
+        @Override
+        public void process(WatchedEvent arg0) {
+            watcher.run();
+        }
+    }
+
     /**
      * Default constructor.
      * 
@@ -36,6 +53,18 @@ public abstract class ZkManager {
         this.basePath = basePath;
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
+    }
+
+    public byte[] getData(String path, Runnable watcher) throws KeeperException,
+            InterruptedException {
+        return zk.getData(path, (null == watcher) ? null : new MyWatcher(
+                watcher), null);
+    }
+
+    public List<String> getChildren(String path, Runnable watcher)
+            throws KeeperException, InterruptedException {
+        return zk.getChildren(path, (null == watcher) ? null : new MyWatcher(
+                watcher));
     }
 
     protected static <T> byte[] serialize(T obj) throws IOException {
