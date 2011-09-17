@@ -76,7 +76,7 @@ public class BridgeController extends AbstractController {
             long idleFlowExpireMillis, InetAddress publicIp,
             long macPortTimeoutMillis, OpenvSwitchDatabaseConnection ovsdb) {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
-	      flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis,
+              flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis,
               publicIp);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
