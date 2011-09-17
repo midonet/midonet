@@ -78,7 +78,7 @@ public class Midolman implements SelectListener, Watcher {
 
         zkConnection = new ZkConnection(
                 config.configurationAt("zookeeper").getString("zookeeper_hosts", "127.0.0.1:2181"), 
-                config.configurationAt("zokeeper").getInt("session_timeout", 30000), this);
+                config.configurationAt("zookeeper").getInt("session_timeout", 30000), this);
 
         log.debug("about to ZkConnection.open()");
         zkConnection.open();
