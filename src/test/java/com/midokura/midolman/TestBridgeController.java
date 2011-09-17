@@ -2,28 +2,24 @@
 
 package com.midokura.midolman;
 
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.net.InetAddress;
+import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
+import org.junit.Before;
 
-import com.midokura.midolman.BridgeController;
-import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MockControllerStub;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
-
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.UUID;
-import java.net.InetAddress;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 
 
 public class TestBridgeController {
@@ -135,9 +131,12 @@ public class TestBridgeController {
 	macPortDir = zkDir.getSubDirectory(
 		midoConfig.getString("mac_port_root_key", "mac_port"));
 	macPortMap = new MacPortMap(macPortDir);
+	
+	Reactor reactor = null; //TODO: create mock reactor
+	
 	// Create controllerManager.
 	ControllerTrampoline controllerManager = new ControllerTrampoline(
-		hierarchicalConfiguration, ovsdb, zkDir);
+		hierarchicalConfiguration, ovsdb, zkDir, reactor);
 
 	// 	TODO: Create ports.
 	// 	TODO: Create mockProtocol / mockControllerStub.
