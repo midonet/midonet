@@ -65,7 +65,7 @@ public class NetworkController extends AbstractController {
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
 
-    public NetworkController(int datapathId, UUID deviceId, int greKey,
+    public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
             int localNwAddr, RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache) {

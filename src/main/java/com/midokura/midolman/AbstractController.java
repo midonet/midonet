@@ -6,15 +6,14 @@ package com.midokura.midolman;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.UUID;
 
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
-import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,7 @@ public abstract class AbstractController implements Controller {
 
     Logger log = LoggerFactory.getLogger(AbstractController.class);
 
-    protected int datapathId;
+    protected long datapathId;
 
     protected ControllerStub controllerStub;
 
@@ -64,7 +63,7 @@ public abstract class AbstractController implements Controller {
     }
 
     public AbstractController(
-            int datapathId,
+            long datapathId,
             UUID switchUuid,
             int greKey,
             OpenvSwitchDatabaseConnection ovsdb,
@@ -238,7 +237,7 @@ public abstract class AbstractController implements Controller {
         return portLocMap.containsValue(peerAddress);
     }
 
-    protected UUID getPortUuidFromOvsdb(int datapathId, short portNum) {
+    protected UUID getPortUuidFromOvsdb(long datapathId, short portNum) {
         String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
         if (extId == null)
             return null;

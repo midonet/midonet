@@ -17,12 +17,14 @@ public class ZkConnection implements Watcher {
             LoggerFactory.getLogger(ZkConnection.class);
     private ZooKeeper zk;
     private String zkHosts;
+    private int sessionTimeoutMillis;
     private Watcher watcher;
     private boolean connecting;
     private boolean connected;
 
-    public ZkConnection(String zkHosts, Watcher watcher) throws Exception {
+    public ZkConnection(String zkHosts, int sessionTimeoutMillis, Watcher watcher) throws Exception {
         this.zkHosts = zkHosts;
+        this.sessionTimeoutMillis = sessionTimeoutMillis;
         this.watcher = watcher;
         connecting = false;
         connected = false;
@@ -30,7 +32,7 @@ public class ZkConnection implements Watcher {
 
     public synchronized void open() throws Exception {
         if (null == zk) {
-            zk = new ZooKeeper(zkHosts, 3000, this);
+            zk = new ZooKeeper(zkHosts, sessionTimeoutMillis, this);
             connecting = true;
         }
         while (connecting) {
