@@ -112,8 +112,6 @@ public class Midolman implements SelectListener, Watcher {
 
             sock.socket().setTcpNoDelay(true);
             sock.configureBlocking(false);
-            Directory midoDir = zkConnection.getRootDirectory().getSubDirectory(
-                    config.configurationAt("midolman").getString("midonet_root_key", "midolman"));
 
             ControllerTrampoline trampoline = new ControllerTrampoline(config, ovsdb, midonetDirectory, loop);
             ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, loop, trampoline);
