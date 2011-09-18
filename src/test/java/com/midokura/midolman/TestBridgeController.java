@@ -13,6 +13,7 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
+import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectLoop;
@@ -22,6 +23,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.util.Net;
 
 
 public class TestBridgeController {
@@ -33,6 +35,12 @@ public class TestBridgeController {
     private MacPortMap macPortMap;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private InetAddress publicIp;
+    int dp_id = 43;
+
+    OFPhysicalPort[] phyPorts = {
+        new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
+        new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
+        new OFPhysicalPort(), new OFPhysicalPort() };
 
     String[] peerStrList = { "192.168.1.50",    // local
                              "192.168.1.50",    // local
@@ -61,39 +69,39 @@ public class TestBridgeController {
                        new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
 
         // 'util_setup_controller_test':
-        // Create portUuids.
-/* Python code:
-  self.port_uuids = [port.short_uuid_to_port_uuid(0x00fb7c6d62765180),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765181),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765182),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765183),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765184),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765185),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765186),
-                     port.short_uuid_to_port_uuid(0x00fb7c6d62765186)]
-*/
-        // (Note that deliberately has 0x00fb7c6d62765186 twice.)
-
-        // Pino said the equiv. of port.short_uuid_to_port_uuid
-        // was in PortDirectory.java, but I don't see it.
-        // Create seven random UUIDs instead.
+        // Create portUuids:
+        //      Seven random UUIDs, and an eighth being a dup of the seventh.
         UUID portUuids[] = { UUID.randomUUID(), UUID.randomUUID(),
                              UUID.randomUUID(), UUID.randomUUID(),
                              UUID.randomUUID(), UUID.randomUUID(),
                              UUID.randomUUID(), UUID.randomUUID() };
         portUuids[7] = portUuids[6];
 
-        //      TODO: Register ports into datapath in ovsdb.
+        // Populate ports
+        for (int i = 0; i < 8; i++) {
+            phyPorts[i].setPortNumber((short)i);
+            phyPorts[i].setHardwareAddress(macList[i]);
+            // First three ports are local.  The rest are tunneled.
+            phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
+                                      : controller.makeGREPortName(
+                                            Net.convertStringAddressToInt(
+                                                    peerStrList[i])));
+        }
+
+        // Register local ports (ports 0, 1, 2) into datapath in ovsdb.
+        ovsdb.setPortExternalId(dp_id, 0, "midonet", portUuids[0].toString());
+        ovsdb.setPortExternalId(dp_id, 1, "midonet", portUuids[1].toString());
+        ovsdb.setPortExternalId(dp_id, 2, "midonet", portUuids[2].toString());
 
         // Configuration for the Manager.
         String configString = 
             "[midolman]\n" +
             "midolman_root_key: /midolman\n" +
             "[bridge]\n" +
-            "mac_port_mapping_expire: 40\n" +
+            "mac_port_mapping_expire_millis: 40000\n" +
             "[openflow]\n" +
-            "flow_expire: 300\n" +
-            "flow_idle_expire: 60\n" +
+            "flow_expire_millis: 300000\n" +
+            "flow_idle_expire_millis: 60000\n" +
             "public_ip_address: 192.168.1.50\n" +
             "use_flow_wildcards: true\n" +
             "[openvswitch]\n" +
@@ -141,26 +149,27 @@ public class TestBridgeController {
         ControllerTrampoline controllerManager = new ControllerTrampoline(
                 hierarchicalConfiguration, ovsdb, zkDir, reactor);
 
-        //      TODO: Create ports.
-        //      TODO: Create mockProtocol / mockControllerStub.
+        MockControllerStub controllerStub = new MockControllerStub();
         //      TODO: Create packets, flows.
+
+        UUID bridgeUUID = UUID.randomUUID();
 
         // TODO: Manager.add_bridge()
         // TODO: Manager.add_bridge_port() for each port.
 
         controller = new BridgeController(
-                /* datapathId */                43, 
-                /* switchUuid */                UUID.randomUUID(),
+                /* datapathId */                dp_id, 
+                /* switchUuid */                bridgeUUID,
                 /* greKey */                    0xe1234,
                 /* port_loc_map */              portLocMap,
                 /* mac_port_map */              macPortMap,
-                /* flowExpireMinMillis */       260*1000,
-                /* flowExpireMaxMillis */       320*1000,
+                /* flowExpireMillis */          300*1000,
                 /* idleFlowExpireMillis */      60*1000,
                 /* publicIp */                  publicIp,
                 /* macPortTimeoutMillis */      40*1000,
-                /* ovsdb */                     ovsdb);
-        controller.setControllerStub(new MockControllerStub());
+                /* ovsdb */                     ovsdb,
+                /* reactor */                   reactor);
+        controller.setControllerStub(controllerStub);
 
         portLocMap.start();
 

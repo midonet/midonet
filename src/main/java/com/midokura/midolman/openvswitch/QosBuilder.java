@@ -63,6 +63,6 @@ public interface QosBuilder {
      * @param qosUuid the uuid to update.
      * @return this builder
      */
-	QosBuilder update(String qosUuid);
+    QosBuilder update(String qosUuid);
 
 }

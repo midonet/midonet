@@ -70,7 +70,7 @@ public class NetworkController extends AbstractController {
             int localNwAddr, RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
-                idleFlowExpireMillis, null);
+              idleFlowExpireMillis, null);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor, cache);
@@ -175,7 +175,7 @@ public class NetworkController extends AbstractController {
                         cb);
             } else { // devPortOut is null; the egress port is remote.
                 Integer tunPortNum = 
-			    super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
+                            super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
                     log.warn("Could not find location or tunnel port number "
                             + "for Id " + fwdInfo.outPortId.toString());

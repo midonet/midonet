@@ -38,8 +38,8 @@ public class Route implements Serializable {
         this.routerId = routerId;
     }
 
-	// Default constructor for the Jackson deserialization.
-	public Route() { super(); }
+    // Default constructor for the Jackson deserialization.
+    public Route() { super(); }
 
     @Override
     public boolean equals(Object other) {
@@ -89,7 +89,7 @@ public class Route implements Serializable {
         hash = 11 * hash + weight;
         
         if (null != routerId)
-        	hash = 47 * hash + routerId.hashCode();
+            hash = 47 * hash + routerId.hashCode();
         if (null != nextHop)
             hash = 29 * hash + nextHop.hashCode();
         if (null != nextHopPort)

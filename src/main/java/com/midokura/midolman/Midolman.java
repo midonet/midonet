@@ -66,30 +66,38 @@ public class Midolman implements SelectListener, Watcher {
         config = new HierarchicalINIConfiguration(configFilePath);
         Configuration midolmanConfig = config.configurationAt("midolman");
 
-        disconnected_ttl_seconds = midolmanConfig.getInteger("disconnected_ttl_seconds", 30);
+        disconnected_ttl_seconds =
+            midolmanConfig.getInteger("disconnected_ttl_seconds", 30);
 
         executor = Executors.newScheduledThreadPool(1);
 
         // open the OVSDB connection
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
                 "Open_vSwitch", 
-                config.configurationAt("openvswitch").getString("openvswitchdb_ip_addr", "127.0.0.1"), 
-                config.configurationAt("openvswitch").getInt("openvswitchdb_tcp_port", 6634));
+                config.configurationAt("openvswitch")
+                      .getString("openvswitchdb_ip_addr", "127.0.0.1"), 
+                config.configurationAt("openvswitch")
+                      .getInt("openvswitchdb_tcp_port", 6634));
 
         zkConnection = new ZkConnection(
-                config.configurationAt("zookeeper").getString("zookeeper_hosts", "127.0.0.1:2181"), 
-                config.configurationAt("zookeeper").getInt("session_timeout", 30000), this);
+                config.configurationAt("zookeeper")
+                      .getString("zookeeper_hosts", "127.0.0.1:2181"), 
+                config.configurationAt("zookeeper")
+                      .getInt("session_timeout", 30000), this);
 
         log.debug("about to ZkConnection.open()");
         zkConnection.open();
         log.debug("done with ZkConnection.open()");
 
-        midonetDirectory = zkConnection.getRootDirectory().getSubDirectory(midolmanConfig.getString("midolman_root_key"));
+        midonetDirectory = zkConnection.getRootDirectory().getSubDirectory(
+                midolmanConfig.getString("midolman_root_key"));
 
         listenSock = ServerSocketChannel.open();
         listenSock.configureBlocking(false);
         listenSock.socket().bind(
-                new java.net.InetSocketAddress(config.configurationAt("openflow").getInt("controller_port", 6633)));
+                new java.net.InetSocketAddress(
+                        config.configurationAt("openflow")
+                              .getInt("controller_port", 6633)));
 
         loop = new SelectLoop(executor);
 
@@ -108,18 +116,24 @@ public class Midolman implements SelectListener, Watcher {
 
         try {
             SocketChannel sock = listenSock.accept();
-            log.info("handleEvent acccepted connection from " + sock.socket().getRemoteSocketAddress());
+            log.info("handleEvent acccepted connection from " +
+                     sock.socket().getRemoteSocketAddress());
 
             sock.socket().setTcpNoDelay(true);
             sock.configureBlocking(false);
 
             Directory midoDir = zkConnection.getRootDirectory().getSubDirectory(
-                    config.configurationAt("midolman").getString("midolman_root_key"));
+                    config.configurationAt("midolman")
+                          .getString("midolman_root_key"));
 
-            ControllerTrampoline trampoline = new ControllerTrampoline(config, ovsdb, midonetDirectory, loop);
-            ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, loop, trampoline);
+            ControllerTrampoline trampoline =
+                new ControllerTrampoline(config, ovsdb, midonetDirectory, loop);
+            ControllerStubImpl controllerStubImpl =
+                new ControllerStubImpl(sock, loop, trampoline);
             
-            SelectionKey switchKey = loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);
+            SelectionKey switchKey = 
+                loop.registerBlocking(sock, SelectionKey.OP_READ, 
+                                      controllerStubImpl);
             
             switchKey.interestOps(SelectionKey.OP_READ);
             loop.wakeup();
@@ -138,7 +152,7 @@ public class Midolman implements SelectListener, Watcher {
             disconnected_kill_timer = executor.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    log.error("have been disconnected for {} " + "seconds, so exiting", disconnected_ttl_seconds);
+                    log.error("have been disconnected for {} seconds, so exiting", disconnected_ttl_seconds);
                     System.exit(-1);
                 }
             }, disconnected_ttl_seconds, TimeUnit.SECONDS);

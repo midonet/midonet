@@ -50,7 +50,7 @@ public class JSONSerializer<T> implements Serializer<T> {
     }
 
     public T bytesToObj(byte[] data, Class<T> clazz) 
-    		throws JsonParseException, IOException {
+                throws JsonParseException, IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
         JsonParser jsonParser =

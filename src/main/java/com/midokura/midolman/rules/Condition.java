@@ -35,13 +35,13 @@ public class Condition {
     // Getter and setter for the transient property inPortIds.
     public Set<UUID> getInPortIds() { return inPortIds; }
     public void setInPortIds(Set<UUID> inPortIds) { this.inPortIds = inPortIds; }
-	
+
     // Getter and setter for the transient property outPortIds.
     public Set<UUID> getOutPortIds() { return outPortIds; }
     public void setOutPortIds(Set<UUID> outPortIds) { this.outPortIds = outPortIds; }
 
-	// Default constructor for the Jackson deserialization.
-	public Condition() { super(); }
+    // Default constructor for the Jackson deserialization.
+    public Condition() { super(); }
 
     public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch) {
         /*
