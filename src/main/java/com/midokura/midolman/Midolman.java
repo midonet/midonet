@@ -131,8 +131,14 @@ public class Midolman implements SelectListener, Watcher {
             ControllerStubImpl controllerStubImpl =
                 new ControllerStubImpl(sock, loop, trampoline);
             
-            loop.registerBlocking(sock, SelectionKey.OP_READ,
-                                  controllerStubImpl);
+            SelectionKey switchKey = 
+                loop.registerBlocking(sock, SelectionKey.OP_READ, 
+                                      controllerStubImpl);
+            
+            switchKey.interestOps(SelectionKey.OP_READ);
+            loop.wakeup();
+            
+            controllerStubImpl.start();
         } catch (Exception e) {
             log.warn("handleEvent", e);
         }

@@ -52,8 +52,12 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         super(sock, reactor);
 
         setController(controller);
-        
+    }
+    
+    public void start() {
         stream.write(factory.getMessage(OFType.HELLO));
+        
+        sendEchoRequest();
     }
 
     @Override
@@ -117,6 +121,8 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 }
             }
         }, Long.valueOf(500), OFType.FEATURES_REQUEST));
+        
+        stream.write(m);
     }
     
     protected void sendConfigRequest() {
@@ -146,6 +152,8 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 }
             }
         }, Long.valueOf(500), OFType.GET_CONFIG_REQUEST));
+        
+        stream.write(m);
     }
 
     protected boolean handleMessage(OFMessage m) {
@@ -159,8 +167,8 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
 
         switch (m.getType()) {
         case HELLO:
-            log.debug("handleMessage: HELLO");            
-            sendFeaturesRequest();
+            log.debug("handleMessage: HELLO");
+            sendEchoRequest();
             return true;
         case FEATURES_REPLY:
             log.debug("handleMessage: FEATURES_REPLY");
