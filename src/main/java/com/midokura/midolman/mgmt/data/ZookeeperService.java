@@ -9,9 +9,9 @@ import com.midokura.midolman.state.ZkConnection;
 
 /**
  * Class implementing a singleton Zookeeper connection.
- *
- * @version        1.6 05 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 05 Sept 2011
+ * @author Ryu Ishimoto
  */
 public class ZookeeperService {
     /*
@@ -25,15 +25,17 @@ public class ZookeeperService {
 
     /**
      * Get the Zookeeper connection.
-     *
-     * @param   connStr  Connection string.
-     * @return  ZkConnection object.
-     * @throws  Exception  Any exception thrown from connecting to Zookeeper.
+     * 
+     * @param connStr
+     *            Connection string.
+     * @return ZkConnection object.
+     * @throws Exception
+     *             Any exception thrown from connecting to Zookeeper.
      */
-    public static synchronized ZkConnection getConnection(String connStr)
-            throws Exception {
+    public static synchronized ZkConnection getConnection(String connStr,
+            int timeout) throws Exception {
         if (null == conn) {
-            conn = new ZkConnection(connStr, null);
+            conn = new ZkConnection(connStr, timeout, null);
             conn.open();
         }
         return conn;

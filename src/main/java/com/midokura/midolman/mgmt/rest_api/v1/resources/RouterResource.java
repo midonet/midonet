@@ -69,7 +69,7 @@ public class RouterResource extends RestResource {
     public RouterChainResource getChainResource(@PathParam("id") UUID id) {
         return new RouterChainResource(zookeeperConn, id);
     }
-    
+
     /**
      * Get the Router with the given ID.
      * 
@@ -83,7 +83,8 @@ public class RouterResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Router get(@PathParam("id") UUID id) {
         // Get a router for the given ID.
-        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         Router router = null;
         try {
             router = dao.get(id);
@@ -100,7 +101,8 @@ public class RouterResource extends RestResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Router router) {
-        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.update(id, router);
         } catch (Exception ex) {
@@ -116,7 +118,8 @@ public class RouterResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+        RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.delete(id);
         } catch (Exception ex) {
@@ -155,7 +158,8 @@ public class RouterResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Router[] list() {
-            RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+            RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             try {
                 return dao.list(tenantId);
             } catch (Exception ex) {
@@ -177,7 +181,8 @@ public class RouterResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Router router, @Context UriInfo uriInfo) {
             router.setTenantId(tenantId);
-            RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn);
+            RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             UUID id = null;
             try {
                 id = dao.create(router);

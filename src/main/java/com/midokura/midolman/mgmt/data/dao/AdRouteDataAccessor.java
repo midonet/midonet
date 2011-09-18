@@ -32,12 +32,12 @@ public class AdRouteDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public AdRouteDataAccessor(String zkConn) {
-        super(zkConn);
+    public AdRouteDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private AdRouteZkManager getAdRouteZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new AdRouteZkManager(conn.getZooKeeper(), "/midolman");
     }
 
@@ -61,9 +61,6 @@ public class AdRouteDataAccessor extends DataAccessor {
         AdRoute adRoute = convertToAdRoute(entry.value);
         adRoute.setId(entry.key);
         return adRoute;
-    }
-    
-    private static void copyAdRoute(AdRoute adRoute, AdRouteConfig config) {
     }
 
     /**

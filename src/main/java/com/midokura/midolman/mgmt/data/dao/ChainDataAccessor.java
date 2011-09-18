@@ -30,12 +30,12 @@ public class ChainDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public ChainDataAccessor(String zkConn) {
-        super(zkConn);
+    public ChainDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private ChainZkManager getChainZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new ChainZkManager(conn.getZooKeeper(), "/midolman");
     }
 
@@ -74,20 +74,6 @@ public class ChainDataAccessor extends DataAccessor {
         }
         return chains.toArray(new Chain[chains.size()]);
     }
-
-    private static void copyChain(Chain chain, ChainConfig config) {
-        // Just allow copy of the name.
-        config.name = chain.getName();
-    }
-   
-    public void update(UUID id, Chain chain) throws Exception {
-        ChainZkManager manager = getChainZkManager();
-        // Only allow an update of 'name'
-        ZkNodeEntry<UUID, ChainConfig> entry = manager.get(id);
-        copyChain(chain, entry.value);
-        manager.update(entry);
-    }
-
    
     public void delete(UUID id) throws Exception {
         ChainZkManager manager = getChainZkManager();

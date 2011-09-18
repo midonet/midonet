@@ -41,8 +41,8 @@ public class BgpResource extends RestResource {
      * Implements REST API end points for bgps.
      */
 
-    private final static Logger log =
-        LoggerFactory.getLogger(BgpResource.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(BgpResource.class);
 
     /**
      * Advertising route resource locator for bgps
@@ -64,7 +64,8 @@ public class BgpResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Bgp get(@PathParam("id") UUID id) {
         // Get a bgp for the given ID.
-        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn);
+        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         Bgp bgp = null;
         try {
             bgp = dao.get(id);
@@ -81,7 +82,8 @@ public class BgpResource extends RestResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Bgp bgp) {
-        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn);
+        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.update(id, bgp);
         } catch (Exception ex) {
@@ -96,7 +98,8 @@ public class BgpResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn);
+        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.delete(id);
         } catch (Exception ex) {
@@ -135,7 +138,8 @@ public class BgpResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Bgp[] list() {
-            BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn);
+            BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             Bgp[] bgps = null;
             try {
                 bgps = dao.list(portId);
@@ -159,7 +163,8 @@ public class BgpResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Bgp bgp, @Context UriInfo uriInfo) {
             bgp.setPortId(portId);
-            BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn);
+            BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             UUID id = null;
             try {
                 id = dao.create(bgp);

@@ -64,7 +64,8 @@ public class BridgeResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Bridge get(@PathParam("id") UUID id) {
         // Get a bridge for the given ID.
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
+        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             return dao.get(id);
         } catch (Exception ex) {
@@ -79,7 +80,8 @@ public class BridgeResource extends RestResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Bridge bridge) {
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
+        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.update(id, bridge);
         } catch (Exception ex) {
@@ -94,7 +96,8 @@ public class BridgeResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
+        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.delete(id);
         } catch (Exception ex) {
@@ -133,7 +136,8 @@ public class BridgeResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Bridge[] list() {
-            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
+            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             try {
                 return dao.list(tenantId);
             } catch (Exception ex) {
@@ -155,7 +159,8 @@ public class BridgeResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Bridge bridge, @Context UriInfo uriInfo) {
             bridge.setTenantId(tenantId);
-            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn);
+            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             UUID id = null;
             try {
                 id = dao.create(bridge);

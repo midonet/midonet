@@ -32,12 +32,12 @@ public class BgpDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public BgpDataAccessor(String zkConn) {
-        super(zkConn);
+    public BgpDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private BgpZkManager getBgpZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new BgpZkManager(conn.getZooKeeper(), "/midolman");
     }
 
@@ -62,9 +62,6 @@ public class BgpDataAccessor extends DataAccessor {
         return b;
     }
     
-    private static void copyBgp(Bgp bgp, BgpConfig config) {
-    }
-
     /**
      * Add a JAXB object the ZK directories.
      * 

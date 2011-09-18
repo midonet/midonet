@@ -31,12 +31,12 @@ public class BridgeDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public BridgeDataAccessor(String zkConn) {
-        super(zkConn);
+    public BridgeDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private BridgeZkManager getBridgeZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new BridgeZkManager(conn.getZooKeeper(), "/midolman");
     }
 

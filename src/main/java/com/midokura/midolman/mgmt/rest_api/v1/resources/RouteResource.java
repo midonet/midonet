@@ -54,7 +54,8 @@ public class RouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Route get(@PathParam("id") UUID id) {
         // Get a route for the given ID.
-        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             return dao.get(id);
         } catch (Exception ex) {
@@ -68,7 +69,8 @@ public class RouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.delete(id);
         } catch (Exception ex) {
@@ -107,7 +109,8 @@ public class RouteResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Route[] list() {
-            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             try {
                 return dao.list(routerId);
             } catch (Exception ex) {
@@ -130,7 +133,8 @@ public class RouteResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Route route, @Context UriInfo uriInfo) {
             route.setRouterId(routerId);
-            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn);
+            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
 
             UUID id = null;
             try {

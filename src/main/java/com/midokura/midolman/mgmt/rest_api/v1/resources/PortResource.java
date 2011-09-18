@@ -59,7 +59,8 @@ public class PortResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Port get(@PathParam("id") UUID id) {
         // Get a port for the given ID.
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             return dao.get(id);
         } catch (Exception ex) {
@@ -74,7 +75,8 @@ public class PortResource extends RestResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, RouterPort port) {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                zookeeperTimeout);
 
         try {
             dao.update(id, port);
@@ -96,7 +98,8 @@ public class PortResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.delete(id);
         } catch (Exception ex) {
@@ -121,7 +124,8 @@ public class PortResource extends RestResource {
         public Response create(Port port, @Context UriInfo uriInfo)
                 throws Exception {
             port.setDeviceId(bridgeId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
 
             UUID id = null;
             try {
@@ -140,7 +144,8 @@ public class PortResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Port[] list() {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             try {
                 return dao.listBridgePorts(bridgeId);
             } catch (Exception ex) {
@@ -169,7 +174,8 @@ public class PortResource extends RestResource {
         public Response create(RouterPort port, @Context UriInfo uriInfo)
                 throws Exception {
             port.setDeviceId(routerId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
 
             UUID id = null;
             try {
@@ -188,7 +194,8 @@ public class PortResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Port[] list() {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn);
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             try {
                 return dao.listRouterPorts(routerId);
             } catch (Exception ex) {

@@ -67,7 +67,8 @@ public class TenantResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(Tenant tenant) {
-        TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn);
+        TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         UUID id = null;
         try {
             id = dao.create(tenant);

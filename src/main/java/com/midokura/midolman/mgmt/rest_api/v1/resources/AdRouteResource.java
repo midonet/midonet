@@ -41,8 +41,8 @@ public class AdRouteResource extends RestResource {
      * Implements REST API end points for ad_routes.
      */
 
-    private final static Logger log =
-        LoggerFactory.getLogger(AdRouteResource.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(AdRouteResource.class);
 
     /**
      * Get the advertising route with the given ID.
@@ -56,7 +56,8 @@ public class AdRouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public AdRoute get(@PathParam("id") UUID id) {
         // Get a advertising route for the given ID.
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn);
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         AdRoute adRoute = null;
         try {
             adRoute = dao.get(id);
@@ -73,7 +74,8 @@ public class AdRouteResource extends RestResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, AdRoute adRoute) {
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn);
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.update(id, adRoute);
         } catch (Exception ex) {
@@ -88,7 +90,8 @@ public class AdRouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn);
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                zookeeperTimeout);
         try {
             dao.delete(id);
         } catch (Exception ex) {
@@ -127,7 +130,8 @@ public class AdRouteResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public AdRoute[] list() {
-            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn);
+            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             AdRoute[] adRoutes = null;
             try {
                 adRoutes = dao.list(bgpId);
@@ -151,7 +155,8 @@ public class AdRouteResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(AdRoute adRoute, @Context UriInfo uriInfo) {
             adRoute.setBgpId(bgpId);
-            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn);
+            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
             UUID id = null;
             try {
                 id = dao.create(adRoute);
@@ -162,8 +167,8 @@ public class AdRouteResource extends RestResource {
                         MediaType.APPLICATION_JSON).build());
             }
 
-            URI uri = uriInfo.getBaseUriBuilder()
-                .path("ad_routes/" + id).build();
+            URI uri = uriInfo.getBaseUriBuilder().path("ad_routes/" + id)
+                    .build();
             return Response.created(uri).build();
         }
     }

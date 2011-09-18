@@ -29,12 +29,12 @@ public class TenantDataAccessor extends DataAccessor {
      * @param zkConn
      *            ZooKeeper connection string
      */
-    public TenantDataAccessor(String zkConn) {
-        super(zkConn);
+    public TenantDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private TenantZkManager getTenantZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new TenantZkManager(conn.getZooKeeper(), "/midolman");
     }
 

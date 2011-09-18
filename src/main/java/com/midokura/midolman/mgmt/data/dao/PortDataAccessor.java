@@ -38,12 +38,12 @@ public class PortDataAccessor extends DataAccessor {
      * @param zkConn
      *            ZooKeeper connection string
      */
-    public PortDataAccessor(String zkConn) {
-        super(zkConn);
+    public PortDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private PortZkManager getPortZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new PortZkManager(conn.getZooKeeper(), "/midolman");
     }
 

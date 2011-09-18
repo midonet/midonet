@@ -33,12 +33,12 @@ public class RouterDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public RouterDataAccessor(String zkConn) {
-        super(zkConn);
+    public RouterDataAccessor(String zkConn, int timeout) {
+        super(zkConn, timeout);
     }
 
     private RouterZkManager getRouterZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn);
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
         return new RouterZkManager(conn.getZooKeeper(), "/midolman");
     }
 
