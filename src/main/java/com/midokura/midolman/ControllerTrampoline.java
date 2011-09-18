@@ -104,7 +104,7 @@ public class ControllerTrampoline implements Controller {
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
                 
-                long idleFlowExpireMillis = config.configurationAt("openflow").getLong("flow_idle_expire");
+                long idleFlowExpireMillis = config.configurationAt("openflow").getLong("flow_idle_expire_millis");
                 int localNwAddr = config.configurationAt("openflow").getInt("public_ip_address");
 
                 String memcacheHosts = config.configurationAt("memcache").getString("memcache_hosts");
