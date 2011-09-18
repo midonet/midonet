@@ -136,6 +136,8 @@ public class ControllerTrampoline implements Controller {
                 
                 controllerStub.setController(newController);
                 controllerStub = null;
+                
+                newController.onConnectionMade();
             } else if (bridgeDirectory.exists(deviceId)) {
                 log.info("Creating Bridge {}", uuid);
 
