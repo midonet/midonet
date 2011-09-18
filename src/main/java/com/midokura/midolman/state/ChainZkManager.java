@@ -8,9 +8,8 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -48,10 +47,14 @@ public class ChainZkManager extends ZkManager {
      * Constructor to set ZooKeeper and base path.
      * 
      * @param zk
-     *            ZooKeeper object.
+     *            Directory object.
      * @param basePath
      *            The root path.
      */
+    public ChainZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public ChainZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
@@ -87,7 +90,7 @@ public class ChainZkManager extends ZkManager {
 
     public ZkNodeEntry<UUID, ChainConfig> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getChainPath(id), null, null);
+        byte[] data = zk.get(pathManager.getChainPath(id), null);
         ChainConfig config = null;
         try {
             config = deserialize(data, ChainConfig.class);
@@ -102,9 +105,15 @@ public class ChainZkManager extends ZkManager {
     public List<ZkNodeEntry<UUID, ChainConfig>> list(UUID routerId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
+        return list(routerId, null);
+    }
+
+    public List<ZkNodeEntry<UUID, ChainConfig>> list(UUID routerId,
+            Runnable watcher) throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         List<ZkNodeEntry<UUID, ChainConfig>> result = new ArrayList<ZkNodeEntry<UUID, ChainConfig>>();
-        List<String> chains = zk.getChildren(pathManager
-                .getRouterChainsPath(routerId), null);
+        Set<String> chains = zk.getChildren(pathManager
+                .getRouterChainsPath(routerId), watcher);
         for (String chainId : chains) {
             // For now, get each one.
             result.add(get(UUID.fromString(chainId)));
@@ -116,8 +125,8 @@ public class ChainZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         try {
-            zk.setData(pathManager.getChainPath(entry.key),
-                    serialize(entry.value), -1);
+            zk.update(pathManager.getChainPath(entry.key),
+                    serialize(entry.value));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize chain " + entry.key

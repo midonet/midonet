@@ -1,13 +1,24 @@
 package com.midokura.midolman.state;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jute.Record;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.KeeperException.*;
+import org.apache.zookeeper.Op.Delete;
+import org.apache.zookeeper.proto.CheckVersionRequest;
+import org.apache.zookeeper.proto.CreateRequest;
+import org.apache.zookeeper.proto.DeleteRequest;
+import org.apache.zookeeper.proto.SetDataRequest;
 
 public class MockDirectory implements Directory {
 
@@ -20,6 +31,7 @@ public class MockDirectory implements Directory {
         Map<String, Node> children;
         Set<Runnable> dataWatchers;
         Set<Runnable> childrenWatchers;
+
         // We currently have no need for Watchers on 'exists'.
 
         Node(String path, byte[] data, CreateMode mode) {
@@ -41,7 +53,7 @@ public class MockDirectory implements Directory {
         }
 
         // Document that this returns the absolute path of the child
-        String addChild(String name, byte[] data, CreateMode mode) 
+        String addChild(String name, byte[] data, CreateMode mode)
                 throws NodeExistsException, NoChildrenForEphemeralsException {
             if (!mode.isSequential() && children.containsKey(name))
                 throw new NodeExistsException(path + '/' + name);
@@ -50,8 +62,8 @@ public class MockDirectory implements Directory {
             if (mode.isSequential()) {
                 name = new StringBuilder(name).append(sequence++).toString();
             }
-            String childPath = new StringBuilder(path).append("/").
-                    append(name).toString();
+            String childPath = new StringBuilder(path).append("/").append(name)
+                    .toString();
             Node child = new Node(childPath, data, mode);
             children.put(name, child);
             notifyChildrenWatchers();
@@ -78,8 +90,8 @@ public class MockDirectory implements Directory {
         void deleteChild(String name) throws NoNodeException {
             Node child = children.get(name);
             if (null == child)
-                throw new NoNodeException(new StringBuilder(path).append("/").
-                        append(name).toString());
+                throw new NoNodeException(new StringBuilder(path).append("/")
+                        .append(name).toString());
             children.remove(name);
             child.notifyDataWatchers();
             this.notifyChildrenWatchers();
@@ -107,7 +119,7 @@ public class MockDirectory implements Directory {
     }
 
     private Node rootNode;
-    
+
     public MockDirectory() {
         rootNode = new Node("", null, CreateMode.PERSISTENT);
     }
@@ -120,7 +132,7 @@ public class MockDirectory implements Directory {
         String[] path_elems = path.split("/");
         return getNode(path_elems, path_elems.length);
     }
-    
+
     private Node getNode(String[] path, int depth) throws NoNodeException {
         Node curNode = rootNode;
         // TODO(pino): fix this hack - starts at 1 to skip empty string.
@@ -132,8 +144,8 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public String add(String relativePath, byte[] data, CreateMode mode) 
-            throws NoNodeException, NodeExistsException, 
+    public String add(String relativePath, byte[] data, CreateMode mode)
+            throws NoNodeException, NodeExistsException,
             NoChildrenForEphemeralsException {
         if (!relativePath.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with '/'");
@@ -141,8 +153,8 @@ public class MockDirectory implements Directory {
         String[] path = relativePath.split("/");
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot add the root node");
-        Node parent = getNode(path, path.length-1);
-        String childPath = parent.addChild(path[path.length-1], data, mode);
+        Node parent = getNode(path, path.length - 1);
+        String childPath = parent.addChild(path[path.length - 1], data, mode);
         return childPath.substring(rootNode.path.length());
     }
 
@@ -152,13 +164,12 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public byte[] get(String path, Runnable watcher) 
-            throws NoNodeException {
+    public byte[] get(String path, Runnable watcher) throws NoNodeException {
         return getNode(path).getData(watcher);
     }
 
     @Override
-    public Set<String> getChildren(String path, Runnable watcher) 
+    public Set<String> getChildren(String path, Runnable watcher)
             throws NoNodeException {
         return getNode(path).getChildren(watcher);
     }
@@ -168,10 +179,9 @@ public class MockDirectory implements Directory {
         try {
             getNode(path);
             return true;
-        }
-        catch (NoNodeException e) {
+        } catch (NoNodeException e) {
             return false;
-        } 
+        }
     }
 
     @Override
@@ -179,13 +189,51 @@ public class MockDirectory implements Directory {
         String[] path = relativePath.split("/");
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot delete the root node");
-        Node parent = getNode(path, path.length-1);
-        parent.deleteChild(path[path.length-1]);
+        Node parent = getNode(path, path.length - 1);
+        parent.deleteChild(path[path.length - 1]);
     }
 
     @Override
     public Directory getSubDirectory(String path) throws NoNodeException {
         Node subdirRoot = getNode(path);
         return new MockDirectory(subdirRoot);
+    }
+
+    @Override
+    public List<OpResult> multi(List<Op> ops) throws InterruptedException,
+            KeeperException {
+        List<OpResult> results = new ArrayList<OpResult>();
+        for (Op op : ops) {
+            Record record = op.toRequestRecord();
+            if (record instanceof CreateRequest) {
+                //TODO(pino, ryu): should we use the try/catch and create
+                // new ErrorResult? Don't for now, but this means that the
+                // unit tests can't purposely make a bad Op. 
+                //try {
+                CreateRequest req = CreateRequest.class.cast(record);
+                String path = this.add(req.getPath(), req.getData(),
+                        CreateMode.fromFlag(req.getFlags()));
+                results.add(new OpResult.CreateResult(path));
+                //} catch (KeeperException e) {
+                //    e.printStackTrace();
+                //    results.add(new OpResult.ErrorResult(e.code().intValue()));
+                //}
+            } else if (record instanceof SetDataRequest) {
+                SetDataRequest req = SetDataRequest.class.cast(record);
+                this.update(req.getPath(), req.getData());
+                // We create the SetDataResult with Stat=null. The Directory
+                // interface doesn't provide the Stat object.
+                results.add(new OpResult.SetDataResult(null));
+            } else if (record instanceof DeleteRequest) {
+                DeleteRequest req = DeleteRequest.class.cast(record);
+                this.delete(req.getPath());
+                results.add(new OpResult.DeleteResult());
+            } else {
+                // might be CheckVersionRequest or some new type we miss.
+                throw new IllegalArgumentException("This mock implementation "
+                        + "only supports Create, SetData and Delete operations");
+            }
+        }
+        return results;
     }
 }

@@ -6,11 +6,7 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.util.List;
 
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.midokura.midolman.util.JSONSerializer;
@@ -25,46 +21,27 @@ import com.midokura.midolman.util.Serializer;
 public abstract class ZkManager {
 
     protected ZkPathManager pathManager = null;
-    protected ZooKeeper zk = null;
+    protected Directory zk = null;
     protected String basePath = null;
-
-    protected class MyWatcher implements Watcher {
-        Runnable watcher;
-
-        MyWatcher(Runnable watch) {
-            watcher = watch;
-        }
-
-        @Override
-        public void process(WatchedEvent arg0) {
-            watcher.run();
-        }
-    }
 
     /**
      * Default constructor.
      * 
      * @param zk
-     *            Zookeeper object.
+     *            Directory object.
      * @param basePath
-     *            Directory to set as the base.
+     *            Path to set as the base.
      */
-    public ZkManager(ZooKeeper zk, String basePath) {
+    public ZkManager(Directory zk, String basePath) {
         this.basePath = basePath;
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
     }
 
-    public byte[] getData(String path, Runnable watcher) throws KeeperException,
-            InterruptedException {
-        return zk.getData(path, (null == watcher) ? null : new MyWatcher(
-                watcher), null);
-    }
-
-    public List<String> getChildren(String path, Runnable watcher)
-            throws KeeperException, InterruptedException {
-        return zk.getChildren(path, (null == watcher) ? null : new MyWatcher(
-                watcher));
+    public ZkManager(ZooKeeper zk, String basePath) {
+        this.basePath = basePath;
+        this.pathManager = new ZkPathManager(basePath);
+        this.zk = new ZkDirectory(zk, "", null);
     }
 
     protected static <T> byte[] serialize(T obj) throws IOException {

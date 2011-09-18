@@ -8,6 +8,7 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -41,6 +42,10 @@ public class PortZkManager extends ZkManager {
      *            The root path.
      */
     public PortZkManager(ZooKeeper zk, String basePath) {
+        super(zk, basePath);
+    }
+
+    public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
     }
 
@@ -151,7 +156,7 @@ public class PortZkManager extends ZkManager {
     public ZkNodeEntry<UUID, PortConfig> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        byte[] data = getData(pathManager.getPortPath(id), watcher);
+        byte[] data = zk.get(pathManager.getPortPath(id), watcher);
         PortConfig config = null;
         try {
             config = deserialize(data, PortConfig.class);
@@ -183,7 +188,7 @@ public class PortZkManager extends ZkManager {
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, PortConfig>> result = new ArrayList<ZkNodeEntry<UUID, PortConfig>>();
-        List<String> portIds = getChildren(path, watcher);
+        Set<String> portIds = zk.getChildren(path, watcher);
         for (String portId : portIds) {
             // For now, get each one.
             result.add(get(UUID.fromString(portId)));
@@ -294,8 +299,8 @@ public class PortZkManager extends ZkManager {
             ZkStateSerializationException {
         // Update any version for now.
         try {
-            zk.setData(pathManager.getPortPath(entry.key),
-                    serialize(entry.value), -1);
+            zk.update(pathManager.getPortPath(entry.key),
+                    serialize(entry.value));
 
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize port "

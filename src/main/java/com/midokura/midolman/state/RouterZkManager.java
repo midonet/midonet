@@ -8,6 +8,7 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -34,10 +35,14 @@ public class RouterZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      * 
      * @param zk
-     *            ZooKeeper object.
+     *            Directory object.
      * @param basePath
      *            The root path.
      */
+    public RouterZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public RouterZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
@@ -124,7 +129,7 @@ public class RouterZkManager extends ZkManager {
     public ZkNodeEntry<UUID, RouterConfig> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        byte[] data = getData(pathManager.getRouterPath(id), watcher);
+        byte[] data = zk.get(pathManager.getRouterPath(id), watcher);
         RouterConfig config = null;
         try {
             config = deserialize(data, RouterConfig.class);
@@ -179,7 +184,7 @@ public class RouterZkManager extends ZkManager {
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, RouterConfig>> result = new ArrayList<ZkNodeEntry<UUID, RouterConfig>>();
-        List<String> routerIds = getChildren(pathManager
+        Set<String> routerIds = zk.getChildren(pathManager
                 .getTenantRoutersPath(tenantId), watcher);
         for (String routerId : routerIds) {
             // For now, get each one.
@@ -225,8 +230,8 @@ public class RouterZkManager extends ZkManager {
             ZkStateSerializationException {
         // Update any version for now.
         try {
-            zk.setData(pathManager.getRouterPath(entry.key),
-                    serialize(entry.value), -1);
+            zk.update(pathManager.getRouterPath(entry.key),
+                    serialize(entry.value));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize router " + entry.key

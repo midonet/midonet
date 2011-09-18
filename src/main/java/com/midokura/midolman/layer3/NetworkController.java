@@ -43,8 +43,11 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
 
@@ -68,14 +71,15 @@ public class NetworkController extends AbstractController {
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
-            InetAddress localNwAddr, RouterDirectory routerDir, PortDirectory portDir,
+            InetAddress localNwAddr, ChainZkManager chainMgr, RuleZkManager ruleMgr,
+            RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
             String externalIdKey) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
               idleFlowExpireMillis, localNwAddr, externalIdKey);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
-        this.network = new Network(deviceId, routerDir, portDir, reactor, cache);
+        this.network = new Network(deviceId, chainMgr, ruleMgr, routerDir, portDir, reactor, cache);
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
     }
@@ -109,8 +113,13 @@ public class NetworkController extends AbstractController {
             }
             TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
                     totalLen, inPort, data, match, portsAndGw);
-            network.getMacForIp(portsAndGw.lastEgressPortId,
-                    portsAndGw.gatewayNwAddr, cb);
+            try {
+                network.getMacForIp(portsAndGw.lastEgressPortId,
+                        portsAndGw.gatewayNwAddr, cb);
+            } catch (ZkStateSerializationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             // The ARP will be completed asynchronously by the callback.
             return;
         }
@@ -173,8 +182,13 @@ public class NetworkController extends AbstractController {
                 LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
-                network.getMacForIp(fwdInfo.outPortId, fwdInfo.gatewayNwAddr,
-                        cb);
+                try {
+                    network.getMacForIp(fwdInfo.outPortId, fwdInfo.gatewayNwAddr,
+                            cb);
+                } catch (ZkStateSerializationException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             } else { // devPortOut is null; the egress port is remote.
                 Integer tunPortNum = 
                             super.portUuidToTunnelPortNumber(fwdInfo.outPortId);

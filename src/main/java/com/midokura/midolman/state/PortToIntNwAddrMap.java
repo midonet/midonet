@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.state;
 
-import java.math.BigInteger;
 import java.util.UUID;
 
 public class PortToIntNwAddrMap extends ReplicatedMap<UUID, Integer> {

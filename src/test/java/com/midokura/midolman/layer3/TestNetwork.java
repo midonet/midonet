@@ -27,13 +27,19 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.TenantZkManager;
+import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.MockCache;
 
 public class TestNetwork {
@@ -51,16 +57,27 @@ public class TestNetwork {
         reactor = new MockReactor();
         controllerStub = new MockControllerStub();
 
+        String basePath = "/midolman";
+        ZkPathManager pathMgr = new ZkPathManager(basePath);
         Directory dir = new MockDirectory();
-        dir.add("/midonet", null, CreateMode.PERSISTENT);
-        dir.add("/midonet/ports", null, CreateMode.PERSISTENT);
-        Directory portsSubdir = dir.getSubDirectory("/midonet/ports");
+        dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
+        RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
+        TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
+        UUID tenantId = tenantMgr.create();
+
+        Directory portsSubdir = dir.getSubDirectory(pathMgr.getPortsPath());
         PortDirectory portDir = new PortDirectory(portsSubdir);
-        dir.add("/midonet/routers", null, CreateMode.PERSISTENT);
-        Directory routersSubdir = dir.getSubDirectory("/midonet/routers");
+        Directory routersSubdir = dir.getSubDirectory(pathMgr.getRoutersPath());
         RouterDirectory routerDir = new RouterDirectory(routersSubdir);
-        network = new Network(new UUID(19, 19), routerDir, portDir, reactor,
-                new MockCache());
+
+        network = new Network(new UUID(19, 19), new ChainZkManager(dir,
+                basePath), new RuleZkManager(dir, basePath), routerDir,
+                portDir, reactor, new MockCache());
 
         /*
          * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16
@@ -74,9 +91,9 @@ public class TestNetwork {
         Route rt;
         MaterializedRouterPortConfig portConfig;
         for (int i = 0; i < 3; i++) {
-            UUID rtrId = new UUID(1234, i);
-            UUID tenantId = new UUID(5678, i);
-            RouterConfig routerConfig = new RouterConfig("Test Router " + i, 
+            RouterConfig cfg = new RouterConfig("Test Router " + i, tenantId);
+            UUID rtrId = routerMgr.create(cfg);
+            RouterConfig routerConfig = new RouterConfig("Test Router " + i,
                     tenantId);
             routerIds.add(rtrId);
             routerDir.addRouter(rtrId, routerConfig);
@@ -123,15 +140,16 @@ public class TestNetwork {
         routes.clear();
         routes.add(rt);
         LogicalRouterPortConfig logPortConfig = new LogicalRouterPortConfig(
-                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, routes, portOn1to0);
+                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, routes,
+                portOn1to0);
         portDir.addPort(portOn0to1, logPortConfig);
         network.getRouter(routerIds.get(0)).table.addRoute(rt);
         // Now from 1 to 0. Note that this is router1's uplink.
         rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null, null);
         routes.clear();
         routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routerIds.get(1), 0xc0a80100,
-                30, 0xc0a80102, routes, portOn0to1);
+        logPortConfig = new LogicalRouterPortConfig(routerIds.get(1),
+                0xc0a80100, 30, 0xc0a80102, routes, portOn0to1);
         portDir.addPort(portOn1to0, logPortConfig);
         network.getRouter(routerIds.get(1)).table.addRoute(rt);
         // Now add the logical links between router 0 and 2.
@@ -142,23 +160,23 @@ public class TestNetwork {
                 null, null);
         routes.clear();
         routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routerIds.get(0), 0xc0a80100,
-                30, 0xc0a80101, routes, portOn2to0);
+        logPortConfig = new LogicalRouterPortConfig(routerIds.get(0),
+                0xc0a80100, 30, 0xc0a80101, routes, portOn2to0);
         portDir.addPort(portOn0to2, logPortConfig);
         network.getRouter(routerIds.get(0)).table.addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
         rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null, null);
         routes.clear();
         routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routerIds.get(2), 0xc0a80100,
-                30, 0xc0a80102, routes, portOn0to2);
+        logPortConfig = new LogicalRouterPortConfig(routerIds.get(2),
+                0xc0a80100, 30, 0xc0a80102, routes, portOn0to2);
         portDir.addPort(portOn2to0, logPortConfig);
         network.getRouter(routerIds.get(2)).table.addRoute(rt);
 
         // Finally, instead of giving router0 an uplink. Add a route that
         // drops anything that isn't going to router0's local or logical ports.
-        rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2, null,
-        		null);
+        rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2,
+                null, null);
         routerDir.addRoute(routerIds.get(0), rt);
         network.getRouter(routerIds.get(0)).table.addRoute(rt);
     }
@@ -176,7 +194,8 @@ public class TestNetwork {
 
     @Test
     public void testOneRouterBlackhole() throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -194,7 +213,8 @@ public class TestNetwork {
 
     @Test
     public void testOneRouterReject() throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
         // Send a packet to router0's first materialized port to a destination
         // that's rejected.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -212,7 +232,8 @@ public class TestNetwork {
 
     @Test
     public void testOneRouterForward() throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
         // Send a packet to router0's first materialized port to a destination
         // reachable from its second materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -231,7 +252,9 @@ public class TestNetwork {
     }
 
     @Test
-    public void testTwoRoutersForward() throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
+    public void testTwoRoutersForward() throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
         // Send a packet to router1's first materialized port to a destination
         // reachable from router0's first materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -251,7 +274,9 @@ public class TestNetwork {
     }
 
     @Test
-    public void testThreeRoutersForward() throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
+    public void testThreeRoutersForward() throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
         // Send a packet to router1's second materialized port to a destination
         // reachable from router2's second materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -272,7 +297,7 @@ public class TestNetwork {
     }
 
     @Test
-    public void testArpRequestGeneration() {
+    public void testArpRequestGeneration() throws ZkStateSerializationException {
         // Try to get the MAC for a nwAddr on router2's second port (i.e. in
         // 10.2.1.0/24).
         TestRouter.ArpCompletedCallback cb = new TestRouter.ArpCompletedCallback();
@@ -286,15 +311,15 @@ public class TestNetwork {
         OFAction ofAction = new OFActionOutput(devPort.getNum(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Ethernet expectedArp = TestRouter.makeArpRequest(devPort.getMacAddr(), devPort
-                .getVirtualConfig().portAddr, 0x0a020123);
+        Ethernet expectedArp = TestRouter.makeArpRequest(devPort.getMacAddr(),
+                devPort.getVirtualConfig().portAddr, 0x0a020123);
         Assert.assertArrayEquals(expectedArp.serialize(), pkt.data);
     }
 
     @Ignore
     @Test
     public void testPortConfigChanges() {
-        
+
     }
 
 }

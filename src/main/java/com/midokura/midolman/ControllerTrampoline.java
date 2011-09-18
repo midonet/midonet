@@ -24,12 +24,14 @@ import com.midokura.midolman.layer3.NetworkController;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.DeviceToGreKeyMap;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
 import com.midokura.midolman.util.Net;
@@ -128,6 +130,8 @@ public class ControllerTrampoline implements Controller {
                         portLocationMap,
                         idleFlowExpireMillis,
                         localNwAddr,
+                        new ChainZkManager(directory, ""),
+                        new RuleZkManager(directory, ""),
                         routerDirectory,
                         portDirectory,
                         ovsdb,

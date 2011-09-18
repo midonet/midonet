@@ -148,9 +148,7 @@ public class RouterDirectory {
         // Use try-catch blocks to avoid getting stuck in a half-created state.
         try {
             dir.add("/" + routerId.toString(), data, CreateMode.PERSISTENT);
-        } catch (KeeperException e) {
-            throw e;
-        }
+        } catch (KeeperException e) {}
         try {
             dir.add(getRoutingTablePath(routerId), null, CreateMode.PERSISTENT);
         } catch (KeeperException e) {

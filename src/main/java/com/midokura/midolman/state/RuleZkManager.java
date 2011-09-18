@@ -7,18 +7,17 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
 
 import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -32,10 +31,14 @@ public class RuleZkManager extends ZkManager {
      * Constructor to set ZooKeeper and base path.
      * 
      * @param zk
-     *            ZooKeeper object.
+     *            Directory object.
      * @param basePath
      *            The root path.
      */
+    public RuleZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public RuleZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
@@ -68,7 +71,7 @@ public class RuleZkManager extends ZkManager {
 
     public ZkNodeEntry<UUID, Rule> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
-        byte[] data = zk.getData(pathManager.getRulePath(id), null, null);
+        byte[] data = zk.get(pathManager.getRulePath(id), null);
         Rule rule = null;
         try {
             rule = deserialize(data, Rule.class);
@@ -83,9 +86,15 @@ public class RuleZkManager extends ZkManager {
     public List<ZkNodeEntry<UUID, Rule>> list(UUID chainId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
+        return list(chainId, null);
+    }
+
+    public List<ZkNodeEntry<UUID, Rule>> list(UUID chainId, Runnable watcher)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Rule>> result = new ArrayList<ZkNodeEntry<UUID, Rule>>();
-        List<String> rules = zk.getChildren(pathManager
-                .getChainRulesPath(chainId), null);
+        Set<String> rules = zk.getChildren(pathManager
+                .getChainRulesPath(chainId), watcher);
         for (String rule : rules) {
             // For now, get each one.
             result.add(get(UUID.fromString(rule)));

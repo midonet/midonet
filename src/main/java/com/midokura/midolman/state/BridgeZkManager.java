@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -61,6 +62,10 @@ public class BridgeZkManager extends ZkManager {
      * @param basePath
      *            The root path.
      */
+    public BridgeZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public BridgeZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
@@ -171,7 +176,7 @@ public class BridgeZkManager extends ZkManager {
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        byte[] data = getData(pathManager.getBridgePath(id), watcher);
+        byte[] data = zk.get(pathManager.getBridgePath(id), watcher);
         BridgeConfig config = null;
         try {
             config = deserialize(data, BridgeConfig.class);
@@ -224,7 +229,7 @@ public class BridgeZkManager extends ZkManager {
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, BridgeConfig>> result = new ArrayList<ZkNodeEntry<UUID, BridgeConfig>>();
-        List<String> bridgeIds = getChildren(pathManager
+        Set<String> bridgeIds = zk.getChildren(pathManager
                 .getTenantBridgesPath(tenantId), watcher);
         for (String bridgeId : bridgeIds) {
             // For now, get each one.
@@ -250,8 +255,8 @@ public class BridgeZkManager extends ZkManager {
             ZkStateSerializationException {
         // Update any version for now.
         try {
-            zk.setData(pathManager.getBridgePath(entry.key),
-                    serialize(entry.value), -1);
+            zk.update(pathManager.getBridgePath(entry.key),
+                    serialize(entry.value));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize bridge " + entry.key

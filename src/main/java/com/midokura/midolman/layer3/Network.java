@@ -21,11 +21,14 @@ import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.rules.RuleEngine;
+import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
@@ -36,6 +39,8 @@ public class Network {
     private static final int MAX_HOPS = 10;
 
     protected UUID netId;
+    private ChainZkManager chainZkMgr;
+    private RuleZkManager ruleZkMgr;
     private RouterDirectory routerDir;
     private PortDirectory portDir;
     private Reactor reactor;
@@ -49,9 +54,12 @@ public class Network {
     // TODO(pino): use Guava's CacheBuilder here.
     private Map<UUID, RouterPortConfig> portIdToConfig;
 
-    public Network(UUID netId, RouterDirectory routerDir,
-            PortDirectory portDir, Reactor reactor, Cache cache) {
+    public Network(UUID netId, ChainZkManager chainMgr, RuleZkManager ruleMgr,
+            RouterDirectory routerDir, PortDirectory portDir, Reactor reactor,
+            Cache cache) {
         this.netId = netId;
+        this.chainZkMgr = chainMgr;
+        this.ruleZkMgr = ruleMgr;
         this.routerDir = routerDir;
         this.portDir = portDir;
         this.reactor = reactor;
@@ -135,17 +143,19 @@ public class Network {
     }
 
     protected Router getRouter(UUID routerId) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException {
+            InterruptedException, IOException, ClassNotFoundException,
+            ZkStateSerializationException {
         Router rtr = routers.get(routerId);
         if (null != rtr)
             return rtr;
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new CacheWithPrefix(this.cache, routerId.toString());
         NatMapping natMap = new NatLeaseManager(routerDir, routerId, cache);
-        RuleEngine ruleEngine = new RuleEngine(routerDir, routerId, natMap);
+        RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, routerId,
+                natMap);
         ruleEngine.addWatcher(routerWatcher);
         ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
-                routerDir.getRoutingTableDirectory(routerId), 
+                routerDir.getRoutingTableDirectory(routerId),
                 CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
         rtr = new Router(routerId, ruleEngine, table, reactor);
@@ -154,7 +164,8 @@ public class Network {
     }
 
     public Router getRouterByPort(UUID portId) throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
@@ -166,7 +177,8 @@ public class Network {
     }
 
     public void addPort(L3DevicePort port) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException {
+            InterruptedException, IOException, ClassNotFoundException,
+            ZkStateSerializationException {
         UUID routerId = port.getVirtualConfig().device_id;
         Router rtr = getRouter(routerId);
         rtr.addPort(port);
@@ -175,7 +187,8 @@ public class Network {
 
     // This should only be called for materialized ports, not logical ports.
     public void removePort(L3DevicePort port) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException {
+            InterruptedException, IOException, ClassNotFoundException,
+            ZkStateSerializationException {
         Router rtr = getRouter(port.getVirtualConfig().device_id);
         rtr.removePort(port);
         routersByPortId.remove(port.getId());
@@ -183,21 +196,13 @@ public class Network {
         // routersByPortId map.
     }
 
-    public void getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
+    public void getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb)
+            throws ZkStateSerializationException {
         Router rtr;
         try {
             rtr = getRouterByPort(portId);
             rtr.getMacForIp(portId, nwAddr, cb);
-        } catch (KeeperException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -205,7 +210,7 @@ public class Network {
 
     public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
             throws IOException, ClassNotFoundException, KeeperException,
-            InterruptedException {
+            InterruptedException, ZkStateSerializationException {
         traversedRouters.clear();
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
@@ -255,6 +260,6 @@ public class Network {
 
     public void undoRouterTransformation(Ethernet tunneledEthPkt) {
         // TODO Auto-generated method stub
-        
+
     }
 }

@@ -1,5 +1,7 @@
 package com.midokura.midolman.rules;
 
+import java.util.UUID;
+
 import com.midokura.midolman.layer4.NatMapping;
 
 import com.midokura.midolman.rules.RuleResult.Action;
@@ -20,6 +22,16 @@ public abstract class NatRule extends Rule {
 
     // Default constructor for the Jackson deserialization.
     public NatRule() { super(); }
+
+    public NatRule(Condition condition, Action action, UUID chainId,
+            int position, boolean dnat) {
+        super(condition, action, chainId, position);
+        this.dnat = dnat;
+        if (action != Action.ACCEPT && action != Action.CONTINUE
+                && action != Action.RETURN)
+            throw new IllegalArgumentException("A nat rule's action "
+                    + "must be one of: ACCEPT, CONTINUE, or RETURN.");
+    }
 
     public void setNatMapping(NatMapping nat) {
         natMap = nat;

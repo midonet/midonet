@@ -11,6 +11,8 @@ package com.midokura.midolman.state;
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
+// TODO(pino, ryu): why not parameterize this class and use that parameter as
+// the parameter to Class<> clazz?
 public class ZkStateSerializationException extends Exception {
     private static final long serialVersionUID = 1L;
 

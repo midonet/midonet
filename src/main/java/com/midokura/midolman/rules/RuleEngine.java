@@ -1,7 +1,9 @@
 package com.midokura.midolman.rules;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +17,11 @@ import org.apache.zookeeper.KeeperException;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Callback;
 
 public class RuleEngine {
@@ -25,16 +31,7 @@ public class RuleEngine {
         public void run() {
             try {
                 updateChains(true);
-            } catch (KeeperException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -42,26 +39,17 @@ public class RuleEngine {
     }
 
     private class RuleChainWatcher implements Runnable {
-        String chainName;
+        UUID chainId;
 
-        RuleChainWatcher(String chainName) {
-            this.chainName = chainName;
+        RuleChainWatcher(UUID chainId) {
+            this.chainId = chainId;
         }
 
         @Override
         public void run() {
             try {
-                updateRules(chainName, this);
-            } catch (KeeperException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+                updateRules(chainId, this);
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -69,19 +57,26 @@ public class RuleEngine {
     }
 
     private UUID rtrId;
-    private RouterDirectory rtrDir;
+    private ChainZkManager zkChainMgr;
+    private RuleZkManager zkRuleMgr;
     private NatMapping natMap;
-    protected Map<String, List<Rule>> ruleChains;
+    protected Map<String, UUID> chainNameToUUID;
+    protected Map<UUID, String> chainIdToName;
+    protected Map<UUID, List<Rule>> ruleChains;
     private RouterWatcher rtrWatcher;
     private Set<Callback<UUID>> watchers;
 
-    public RuleEngine(RouterDirectory rtrDir, UUID rtrId, NatMapping natMap)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
+    public RuleEngine(ChainZkManager zkChainMgr, RuleZkManager zkRuleMgr,
+            UUID rtrId, NatMapping natMap) throws KeeperException,
+            InterruptedException, IOException, ClassNotFoundException,
+            ZkStateSerializationException {
         this.rtrId = rtrId;
-        this.rtrDir = rtrDir;
+        this.zkChainMgr = zkChainMgr;
+        this.zkRuleMgr = zkRuleMgr;
         this.natMap = natMap;
-        ruleChains = new HashMap<String, List<Rule>>();
+        chainNameToUUID = new HashMap<String, UUID>();
+        chainIdToName = new HashMap<UUID, String>();
+        ruleChains = new HashMap<UUID, List<Rule>>();
         rtrWatcher = new RouterWatcher();
         watchers = new HashSet<Callback<UUID>>();
         updateChains(false);
@@ -102,21 +97,32 @@ public class RuleEngine {
     }
 
     private void updateChains(boolean notify) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException {
-        Collection<String> currentChains = rtrDir.getRuleChainNames(rtrId,
-                rtrWatcher);
-        Set<String> oldChains = new HashSet<String>(ruleChains.keySet());
-        Set<String> newChains = new HashSet<String>(currentChains);
+            InterruptedException, IOException, ClassNotFoundException,
+            ZkStateSerializationException {
+        Collection<ZkNodeEntry<UUID, ChainConfig>> entryList = zkChainMgr.
+                list(rtrId, rtrWatcher);
+        Map<UUID, String> newChainNames = new HashMap<UUID, String>(); 
+        for (ZkNodeEntry<UUID, ChainConfig> entry : entryList) {
+            newChainNames.put(entry.key, entry.value.name);
+        }
+        Set<UUID> currentChains = new HashSet<UUID>(newChainNames.keySet());
+        Set<UUID> newChains = new HashSet<UUID>(newChainNames.keySet());
+        Set<UUID> oldChains = new HashSet<UUID>(ruleChains.keySet());
         newChains.removeAll(oldChains);
         oldChains.removeAll(currentChains);
 
         // Any old chains that are not in currentChains should be removed.
-        for (String chain : oldChains) {
+        for (UUID chain : oldChains) {
             ruleChains.remove(chain);
+            String name = chainIdToName.remove(chain);
+            chainNameToUUID.remove(name);
         }
         // Any brand new chains should be processed.
-        for (String chain : newChains) {
+        for (UUID chain : newChains) {
             updateRules(chain, new RuleChainWatcher(chain));
+            String name = newChainNames.get(chain);
+            chainIdToName.put(chain, name);
+            chainNameToUUID.put(name, chain);
         }
         // If no chains were added or deleted we're done. Otherwise, we need to
         // recompute the resources and notify listeners.
@@ -126,18 +132,16 @@ public class RuleEngine {
         notifyWatchers();
     }
 
-    private void updateRules(String chainName, Runnable watcher)
+    private void updateRules(UUID chainId, Runnable watcher)
             throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException {
-        List<Rule> curRules = null;
-        try {
-            curRules = rtrDir.getRuleChain(rtrId, chainName, watcher);
-        } catch (KeeperException.NoNodeException e) {
-            // The chain has been deleted. The router watcher will handle the
-            // notifications.
-            return;
-        }
-        List<Rule> oldRules = ruleChains.get(chainName);
+            ClassNotFoundException, ZkStateSerializationException {
+        List<Rule> curRules = new ArrayList<Rule>();
+        List<ZkNodeEntry<UUID, Rule>> entries = zkRuleMgr.list(chainId, watcher);
+        for (ZkNodeEntry<UUID, Rule> entry : entries)
+            curRules.add(entry.value);
+        Collections.sort(curRules);
+
+        List<Rule> oldRules = ruleChains.get(chainId);
         if (null != oldRules && oldRules.equals(curRules))
             // The chain was updated with the same rules. Do nothing.
             return;
@@ -147,7 +151,7 @@ public class RuleEngine {
             if (r instanceof NatRule)
                 ((NatRule) r).setNatMapping(natMap);
         }
-        ruleChains.put(chainName, curRules);
+        ruleChains.put(chainId, curRules);
 
         // If this is a new chain, we're done: the router watcher will handle
         // notifications.
@@ -190,7 +194,10 @@ public class RuleEngine {
 
     public RuleResult applyChain(String chainName, MidoMatch pktMatch,
             UUID inPortId, UUID outPortId) {
-        List<Rule> chain = ruleChains.get(chainName);
+        List<Rule> chain = null;
+        UUID chainId = chainNameToUUID.get(chainName);
+        if (null != chainId)
+            chain = ruleChains.get(chainId);
         if (null == chain || chain.size() == 0)
             return new RuleResult(Action.ACCEPT, null, pktMatch, false);
 
@@ -218,7 +225,10 @@ public class RuleEngine {
                         // Avoid jumping to chains we've already seen.
                         continue;
                     }
-                    List<Rule> nextChain = ruleChains.get(res.jumpToChain);
+                    List<Rule> nextChain = null;
+                    chainId = chainNameToUUID.get(res.jumpToChain);
+                    if (null != chainId)
+                        nextChain = ruleChains.get(chainId);
                     if (null == nextChain) {
                         // TODO(pino): should we throw an exception?
                         // Let's just ignore jumps to non-existent chains.

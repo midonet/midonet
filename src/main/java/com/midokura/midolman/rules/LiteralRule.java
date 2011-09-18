@@ -16,6 +16,15 @@ public class LiteralRule extends Rule {
     // Default constructor for the Jackson deserialization.
     public LiteralRule() { super(); }
 
+    public LiteralRule(Condition condition, Action action, UUID chainId,
+            int position) {
+        super(condition, action, chainId, position);
+        if (action != Action.ACCEPT && action != Action.DROP
+                && action != Action.REJECT && action != Action.RETURN)
+            throw new IllegalArgumentException("A literal rule's action "
+                    + "must be one of: ACCEPT, DROP, REJECT or RETURN.");
+    }
+
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         res.action = action;

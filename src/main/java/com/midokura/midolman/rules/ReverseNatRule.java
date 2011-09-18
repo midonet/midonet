@@ -13,6 +13,11 @@ public class ReverseNatRule extends NatRule {
     // default constructor for the JSON serialization.
     public ReverseNatRule() { super(); }
 
+    public ReverseNatRule(Condition condition, Action action, UUID chainId,
+            int position, boolean dnat) {
+        super(condition, action, chainId, position, dnat);
+    }
+
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         if (dnat)

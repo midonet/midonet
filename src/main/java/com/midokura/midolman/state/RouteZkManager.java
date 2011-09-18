@@ -8,6 +8,7 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -33,10 +34,14 @@ public class RouteZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      * 
      * @param zk
-     *            ZooKeeper object.
+     *            Directory object.
      * @param basePath
      *            The root path.
      */
+    public RouteZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public RouteZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
@@ -160,7 +165,7 @@ public class RouteZkManager extends ZkManager {
     public ZkNodeEntry<UUID, Route> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        byte[] routeData = getData(pathManager.getRoutePath(id), watcher);
+        byte[] routeData = zk.get(pathManager.getRoutePath(id), watcher);
         Route r = null;
         try {
             r = deserialize(routeData, Route.class);
@@ -193,7 +198,7 @@ public class RouteZkManager extends ZkManager {
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
-        List<String> routeIds = getChildren(pathManager
+        Set<String> routeIds = zk.getChildren(pathManager
                 .getRouterRoutesPath(routerId), watcher);
         for (String routeId : routeIds) {
             result.add(get(UUID.fromString(routeId)));
@@ -221,7 +226,7 @@ public class RouteZkManager extends ZkManager {
             Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
-        List<String> routeIds = getChildren(pathManager
+        Set<String> routeIds = zk.getChildren(pathManager
                 .getPortRoutesPath(portId), watcher);
         for (String routeId : routeIds) {
             result.add(get(UUID.fromString(routeId)));
@@ -247,12 +252,12 @@ public class RouteZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ClassNotFoundException, ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Route>> routes = listRouterRoutes(routerId, null);
-        List<String> portIds = getChildren(pathManager
+        Set<String> portIds = zk.getChildren(pathManager
                 .getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
             // For each MaterializedRouterPort, process it. Needs optimization.
             UUID portUUID = UUID.fromString(portId);
-            byte[] data = getData(pathManager.getPortPath(portUUID), null);
+            byte[] data = zk.get(pathManager.getPortPath(portUUID), null);
             PortConfig port = null;
             try {
                 port = deserialize(data, PortConfig.class);

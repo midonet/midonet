@@ -1,9 +1,5 @@
 package com.midokura.midolman.rules;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,6 +21,15 @@ public class ForwardNatRule extends NatRule {
     // Default constructor for the Jackson deserialization.
     public ForwardNatRule() { super(); }
 
+    public ForwardNatRule(Condition condition, Action action, UUID chainId,
+            int position, boolean dnat, Set<NatTarget> targets) {
+        super(condition, action, chainId, position, dnat);
+        this.targets = targets;
+        if (null == targets || targets.size() == 0)
+            throw new IllegalArgumentException(
+                    "A forward nat rule must have targets.");
+    }
+
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         if (null == natMap)
@@ -37,13 +42,12 @@ public class ForwardNatRule extends NatRule {
 
     public void applyDnat(UUID inPortId, UUID outPortId, RuleResult res) {
         NwTpPair conn = natMap.lookupDnatFwd(res.match.getNetworkSource(),
-                res.match.getTransportSource(),
-                res.match.getNetworkDestination(),
-                res.match.getTransportDestination());
+                res.match.getTransportSource(), res.match
+                        .getNetworkDestination(), res.match
+                        .getTransportDestination());
         if (null == conn)
-            conn = natMap.allocateDnat(res.match.getNetworkSource(),
-                    res.match.getTransportSource(),
-                    res.match.getNetworkDestination(),
+            conn = natMap.allocateDnat(res.match.getNetworkSource(), res.match
+                    .getTransportSource(), res.match.getNetworkDestination(),
                     res.match.getTransportDestination(), targets);
         // TODO(pino): deal with case that conn couldn't be allocated.
         res.match.setNetworkDestination(conn.nwAddr);
@@ -54,13 +58,12 @@ public class ForwardNatRule extends NatRule {
 
     public void applySnat(UUID inPortId, UUID outPortId, RuleResult res) {
         NwTpPair conn = natMap.lookupSnatFwd(res.match.getNetworkSource(),
-                res.match.getTransportSource(),
-                res.match.getNetworkDestination(),
-                res.match.getTransportDestination());
+                res.match.getTransportSource(), res.match
+                        .getNetworkDestination(), res.match
+                        .getTransportDestination());
         if (null == conn)
-            conn = natMap.allocateSnat(res.match.getNetworkSource(),
-                    res.match.getTransportSource(),
-                    res.match.getNetworkDestination(),
+            conn = natMap.allocateSnat(res.match.getNetworkSource(), res.match
+                    .getTransportSource(), res.match.getNetworkDestination(),
                     res.match.getTransportDestination(), targets);
         // TODO(pino): deal with case that conn couldn't be allocated.
         res.match.setNetworkSource(conn.nwAddr);

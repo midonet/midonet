@@ -6,7 +6,6 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +14,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooDefs.Ids;
 
 /**
  * Class to manage the GRE ZooKeeper data.
@@ -35,6 +33,10 @@ public class GreZkManager extends ZkManager {
      *            The root path.
      */
     public GreZkManager(ZooKeeper zk, String basePath) {
+        super(zk, basePath);
+    }
+
+    public GreZkManager(Directory zk, String basePath) {
         super(zk, basePath);
     }
 
@@ -59,8 +61,8 @@ public class GreZkManager extends ZkManager {
 
     public ZkNodeEntry<Integer, GreKey> createGreKey() throws KeeperException,
             InterruptedException {
-        String path = zk.create(pathManager.getGrePath() + "/", null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+        String path = zk.add(pathManager.getGrePath() + "/", null,
+                CreateMode.PERSISTENT_SEQUENTIAL);
         int key = extractGreKeyFromPath(path);
         return new ZkNodeEntry<Integer, GreKey>(key, new GreKey());
     }

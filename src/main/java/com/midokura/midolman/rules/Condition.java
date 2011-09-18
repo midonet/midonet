@@ -91,10 +91,10 @@ public class Condition {
         int result = 1;
         int bHash = conjunctionInv ? 1231 : 1237;
         result = prime * result + bHash;
-        result = prime * result + inPortIds.hashCode();
+        result = prime * result + (null == inPortIds ? 0 : inPortIds.hashCode());
         bHash = inPortInv ? 1231 : 1237;
         result = prime * result + bHash;
-        result = prime * result + outPortIds.hashCode();
+        result = prime * result + (null == outPortIds? 0 : outPortIds.hashCode());
         bHash = outPortInv ? 1231 : 1237;
         result = prime * result + bHash;
         result = prime * result + nwTos;

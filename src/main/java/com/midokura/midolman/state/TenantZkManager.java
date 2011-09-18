@@ -31,6 +31,10 @@ public class TenantZkManager extends ZkManager {
      * @param basePath
      *            Directory to set as the base.
      */
+    public TenantZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public TenantZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }

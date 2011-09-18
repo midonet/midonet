@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -64,6 +65,10 @@ public class BgpZkManager extends ZkManager {
      * @param basePath
      *            Directory to set as the base.
      */
+    public BgpZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
     public BgpZkManager(ZooKeeper zk, String basePath) {
         super(zk, basePath);
     }
@@ -103,7 +108,7 @@ public class BgpZkManager extends ZkManager {
     public ZkNodeEntry<UUID, BgpConfig> get(UUID id, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        byte[] data = getData(pathManager.getBgpPath(id), watcher);
+        byte[] data = zk.get(pathManager.getBgpPath(id), watcher);
         BgpConfig config = null;
         try {
             config = deserialize(data, BgpConfig.class);
@@ -124,7 +129,7 @@ public class BgpZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, BgpConfig>> result = new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
-        List<String> bgpIds = getChildren(pathManager.getPortBgpPath(portId),
+        Set<String> bgpIds = zk.getChildren(pathManager.getPortBgpPath(portId),
                 watcher);
         for (String bgpId : bgpIds) {
             // For now, get each one.
@@ -144,8 +149,8 @@ public class BgpZkManager extends ZkManager {
             ZkStateSerializationException {
         // Update any version for now.
         try {
-            zk.setData(pathManager.getBgpPath(entry.key),
-                    serialize(entry.value), -1);
+            zk.update(pathManager.getBgpPath(entry.key),
+                    serialize(entry.value));
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize bgp "
                     + entry.key + " to BgpConfig", e, BgpConfig.class);

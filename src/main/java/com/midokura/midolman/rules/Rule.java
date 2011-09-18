@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.rules.RuleResult.Action;
 
-public abstract class Rule {
+public abstract class Rule implements Comparable<Rule> {
     private Condition condition;
     public Action action;
     public UUID chainId;
@@ -61,5 +61,10 @@ public abstract class Rule {
         } else {
             return action.equals(r.action);
         }
+    }
+
+    @Override
+    public int compareTo(Rule other) {
+        return this.position - other.position;
     }
 }
