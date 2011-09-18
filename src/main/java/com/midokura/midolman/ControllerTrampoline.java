@@ -25,11 +25,13 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.DeviceToGreKeyMap;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
+import com.midokura.midolman.util.Net;
 
 public class ControllerTrampoline implements Controller {
 
@@ -93,9 +95,11 @@ public class ControllerTrampoline implements Controller {
             
             UUID deviceId = UUID.fromString(uuid);
             
-            //TODO: is this the right way to check that a DP is for a VRN?
-            if(uuid.equals(config.configurationAt("vrn").getString("router_network_id"))) {
-                
+            // TODO: is this the right way to check that a DP is for a VRN?
+            // ----- No.  We should have a directory of VRN UUIDs in ZooKeeper,
+            //       just like for Bridges and Routers.
+            if (uuid.equals(config.configurationAt("vrn")
+                                  .getString("router_network_id"))) {
                 Directory portLocationDirectory = 
                     directory.getSubDirectory(
                         midolmanConfig.getString("port_locations_subdirectory"))
@@ -104,10 +108,14 @@ public class ControllerTrampoline implements Controller {
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
                 
-                long idleFlowExpireMillis = config.configurationAt("openflow").getLong("flow_idle_expire");
-                int localNwAddr = config.configurationAt("openflow").getInt("public_ip_address");
+                long idleFlowExpireMillis = 
+                         config.configurationAt("openflow")
+                               .getLong("flow_idle_expire_millis");
+                int localNwAddr = config.configurationAt("openflow")
+                                        .getInt("public_ip_address");
 
-                String memcacheHosts = config.configurationAt("memcache").getString("memcache_hosts");
+                String memcacheHosts = config.configurationAt("memcache")
+                                             .getString("memcache_hosts");
                 
                 Cache cache = new MemcacheCache(memcacheHosts, 3);
                 
@@ -126,6 +134,50 @@ public class ControllerTrampoline implements Controller {
                 
                 controllerStub.setController(newController);
                 controllerStub = null;
+            } else if (bridgeDirectory.exists(deviceId)) {
+                log.info("Creating Bridge {}", uuid);
+
+                Directory portLocationDirectory = 
+                    directory.getSubDirectory(
+                        midolmanConfig.getString("port_locations_subdirectory"))
+                    .getSubDirectory("/" + uuid);
+
+                PortToIntNwAddrMap portLocationMap =
+                        new PortToIntNwAddrMap(portLocationDirectory);
+
+                Directory macPortDir = 
+                    directory.getSubDirectory(
+                        midolmanConfig.getString("mac_port_subdirectory", 
+                                                 "/mac_port"));
+                MacPortMap macPortMap = new MacPortMap(macPortDir);
+
+                long idleFlowExpireMillis = 
+                         config.configurationAt("openflow")
+                               .getLong("flow_idle_expire_millis");
+                long flowExpireMillis = 
+                         config.configurationAt("openflow")
+                               .getLong("flow_expire_millis");
+                long macPortTimeoutMillis = 
+                         config.configurationAt("bridge")
+                               .getLong("mac_port_mapping_expire_millis");
+                int localNwAddr = config.configurationAt("openflow")
+                                        .getInt("public_ip_address");
+
+                Controller newController = new BridgeController(
+                        datapathId,
+                        deviceId,
+                        bridgeDirectory.getGreKey(deviceId),
+                        portLocationMap,
+                        macPortMap,
+                        flowExpireMillis,
+                        idleFlowExpireMillis,
+                        Net.convertIntToInetAddress(localNwAddr),
+                        macPortTimeoutMillis,
+                        ovsdb,
+                        reactor);
+                
+                controllerStub.setController(newController);
+                controllerStub = null;
             } else {
                 log.info("can't handle this datapath, disconnecting");
                 controllerStub.close();
@@ -135,6 +187,8 @@ public class ControllerTrampoline implements Controller {
             log.warn("ZK error", e);
         } catch (IOException e) {
             log.warn("IO error", e);
+        } catch (InterruptedException e) {
+            log.warn("device construction interrupted", e);
         }
     }
 

@@ -17,6 +17,7 @@ import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.ReplicatedMap;
@@ -31,6 +32,7 @@ public class BridgeController extends AbstractController {
     PortToIntNwAddrMap port_locs;
     MacPortMap mac_to_port;
     long mac_port_timeout;
+    Reactor reactor;
 
     // The delayed deletes for mac_to_port.
     HashMap<byte[], UUID> delayedDeletes;
@@ -70,13 +72,13 @@ public class BridgeController extends AbstractController {
         }
     }
 
-    public BridgeController(int datapathId, UUID switchUuid, int greKey,
+    public BridgeController(long datapathId, UUID switchUuid, int greKey,
             PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
-            long flowExpireMinMillis, long flowExpireMaxMillis,
-            long idleFlowExpireMillis, InetAddress publicIp,
-            long macPortTimeoutMillis, OpenvSwitchDatabaseConnection ovsdb) {
+            long flowExpireMillis, long idleFlowExpireMillis, 
+	    InetAddress publicIp, long macPortTimeoutMillis, 
+	    OpenvSwitchDatabaseConnection ovsdb, Reactor reactor) {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
-              flowExpireMinMillis, flowExpireMaxMillis, idleFlowExpireMillis,
+              flowExpireMillis, flowExpireMillis, idleFlowExpireMillis,
               publicIp);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
@@ -85,6 +87,7 @@ public class BridgeController extends AbstractController {
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
         mac_to_port.addWatcher(macToPortWatcher);
+	this.reactor = reactor;
     }
 
     @Override

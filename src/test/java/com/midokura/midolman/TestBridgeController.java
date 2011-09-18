@@ -98,10 +98,10 @@ public class TestBridgeController {
             "[midolman]\n" +
             "midolman_root_key: /midolman\n" +
             "[bridge]\n" +
-            "mac_port_mapping_expire: 40\n" +
+            "mac_port_mapping_expire_millis: 40000\n" +
             "[openflow]\n" +
-            "flow_expire: 300\n" +
-            "flow_idle_expire: 60\n" +
+            "flow_expire_millis: 300000\n" +
+            "flow_idle_expire_millis: 60000\n" +
             "public_ip_address: 192.168.1.50\n" +
             "use_flow_wildcards: true\n" +
             "[openvswitch]\n" +
@@ -149,26 +149,27 @@ public class TestBridgeController {
         ControllerTrampoline controllerManager = new ControllerTrampoline(
                 hierarchicalConfiguration, ovsdb, zkDir, reactor);
 
-        //      TODO: Create ports.
-        //      TODO: Create mockProtocol / mockControllerStub.
+        MockControllerStub controllerStub = new MockControllerStub();
         //      TODO: Create packets, flows.
+
+        UUID bridgeUUID = UUID.randomUUID();
 
         // TODO: Manager.add_bridge()
         // TODO: Manager.add_bridge_port() for each port.
 
         controller = new BridgeController(
                 /* datapathId */                dp_id, 
-                /* switchUuid */                UUID.randomUUID(),
+                /* switchUuid */                bridgeUUID,
                 /* greKey */                    0xe1234,
                 /* port_loc_map */              portLocMap,
                 /* mac_port_map */              macPortMap,
-                /* flowExpireMinMillis */       260*1000,
-                /* flowExpireMaxMillis */       320*1000,
+                /* flowExpireMillis */          300*1000,
                 /* idleFlowExpireMillis */      60*1000,
                 /* publicIp */                  publicIp,
                 /* macPortTimeoutMillis */      40*1000,
-                /* ovsdb */                     ovsdb);
-        controller.setControllerStub(new MockControllerStub());
+                /* ovsdb */                     ovsdb,
+                /* reactor */                   reactor);
+        controller.setControllerStub(controllerStub);
 
         portLocMap.start();
 
