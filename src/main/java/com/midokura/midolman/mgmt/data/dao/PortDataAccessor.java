@@ -10,14 +10,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
+
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.ZookeeperService;
+import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
@@ -52,15 +56,15 @@ public class PortDataAccessor extends DataAccessor {
     }
 
     private static LogicalRouterPortConfig convertToLogRouterPortConfig(
-            RouterPort port) {
+            LogicalRouterPort port) {
         return new LogicalRouterPortConfig(port.getDeviceId(), Net
                 .convertStringAddressToInt(port.getNetworkAddress()), port
                 .getNetworkLength(), Net.convertStringAddressToInt(port
-                .getPortAddress()), new HashSet<Route>(), port.getPeerId());
+                .getPortAddress()), new HashSet<Route>(), null);
     }
 
     private static MaterializedRouterPortConfig convertToMatRouterPortConfig(
-            RouterPort port) {
+            MaterializedRouterPort port) {
         return new MaterializedRouterPortConfig(port.getDeviceId(), Net
                 .convertStringAddressToInt(port.getNetworkAddress()), port
                 .getNetworkLength(), Net.convertStringAddressToInt(port
@@ -69,20 +73,36 @@ public class PortDataAccessor extends DataAccessor {
                 .getLocalNetworkLength(), new HashSet<BGP>());
     }
 
-    private UUID create(PortConfig port) throws Exception {
-        return getPortZkManager().create(port);
-    }
-
-    public UUID createBridgePort(Port port) throws Exception {
-        return create(convertToBridgePortConfig(port));
-    }
-
-    public UUID createRouterPort(RouterPort port) throws Exception {
-        if (port.getType().equals(RouterPort.Materialized)) {
-            return create(convertToMatRouterPortConfig(port));
+    public UUID create(Port port) throws Exception {
+        PortZkManager manager = getPortZkManager();
+        if (port instanceof LogicalRouterPort) {
+            // Cannot create a single logical router object
+            throw new UnsupportedOperationException(
+                    "Cannot create a single logical router port");
+        } else if (port instanceof MaterializedRouterPort) {
+            return manager
+                    .create(convertToMatRouterPortConfig((MaterializedRouterPort) port));
         } else {
-            return create(convertToLogRouterPortConfig(port));
+            return manager.create(convertToBridgePortConfig(port));
         }
+    }
+
+    public LogicalRouterPort createLink(LogicalRouterPort port)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException, Exception {
+        PortZkManager manager = getPortZkManager();
+
+        // Create two logical router ports
+        LogicalRouterPortConfig localPort = convertToLogRouterPortConfig(port);
+        LogicalRouterPortConfig peerPort = convertToLogRouterPortConfig(port);
+        // Set the correct router ID and port address.
+        peerPort.device_id = port.getPeerRouterId();
+        peerPort.portAddr = Net.convertStringAddressToInt(port
+                .getPeerPortAddress());
+        ZkNodeEntry<UUID, UUID> entry = manager.createLink(localPort, peerPort);
+        port.setId(entry.key);
+        port.setPeerId(entry.value);
+        return port;
     }
 
     private static Port convertToPort(BridgePortConfig config) {
@@ -92,18 +112,17 @@ public class PortDataAccessor extends DataAccessor {
     }
 
     private static Port convertToPort(LogicalRouterPortConfig config) {
-        RouterPort port = new RouterPort();
+        LogicalRouterPort port = new LogicalRouterPort();
         port.setDeviceId(config.device_id);
         port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
         port.setNetworkLength(config.nwLength);
         port.setPortAddress(Net.convertIntAddressToString(config.portAddr));
         port.setPeerId(config.peer_uuid);
-        port.setType(RouterPort.Logical);
         return port;
     }
 
     private static Port convertToPort(MaterializedRouterPortConfig config) {
-        RouterPort port = new RouterPort();
+        MaterializedRouterPort port = new MaterializedRouterPort();
         port.setDeviceId(config.device_id);
         port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
         port.setNetworkLength(config.nwLength);
@@ -111,7 +130,6 @@ public class PortDataAccessor extends DataAccessor {
         port.setLocalNetworkAddress(Net
                 .convertIntAddressToString(config.localNwAddr));
         port.setLocalNetworkLength(config.localNwLength);
-        port.setType(RouterPort.Materialized);
         return port;
     }
 
@@ -131,12 +149,6 @@ public class PortDataAccessor extends DataAccessor {
         return p;
     }
 
-    private static void copyLogicalRouterPort(RouterPort port,
-            LogicalRouterPortConfig config) {
-        // Just allow copy of the peerId
-        config.peer_uuid = port.getPeerId();
-    }
-
     public Port get(UUID id) throws Exception {
         // TODO: Throw NotFound exception here.
         return convertToPort(getPortZkManager().get(id));
@@ -153,19 +165,6 @@ public class PortDataAccessor extends DataAccessor {
 
     public Port[] listBridgePorts(UUID bridgeId) throws Exception {
         return generatePortArray(getPortZkManager().listBridgePorts(bridgeId));
-    }
-
-    public void update(UUID id, Port port) throws Exception {
-        // Only allow an update of LogicalRouterPort's peer ID field.
-        PortZkManager manager = getPortZkManager();
-        ZkNodeEntry<UUID, PortConfig> entry = manager.get(id);
-        if (!(entry.value instanceof LogicalRouterPortConfig && port instanceof RouterPort)) {
-            throw new UnsupportedOperationException(
-                    "Only LogicalRouterPort can be updated.");
-        }
-        copyLogicalRouterPort((RouterPort) port,
-                (LogicalRouterPortConfig) entry.value);
-        manager.update(entry);
     }
 
     public void delete(UUID id) throws Exception {

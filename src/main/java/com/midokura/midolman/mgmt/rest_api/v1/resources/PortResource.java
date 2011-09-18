@@ -12,7 +12,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
-import com.midokura.midolman.mgmt.data.dao.UnsupportedOperationException;
+import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.dto.RouterPort;
 
 /**
  * Root resource class for ports.
@@ -71,30 +70,6 @@ public class PortResource extends RestResource {
         }
     }
 
-    @PUT
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, RouterPort port) {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-
-        try {
-            dao.update(id, port);
-        } catch (UnsupportedOperationException ex) {
-            log.error("Cannot update this port", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        } catch (Exception ex) {
-            log.error("Error updating port", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-
-        return Response.ok().build();
-    }
-
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) {
@@ -129,7 +104,7 @@ public class PortResource extends RestResource {
 
             UUID id = null;
             try {
-                id = dao.createBridgePort(port);
+                id = dao.create(port);
             } catch (Exception ex) {
                 log.error("Error creating bridge ports", ex);
                 throw new WebApplicationException(ex, Response.status(
@@ -171,15 +146,15 @@ public class PortResource extends RestResource {
 
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(RouterPort port, @Context UriInfo uriInfo)
-                throws Exception {
+        public Response create(MaterializedRouterPort port,
+                @Context UriInfo uriInfo) throws Exception {
             port.setDeviceId(routerId);
             PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
                     zookeeperTimeout);
 
             UUID id = null;
             try {
-                id = dao.createRouterPort(port);
+                id = dao.create(port);
             } catch (Exception ex) {
                 log.error("Error creating router ports", ex);
                 throw new WebApplicationException(ex, Response.status(
@@ -189,6 +164,30 @@ public class PortResource extends RestResource {
 
             URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
             return Response.created(uri).build();
+        }
+
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        @Path("link")
+        public Response createLink(LogicalRouterPort port,
+                @Context UriInfo uriInfo) {
+            port.setDeviceId(routerId);
+            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+                    zookeeperTimeout);
+
+            LogicalRouterPort logicalRouterPort = null;
+            try {
+                logicalRouterPort = dao.createLink(port);
+            } catch (Exception ex) {
+                log.error("Error creating logical router port link", ex);
+                throw new WebApplicationException(ex, Response.status(
+                        Response.Status.INTERNAL_SERVER_ERROR).type(
+                        MediaType.APPLICATION_JSON).build());
+            }
+            URI uri = uriInfo.getBaseUriBuilder().path(
+                    "ports/" + logicalRouterPort.getId()).build();
+            return Response.created(uri).entity(logicalRouterPort).build();
         }
 
         @GET
