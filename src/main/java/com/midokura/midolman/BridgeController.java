@@ -75,8 +75,8 @@ public class BridgeController extends AbstractController {
     public BridgeController(long datapathId, UUID switchUuid, int greKey,
             PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMillis, long idleFlowExpireMillis, 
-	    InetAddress publicIp, long macPortTimeoutMillis, 
-	    OpenvSwitchDatabaseConnection ovsdb, Reactor reactor) {
+            InetAddress publicIp, long macPortTimeoutMillis, 
+            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor) {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
               flowExpireMillis, flowExpireMillis, idleFlowExpireMillis,
               publicIp);
@@ -87,7 +87,7 @@ public class BridgeController extends AbstractController {
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
         mac_to_port.addWatcher(macToPortWatcher);
-	this.reactor = reactor;
+        this.reactor = reactor;
     }
 
     @Override
