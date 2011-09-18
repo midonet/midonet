@@ -104,8 +104,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
         factory = new BasicFactory();
         stream = new OFMessageAsyncStream(sock, factory);
-
-        sendEchoRequest();
     }
 
     public void setVendorHandler(int vendorId, VendorHandler handler) {
@@ -130,6 +128,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
                     if (pendingOperations.remove(nextXid) != null) {
                         log.debug("pending operation {} timed out", nextXid);
                         timeoutHandler.onTimeout();
+                    } else {
+                        log.debug("pending operation {} not found", nextXid);
                     }
                 }
 
@@ -191,6 +191,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             }
 
             if (key.isWritable()) {
+                log.debug("handleEvent {} isWritable so flushing stream ", key);
                 stream.flush();
             }
 
@@ -198,10 +199,13 @@ public abstract class BaseProtocolImpl implements SelectListener {
              * Only register for interest in R OR W, not both, causes stream
              * deadlock after some period of time
              */
-            if (stream.needsFlush())
+            if (stream.needsFlush()) {
+                log.debug("handleEvent setting interest in OP_WRITE");
                 key.interestOps(SelectionKey.OP_WRITE);
-            else
+            } else {
+                log.debug("handleEvent setting interest in OP_READ");
                 key.interestOps(SelectionKey.OP_READ);
+            }
         } catch (IOException e) {
             // if we have an exception, disconnect the switch
             log.warn("handleEvent", e);

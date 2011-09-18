@@ -119,7 +119,12 @@ public class Midolman implements SelectListener, Watcher {
             ControllerTrampoline trampoline = new ControllerTrampoline(config, ovsdb, midonetDirectory, loop);
             ControllerStubImpl controllerStubImpl = new ControllerStubImpl(sock, loop, trampoline);
             
-            loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);
+            SelectionKey switchKey = loop.registerBlocking(sock, SelectionKey.OP_READ, controllerStubImpl);
+            
+            switchKey.interestOps(SelectionKey.OP_READ);
+            loop.wakeup();
+            
+            controllerStubImpl.start();
         } catch (Exception e) {
             log.warn("handleEvent", e);
         }
