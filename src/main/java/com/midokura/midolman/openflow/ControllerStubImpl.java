@@ -168,7 +168,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         switch (m.getType()) {
         case HELLO:
             log.debug("handleMessage: HELLO");
-            sendEchoRequest();
+            sendFeaturesRequest();
             return true;
         case FEATURES_REPLY:
             log.debug("handleMessage: FEATURES_REPLY");
