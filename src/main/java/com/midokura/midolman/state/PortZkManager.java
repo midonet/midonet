@@ -32,8 +32,6 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
  */
 public class PortZkManager extends ZkManager {
 
-    private RouteZkManager routeZkManager = null;
-
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -45,7 +43,6 @@ public class PortZkManager extends ZkManager {
      */
     public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-        routeZkManager = new RouteZkManager(zk, basePath);
     }
 
     public PortZkManager(ZooKeeper zk, String basePath) {
@@ -330,6 +327,7 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         if (entry.value instanceof RouterPortConfig) {
+            RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
             List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
                     .listPortRoutes(entry.key, null);
             for (ZkNodeEntry<UUID, Route> route : routes) {

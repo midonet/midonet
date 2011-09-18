@@ -30,10 +30,6 @@ import com.midokura.midolman.state.RouterDirectory.RouterConfig;
  */
 public class RouterZkManager extends ZkManager {
 
-    private ChainZkManager chainZkManager = null;
-    private RouteZkManager routeZkManager = null;
-    private PortZkManager portZkManager = null;
-
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -45,9 +41,6 @@ public class RouterZkManager extends ZkManager {
      */
     public RouterZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-        chainZkManager = new ChainZkManager(zk, basePath);
-        routeZkManager = new RouteZkManager(zk, basePath);
-        portZkManager = new PortZkManager(zk, basePath);
     }
 
     public RouterZkManager(ZooKeeper zk, String basePath) {
@@ -264,6 +257,9 @@ public class RouterZkManager extends ZkManager {
             InterruptedException, ClassNotFoundException,
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
+        ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
+        RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
+        PortZkManager portZkManager = new PortZkManager(zk, basePath);
         // Get rhains delete ops.
         List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager
                 .list(routerNode.key);

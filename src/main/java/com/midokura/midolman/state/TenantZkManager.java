@@ -39,6 +39,17 @@ public class TenantZkManager extends ZkManager {
         this(new ZkDirectory(zk, "", null), basePath);
     }
 
+    /**
+     * Add a new tenant entry in the ZooKeeper directory.
+     * 
+     * 
+     * @param tenant
+     *            TenantConfig object to store tenant data.
+     * @throws KeeperException
+     *             General ZooKeeper exception.
+     * @throws InterruptedException
+     *             Unresponsive thread getting interrupted by another thread.
+     */
     public UUID create() throws KeeperException, InterruptedException {
         return create(null);
     }

@@ -28,9 +28,6 @@ import com.midokura.midolman.state.PortDirectory.PortConfig;
  */
 public class BridgeZkManager extends ZkManager {
 
-    private GreZkManager greZkManager = null;
-    private PortZkManager portZkManager = null;
-
     public static class BridgeConfig {
 
         public BridgeConfig() {
@@ -64,8 +61,6 @@ public class BridgeZkManager extends ZkManager {
      */
     public BridgeZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-        greZkManager = new GreZkManager(zk, basePath);
-        portZkManager = new PortZkManager(zk, basePath);
     }
 
     public BridgeZkManager(ZooKeeper zk, String basePath) {
@@ -91,7 +86,8 @@ public class BridgeZkManager extends ZkManager {
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
             throws ZkStateSerializationException, KeeperException,
             InterruptedException {
-
+        GreZkManager greZkManager = new GreZkManager(zk, basePath);
+        
         // Create a new GRE key. Hide this from outside.
         ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
         bridgeNode.value.greKey = gre.key;
@@ -282,6 +278,8 @@ public class BridgeZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException, IOException {
         List<Op> ops = new ArrayList<Op>();
+        PortZkManager portZkManager = new PortZkManager(zk, basePath);
+        GreZkManager greZkManager = new GreZkManager(zk, basePath);
 
         // Delete the ports
         List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager

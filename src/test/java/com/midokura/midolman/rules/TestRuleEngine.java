@@ -10,7 +10,6 @@ import java.util.Vector;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -20,16 +19,16 @@ import com.midokura.midolman.layer4.MockNatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
-import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.RouterDirectory.RouterConfig;
 
 public class TestRuleEngine {
 

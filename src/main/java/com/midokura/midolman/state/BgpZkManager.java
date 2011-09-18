@@ -57,8 +57,6 @@ public class BgpZkManager extends ZkManager {
         }
     }
 
-    private AdRouteZkManager adRouteManager = null;
-
     /**
      * BgpZkManager constructor.
      * 
@@ -69,7 +67,6 @@ public class BgpZkManager extends ZkManager {
      */
     public BgpZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-        adRouteManager = new AdRouteZkManager(zk, basePath);
     }
 
     public BgpZkManager(ZooKeeper zk, String basePath) {
@@ -168,6 +165,7 @@ public class BgpZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the advertising routes
+        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, basePath);
         List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
                 .list(entry.key);
         for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {

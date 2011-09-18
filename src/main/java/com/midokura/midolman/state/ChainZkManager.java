@@ -27,8 +27,6 @@ import com.midokura.midolman.rules.Rule;
  */
 public class ChainZkManager extends ZkManager {
 
-    private RuleZkManager ruleZkManager = null;
-
     public static class ChainConfig {
 
         public UUID routerId = null;
@@ -53,8 +51,6 @@ public class ChainZkManager extends ZkManager {
      */
     public ChainZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-        ruleZkManager = new RuleZkManager(zk, basePath);
-
     }
 
     public ChainZkManager(ZooKeeper zk, String basePath) {
@@ -237,6 +233,7 @@ public class ChainZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
+        RuleZkManager ruleZkManager = new RuleZkManager(zk, basePath);
         List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
         for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
