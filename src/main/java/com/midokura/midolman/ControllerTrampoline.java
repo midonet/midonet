@@ -132,7 +132,9 @@ public class ControllerTrampoline implements Controller {
                         portDirectory,
                         ovsdb,
                         reactor,
-                        cache);
+                        cache,
+                        midolmanConfig.getString("midolman_ext_id_key", 
+                                                 "midolman-vnet"));
                 
                 controllerStub.setController(newController);
                 controllerStub = null;
@@ -178,7 +180,9 @@ public class ControllerTrampoline implements Controller {
                         Net.convertIntToInetAddress(localNwAddr),
                         macPortTimeoutMillis,
                         ovsdb,
-                        reactor);
+                        reactor,
+                        midolmanConfig.getString("midolman_ext_id_key", 
+                                                 "midolman-vnet"));
                 
                 controllerStub.setController(newController);
                 controllerStub = null;

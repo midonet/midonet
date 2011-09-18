@@ -121,7 +121,7 @@ public class TestNetworkController {
         datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, 60 * 1000, localNwAddr, routerDir,
-                portDir, ovsdb, reactor, new MockCache());
+                portDir, ovsdb, reactor, new MockCache(), "midonet");
         networkCtrl.setControllerStub(controllerStub);
 
         /*

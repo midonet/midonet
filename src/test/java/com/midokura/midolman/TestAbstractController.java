@@ -48,7 +48,8 @@ class AbstractControllerTester extends AbstractController {
             long idleFlowExpireMillis,
             InetAddress internalIp) {
         super(datapathId, switchUuid, greKey, ovsdb, dict, flowExpireMinMillis,
-	      flowExpireMaxMillis, idleFlowExpireMillis, internalIp);
+	      flowExpireMaxMillis, idleFlowExpireMillis, internalIp,
+              "midonet");
         portsAdded = new ArrayList<OFPhysicalPort>();
         portsRemoved = new ArrayList<OFPhysicalPort>();
         portsModified = new ArrayList<OFPhysicalPort>();

@@ -168,7 +168,8 @@ public class TestBridgeController {
                 /* publicIp */                  publicIp,
                 /* macPortTimeoutMillis */      40*1000,
                 /* ovsdb */                     ovsdb,
-                /* reactor */                   reactor);
+                /* reactor */                   reactor,
+                /* externalIdKey */             "midolman-vnet");
         controller.setControllerStub(controllerStub);
 
         portLocMap.start();

@@ -76,10 +76,11 @@ public class BridgeController extends AbstractController {
             PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMillis, long idleFlowExpireMillis, 
             InetAddress publicIp, long macPortTimeoutMillis, 
-            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor) {
+            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
+            String externalIdKey) {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
               flowExpireMillis, flowExpireMillis, idleFlowExpireMillis,
-              publicIp);
+              publicIp, externalIdKey);
         mac_to_port = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;

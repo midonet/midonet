@@ -69,9 +69,10 @@ public class NetworkController extends AbstractController {
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
             InetAddress localNwAddr, RouterDirectory routerDir, PortDirectory portDir,
-            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache) {
+            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
+            String externalIdKey) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
-              idleFlowExpireMillis, localNwAddr);
+              idleFlowExpireMillis, localNwAddr, externalIdKey);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor, cache);

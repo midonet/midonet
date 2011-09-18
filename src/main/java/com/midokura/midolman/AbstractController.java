@@ -47,6 +47,7 @@ public abstract class AbstractController implements Controller {
 
     protected int greKey;
     protected int publicIp;
+    protected String externalIdKey;
 
     public final short nonePort = OFPort.OFPP_NONE.getValue();
 
@@ -71,11 +72,13 @@ public abstract class AbstractController implements Controller {
             long flowExpireMinMillis,
             long flowExpireMaxMillis,
             long idleFlowExpireMillis,
-            InetAddress internalIp) {
+            InetAddress internalIp,
+            String externalIdKey) {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
         this.greKey = greKey;
         this.portLocMap = portLocMap;
+        this.externalIdKey = externalIdKey;
         publicIp = internalIp != null ? Net.convertInetAddressToInt(internalIp)
                                       : 0;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
@@ -238,7 +241,8 @@ public abstract class AbstractController implements Controller {
     }
 
     protected UUID getPortUuidFromOvsdb(long datapathId, short portNum) {
-        String extId = ovsdb.getPortExternalId(datapathId, portNum, "midonet");
+        String extId = ovsdb.getPortExternalId(datapathId, portNum,
+                                               externalIdKey);
         if (extId == null)
             return null;
         return UUID.fromString(extId);
