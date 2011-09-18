@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
@@ -111,8 +112,9 @@ public class ControllerTrampoline implements Controller {
                 long idleFlowExpireMillis = 
                          config.configurationAt("openflow")
                                .getLong("flow_idle_expire_millis");
-                int localNwAddr = config.configurationAt("openflow")
-                                        .getInt("public_ip_address");
+                InetAddress localNwAddr = InetAddress.getByName(
+                        config.configurationAt("openflow")
+                            .getString("public_ip_address"));
 
                 String memcacheHosts = config.configurationAt("memcache")
                                              .getString("memcache_hosts");

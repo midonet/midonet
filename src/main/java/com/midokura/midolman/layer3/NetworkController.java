@@ -1,5 +1,6 @@
 package com.midokura.midolman.layer3;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,10 +68,10 @@ public class NetworkController extends AbstractController {
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
-            int localNwAddr, RouterDirectory routerDir, PortDirectory portDir,
+            InetAddress localNwAddr, RouterDirectory routerDir, PortDirectory portDir,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
-              idleFlowExpireMillis, null);
+              idleFlowExpireMillis, localNwAddr);
         // TODO Auto-generated constructor stub
         this.portDir = portDir;
         this.network = new Network(deviceId, routerDir, portDir, reactor, cache);

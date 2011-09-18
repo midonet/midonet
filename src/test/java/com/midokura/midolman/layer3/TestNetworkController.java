@@ -1,6 +1,7 @@
 package com.midokura.midolman.layer3;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -116,7 +117,7 @@ public class TestNetworkController {
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
         // Now we can create the NetworkController itself.
-        int localNwAddr = 0xc0a80104;
+        InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); //0xc0a80104;
         datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, 60 * 1000, localNwAddr, routerDir,
