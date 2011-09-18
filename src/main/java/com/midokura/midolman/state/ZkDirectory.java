@@ -78,14 +78,14 @@ public class ZkDirectory implements Directory {
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         return new HashSet<String>(zk.getChildren(absPath,
-            (null == watcher)? null: new MyWatcher(watcher)));
+                (null == watcher) ? null : new MyWatcher(watcher)));
     }
 
     @Override
     public boolean has(String relativePath) throws KeeperException,
             InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        return zk.exists(absPath, null) == null;
+        return zk.exists(absPath, null) != null;
     }
 
     @Override
