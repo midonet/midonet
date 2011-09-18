@@ -96,7 +96,10 @@ public class ControllerTrampoline implements Controller {
             //TODO: is this the right way to check that a DP is for a VRN?
             if(uuid.equals(config.configurationAt("vrn").getString("router_network_id"))) {
                 
-                Directory portLocationDirectory = directory.getSubDirectory(midolmanConfig.getString("port_location_dicts_root_key")).getSubDirectory("/" + uuid);
+                Directory portLocationDirectory = 
+                    directory.getSubDirectory(
+                        midolmanConfig.getString("port_locations_subdirectory"))
+                    .getSubDirectory("/" + uuid);
 
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
