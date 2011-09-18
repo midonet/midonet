@@ -72,7 +72,7 @@ public class Midolman implements SelectListener, Watcher {
 
         // open the OVSDB connection
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-                "OpenvSwitch", 
+                "Open_vSwitch", 
                 config.configurationAt("openvswitch").getString("openvswitchdb_ip_addr", "127.0.0.1"), 
                 config.configurationAt("openvswitch").getInt("openvswitchdb_tcp_port", 6634));
 
