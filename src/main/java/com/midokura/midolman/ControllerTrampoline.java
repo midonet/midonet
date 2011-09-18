@@ -182,6 +182,8 @@ public class ControllerTrampoline implements Controller {
                 
                 controllerStub.setController(newController);
                 controllerStub = null;
+                
+                newController.onConnectionMade();
             } else {
                 log.info("can't handle this datapath, disconnecting");
                 controllerStub.close();
