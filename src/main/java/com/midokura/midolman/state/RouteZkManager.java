@@ -93,7 +93,7 @@ public class RouteZkManager extends ZkManager {
         // Add to root
         try {
             ops.add(Op.create(pathManager.getRoutePath(entry.key),
-                    serialize(serialize(entry.value)), Ids.OPEN_ACL_UNSAFE,
+                    serialize(entry.value), Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
