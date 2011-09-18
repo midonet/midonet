@@ -32,21 +32,24 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
  */
 public class PortZkManager extends ZkManager {
 
+    private RouteZkManager routeZkManager = null;
+
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
      * 
      * @param zk
-     *            ZooKeeper object.
+     *            Directory object.
      * @param basePath
      *            The root path.
      */
-    public PortZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
-    }
-
     public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        routeZkManager = new RouteZkManager(zk, basePath);
+    }
+
+    public PortZkManager(ZooKeeper zk, String basePath) {
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     /**
@@ -327,11 +330,10 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         if (entry.value instanceof RouterPortConfig) {
-            RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-            List<ZkNodeEntry<UUID, Route>> routes = routeZk.listPortRoutes(
-                    entry.key, null);
+            List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
+                    .listPortRoutes(entry.key, null);
             for (ZkNodeEntry<UUID, Route> route : routes) {
-                ops.addAll(routeZk.prepareRouteDelete(route));
+                ops.addAll(routeZkManager.prepareRouteDelete(route));
             }
         }
         ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,

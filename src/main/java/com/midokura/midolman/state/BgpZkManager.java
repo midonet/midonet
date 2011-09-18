@@ -57,6 +57,8 @@ public class BgpZkManager extends ZkManager {
         }
     }
 
+    private AdRouteZkManager adRouteManager = null;
+
     /**
      * BgpZkManager constructor.
      * 
@@ -67,10 +69,11 @@ public class BgpZkManager extends ZkManager {
      */
     public BgpZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        adRouteManager = new AdRouteZkManager(zk, basePath);
     }
 
     public BgpZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     public List<Op> prepareBgpCreate(ZkNodeEntry<UUID, BgpConfig> bgpNode)
@@ -88,6 +91,7 @@ public class BgpZkManager extends ZkManager {
         }
         ops.add(Op.create(pathManager.getBgpAdRoutesPath(bgpNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         ops
                 .add(Op.create(pathManager.getPortBgpPath(bgpNode.value.portId,
                         bgpNode.key), null, Ids.OPEN_ACL_UNSAFE,
@@ -149,8 +153,9 @@ public class BgpZkManager extends ZkManager {
             ZkStateSerializationException {
         // Update any version for now.
         try {
-            zk.update(pathManager.getBgpPath(entry.key),
-                    serialize(entry.value));
+            zk
+                    .update(pathManager.getBgpPath(entry.key),
+                            serialize(entry.value));
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize bgp "
                     + entry.key + " to BgpConfig", e, BgpConfig.class);
@@ -163,7 +168,6 @@ public class BgpZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the advertising routes
-        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, basePath);
         List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
                 .list(entry.key);
         for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {

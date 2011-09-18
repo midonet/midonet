@@ -36,7 +36,7 @@ public class TenantZkManager extends ZkManager {
     }
 
     public TenantZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     public UUID create() throws KeeperException, InterruptedException {

@@ -30,6 +30,10 @@ import com.midokura.midolman.state.RouterDirectory.RouterConfig;
  */
 public class RouterZkManager extends ZkManager {
 
+    private ChainZkManager chainZkManager = null;
+    private RouteZkManager routeZkManager = null;
+    private PortZkManager portZkManager = null;
+
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -41,10 +45,13 @@ public class RouterZkManager extends ZkManager {
      */
     public RouterZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        chainZkManager = new ChainZkManager(zk, basePath);
+        routeZkManager = new RouteZkManager(zk, basePath);
+        portZkManager = new PortZkManager(zk, basePath);
     }
 
     public RouterZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     /**
@@ -258,25 +265,22 @@ public class RouterZkManager extends ZkManager {
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         // Get rhains delete ops.
-        ChainZkManager chainZk = new ChainZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZk
+        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager
                 .list(routerNode.key);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
-            ops.addAll(chainZk.getDeleteOps(entry.key, routerNode.key));
+            ops.addAll(chainZkManager.prepareChainDelete(entry));
         }
         // Get routes delete ops.
-        RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, Route>> routes = routeZk.listRouterRoutes(
-                routerNode.key, null);
+        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
+                .listRouterRoutes(routerNode.key, null);
         for (ZkNodeEntry<UUID, Route> entry : routes) {
-            ops.addAll(routeZk.prepareRouteDelete(entry));
+            ops.addAll(routeZkManager.prepareRouteDelete(entry));
         }
         // Get ports delete ops
-        PortZkManager portZk = new PortZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, PortConfig>> ports = portZk
+        List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
                 .listRouterPorts(routerNode.key);
         for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
-            ops.addAll(portZk.prepareRouterPortDelete(entry));
+            ops.addAll(portZkManager.prepareRouterPortDelete(entry));
         }
         ops.add(Op.delete(pathManager.getTenantRouterPath(
                 routerNode.value.tenantId, routerNode.key), -1));

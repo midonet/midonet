@@ -29,6 +29,8 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
  */
 public class RouteZkManager extends ZkManager {
 
+    private PortZkManager portZkManager = null;
+
     /**
      * Initializes a RouteZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -40,10 +42,11 @@ public class RouteZkManager extends ZkManager {
      */
     public RouteZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        portZkManager = new PortZkManager(zk, basePath);
     }
 
     public RouteZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     private String getSubDirectoryRoutePath(ZkNodeEntry<UUID, Route> entry)
@@ -52,9 +55,7 @@ public class RouteZkManager extends ZkManager {
         // Determine whether to add the Route data under routers or ports.
         if (entry.value.nextHop == Route.NextHop.PORT) {
             // Check what kind of port this is.
-            PortZkManager portManager = new PortZkManager(zk, pathManager
-                    .getBasePath());
-            ZkNodeEntry<UUID, PortConfig> port = portManager
+            ZkNodeEntry<UUID, PortConfig> port = portZkManager
                     .get(entry.value.nextHopPort);
             if (!(port.value instanceof RouterPortConfig)) {
                 // Cannot add route to bridge ports
@@ -235,8 +236,8 @@ public class RouteZkManager extends ZkManager {
     }
 
     /**
-     * Gets a list of ZooKeeper route nodes belonging to a router with the
-     * given ID.
+     * Gets a list of ZooKeeper route nodes belonging to a router with the given
+     * ID.
      * 
      * @param portId
      *            The ID of the router to find the routes of.
