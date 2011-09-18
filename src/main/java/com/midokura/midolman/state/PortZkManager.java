@@ -23,6 +23,7 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.state.RouterZkManager.PeerRouterConfig;
 
 /**
  * Class to manage the port ZooKeeper data.
@@ -37,16 +38,16 @@ public class PortZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      * 
      * @param zk
-     *            ZooKeeper object.
+     *            Directory object.
      * @param basePath
      *            The root path.
      */
-    public PortZkManager(ZooKeeper zk, String basePath) {
+    public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
     }
 
-    public PortZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public PortZkManager(ZooKeeper zk, String basePath) {
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     /**
@@ -83,7 +84,6 @@ public class PortZkManager extends ZkManager {
             if (portNode.value instanceof MaterializedRouterPortConfig) {
                 ops.add(Op.create(pathManager.getPortBgpPath(portNode.key),
                         null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
             }
         } else if (portNode.value instanceof BridgePortConfig) {
             ops.add(Op.create(pathManager.getBridgePortPath(
@@ -116,6 +116,58 @@ public class PortZkManager extends ZkManager {
                 id, port);
         zk.multi(preparePortCreate(portNode));
         return id;
+    }
+
+    public List<Op> preparePortCreateLink(
+            ZkNodeEntry<UUID, PortConfig> localPortEntry,
+            ZkNodeEntry<UUID, PortConfig> peerPortEntry)
+            throws ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.addAll(preparePortCreate(localPortEntry));
+        ops.addAll(preparePortCreate(peerPortEntry));
+
+        PeerRouterConfig peerRouter = new PeerRouterConfig(localPortEntry.key,
+                peerPortEntry.key);
+        PeerRouterConfig localRouter = new PeerRouterConfig(peerPortEntry.key,
+                localPortEntry.key);
+        try {
+            ops.add(Op.create(pathManager.getRouterRouterPath(
+                    localPortEntry.value.device_id,
+                    peerPortEntry.value.device_id), serialize(peerRouter),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            ops.add(Op.create(pathManager.getRouterRouterPath(
+                    peerPortEntry.value.device_id,
+                    localPortEntry.value.device_id), serialize(localRouter),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize peer routers to PeerRouterConfig",
+                    e, PeerRouterConfig.class);
+        }
+
+        return ops;
+    }
+
+    public ZkNodeEntry<UUID, UUID> createLink(
+            LogicalRouterPortConfig localPort, LogicalRouterPortConfig peerPort)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // Check that they are not currently linked.
+        if (zk.has(pathManager.getRouterRouterPath(localPort.device_id,
+                peerPort.device_id))) {
+            throw new IllegalArgumentException(
+                    "Invalid connection.  The router ports are already connected.");
+        }
+        localPort.peer_uuid = UUID.randomUUID();
+        peerPort.peer_uuid = UUID.randomUUID();
+
+        ZkNodeEntry<UUID, PortConfig> localPortEntry = new ZkNodeEntry<UUID, PortConfig>(
+                peerPort.peer_uuid, localPort);
+        ZkNodeEntry<UUID, PortConfig> peerPortEntry = new ZkNodeEntry<UUID, PortConfig>(
+                localPort.peer_uuid, peerPort);
+        zk.multi(preparePortCreateLink(localPortEntry, peerPortEntry));
+        return new ZkNodeEntry<UUID, UUID>(peerPort.peer_uuid,
+                localPort.peer_uuid);
     }
 
     /**
@@ -308,6 +360,22 @@ public class PortZkManager extends ZkManager {
         }
     }
 
+    private List<Op> prepareCommonRouterPortDelete(
+            ZkNodeEntry<UUID, PortConfig> entry) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
+        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
+                entry.key, null);
+        for (ZkNodeEntry<UUID, Route> route : routes) {
+            ops.addAll(routeZkManager.prepareRouteDelete(route));
+        }
+        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        return ops;
+    }
+
     /**
      * Constructs a list of operations to perform in a router port deletion.
      * 
@@ -324,19 +392,7 @@ public class PortZkManager extends ZkManager {
     public List<Op> prepareRouterPortDelete(ZkNodeEntry<UUID, PortConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
-
-        if (entry.value instanceof RouterPortConfig) {
-            RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-            List<ZkNodeEntry<UUID, Route>> routes = routeZk.listPortRoutes(
-                    entry.key, null);
-            for (ZkNodeEntry<UUID, Route> route : routes) {
-                ops.addAll(routeZk.prepareRouteDelete(route));
-            }
-        }
-        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        List<Op> ops = prepareCommonRouterPortDelete(entry);
 
         if (entry.value instanceof LogicalRouterPortConfig) {
             UUID peerPortId = ((LogicalRouterPortConfig) entry.value).peer_uuid;
@@ -344,7 +400,14 @@ public class PortZkManager extends ZkManager {
             if (peerPortId != null) {
                 ZkNodeEntry<UUID, PortConfig> peerPortEntry = get(peerPortId);
                 if (peerPortEntry != null) {
-                    ops.addAll(prepareRouterPortDelete(peerPortEntry));
+                    ops.addAll(prepareCommonRouterPortDelete(peerPortEntry));
+                    // Remove the peer router associations
+                    ops.add(Op.delete(pathManager.getRouterRouterPath(
+                            entry.value.device_id,
+                            peerPortEntry.value.device_id), -1));
+                    ops.add(Op.delete(pathManager.getRouterRouterPath(
+                            peerPortEntry.value.device_id,
+                            entry.value.device_id), -1));
                 }
             }
         }

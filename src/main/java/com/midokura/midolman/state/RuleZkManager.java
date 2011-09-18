@@ -14,8 +14,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.rules.Rule;
 
@@ -40,9 +40,24 @@ public class RuleZkManager extends ZkManager {
     }
 
     public RuleZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
+    /**
+     * Constructs a list of ZooKeeper update operations to perform when adding a
+     * new rule.
+     * 
+     * @param ruleEntry
+     *            ZooKeeper node representing a key-value entry of rule UUID and
+     *            Rule object.
+     * @return A list of Op objects to represent the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<Op> prepareRuleCreate(ZkNodeEntry<UUID, Rule> ruleEntry)
             throws ZkStateSerializationException, KeeperException,
             InterruptedException {
@@ -61,6 +76,19 @@ public class RuleZkManager extends ZkManager {
         return ops;
     }
 
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new rule entry.
+     * 
+     * @param rule
+     *            Rule object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public UUID create(Rule rule) throws InterruptedException, KeeperException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
@@ -69,6 +97,19 @@ public class RuleZkManager extends ZkManager {
         return id;
     }
 
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a rule with the given ID.
+     * 
+     * @param id
+     *            The ID of the rule.
+     * @return Rule object found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public ZkNodeEntry<UUID, Rule> get(UUID id) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
         byte[] data = zk.get(pathManager.getRulePath(id), null);
@@ -83,12 +124,42 @@ public class RuleZkManager extends ZkManager {
         return new ZkNodeEntry<UUID, Rule>(id, rule);
     }
 
+    /**
+     * Gets a list of ZooKeeper rule nodes belonging to a chain with the given
+     * ID.
+     * 
+     * @param chainId
+     *            The ID of the chain to find the rules of.
+     * @return A list of ZooKeeper chain nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, Rule>> list(UUID chainId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         return list(chainId, null);
     }
 
+    /**
+     * Gets a list of ZooKeeper rule nodes belonging to a chain with the given
+     * ID.
+     * 
+     * @param chainId
+     *            The ID of the chain to find the rules of.
+     * @param watcher
+     *            The watcher to set on the changes to the rules for this chain.
+     * @return A list of ZooKeeper chain nodes.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public List<ZkNodeEntry<UUID, Rule>> list(UUID chainId, Runnable watcher)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
@@ -102,22 +173,43 @@ public class RuleZkManager extends ZkManager {
         return result;
     }
 
-    public List<Op> getDeleteOps(UUID id, UUID chainId) {
+    /**
+     * Constructs a list of operations to perform in a rule deletion.
+     * 
+     * @param entry
+     *            Rule ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRuleDelete(ZkNodeEntry<UUID, Rule> entry) {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getChainRulePath(chainId, id), -1));
-        ops.add(Op.delete(pathManager.getRulePath(id), -1));
+        ops.add(Op.delete(pathManager.getChainRulePath(entry.value.chainId,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getRulePath(entry.key), -1));
         return ops;
     }
 
+    /***
+     * Deletes a rule and its related data from the ZooKeeper directories
+     * atomically.
+     * 
+     * @param id
+     *            ID of the rule to delete.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ClassNotFoundException, ZkStateSerializationException {
-        ZkNodeEntry<UUID, Rule> rule = get(id);
-        delete(id, rule.value.chainId);
-    }
-
-    public void delete(UUID id, UUID chainId) throws InterruptedException,
-            KeeperException, ClassNotFoundException {
-        this.zk.multi(getDeleteOps(id, chainId));
+        this.zk.multi(prepareRuleDelete(get(id)));
     }
 
 }

@@ -7,8 +7,6 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 
-import org.apache.zookeeper.ZooKeeper;
-
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midolman.util.Serializer;
 
@@ -36,12 +34,6 @@ public abstract class ZkManager {
         this.basePath = basePath;
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
-    }
-
-    public ZkManager(ZooKeeper zk, String basePath) {
-        this.basePath = basePath;
-        this.pathManager = new ZkPathManager(basePath);
-        this.zk = new ZkDirectory(zk, "", null);
     }
 
     protected static <T> byte[] serialize(T obj) throws IOException {

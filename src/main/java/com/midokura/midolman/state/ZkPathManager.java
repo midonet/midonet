@@ -153,6 +153,30 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK router peer router path.
+     * 
+     * @param routerId
+     *            Router UUID
+     * @return /routers/routerId/routers
+     */
+    public String getRouterRoutersPath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId)).append("/routers")
+                .toString();
+    }
+
+    /**
+     * Get ZK router peer router path.
+     * 
+     * @param routerId
+     *            Router UUID
+     * @return /routers/routerId/routers/routerId
+     */
+    public String getRouterRouterPath(UUID routerId, UUID peerRouterId) {
+        return new StringBuilder(getRouterRoutersPath(routerId)).append("/")
+                .append(peerRouterId).toString();
+    }
+
+    /**
      * Get ZK tenant bridge path.
      * 
      * @param tenantId
@@ -444,7 +468,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK BGP path.
-     *
+     * 
      * @return /bgps
      */
     public String getBgpPath() {
@@ -453,19 +477,19 @@ public class ZkPathManager {
 
     /**
      * Get ZK BGP path.
-     *
+     * 
      * @param id
      *            BGP UUID
      * @return /bgps/bgpId
      */
     public String getBgpPath(UUID id) {
-            return new StringBuilder(getBgpPath()).append("/").append(id)
-                    .toString();
+        return new StringBuilder(getBgpPath()).append("/").append(id)
+                .toString();
     }
 
     /**
      * Get ZK port BGP path.
-     *
+     * 
      * @param portId
      *            Port UUID
      * @return /ports/portId/bgps
@@ -477,7 +501,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port BGP path.
-     *
+     * 
      * @param portId
      *            Port UUID
      * @param bgpId
@@ -485,13 +509,13 @@ public class ZkPathManager {
      * @return /ports/portId/bgps/bgpId
      */
     public String getPortBgpPath(UUID portId, UUID bgpId) {
-        return new StringBuilder(getPortBgpPath(portId)).append("/")
-                .append(bgpId).toString();
+        return new StringBuilder(getPortBgpPath(portId)).append("/").append(
+                bgpId).toString();
     }
 
     /**
      * Get ZK advertising routes path.
-     *
+     * 
      * @return /ad_routes
      */
     public String getAdRoutesPath() {
@@ -500,19 +524,19 @@ public class ZkPathManager {
 
     /**
      * Get ZK advertising routes path.
-     *
+     * 
      * @param id
      *            AdRoutes UUID
      * @return /ad_routes/adRouteId
      */
     public String getAdRoutePath(UUID id) {
-            return new StringBuilder(getAdRoutesPath()).append("/").append(id)
-                    .toString();
+        return new StringBuilder(getAdRoutesPath()).append("/").append(id)
+                .toString();
     }
 
     /**
      * Get ZK BGP advertising routes path.
-     *
+     * 
      * @param bgpId
      *            BGP UUID
      * @return /bgps/bgpId/ad_routes
@@ -524,7 +548,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK bgp advertising route path.
-     *
+     * 
      * @param bgpId
      *            BGP UUID
      * @param adRouteId
@@ -532,7 +556,7 @@ public class ZkPathManager {
      * @return /bgps/bgpId/ad_routes/adRouteId
      */
     public String getBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
-        return new StringBuilder(getBgpAdRoutesPath(bgpId)).append("/")
-                .append(adRouteId).toString();
+        return new StringBuilder(getBgpAdRoutesPath(bgpId)).append("/").append(
+                adRouteId).toString();
     }
 }

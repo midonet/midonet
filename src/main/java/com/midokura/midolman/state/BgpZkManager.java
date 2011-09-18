@@ -70,7 +70,7 @@ public class BgpZkManager extends ZkManager {
     }
 
     public BgpZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     public List<Op> prepareBgpCreate(ZkNodeEntry<UUID, BgpConfig> bgpNode)
@@ -88,6 +88,7 @@ public class BgpZkManager extends ZkManager {
         }
         ops.add(Op.create(pathManager.getBgpAdRoutesPath(bgpNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         ops
                 .add(Op.create(pathManager.getPortBgpPath(bgpNode.value.portId,
                         bgpNode.key), null, Ids.OPEN_ACL_UNSAFE,
@@ -149,8 +150,9 @@ public class BgpZkManager extends ZkManager {
             ZkStateSerializationException {
         // Update any version for now.
         try {
-            zk.update(pathManager.getBgpPath(entry.key),
-                    serialize(entry.value));
+            zk
+                    .update(pathManager.getBgpPath(entry.key),
+                            serialize(entry.value));
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize bgp "
                     + entry.key + " to BgpConfig", e, BgpConfig.class);

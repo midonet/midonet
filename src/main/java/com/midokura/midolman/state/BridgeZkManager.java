@@ -6,7 +6,6 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +28,7 @@ import com.midokura.midolman.state.PortDirectory.PortConfig;
  */
 public class BridgeZkManager extends ZkManager {
 
-    public static class BridgeConfig implements Serializable {
-
-        private static final long serialVersionUID = 1L;
+    public static class BridgeConfig {
 
         public BridgeConfig() {
             super();
@@ -67,7 +64,7 @@ public class BridgeZkManager extends ZkManager {
     }
 
     public BridgeZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     /**
@@ -89,10 +86,10 @@ public class BridgeZkManager extends ZkManager {
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
             throws ZkStateSerializationException, KeeperException,
             InterruptedException {
-
+        GreZkManager greZkManager = new GreZkManager(zk, basePath);
+        
         // Create a new GRE key. Hide this from outside.
-        GreZkManager greZk = new GreZkManager(zk, basePath);
-        ZkNodeEntry<Integer, GreKey> gre = greZk.createGreKey();
+        ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
         bridgeNode.value.greKey = gre.key;
 
         List<Op> ops = new ArrayList<Op>();
@@ -112,7 +109,7 @@ public class BridgeZkManager extends ZkManager {
 
         // Update GreKey to reference the bridge.
         gre.value.bridgeId = bridgeNode.key;
-        ops.addAll(greZk.prepareGreUpdate(gre));
+        ops.addAll(greZkManager.prepareGreUpdate(gre));
         return ops;
     }
 
@@ -216,7 +213,7 @@ public class BridgeZkManager extends ZkManager {
      *            The ID of the tenant to find the bridges of.
      * @param watcher
      *            The watcher to set on the changes to the bridges for this
-     *            router.
+     *            tenant.
      * @return A list of ZooKeeper bridge nodes.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
@@ -281,20 +278,20 @@ public class BridgeZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException, IOException {
         List<Op> ops = new ArrayList<Op>();
+        PortZkManager portZkManager = new PortZkManager(zk, basePath);
+        GreZkManager greZkManager = new GreZkManager(zk, basePath);
 
         // Delete the ports
-        PortZkManager portManager = new PortZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portManager
+        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
                 .listBridgePorts(entry.key);
         for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
-            ops.addAll(portManager.prepareBridgePortDelete(portEntry));
+            ops.addAll(portZkManager.prepareBridgePortDelete(portEntry));
         }
         ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
 
         // Delete GRE
-        GreZkManager greManager = new GreZkManager(zk, basePath);
         GreKey gre = new GreKey(entry.key);
-        ops.addAll(greManager
+        ops.addAll(greZkManager
                 .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
                         entry.value.greKey, gre)));
 

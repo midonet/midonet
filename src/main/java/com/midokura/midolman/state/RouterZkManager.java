@@ -30,6 +30,21 @@ import com.midokura.midolman.state.RouterDirectory.RouterConfig;
  */
 public class RouterZkManager extends ZkManager {
 
+    public static class PeerRouterConfig {
+        public PeerRouterConfig() {
+            super();
+        }
+
+        public PeerRouterConfig(UUID portId, UUID peerPortId) {
+            super();
+            this.portId = portId;
+            this.peerPortId = peerPortId;
+        }
+
+        public UUID portId;
+        public UUID peerPortId;
+    }
+
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -44,7 +59,7 @@ public class RouterZkManager extends ZkManager {
     }
 
     public RouterZkManager(ZooKeeper zk, String basePath) {
-        super(zk, basePath);
+        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     /**
@@ -84,13 +99,15 @@ public class RouterZkManager extends ZkManager {
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterChainsPath(routerNode.key),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterRoutersPath(routerNode.key),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         // ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
         // Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         // ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
         // Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
-
+ 
     /**
      * Performs an atomic update on the ZooKeeper to add a new router entry.
      * 
@@ -112,7 +129,7 @@ public class RouterZkManager extends ZkManager {
         zk.multi(prepareRouterCreate(routerNode));
         return id;
     }
-
+    
     /**
      * Gets a ZooKeeper node entry key-value pair of a router with the given ID.
      * 
@@ -257,26 +274,26 @@ public class RouterZkManager extends ZkManager {
             InterruptedException, ClassNotFoundException,
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
+        ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
+        RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
+        PortZkManager portZkManager = new PortZkManager(zk, basePath);
         // Get rhains delete ops.
-        ChainZkManager chainZk = new ChainZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZk
+        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager
                 .list(routerNode.key);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
-            ops.addAll(chainZk.getDeleteOps(entry.key, routerNode.key));
+            ops.addAll(chainZkManager.prepareChainDelete(entry));
         }
         // Get routes delete ops.
-        RouteZkManager routeZk = new RouteZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, Route>> routes = routeZk.listRouterRoutes(
-                routerNode.key, null);
+        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
+                .listRouterRoutes(routerNode.key, null);
         for (ZkNodeEntry<UUID, Route> entry : routes) {
-            ops.addAll(routeZk.prepareRouteDelete(entry));
+            ops.addAll(routeZkManager.prepareRouteDelete(entry));
         }
         // Get ports delete ops
-        PortZkManager portZk = new PortZkManager(zk, basePath);
-        List<ZkNodeEntry<UUID, PortConfig>> ports = portZk
+        List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
                 .listRouterPorts(routerNode.key);
         for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
-            ops.addAll(portZk.prepareRouterPortDelete(entry));
+            ops.addAll(portZkManager.prepareRouterPortDelete(entry));
         }
         ops.add(Op.delete(pathManager.getTenantRouterPath(
                 routerNode.value.tenantId, routerNode.key), -1));
