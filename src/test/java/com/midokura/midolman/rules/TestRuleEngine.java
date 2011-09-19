@@ -23,11 +23,9 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 public class TestRuleEngine {
 
@@ -134,17 +132,13 @@ public class TestRuleEngine {
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         // Add the paths for rules and chains
-        dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
-        TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
 
-        UUID tenantId = tenantMgr.create();
-        RouterConfig cfg = new RouterConfig("Test Router", tenantId);
-        rtrId = routerMgr.create(cfg);
+        rtrId = routerMgr.create();
         natMap = new MockNatMapping();
         engine = new RuleEngine(chainMgr, ruleMgr, rtrId, natMap);
         c1Id = chainMgr.create(new ChainConfig("Chain1", rtrId));

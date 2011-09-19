@@ -9,14 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -36,15 +34,12 @@ import org.openflow.protocol.action.OFActionTransportLayerSource;
 import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.NetworkController.DecodedMacAddrs;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
@@ -63,21 +58,15 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
@@ -123,15 +112,12 @@ public class TestNetworkController {
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
         portMgr = new PortZkManager(dir, basePath);
         routeMgr = new RouteZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
-        TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
-        UUID tenantId = tenantMgr.create();
 
         // Now build the Port to Location Map.
         UUID networkId = new UUID(1, 1);
@@ -171,8 +157,7 @@ public class TestNetworkController {
         List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
             phyPorts.add(new ArrayList<OFPhysicalPort>());
-            RouterConfig cfg = new RouterConfig("Test Router " + i, tenantId);
-            UUID rtrId = routerMgr.create(cfg);
+            UUID rtrId = routerMgr.create();
             routerIds.add(rtrId);
 
             Directory tableDir = routerMgr.getRoutingTableDirectory(rtrId);

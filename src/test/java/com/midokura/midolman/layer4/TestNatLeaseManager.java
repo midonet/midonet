@@ -16,9 +16,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.util.MockCache;
 
 public class TestNatLeaseManager {
@@ -31,14 +29,10 @@ public class TestNatLeaseManager {
         ZkPathManager pathMgr = new ZkPathManager(basePath);
         Directory dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
-        TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
 
-        UUID tenantId = tenantMgr.create();
-        RouterConfig cfg = new RouterConfig("Test Router", tenantId);
-        UUID rtrId = routerMgr.create(cfg);
+        UUID rtrId = routerMgr.create();
         natManager = new NatLeaseManager(routerMgr, rtrId, new MockCache());
     }
 

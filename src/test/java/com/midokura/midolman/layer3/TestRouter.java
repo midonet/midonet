@@ -51,16 +51,13 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
@@ -96,18 +93,14 @@ public class TestRouter {
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
         PortZkManager portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
-        TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
 
-        UUID tenantId = tenantMgr.create();
-        RouterConfig cfg = new RouterConfig("Test Router", tenantId);
-        UUID rtrId = routerMgr.create(cfg);
+        UUID rtrId = routerMgr.create();
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new MockCache();
         cache = new CacheWithPrefix(cache, rtrId.toString());

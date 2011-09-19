@@ -29,18 +29,12 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.MockCache;
 
@@ -67,13 +61,10 @@ public class TestNetwork {
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
         PortZkManager portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
-        TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
-        UUID tenantId = tenantMgr.create();
 
         network = new Network(new UUID(19, 19), portMgr, routerMgr,
                 new ChainZkManager(dir, basePath), new RuleZkManager(dir,
@@ -90,8 +81,7 @@ public class TestNetwork {
         Route rt;
         PortDirectory.MaterializedRouterPortConfig portConfig;
         for (int i = 0; i < 3; i++) {
-            RouterConfig cfg = new RouterConfig("Test Router " + i, tenantId);
-            UUID rtrId = routerMgr.create(cfg);
+            UUID rtrId = routerMgr.create();
             routerIds.add(rtrId);
             // This router handles all traffic to 10.<i>.0.0/16
             int routerNw = 0x0a000000 + (i << 16);

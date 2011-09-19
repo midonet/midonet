@@ -28,29 +28,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.state.RouterZkManager.RouterConfig;;
 
 public class RouterDirectory {
-
-    public static byte[] routerToBytes(RouterConfig tenant) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        JsonGenerator jsonGenerator = jsonFactory
-                .createJsonGenerator(new OutputStreamWriter(out));
-        jsonGenerator.writeObject(tenant);
-        out.close();
-        return bos.toByteArray();
-    }
-
-    public static RouterConfig bytesToRouter(byte[] data) throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        ObjectInputStream in = new ObjectInputStream(bis);
-        JsonParser jsonParser = jsonFactory
-                .createJsonParser(new InputStreamReader(in));
-        RouterConfig router = (RouterConfig) in.readObject();
-        return router;
-    }
 
     Directory dir;
 
@@ -105,35 +84,11 @@ public class RouterDirectory {
         return strb.toString();
     }
 
-    /**
-     * Get a RouterConfig object for the given ID.
-     * 
-     * @param id
-     *            UUID of router to fetch.
-     * @return RouterConfig object with the given ID.
-     * @throws IOException
-     *             Error serializing.
-     * @throws ClassNotFoundException
-     *             Class not found.
-     * @throws KeeperException
-     *             Zookeeper error.
-     * @throws InterruptedException
-     *             Thread paused too long.
-     */
-    public RouterConfig getRouter(UUID id) throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
-        byte[] data = dir.get("/" + id.toString(), null);
-        RouterConfig routerConfig = bytesToRouter(data);
-        return routerConfig;
-    }
-
-    public void addRouter(UUID routerId, RouterConfig router)
+    public void addRouter(UUID routerId)
             throws InterruptedException, KeeperException, IOException {
-        byte[] data = routerToBytes(router);
-
         // Use try-catch blocks to avoid getting stuck in a half-created state.
         try {
-            dir.add("/" + routerId.toString(), data, CreateMode.PERSISTENT);
+            dir.add("/" + routerId.toString(), null, CreateMode.PERSISTENT);
         } catch (KeeperException e) {}
         try {
             dir.add(getRoutingTablePath(routerId), null, CreateMode.PERSISTENT);

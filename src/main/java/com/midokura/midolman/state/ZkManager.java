@@ -23,7 +23,7 @@ public abstract class ZkManager {
     protected String basePath = null;
 
     /**
-     * Default constructor.
+     *  Constructor.
      * 
      * @param zk
      *            Directory object.

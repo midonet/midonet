@@ -19,7 +19,7 @@ import org.apache.zookeeper.Watcher;
 
 public class ZkDirectory implements Directory {
 
-    private ZooKeeper zk;
+    public ZooKeeper zk;
     private String basePath;
     private List<ACL> acl;
 
@@ -105,8 +105,6 @@ public class ZkDirectory implements Directory {
             return basePath;
         if (!relativePath.startsWith("/"))
             throw new IllegalArgumentException("Path must start with '/'.");
-        if (relativePath.endsWith("/"))
-            throw new IllegalArgumentException("Path must not end with '/'.");
         return basePath + relativePath;
     }
 
