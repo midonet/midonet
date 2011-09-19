@@ -31,13 +31,14 @@ public class RouteDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public RouteDataAccessor(String zkConn, int timeout) {
-        super(zkConn, timeout);
+    public RouteDataAccessor(String zkConn, int timeout, String rootPath,
+			String mgmtRootPath) {
+		super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private RouteZkManager getRouteZkManager() throws Exception {
         ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new RouteZkManager(conn.getZooKeeper(), "/midolman");
+        return new RouteZkManager(conn.getZooKeeper(), zkRoot);
     }
 
     private static com.midokura.midolman.layer3.Route convertToZkRoute(

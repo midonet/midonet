@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.state.TenantZkManager;
+import com.midokura.midolman.mgmt.data.state.TenantZkManager;
 import com.midokura.midolman.state.ZkConnection;
 
 /**
@@ -29,13 +29,14 @@ public class TenantDataAccessor extends DataAccessor {
      * @param zkConn
      *            ZooKeeper connection string
      */
-    public TenantDataAccessor(String zkConn, int timeout) {
-        super(zkConn, timeout);
+    public TenantDataAccessor(String zkConn, int timeout, String rootPath,
+			String mgmtRootPath) {
+		super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private TenantZkManager getTenantZkManager() throws Exception {
         ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new TenantZkManager(conn.getZooKeeper(), "/midolman");
+        return new TenantZkManager(conn.getZooKeeper(), zkRoot, zkMgmtRoot);
     }
 
     /**

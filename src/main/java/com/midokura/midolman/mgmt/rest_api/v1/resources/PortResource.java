@@ -37,172 +37,172 @@ import com.midokura.midolman.mgmt.data.dto.Port;
  */
 @Path("/ports")
 public class PortResource extends RestResource {
-    /*
-     * Implements REST API endpoints for ports.
-     */
+	/*
+	 * Implements REST API endpoints for ports.
+	 */
 
-    private final static Logger log = LoggerFactory
-            .getLogger(PortResource.class);
+	private final static Logger log = LoggerFactory
+			.getLogger(PortResource.class);
 
-    /**
-     * Get the port with the given ID.
-     * 
-     * @param id
-     *            Port UUID.
-     * @return Port object.
-     * @throws Exception
-     * @throws Exception
-     */
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Port get(@PathParam("id") UUID id) {
-        // Get a port for the given ID.
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            return dao.get(id);
-        } catch (Exception ex) {
-            log.error("Error getting port", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	/**
+	 * Get the port with the given ID.
+	 * 
+	 * @param id
+	 *            Port UUID.
+	 * @return Port object.
+	 * @throws Exception
+	 * @throws Exception
+	 */
+	@GET
+	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Port get(@PathParam("id") UUID id) {
+		// Get a port for the given ID.
+		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			return dao.get(id);
+		} catch (Exception ex) {
+			log.error("Error getting port", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID id) {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            dao.delete(id);
-        } catch (Exception ex) {
-            log.error("Error deleting port", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	@DELETE
+	@Path("{id}")
+	public void delete(@PathParam("id") UUID id) {
+		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.delete(id);
+		} catch (Exception ex) {
+			log.error("Error deleting port", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    public static class BridgePortResource extends RestResource {
+	public static class BridgePortResource extends RestResource {
 
-        private UUID bridgeId = null;
+		private UUID bridgeId = null;
 
-        public BridgePortResource(String zkConn, UUID bridgeId) {
-            this.zookeeperConn = zkConn;
-            this.bridgeId = bridgeId;
-        }
+		public BridgePortResource(String zkConn, UUID bridgeId) {
+			this.zookeeperConn = zkConn;
+			this.bridgeId = bridgeId;
+		}
 
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Port port, @Context UriInfo uriInfo)
-                throws Exception {
-            port.setDeviceId(bridgeId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		public Response create(Port port, @Context UriInfo uriInfo)
+				throws Exception {
+			port.setDeviceId(bridgeId);
+			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 
-            UUID id = null;
-            try {
-                id = dao.create(port);
-            } catch (Exception ex) {
-                log.error("Error creating bridge ports", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+			UUID id = null;
+			try {
+				id = dao.create(port);
+			} catch (Exception ex) {
+				log.error("Error creating bridge ports", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
 
-            URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
-            return Response.created(uri).build();
-        }
+			URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
+			return Response.created(uri).build();
+		}
 
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                return dao.listBridgePorts(bridgeId);
-            } catch (Exception ex) {
-                log.error("Error listing bridge ports", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-        }
-    }
+		@GET
+		@Produces(MediaType.APPLICATION_JSON)
+		public Port[] list() {
+			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				return dao.listBridgePorts(bridgeId);
+			} catch (Exception ex) {
+				log.error("Error listing bridge ports", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+		}
+	}
 
-    /**
-     * Sub-resource class for router's ports.
-     */
-    public static class RouterPortResource extends RestResource {
+	/**
+	 * Sub-resource class for router's ports.
+	 */
+	public static class RouterPortResource extends RestResource {
 
-        private UUID routerId = null;
+		private UUID routerId = null;
 
-        public RouterPortResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
-            this.routerId = routerId;
-        }
+		public RouterPortResource(String zkConn, UUID routerId) {
+			this.zookeeperConn = zkConn;
+			this.routerId = routerId;
+		}
 
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(MaterializedRouterPort port,
-                @Context UriInfo uriInfo) throws Exception {
-            port.setDeviceId(routerId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		public Response create(MaterializedRouterPort port,
+				@Context UriInfo uriInfo) throws Exception {
+			port.setDeviceId(routerId);
+			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 
-            UUID id = null;
-            try {
-                id = dao.create(port);
-            } catch (Exception ex) {
-                log.error("Error creating router ports", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+			UUID id = null;
+			try {
+				id = dao.create(port);
+			} catch (Exception ex) {
+				log.error("Error creating router ports", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
 
-            URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
-            return Response.created(uri).build();
-        }
+			URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
+			return Response.created(uri).build();
+		}
 
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        @Path("link")
-        public Response createLink(LogicalRouterPort port,
-                @Context UriInfo uriInfo) {
-            port.setDeviceId(routerId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		@Path("link")
+		public Response createLink(LogicalRouterPort port,
+				@Context UriInfo uriInfo) {
+			port.setDeviceId(routerId);
+			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 
-            LogicalRouterPort logicalRouterPort = null;
-            try {
-                logicalRouterPort = dao.createLink(port);
-            } catch (Exception ex) {
-                log.error("Error creating logical router port link", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-            URI uri = uriInfo.getBaseUriBuilder().path(
-                    "ports/" + logicalRouterPort.getId()).build();
-            return Response.created(uri).entity(logicalRouterPort).build();
-        }
+			LogicalRouterPort logicalRouterPort = null;
+			try {
+				logicalRouterPort = dao.createLink(port);
+			} catch (Exception ex) {
+				log.error("Error creating logical router port link", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+			URI uri = uriInfo.getBaseUriBuilder().path(
+					"ports/" + logicalRouterPort.getId()).build();
+			return Response.created(uri).entity(logicalRouterPort).build();
+		}
 
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                return dao.listRouterPorts(routerId);
-            } catch (Exception ex) {
-                log.error("Error listing router ports", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-        }
-    }
+		@GET
+		@Produces(MediaType.APPLICATION_JSON)
+		public Port[] list() {
+			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				return dao.listRouterPorts(routerId);
+			} catch (Exception ex) {
+				log.error("Error listing router ports", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+		}
+	}
 }

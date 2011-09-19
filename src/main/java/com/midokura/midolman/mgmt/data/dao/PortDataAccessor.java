@@ -42,13 +42,14 @@ public class PortDataAccessor extends DataAccessor {
      * @param zkConn
      *            ZooKeeper connection string
      */
-    public PortDataAccessor(String zkConn, int timeout) {
-        super(zkConn, timeout);
+    public PortDataAccessor(String zkConn, int timeout, String rootPath,
+			String mgmtRootPath) {
+		super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private PortZkManager getPortZkManager() throws Exception {
         ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new PortZkManager(conn.getZooKeeper(), "/midolman");
+        return new PortZkManager(conn.getZooKeeper(), zkRoot);
     }
 
     private static BridgePortConfig convertToBridgePortConfig(Port port) {

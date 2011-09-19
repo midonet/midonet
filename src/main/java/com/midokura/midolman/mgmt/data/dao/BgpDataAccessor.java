@@ -32,13 +32,14 @@ public class BgpDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public BgpDataAccessor(String zkConn, int timeout) {
-        super(zkConn, timeout);
+    public BgpDataAccessor(String zkConn, int timeout, String rootPath,
+			String mgmtRootPath) {
+		super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private BgpZkManager getBgpZkManager() throws Exception {
         ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new BgpZkManager(conn.getZooKeeper(), "/midolman");
+        return new BgpZkManager(conn.getZooKeeper(), zkRoot);
     }
 
     private static BgpConfig convertToConfig(Bgp bgp) throws Exception {

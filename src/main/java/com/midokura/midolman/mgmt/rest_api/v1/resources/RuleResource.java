@@ -35,91 +35,91 @@ import com.midokura.midolman.mgmt.data.dto.Rule;
  */
 public class RuleResource extends RestResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RuleResource.class);
+	private final static Logger log = LoggerFactory
+			.getLogger(RuleResource.class);
 
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Rule get(@PathParam("id") UUID id) {
-        RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        Rule rule = null;
-        try {
-            rule = dao.get(id);
-        } catch (Exception ex) {
-            log.error("Error getting rule", ex);
-            throw new WebApplicationException(Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-        return rule;
-    }
+	@GET
+	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Rule get(@PathParam("id") UUID id) {
+		RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		Rule rule = null;
+		try {
+			rule = dao.get(id);
+		} catch (Exception ex) {
+			log.error("Error getting rule", ex);
+			throw new WebApplicationException(Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+		return rule;
+	}
 
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID id) {
-        RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            dao.delete(id);
-        } catch (Exception ex) {
-            log.error("Error deleting rule", ex);
-            throw new WebApplicationException(Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	@DELETE
+	@Path("{id}")
+	public void delete(@PathParam("id") UUID id) {
+		RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.delete(id);
+		} catch (Exception ex) {
+			log.error("Error deleting rule", ex);
+			throw new WebApplicationException(Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    /**
-     * Sub-resource class for chain's rules.
-     */
-    public static class ChainRuleResource extends RestResource {
+	/**
+	 * Sub-resource class for chain's rules.
+	 */
+	public static class ChainRuleResource extends RestResource {
 
-        private UUID chainId = null;
+		private UUID chainId = null;
 
-        public ChainRuleResource(String zkConn, UUID chainId) {
-            this.zookeeperConn = zkConn;
-            this.chainId = chainId;
-        }
+		public ChainRuleResource(String zkConn, UUID chainId) {
+			this.zookeeperConn = zkConn;
+			this.chainId = chainId;
+		}
 
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Rule[] list() {
-            RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            Rule[] rules = null;
-            try {
-                rules = dao.list(chainId);
-            } catch (Exception ex) {
-                log.error("Error getting rules", ex);
-                throw new WebApplicationException(Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-            return rules;
-        }
+		@GET
+		@Produces(MediaType.APPLICATION_JSON)
+		public Rule[] list() {
+			RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			Rule[] rules = null;
+			try {
+				rules = dao.list(chainId);
+			} catch (Exception ex) {
+				log.error("Error getting rules", ex);
+				throw new WebApplicationException(Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+			return rules;
+		}
 
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Rule rule, @Context UriInfo uriInfo) {
-            // Add a new rule entry into zookeeper.
-            rule.setId(UUID.randomUUID());
-            rule.setChainId(chainId);
-            RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                dao.create(rule);
-            } catch (Exception ex) {
-                log.error("Error creating rule", ex);
-                throw new WebApplicationException(Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		public Response create(Rule rule, @Context UriInfo uriInfo) {
+			// Add a new rule entry into zookeeper.
+			rule.setId(UUID.randomUUID());
+			rule.setChainId(chainId);
+			RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				dao.create(rule);
+			} catch (Exception ex) {
+				log.error("Error creating rule", ex);
+				throw new WebApplicationException(Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
 
-            URI uri = uriInfo.getBaseUriBuilder().path("rules/" + rule.getId())
-                    .build();
-            return Response.created(uri).build();
-        }
-    }
+			URI uri = uriInfo.getBaseUriBuilder().path("rules/" + rule.getId())
+					.build();
+			return Response.created(uri).build();
+		}
+	}
 }

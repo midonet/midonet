@@ -11,6 +11,14 @@
 		<param-name>zookeeper-timeout</param-name>
 		<param-value>3000</param-value>
 	</context-param>
+	<context-param>
+		<param-name>zookeeper-root</param-name>
+		<param-value>/midolman</param-value>
+	</context-param>
+	<context-param>
+		<param-name>zookeeper-mgmt-root</param-name>
+		<param-value>/midolman-mgmt</param-value>
+	</context-param>
 	<display-name>Restful Web Application</display-name>
 	<servlet>
 		<servlet-name>jersey-servlet-v1</servlet-name>

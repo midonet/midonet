@@ -30,13 +30,14 @@ public class ChainDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public ChainDataAccessor(String zkConn, int timeout) {
-        super(zkConn, timeout);
+    public ChainDataAccessor(String zkConn, int timeout, String rootPath,
+			String mgmtRootPath) {
+		super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private ChainZkManager getChainZkManager() throws Exception {
         ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new ChainZkManager(conn.getZooKeeper(), "/midolman");
+        return new ChainZkManager(conn.getZooKeeper(), zkRoot);
     }
 
     private static ChainConfig convertToConfig(Chain chain) {

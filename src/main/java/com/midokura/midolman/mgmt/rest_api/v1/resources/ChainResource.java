@@ -36,86 +36,86 @@ import com.midokura.midolman.mgmt.data.dto.Chain;
 @Path("/chains")
 public class ChainResource extends RestResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ChainResource.class);
+	private final static Logger log = LoggerFactory
+			.getLogger(ChainResource.class);
 
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Chain get(@PathParam("id") UUID id) {
-        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            return dao.get(id);
-        } catch (Exception ex) {
-            log.error("Error getting chain", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	@GET
+	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Chain get(@PathParam("id") UUID id) {
+		ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			return dao.get(id);
+		} catch (Exception ex) {
+			log.error("Error getting chain", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID id) {
-        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            dao.delete(id);
-        } catch (Exception ex) {
-            log.error("Error deleting chain", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	@DELETE
+	@Path("{id}")
+	public void delete(@PathParam("id") UUID id) {
+		ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.delete(id);
+		} catch (Exception ex) {
+			log.error("Error deleting chain", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    /**
-     * Sub-resource class for router's chains.
-     */
-    public static class RouterChainResource extends RestResource {
+	/**
+	 * Sub-resource class for router's chains.
+	 */
+	public static class RouterChainResource extends RestResource {
 
-        private UUID routerId = null;
+		private UUID routerId = null;
 
-        public RouterChainResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
-            this.routerId = routerId;
-        }
+		public RouterChainResource(String zkConn, UUID routerId) {
+			this.zookeeperConn = zkConn;
+			this.routerId = routerId;
+		}
 
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Chain[] list() {
-            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                return dao.list(routerId);
-            } catch (Exception ex) {
-                log.error("Error getting chains", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-        }
+		@GET
+		@Produces(MediaType.APPLICATION_JSON)
+		public Chain[] list() {
+			ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				return dao.list(routerId);
+			} catch (Exception ex) {
+				log.error("Error getting chains", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+		}
 
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Chain chain, @Context UriInfo uriInfo) {
-            chain.setId(UUID.randomUUID());
-            chain.setRouterId(routerId);
-            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                dao.create(chain);
-            } catch (Exception ex) {
-                log.error("Error creating chain", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		public Response create(Chain chain, @Context UriInfo uriInfo) {
+			chain.setId(UUID.randomUUID());
+			chain.setRouterId(routerId);
+			ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				dao.create(chain);
+			} catch (Exception ex) {
+				log.error("Error creating chain", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
 
-            URI uri = uriInfo.getBaseUriBuilder().path(
-                    "chains/" + chain.getId()).build();
-            return Response.created(uri).build();
-        }
-    }
+			URI uri = uriInfo.getBaseUriBuilder().path(
+					"chains/" + chain.getId()).build();
+			return Response.created(uri).build();
+		}
+	}
 }

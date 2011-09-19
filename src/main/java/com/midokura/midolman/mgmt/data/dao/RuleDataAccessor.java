@@ -41,13 +41,14 @@ public class RuleDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public RuleDataAccessor(String zkConn, int timeout) {
-        super(zkConn, timeout);
+    public RuleDataAccessor(String zkConn, int timeout, String rootPath,
+			String mgmtRootPath) {
+		super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private RuleZkManager getRuleZkManager() throws Exception {
         ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new RuleZkManager(conn.getZooKeeper(), "/midolman");
+        return new RuleZkManager(conn.getZooKeeper(), zkRoot);
     }
 
     private static Set<NatTarget> makeNatTargets(String[] natTargets) {

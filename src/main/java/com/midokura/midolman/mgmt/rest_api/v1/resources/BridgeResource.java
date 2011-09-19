@@ -37,35 +37,35 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortR
  */
 @Path("/bridges")
 public class BridgeResource extends RestResource {
-    /*
-     * Implements REST API end points for bridges.
-     */
+	/*
+	 * Implements REST API end points for bridges.
+	 */
 
-    private final static Logger log = LoggerFactory
-            .getLogger(BridgeResource.class);
+	private final static Logger log = LoggerFactory
+			.getLogger(BridgeResource.class);
 
-    /**
-     * Port resource locator for bridges
-     */
-    @Path("/{id}/ports")
-    public BridgePortResource getPortResource(@PathParam("id") UUID id) {
-        return new BridgePortResource(zookeeperConn, id);
-    }
+	/**
+	 * Port resource locator for bridges
+	 */
+	@Path("/{id}/ports")
+	public BridgePortResource getPortResource(@PathParam("id") UUID id) {
+		return new BridgePortResource(zookeeperConn, id);
+	}
 
-    /**
-     * Get the bridge with the given ID.
-     * 
-     * @param id
-     *            Bridge UUID.
-     * @return Bridge object.
-     */
-    @GET
+	/**
+	 * Get the bridge with the given ID.
+	 * 
+	 * @param id
+	 *            Bridge UUID.
+	 * @return Bridge object.
+	 */
+	@GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Bridge get(@PathParam("id") UUID id) {
         // Get a bridge for the given ID.
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                zookeeperTimeout);
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (Exception ex) {
@@ -76,104 +76,104 @@ public class BridgeResource extends RestResource {
         }
     }
 
-    @PUT
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Bridge bridge) {
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            dao.update(id, bridge);
-        } catch (Exception ex) {
-            log.error("Error updating bridge", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-        return Response.ok().build();
-    }
+	@PUT
+	@Path("{id}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response update(@PathParam("id") UUID id, Bridge bridge) {
+		BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.update(id, bridge);
+		} catch (Exception ex) {
+			log.error("Error updating bridge", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+		return Response.ok().build();
+	}
 
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID id) {
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            dao.delete(id);
-        } catch (Exception ex) {
-            log.error("Error deleting bridge", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	@DELETE
+	@Path("{id}")
+	public void delete(@PathParam("id") UUID id) {
+		BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.delete(id);
+		} catch (Exception ex) {
+			log.error("Error deleting bridge", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    /**
-     * Sub-resource class for tenant's virtual switch.
-     */
-    public static class TenantBridgeResource extends RestResource {
+	/**
+	 * Sub-resource class for tenant's virtual switch.
+	 */
+	public static class TenantBridgeResource extends RestResource {
 
-        private UUID tenantId = null;
+		private UUID tenantId = null;
 
-        /**
-         * Constructor.
-         * 
-         * @param zkConn
-         *            ZooKeeper connection string.
-         * @param tenantId
-         *            UUID of a tenant.
-         */
-        public TenantBridgeResource(String zkConn, UUID tenantId) {
-            this.zookeeperConn = zkConn;
-            this.tenantId = tenantId;
-        }
+		/**
+		 * Constructor.
+		 * 
+		 * @param zkConn
+		 *            ZooKeeper connection string.
+		 * @param tenantId
+		 *            UUID of a tenant.
+		 */
+		public TenantBridgeResource(String zkConn, UUID tenantId) {
+			this.zookeeperConn = zkConn;
+			this.tenantId = tenantId;
+		}
 
-        /**
-         * Index of bridges belonging to the tenant.
-         * 
-         * @return A list of bridges.
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Bridge[] list() {
-            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                return dao.list(tenantId);
-            } catch (Exception ex) {
-                log.error("Error getting bridges", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-        }
+		/**
+		 * Index of bridges belonging to the tenant.
+		 * 
+		 * @return A list of bridges.
+		 */
+		@GET
+		@Produces(MediaType.APPLICATION_JSON)
+		public Bridge[] list() {
+			BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				return dao.list(tenantId);
+			} catch (Exception ex) {
+				log.error("Error getting bridges", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+		}
 
-        /**
-         * Handler for create bridge.
-         * 
-         * @param bridge
-         *            Bridge object mapped to the request input.
-         * @returns Response object with 201 status code set if successful.
-         */
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Bridge bridge, @Context UriInfo uriInfo) {
-            bridge.setTenantId(tenantId);
-            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            UUID id = null;
-            try {
-                id = dao.create(bridge);
-            } catch (Exception ex) {
-                log.error("Error creating bridge", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+		/**
+		 * Handler for create bridge.
+		 * 
+		 * @param bridge
+		 *            Bridge object mapped to the request input.
+		 * @returns Response object with 201 status code set if successful.
+		 */
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		public Response create(Bridge bridge, @Context UriInfo uriInfo) {
+			bridge.setTenantId(tenantId);
+			BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			UUID id = null;
+			try {
+				id = dao.create(bridge);
+			} catch (Exception ex) {
+				log.error("Error creating bridge", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
 
-            URI uri = uriInfo.getBaseUriBuilder().path("bridges/" + id).build();
-            return Response.created(uri).build();
-        }
-    }
+			URI uri = uriInfo.getBaseUriBuilder().path("bridges/" + id).build();
+			return Response.created(uri).build();
+		}
+	}
 
 }

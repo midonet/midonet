@@ -35,119 +35,119 @@ import com.midokura.midolman.mgmt.data.dto.Route;
  */
 @Path("/routes")
 public class RouteResource extends RestResource {
-    /*
-     * Implements REST API endpoints for routes.
-     */
+	/*
+	 * Implements REST API endpoints for routes.
+	 */
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RouteResource.class);
+	private final static Logger log = LoggerFactory
+			.getLogger(RouteResource.class);
 
-    /**
-     * Get the route with the given ID.
-     * 
-     * @param id
-     *            Route UUID.
-     * @return Route object.
-     */
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Route get(@PathParam("id") UUID id) {
-        // Get a route for the given ID.
-        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            return dao.get(id);
-        } catch (Exception ex) {
-            log.error("Error getting route", ex);
-            throw new WebApplicationException(Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	/**
+	 * Get the route with the given ID.
+	 * 
+	 * @param id
+	 *            Route UUID.
+	 * @return Route object.
+	 */
+	@GET
+	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Route get(@PathParam("id") UUID id) {
+		// Get a route for the given ID.
+		RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			return dao.get(id);
+		} catch (Exception ex) {
+			log.error("Error getting route", ex);
+			throw new WebApplicationException(Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID id) {
-        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                zookeeperTimeout);
-        try {
-            dao.delete(id);
-        } catch (Exception ex) {
-            log.error("Error deleting route", ex);
-            throw new WebApplicationException(Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
-    }
+	@DELETE
+	@Path("{id}")
+	public void delete(@PathParam("id") UUID id) {
+		RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.delete(id);
+		} catch (Exception ex) {
+			log.error("Error deleting route", ex);
+			throw new WebApplicationException(Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+	}
 
-    /**
-     * Sub-resource class for router's route.
-     */
-    public static class RouterRouteResource extends RestResource {
+	/**
+	 * Sub-resource class for router's route.
+	 */
+	public static class RouterRouteResource extends RestResource {
 
-        private UUID routerId = null;
+		private UUID routerId = null;
 
-        /**
-         * Default constructor.
-         * 
-         * @param zkConn
-         *            Zookeeper connection string.
-         * @param routerId
-         *            UUID of a router.
-         */
-        public RouterRouteResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
-            this.routerId = routerId;
-        }
+		/**
+		 * Default constructor.
+		 * 
+		 * @param zkConn
+		 *            Zookeeper connection string.
+		 * @param routerId
+		 *            UUID of a router.
+		 */
+		public RouterRouteResource(String zkConn, UUID routerId) {
+			this.zookeeperConn = zkConn;
+			this.routerId = routerId;
+		}
 
-        /**
-         * Return a list of routes.
-         * 
-         * @return A list of Route objects.
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Route[] list() {
-            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
-            try {
-                return dao.list(routerId);
-            } catch (Exception ex) {
-                log.error("Error getting routes", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
-        }
+		/**
+		 * Return a list of routes.
+		 * 
+		 * @return A list of Route objects.
+		 */
+		@GET
+		@Produces(MediaType.APPLICATION_JSON)
+		public Route[] list() {
+			RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			try {
+				return dao.list(routerId);
+			} catch (Exception ex) {
+				log.error("Error getting routes", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+		}
 
-        /**
-         * Handler for create route API call.
-         * 
-         * @param port
-         *            Router object mapped to the request input.
-         * @throws Exception
-         * @returns Response object with 201 status code set if successful.
-         */
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Route route, @Context UriInfo uriInfo) {
-            route.setRouterId(routerId);
-            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                    zookeeperTimeout);
+		/**
+		 * Handler for create route API call.
+		 * 
+		 * @param port
+		 *            Router object mapped to the request input.
+		 * @throws Exception
+		 * @returns Response object with 201 status code set if successful.
+		 */
+		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
+		public Response create(Route route, @Context UriInfo uriInfo) {
+			route.setRouterId(routerId);
+			RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 
-            UUID id = null;
-            try {
-                id = dao.create(route);
-            } catch (Exception ex) {
-                log.error("Error creating route", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+			UUID id = null;
+			try {
+				id = dao.create(route);
+			} catch (Exception ex) {
+				log.error("Error creating route", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
 
-            URI uri = uriInfo.getBaseUriBuilder().path("routes/" + id).build();
-            return Response.created(uri).build();
-        }
-    }
+			URI uri = uriInfo.getBaseUriBuilder().path("routes/" + id).build();
+			return Response.created(uri).build();
+		}
+	}
 }

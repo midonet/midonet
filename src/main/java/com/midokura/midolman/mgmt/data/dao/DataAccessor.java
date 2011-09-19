@@ -14,6 +14,8 @@ package com.midokura.midolman.mgmt.data.dao;
 public abstract class DataAccessor {
     protected String zkConn = null;
     protected int zkTimeout = -1;
+    protected String zkRoot = null;
+    protected String zkMgmtRoot = null;
 
     /**
      * Constructor
@@ -21,8 +23,10 @@ public abstract class DataAccessor {
      * @param zkConn
      *            Zookeeper connection string.
      */
-    public DataAccessor(String zkConn, int timeout) {
+    public DataAccessor(String zkConn, int timeout, String zkRoot, String zkMgmtRoot) {
         this.zkConn = zkConn;
         this.zkTimeout = timeout;
+        this.zkRoot = zkRoot;
+        this.zkMgmtRoot = zkMgmtRoot;
     }
 }
