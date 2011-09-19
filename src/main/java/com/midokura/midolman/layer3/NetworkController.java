@@ -1,5 +1,6 @@
 package com.midokura.midolman.layer3;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -37,9 +39,11 @@ import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -50,6 +54,7 @@ import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 
 public class NetworkController extends AbstractController {
@@ -63,6 +68,7 @@ public class NetworkController extends AbstractController {
     private static final short ICMP_EXPIRY_SECONDS = 5;
     public static final short IDLE_TIMEOUT_SECS = 0;
     private static final short FLOW_PRIORITY = 0;
+    private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
     public static final int ICMP_TUNNEL = 0x05;
 
     private PortZkManager portMgr;
@@ -71,6 +77,9 @@ public class NetworkController extends AbstractController {
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
+
+    private PortService service;
+    private Map<UUID, List<Runnable>> portServicesById;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
@@ -88,6 +97,8 @@ public class NetworkController extends AbstractController {
                 ruleMgr, reactor, cache);
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
+
+        this.portServicesById = new HashMap<UUID, List<Runnable>>();
     }
 
     @Override
@@ -833,6 +844,11 @@ public class NetworkController extends AbstractController {
 
         // Create a new one.
         UUID portId = getPortUuidFromOvsdb(datapathId, portNum);
+        if (portId == null) {
+            // Return null if this is a service port.
+            return null;
+        }
+
         try {
             devPort = new L3DevicePort(portMgr, routeMgr, portId, portNum,
                     portDesc.getHardwareAddress(), super.controllerStub);
@@ -845,12 +861,193 @@ public class NetworkController extends AbstractController {
         return devPort;
     }
 
+    public void setServicePortFlows(short localPortNum, short remotePortNum,
+                                    int localAddr, int remoteAddr,
+                                    short localTport, short remoteTport) {
+        // local to remote.
+        MidoMatch match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        match.setNetworkDestination(remoteAddr);
+        match.setTransportDestination(remoteTport);
+        List<OFAction> actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(remotePortNum, (short) 0));
+        // OFPP_NONE is placed since outPort should be ignored. cf. OpenFlow
+        // specification 1.0 p.15.
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        match.setNetworkDestination(remoteAddr);
+        match.setTransportSource(localTport);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(remotePortNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        // remote to local.
+        match = new MidoMatch();
+        match.setInputPort(remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(remoteAddr);
+        match.setNetworkDestination(localAddr);
+        match.setTransportDestination(localTport);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        match = new MidoMatch();
+        match.setInputPort(remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(remoteAddr);
+        match.setNetworkDestination(localAddr);
+        match.setTransportSource(remoteTport);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        // ARP flows.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(ARP.ETHERTYPE);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(remotePortNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        match = new MidoMatch();
+        match.setInputPort(remotePortNum);
+        match.setDataLayerType(ARP.ETHERTYPE);
+        // Output to both service port and controller port. Output to
+        // OFPP_CONTROLLER requires to set non-zero value to max_len, and we
+        // are setting the standard max_len (128 bytes) in OpenFlow.
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        actions.add(new OFActionOutput(ControllerStub.CONTROLLER_PORT,
+                                       (short) 128));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        // ICMP flows.
+        // Only valid for the service port with specified address.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(remotePortNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+
+        match = new MidoMatch();
+        match.setInputPort(remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setNetworkDestination(localAddr);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                                      OFP_FLOW_PERMANENT,
+                                      SERVICE_FLOW_PRIORITY,
+                                      ControllerStub.UNBUFFERED_ID,
+                                      false, false, false, actions);
+    }
+
+    private void startPortService(final short portNum, final UUID portId)
+        throws KeeperException, InterruptedException,
+        ZkStateSerializationException, IOException {
+        // If the materiazlied router port isn't discovered yet, try
+        // setting flows between BGP peers later.
+        if (devPortById.containsKey(portId)) {
+            service.start(portNum, devPortById.get(portId));
+        } else {
+            if (!portServicesById.containsKey(portId)) {
+                portServicesById.put(portId, new ArrayList<Runnable>());
+            }
+            List<Runnable> watchers = portServicesById.get(portId);
+            watchers.add(new Runnable() {
+                public void run() {
+                    try {
+                        service.start(portNum, devPortById.get(portId));
+                        //startPortService(portNum, portId);
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
+    private void setupServicePort(OFPhysicalPort portDesc) throws
+        KeeperException, InterruptedException,
+        ZkStateSerializationException, IOException {
+        short portNum = portDesc.getPortNumber();
+        String portName = portDesc.getName();
+        UUID portId = service.getRemotePort(datapathId, portNum, portName);
+
+        service.configurePort(datapathId, portId, portName);
+        startPortService(portNum, portId);
+   }
+
+    private void addServicePort(L3DevicePort port) throws KeeperException,
+        InterruptedException, ZkStateSerializationException, IOException {
+        Set<String> servicePorts = service.getPorts(port);
+        if (!servicePorts.isEmpty()) {
+            UUID portId = port.getId();
+            if (portServicesById.containsKey(portId)) {
+                for (Runnable watcher : portServicesById.get(portId)) {
+                    watcher.run();
+                }
+                return;
+            }
+        }
+        service.addPort(datapathId, port);
+    }
+
     @Override
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
         if (!super.isTunnelPortNum(portDesc.getPortNumber())) {
             L3DevicePort devPort = devPortOfPortDesc(portDesc);
             try {
-                network.addPort(devPort);
+                if (devPort != null) {
+                    network.addPort(devPort);
+                    addServicePort(devPort);
+                } else if (portNum != ControllerStub.CONTROLLER_PORT) {
+                    // Service port is up.
+                    setupServicePort(portDesc);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
