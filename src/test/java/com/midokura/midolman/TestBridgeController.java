@@ -212,17 +212,18 @@ public class TestBridgeController {
         
         Reactor reactor = new SelectLoop(Executors.newScheduledThreadPool(1));
         
-        // Create controllerManager.
-        ControllerTrampoline controllerManager = new ControllerTrampoline(
-                hierarchicalConfiguration, ovsdb, zkDir, reactor);
+        // At this point in the python, we would create the controllerManager.
+        // But we're not using a controllerManager in the Java tests.
+        // ControllerTrampoline controllerManager = new ControllerTrampoline(
+        //         hierarchicalConfiguration, ovsdb, zkDir, reactor);
 
         MockControllerStub controllerStub = new MockControllerStub();
-        //      TODO: Create packets, flows.
 
         UUID bridgeUUID = UUID.randomUUID();
 
-        // TODO: Manager.add_bridge()
-        // TODO: Manager.add_bridge_port() for each port.
+        // The Python had at this point Manager.add_bridge() and
+        // Manager.add_bridge_port() for each port, but we're not using
+        // the controllerManager.
 
         controller = new BridgeController(
                 /* datapathId */                dp_id, 
@@ -240,6 +241,7 @@ public class TestBridgeController {
         controller.setControllerStub(controllerStub);
 
         portLocMap.start();
+        macPortMap.start();
 
         // TODO: Insert ports 3..8 into portLocMap, macPortMap.
         // TODO: Call controller.addPort on all ports.
