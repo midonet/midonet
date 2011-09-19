@@ -170,9 +170,9 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
      */
     @Test def testGetPortExternalId() = {
         assertEquals(ovsdb.getPortExternalId(bridgeName, bridgeOfPortNum,
-                                             bridgeExtIdKey), "")
+                                             bridgeExtIdKey), null)
         assertEquals(ovsdb.getPortExternalId(bridgeId, bridgeOfPortNum,
-                                             bridgeExtIdKey), "")
+                                             bridgeExtIdKey), null)
 
         val portExtIdKey = bridgeExtIdKey
         val portExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
