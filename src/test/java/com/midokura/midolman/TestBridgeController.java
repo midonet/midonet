@@ -19,6 +19,9 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
@@ -37,6 +40,38 @@ public class TestBridgeController {
     private InetAddress publicIp;
     int dp_id = 43;
 
+    // MACs:  8 normal addresses, and one multicast.
+    // TODO: Make this less ugly.
+    byte macList[][] = 
+      {{(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x00},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x01},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x02},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x03},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x04},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x05},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x06},
+       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x07},
+       {(byte)0x01, (byte)0xEE, (byte)0xEE, (byte)0xEE, (byte)0xEE, (byte)0xEE}
+      };
+
+    // Packets
+    Ethernet packet01 = makePacket(macList[0], macList[1]);
+    Ethernet packet03 = makePacket(macList[0], macList[3]);
+    Ethernet packet04 = makePacket(macList[0], macList[4]);
+    Ethernet packet0MC = makePacket(macList[0], macList[8]);
+    Ethernet packet10 = makePacket(macList[1], macList[0]);
+    Ethernet packet13 = makePacket(macList[1], macList[3]);
+    Ethernet packet15 = makePacket(macList[1], macList[5]);
+    Ethernet packet20 = makePacket(macList[2], macList[0]);
+    Ethernet packet26 = makePacket(macList[2], macList[6]);
+    Ethernet packet27 = makePacket(macList[2], macList[7]);
+    Ethernet packet70 = makePacket(macList[7], macList[0]);
+    Ethernet packetMC0 = makePacket(macList[8], macList[0]);
+
+    // Flowmods
+    //XXX
+
+
     OFPhysicalPort[] phyPorts = {
         new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
         new OFPhysicalPort(), new OFPhysicalPort(), new OFPhysicalPort(),
@@ -50,17 +85,22 @@ public class TestBridgeController {
                              "192.168.1.55",
                              "192.168.1.55",
                              "192.168.1.55" };
-    // TODO: Make this less ugly.
-    byte macList[][] = 
-      {{(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x00},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x01},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x02},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x03},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x04},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x05},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x06},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x07}
-      };
+
+    static Ethernet makePacket(byte[] srcMac, byte[] dstMac) {
+	ICMP icmpPacket = new ICMP();
+	icmpPacket.setEchoReply((short)0, (short)0, "echoechoecho".getBytes());
+	IPv4 ipPacket = new IPv4();
+	ipPacket.setPayload(icmpPacket);
+	ipPacket.setProtocol(ICMP.PROTOCOL_NUMBER);
+	ipPacket.setSourceAddress(0x11111111);
+	ipPacket.setDestinationAddress(0x21212121);
+	Ethernet packet = new Ethernet();
+	packet.setPayload(ipPacket);
+	packet.setDestinationMACAddress(dstMac);
+	packet.setSourceMACAddress(srcMac);
+	packet.setEtherType(IPv4.ETHERTYPE);
+	return packet;
+    }
 
     @Before
     public void setUp() throws java.lang.Exception {
