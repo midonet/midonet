@@ -56,9 +56,9 @@ public class BridgeController extends AbstractController {
              * applied, and we return immediately. */
             if (port_is_local(new_uuid))
                 return;
-            log.debug("BridgeControllerWatcher.processChange: mac " +
-                      macAsAscii(key) + " changed from port " +
-                      old_uuid.toString() + " to port " + new_uuid.toString());
+            log.debug("BridgeControllerWatcher.processChange: mac {} changed "
+                      + "from port {} to port {}", new Object[] {
+                      macAsAscii(key), old_uuid, new_uuid});
 
             /* If the MAC's old port was local, we need to invalidate its
              * flows. */

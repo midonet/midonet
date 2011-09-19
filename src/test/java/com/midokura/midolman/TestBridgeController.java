@@ -13,6 +13,8 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.eventloop.Reactor;
@@ -144,17 +146,6 @@ public class TestBridgeController {
                              UUID.randomUUID(), UUID.randomUUID() };
         portUuids[7] = portUuids[6];
 
-        // Populate ports
-        for (int i = 0; i < 8; i++) {
-            phyPorts[i].setPortNumber((short)i);
-            phyPorts[i].setHardwareAddress(macList[i]);
-            // First three ports are local.  The rest are tunneled.
-            phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
-                                      : controller.makeGREPortName(
-                                            Net.convertStringAddressToInt(
-                                                    peerStrList[i])));
-        }
-
         // Register local ports (ports 0, 1, 2) into datapath in ovsdb.
         ovsdb.setPortExternalId(dp_id, 0, "midonet", portUuids[0].toString());
         ovsdb.setPortExternalId(dp_id, 1, "midonet", portUuids[1].toString());
@@ -190,23 +181,23 @@ public class TestBridgeController {
         MockDirectory zkDir = new MockDirectory();
         String midoDirName = zkDir.add(
             midoConfig.getString("midolman_root_key", "/zk_root"), null,
-            CreateMode.PERSISTENT_SEQUENTIAL);
+            CreateMode.PERSISTENT);
         Directory midoDir = zkDir.getSubDirectory(midoDirName);
         midoDir.add(midoConfig.getString("bridges_subdirectory", "/bridges"),
-                    null, CreateMode.PERSISTENT_SEQUENTIAL);
+                    null, CreateMode.PERSISTENT);
         midoDir.add(midoConfig.getString("mac_port_subdirectory", "/mac_port"),
-                    null, CreateMode.PERSISTENT_SEQUENTIAL);
+                    null, CreateMode.PERSISTENT);
         midoDir.add(midoConfig.getString("port_locations_subdirectory",
                                          "/port_locs"),
-                    null, CreateMode.PERSISTENT_SEQUENTIAL);
+                    null, CreateMode.PERSISTENT);
         midoDir.add(midoConfig.getString("ports_subdirectory", "/ports"), null,
-                    CreateMode.PERSISTENT_SEQUENTIAL);
+                    CreateMode.PERSISTENT);
 
-        portLocDir = zkDir.getSubDirectory(
+        portLocDir = midoDir.getSubDirectory(
                 midoConfig.getString("port_locations_subdirectory",
                                      "/port_locs"));
         portLocMap = new PortToIntNwAddrMap(portLocDir);
-        macPortDir = zkDir.getSubDirectory(
+        macPortDir = midoDir.getSubDirectory(
                 midoConfig.getString("mac_port_subdirectory", "/mac_port"));
         macPortMap = new MacPortMap(macPortDir);
         
@@ -250,9 +241,28 @@ public class TestBridgeController {
             macPortMap.put(macList[i], portUuids[i]);
         }
 
-        // Call controller.addPort on all ports.
+        // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
+            phyPorts[i].setPortNumber((short)i);
+            phyPorts[i].setHardwareAddress(macList[i]);
+            // First three ports are local.  The rest are tunneled.
+            phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
+                                      : controller.makeGREPortName(
+                                            Net.convertStringAddressToInt(
+                                                    peerStrList[i])));
             controller.addPort(phyPorts[i], (short)i);
         }
+    }
+
+    @Test
+    public void testPacketInWithNovelMac() {
+        MidoMatch expectedMatch = flowmatch01.clone();
+        short inputPort = 0;
+        expectedMatch.setInputPort(inputPort);
+        // TODO: Check actions.
+        // TODO: Clear out flowmod list.
+        controller.onPacketIn(14, 13, inputPort, packet01.serialize());
+        // TODO: Check installed flow.
+        // TODO: Check sent packet.
     }
 }
