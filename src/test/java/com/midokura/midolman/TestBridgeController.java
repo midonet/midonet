@@ -243,7 +243,12 @@ public class TestBridgeController {
         portLocMap.start();
         macPortMap.start();
 
-        // TODO: Insert ports 3..8 into portLocMap, macPortMap.
+        // Insert ports 3..8 into portLocMap and macPortMap.
+        for (int i = 3; i < 8; i++) {
+            portLocMap.put(portUuids[i], 
+                           Net.convertStringAddressToInt(peerStrList[i]));
+            macPortMap.put(macList[i], portUuids[i]);
+        }
         // TODO: Call controller.addPort on all ports.
     }
 }
