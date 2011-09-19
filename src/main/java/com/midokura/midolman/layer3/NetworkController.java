@@ -40,16 +40,17 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.ShortUUID;
 
 public class NetworkController extends AbstractController {
 
@@ -64,22 +65,27 @@ public class NetworkController extends AbstractController {
     private static final short FLOW_PRIORITY = 0;
     public static final int ICMP_TUNNEL = 0x05;
 
-    private PortDirectory portDir;
+    private PortZkManager portMgr;
+    private RouteZkManager routeMgr;
+    private RouterZkManager routerMgr;
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
-            InetAddress localNwAddr, ChainZkManager chainMgr, RuleZkManager ruleMgr,
-            RouterDirectory routerDir, PortDirectory portDir,
+            InetAddress localNwAddr, PortZkManager portMgr,
+            RouterZkManager routerMgr, RouteZkManager routeMgr,
+            ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
             String externalIdKey) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
-              idleFlowExpireMillis, localNwAddr, externalIdKey);
+                idleFlowExpireMillis, localNwAddr, externalIdKey);
         // TODO Auto-generated constructor stub
-        this.portDir = portDir;
-        this.network = new Network(deviceId, chainMgr, ruleMgr, routerDir, portDir, reactor, cache);
+        this.portMgr = portMgr;
+        this.routeMgr = routeMgr;
+        this.network = new Network(deviceId, portMgr, routerMgr, chainMgr,
+                ruleMgr, reactor, cache);
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
     }
@@ -183,15 +189,15 @@ public class NetworkController extends AbstractController {
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
                 try {
-                    network.getMacForIp(fwdInfo.outPortId, fwdInfo.gatewayNwAddr,
-                            cb);
+                    network.getMacForIp(fwdInfo.outPortId,
+                            fwdInfo.gatewayNwAddr, cb);
                 } catch (ZkStateSerializationException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             } else { // devPortOut is null; the egress port is remote.
-                Integer tunPortNum = 
-                            super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
+                Integer tunPortNum = super
+                        .portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
                     log.warn("Could not find location or tunnel port number "
                             + "for Id " + fwdInfo.outPortId.toString());
@@ -204,8 +210,8 @@ public class NetworkController extends AbstractController {
                 }
                 byte[] dlSrc = new byte[6];
                 byte[] dlDst = new byte[6];
-                setDlHeadersForTunnel(dlSrc, dlDst, PortDirectory
-                        .UUID32toInt(fwdInfo.inPortId), PortDirectory
+                setDlHeadersForTunnel(dlSrc, dlDst, ShortUUID
+                        .UUID32toInt(fwdInfo.inPortId), ShortUUID
                         .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
                 fwdInfo.matchOut.setDataLayerSource(dlSrc);
                 fwdInfo.matchOut.setDataLayerDestination(dlDst);
@@ -336,7 +342,7 @@ public class NetworkController extends AbstractController {
         int port32BitId = 0;
         for (int i = 0; i < 4; i++)
             port32BitId |= (src[i] & 0xff) << ((3 - i) * 8);
-        result.lastIngressPortId = PortDirectory.intTo32BitUUID(port32BitId);
+        result.lastIngressPortId = ShortUUID.intTo32BitUUID(port32BitId);
         result.gatewayNwAddr = (src[4] & 0xff) << 24;
         result.gatewayNwAddr |= (src[5] & 0xff) << 16;
         result.gatewayNwAddr |= (dst[0] & 0xff) << 8;
@@ -344,7 +350,7 @@ public class NetworkController extends AbstractController {
         port32BitId = 0;
         for (int i = 2; i < 6; i++)
             port32BitId |= (dst[i] & 0xff) << (5 - i) * 8;
-        result.lastEgressPortId = PortDirectory.intTo32BitUUID(port32BitId);
+        result.lastEgressPortId = ShortUUID.intTo32BitUUID(port32BitId);
         return result;
     }
 
@@ -392,7 +398,7 @@ public class NetworkController extends AbstractController {
                 }
                 // If this is an ICMP error message from a peer controller,
                 // don't install a flow match, just send the packet
-                if (PortDirectory.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL)
+                if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL)
                     NetworkController.super.controllerStub.sendPacketOut(
                             bufferId, inPort, ofActions, data);
                 else
@@ -524,7 +530,7 @@ public class NetworkController extends AbstractController {
         icmp.setUnreachable(unreachCode, ipPktAtEgress);
         // The icmp packet will be emitted from the lastIngress port.
         IPv4 ip = new IPv4();
-        RouterPortConfig portConfig;
+        PortDirectory.RouterPortConfig portConfig;
         try {
             portConfig = network.getPortConfig(lastIngress);
         } catch (Exception e) {
@@ -547,7 +553,7 @@ public class NetworkController extends AbstractController {
         ForwardInfo fwdInfo = new ForwardInfo();
         fwdInfo.matchIn = match;
         fwdInfo.pktIn = eth;
-        if (portConfig instanceof MaterializedRouterPortConfig) {
+        if (portConfig instanceof PortDirectory.MaterializedRouterPortConfig) {
             // The lastIngress port is materialized. Invoke the routing logic of
             // its router in order to find the network address of the next hop
             // gateway for the packet. Hopefully, the routing logic will agree
@@ -612,7 +618,7 @@ public class NetworkController extends AbstractController {
         // a special value so the other end of the tunnel can recognize this
         // as a tunneled ICMP.
         setDlHeadersForTunnel(eth.getSourceMACAddress(), eth
-                .getDestinationMACAddress(), ICMP_TUNNEL, PortDirectory
+                .getDestinationMACAddress(), ICMP_TUNNEL, ShortUUID
                 .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
         Integer tunNum = super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
         if (null == tunNum) {
@@ -660,7 +666,7 @@ public class NetworkController extends AbstractController {
         // The following ip packet to route the ICMP to its destination.
         IPv4 ip = new IPv4();
         // The packet's network address is that of the last ingress port.
-        RouterPortConfig portConfig;
+        PortDirectory.RouterPortConfig portConfig;
         try {
             portConfig = network.getPortConfig(lastIngress);
         } catch (Exception e) {
@@ -742,7 +748,7 @@ public class NetworkController extends AbstractController {
         // Ignore packets sent to the local-subnet IP broadcast address of the
         // intended egress port.
         if (null != egressPortId) {
-            RouterPortConfig portConfig;
+            PortDirectory.RouterPortConfig portConfig;
             try {
                 portConfig = network.getPortConfig(egressPortId);
             } catch (Exception e) {
@@ -826,8 +832,8 @@ public class NetworkController extends AbstractController {
         // Create a new one.
         UUID portId = getPortUuidFromOvsdb(datapathId, portNum);
         try {
-            devPort = new L3DevicePort(portDir, portId, portNum, portDesc
-                    .getHardwareAddress(), super.controllerStub);
+            devPort = new L3DevicePort(portMgr, routeMgr, portId, portNum,
+                    portDesc.getHardwareAddress(), super.controllerStub);
         } catch (Exception e) {
             e.printStackTrace();
         }

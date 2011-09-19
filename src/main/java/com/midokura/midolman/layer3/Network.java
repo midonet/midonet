@@ -23,11 +23,10 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
-import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
@@ -41,8 +40,8 @@ public class Network {
     protected UUID netId;
     private ChainZkManager chainZkMgr;
     private RuleZkManager ruleZkMgr;
-    private RouterDirectory routerDir;
-    private PortDirectory portDir;
+    private PortZkManager portMgr;
+    private RouterZkManager routerMgr;
     private Reactor reactor;
     private Cache cache;
     private Map<UUID, Router> routers;
@@ -52,16 +51,16 @@ public class Network {
     // This watches all routing and table changes and then notifies the others.
     private Callback<UUID> routerWatcher;
     // TODO(pino): use Guava's CacheBuilder here.
-    private Map<UUID, RouterPortConfig> portIdToConfig;
+    private Map<UUID, PortDirectory.RouterPortConfig> portIdToConfig;
 
-    public Network(UUID netId, ChainZkManager chainMgr, RuleZkManager ruleMgr,
-            RouterDirectory routerDir, PortDirectory portDir, Reactor reactor,
-            Cache cache) {
+    public Network(UUID netId, PortZkManager portMgr,
+            RouterZkManager routerMgr, ChainZkManager chainMgr,
+            RuleZkManager ruleMgr, Reactor reactor, Cache cache) {
         this.netId = netId;
+        this.portMgr = portMgr;
+        this.routerMgr = routerMgr;
         this.chainZkMgr = chainMgr;
         this.ruleZkMgr = ruleMgr;
-        this.routerDir = routerDir;
-        this.portDir = portDir;
         this.reactor = reactor;
         this.cache = cache;
         this.routers = new HashMap<UUID, Router>();
@@ -73,7 +72,7 @@ public class Network {
             }
         };
         // TODO(pino): use Guava's CacheBuilder here.
-        portIdToConfig = new HashMap<UUID, RouterPortConfig>();
+        portIdToConfig = new HashMap<UUID, PortDirectory.RouterPortConfig>();
     }
 
     // This maintains consistency of the cached port configs w.r.t ZK.
@@ -90,16 +89,7 @@ public class Network {
             if (portIdToConfig.containsKey(portId)) {
                 try {
                     refreshPortConfig(portId, this);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (KeeperException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -107,23 +97,25 @@ public class Network {
         }
     };
 
-    public RouterPortConfig getPortConfig(UUID portId) throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException {
-        RouterPortConfig rcfg = portIdToConfig.get(portId);
+    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws IOException,
+            ClassNotFoundException, KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        PortDirectory.RouterPortConfig rcfg = portIdToConfig.get(portId);
         if (null == rcfg)
             rcfg = refreshPortConfig(portId, null);
         return rcfg;
     }
 
-    private RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
+    private PortDirectory.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
             throws IOException, ClassNotFoundException, KeeperException,
-            InterruptedException {
+            InterruptedException, ZkStateSerializationException {
         if (null == watcher)
             watcher = new PortWatcher(portId);
-        PortConfig cfg = portDir.getPortConfigNoRoutes(portId, watcher);
-        if (!(cfg instanceof RouterPortConfig))
+        ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId, watcher);
+        PortDirectory.PortConfig cfg = entry.value;
+        if (!(cfg instanceof PortDirectory.RouterPortConfig))
             return null;
-        RouterPortConfig rcfg = RouterPortConfig.class.cast(cfg);
+        PortDirectory.RouterPortConfig rcfg = PortDirectory.RouterPortConfig.class.cast(cfg);
         portIdToConfig.put(portId, rcfg);
         return rcfg;
     }
@@ -150,12 +142,12 @@ public class Network {
             return rtr;
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new CacheWithPrefix(this.cache, routerId.toString());
-        NatMapping natMap = new NatLeaseManager(routerDir, routerId, cache);
+        NatMapping natMap = new NatLeaseManager(routerMgr, routerId, cache);
         RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, routerId,
                 natMap);
         ruleEngine.addWatcher(routerWatcher);
         ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
-                routerDir.getRoutingTableDirectory(routerId),
+                routerMgr.getRoutingTableDirectory(routerId),
                 CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
         rtr = new Router(routerId, ruleEngine, table, reactor);
@@ -169,7 +161,7 @@ public class Network {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
-        RouterPortConfig cfg = getPortConfig(portId);
+        PortDirectory.RouterPortConfig cfg = getPortConfig(portId);
         // TODO(pino): throw an exception if the config isn't found.
         rtr = getRouter(cfg.device_id);
         routersByPortId.put(cfg.device_id, rtr);
@@ -222,7 +214,7 @@ public class Network {
             rtr.process(fwdInfo);
             if (fwdInfo.action.equals(Action.FORWARD)) {
                 // Get the port's configuration to see if it's logical.
-                RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
+                PortDirectory.RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
                 if (null == cfg) {
                     // Either the config wasn't found or it's not a router port.
                     log.error("Packet forwarded to a portId that either "
@@ -231,8 +223,8 @@ public class Network {
                     fwdInfo.action = Action.BLACKHOLE;
                     return;
                 }
-                if (cfg instanceof LogicalRouterPortConfig) {
-                    LogicalRouterPortConfig lcfg = LogicalRouterPortConfig.class
+                if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
+                    PortDirectory.LogicalRouterPortConfig lcfg = PortDirectory.LogicalRouterPortConfig.class
                             .cast(cfg);
                     rtr = getRouterByPort(lcfg.peer_uuid);
                     if (traversedRouters.contains(rtr)) {

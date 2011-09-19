@@ -17,30 +17,37 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 public class L3DevicePort {
 
     public interface Listener {
-        void configChanged(UUID portId, MaterializedRouterPortConfig old,
-                MaterializedRouterPortConfig current);
+        void configChanged(UUID portId, PortDirectory.MaterializedRouterPortConfig old,
+                PortDirectory.MaterializedRouterPortConfig current);
 
         void routesChanged(UUID portId, Collection<Route> removed,
                 Collection<Route> added);
     }
 
-    private PortDirectory portDir;
+    private PortZkManager portMgr;
+    private RouteZkManager routeMgr;
     private short portNum;
     private UUID portId;
     private byte[] mac;
     private ControllerStub stub;
     private PortWatcher portWatcher;
     private RoutesWatcher routesWatcher;
-    private MaterializedRouterPortConfig portCfg;
+    private PortDirectory.MaterializedRouterPortConfig portCfg;
     private Set<Listener> listeners;
 
-    public L3DevicePort(PortDirectory portDir, UUID portId, short portNum,
-            byte[] mac, ControllerStub stub) throws Exception {
-        this.portDir = portDir;
+    public L3DevicePort(PortZkManager portMgr, RouteZkManager routeMgr,
+            UUID portId, short portNum, byte[] mac, ControllerStub stub)
+            throws Exception {
+        this.portMgr = portMgr;
+        this.routeMgr = routeMgr;
         this.portId = portId;
         this.portNum = portNum;
         this.mac = mac;
@@ -76,12 +83,13 @@ public class L3DevicePort {
     }
 
     private void updatePortConfig() throws Exception {
-        PortConfig cfg = portDir.getPortConfigNoRoutes(portId, portWatcher);
-        if (!(cfg instanceof MaterializedRouterPortConfig))
+        ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId, portWatcher);
+        PortDirectory.PortConfig cfg = entry.value;
+        if (!(cfg instanceof PortDirectory.MaterializedRouterPortConfig))
             throw new Exception("L3DevicePort's virtual configuration isn't "
                     + "a MaterializedRouterPortConfig.");
-        MaterializedRouterPortConfig oldCfg = portCfg;
-        portCfg = MaterializedRouterPortConfig.class.cast(cfg);
+        PortDirectory.MaterializedRouterPortConfig oldCfg = portCfg;
+        portCfg = PortDirectory.MaterializedRouterPortConfig.class.cast(cfg);
         // Keep the old routes.
         if (null != oldCfg)
             portCfg.setRoutes(oldCfg.getRoutes());
@@ -94,27 +102,26 @@ public class L3DevicePort {
         public void run() {
             try {
                 updateRoutes();
-            } catch (KeeperException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
 
-    private void updateRoutes() throws KeeperException, InterruptedException {
-        Set<Route> routes = portDir.getRoutes(portId, routesWatcher);
+    private void updateRoutes() throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, Route>> entries = routeMgr.listPortRoutes(portId, routesWatcher);
+        Set<Route> routes = new HashSet<Route>();
+        for (ZkNodeEntry<UUID, Route> entry : entries)
+            routes.add(entry.value);
         if (routes.equals(portCfg.getRoutes()))
             return;
         Set<Route> oldRoutes = portCfg.getRoutes();
-        if (oldRoutes == null)  oldRoutes = new HashSet<Route>();
-        portCfg.setRoutes(routes);
-        routes = new HashSet<Route>(portCfg.getRoutes());
-        if (routes != null)
-            routes.removeAll(oldRoutes);
-        if (oldRoutes != null)
+        if (oldRoutes == null)
+            oldRoutes = new HashSet<Route>();
+        portCfg.setRoutes(new HashSet<Route>(routes));
+        routes.removeAll(oldRoutes);
         oldRoutes.removeAll(portCfg.getRoutes());
         for (Listener listener : listeners)
             // TODO(pino): should we schedule this instead?
@@ -136,11 +143,11 @@ public class L3DevicePort {
     public void send(byte[] pktData) {
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(portNum, (short) 0));
-        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID, 
+        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
                 ControllerStub.CONTROLLER_PORT, actions, pktData);
     }
 
-    public MaterializedRouterPortConfig getVirtualConfig() {
+    public PortDirectory.MaterializedRouterPortConfig getVirtualConfig() {
         return portCfg;
     }
 

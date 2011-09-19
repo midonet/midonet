@@ -3,19 +3,17 @@ package com.midokura.midolman.layer4;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.rules.NatTarget;
-import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.util.Cache;
 
 public class NatLeaseManager implements NatMapping {
@@ -33,13 +31,13 @@ public class NatLeaseManager implements NatMapping {
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
     Map<Integer, NavigableSet<Short>> ipToFreePortsMap;
-    private RouterDirectory routerDir;
+    private RouterZkManager routerMgr;
     private UUID routerId;
     private Cache cache;
     private Random rand;
 
-    public NatLeaseManager(RouterDirectory routerDir, UUID routerId, Cache cache) {
-        this.routerDir = routerDir;
+    public NatLeaseManager(RouterZkManager routerMgr, UUID routerId, Cache cache) {
+        this.routerMgr = routerMgr;
         this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Short>>();
         this.routerId = routerId;
         this.cache = cache;
@@ -145,7 +143,7 @@ public class NatLeaseManager implements NatMapping {
             for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
                 NavigableSet<Short> reservedBlocks;
                 try {
-                    reservedBlocks = routerDir.getSnatBlocks(routerId, ip);
+                    reservedBlocks = routerMgr.getSnatBlocks(routerId, ip);
                 } catch (Exception e) {
                     return null;
                 }
@@ -181,7 +179,7 @@ public class NatLeaseManager implements NatMapping {
                     // No free blocks for this ip. Try the next ip.
                     break;
                 try {
-                    routerDir.addSnatReservation(routerId, ip, block);
+                    routerMgr.addSnatReservation(routerId, ip, block);
                 } catch (Exception e) {
                     numExceptions++;
                     if (numExceptions > 1)
@@ -207,7 +205,6 @@ public class NatLeaseManager implements NatMapping {
                 short freePort = block;
                 if (freePort < tg.tpStart)
                     freePort = tg.tpStart;
-                String reverseKey;
                 while (true) {
                     freePorts.remove(freePort);
                     if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,

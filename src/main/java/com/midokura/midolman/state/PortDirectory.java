@@ -26,37 +26,9 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.util.Net;
 
 public class PortDirectory {
-    public static Random random = new Random();
-    private static ObjectMapper objectMapper = new ObjectMapper();
-    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
-
-    static {
-        objectMapper.setVisibilityChecker(
-            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
-        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-    }
-
-    public static UUID generate32BitUUID() {
-        // TODO: make this non-static and use ZK to generate sequence numbers.
-        int r = random.nextInt();
-        return new UUID(0, (long) r);
-    }
-
-    public static int UUID32toInt(UUID id) {
-        long lBits = id.getLeastSignificantBits();
-        if (0 != id.getMostSignificantBits() || lBits < Integer.MIN_VALUE
-                || lBits > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException(
-                    "uuid cannot be converted to int without losing information.");
-        }
-        return (int) lBits;
-    }
-
-    public static UUID intTo32BitUUID(int id) {
-        return new UUID(0, (long) id);
-    }
 
     public static abstract class PortConfig {
+
         private PortConfig(UUID device_id) {
             this(device_id, null);
         }
@@ -67,7 +39,7 @@ public class PortDirectory {
             this.vifId = vifId;
         }
         // Default constructor for the Jackson deserialization.
-        private PortConfig() { super(); }
+        PortConfig() { super(); }
         public UUID device_id;
         public UUID vifId;
     }
@@ -78,7 +50,7 @@ public class PortDirectory {
         }
         // Default constructor for the Jackson deserialization.
         private BridgePortConfig() { super(); }
-
+    
         @Override
         public boolean equals(Object other) {
             if (other == null)
@@ -98,20 +70,19 @@ public class PortDirectory {
         public transient int portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.        
         public transient Set<Route> routes;
-
+    
         public RouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes) {
             super(device_id);
             this.nwAddr = networkAddr;
             this.nwLength = networkLength;
             this.portAddr = portAddr;
-            this.routes = new HashSet<Route>(routes);
-            setRoutes(routes);
+            this.routes = routes;
         }
-
+    
         // Default constructor for the Jackson deserialization.
         public RouterPortConfig() { super(); }
-
+    
         // Setter and getter for the transient property.
         public String getPortAddr() {
             return Net.convertIntAddressToString(this.portAddr);
@@ -133,10 +104,10 @@ public class PortDirectory {
             super(device_id, networkAddr, networkLength, portAddr, routes);
             this.peer_uuid = peer_uuid;
         }
-
+    
         // Default constructor for the Jackson deserialization.
         public LogicalRouterPortConfig() { super(); }
-
+    
         @Override
         public boolean equals(Object other) {
             if (other == null)
@@ -167,14 +138,14 @@ public class PortDirectory {
             this.localNwLength = localNetworkLength;
             setBgps(bgps);
         }
-
+    
         // Default constructor for the Jackson deserialization
         public MaterializedRouterPortConfig() { super(); }
-
+    
         // Getter and setter for the Jackson deserialization
         public Set<BGP> getBgps() { return bgps; }
         public void setBgps(Set<BGP> bgps) { this.bgps = bgps; }
-
+    
         @Override
         public boolean equals(Object other) {
             if (other == null)
@@ -194,13 +165,23 @@ public class PortDirectory {
         }
     }
 
+    public static Random random = new Random();
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
+    static {
+        objectMapper.setVisibilityChecker(
+            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    }
+
     Directory dir;
 
     public PortDirectory(Directory dir) {
         this.dir = dir;
     }
 
-    public static byte[] portToBytes(PortConfig port) throws IOException {
+    public static byte[] portToBytes(PortDirectory.PortConfig port) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =
@@ -210,18 +191,18 @@ public class PortDirectory {
     }
 
     
-    public void addPort(UUID portId, PortConfig port) throws IOException,
+    public void addPort(UUID portId, PortDirectory.PortConfig port) throws IOException,
             KeeperException, InterruptedException {
-        if (!(port instanceof BridgePortConfig
-                || port instanceof LogicalRouterPortConfig || port instanceof MaterializedRouterPortConfig))
+        if (!(port instanceof PortDirectory.BridgePortConfig
+                || port instanceof PortDirectory.LogicalRouterPortConfig || port instanceof PortDirectory.MaterializedRouterPortConfig))
             throw new IllegalArgumentException("Unrecognized port type.");
         byte[] data = portToBytes(port);
         dir.add("/" + portId.toString(), data, CreateMode.PERSISTENT);
-        if (port instanceof RouterPortConfig) {
+        if (port instanceof PortDirectory.RouterPortConfig) {
             String path = new StringBuilder("/").append(portId.toString())
                     .append("/routes").toString();
             dir.add(path, null, CreateMode.PERSISTENT);
-            for (Route rt : ((RouterPortConfig) port).routes) {
+            for (Route rt : ((PortDirectory.RouterPortConfig) port).routes) {
                 dir.add(path + "/" + rt.toString(), null, CreateMode.PERSISTENT);
             }            
         }
@@ -234,8 +215,8 @@ public class PortDirectory {
 
     public void addRoutes(UUID portId, Set<Route> routes) throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {
-        PortConfig port = getPortConfigNoRoutes(portId, null);
-        if (!(port instanceof RouterPortConfig))
+        PortDirectory.PortConfig port = getPortConfigNoRoutes(portId, null);
+        if (!(port instanceof PortDirectory.RouterPortConfig))
             throw new IllegalArgumentException(
                     "Routes may only be added to a Router port");
         String routesPath = new StringBuilder("/").append(portId.toString())
@@ -248,8 +229,8 @@ public class PortDirectory {
     public void removeRoutes(UUID portId, Set<Route> routes)
             throws IOException, ClassNotFoundException, KeeperException,
             InterruptedException {
-        PortConfig port = getPortConfigNoRoutes(portId, null);
-        if (!(port instanceof RouterPortConfig))
+        PortDirectory.PortConfig port = getPortConfigNoRoutes(portId, null);
+        if (!(port instanceof PortDirectory.RouterPortConfig))
             throw new IllegalArgumentException(
                     "Routes may only be removed from a Router port");
         String routesPath = new StringBuilder("/").append(portId.toString())
@@ -269,17 +250,17 @@ public class PortDirectory {
         return routes;
     }
 
-    public void updatePort(UUID portId, PortConfig newPort) throws IOException,
+    public void updatePort(UUID portId, PortDirectory.PortConfig newPort) throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {
-        PortConfig oldPort = getPortConfig(portId, null, null);
+        PortDirectory.PortConfig oldPort = getPortConfig(portId, null, null);
         if (oldPort.getClass() != newPort.getClass())
             throw new IllegalArgumentException(
                     "Cannot change a port's type without first deleting it.");
         byte[] portData = portToBytes(newPort);
         dir.update("/" + portId.toString(), portData);
-        if (newPort instanceof RouterPortConfig) {
-            RouterPortConfig newRtrPort = RouterPortConfig.class.cast(newPort);
-            RouterPortConfig oldRtrPort = RouterPortConfig.class.cast(oldPort);
+        if (newPort instanceof PortDirectory.RouterPortConfig) {
+            PortDirectory.RouterPortConfig newRtrPort = PortDirectory.RouterPortConfig.class.cast(newPort);
+            PortDirectory.RouterPortConfig oldRtrPort = PortDirectory.RouterPortConfig.class.cast(oldPort);
             String routesPath = new StringBuilder("/")
                     .append(portId.toString()).append("/routes").toString();
             for (Route rt : newRtrPort.routes) {
@@ -294,7 +275,7 @@ public class PortDirectory {
         }
     }
 
-    public PortConfig getPortConfigNoRoutes(UUID portId, Runnable portWatcher)
+    public PortDirectory.PortConfig getPortConfigNoRoutes(UUID portId, Runnable portWatcher)
             throws IOException, ClassNotFoundException, KeeperException,
             InterruptedException {
         byte[] data = dir.get("/" + portId.toString(), portWatcher);
@@ -302,16 +283,16 @@ public class PortDirectory {
         InputStream in = new BufferedInputStream(bis);
         JsonParser jsonParser =
             jsonFactory.createJsonParser(new InputStreamReader(in));
-        PortConfig port = jsonParser.readValueAs(PortConfig.class);
+        PortDirectory.PortConfig port = jsonParser.readValueAs(PortDirectory.PortConfig.class);
         return port;
     }
 
-    public PortConfig getPortConfig(UUID portId, Runnable portWatcher,
+    public PortDirectory.PortConfig getPortConfig(UUID portId, Runnable portWatcher,
             Runnable routesWatcher) throws IOException, ClassNotFoundException,
             KeeperException, InterruptedException {
-        PortConfig port = getPortConfigNoRoutes(portId, portWatcher);
-        if (port instanceof RouterPortConfig) {
-            ((RouterPortConfig) port).routes = getRoutes(portId, routesWatcher);
+        PortDirectory.PortConfig port = getPortConfigNoRoutes(portId, portWatcher);
+        if (port instanceof PortDirectory.RouterPortConfig) {
+            ((PortDirectory.RouterPortConfig) port).routes = getRoutes(portId, routesWatcher);
         } else if (routesWatcher != null)
             throw new IllegalArgumentException(
                     "Can't watch routes on a bridge port");

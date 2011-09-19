@@ -51,14 +51,15 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.TenantZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
@@ -74,11 +75,10 @@ public class TestRouter {
     private Router rtr;
     private RuleEngine ruleEngine;
     private ReplicatedRoutingTable rTable;
-    private RouterDirectory routerDir;
-    private PortDirectory portDir;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
-    private Map<Short, MaterializedRouterPortConfig> portConfigs;
+    private Map<Integer, PortDirectory.MaterializedRouterPortConfig> portConfigs;
+    private Map<Integer, UUID> portNumToId;
     private UUID srcFilterChainId;
     private int publicDnatAddr;
     private int internDnatAddr;
@@ -95,14 +95,11 @@ public class TestRouter {
         dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
-
-        Directory portsSubdir = dir.getSubDirectory(pathMgr.getPortsPath());
-        portDir = new PortDirectory(portsSubdir);
-        Directory routersSubdir = dir.getSubDirectory(pathMgr.getRoutersPath());
-        routerDir = new RouterDirectory(routersSubdir);
-
+        PortZkManager portMgr = new PortZkManager(dir, basePath);
+        RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
         TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
@@ -111,14 +108,13 @@ public class TestRouter {
         UUID tenantId = tenantMgr.create();
         RouterConfig cfg = new RouterConfig("Test Router", tenantId);
         UUID rtrId = routerMgr.create(cfg);
-        routerDir.addRouter(rtrId, cfg);
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new MockCache();
         cache = new CacheWithPrefix(cache, rtrId.toString());
-        NatMapping natMap = new NatLeaseManager(routerDir, rtrId, cache);
+        NatMapping natMap = new NatLeaseManager(routerMgr, rtrId, cache);
         ruleEngine = new RuleEngine(new ChainZkManager(dir, basePath),
                 new RuleZkManager(dir, basePath), rtrId, natMap);
-        rTable = new ReplicatedRoutingTable(rtrId, routerDir
+        rTable = new ReplicatedRoutingTable(rtrId, routerMgr
                 .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
         reactor = new MockReactor();
         rtr = new Router(rtrId, ruleEngine, rTable, reactor);
@@ -126,22 +122,21 @@ public class TestRouter {
 
         // Add a route directly to the router.
         Route rt = new Route(0x0a000000, 24, 0x0a000100, 24, NextHop.BLACKHOLE,
-                null, 0, 1, null, null);
-        routerDir.addRoute(rtrId, rt);
+                null, 0, 1, null, rtrId);
+        routeMgr.create(rt);
         // rTable.addRoute(rt);
 
         // Create ports in ZK.
         // Create one port that works as an uplink for the router.
-        uplinkId = PortDirectory.intTo32BitUUID(1000);
         uplinkGatewayAddr = 0x0a0b0c0d;
         uplinkPortAddr = 0xb4000102; // 180.0.1.2
         int nwAddr = 0x00000000; // 0.0.0.0/0
+        PortDirectory.MaterializedRouterPortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
+                rtrId, nwAddr, 0, uplinkPortAddr, null, nwAddr, 0, null);
+        uplinkId = portMgr.create(portConfig);
         uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, uplinkId,
-                uplinkGatewayAddr, 1, null, null);
-        Set<Route> routes = new HashSet<Route>();
-        routes.add(uplinkRoute);
-        MaterializedRouterPortConfig portConfig = new MaterializedRouterPortConfig(
-                rtrId, nwAddr, 0, uplinkPortAddr, routes, nwAddr, 0, null);
+                uplinkGatewayAddr, 1, null, rtrId);
+        routeMgr.create(uplinkRoute);
         // Pretend the uplink port is managed by a remote controller.
         rTable.addRoute(uplinkRoute);
 
@@ -151,52 +146,62 @@ public class TestRouter {
         // 21, 22, 23 will be in subnet 10.0.2.0/24
         // Each of the ports 'spoofs' a /30 range of its subnet, for example
         // port 21 will route to 10.0.2.4/30, 22 to 10.0.2.8/30, etc.
-        portConfigs = new HashMap<Short, MaterializedRouterPortConfig>();
+        portConfigs = new HashMap<Integer, PortDirectory.MaterializedRouterPortConfig>();
+        portNumToId = new HashMap<Integer, UUID>();
         for (int i = 0; i < 3; i++) {
             // Nw address is 10.0.<i>.0/24
             nwAddr = 0x0a000000 + (i << 8);
             // All ports in this subnet share the same ip address: 10.0.<i>.1
             int portAddr = nwAddr + 1;
             for (int j = 1; j < 4; j++) {
-                short portNum = (short) (i * 10 + j);
-                UUID portId = PortDirectory.intTo32BitUUID(portNum);
+                int portNum = i * 10 + j;
                 // The port will route to 10.0.<i>.<j*4>/30
                 int segmentAddr = nwAddr + (j * 4);
-                routes.clear();
+                portConfig = new PortDirectory.MaterializedRouterPortConfig(rtrId, nwAddr,
+                        24, portAddr, null, segmentAddr, 30, null);
+                portConfigs.put(portNum, portConfig);
+                UUID portId = portMgr.create(portConfig);
+                // Map the port number to the portId for later use.
+                portNumToId.put(portNum, portId);
                 // Default route to port based on destination only. Weight 2.
                 rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId, 0,
-                        2, null, null);
-                routes.add(rt);
+                        2, null, rtrId);
+                routeMgr.create(rt);
+                if (1 == j) {
+                    // The first port's routes are added manually because the
+                    // first port will be treated as remote.
+                    rTable.addRoute(rt);
+                }
                 // Anything from 10.0.0.0/16 is allowed through. Weight 1.
                 rt = new Route(0x0a000000, 16, segmentAddr, 30, NextHop.PORT,
-                        portId, 0, 1, null, null);
-                routes.add(rt);
+                        portId, 0, 1, null, rtrId);
+                routeMgr.create(rt);
+                if (1 == j) {
+                    // The first port's routes are added manually because the
+                    // first port will be treated as remote.
+                    rTable.addRoute(rt);
+                }
                 // Anything from 11.0.0.0/24 is silently dropped. Weight 1.
                 rt = new Route(0x0b000000, 24, segmentAddr, 30,
-                        NextHop.BLACKHOLE, null, 0, 1, null, null);
-                routes.add(rt);
+                        NextHop.BLACKHOLE, null, 0, 1, null, rtrId);
+                routeMgr.create(rt);
+                // Manually add this route since it doesn't belong to the port.
+                rTable.addRoute(rt);
                 // Anything from 12.0.0.0/24 is rejected (ICMP filter
                 // prohibited).
                 rt = new Route(0x0c000000, 24, segmentAddr, 30, NextHop.REJECT,
-                        null, 0, 1, null, null);
-                routes.add(rt);
-                portConfig = new MaterializedRouterPortConfig(rtrId, nwAddr,
-                        24, portAddr, routes, segmentAddr, 30, null);
-                portConfigs.put(portNum, portConfig);
-                portDir.addPort(portId, portConfig);
-                if (1 == j) {
-                    // We pretend that the first port is up but managed by a
-                    // remote controller. We have to manually add its routes
-                    // to the routing table.
-                    for (Route r : routes) {
-                        rTable.addRoute(r);
-                    }
-                } else {
-                    // The other ports are on the local controller.
-                    L3DevicePort devPort = new L3DevicePort(portDir, portId,
-                            portNum, new byte[] { (byte) 0x02, (byte) 0x00,
-                                    (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                    (byte) portNum }, controllerStub);
+                        null, 0, 1, null, rtrId);
+                routeMgr.create(rt);
+                // Manually add this route since it doesn't belong to the port.
+                rTable.addRoute(rt);
+
+                if (1 != j) {
+                    // Except for the first port, add them locally.
+                    L3DevicePort devPort = new L3DevicePort(portMgr,
+                            routeMgr, portId, (short)portNum, new byte[] {
+                                    (byte) 0x02, (byte) 0x00, (byte) 0x00,
+                                    (byte) 0x00, (byte) 0x00, (byte) portNum },
+                            controllerStub);
                     rtr.addPort(devPort);
                 }
             } // end for-loop on j
@@ -211,7 +216,7 @@ public class TestRouter {
         eth.setDestinationMACAddress("02:aa:bb:cc:dd:02");
         eth.setEtherType(IPv6_ETHERTYPE);
         eth.setPad(true);
-        UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        UUID port12Id = portNumToId.get(12);
         ForwardInfo fInfo = routePacket(port12Id, eth);
         checkForwardInfo(fInfo, Action.NOT_IPV4, null, 0);
     }
@@ -263,8 +268,7 @@ public class TestRouter {
         // nwSrc inside 10.0.2.12/30) and has a nwDst that matches the uplink
         // port (e.g. anything outside 10.0.0.0/16).
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port23Id = PortDirectory.intTo32BitUUID(23);
-        UUID uplinkId = PortDirectory.intTo32BitUUID(1000);
+        UUID port23Id = portNumToId.get(23);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
         Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 devPort23.getMacAddr(), 0x0a00020c, 0x11223344, (short) 1111,
@@ -279,8 +283,8 @@ public class TestRouter {
         // nwSrc inside 10.0.2.12/30) and has a nwDst that matches port 12
         // (i.e. inside 10.0.1.8/30).
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port23Id = PortDirectory.intTo32BitUUID(23);
-        UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        UUID port23Id = portNumToId.get(23);
+        UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
         Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 devPort23.getMacAddr(), 0x0a00020d, 0x0a000109, (short) 1111,
@@ -294,7 +298,6 @@ public class TestRouter {
         // Make a packet that comes in on the uplink port from a nw address in
         // 11.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID uplinkId = PortDirectory.intTo32BitUUID(1000);
         Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0b0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
@@ -307,8 +310,7 @@ public class TestRouter {
         // Make a packet that comes in on the uplink port from a nw address in
         // 12.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID uplinkId = PortDirectory.intTo32BitUUID(1000);
-        // UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        // UUID port12Id = portNumToId.get(12);
         Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0c0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
@@ -324,7 +326,7 @@ public class TestRouter {
         // Make a packet that comes in on the port 3 (nwSrc in 10.0.0.12/30)
         // and is destined for 10.5.0.10.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port3Id = PortDirectory.intTo32BitUUID(3);
+        UUID port3Id = portNumToId.get(3);
         Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0a00000f,
                 0x0a05000a, (short) 1234, (short) 4321, payload);
@@ -335,7 +337,7 @@ public class TestRouter {
         // Make a packet that comes in on port 3 (dlDst set to port 3's mac,
         // nwSrc inside 10.0.0.12/30) and has a nwDst that matches port 12
         // (i.e. inside 10.0.1.8/30).
-        UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort3 = rtr.devicePorts.get(port3Id);
         eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"), devPort3
                 .getMacAddr(), 0x0a00000e, 0x0a00010b, (short) 1111,
@@ -405,7 +407,7 @@ public class TestRouter {
         // Port 11 is not local to this controller (it was never added to the
         // router as a L3DevicePort). So the router can't ARP to it.
         ArpCompletedCallback cb = new ArpCompletedCallback();
-        UUID port1Id = PortDirectory.intTo32BitUUID(11);
+        UUID port1Id = portNumToId.get(11);
         rtr.getMacForIp(port1Id, 0x0a000105, cb);
     }
 
@@ -415,7 +417,7 @@ public class TestRouter {
         // Try to get the MAC via port 12 for an address that isn't in that
         // port's local network segment (i.e. not in 10.0.1.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
-        UUID port1Id = PortDirectory.intTo32BitUUID(12);
+        UUID port1Id = portNumToId.get(12);
         rtr.getMacForIp(port1Id, 0x0a000105, cb);
     }
 
@@ -423,7 +425,7 @@ public class TestRouter {
     public void testArpRequestGeneration() {
         // Try to get the MAC for a nwAddr on port 2 (i.e. in 10.0.0.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
-        UUID port2Id = PortDirectory.intTo32BitUUID(2);
+        UUID port2Id = portNumToId.get(2);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
         // There should now be an ARP request in the MockProtocolStub
@@ -493,7 +495,7 @@ public class TestRouter {
     public void testArpReplyProcessing() {
         // Try to get the MAC for a nwAddr on port 2 (i.e. in 10.0.0.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
-        UUID port2Id = PortDirectory.intTo32BitUUID(2);
+        UUID port2Id = portNumToId.get(2);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
         Assert.assertEquals(1, controllerStub.sentPackets.size());
@@ -563,7 +565,7 @@ public class TestRouter {
         // Let's work with port 2 whose subnet is 10.0.0.0/24 and whose segment
         // is 10.0.0.8/30. Assume the requests are coming from 10.0.0.9.
         int arpSpa = 0x0a000009;
-        UUID port2Id = PortDirectory.intTo32BitUUID(2);
+        UUID port2Id = portNumToId.get(2);
         // Check for addresses inside the subnet but outside the segment.
         checkPeerArp(port2Id, arpSpa, 0x0a000005, true);
         checkPeerArp(port2Id, arpSpa, 0x0a00000e, true);
@@ -625,8 +627,8 @@ public class TestRouter {
         UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
                 rtr.routerId));
         String srcFilterChainName = "filterSrcByPortId";
-        srcFilterChainId = chainMgr.create(new ChainConfig(
-                srcFilterChainName, rtr.routerId));
+        srcFilterChainId = chainMgr.create(new ChainConfig(srcFilterChainName,
+                rtr.routerId));
         UUID postChainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
                 rtr.routerId));
         // Create a bunch of arbitrary rules:
@@ -640,14 +642,14 @@ public class TestRouter {
         // Down-ports can only receive packets from network addresses that are
         // 'local' to them. This chain drops packets that don't conform.
         List<Rule> srcFilterChain = new Vector<Rule>();
-        Iterator<Map.Entry<Short, MaterializedRouterPortConfig>> iter = portConfigs
+        Iterator<Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig>> iter = portConfigs
                 .entrySet().iterator();
         int i = 0;
         Rule r;
         while (iter.hasNext()) {
-            Map.Entry<Short, MaterializedRouterPortConfig> entry = iter.next();
-            UUID portId = PortDirectory.intTo32BitUUID(entry.getKey());
-            MaterializedRouterPortConfig config = entry.getValue();
+            Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig> entry = iter.next();
+            UUID portId = portNumToId.get(entry.getKey());
+            PortDirectory.MaterializedRouterPortConfig config = entry.getValue();
             // A down-port can only receive packets from network addresses that
             // are 'local' to the port.
             cond = new Condition();
@@ -714,13 +716,13 @@ public class TestRouter {
         // ports 1, 11, and 21. None of them can send to any of the others.
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
-        cond.inPortIds.add(PortDirectory.intTo32BitUUID(1));
-        cond.inPortIds.add(PortDirectory.intTo32BitUUID(11));
-        cond.inPortIds.add(PortDirectory.intTo32BitUUID(21));
+        cond.inPortIds.add(portNumToId.get(1));
+        cond.inPortIds.add(portNumToId.get(11));
+        cond.inPortIds.add(portNumToId.get(21));
         cond.outPortIds = new HashSet<UUID>();
-        cond.outPortIds.add(PortDirectory.intTo32BitUUID(1));
-        cond.outPortIds.add(PortDirectory.intTo32BitUUID(11));
-        cond.outPortIds.add(PortDirectory.intTo32BitUUID(21));
+        cond.outPortIds.add(portNumToId.get(1));
+        cond.outPortIds.add(portNumToId.get(11));
+        cond.outPortIds.add(portNumToId.get(21));
         r = new LiteralRule(cond, RuleResult.Action.DROP, postChainId, i);
         i++;
         ruleMgr.create(r);
@@ -737,7 +739,8 @@ public class TestRouter {
         cond.nwSrcLength = 32;
         cond.tpSrcStart = natPublicTpPort;
         cond.tpSrcEnd = natPublicTpPort;
-        r = new ReverseNatRule(cond, RuleResult.Action.CONTINUE, postChainId, i, true /* dnat */);
+        r = new ReverseNatRule(cond, RuleResult.Action.CONTINUE, postChainId,
+                i, true /* dnat */);
         i++;
         ruleMgr.create(r);
         postChain.add(r);
@@ -751,8 +754,8 @@ public class TestRouter {
         // the expected range (10.0.2.12/30) and a nwDst that matches port 12
         // (i.e. inside 10.0.1.8/30).
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port23Id = PortDirectory.intTo32BitUUID(23);
-        UUID port12Id = PortDirectory.intTo32BitUUID(12);
+        UUID port23Id = portNumToId.get(23);
+        UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
         Ethernet badEthTo12 = makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), devPort23.getMacAddr(),
@@ -769,7 +772,7 @@ public class TestRouter {
         // Make a packet that comes in on port 12 but with a nwSrc outside
         // the expected range (10.0.1.8/30) and a nwDst that matches port 2
         // (i.e. inside 10.0.0.8/30).
-        UUID port2Id = PortDirectory.intTo32BitUUID(2);
+        UUID port2Id = portNumToId.get(2);
         L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
         Ethernet badEthTo2 = makeUDP(
                 Ethernet.toMACAddress("02:00:11:22:00:01"), devPort12
@@ -787,7 +790,7 @@ public class TestRouter {
         // Make a packet that comes in on port 11 but with a nwSrc outside
         // the expected range (10.0.1.4/30) and a nwDst that matches the
         // uplink (e.g. 144.0.16.3).
-        UUID port11Id = PortDirectory.intTo32BitUUID(11);
+        UUID port11Id = portNumToId.get(11);
         Ethernet badEthToUplink = makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), Ethernet
                 .toMACAddress("02:00:11:22:00:64"), 0x0a0001d2, 0x90001003,
@@ -838,11 +841,12 @@ public class TestRouter {
     @Ignore
     @Test
     public void testFilterBadDestinations() throws IOException,
-            KeeperException, InterruptedException, ZkStateSerializationException {
+            KeeperException, InterruptedException,
+            ZkStateSerializationException {
         // Send a packet from port 11 to port 21.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port11Id = PortDirectory.intTo32BitUUID(11);
-        UUID port21Id = PortDirectory.intTo32BitUUID(21);
+        UUID port11Id = portNumToId.get(11);
+        UUID port21Id = portNumToId.get(21);
         Ethernet ethTo21 = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
                 Ethernet.toMACAddress("02:00:11:22:00:28"), 0x0a000106,
                 0x0a000207, (short) 1111, (short) 2222, payload);
@@ -872,7 +876,7 @@ public class TestRouter {
         // Send a packet from 10.0.2.6 to 192.11.11.10.
         int extNwAddr = 0xc00b0b0a;
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port21Id = PortDirectory.intTo32BitUUID(21);
+        UUID port21Id = portNumToId.get(21);
         Ethernet ethToExtAddr = makeUDP(Ethernet
                 .toMACAddress("02:00:11:22:00:01"), Ethernet
                 .toMACAddress("02:00:11:22:00:85"), 0x0a000206, extNwAddr,

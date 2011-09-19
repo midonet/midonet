@@ -53,9 +53,9 @@ public class RouteZkManager extends ZkManager {
         if (entry.value.nextHop == Route.NextHop.PORT) {
             // Check what kind of port this is.
             PortZkManager portZkManager = new PortZkManager(zk, basePath);
-            ZkNodeEntry<UUID, PortConfig> port = portZkManager
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> port = portZkManager
                     .get(entry.value.nextHopPort);
-            if (!(port.value instanceof RouterPortConfig)) {
+            if (!(port.value instanceof PortDirectory.RouterPortConfig)) {
                 // Cannot add route to bridge ports
                 throw new IllegalArgumentException(
                         "Can only add a route to a router");
@@ -257,15 +257,15 @@ public class RouteZkManager extends ZkManager {
             // For each MaterializedRouterPort, process it. Needs optimization.
             UUID portUUID = UUID.fromString(portId);
             byte[] data = zk.get(pathManager.getPortPath(portUUID), null);
-            PortConfig port = null;
+            PortDirectory.PortConfig port = null;
             try {
-                port = deserialize(data, PortConfig.class);
+                port = deserialize(data, PortDirectory.PortConfig.class);
             } catch (IOException e) {
                 throw new ZkStateSerializationException(
                         "Could not deserialize port " + portUUID
-                                + " to PortConfig", e, PortConfig.class);
+                                + " to PortConfig", e, PortDirectory.PortConfig.class);
             }
-            if (!(port instanceof RouterPortConfig)) {
+            if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;
             }
 

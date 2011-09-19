@@ -17,6 +17,7 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.util.ShortUUID;
 
 public class TestPortDirectory {
 
@@ -47,20 +48,20 @@ public class TestPortDirectory {
         System.out.println(Integer.toHexString(a));
 
         int lBits1 = -5;
-        UUID id1 = PortDirectory.intTo32BitUUID(lBits1);
-        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        UUID id1 = ShortUUID.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, ShortUUID.UUID32toInt(id1));
         lBits1 = 20;
-        id1 = PortDirectory.intTo32BitUUID(lBits1);
-        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        id1 = ShortUUID.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, ShortUUID.UUID32toInt(id1));
         lBits1 = Integer.MAX_VALUE;
-        id1 = PortDirectory.intTo32BitUUID(lBits1);
-        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        id1 = ShortUUID.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, ShortUUID.UUID32toInt(id1));
         lBits1 = Integer.MIN_VALUE;
-        id1 = PortDirectory.intTo32BitUUID(lBits1);
-        Assert.assertEquals(lBits1, PortDirectory.UUID32toInt(id1));
+        id1 = ShortUUID.intTo32BitUUID(lBits1);
+        Assert.assertEquals(lBits1, ShortUUID.UUID32toInt(id1));
 
-        id1 = PortDirectory.generate32BitUUID();
-        UUID id2 = PortDirectory.intTo32BitUUID(PortDirectory.UUID32toInt(id1));
+        id1 = ShortUUID.generate32BitUUID();
+        UUID id2 = ShortUUID.intTo32BitUUID(ShortUUID.UUID32toInt(id1));
         Assert.assertTrue(id1.equals(id2));
     }
 
@@ -69,7 +70,7 @@ public class TestPortDirectory {
             ClassNotFoundException, KeeperException, InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID bridgeId = new UUID(rand.nextLong(), rand.nextLong());
-        BridgePortConfig port = new BridgePortConfig(
+        PortDirectory.BridgePortConfig port = new PortDirectory.BridgePortConfig(
                 bridgeId);
         portDir.addPort(portId, port);
         Assert.assertEquals(port,
@@ -114,7 +115,7 @@ public class TestPortDirectory {
             InterruptedException {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID routerId = new UUID(rand.nextLong(), rand.nextLong());
-        MaterializedRouterPortConfig port = new MaterializedRouterPortConfig(
+        PortDirectory.MaterializedRouterPortConfig port = new PortDirectory.MaterializedRouterPortConfig(
                 routerId, 0x01020300, 24, 0x01020301, new HashSet<Route>(),
                 0x01020305, 32, new HashSet<BGP>());
         portDir.addPort(portId, port);
@@ -172,7 +173,7 @@ public class TestPortDirectory {
         UUID portId = new UUID(rand.nextLong(), rand.nextLong());
         UUID peerPortId = new UUID(rand.nextLong(), rand.nextLong());
         UUID routerId = new UUID(rand.nextLong(), rand.nextLong());
-        LogicalRouterPortConfig port = new LogicalRouterPortConfig(
+        PortDirectory.LogicalRouterPortConfig port = new PortDirectory.LogicalRouterPortConfig(
                 routerId, 0x01020300, 24, 0x01020301, new HashSet<Route>(),
                 peerPortId);
         portDir.addPort(portId, port);

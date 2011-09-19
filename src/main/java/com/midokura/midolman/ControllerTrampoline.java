@@ -28,9 +28,10 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.DeviceToGreKeyMap;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.RouterDirectory;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
@@ -45,11 +46,8 @@ public class ControllerTrampoline implements Controller {
     private OpenvSwitchDatabaseConnection ovsdb;
     private Directory directory;
     private Reactor reactor;
-    
-    private PortDirectory portDirectory;
-    private DeviceToGreKeyMap bridgeDirectory;
-    private RouterDirectory routerDirectory;
 
+    private DeviceToGreKeyMap bridgeDirectory;
     private ControllerStub controllerStub;
 
     /* directory is the "midonet root", not zkConnection.getRootDirectory() */
@@ -66,14 +64,8 @@ public class ControllerTrampoline implements Controller {
         
         midolmanConfig = config.configurationAt("midolman");
 
-        String portRoot = midolmanConfig.getString("ports_subdirectory");
-        this.portDirectory = new PortDirectory(directory.getSubDirectory(portRoot));
-        
         String bridgeRoot = midolmanConfig.getString("bridges_subdirectory");
         this.bridgeDirectory = new DeviceToGreKeyMap(directory.getSubDirectory(bridgeRoot));
-        
-        String routerRoot = midolmanConfig.getString("routers_subdirectory");
-        this.routerDirectory = new RouterDirectory(directory.getSubDirectory(routerRoot));
     }
 
     @Override
@@ -130,10 +122,11 @@ public class ControllerTrampoline implements Controller {
                         portLocationMap,
                         idleFlowExpireMillis,
                         localNwAddr,
+                        new PortZkManager(directory, ""),
+                        new RouterZkManager(directory, ""),
+                        new RouteZkManager(directory, ""),
                         new ChainZkManager(directory, ""),
                         new RuleZkManager(directory, ""),
-                        routerDirectory,
-                        portDirectory,
                         ovsdb,
                         reactor,
                         cache,

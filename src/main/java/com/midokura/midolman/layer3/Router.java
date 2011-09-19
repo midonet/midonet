@@ -22,7 +22,7 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.util.Callback;
 
 /**
@@ -81,8 +81,8 @@ public class Router {
     private class PortListener implements L3DevicePort.Listener {
         @Override
         public void configChanged(UUID portId,
-                MaterializedRouterPortConfig old,
-                MaterializedRouterPortConfig current) {
+                PortDirectory.MaterializedRouterPortConfig old,
+                PortDirectory.MaterializedRouterPortConfig current) {
         }
 
         @Override
@@ -340,7 +340,7 @@ public class Router {
 
         // First get the ingress port's mac address
         L3DevicePort devPort = devicePorts.get(inPortId);
-        MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         if (tpa != devPort.getVirtualConfig().portAddr
                 && !spoofL2Network(tpa, portConfig.nwAddr, portConfig.nwLength,
@@ -374,7 +374,7 @@ public class Router {
     private void processArpReply(ARP arpPkt, UUID inPortId) {
         // Verify that the reply was meant for us.
         L3DevicePort devPort = devicePorts.get(inPortId);
-        MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         byte[] tha = arpPkt.getTargetHardwareAddress();
         if (tpa != portConfig.portAddr
@@ -474,7 +474,7 @@ public class Router {
         L3DevicePort devPort = devicePorts.get(portId);
         if (null == devPort)
             return;
-        MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);

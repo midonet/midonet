@@ -28,23 +28,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.rules.Rule;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;;
 
 public class RouterDirectory {
-
-    public static class RouterConfig {
-        public RouterConfig() {
-            super();
-        }
-
-        public RouterConfig(String name, UUID tenantId) {
-            super();
-            this.name = name;
-            this.tenantId = tenantId;
-        }
-
-        public String name;
-        public UUID tenantId;
-    }
 
     public static byte[] routerToBytes(RouterConfig tenant) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -268,33 +254,4 @@ public class RouterDirectory {
             throws KeeperException, InterruptedException {
         dir.delete(getPathForChain(routerId, chainName));
     }
-
-    public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
-            throws KeeperException, InterruptedException {
-        StringBuilder sb = new StringBuilder(getSnatBlocksPath(routerId));
-        sb.append("/").append(Integer.toHexString(ip));
-        TreeSet<Short> ports = new TreeSet<Short>();
-        Set<String> blocks = null;
-        try {
-            blocks = dir.getChildren(sb.toString(), null);
-        } catch (NoNodeException e) {
-            return ports;
-        }
-        for (String str : blocks)
-            ports.add((short) Integer.parseInt(str));
-        return ports;
-    }
-
-    public void addSnatReservation(UUID routerId, int ip, short startPort)
-            throws KeeperException, InterruptedException {
-        StringBuilder sb = new StringBuilder(getSnatBlocksPath(routerId));
-        sb.append("/").append(Integer.toHexString(ip));
-        try {
-            dir.add(sb.toString(), null, CreateMode.PERSISTENT);
-        } catch (NodeExistsException e) {
-        }
-        sb.append("/").append(startPort);
-        dir.add(sb.toString(), null, CreateMode.EPHEMERAL);
-    }
-
 }

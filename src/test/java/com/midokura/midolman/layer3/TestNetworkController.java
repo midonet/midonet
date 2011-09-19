@@ -3,8 +3,10 @@ package com.midokura.midolman.layer3;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
@@ -34,12 +36,15 @@ import org.openflow.protocol.action.OFActionTransportLayerSource;
 import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.NetworkController.DecodedMacAddrs;
 import com.midokura.midolman.layer3.Route.NextHop;
+import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
@@ -58,42 +63,53 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.TenantZkManager;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.RouterDirectory;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
+import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.ShortUUID;
 
 public class TestNetworkController {
 
     private NetworkController networkCtrl;
     private List<List<OFPhysicalPort>> phyPorts;
+    private Map<Integer, Integer> portNumToIntId;
     private List<UUID> routerIds;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
     private PortToIntNwAddrMap portLocMap;
-    private RouterDirectory routerDir;
-    private PortDirectory portDir;
+    private PortZkManager portMgr;
+    private RouteZkManager routeMgr;
+    private ChainZkManager chainMgr;
+    private RuleZkManager ruleMgr;
     private MockOpenvSwitchDatabaseConnection ovsdb;
-    private int datapathId;
+    private long datapathId;
     private OFPhysicalPort uplinkPhyPort;
     private UUID uplinkId;
     private int uplinkGatewayAddr;
     private int uplinkPortAddr;
     private UUID portOn0to2;
+    private UUID portOn2to0;
     private int rtr2LogPortNwAddr;
     private int rtr0to2LogPortNwAddr;
 
     @Before
     public void setUp() throws Exception {
         phyPorts = new ArrayList<List<OFPhysicalPort>>();
+        portNumToIntId = new HashMap<Integer, Integer>();
         routerIds = new ArrayList<UUID>();
         reactor = new MockReactor();
         controllerStub = new MockControllerStub();
@@ -106,16 +122,16 @@ public class TestNetworkController {
         dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getTenantsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
+        portMgr = new PortZkManager(dir, basePath);
+        routeMgr = new RouteZkManager(dir, basePath);
+        chainMgr = new ChainZkManager(dir, basePath);
+        ruleMgr = new RuleZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
         TenantZkManager tenantMgr = new TenantZkManager(dir, basePath);
         UUID tenantId = tenantMgr.create();
-
-        Directory portsSubdir = dir.getSubDirectory(pathMgr.getPortsPath());
-        portDir = new PortDirectory(portsSubdir);
-        Directory routersSubdir = dir.getSubDirectory(pathMgr.getRoutersPath());
-        routerDir = new RouterDirectory(routersSubdir);
 
         // Now build the Port to Location Map.
         UUID networkId = new UUID(1, 1);
@@ -133,13 +149,12 @@ public class TestNetworkController {
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
         // Now we can create the NetworkController itself.
-        InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); //0xc0a80104;
+        InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); // 0xc0a80104;
         datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
-                5 /* greKey */, portLocMap, 60 * 1000, localNwAddr,
-                new ChainZkManager(dir, basePath), new RuleZkManager(dir,
-                        basePath), routerDir, portDir, ovsdb, reactor,
-                new MockCache(), "midonet");
+                5 /* greKey */, portLocMap, (long) (60 * 1000), localNwAddr,
+                portMgr, routerMgr, routeMgr, chainMgr, ruleMgr, ovsdb,
+                reactor, new MockCache(), "midonet");
         networkCtrl.setControllerStub(controllerStub);
 
         /*
@@ -152,16 +167,15 @@ public class TestNetworkController {
          */
         Set<Route> routes = new HashSet<Route>();
         Route rt;
-        MaterializedRouterPortConfig portConfig;
+        PortDirectory.MaterializedRouterPortConfig portConfig;
         List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
             phyPorts.add(new ArrayList<OFPhysicalPort>());
             RouterConfig cfg = new RouterConfig("Test Router " + i, tenantId);
             UUID rtrId = routerMgr.create(cfg);
-            routerDir.addRouter(rtrId, cfg);
             routerIds.add(rtrId);
 
-            Directory tableDir = routerDir.getRoutingTableDirectory(rtrId);
+            Directory tableDir = routerMgr.getRoutingTableDirectory(rtrId);
             ReplicatedRoutingTable rTable = new ReplicatedRoutingTable(rtrId,
                     tableDir, CreateMode.PERSISTENT);
             rTables.add(rTable);
@@ -171,8 +185,8 @@ public class TestNetworkController {
             // With low weight, reject anything that is in this router's NW.
             // Routes associated with ports can override this.
             rt = new Route(0, 0, routerNw, 16, NextHop.REJECT, null, 0, 100,
-                    null, null);
-            routerDir.addRoute(rtrId, rt);
+                    null, rtrId);
+            routeMgr.create(rt);
             // Manually add this route to the replicated routing table since
             // it's not associated with any port.
             rTable.addRoute(rt);
@@ -183,14 +197,16 @@ public class TestNetworkController {
                 int portNw = routerNw + (j << 8);
                 int portAddr = portNw + 1;
                 short portNum = (short) (i * 10 + j);
-                UUID portId = PortDirectory.intTo32BitUUID(portNum);
+                portConfig = new PortDirectory.MaterializedRouterPortConfig(
+                        rtrId, portNw, 24, portAddr, null, portNw, 24, null);
+                UUID portId = portMgr.create(portConfig);
+                portNumToIntId
+                        .put((int) portNum, ShortUUID.UUID32toInt(portId));
                 routes.clear();
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 2,
-                        null, null);
+                        null, rtrId);
+                routeMgr.create(rt);
                 routes.add(rt);
-                portConfig = new MaterializedRouterPortConfig(rtrId, portNw,
-                        24, portAddr, routes, portNw, 24, null);
-                portDir.addPort(portId, portConfig);
 
                 OFPhysicalPort phyPort = new OFPhysicalPort();
                 phyPorts.get(i).add(phyPort);
@@ -224,58 +240,49 @@ public class TestNetworkController {
             }
         }
         // Now add the logical links between router 0 and 1.
-        UUID portOn0to1 = PortDirectory.intTo32BitUUID(331);
-        UUID portOn1to0 = PortDirectory.intTo32BitUUID(332);
         // First from 0 to 1
+        PortDirectory.LogicalRouterPortConfig logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
+                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, null, null);
+        PortDirectory.LogicalRouterPortConfig logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
+                routerIds.get(1), 0xc0a80100, 30, 0xc0a80102, null, null);
+        ZkNodeEntry<UUID, UUID> idPair = portMgr.createLink(logPortConfig1,
+                logPortConfig2);
+        UUID portOn0to1 = idPair.key;
+        UUID portOn1to0 = idPair.value;
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1, 0, 2,
-                null, null);
-        routes.clear();
-        routes.add(rt);
-        LogicalRouterPortConfig logPortConfig = new LogicalRouterPortConfig(
-                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, routes,
-                portOn1to0);
-        portDir.addPort(portOn0to1, logPortConfig);
-        // Manually add this route since it no local controller owns it.
+                null, routerIds.get(0));
+        routeMgr.create(rt);
         rTables.get(0).addRoute(rt);
-        // Now from 1 to 0. Note that this is router1's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null, null);
-        routes.clear();
-        routes.add(rt);
-        logPortConfig = new LogicalRouterPortConfig(routerIds.get(1),
-                0xc0a80100, 30, 0xc0a80102, routes, portOn0to1);
-        portDir.addPort(portOn1to0, logPortConfig);
-        // Manually add this route since it no local controller owns it.
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null,
+                routerIds.get(1));
+        routeMgr.create(rt);
         rTables.get(1).addRoute(rt);
         // Now add the logical links between router 0 and 2.
-        portOn0to2 = PortDirectory.intTo32BitUUID(333);
-        UUID portOn2to0 = PortDirectory.intTo32BitUUID(334);
         // First from 0 to 2
-        rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 0, 2,
-                null, null);
-        routes.clear();
-        routes.add(rt);
         rtr0to2LogPortNwAddr = 0xc0a80101;
-        logPortConfig = new LogicalRouterPortConfig(routerIds.get(0),
-                0xc0a80100, 30, rtr0to2LogPortNwAddr, routes, portOn2to0);
-        portDir.addPort(portOn0to2, logPortConfig);
-        // Manually add this route since it no local controller owns it.
+        rtr2LogPortNwAddr = 0xc0a80102;
+        logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(routerIds
+                .get(0), 0xc0a80100, 30, rtr0to2LogPortNwAddr, null, null);
+        logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(routerIds
+                .get(2), 0xc0a80100, 30, rtr2LogPortNwAddr, null, null);
+        idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
+        portOn0to2 = idPair.key;
+        portOn2to0 = idPair.value;
+        rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 0, 2,
+                null, routerIds.get(0));
+        routeMgr.create(rt);
         rTables.get(0).addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null, null);
-        routes.clear();
-        routes.add(rt);
-        rtr2LogPortNwAddr = 0xc0a80102;
-        logPortConfig = new LogicalRouterPortConfig(routerIds.get(2),
-                0xc0a80100, 30, rtr2LogPortNwAddr, routes, portOn0to2);
-        portDir.addPort(portOn2to0, logPortConfig);
-        // Manually add this route since it no local controller owns it.
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null,
+                routerIds.get(2));
+        routeMgr.create(rt);
         rTables.get(2).addRoute(rt);
 
         // For now, don't add an uplink. Instead add a route that drops anything
         // in 10.0.0.0/8 that isn't going to router0's local or logical ports.
         rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2,
-                null, null);
-        routerDir.addRoute(routerIds.get(0), rt);
+                null, routerIds.get(0));
+        routeMgr.create(rt);
         // Manually add this route since it no local controller owns it.
         rTables.get(0).addRoute(rt);
     }
@@ -543,8 +550,8 @@ public class TestNetworkController {
         match.loadFromPacket(data, phyPortIn.getPortNumber());
         byte[] dlSrc = new byte[6];
         byte[] dlDst = new byte[6];
-        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, 20, 21,
-                0x0a020145);
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, portNumToIntId
+                .get(20), portNumToIntId.get(21), 0x0a020145);
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction ofAction = new OFActionDataLayerSource();
         ((OFActionDataLayerSource) ofAction).setDataLayerAddress(dlSrc);
@@ -583,8 +590,8 @@ public class TestNetworkController {
         byte[] dlSrc = new byte[6];
         byte[] dlDst = new byte[6];
         // The last ingress port is router2's logical port.
-        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, 334, 21,
-                0x0a0201e4);
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, ShortUUID
+                .UUID32toInt(portOn2to0), portNumToIntId.get(21), 0x0a0201e4);
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction ofAction = new OFActionDataLayerSource();
         ((OFActionDataLayerSource) ofAction).setDataLayerAddress(dlSrc);
@@ -626,8 +633,8 @@ public class TestNetworkController {
         byte[] codedSrc = new byte[6];
         byte[] codedDst = new byte[6];
         // Encode the logical router port as the last ingress.
-        NetworkController.setDlHeadersForTunnel(codedSrc, codedDst, 334, 21,
-                nwDst);
+        NetworkController.setDlHeadersForTunnel(codedSrc, codedDst, ShortUUID
+                .UUID32toInt(portOn2to0), portNumToIntId.get(21), nwDst);
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction ofAction = new OFActionDataLayerSource();
         ((OFActionDataLayerSource) ofAction).setDataLayerAddress(codedSrc);
@@ -680,7 +687,8 @@ public class TestNetworkController {
         short tunnelPortNum = 21;
         int nwDst = 0x0a000041;
         NetworkController.setDlHeadersForTunnel(dlSrc, dlDst,
-                NetworkController.ICMP_TUNNEL, outPortNum, nwDst);
+                NetworkController.ICMP_TUNNEL, portNumToIntId
+                        .get((int) outPortNum), nwDst);
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         // The packet should look like it came from router0's logical port.
         // Note that the controller's logic trusts the ethernet headers and
@@ -747,14 +755,15 @@ public class TestNetworkController {
         // to a host on router0's second port. This can trigger ICMP.
         short srcPort = 21;
         short dstPort = 1;
+        UUID dstPortId = ShortUUID
+                .intTo32BitUUID(portNumToIntId.get((int)dstPort));
         int nwSrc = 0x0a020109;
         int nwDst = 0x0a00010d;
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         eth = TestRouter.makeUDP(dlSrc, dlDst, nwSrc, nwDst, (short) 2345,
                 (short) 1221, payload);
         Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
-        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, dstPortId));
 
         // Now change the destination address to router0's second port's
         // broadcast address.
@@ -763,50 +772,44 @@ public class TestNetworkController {
         // Still triggers ICMP if we don't supply the output port.
         Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
         // Still triggers ICMP if we supply the wrong output port.
-        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(10)));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, ShortUUID
+                .intTo32BitUUID(portNumToIntId.get(10))));
         // Doesn't trigger ICMP if we supply the output port.
-        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, dstPortId));
 
         // Now change the destination address to a multicast address.
         origIpPkt.setDestinationAddress((225 << 24) + 0x000001ff);
         Assert.assertTrue(origIpPkt.isMcast());
         // Won't trigger ICMP regardless of the output port id.
         Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, dstPortId));
 
         // Now change the network dst address back to normal and then change
         // the ethernet dst address to a multicast/broadcast.
         origIpPkt.setDestinationAddress(nwDst);
-        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, ShortUUID
+                .intTo32BitUUID(portNumToIntId.get((int)dstPort))));
         // Use any address that has an odd number if first byte.
         byte[] mcastMac = Ethernet.toMACAddress("07:cd:cd:ab:ab:34");
         eth.setDestinationMACAddress(mcastMac);
         Assert.assertTrue(eth.isMcast());
         // Won't trigger ICMP regardless of the output port id.
         Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, dstPortId));
 
         // Now change the ethernet dst address back to normal and then change
         // the ip packet's fragment offset.
         eth.setDestinationMACAddress(dlDst);
-        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, dstPortId));
         origIpPkt.setFragmentOffset((short) 3);
         // Won't trigger ICMP regardless of the output port id.
         Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, dstPortId));
 
         // Change the fragment offset back to zero. Then make and ICMP error in
         // response to the original UDP.
         origIpPkt.setFragmentOffset((short) 0);
-        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(dstPort)));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, dstPortId));
         ICMP icmp = new ICMP();
         icmp.setUnreachable(ICMP.UNREACH_CODE.UNREACH_HOST, origIpPkt);
         // The icmp packet will be emitted from the lastIngress port:
@@ -823,8 +826,7 @@ public class TestNetworkController {
         eth.setDestinationMACAddress("02:a1:b2:c3:d4:e6");
         // ICMP errors can't trigger ICMP errors.
         Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
-        Assert.assertTrue(networkCtrl.canSendICMP(eth, PortDirectory
-                .intTo32BitUUID(srcPort)));
+        Assert.assertTrue(networkCtrl.canSendICMP(eth, dstPortId));
 
     }
 
@@ -836,8 +838,9 @@ public class TestNetworkController {
         byte[] dlDst = new byte[6];
         short inPortNum = 21;
         short outPortNum = 20;
-        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, inPortNum,
-                outPortNum, 0x0a020011);
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, portNumToIntId
+                .get((int) inPortNum), portNumToIntId.get((int) outPortNum),
+                0x0a020011);
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         Ethernet eth = TestRouter.makeUDP(dlSrc, dlDst, 0x0a020133, 0x0a020011,
                 (short) 101, (short) 212, payload);
@@ -934,8 +937,9 @@ public class TestNetworkController {
         byte[] dlDst = new byte[6];
         short inPortNum = 21;
         short outPortNum = 20;
-        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, inPortNum,
-                outPortNum, 0x0a020011);
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, portNumToIntId
+                .get((int) inPortNum), portNumToIntId.get((int) outPortNum),
+                0x0a020011);
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         Ethernet eth = TestRouter.makeUDP(dlSrc, dlDst, 0x0a020133, 0x0a020011,
                 (short) 101, (short) 212, payload);
@@ -989,7 +993,8 @@ public class TestNetworkController {
         dlSrc = new byte[6];
         dlDst = new byte[6];
         NetworkController.setDlHeadersForTunnel(dlSrc, dlDst,
-                NetworkController.ICMP_TUNNEL, 21, 0x0a020133);
+                NetworkController.ICMP_TUNNEL, portNumToIntId.get(21),
+                0x0a020133);
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
                 IPv4.class.cast(eth.getPayload()), dlSrc, dlDst, 0x0a020101,
                 0x0a020133, pkt.data);
@@ -1011,12 +1016,12 @@ public class TestNetworkController {
         byte[] dlSrc = new byte[6];
         byte[] dlDst = new byte[6];
         short tunnelPort = 1;
-        short inPort = 334;
         short outPort = 20;
         int dstNwAddr = 0x0a020034;
         // The source ip address must be on router0's second port.
         int srcNwAddr = 0x0a0001c5;
-        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, inPort, outPort,
+        NetworkController.setDlHeadersForTunnel(dlSrc, dlDst, ShortUUID
+                .UUID32toInt(portOn2to0), portNumToIntId.get((int) outPort),
                 dstNwAddr);
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         Ethernet eth = TestRouter.makeUDP(dlSrc, dlDst, srcNwAddr, dstNwAddr,
@@ -1060,7 +1065,8 @@ public class TestNetworkController {
         dlSrc = new byte[6];
         dlDst = new byte[6];
         NetworkController.setDlHeadersForTunnel(dlSrc, dlDst,
-                NetworkController.ICMP_TUNNEL, tunnelPort, srcNwAddr);
+                NetworkController.ICMP_TUNNEL, portNumToIntId
+                        .get((int) tunnelPort), srcNwAddr);
         // Note that router2's logical port is the source of the ICMP
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
                 IPv4.class.cast(eth.getPayload()), dlSrc, dlDst,
@@ -1146,28 +1152,29 @@ public class TestNetworkController {
                 nwAddr);
         DecodedMacAddrs decoded = NetworkController
                 .decodeMacAddrs(dlSrc, dlDst);
-        Assert.assertEquals(inPort, PortDirectory
+        Assert.assertEquals(inPort, ShortUUID
                 .UUID32toInt(decoded.lastIngressPortId));
-        Assert.assertEquals(outPort, PortDirectory
+        Assert.assertEquals(outPort, ShortUUID
                 .UUID32toInt(decoded.lastEgressPortId));
         Assert.assertEquals(nwAddr, decoded.gatewayNwAddr);
     }
 
     private void addUplink() throws IOException, KeeperException,
-            InterruptedException {
+            InterruptedException, ZkStateSerializationException {
         // Add an uplink to router0.
-        uplinkId = PortDirectory.intTo32BitUUID(26473345);
+        uplinkId = ShortUUID.intTo32BitUUID(26473345);
         Set<Route> routes = new HashSet<Route>();
         int p2pUplinkNwAddr = 0xc0a80004;
         uplinkGatewayAddr = p2pUplinkNwAddr + 1;
         uplinkPortAddr = p2pUplinkNwAddr + 2;
-        Route rt = new Route(0, 0, 0, 0, NextHop.PORT, uplinkId,
-                uplinkGatewayAddr, 1, null, null);
-        routes.add(rt);
-        PortConfig portConfig = new MaterializedRouterPortConfig(routerIds
-                .get(0), p2pUplinkNwAddr, 30, uplinkPortAddr, routes,
+
+        PortDirectory.PortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
+                routerIds.get(0), p2pUplinkNwAddr, 30, uplinkPortAddr, null,
                 0xc0a80004, 30, null);
-        portDir.addPort(uplinkId, portConfig);
+        uplinkId = portMgr.create(portConfig);
+        Route rt = new Route(0, 0, 0, 0, NextHop.PORT, uplinkId,
+                uplinkGatewayAddr, 1, null, routerIds.get(0));
+        routeMgr.create(rt);
         ovsdb.setPortExternalId(datapathId, 897, "midonet", uplinkId.toString());
         uplinkPhyPort = new OFPhysicalPort();
         uplinkPhyPort.setPortNumber((short) 897);
@@ -1178,10 +1185,9 @@ public class TestNetworkController {
                 OFPortStatus.OFPortReason.OFPPR_ADD);
     }
 
-    @Ignore
     @Test
     public void testDnat() throws IOException, KeeperException,
-            InterruptedException {
+            InterruptedException, ZkStateSerializationException {
         // First add the uplink to router0.
         addUplink();
         // Now add a dnat rule to map 0x808e0005:80 to 0x0a010009:10080, an
@@ -1190,6 +1196,8 @@ public class TestNetworkController {
         short natPublicTpPort = 80;
         int natPrivateNwAddr = 0x0a010009;
         short natPrivateTpPort = 10080;
+        UUID chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
+                routerIds.get(0)));
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(natPrivateNwAddr, natPrivateNwAddr,
                 natPrivateTpPort, natPrivateTpPort));
@@ -1201,9 +1209,9 @@ public class TestNetworkController {
         cond.nwDstLength = 32;
         cond.tpDstStart = natPublicTpPort;
         cond.tpDstEnd = natPublicTpPort;
-        List<Rule> chain = new Vector<Rule>();
-        chain.add(new ForwardNatRule(cond, nats, Action.ACCEPT, true /* dnat */));
-        routerDir.addRuleChain(routerIds.get(0), Router.PRE_ROUTING, chain);
+        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 0,
+                true /* dnat */, nats);
+        ruleMgr.create(r);
         cond = new Condition();
         cond.outPortIds = new HashSet<UUID>();
         cond.outPortIds.add(uplinkId);
@@ -1212,9 +1220,10 @@ public class TestNetworkController {
         cond.nwSrcLength = 32;
         cond.tpSrcStart = natPrivateTpPort;
         cond.tpSrcEnd = natPrivateTpPort;
-        chain.clear();
-        chain.add(new ReverseNatRule(cond, Action.ACCEPT, true /* dnat */));
-        routerDir.addRuleChain(routerIds.get(0), Router.POST_ROUTING, chain);
+        chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
+                routerIds.get(0)));
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 0, true /* dnat */);
+        ruleMgr.create(r);
 
         // Now send a packet into the uplink directed to the natted addr/port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -1335,15 +1344,16 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 13131, true, actions);
     }
 
-    @Ignore
     @Test
     public void testSnat() throws IOException, KeeperException,
-            InterruptedException {
+            InterruptedException, ZkStateSerializationException {
         // First add the uplink to router0.
         addUplink();
         // Now add a snat rule to map source addresses on router2
         // (0x0a020000/16) to public address 0x808e0005 for any packet that
         // is going outside 0x0a000000/8.
+        UUID chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
+                routerIds.get(0)));
         int natPublicNwAddr = 0x808e0005;
         int natPrivateNwAddr = 0x0a020000;
         Set<NatTarget> nats = new HashSet<NatTarget>();
@@ -1361,8 +1371,9 @@ public class TestNetworkController {
         cond.nwDstIp = 0x0a000000;
         cond.nwDstLength = 8;
         cond.nwDstInv = true;
-        List<Rule> chain = new Vector<Rule>();
-        chain.add(new ForwardNatRule(cond, nats, Action.ACCEPT, false /* snat */));
+        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 0,
+                false /* snat */, nats);
+        ruleMgr.create(r);
         // Make another post-routing rule that drops packets that ingress the
         // uplink and would also egress the uplink.
         cond = new Condition();
@@ -1370,8 +1381,11 @@ public class TestNetworkController {
         cond.inPortIds.add(uplinkId);
         cond.outPortIds = new HashSet<UUID>();
         cond.outPortIds.add(uplinkId);
-        chain.add(new LiteralRule(cond, Action.DROP));
-        routerDir.addRuleChain(routerIds.get(0), Router.POST_ROUTING, chain);
+        r = new LiteralRule(cond, Action.DROP, chainId, 1);
+        ruleMgr.create(r);
+
+        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING, routerIds
+                .get(0)));
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);
@@ -1381,9 +1395,8 @@ public class TestNetworkController {
         cond.nwSrcInv = true;
         cond.nwDstIp = natPublicNwAddr;
         cond.nwDstLength = 32;
-        chain.clear();
-        chain.add(new ReverseNatRule(cond, Action.ACCEPT, false /* snat */));
-        routerDir.addRuleChain(routerIds.get(0), Router.PRE_ROUTING, chain);
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 0, false /* snat */);
+        ruleMgr.create(r);
 
         // Send a packet into the uplink directed to the natted addr/port.
         // This packet will be dropped since it won't find any reverse snat

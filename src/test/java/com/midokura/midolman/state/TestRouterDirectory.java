@@ -24,7 +24,7 @@ import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.midolman.state.RouterDirectory.RouterConfig;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 public class TestRouterDirectory {
 

@@ -282,9 +282,9 @@ public class BridgeZkManager extends ZkManager {
         GreZkManager greZkManager = new GreZkManager(zk, basePath);
 
         // Delete the ports
-        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
+        List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> portEntries = portZkManager
                 .listBridgePorts(entry.key);
-        for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
+        for (ZkNodeEntry<UUID, PortDirectory.PortConfig> portEntry : portEntries) {
             ops.addAll(portZkManager.prepareBridgePortDelete(portEntry));
         }
         ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
