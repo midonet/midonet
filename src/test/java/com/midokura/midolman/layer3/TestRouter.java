@@ -724,7 +724,9 @@ public class TestRouter {
         cond = new Condition();
         cond.nwDstIp = 0x0a000205;
         cond.nwDstLength = 32;
-        postChain.add(new LiteralRule(cond, RuleResult.Action.REJECT));
+        r = new LiteralRule(cond, RuleResult.Action.REJECT, postChainId, i);
+        i++;
+        ruleMgr.create(r);
         // Try to reverse dnat udp packets from 10.0.2.6/32.
         cond = new Condition();
         cond.nwProto = UDP.PROTOCOL_NUMBER;
@@ -831,7 +833,6 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
     }
 
-    @Ignore
     @Test
     public void testFilterBadDestinations() throws IOException,
             KeeperException, InterruptedException,
