@@ -92,12 +92,12 @@ public class RouterDataAccessor extends DataAccessor {
 		return convertToRouter(getRouterZkManager().getMgmt(id));
 	}
 
-	public PeerRouterLink getPeerRouterLink(UUID routerId, PeerRouterLink peer)
+	public PeerRouterLink getPeerRouterLink(UUID routerId, UUID peerRouterId)
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException, Exception {
 		PeerRouterLink peerRouter = convertToPeerRouterLink(getRouterZkManager()
-				.getPeerRouterLink(routerId, peer.getPeerRouterId()));
-		peerRouter.setPeerRouterId(peer.getPeerRouterId());
+				.getPeerRouterLink(routerId, peerRouterId));
+		peerRouter.setPeerRouterId(peerRouterId);
 		return peerRouter;
 	}
 

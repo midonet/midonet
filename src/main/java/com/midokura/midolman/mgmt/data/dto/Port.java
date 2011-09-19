@@ -20,6 +20,7 @@ public class Port {
 
     private UUID id = null;
     private UUID deviceId = null;
+    private UUID vifId = null;
 
     /**
      * Get port ID.
@@ -58,4 +59,18 @@ public class Port {
     public void setDeviceId(UUID deviceId) {
         this.deviceId = deviceId;
     }
+
+	/**
+	 * @return the vifId
+	 */
+	public UUID getVifId() {
+		return vifId;
+	}
+
+	/**
+	 * @param vifId the vifId to set
+	 */
+	public void setVifId(UUID vifId) {
+		this.vifId = vifId;
+	}
 }

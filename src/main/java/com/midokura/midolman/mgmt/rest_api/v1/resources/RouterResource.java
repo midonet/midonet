@@ -72,6 +72,14 @@ public class RouterResource extends RestResource {
 	}
 
 	/**
+	 * Router resource locator for routers
+	 */
+	@Path("/{id}/routers")
+	public RouterRouterResource getRouterResource(@PathParam("id") UUID id) {
+		return new RouterRouterResource(zookeeperConn, id);
+	}
+
+	/**
 	 * Get the Router with the given ID.
 	 * 
 	 * @param id
@@ -96,25 +104,6 @@ public class RouterResource extends RestResource {
 					MediaType.APPLICATION_JSON).build());
 		}
 		return router;
-	}
-
-	@GET
-	@Path("{id}/link")
-	@Produces(MediaType.APPLICATION_JSON)
-	public PeerRouterLink getPeerRouterLink(@PathParam("id") UUID id,
-			PeerRouterLink peer) {
-		RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		PeerRouterLink link = null;
-		try {
-			link = dao.getPeerRouterLink(id, peer);
-		} catch (Exception ex) {
-			log.error("Error getting router link", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
-		}
-		return link;
 	}
 
 	@PUT
@@ -216,5 +205,44 @@ public class RouterResource extends RestResource {
 			URI uri = uriInfo.getBaseUriBuilder().path("routers/" + id).build();
 			return Response.created(uri).build();
 		}
+	}
+	
+	/**
+	 * Sub-resource class for router's peer router.
+	 */
+	public static class RouterRouterResource extends RestResource {
+
+		private UUID routerId = null;
+
+		/**
+		 * Default constructor.
+		 * 
+		 * @param zkConn
+		 *            Zookeeper connection string.
+		 * @param routerId
+		 *            UUID of a router.
+		 */
+		public RouterRouterResource(String zkConn, UUID routerId) {
+			this.zookeeperConn = zkConn;
+			this.routerId = routerId;
+		}
+		
+		@GET
+		@Path("{id}")
+		@Produces(MediaType.APPLICATION_JSON)
+		public PeerRouterLink get(@PathParam("id") UUID id) {
+			RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			PeerRouterLink link = null;
+			try {
+				link = dao.getPeerRouterLink(routerId, id);
+			} catch (Exception ex) {
+				log.error("Error getting router link", ex);
+				throw new WebApplicationException(ex, Response.status(
+						Response.Status.INTERNAL_SERVER_ERROR).type(
+						MediaType.APPLICATION_JSON).build());
+			}
+			return link;
+		}	
 	}
 }

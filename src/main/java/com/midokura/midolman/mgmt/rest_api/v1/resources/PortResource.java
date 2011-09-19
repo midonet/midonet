@@ -12,6 +12,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -84,7 +85,41 @@ public class PortResource extends RestResource {
 					MediaType.APPLICATION_JSON).build());
 		}
 	}
+	
+	@PUT
+	@Path("{id}/plug")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response plug(@PathParam("id") UUID id, Port port) {
+		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.attachVif(id, port);
+		} catch (Exception ex) {
+			log.error("Error attaching VIF", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+		return Response.ok().build();
+	}
 
+	@PUT
+	@Path("{id}/unplug")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response unplug(@PathParam("id") UUID id) {
+		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		try {
+			dao.detachVif(id);
+		} catch (Exception ex) {
+			log.error("Error detaching VIF", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+		return Response.ok().build();
+	}
+	
 	public static class BridgePortResource extends RestResource {
 
 		private UUID bridgeId = null;
