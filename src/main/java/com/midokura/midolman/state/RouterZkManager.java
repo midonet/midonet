@@ -107,7 +107,7 @@ public class RouterZkManager extends ZkManager {
         // Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
- 
+
     /**
      * Performs an atomic update on the ZooKeeper to add a new router entry.
      * 
@@ -129,7 +129,7 @@ public class RouterZkManager extends ZkManager {
         zk.multi(prepareRouterCreate(routerNode));
         return id;
     }
-    
+
     /**
      * Gets a ZooKeeper node entry key-value pair of a router with the given ID.
      * 
@@ -231,10 +231,10 @@ public class RouterZkManager extends ZkManager {
     }
 
     /**
-     * Updates the BridgeConfig values with the given BridgeConfig object.
+     * Updates the RouterConfig values with the given RouterConfig object.
      * 
      * @param entry
-     *            BridgeConfig object to save.
+     *            RouterConfig object to save.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException

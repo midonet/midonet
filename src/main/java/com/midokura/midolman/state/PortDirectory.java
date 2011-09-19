@@ -58,12 +58,18 @@ public class PortDirectory {
 
     public static abstract class PortConfig {
         private PortConfig(UUID device_id) {
+            this(device_id, null);
+        }
+
+        private PortConfig(UUID device_id, UUID vifId) {
             super();
             this.device_id = device_id;
+            this.vifId = vifId;
         }
         // Default constructor for the Jackson deserialization.
         private PortConfig() { super(); }
         public UUID device_id;
+        public UUID vifId;
     }
 
     public static class BridgePortConfig extends PortConfig {

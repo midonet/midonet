@@ -64,6 +64,25 @@ public class ZkPathManager {
     }
 
     /**
+     * Get VIF path.
+     * 
+     * @return /vifs
+     */
+    public String getVifsPath() {
+        return new StringBuilder(basePath).append("/vifs").toString();
+    }
+
+    /**
+     * Get VIF path.
+     * 
+     * @return /vifs/vifId
+     */
+    public String getVifPath(UUID vifId) {
+        return new StringBuilder(getVifsPath()).append("/").append(vifId)
+                .toString();
+    }
+
+    /**
      * Get ZK tenant path.
      * 
      * @return /tenants
