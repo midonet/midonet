@@ -32,11 +32,11 @@ public class BridgeController extends AbstractController {
     Logger log = LoggerFactory.getLogger(BridgeController.class);
 
     PortToIntNwAddrMap port_locs;
-    MacPortMap mac_to_port;
+    MacPortMap macPortMap;
     long mac_port_timeout;
     Reactor reactor;
 
-    // The delayed deletes for mac_to_port.
+    // The delayed deletes for macPortMap.
     HashMap<byte[], UUID> delayedDeletes;
 
     HashMap<MacPort, Integer> flowCount;
@@ -83,23 +83,23 @@ public class BridgeController extends AbstractController {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
               flowExpireMillis, flowExpireMillis, idleFlowExpireMillis,
               publicIp, externalIdKey);
-        mac_to_port = mac_port_map;
+        macPortMap = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
         delayedDeletes = new HashMap<byte[], UUID>();
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
-        mac_to_port.addWatcher(macToPortWatcher);
+        macPortMap.addWatcher(macToPortWatcher);
         this.reactor = reactor;
     }
 
     @Override
     public void clear() {
         port_locs.stop();
-        mac_to_port.stop();
+        macPortMap.stop();
         // .stop() includes a .clear() of the underlying map, so we don't
         // need to clear out the entries here.
-        mac_to_port.removeWatcher(macToPortWatcher);
+        macPortMap.removeWatcher(macToPortWatcher);
         // FIXME(jlm): Clear all flows.
     }
 
@@ -120,6 +120,16 @@ public class BridgeController extends AbstractController {
         byte[] dstDlAddress = capturedPacket.getDestinationMACAddress();
         log.debug("Packet recv'd on port {} destination {}",
                   inPort, Net.convertByteMacToString(dstDlAddress));
+        UUID outPort = macPortMap.get(dstDlAddress);
+        log.debug(outPort == null ? "no port found for MAC"
+                                  : "MAC is on port " + outPort.toString());
+        short localPortNum;
+        int destIP;
+
+        if (outPort != null) {
+            localPortNum = portUuidToNumberMap.get(outPort).shortValue();
+        }
+
     }
 
     private void invalidateFlowsFromMac(byte[] mac) {
