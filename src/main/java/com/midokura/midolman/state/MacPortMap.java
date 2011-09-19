@@ -4,6 +4,9 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.util.Net;
+
 public class MacPortMap extends ReplicatedMap<byte[], UUID> {
 
     public MacPortMap(Directory dir) {
@@ -12,21 +15,12 @@ public class MacPortMap extends ReplicatedMap<byte[], UUID> {
 
     @Override
     protected String encodeKey(byte[] key) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%02x", key[0]));
-        for (int i=1; i<key.length; i++)
-            sb.append(":").append(String.format("%02x", key[0]));
-        return sb.toString();
-        // TODO: Test this.
+        return Net.convertByteMacToString(key);
     }
 
     @Override
     protected byte[] decodeKey(String str) {
-        String[] parts = str.split(":");
-        byte[] mac = new byte[parts.length];
-        for (int i=0; i<parts.length; i++)
-            mac[i] = Byte.parseByte(parts[i], 16);
-        return mac;
+        return Ethernet.toMACAddress(str);
         // TODO: Test this.
     }
 

@@ -79,4 +79,21 @@ public class Net {
         return num;
     }
 
+    /**
+     * Converts byte array MAC address to String.
+     *
+     * @param address
+     *            MAC address as byte array.
+     * @return MAC address as String.
+     */
+    public static String convertByteMacToString(byte[] address) {
+        assert address.length == 6;
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%02x", address[0]));
+        for (int i=1; i<address.length; i++)
+            sb.append(":").append(String.format("%02x", address[i]));
+        return sb.toString();
+        // TODO: Test this.
+    }
+
 }

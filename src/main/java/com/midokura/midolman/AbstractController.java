@@ -205,7 +205,7 @@ public abstract class AbstractController implements Controller {
      * can be reached, if any. */
     public Integer portUuidToTunnelPortNumber(UUID port_uuid) {
         Integer intAddress = portLocMap.get(port_uuid);
-        if(intAddress == null)
+        if (intAddress == null)
             return null;
         InetAddress peerIp = Net.convertIntToInetAddress(intAddress);
         return peerIpToTunnelPortNum.get(peerIp);
