@@ -1510,7 +1510,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal.getTextValue
             }
         }
-        return ""
+        return null
     }
 
     /**
@@ -1534,7 +1534,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal.getTextValue
             }
         }
-        return ""
+        return null
     }
 
     private def getPortExternalId(
@@ -1591,7 +1591,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 }
             }
         }
-        return ""
+        return null
     }
 
     /**
@@ -1615,7 +1615,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal.getTextValue
             }
         }
-        return ""
+        return null
     }
 
     /**
