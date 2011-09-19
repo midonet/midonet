@@ -20,9 +20,11 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.util.Net;
 
 
 public class BridgeController extends AbstractController {
@@ -111,8 +113,13 @@ public class BridgeController extends AbstractController {
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort,
-            byte[] data) {
-        // TODO Auto-generated method stub
+                           byte[] data) {
+        Ethernet capturedPacket = new Ethernet();
+        capturedPacket.deserialize(data, 0, data.length);
+        byte[] srcDlAddress = capturedPacket.getSourceMACAddress();
+        byte[] dstDlAddress = capturedPacket.getDestinationMACAddress();
+        log.debug("Packet recv'd on port {} destination {}",
+                  inPort, Net.convertByteMacToString(dstDlAddress));
     }
 
     private void invalidateFlowsFromMac(byte[] mac) {
