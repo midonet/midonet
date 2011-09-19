@@ -65,6 +65,20 @@ public class RouterZkManager extends ZkManager {
 		this(new ZkDirectory(zk, "", null), basePath);
 	}
 
+	public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
+			throws KeeperException, InterruptedException,
+			ZkStateSerializationException {
+		byte[] data = zk.get(pathManager.getRouterRouterPath(routerId,
+				peerRouterId), null);
+		try {
+			return deserialize(data, PeerRouterConfig.class);
+		} catch (IOException e) {
+			throw new ZkStateSerializationException(
+					"Could not deserialize peer router " + routerId
+							+ " to PeerRouterConfig", e, PeerRouterConfig.class);
+		}
+	}
+
 	/**
 	 * Constructs a list of ZooKeeper update operations to perform when adding a
 	 * new router.
@@ -94,10 +108,10 @@ public class RouterZkManager extends ZkManager {
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 		ops.add(Op.create(pathManager.getRouterRoutersPath(id), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-                ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id),
-                        null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-                ops.add(Op.create(pathManager.getRouterRoutingTablePath(id),
-                        null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+		ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
+				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+		ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
+				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
 		return ops;
 	}
@@ -195,39 +209,39 @@ public class RouterZkManager extends ZkManager {
 		this.zk.multi(prepareRouterDelete(id));
 	}
 
-        public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
-                throws KeeperException, InterruptedException {
-            StringBuilder sb = new StringBuilder(
-                    pathManager.getRouterSnatBlocksPath(routerId));
-            sb.append("/").append(Integer.toHexString(ip));
-            TreeSet<Short> ports = new TreeSet<Short>();
-            Set<String> blocks = null;
-            try {
-                blocks = zk.getChildren(sb.toString(), null);
-            } catch (NoNodeException e) {
-                return ports;
-            }
-            for (String str : blocks)
-                ports.add((short) Integer.parseInt(str));
-            return ports;
-        }
-        
-        public void addSnatReservation(UUID routerId, int ip, short startPort)
-                throws KeeperException, InterruptedException {
-            StringBuilder sb = new StringBuilder(
-                    pathManager.getRouterSnatBlocksPath(routerId));
-            sb.append("/").append(Integer.toHexString(ip));
-            try {
-                zk.add(sb.toString(), null, CreateMode.PERSISTENT);
-            } catch (NodeExistsException e) {
-            }
-            sb.append("/").append(startPort);
-            zk.add(sb.toString(), null, CreateMode.EPHEMERAL);
-        }
-        
-        public Directory getRoutingTableDirectory(UUID routerId)
-                throws KeeperException {
-            return zk.getSubDirectory(pathManager.getRouterRoutingTablePath(
-                    routerId));
-        }
+	public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
+			throws KeeperException, InterruptedException {
+		StringBuilder sb = new StringBuilder(pathManager
+				.getRouterSnatBlocksPath(routerId));
+		sb.append("/").append(Integer.toHexString(ip));
+		TreeSet<Short> ports = new TreeSet<Short>();
+		Set<String> blocks = null;
+		try {
+			blocks = zk.getChildren(sb.toString(), null);
+		} catch (NoNodeException e) {
+			return ports;
+		}
+		for (String str : blocks)
+			ports.add((short) Integer.parseInt(str));
+		return ports;
+	}
+
+	public void addSnatReservation(UUID routerId, int ip, short startPort)
+			throws KeeperException, InterruptedException {
+		StringBuilder sb = new StringBuilder(pathManager
+				.getRouterSnatBlocksPath(routerId));
+		sb.append("/").append(Integer.toHexString(ip));
+		try {
+			zk.add(sb.toString(), null, CreateMode.PERSISTENT);
+		} catch (NodeExistsException e) {
+		}
+		sb.append("/").append(startPort);
+		zk.add(sb.toString(), null, CreateMode.EPHEMERAL);
+	}
+
+	public Directory getRoutingTableDirectory(UUID routerId)
+			throws KeeperException {
+		return zk.getSubDirectory(pathManager
+				.getRouterRoutingTablePath(routerId));
+	}
 }
