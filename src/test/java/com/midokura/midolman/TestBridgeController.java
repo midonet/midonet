@@ -249,6 +249,10 @@ public class TestBridgeController {
                            Net.convertStringAddressToInt(peerStrList[i]));
             macPortMap.put(macList[i], portUuids[i]);
         }
-        // TODO: Call controller.addPort on all ports.
+
+        // Call controller.addPort on all ports.
+        for (int i = 0; i < 8; i++) {
+            controller.addPort(phyPorts[i], (short)i);
+        }
     }
 }
