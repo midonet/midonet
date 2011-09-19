@@ -13,7 +13,7 @@
 package com.midokura.midolman.quagga
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection
-import com.midokura.midolman.state.PortDirectory
+import com.midokura.midolman.state.{PortZkManager, RouteZkManager}
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig
 import com.midokura.midolman.layer3.Route
 
@@ -204,14 +204,15 @@ object ZebraConnection {
     private final val log = LoggerFactory.getLogger(this.getClass)
 }
 
-class ZebraConnection(val dispatcher: Actor, val portDir: PortDirectory,
+class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
+                      val routeMgr: RouteZkManager,
                       val ovsdb: OpenvSwitchDatabaseConnection) extends Actor {
     import ZebraConnection._
 
     // Map to get port uuid from route type.
     private val ribTypeToPortUUID = mutable.Map[Int, String]()
     // Map to track zebra route and MidoNet Route.
-    private val zebraToRoute = mutable.Map[String, Route]()
+    private val zebraToRoute = mutable.Map[String, UUID]()
 
     implicit def inputStreamWrapper(in: InputStream) =
         new DataInputStream(in)
@@ -246,11 +247,11 @@ class ZebraConnection(val dispatcher: Actor, val portDir: PortDirectory,
                 }
                 assert(portUUID.nonEmpty)
 
-                val portConfig = portDir.synchronized {
-                    portDir.getPortConfig(
-                        UUID.fromString(portUUID),
-                        null, null).asInstanceOf[MaterializedRouterPortConfig]
+                val portNode = portMgr.synchronized {
+                    portMgr.get(UUID.fromString(portUUID))
                 }
+                val portConfig =
+                    portNode.value.asInstanceOf[MaterializedRouterPortConfig]
 
                 // Create a map to get port uuid from route type. Note that
                 // this implementation will limit that each protocol can
@@ -364,18 +365,19 @@ class ZebraConnection(val dispatcher: Actor, val portDir: PortDirectory,
                                         prefix(1) << 16 |
                                         prefix(2) << 8  |
                                         prefix(3)
-                        val port = portDir.getPortConfigNoRoutes(
-                            UUID.fromString(portUUID), null)
+                        val portNode = portMgr.synchronized {
+                            portMgr.get(UUID.fromString(portUUID))
+                        }
+                        val port = portNode.value
                         if (port.isInstanceOf[MaterializedRouterPortConfig]) {
                             val route = new Route(
                                 0, 0, dstPrefix, prefixLen, Route.NextHop.PORT,
                                 UUID.fromString(portUUID), addr,
                                 AdvertisedWeight, "", port.device_id)
-                            portDir.synchronized {
+                            routeMgr.synchronized {
                                 try {
-                                    portDir.addRoutes(UUID.fromString(portUUID),
-                                                      Set(route))
-                                    zebraToRoute(advertised) = route
+                                    val routeUUID = routeMgr.create(route)
+                                    zebraToRoute(advertised) = routeUUID
                                 } catch {
                                     case e: NodeExistsException =>
                                         { log.warn("node already exists") }
@@ -426,18 +428,17 @@ class ZebraConnection(val dispatcher: Actor, val portDir: PortDirectory,
                             nextHopType, addr))
                     // Delete Route.
                     for (portUUID <- ribTypeToPortUUID.get(ribType)) {
-                        val route = zebraToRoute(advertised)
-                        portDir.synchronized {
-                            try {
-                                portDir.removeRoutes(UUID.fromString(portUUID),
-                                                     Set(route))
-                                if (zebraToRoute.contains(advertised)) {
-                                    zebraToRoute.remove(advertised)
+                        if (zebraToRoute.contains(advertised)) {
+                            val routeUUID = zebraToRoute(advertised)
+                            routeMgr.synchronized {
+                                try {
+                                    routeMgr.delete(routeUUID)
+                                } catch {
+                                    case e: NoNodeException =>
+                                        { log.warn("no such node") }
                                 }
-                            } catch {
-                                case e: NoNodeException =>
-                                { log.warn("no such node") }
                             }
+                            zebraToRoute.remove(advertised)
                         }
                     }
                 }
@@ -596,7 +597,7 @@ class ZebraConnection(val dispatcher: Actor, val portDir: PortDirectory,
 }
 
 class ZebraServer(val server: ServerSocket, val address: SocketAddress,
-                  val portDir: PortDirectory,
+                  val portMgr: PortZkManager, val routeMgr: RouteZkManager,
                   val ovsdb: OpenvSwitchDatabaseConnection) {
 
     private final val log = LoggerFactory.getLogger(this.getClass)
@@ -609,7 +610,8 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
     val dispatcher = actor {
 
         def addZebraConn(dispatcher: Actor) = {
-            val zebraConn = new ZebraConnection(dispatcher, portDir, ovsdb)
+            val zebraConn = new ZebraConnection(dispatcher, portMgr, routeMgr,
+                                                ovsdb)
             zebraConnPool += zebraConn
             zebraConn.start
         }
