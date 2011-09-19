@@ -9,8 +9,7 @@
 
 package com.midokura.midolman.quagga
 
-import com.midokura.midolman.state.{AdRouteZkManager, BGP, BgpZkManager,
-                                    PortDirectory, ZkManager}
+import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager}
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
 import com.midokura.midolman.layer3.Route
