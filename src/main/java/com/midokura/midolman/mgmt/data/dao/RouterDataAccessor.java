@@ -9,12 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
+
 import com.midokura.midolman.mgmt.data.ZookeeperService;
+import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.state.MgmtRouterZkManager;
 import com.midokura.midolman.mgmt.data.state.MgmtRouterZkManager.RouterMgmtConfig;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.RouterZkManager.PeerRouterConfig;
 
 /**
  * Data access class for router.
@@ -54,6 +59,14 @@ public class RouterDataAccessor extends DataAccessor {
 		return router;
 	}
 
+	private static PeerRouterLink convertToPeerRouterLink(
+			PeerRouterConfig config) {
+		PeerRouterLink link = new PeerRouterLink();
+		link.setPortId(config.portId);
+		link.setPeerPortId(config.peerPortId);
+		return link;
+	}
+
 	private static Router convertToRouter(
 			ZkNodeEntry<UUID, RouterMgmtConfig> entry) {
 		Router r = convertToRouter(entry.value);
@@ -77,6 +90,15 @@ public class RouterDataAccessor extends DataAccessor {
 	public Router get(UUID id) throws Exception {
 		// TODO: Throw NotFound exception here.
 		return convertToRouter(getRouterZkManager().getMgmt(id));
+	}
+
+	public PeerRouterLink getPeerRouterLink(UUID routerId, PeerRouterLink peer)
+			throws KeeperException, InterruptedException,
+			ZkStateSerializationException, Exception {
+		PeerRouterLink peerRouter = convertToPeerRouterLink(getRouterZkManager()
+				.getPeerRouterLink(routerId, peer.getPeerRouterId()));
+		peerRouter.setPeerRouterId(peer.getPeerRouterId());
+		return peerRouter;
 	}
 
 	/**

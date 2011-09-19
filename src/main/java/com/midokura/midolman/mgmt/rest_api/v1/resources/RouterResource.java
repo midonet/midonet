@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RouterDataAccessor;
+import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterChainResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
@@ -95,6 +96,25 @@ public class RouterResource extends RestResource {
 					MediaType.APPLICATION_JSON).build());
 		}
 		return router;
+	}
+
+	@GET
+	@Path("{id}/link")
+	@Produces(MediaType.APPLICATION_JSON)
+	public PeerRouterLink getPeerRouterLink(@PathParam("id") UUID id,
+			PeerRouterLink peer) {
+		RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+		PeerRouterLink link = null;
+		try {
+			link = dao.getPeerRouterLink(id, peer);
+		} catch (Exception ex) {
+			log.error("Error getting router link", ex);
+			throw new WebApplicationException(ex, Response.status(
+					Response.Status.INTERNAL_SERVER_ERROR).type(
+					MediaType.APPLICATION_JSON).build());
+		}
+		return link;
 	}
 
 	@PUT
