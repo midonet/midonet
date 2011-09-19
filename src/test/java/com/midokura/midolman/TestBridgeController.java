@@ -17,6 +17,7 @@ import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectLoop;
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
@@ -68,8 +69,19 @@ public class TestBridgeController {
     Ethernet packet70 = makePacket(macList[7], macList[0]);
     Ethernet packetMC0 = makePacket(macList[8], macList[0]);
 
-    // Flowmods
-    //XXX
+    // Flow matches
+    MidoMatch flowmatch01 = makeFlowMatch(macList[0], macList[1]);
+    MidoMatch flowmatch03 = makeFlowMatch(macList[0], macList[3]);
+    MidoMatch flowmatch04 = makeFlowMatch(macList[0], macList[4]);
+    MidoMatch flowmatch0MC = makeFlowMatch(macList[0], macList[8]);
+    MidoMatch flowmatch10 = makeFlowMatch(macList[1], macList[0]);
+    MidoMatch flowmatch13 = makeFlowMatch(macList[1], macList[3]);
+    MidoMatch flowmatch15 = makeFlowMatch(macList[1], macList[5]);
+    MidoMatch flowmatch20 = makeFlowMatch(macList[2], macList[0]);
+    MidoMatch flowmatch26 = makeFlowMatch(macList[2], macList[6]);
+    MidoMatch flowmatch27 = makeFlowMatch(macList[2], macList[7]);
+    MidoMatch flowmatch70 = makeFlowMatch(macList[7], macList[0]);
+    MidoMatch flowmatchMC0 = makeFlowMatch(macList[8], macList[0]);
 
 
     OFPhysicalPort[] phyPorts = {
@@ -87,19 +99,34 @@ public class TestBridgeController {
                              "192.168.1.55" };
 
     static Ethernet makePacket(byte[] srcMac, byte[] dstMac) {
-	ICMP icmpPacket = new ICMP();
-	icmpPacket.setEchoReply((short)0, (short)0, "echoechoecho".getBytes());
-	IPv4 ipPacket = new IPv4();
-	ipPacket.setPayload(icmpPacket);
-	ipPacket.setProtocol(ICMP.PROTOCOL_NUMBER);
-	ipPacket.setSourceAddress(0x11111111);
-	ipPacket.setDestinationAddress(0x21212121);
-	Ethernet packet = new Ethernet();
-	packet.setPayload(ipPacket);
-	packet.setDestinationMACAddress(dstMac);
-	packet.setSourceMACAddress(srcMac);
-	packet.setEtherType(IPv4.ETHERTYPE);
-	return packet;
+        ICMP icmpPacket = new ICMP();
+        icmpPacket.setEchoRequest((short)0, (short)0,
+                                  "echoechoecho".getBytes());
+        IPv4 ipPacket = new IPv4();
+        ipPacket.setPayload(icmpPacket);
+        ipPacket.setProtocol(ICMP.PROTOCOL_NUMBER);
+        ipPacket.setSourceAddress(0x11111111);
+        ipPacket.setDestinationAddress(0x21212121);
+        Ethernet packet = new Ethernet();
+        packet.setPayload(ipPacket);
+        packet.setDestinationMACAddress(dstMac);
+        packet.setSourceMACAddress(srcMac);
+        packet.setEtherType(IPv4.ETHERTYPE);
+        return packet;
+    }
+
+    static MidoMatch makeFlowMatch(byte[] srcMac, byte[] dstMac) {
+        MidoMatch match = new MidoMatch();
+        match.setDataLayerDestination(dstMac);
+        match.setDataLayerSource(srcMac);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setInputPort((short)1);
+        match.setNetworkDestination(0x21212121);
+        match.setNetworkSource(0x11111111);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setTransportSource((short)ICMP.TYPE_ECHO_REQUEST);
+        match.setTransportDestination((short)0);
+        return match;
     }
 
     @Before
