@@ -8,6 +8,8 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
@@ -124,12 +126,41 @@ public class BridgeController extends AbstractController {
         log.debug(outPort == null ? "no port found for MAC"
                                   : "MAC is on port " + outPort.toString());
         short localPortNum;
-        int destIP;
+        int destIP = 0;
+        OFAction[] actions;
 
         if (outPort != null) {
-            localPortNum = portUuidToNumberMap.get(outPort).shortValue();
+            try {
+                //localPortNum = portUuidToNumberMap.get(outPort).shortValue();
+                destIP = portLocMap.get(outPort).intValue();
+                log.debug("Destination port maps to host {}",
+                          Net.convertIntAddressToString(destIP));
+            } catch (NullPointerException e) {
+                log.warn("No host found for port {}", outPort);
+            }
         }
 
+        if (Ethernet.isMcast(srcDlAddress)) {
+            // If a multicast source MAC, drop the packet.
+            actions = new OFAction[] { };
+        } else if (Ethernet.isMcast(dstDlAddress) ||
+                   outPort == null ||
+                   destIP == 0 ||
+                   (destIP == publicIp && 
+                        !portUuidToNumberMap.containsKey(outPort))) {
+            // Flood if any of:
+            //  * multicast destination MAC
+            //  * destination port unknown (not in macPortMap)
+            //  * destIP (destination peer) unknown (not in portLocMap)
+            //  * destIP is local and no localPortNum in portUuidToNumberMap
+
+            OFPort output = isTunnelPortNum(inPort) ? OFPort.OFPP_FLOOD
+                                                    : OFPort.OFPP_ALL;
+            actions = new OFAction[] { new OFActionOutput(output.getValue(), 
+                                                          (short)0) };
+        }//XXX
+
+        //XXX
     }
 
     private void invalidateFlowsFromMac(byte[] mac) {
