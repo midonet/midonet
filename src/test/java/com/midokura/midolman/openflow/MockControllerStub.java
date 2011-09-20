@@ -80,6 +80,9 @@ public class MockControllerStub implements ControllerStub {
         addedFlows.add(new Flow(match, cookie, idleTimeoutSecs, priority,
                 bufferId, sendFlowRemove, checkOverlap, emergency, actions,
                 outPort));
+	if (bufferId != 0xffffffff && null != actions && 0 != actions.size()) {
+	    sentPackets.add(new Packet(bufferId, outPort, actions, new byte[] {}));
+	}
     }
 
     @Override

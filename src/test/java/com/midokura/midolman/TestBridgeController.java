@@ -279,6 +279,16 @@ public class TestBridgeController {
         assertArrayEquals(actions, flow.actions.toArray());
     }
 
+    void checkSentPacket(int bufferId, short inPort, OFAction[] actions,
+                         byte[] data) {
+        assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = controllerStub.sentPackets.get(0);
+        assertEquals(bufferId, sentPacket.bufferId);
+        assertEquals(inPort, sentPacket.inPort);
+        assertArrayEquals(actions, sentPacket.actions.toArray());
+        assertArrayEquals(data, sentPacket.data);
+    }
+
     @Test
     public void testPacketInWithNovelMac() {
         MidoMatch expectedMatch = flowmatch01.clone();
@@ -288,6 +298,6 @@ public class TestBridgeController {
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0) };
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
         checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
-        // TODO: Check sent packet.
+        checkSentPacket(14, inputPort, expectedActions, new byte[] {});
     }
 }

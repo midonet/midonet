@@ -154,6 +154,7 @@ public class BridgeController extends AbstractController {
         if (srcAddressIsMcast) {
             // If a multicast source MAC, drop the packet.
             actions = new OFAction[] { };
+            log.info("multicast src MAC, dropping packet");
         } else if (Ethernet.isMcast(dstDlAddress) ||
                    outPort == null ||
                    destIP == 0 ||
@@ -186,6 +187,7 @@ public class BridgeController extends AbstractController {
                 // be invalidated when the destination mac changes port_uuid 
                 // or the port_uuid changes location.
                 actions = new OFAction[] { };
+                log.info("tunnel looping, drop");
             } else {
                 short output;
                 try {
@@ -217,7 +219,7 @@ public class BridgeController extends AbstractController {
                             flowExpireSeconds /* unused */, flowPriority,
                             bufferId, true, false, false, actions,
                             inPort, data);
-        log.debug("installing flowmod at {}", new Date());
+        log.info("installing flowmod at {} with actions {}", new Date(), actions);
 
         // If the message didn't come from the tunnel port, learn the MAC 
         // source address.  We wait to learn a MAC-port mapping until 

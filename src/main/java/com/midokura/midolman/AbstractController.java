@@ -266,7 +266,7 @@ public abstract class AbstractController implements Controller {
          *          was deleted.
          */
 
-        log.info("PortLocationUpdate: {} moved from {} to {}",
+        log.debug("PortLocationUpdate: {} moved from {} to {}",
             new Object[] { 
                 portUuid, 
                 oldAddr == null ? "null" 
