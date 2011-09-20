@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.ChainDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
 
 /**
  * Root resource class for chains.
@@ -39,6 +40,14 @@ public class ChainResource extends RestResource {
 	private final static Logger log = LoggerFactory
 			.getLogger(ChainResource.class);
 
+	/**
+	 * Rule resource locator for chains
+	 */
+	@Path("/{id}/rules")
+	public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
+		return new ChainRuleResource(zookeeperConn, id);
+	}
+	
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
