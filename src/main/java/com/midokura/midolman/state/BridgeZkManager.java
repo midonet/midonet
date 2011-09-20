@@ -55,7 +55,7 @@ public class BridgeZkManager extends ZkManager {
 	}
 
 	public BridgeZkManager(ZooKeeper zk, String basePath) {
-		this(new ZkDirectory(zk, "", null), basePath);
+		this(new ZkDirectory(zk, "", Ids.OPEN_ACL_UNSAFE), basePath);
 	}
 
 	/**
