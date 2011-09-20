@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -138,7 +139,8 @@ public class BridgeController extends AbstractController {
             }
         }
 
-        if (Ethernet.isMcast(srcDlAddress)) {
+        boolean srcAddressIsMcast = Ethernet.isMcast(srcDlAddress);
+        if (srcAddressIsMcast) {
             // If a multicast source MAC, drop the packet.
             actions = new OFAction[] { };
         } else if (Ethernet.isMcast(dstDlAddress) ||
@@ -184,10 +186,40 @@ public class BridgeController extends AbstractController {
                 actions = new OFAction[] { new OFActionOutput(output,
                                                               (short)0) };
             }
-
         }
 
-        //XXX   dl_src_is_unicast = not ieee_802.is_mcast_eth(dl_src_address)
+        UUID inPortUuid = portNumToUuid.get(inPort);
+        UUID mappedPortUuid = macPortMap.get(srcDlAddress);
+        
+        if (!srcAddressIsMcast && inPortUuid != null &&
+                inPortUuid != mappedPortUuid) {
+            // The MAC changed port:  invalidate old flows before installing 
+            // a new flowmod for this MAC.
+            invalidateFlowsFromMac(srcDlAddress);
+            invalidateFlowsToMac(srcDlAddress);
+        }
+
+        // Set up a forwarding rule for packets in this flow, and forward 
+        // this packet.
+        OFMatch match = createMatchFromPacket(data, inPort);
+        //XXX addFlowAndPacketOut(match, 
+        log.debug("installing flowmod at {}", new Date());
+
+        // If the message didn't come from the tunnel port, learn the MAC 
+        // source address.  We wait to learn a MAC-port mapping until 
+        // there's a flow from the MAC because flows are used to 
+        // reference-count the mapping.
+        if (inPortUuid != null && !!srcAddressIsMcast)
+            increaseMacPortFlowCount(srcDlAddress, inPortUuid);
+    }
+
+    private OFMatch createMatchFromPacket(byte[] data, short inPort) {
+        return new MidoMatch();
+        // FIXME
+    }
+
+    private void increaseMacPortFlowCount(byte[] macAddr, UUID portUuid) {
+        // FIXME
     }
 
     private void invalidateFlowsFromMac(byte[] mac) {
