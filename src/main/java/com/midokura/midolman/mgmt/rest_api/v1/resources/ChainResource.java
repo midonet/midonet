@@ -104,8 +104,9 @@ public class ChainResource extends RestResource {
 			chain.setRouterId(routerId);
 			ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			UUID id = null;
 			try {
-				dao.create(chain);
+				id = dao.create(chain);
 			} catch (Exception ex) {
 				log.error("Error creating chain", ex);
 				throw new WebApplicationException(ex, Response.status(
@@ -113,8 +114,7 @@ public class ChainResource extends RestResource {
 						MediaType.APPLICATION_JSON).build());
 			}
 
-			URI uri = uriInfo.getBaseUriBuilder().path(
-					"chains/" + chain.getId()).build();
+			URI uri = uriInfo.getBaseUriBuilder().path("chains/" + id).build();
 			return Response.created(uri).build();
 		}
 	}

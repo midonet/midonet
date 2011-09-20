@@ -108,8 +108,9 @@ public class RuleResource extends RestResource {
 			rule.setChainId(chainId);
 			RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+			UUID id = null;
 			try {
-				dao.create(rule);
+				id = dao.create(rule);
 			} catch (Exception ex) {
 				log.error("Error creating rule", ex);
 				throw new WebApplicationException(Response.status(
@@ -117,8 +118,7 @@ public class RuleResource extends RestResource {
 						MediaType.APPLICATION_JSON).build());
 			}
 
-			URI uri = uriInfo.getBaseUriBuilder().path("rules/" + rule.getId())
-					.build();
+			URI uri = uriInfo.getBaseUriBuilder().path("rules/" + id).build();
 			return Response.created(uri).build();
 		}
 	}
