@@ -1616,6 +1616,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                    externalIdKey: String): String = {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID, ColumnExternalIds))
+        if (portRows.isEmpty)
+            throw new Exception("no port with name " + portName)
         for {
             portRow <- portRows
             ovsMap = portRow.get(ColumnExternalIds) if ovsMap != null
