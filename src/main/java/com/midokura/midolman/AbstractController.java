@@ -6,9 +6,12 @@ package com.midokura.midolman;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.List;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -325,5 +328,22 @@ public abstract class AbstractController implements Controller {
         }
 
         return match;
+    }
+
+    protected void addFlowAndPacketOut(OFMatch match, long cookie, 
+                short idleTimeout, short hardTimeout, short priority,
+                int bufferId, boolean sendFlowRemoval, boolean checkOverlap,
+                boolean emergency, OFAction[] actions, short inPort,
+                byte[] data) {
+        // TODO: No 'hardTimeout' parameter to controllerStub.sendFlowModAdd, so
+        // it's unused.  Is this correct?
+
+        List<OFAction> actionList = Arrays.asList(actions);
+        controllerStub.sendFlowModAdd(match, cookie, idleTimeout,
+                                      priority, bufferId, sendFlowRemoval,
+                                      checkOverlap, emergency, actionList, 
+                                      inPort);
+        if (bufferId == 0xffffffff)
+            controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
     }
 }
