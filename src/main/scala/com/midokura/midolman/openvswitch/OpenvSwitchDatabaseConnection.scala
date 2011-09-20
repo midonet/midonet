@@ -532,6 +532,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def getBridgeUUID(bridgeId: Long): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List("_uuid"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with id " + bridgeId)
         for {
             bridgeRow <- bridgeRows
             _uuid = bridgeRow.get("_uuid") if _uuid != null
@@ -551,6 +553,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def getBridgeUUID(bridgeName: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("_uuid"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
             _uuid = bridgeRow.get("_uuid") if _uuid != null
@@ -1116,6 +1120,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val tx: Transaction = new Transaction(database)
         val portRows = select(TablePort, List(List("name", "==", portName)),
                               List("_uuid", "interfaces"))
+        if (portRows.isEmpty)
+            throw new Exception("no port with name " + portName)
         for {
             portRow <- portRows
             _uuid = portRow.get("_uuid") if _uuid != null
@@ -1457,6 +1463,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def delBridge(bridgeId: Long) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List("_uuid", "ports"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with id " + bridgeId)
         delBridge(bridgeRows.getElements, bridgeId.toString)
     }
 
@@ -1468,6 +1476,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def delBridge(bridgeName: String) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("_uuid", "ports"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with name " + bridgeName)
         delBridge(bridgeRows.getElements, bridgeName)
     }
 
@@ -1480,6 +1490,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def getDatapathId(bridgeName: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("datapath_id", "ports"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
             datapathId = bridgeRow.get("datapath_id") if datapathId != null
@@ -1501,6 +1513,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                        externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List("external_ids"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with id " + bridgeId)
         for {
             bridgeRow <- bridgeRows
             ovsMap = bridgeRow.get("external_ids") if ovsMap != null
@@ -1525,6 +1539,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                        externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List("external_ids"))
+        if (bridgeRows.isEmpty)
+            throw new Exception("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
             ovsMap = bridgeRow.get("external_ids") if ovsMap != null
