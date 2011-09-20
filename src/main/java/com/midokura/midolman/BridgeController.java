@@ -40,6 +40,8 @@ public class BridgeController extends AbstractController {
     MacPortMap macPortMap;
     long mac_port_timeout;
     Reactor reactor;
+    short flowExpireSeconds, idleFlowExpireSeconds;
+    static final short flowPriority = 1000;    // TODO: Make configurable.
 
     // The delayed deletes for macPortMap.
     HashMap<byte[], Future> delayedDeletes;
@@ -101,6 +103,8 @@ public class BridgeController extends AbstractController {
         macToPortWatcher = new BridgeControllerWatcher();
         macPortMap.addWatcher(macToPortWatcher);
         this.reactor = reactor;
+        idleFlowExpireSeconds = (short) (idleFlowExpireMillis / 1000);
+        flowExpireSeconds = (short) (flowExpireMillis / 1000);
     }
 
     @Override
@@ -209,7 +213,10 @@ public class BridgeController extends AbstractController {
         // Set up a forwarding rule for packets in this flow, and forward 
         // this packet.
         OFMatch match = createMatchFromPacket(capturedPacket, inPort);
-        //XXX addFlowAndPacketOut(match, 
+        addFlowAndPacketOut(match, 0L, idleFlowExpireSeconds, 
+                            flowExpireSeconds /* unused */, flowPriority,
+                            bufferId, true, false, false, actions,
+                            inPort, data);
         log.debug("installing flowmod at {}", new Date());
 
         // If the message didn't come from the tunnel port, learn the MAC 

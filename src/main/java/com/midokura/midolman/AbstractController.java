@@ -331,10 +331,10 @@ public abstract class AbstractController implements Controller {
     }
 
     protected void addFlowAndPacketOut(OFMatch match, long cookie, 
-                short idleTimeout, short hardTimeout, short priority,
-                int bufferId, boolean sendFlowRemoval, boolean checkOverlap,
-                boolean emergency, OFAction[] actions, short inPort,
-                byte[] data) {
+                short idleTimeout, short hardTimeout /* unusued */, 
+                short priority, int bufferId, boolean sendFlowRemoval, 
+                boolean checkOverlap, boolean emergency, OFAction[] actions, 
+                short inPort, byte[] data) {
         // TODO: No 'hardTimeout' parameter to controllerStub.sendFlowModAdd, so
         // it's unused.  Is this correct?
 
