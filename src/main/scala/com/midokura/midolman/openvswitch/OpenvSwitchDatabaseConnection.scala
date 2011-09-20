@@ -233,11 +233,32 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 case e: InterruptedException =>
                     { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
             }
+            val responseId: Long = response.get("id").getValueAsLong
+            if (responseId != requestId)
+                throw new RuntimeException(
+                    "wrong id in JSON-RPC result: %s".format(responseId))
             val errorValue = response.get("error")
             if (!errorValue.isNull) {
                 log.warn("doJsonRpc: error from server: ", errorValue)
                 throw new RuntimeException(
                     "OVSDB request error: " + errorValue.toString)
+            }
+            // Error may appears in the result field of the response.
+            if (response.has("result")) {
+                val results = response.get("result").asInstanceOf[ArrayNode]
+                log.debug("results: " + results.toString)
+                if (results.isNull)
+                    return response.get("result")
+                for {
+                    result <- results if result != null && results.has("error")
+                    val error = result.get("error").getTextValue if error != null
+                    val details =
+                        result.get("details").getTextValue if details != null
+                } {
+                    log.warn("doJsonRpc: %s : %s".format(error, details))
+                    throw new RuntimeException(
+                        "OVSDB response error: %s : %s".format(error, details))
+                }
             }
             return response.get("result")
         } finally {
