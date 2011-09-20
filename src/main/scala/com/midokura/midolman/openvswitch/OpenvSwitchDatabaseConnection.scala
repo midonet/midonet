@@ -138,7 +138,7 @@ object OpenvSwitchDatabaseConnectionImpl {
             node <- ovsMap.get(1)
             key = node.get(0) if key != null
             value = node.get(1) if value != null
-        } yield (key.getTextValue,
+        } yield (key.getValueAsText,
                  value)).toMap[String, JsonNode]
      }
 
