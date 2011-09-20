@@ -15,6 +15,10 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.eventloop.Reactor;
@@ -42,6 +46,7 @@ public class TestBridgeController {
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private InetAddress publicIp;
     int dp_id = 43;
+    MockControllerStub controllerStub;
 
     // MACs:  8 normal addresses, and one multicast.
     // TODO: Make this less ugly.
@@ -208,7 +213,7 @@ public class TestBridgeController {
         // ControllerTrampoline controllerManager = new ControllerTrampoline(
         //         hierarchicalConfiguration, ovsdb, zkDir, reactor);
 
-        MockControllerStub controllerStub = new MockControllerStub();
+        controllerStub = new MockControllerStub();
 
         UUID bridgeUUID = UUID.randomUUID();
 
@@ -254,15 +259,23 @@ public class TestBridgeController {
         }
     }
 
+    void checkInstalledFlow(OFMatch expectedMatch, int idleTimeout,
+                            int hardTimeoutMin, int hardTimeoutMax,
+                            int priority, OFAction[] actions) {
+        assertEquals(1, controllerStub.addedFlows.size());
+        // XXX
+    }
+
     @Test
     public void testPacketInWithNovelMac() {
         MidoMatch expectedMatch = flowmatch01.clone();
         short inputPort = 0;
         expectedMatch.setInputPort(inputPort);
-        // TODO: Check actions.
+        OFAction expectedActions[] = { 
+                new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0) };
         // TODO: Clear out flowmod list.
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
-        // TODO: Check installed flow.
+        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
         // TODO: Check sent packet.
     }
 }
