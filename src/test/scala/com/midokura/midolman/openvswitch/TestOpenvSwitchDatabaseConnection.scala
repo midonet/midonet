@@ -14,6 +14,7 @@ import org.scalatest.junit.JUnitSuite
 
 import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
 /**
  * Test for the Open vSwitch database connection.
@@ -281,9 +282,9 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         val qosUUID = qb.build
         assertTrue(ovsdb.hasQos(qosUUID))
         ovsdb.setPortQos(portName, qosUUID)
-        assertFalse(ovsdb.isEmptyColumn(TablePort, portName, "qos"))
+        assertFalse(ovsdb.isEmptyColumn(TablePort, portName, ColumnQos))
         ovsdb.unsetPortQos(portName)
-        assertTrue(ovsdb.isEmptyColumn(TablePort, portName, "qos"))
+        assertTrue(ovsdb.isEmptyColumn(TablePort, portName, ColumnQos))
         ovsdb.delQos(qosUUID)
         assertFalse(ovsdb.hasQos(qosUUID))
         ovsdb.delPort(portName)
@@ -335,9 +336,9 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         qosBuilder = ovsdb.updateQos(
             qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
         qosBuilder.update(qosUUID)
-        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, ColumnQueues))
         ovsdb.clearQosQueues(qosUUID)
-        assertFalse(!ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        assertFalse(!ovsdb.isEmptyColumn(TableQos, qosUUID, ColumnQueues))
         ovsdb.delQueue(queueUUID)
         assertFalse(ovsdb.hasQueue(queueUUID))
         ovsdb.delQos(qosUUID)
@@ -362,7 +363,7 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         qosBuilder = ovsdb.updateQos(
             qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
         qosBuilder.update(qosUUID)
-        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, ColumnQueues))
         val retrievedQueueUUID = ovsdb.getQueueUUIDByQueueNum(qosUUID, (1: Long))
         assertFalse(retrievedQueueUUID.isEmpty)
         assertEquals(queueUUID, retrievedQueueUUID.get)
@@ -393,10 +394,9 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         qosBuilder = ovsdb.updateQos(
             qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
         qosBuilder.update(qosUUID)
-        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, ColumnQueues))
         val retrievedQueueExtIdValue = ovsdb.getQueueExternalIdByQueueNum(
             qosUUID, (1: Long), queueExtIdKey)
-        println(retrievedQueueExtIdValue)
         assertFalse(retrievedQueueExtIdValue.isEmpty)
         assertEquals(queueExtIdValue, retrievedQueueExtIdValue.get)
         ovsdb.clearQosQueues(qosUUID)

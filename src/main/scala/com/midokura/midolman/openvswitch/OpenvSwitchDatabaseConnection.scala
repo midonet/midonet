@@ -22,29 +22,18 @@ import java.net.{Socket, SocketException}
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import java.util.{UUID, Timer, TimerTask}
 
+import com.fasterxml.jackson.module.scala.ScalaModule
 import org.codehaus.jackson.{JsonNode, JsonFactory, JsonGenerator, JsonParser}
 import org.codehaus.jackson.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode}
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
 
-import com.fasterxml.jackson.module.scala.ScalaModule
-
+import OpenvSwitchDatabaseConsts._
 
 /**
  * Static methods and constants for OpenvSwitchDatabaseConnection.
  */
 object OpenvSwitchDatabaseConnectionImpl {
-    final val InterfaceTypeSystem: String  = "system"
-    final val InterfaceTypeInternal: String = "internal"
-    final val InterfaceTypeTap: String = "tap"
-    final val InterfaceTypeGre: String = "gre"
-    final val TableBridge: String = "Bridge"
-    final val TableController: String = "Controller"
-    final val TableInterface: String = "Interface"
-    final val TableOpenvSwitch: String = "Open_vSwitch"
-    final val TablePort: String = "Port"
-    final val TableQos: String = "QoS"
-    final val TableQueue: String = "Queue"
     private final val echo_interval = 1000
     private final val log = LoggerFactory.getLogger(this.getClass)
 
@@ -82,7 +71,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeId: Long): List[List[String]] = {
-        List(List("datapath_id", "==", "%016x".format(bridgeId)))
+        List(List(ColumnDatapathId, "==", "%016x".format(bridgeId)))
     }
 
     /**
@@ -92,7 +81,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeName: String): List[List[String]] = {
-        List(List("name", "==", bridgeName))
+        List(List(ColumnName, "==", bridgeName))
     }
 
     /**
@@ -104,7 +93,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *         row with the given UUID.
      */
     def whereUUIDEquals(uuid: String): List[List[_]] = {
-        List(List("_uuid", "==", List("uuid", uuid)))
+        List(List(ColumnUUID, "==", List("uuid", uuid)))
     }
 
     /**
@@ -515,7 +504,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def selectByExternalId(table: String, key: String, value: String,
                            columns: List[String]): JsonNode = {
         val tx = new Transaction(database)
-        tx.select(table, List(List("external_ids", "includes",
+        tx.select(table, List(List(ColumnExternalIds, "includes",
                                    mapToOvsMap(Map(key -> value)))), columns)
         val json = doJsonRpc(tx)
         assume(json.get(0) != null, "Invalid JSON object.")
@@ -531,12 +520,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     private def getBridgeUUID(bridgeId: Long): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
-                                List("_uuid"))
+                                List(ColumnUUID))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with id " + bridgeId)
         for {
             bridgeRow <- bridgeRows
-            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } return bridgeUUID.getTextValue
 
@@ -552,12 +541,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     private def getBridgeUUID(bridgeName: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
-                                List("_uuid"))
+                                List(ColumnUUID))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
-            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } return bridgeUUID.getTextValue
 
@@ -569,10 +558,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     private class BridgeBuilderImpl(val name: String) extends BridgeBuilder {
         require(name != null, "The name of the bridge is required.")
-        private var ifRow = Map[String, String]("name" -> name)
-        private var portRow = Map[String, Any]("name" -> name)
-        private var bridgeRow = Map[String, Any]("name" -> name,
-                                                 "datapath_type" -> "")
+        private var ifRow = Map[String, String](ColumnName -> name)
+        private var portRow = Map[String, Any](ColumnName -> name)
+        private var bridgeRow = Map[String, Any](ColumnName -> name,
+                                                 ColumnDatapathType -> "")
         private var bridgeExternalIds = Map[String, String]()
 
         /**
@@ -606,20 +595,20 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             val ifUUID: String = generateUUID
             tx.insert(TableInterface, ifUUID, ifRow)
             val portUUID = generateUUID
-            portRow += ("interfaces" -> getNewRowOvsUUID(ifUUID))
+            portRow += (ColumnInterfaces -> getNewRowOvsUUID(ifUUID))
             tx.insert(TablePort, portUUID, portRow)
             val bridgeUUID = generateUUID
-            bridgeRow += ("ports" -> getNewRowOvsUUID(portUUID))
-            bridgeRow += ("external_ids" -> mapToOvsMap(bridgeExternalIds))
+            bridgeRow += (ColumnPorts -> getNewRowOvsUUID(portUUID))
+            bridgeRow += (ColumnExternalIds -> mapToOvsMap(bridgeExternalIds))
             tx.insert(TableBridge, bridgeUUID, bridgeRow)
-            tx.setInsert(TableOpenvSwitch, None, "bridges",
+            tx.setInsert(TableOpenvSwitch, None, ColumnBridges,
                          getNewRowOvsUUID(bridgeUUID))
             val extIds: Iterable[String] =
                 for ((k, v) <- bridgeExternalIds) yield "%s=%s".format(k, v)
             val extIdsStr: String = extIds.mkString(", ")
             tx.addComment("added bridge %s with external ids %s.".format(
                 bridgeUUID, extIdsStr))
-            tx.increment(TableOpenvSwitch, None, "next_cfg")
+            tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
             doJsonRpc(tx)
         }
     }
@@ -630,9 +619,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private class PortBuilderImpl(
         val ifType: String, val bridgeId: Long = 0, val portName: String,
         val bridgeName: String="") extends PortBuilder {
-        private var ifRow = Map[String, String]("type" -> ifType,
-                                                "name" -> portName)
-        private var portRow = Map[String, String]("name" -> portName)
+        private var ifRow = Map[String, String](ColumnType -> ifType,
+                                                ColumnName -> portName)
+        private var portRow = Map[String, String](ColumnName -> portName)
         private var portExternalIds = Map[String, String]()
 
         /**
@@ -654,8 +643,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @return This SBridgeBuilder instance.
          */
         override def ifMac(ifMac: String) = {
-            ifRow += ("mac" -> ifMac)
-            portRow += ("mac" -> ifMac)
+            ifRow += (ColumnMac -> ifMac)
+            portRow += (ColumnMac -> ifMac)
             this
         }
 
@@ -680,44 +669,44 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                      val bridgeName: String="")
             extends GrePortBuilder {
         private var ifRow: Map[String, String] =
-            Map("type" -> InterfaceTypeGre, "name" -> portName)
-        private var portRow: Map[String, String] = Map("name" -> portName)
+            Map(ColumnType -> InterfaceTypeGre, ColumnName -> portName)
+        private var portRow: Map[String, String] = Map(ColumnName -> portName)
 
-        private var ifOptions: Map[String, _] = Map("remote_ip" -> remoteIp)
+        private var ifOptions: Map[String, _] = Map(ColumnRemoteIp -> remoteIp)
         private var portExternalIds = Map[String, String]()
 
         override def externalId(key: String, value: String) =
             { portExternalIds += (key -> value); this }
         override def ifMac(ifMac: String) =
-            { ifRow += ("mac" -> ifMac); this }
+            { ifRow += (ColumnMac -> ifMac); this }
         override def localIp(localIp: String) =
-            { ifOptions += ("local_ip" -> localIp); this }
+            { ifOptions += (ColumnLocalIp -> localIp); this }
         override def outKey(outKey: Int) =
-            { ifOptions += ("out_key" -> outKey.toString); this }
+            { ifOptions += (ColumnOutKey -> outKey.toString); this }
         override def outKeyFlow() =
-            { ifOptions += ("out_key" -> "flow"); this }
+            { ifOptions += (ColumnOutKey -> "flow"); this }
         override def inKey(inKey: Int) =
-            { ifOptions += ("in_key" -> inKey.toString); this }
+            { ifOptions += (ColumnInKey -> inKey.toString); this }
         override def inKeyFlow() =
-            { ifOptions += ("in_key" -> "flow"); this }
+            { ifOptions += (ColumnInKey -> "flow"); this }
         override def key(key: Int) =
-            { ifOptions += ("key" -> key.toString); this }
+            { ifOptions += (ColumnInKey -> key.toString); this }
         override def keyFlow() =
-            { ifOptions += ("key" -> "flow"); this }
+            { ifOptions += (ColumnInKey -> "flow"); this }
         override def tos(tos: Byte) =
-            { ifOptions += ("tos" -> tos.toString); this }
+            { ifOptions += (ColumnTos -> tos.toString); this }
         override def tosInherit() =
-            { ifOptions += ("tos" -> "inherit"); this }
+            { ifOptions += (ColumnTos -> "inherit"); this }
         override def ttl(ttl: Byte) =
-            { ifOptions += ("ttl" -> ttl.toString); this }
+            { ifOptions += (ColumnTtl -> ttl.toString); this }
         override def ttlInherit() =
-            { ifOptions += ("ttl" -> "inherit"); this }
+            { ifOptions += (ColumnTtl -> "inherit"); this }
         override def enableCsum() =
-            { ifOptions += ("csum" -> true); this }
+            { ifOptions += (ColumnCsum -> true); this }
         override def disablePmtud() =
-            { ifOptions += ("pmtud" -> false); this }
+            { ifOptions += (ColumnPmtud -> false); this }
         override def disableHeaderCache() =
-            { ifOptions += ("header_cache" -> false); this }
+            { ifOptions += (ColumnHeaderCache -> false); this }
         override def build() = {
             val bridgeUUID = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
@@ -735,43 +724,43 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private class ControllerBuilderImpl(val bridgeId: Long = 0, val target: String,
                                         val bridgeName: String="")
             extends ControllerBuilder {
-        private var ctrlRow: Map[String, _] = Map("target" -> target)
+        private var ctrlRow: Map[String, _] = Map(ColumnTarget -> target)
         private var ctrlExternalIds: Map[String, String] = Map()
 
         override def externalId(key: String, value: String) =
             { ctrlExternalIds += (key -> value); this }
         override def connectionMode(connectionMode: ControllerConnectionMode) =
-            { ctrlRow += ("connection_mode" -> connectionMode.getMode); this }
+            { ctrlRow += (ColumnConnectionMode -> connectionMode.getMode); this }
         override def maxBackoff(maxBackoff: Int) =
-            { ctrlRow += ("max_backoff" -> maxBackoff.toString); this }
+            { ctrlRow += (ColumnMaxBackoff -> maxBackoff.toString); this }
         override def inactivityProbe(inactivityProbe: Int) = {
-            ctrlRow += ("inactivity_probe" -> inactivityProbe.toString); this
+            ctrlRow += (ColumnInacrivityProbe -> inactivityProbe.toString); this
         }
         override def controllerRateLimit(controllerRateLimit: Int) = {
-            ctrlRow += ("controller_rate_limit" -> controllerRateLimit); this
+            ctrlRow += (ColumnControllerRateLimit -> controllerRateLimit); this
         }
         override def controllerBurstLimit(controllerBurstLimit: Int) = {
             ctrlRow += (
-                "controller_burst_limit" -> controllerBurstLimit.toString)
+                ColumnControllerBurstLimit -> controllerBurstLimit.toString)
             this
         }
         override def discoverAcceptRegex(discoverAcceptRegex: String) = {
-            ctrlRow += ("discover_accept_regex" -> discoverAcceptRegex); this
+            ctrlRow += (ColumnDiscoverAcceptRegex -> discoverAcceptRegex); this
         }
         override def discoverUpdateResolvConf(
             discoverUpdateResolvConf: Boolean) = {
-            ctrlRow += ("discover_update_resolv_conf" ->
+            ctrlRow += (ColumnDiscoverUpdateResolvConf ->
                         (if (discoverUpdateResolvConf) true else false))
             this
         }
         override def localIp(localIp: String) = {
-            ctrlRow += ("local_ip" -> localIp); this
+            ctrlRow += (ColumnLocalIp -> localIp); this
         }
         override def localNetmask(localNetmask: String) = {
-            ctrlRow += ("local_netmask" -> localNetmask); this
+            ctrlRow += (ColumnLocalNetMask -> localNetmask); this
         }
         override def localGateway(localGateway: String) = {
-            ctrlRow += ("local_gateway" -> localGateway); this
+            ctrlRow += (ColumnLocalGateway -> localGateway); this
         }
         override def build() = {
             val bridgeUUID: String = if (!bridgeName.isEmpty) {
@@ -781,11 +770,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             }
             val tx = new Transaction(database)
             val ctrlUUID: String = generateUUID
-            ctrlRow += ("external_ids" -> mapToOvsMap(ctrlExternalIds))
+            ctrlRow += (ColumnExternalIds -> mapToOvsMap(ctrlExternalIds))
             tx.insert(TableController, ctrlUUID, ctrlRow)
-            tx.setInsert(TableBridge, Some(bridgeUUID), "controller",
+            tx.setInsert(TableBridge, Some(bridgeUUID), ColumnController,
                          getNewRowOvsUUID(ctrlUUID))
-            tx.increment(TableOpenvSwitch, None, "next_cfg")
+            tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
             doJsonRpc(tx)
         }
     }
@@ -807,7 +796,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def externalId(key: String, value: String) =
             { qosExternalIds = Some(qosExternalIds.get + (key -> value)); this }
         override def maxRate(maxRate: Int) = {
-            qosOtherConfig = Some(qosOtherConfig.get + ("max-rate" -> maxRate));
+            qosOtherConfig = Some(qosOtherConfig.get + (ColumnMaxRate -> maxRate));
             this
         }
         override def queues(queueUUIDs: 
@@ -819,18 +808,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def build(): String = {
             val tx = new Transaction(database)
             val qosUUID: String = generateUUID
-            var qosRow: Map[String, Any] = Map("type" -> qosType)
+            var qosRow: Map[String, Any] = Map(ColumnType -> qosType)
             if (!qosQueues.isEmpty)
-                qosRow += ("queues" -> mapToOvsMap(qosQueues.get, uuid = true))
+                qosRow += (ColumnQueues -> mapToOvsMap(qosQueues.get, uuid = true))
             if (!qosOtherConfig.isEmpty)
-                qosRow += ("other_config" -> mapToOvsMap(qosOtherConfig.get))
+                qosRow += (ColumnOtherConfig -> mapToOvsMap(qosOtherConfig.get))
             if (!qosExternalIds.isEmpty)
-                qosRow += ("external_ids" -> mapToOvsMap(qosExternalIds.get))
+                qosRow += (ColumnExternalIds -> mapToOvsMap(qosExternalIds.get))
             tx.insert(TableQos, qosUUID, qosRow)
-            tx.setInsert(TablePort, Some(qosUUID), "qos",
+            tx.setInsert(TablePort, Some(qosUUID), ColumnQos,
                          getNewRowOvsUUID(qosUUID))
             tx.addComment("created QoS with uuid " + qosUUID)
-            tx.increment(TableOpenvSwitch, None, "next_cfg")
+            tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
             val json = doJsonRpc(tx)
             assume(json.get(0) != null, "Invalid JSON object.")
             for {
@@ -843,25 +832,25 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         def update(qosUUID: String): QosBuilder = {
             val tx = new Transaction(database)
             val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
-                                 List("_uuid", "queues", "other_config",
-                                      "external_ids"))
+                                 List(ColumnUUID, ColumnQueues, 
+                                      ColumnOtherConfig, ColumnExternalIds))
             if (qosRows.isEmpty)
                 throw new RuntimeException("no QoS with uuid " + qosUUID)
             for (qosRow <- qosRows) {
                 var updatedQosRow: Map[String, Any] =
                     objectNodeToMap(qosRow.asInstanceOf[ObjectNode])
                 if (!qosQueues.isEmpty)
-                    updatedQosRow += ("queues" ->
+                    updatedQosRow += (ColumnQueues ->
                                       mapToOvsMap(qosQueues.get, uuid = true))
                 if (!qosOtherConfig.isEmpty)
-                    updatedQosRow +=("other_config" ->
+                    updatedQosRow +=(ColumnOtherConfig ->
                                       mapToOvsMap(qosOtherConfig.get))
                 if (!qosExternalIds.isEmpty)
-                    updatedQosRow += ("external_ids" ->
+                    updatedQosRow += (ColumnExternalIds ->
                                       mapToOvsMap(qosExternalIds.get))
                 tx.update(TableQos, Some(qosUUID), updatedQosRow)
             }
-            tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+            tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
             doJsonRpc(tx)
             this
         }
@@ -897,21 +886,21 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             val queueUUID: String = generateUUID
             var queueOtherConfig: Map[String, String] = Map()
             if (!queueMinRate.isEmpty)
-                queueOtherConfig += ("min-rate" -> queueMinRate.get.toString)
+                queueOtherConfig += (ColumnMinRate -> queueMinRate.get.toString)
             if (!queueMaxRate.isEmpty)
-                queueOtherConfig += ("max-rate" -> queueMaxRate.get.toString)
+                queueOtherConfig += (ColumnMaxRate -> queueMaxRate.get.toString)
             if (!queueBurst.isEmpty)
-                queueOtherConfig += ("burst" -> queueBurst.get.toString)
+                queueOtherConfig += (ColumnBurst -> queueBurst.get.toString)
             if (!queuePriority.isEmpty)
-                queueOtherConfig += ("priority" -> queuePriority.get.toString)
+                queueOtherConfig += (ColumnPriority -> queuePriority.get.toString)
             var queueRow: Map[String, Any] = Map()
             if (!queueOtherConfig.isEmpty)
-                queueRow += ("other_config" -> mapToOvsMap(queueOtherConfig))
+                queueRow += (ColumnOtherConfig -> mapToOvsMap(queueOtherConfig))
             if (!queueExternalIds.isEmpty)
-                queueRow += ("external_ids" -> mapToOvsMap(queueExternalIds.get))
+                queueRow += (ColumnExternalIds -> mapToOvsMap(queueExternalIds.get))
             tx.insert(TableQueue, queueUUID, queueRow)
             tx.addComment("created Queue with uuid" + queueUUID)
-            tx.increment(TableOpenvSwitch, None, "next_cfg")
+            tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
             val json = doJsonRpc(tx)
             assume(json.get(0) != null, "Invalid JSON object.")
             for {
@@ -924,31 +913,32 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         def update(queueUUID: String) = {
             val tx = new Transaction(database)
             val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
-                                   List("_uuid", "other_config", "external_ids"))
+                                   List(ColumnUUID, ColumnOtherConfig,
+                                        ColumnExternalIds))
             for (queueRow <- queueRows) {
                 var queueOtherConfig: Map[String, Any] = Map()
                 var updateQueueRow: Map[String, Any] =
                     objectNodeToMap(queueRow.asInstanceOf[ObjectNode])
                 if (!queueMaxRate.isEmpty)
                     queueOtherConfig +=
-                        ("max-rate" -> queueMaxRate.get.toString)
+                        (ColumnMaxRate -> queueMaxRate.get.toString)
                 if (!queueMinRate.isEmpty)
                     queueOtherConfig +=
-                        ("min-rate" -> queueMinRate.get.toString)
+                        (ColumnMinRate -> queueMinRate.get.toString)
                 if (!queueBurst.isEmpty)
-                    queueOtherConfig += ("burst" -> queueBurst.get.toString)
+                    queueOtherConfig += (ColumnBurst -> queueBurst.get.toString)
                 if (!queuePriority.isEmpty)
                     queueOtherConfig +=
-                        ("priority" -> queuePriority.get.toString)
+                        (ColumnPriority -> queuePriority.get.toString)
                 if (!queueOtherConfig.isEmpty)
                     updateQueueRow +=
-                        ("other_config" -> mapToOvsMap(queueOtherConfig))
+                        (ColumnOtherConfig -> mapToOvsMap(queueOtherConfig))
                 if (!queueExternalIds.isEmpty)
                     updateQueueRow +=
-                        ("external_ids" -> mapToOvsMap(queueExternalIds.get))
+                        (ColumnExternalIds -> mapToOvsMap(queueExternalIds.get))
                 tx.update(TableQueue, Some(queueUUID), updateQueueRow)
             }
-            tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+            tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
             doJsonRpc(tx)
             this
         }
@@ -989,23 +979,23 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val portUUID: String = generateUUID
         if (!portExternalIds.isEmpty)
             portRowUpdated =
-                portRow + ("external_ids" -> mapToOvsMap(portExternalIds.get))
-        portRowUpdated += ("interfaces" -> getNewRowOvsUUID(ifUUID))
+                portRow + (ColumnExternalIds -> mapToOvsMap(portExternalIds.get))
+        portRowUpdated += (ColumnInterfaces -> getNewRowOvsUUID(ifUUID))
         tx.insert(TablePort, portUUID, portRowUpdated)
         tx.setInsert(TableBridge, Some(bridgeUUID),
-                     "ports", getNewRowOvsUUID(portUUID))
+                     ColumnPorts, getNewRowOvsUUID(portUUID))
         if (!portExternalIds.isEmpty) {
             val extIds = for ((k, v) <- portExternalIds.get)
                          yield "%s=%s".format(k, v)
             val extIdsStr: String = extIds.mkString(", ")
             tx.addComment(
                 "added port %s to bridge %s with external ids %s".format(
-                    portRow("name"), bridgeUUID, extIdsStr))
+                    portRow(ColumnName), bridgeUUID, extIdsStr))
         } else {
             tx.addComment("added port %s to bridge %s".format(
-                portRow("name"), bridgeUUID))
+                portRow(ColumnName), bridgeUUID))
         }
-        tx.increment(TableOpenvSwitch, None, "next_cfg")
+        tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
         doJsonRpc(tx)
     }
 
@@ -1118,19 +1108,19 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def delPort(portName: String) = {
         val tx: Transaction = new Transaction(database)
-        val portRows = select(TablePort, List(List("name", "==", portName)),
-                              List("_uuid", "interfaces"))
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                              List(ColumnUUID, ColumnInterfaces))
         if (portRows.isEmpty)
             throw new Exception("no port with name " + portName)
         for {
             portRow <- portRows
-            _uuid = portRow.get("_uuid") if _uuid != null
+            _uuid = portRow.get(ColumnUUID) if _uuid != null
             uuidVal = _uuid.get(1) if uuidVal != null
         } {
             val portUUID: String = uuidVal.getTextValue
             tx.delete(TablePort, Some(portUUID))
 
-            val ifs: JsonNode = portRow.get("interfaces")
+            val ifs: JsonNode = portRow.get(ColumnInterfaces)
             assume(ifs != null, "Invalid JSON object.")
             // ifs could be a single array, ["uuid", "1234"], or
             // a set of array, ["set" [["uuid", "1234"], ["uuid", "5678"]]].
@@ -1148,12 +1138,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 uuidArrayVal = uuidArray.get(1) if uuidArrayVal != null
             } {
                 val ifUUID = uuidArrayVal.getTextValue
-                tx.delete("Interface", Some(ifUUID))
+                tx.delete(TableInterface, Some(ifUUID))
             }
-            tx.setDelete(TableBridge, None, "ports", List("uuid", portUUID))
+            tx.setDelete(TableBridge, None, ColumnPorts, List("uuid", portUUID))
         }
         tx.addComment("deleted port %s".format(portName))
-        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
         doJsonRpc(tx)
     }
 
@@ -1230,9 +1220,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
         for {
             bridgeRow <- bridgeRows
-            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
             uuidVal = _uuid.get(1) if uuidVal != null
-            controllers = bridgeRow.get("controller") if controllers != null
+            controllers = bridgeRow.get(ColumnController) if controllers != null
             controllersKey = controllers.get(0) if controllersKey != null
         } {
             val bridgeUUID: String = uuidVal.getTextValue
@@ -1254,7 +1244,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 val uuid = controllerUUIDVal.getTextValue
                 tx.delete(TableController, Some(uuid))
                 tx.setDelete(TableBridge, Some(bridgeUUID),
-                             "controller", List("uuid", uuid))
+                             ColumnController, List("uuid", uuid))
             }
         }
         tx.addComment("deleted controllers for bridge with id " + bridge)
@@ -1270,7 +1260,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def delBridgeOpenflowControllers(bridgeId: Long) = {
         val bridgeRows =
             select(TableBridge, whereUUIDEquals(getBridgeUUID(bridgeId)),
-                   List("_uuid", "controller"))
+                   List(ColumnUUID, ColumnController))
         delBridgeOpenflowControllers(bridgeRows, bridgeId.toString)
     }
 
@@ -1282,7 +1272,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def delBridgeOpenflowControllers(bridgeName: String) = {
         val bridgeRows =
             select(TableBridge, whereUUIDEquals(getBridgeUUID(bridgeName)),
-                   List("_uuid", "controller"))
+                   List(ColumnUUID, ColumnController))
         delBridgeOpenflowControllers(bridgeRows, bridgeName)
     }
 
@@ -1294,7 +1284,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def hasBridge(bridgeId: Long) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
-                                List("_uuid"))
+                                List(ColumnUUID))
         !bridgeRows.getElements.isEmpty
     }
 
@@ -1306,7 +1296,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def hasBridge(bridgeName: String) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
-                                List("_uuid"))
+                                List(ColumnUUID))
         !bridgeRows.getElements.isEmpty
     }
 
@@ -1317,8 +1307,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return Whether a bridge with the given name exists.
      */
     def hasPort(portName: String) = {
-        val portRows = select(TablePort, List(List("name", "==", portName)),
-                                List("_uuid"))
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                                List(ColumnUUID))
         !portRows.getElements.isEmpty
     }
 
@@ -1330,7 +1320,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def hasController(target: String) = {
         val controllerRows = select(
-            TableController, List(List("target", "==", target)), List("_uuid"))
+            TableController, List(List(ColumnTarget, "==", target)),
+            List(ColumnUUID))
         !controllerRows.getElements.isEmpty
     }
 
@@ -1341,7 +1332,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return Whether a QoS with the given name exists.
      */
     def hasQos(uuid: String) = {
-        val qosRows = select(TableQos, whereUUIDEquals(uuid), List("_uuid"))
+        val qosRows = select(TableQos, whereUUIDEquals(uuid), List(ColumnUUID))
         !qosRows.getElements.isEmpty
     }
 
@@ -1352,7 +1343,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return Whether a queue with the given name exists.
      */
     def hasQueue(uuid: String) = {
-        val queueRows = select(TableQueue, whereUUIDEquals(uuid), List("_uuid"))
+        val queueRows = select(TableQueue, whereUUIDEquals(uuid),
+                               List(ColumnUUID))
         !queueRows.getElements.isEmpty
     }
 
@@ -1367,11 +1359,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def isEmptyColumn(table: String, uuid: String, column: String): Boolean = {
         val where: List[List[_]] = table match {
             case TableBridge | TablePort =>
-                List(List("name", "==", uuid))
+                List(List(ColumnName, "==", uuid))
             case _ =>
                 whereUUIDEquals(uuid)
         }
-        val rows = select(table, where, List("_uuid", column))
+        val rows = select(table, where, List(ColumnUUID, column))
         for (row <- rows) {
             val isEmpty: Boolean =  row.get(column) match {
                 case null => true
@@ -1400,17 +1392,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
         for {
             bridgeRow <- bridgeRows
-            _uuid = bridgeRow.get("_uuid") if _uuid != null
+            _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } {
             tx.delete(TableBridge, Some(bridgeUUID.getTextValue))
             // The 'Open_vSwitch' table should contain only one row, so pass
             // None as the UUID to update all the rows in there.  Delete the
             // bridge UUID from the set of activated bridges:
-            tx.setDelete(TableOpenvSwitch, None, "bridges",
+            tx.setDelete(TableOpenvSwitch, None, ColumnBridges,
                          List("uuid", bridgeUUID.getTextValue))
 
-            val ports = bridgeRow.get("ports")
+            val ports = bridgeRow.get(ColumnPorts)
             assume(ports != null, "Invalid JSON object.")
             assume(ports.get(0) != null, "Invalid JSON object.")
             val portUUIDs: List[JsonNode] =
@@ -1430,8 +1422,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 val portRow = select(
                     TablePort,
                     whereUUIDEquals(portUUIDVal.getTextValue),
-                    List("_uuid", "interfaces")).get(0)
-                val ifs = portRow.get("interfaces")
+                    List(ColumnUUID, ColumnInterfaces)).get(0)
+                val ifs = portRow.get(ColumnInterfaces)
                 assume(ifs != null, "Invalid JSON object.")
                 assume(ifs.get(0) != null, "Invalid JSON object.")
                 val ifUUIDs: List[JsonNode] =
@@ -1448,7 +1440,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
 
         // Trigger ovswitchd to reload the configuration.
-        tx.increment(TableOpenvSwitch, None, "next_cfg")
+        tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
 
         tx.addComment("deleted bridge with %s".format(bridge))
 
@@ -1462,7 +1454,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def delBridge(bridgeId: Long) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
-                                List("_uuid", "ports"))
+                                List(ColumnUUID, ColumnPorts))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with id " + bridgeId)
         delBridge(bridgeRows.getElements, bridgeId.toString)
@@ -1475,7 +1467,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def delBridge(bridgeName: String) = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
-                                List("_uuid", "ports"))
+                                List(ColumnUUID, ColumnPorts))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with name " + bridgeName)
         delBridge(bridgeRows.getElements, bridgeName)
@@ -1489,12 +1481,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def getDatapathId(bridgeName: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
-                                List("datapath_id", "ports"))
+                                List(ColumnDatapathId, ColumnPorts))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
-            datapathId = bridgeRow.get("datapath_id") if datapathId != null
+            datapathId = bridgeRow.get(ColumnDatapathId) if datapathId != null
         } return datapathId.getValueAsText
 
         return ""
@@ -1512,12 +1504,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def getDatapathExternalId(bridgeId: Long,
                                        externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
-                                List("external_ids"))
+                                List(ColumnExternalIds))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with id " + bridgeId)
         for {
             bridgeRow <- bridgeRows
-            ovsMap = bridgeRow.get("external_ids") if ovsMap != null
+            ovsMap = bridgeRow.get(ColumnExternalIds) if ovsMap != null
         } {
             val extIds = ovsMapToMap(ovsMap)
             for (externalIdVal <- extIds.get(externalIdKey)) {
@@ -1538,12 +1530,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def getDatapathExternalId(bridgeName: String,
                                        externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
-                                List("external_ids"))
+                                List(ColumnExternalIds))
         if (bridgeRows.isEmpty)
             throw new Exception("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
-            ovsMap = bridgeRow.get("external_ids") if ovsMap != null
+            ovsMap = bridgeRow.get(ColumnExternalIds) if ovsMap != null
         } {
             val extIds = ovsMapToMap(ovsMap)
             for (externalIdVal <- extIds.get(externalIdKey)) {
@@ -1558,7 +1550,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         externalIdKey: String): String = {
         for {
             bridgeRow <- bridgeRows
-            ports = bridgeRow.get("ports") if ports != null
+            ports = bridgeRow.get(ColumnPorts) if ports != null
             portsKey = ports.get(0) if portsKey != null
         } {
             val portUUIDs: List[JsonNode] =
@@ -1576,8 +1568,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             } {
                 val portRow = select(
                     TablePort, whereUUIDEquals(portUUID.get(1).getTextValue),
-                    List("_uuid", "interfaces", "external_ids")).get(0)
-                val ifs = portRow.get("interfaces")
+                    List(ColumnUUID, ColumnInterfaces, ColumnExternalIds)
+                    ).get(0)
+                val ifs = portRow.get(ColumnInterfaces)
                 assume(ifs != null, "Invalid JSON object.")
                 val ifUUIDs: List[JsonNode] =
                     if (ifs.get(0).getTextValue == "uuid") {
@@ -1593,13 +1586,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     val ifRow =
                         select(TableInterface,
                                whereUUIDEquals(ifUUIDVal.getTextValue),
-                               List("_uuid", "ofport")).get(0)
-                    assume(ifRow.get("ofport") != null, "Invalid JSON object.")
-                    if (ifRow.get("ofport").getValueAsInt == portNum) {
-                        assume(portRow.get("external_ids") != null,
+                               List(ColumnUUID, ColumnOfPort)).get(0)
+                    assume(ifRow.get(ColumnOfPort) != null,
+                           "Invalid JSON object.")
+                    if (ifRow.get(ColumnOfPort).getValueAsInt == portNum) {
+                        assume(portRow.get(ColumnExternalIds) != null,
                                "Invalid JSON object.")
                         val extIds =
-                            ovsMapToMap(portRow.get("external_ids"))
+                            ovsMapToMap(portRow.get(ColumnExternalIds))
                         for (externalIdVal <- extIds.get(externalIdKey)) {
                             return externalIdVal.getTextValue
                         }
@@ -1620,11 +1614,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def getPortExternalId(portName: String,
                                    externalIdKey: String): String = {
-        val portRows = select(TablePort, List(List("name", "==", portName)),
-                              List("_uuid", "external_ids"))
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                              List(ColumnUUID, ColumnExternalIds))
         for {
             portRow <- portRows
-            ovsMap = portRow.get("external_ids") if ovsMap != null
+            ovsMap = portRow.get(ColumnExternalIds) if ovsMap != null
         } {
             val extIds = ovsMapToMap(ovsMap)
             for (externalIdVal <- extIds.get(externalIdKey)) {
@@ -1648,7 +1642,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def getPortExternalId(bridgeId: Long, portNum: Int,
                                     externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
-                                List("_uuid", "ports"))
+                                List(ColumnUUID, ColumnPorts))
         getPortExternalId(bridgeRows.getElements, portNum, externalIdKey)
     }
 
@@ -1665,7 +1659,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def getPortExternalId(bridgeName: String, portNum: Int,
                                    externalIdKey: String): String = {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
-                                List("_uuid", "ports"))
+                                List(ColumnUUID, ColumnPorts))
         getPortExternalId(bridgeRows.getElements, portNum, externalIdKey)
     }
 
@@ -1753,14 +1747,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def delQos(qosUUID: String, deleteQueues: Boolean = false) = {
         val tx = new Transaction(database)
         val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
-                             List("_uuid", "queues"))
+                             List(ColumnUUID, ColumnQueues))
         if (qosRows.getElements.isEmpty)
           throw new RuntimeException("no QoS with uuid " + qosUUID)
         tx.delete(TableQos, Some(qosUUID))
         tx.addComment("deleted QoS with uuid " + qosUUID)
         for (qosRow <- qosRows) {
             if (deleteQueues) {
-                val queues = ovsMapToMap(qosRows.get(0).get("queues"))
+                val queues = ovsMapToMap(qosRows.get(0).get(ColumnQueues))
                 for {
                     q <- queues.values
                     queueUUIDNode <- q.getElements
@@ -1768,16 +1762,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 } tx.delete(TableQueue, Some(queueUUID))
             }
             val portRows = select(TablePort, 
-                                  List(List("qos", "includes", List("uuid", qosUUID))),
-                                  List("_uuid", "qos"))
+                List(List(ColumnQos, "includes", List("uuid", qosUUID))),
+                List(ColumnUUID, ColumnQos))
             for (portRow <- portRows) {
-                val portUUID = portRow.get("_uuid").get(1).getTextValue
-                val qosValue = portRow.get("qos").get(1).getTextValue
-                tx.setDelete(TablePort, Some(portUUID), "qos", qosValue)
+                val portUUID = portRow.get(ColumnUUID).get(1).getTextValue
+                val qosValue = portRow.get(ColumnQos).get(1).getTextValue
+                tx.setDelete(TablePort, Some(portUUID), ColumnQos, qosValue)
             }
         }
         tx.addComment("deleted QoS with uuid " + qosUUID)
-        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
         doJsonRpc(tx)
     }
 
@@ -1789,19 +1783,20 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def setPortQos(portName: String, qosUUID: String) = {
         val tx = new Transaction(database)
-        val portRows = select(TablePort, List(List("name", "==", portName)),
-                              List("_uuid"))
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                              List(ColumnUUID))
         if (portRows.getElements.isEmpty)
             throw new RuntimeException("no port with the name " + portName)
-        val qosRows = select(TableQos, whereUUIDEquals(qosUUID), List("_uuid"))
+        val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
+                             List(ColumnUUID))
         if (qosRows.getElements.isEmpty)
             throw new RuntimeException("no QoS with the uuid " + qosUUID)
         for (portRow <- portRows) {
-            val portUUID = portRow.get("_uuid").get(1).getTextValue
-            val qosUUID = qosRows.get(0).get("_uuid")
-            tx.setInsert(TablePort, Some(portUUID), "qos", qosUUID)
+            val portUUID = portRow.get(ColumnUUID).get(1).getTextValue
+            val qosUUID = qosRows.get(0).get(ColumnUUID)
+            tx.setInsert(TablePort, Some(portUUID), ColumnQos, qosUUID)
         }
-        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
         doJsonRpc(tx)
     }
     
@@ -1823,23 +1818,23 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def clearQos(portName: String, deleteQos: Boolean = false) = {
         val tx = new Transaction(database)
-        val portRows = select(TablePort, List(List("name", "==", portName)),
-                              List("_uuid", "qos"))
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                              List(ColumnUUID, ColumnQos))
         if (portRows.getElements.isEmpty)
             throw new RuntimeException("no port with name " + portName)
         for (portRow <- portRows) {
-            val portUUID = portRow.get("_uuid").get(1).getTextValue
+            val portUUID = portRow.get(ColumnUUID).get(1).getTextValue
             if (deleteQos) {
-                val qosUUID = portRow.get("qos").getTextValue
+                val qosUUID = portRow.get(ColumnUUID).getTextValue
                 tx.delete(TableQos, Some(qosUUID))
                 tx.addComment("deleted the QoS with uuid " + qosUUID)
             }
             var updatedPortRow: Map[String, Any] =
                 objectNodeToMap(portRow.asInstanceOf[ObjectNode])
-            updatedPortRow += ("qos" -> List("set", List()))
+            updatedPortRow += (ColumnQos -> List("set", List()))
             tx.update(TablePort, Some(portUUID), updatedPortRow)
         }
-        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
         doJsonRpc(tx)
     }
 
@@ -1902,12 +1897,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def delQueue(queueUUID: String) = {
         val tx = new Transaction(database)
         val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
-                               List("_uuid"))
+                               List(ColumnUUID))
         if (queueRows.getElements.isEmpty)
             throw new RuntimeException("no Queue with uuid " + queueUUID)
         tx.delete(TableQueue, Some(queueUUID))
         tx.addComment("deleted queue with uuid " + queueUUID)
-        tx.increment(TableOpenvSwitch, None, List("next_cfg"))
+        tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
         doJsonRpc(tx)
     }
 
@@ -1921,11 +1916,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def getBridgeNamesByExternalId(
         key: String, value: String): java.util.Set[String] = {
-        val rows = selectByExternalId(TableBridge, key, value, List("name"))
+        val rows = selectByExternalId(TableBridge, key, value, List(ColumnName))
         mutable.Set(
             (for {
                 row <- rows
-                name = row.get("name") if name != null
+                name = row.get(ColumnName) if name != null
             } yield name.getTextValue).toList: _*)
     }
 
@@ -1957,10 +1952,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def getQosUUIDsByExternalId(
         key: String, value: String): java.util.Set[String] = {
-        val rows = selectByExternalId(TableQos, key, value, List("_uuid"))
+        val rows = selectByExternalId(TableQos, key, value, List(ColumnUUID))
         Set((for {
             row <- rows
-            _uuid = row.get("_uuid") if _uuid != null
+            _uuid = row.get(ColumnUUID) if _uuid != null
             qosUUID = _uuid.get(1) if qosUUID != null
         } yield qosUUID.getTextValue).toList: _*)
     }
@@ -1975,10 +1970,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def getQueueUUIDsByExternalId(
         key: String, value: String): java.util.Set[String] = {
-        val rows = selectByExternalId(TableQueue, key, value, List("_uuid"))
+        val rows = selectByExternalId(TableQueue, key, value, List(ColumnUUID))
         Set((for {
             row <- rows
-            _uuid = row.get("_uuid") if _uuid != null
+            _uuid = row.get(ColumnUUID) if _uuid != null
             qosUUID = _uuid.get(1) if qosUUID != null
         } yield qosUUID.getTextValue).toList: _*)
     }
@@ -1995,13 +1990,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def getQueueRowByQueueNum(qosUUID: String,
                                       queueNum: Long): Option[JsonNode] = {
         val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
-                             List("_uuid", "queues"))
+                             List(ColumnUUID, ColumnQueues))
         for (qosRow <- qosRows) {
-            val queueUUIDs = ovsMapToMap(qosRow.get("queues"))
+            val queueUUIDs = ovsMapToMap(qosRow.get(ColumnQueues))
             try {
                 val queueUUID = queueUUIDs(queueNum).get(1).getTextValue
                 val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
-                    List("_uuid", "other_config", "external_ids"))
+                    List(ColumnUUID, ColumnOtherConfig, ColumnExternalIds))
                 if (queueRows.isEmpty)
                     throw new Exception("no queue with UUID " + queueUUID)
                 return Some(queueRows.get(0))
@@ -2027,7 +2022,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     def getQueueUUIDByQueueNum(qosUUID: String, queueNum: Long): Option[String] = {
         val queueRow = getQueueRowByQueueNum(qosUUID, queueNum)
         return if (!queueRow.isEmpty)
-                   Some(queueRow.get.get("_uuid").get(1).getTextValue)
+                   Some(queueRow.get.get(ColumnUUID).get(1).getTextValue)
                else
                    None
     }
@@ -2048,7 +2043,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                      externalIdKey: String): Option[String] = {
         val queueRow = getQueueRowByQueueNum(qosUUID, queueNum)
         if (!queueRow.isEmpty) {
-            val queueExternalIds = ovsMapToMap(queueRow.get.get("external_ids"))
+            val queueExternalIds = ovsMapToMap(
+                queueRow.get.get(ColumnExternalIds))
             return if (!queueExternalIds.isEmpty)
                        Some(queueExternalIds(externalIdKey).getTextValue)
                    else
@@ -2069,4 +2065,58 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             case e: IOException => { log.warn("close", e) }
         }
     }
+}
+
+object OpenvSwitchDatabaseConsts {
+    final val InterfaceTypeSystem  = "system"
+    final val InterfaceTypeInternal = "internal"
+    final val InterfaceTypeTap = "tap"
+    final val InterfaceTypeGre = "gre"
+    final val TableBridge = "Bridge"
+    final val TableController = "Controller"
+    final val TableInterface = "Interface"
+    final val TableOpenvSwitch = "Open_vSwitch"
+    final val TablePort = "Port"
+    final val TableQos = "QoS"
+    final val TableQueue = "Queue"
+    final val ColumnUUID = "_uuid"
+    final val ColumnBridges = "bridges"
+    final val ColumnBurst = "burst"
+    final val ColumnConnectionMode = "connection_mode"
+    final val ColumnController = "controller"
+    final val ColumnControllerRateLimit = "controller_rate_limit"
+    final val ColumnControllerBurstLimit = "controller_burst_limit"
+    final val ColumnCsum = "csum"
+    final val ColumnDatapathId = "datapath_id"
+    final val ColumnDatapathType = "datapath_type"
+    final val ColumnDiscoverAcceptRegex = "discover_accept_regex"
+    final val ColumnDiscoverUpdateResolvConf = "discover_update_resolv_conf"
+    final val ColumnExternalIds = "external_ids"
+    final val ColumnHeaderCache = "header_cache"
+    final val ColumnInKey = "in_key"
+    final val ColumnInterfaces = "interfaces"
+    final val ColumnKey = "key"
+    final val ColumnLocalIp = "local_ip"
+    final val ColumnLocalNetMask = "local_netmask"
+    final val ColumnLocalGateway = "local_gateway"
+    final val ColumnMac = "mac"
+    final val ColumnMaxBackoff = "max_backoff"
+    final val ColumnInacrivityProbe = "inactivity_probe"
+    final val ColumnMaxRate = "max-rate"
+    final val ColumnMinRate = "min-rate"
+    final val ColumnName = "name"
+    final val ColumnNextConfig = "next_cfg"
+    final val ColumnOfPort = "ofport"
+    final val ColumnOutKey = "out_key"
+    final val ColumnOtherConfig = "other_config"
+    final val ColumnPmtud = "pmtud"
+    final val ColumnPorts = "ports"
+    final val ColumnPriority = "priority"
+    final val ColumnQos = "qos"
+    final val ColumnQueues = "queues"
+    final val ColumnRemoteIp = "remote_ip"
+    final val ColumnTarget = "target"
+    final val ColumnTos = "tos"
+    final val ColumnTtl = "ttl"
+    final val ColumnType = "type"
 }
