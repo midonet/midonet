@@ -1967,6 +1967,80 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         } yield qosUUID.getTextValue).toList: _*)
     }
 
+   /**
+    * Get the row associated with a queue for which given the number of the
+    * queue stands in the QoS.
+    *
+    * @param qosUUID  The UUID of the QoS that contains the queue.
+    * @param queueNum The local number of the queue on the port.
+    * @return The row of the queue, as a dictionary. None if no QoS with that
+    *         UUID exists, or if no queue with number exists in that QoS.
+	*/
+    private def getQueueRowByQueueNum(qosUUID: String,
+                                      queueNum: Long): Option[JsonNode] = {
+        val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
+                             List("_uuid", "queues"))
+        for (qosRow <- qosRows) {
+            val queueUUIDs = ovsMapToMap(qosRow.get("queues"))
+            try {
+                val queueUUID = queueUUIDs(queueNum).get(1).getTextValue
+                val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
+                    List("_uuid", "other_config", "external_ids"))
+                if (queueRows.isEmpty)
+                    throw new Exception("no queue with UUID " + queueUUID)
+                return Some(queueRows.get(0))
+            } catch {
+                case e: Exception => {
+                    throw new Exception(
+                        "no queues with queue number " + queueNum.toString)
+                }
+            }
+        }
+        return None
+    }
+
+    /**
+     * Get the UUID associated with a queue for which given the number of the
+     * queue stands in the QoS.
+     *
+     * @param qosUUID  The UUID of the QoS that contains the queue.
+     * @param queueNum The local number of the queue on the port.
+     * @return The Option value of the UUID, as a string. None if no QoS with
+     *         that UUID exists, or if no queue with number exists in that QoS.
+     */
+    def getQueueUUIDByQueueNum(qosUUID: String, queueNum: Long): Option[String] = {
+        val queueRow = getQueueRowByQueueNum(qosUUID, queueNum)
+        return if (!queueRow.isEmpty)
+                   Some(queueRow.get.get("_uuid").get(1).getTextValue)
+               else
+                   None
+    }
+
+    /**
+     * Get the external id associated with the queue for which given the number
+     * of the queue stands in the QoS.
+     *
+     * @param qosUUID       The UUID of the QoS that contains the queue.
+     * @param queueNum      The local number of the queue on the port.
+     * @param externalIdKey The key of the external id to look up, as a string.
+     *
+     * @return The value of the external id, as a string. None if no QoS with
+     *         that UUID exists, or if no queue with number exists in that QoS,
+     *         or if the queue has no external id with that key.
+     */
+    def getQueueExternalIdByQueueNum(qosUUID: String, queueNum: Long,
+                                     externalIdKey: String): Option[String] = {
+        val queueRow = getQueueRowByQueueNum(qosUUID, queueNum)
+        if (!queueRow.isEmpty) {
+            val queueExternalIds = ovsMapToMap(queueRow.get.get("external_ids"))
+            return if (!queueExternalIds.isEmpty)
+                       Some(queueExternalIds(externalIdKey).getTextValue)
+                   else
+                       None
+        }
+        return None
+    }
+
     /**
      * Close the connection.
      */
