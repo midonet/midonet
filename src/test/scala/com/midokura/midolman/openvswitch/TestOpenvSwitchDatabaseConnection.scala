@@ -343,4 +343,65 @@ class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         ovsdb.delQos(qosUUID)
         assertFalse(ovsdb.hasQos(qosUUID))
     }
+
+    /**
+     * Test getQueueUUIDByQueueNum
+     */
+    @Test def testGetQueueUUIDByQueueNum() = {
+        val qosType = "linux-htb"
+        var qosBuilder = ovsdb.addQos(qosType)
+        val qosUUID = qosBuilder.build
+        qosBuilder.clear
+        assertTrue(ovsdb.hasQos(qosUUID))
+        val queueMinRate: Long = 100000000
+        var queueBuilder = ovsdb.addQueue()
+        queueBuilder.minRate(queueMinRate)
+        val queueUUID = queueBuilder.build
+        queueBuilder.clear
+        assertTrue(ovsdb.hasQueue(queueUUID))
+        qosBuilder = ovsdb.updateQos(
+            qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
+        qosBuilder.update(qosUUID)
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        val retrievedQueueUUID = ovsdb.getQueueUUIDByQueueNum(qosUUID, (1: Long))
+        assertFalse(retrievedQueueUUID.isEmpty)
+        assertEquals(queueUUID, retrievedQueueUUID.get)
+        ovsdb.clearQosQueues(qosUUID)
+        ovsdb.delQueue(queueUUID)
+        ovsdb.delQos(qosUUID)
+        assertFalse(ovsdb.hasQos(qosUUID))
+    }
+
+      /**
+       * Test getQueueExternalIdByQueueNum
+     */
+    @Test def testGetQueueExternalIdByQueueNum() = {
+        val qosType = "linux-htb"
+        val queueExtIdKey = bridgeExtIdKey
+        val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+        var qosBuilder = ovsdb.addQos(qosType)
+        val qosUUID = qosBuilder.build
+        qosBuilder.clear
+        assertTrue(ovsdb.hasQos(qosUUID))
+        val queueMinRate: Long = 100000000
+        var queueBuilder = ovsdb.addQueue()
+        queueBuilder.minRate(queueMinRate)
+        queueBuilder.externalId(queueExtIdKey, queueExtIdValue)
+        val queueUUID = queueBuilder.build
+        queueBuilder.clear
+        assertTrue(ovsdb.hasQueue(queueUUID))
+        qosBuilder = ovsdb.updateQos(
+            qosUUID, queueUUIDs = Some(Map((1: Long) -> queueUUID)))
+        qosBuilder.update(qosUUID)
+        assertFalse(ovsdb.isEmptyColumn(TableQos, qosUUID, "queues"))
+        val retrievedQueueExtIdValue = ovsdb.getQueueExternalIdByQueueNum(
+            qosUUID, (1: Long), queueExtIdKey)
+        println(retrievedQueueExtIdValue)
+        assertFalse(retrievedQueueExtIdValue.isEmpty)
+        assertEquals(queueExtIdValue, retrievedQueueExtIdValue.get)
+        ovsdb.clearQosQueues(qosUUID)
+        ovsdb.delQueue(queueUUID)
+        ovsdb.delQos(qosUUID)
+        assertFalse(ovsdb.hasQos(qosUUID))
+    }
 }
