@@ -513,7 +513,7 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 9896, true, actions);
     }
 
-    @Test @Ignore /* FIXME: sendFlowModAdd sends a buffered packet */
+    @Test 
     public void testOneRouterOutputRemote() {
         // Send a packet to router2's first port to an address on router2's
         // second port.
@@ -526,10 +526,14 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(999, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets were dropped or sent (the processed packet was buffered
-        // and therefore did not need to be sent manually.
+        // No packets dropped, and the buffered packet sent.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(999, sentPacket.bufferId);
+        Assert.assertEquals(phyPortIn.getPortNumber(), sentPacket.inPort);
+        // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
@@ -552,7 +556,7 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 999, true, actions);
     }
 
-    @Test @Ignore /* FIXME: sendFlowModAdd sends a buffered packet */
+    @Test 
     public void testThreeRouterOutputRemote() {
         // Send a packet to router1's first port to an address on router2's
         // second port.
@@ -565,10 +569,14 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(37654, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets were dropped or sent (the processed packet was buffered
-        // and therefore did not need to be sent manually.
+        // No packets dropped, and the buffered packet sent.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(37654, sentPacket.bufferId);
+        Assert.assertEquals(phyPortIn.getPortNumber(), sentPacket.inPort);
+        // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
@@ -592,7 +600,7 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 37654, true, actions);
     }
 
-    @Test @Ignore /* FIXME: sendFlowModAdd sends a buffered packet */
+    @Test @Ignore
     public void testRemoteOutputTunnelDown() {
         // First, with the tunnel up.
         // Send a packet to router1's first port destined to an address on
@@ -609,10 +617,16 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(22333, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets were dropped or sent (the processed packet was buffered
-        // and therefore did not need to be sent manually. A fow was installed.
+        // No packets dropped, and the buffered packet sent.  
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(22333, sentPacket.bufferId);
+        Assert.assertEquals(phyPortIn.getPortNumber(), sentPacket.inPort);
+        // TODO: Check sentPacket.actions
+
+        // A flow was installed.
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, phyPortIn.getPortNumber());
@@ -644,6 +658,11 @@ public class TestNetworkController {
         // packet.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.sentPackets.size());
+        // TODO: With the new semantics of MockControllerStub, this seems
+        // to indicate that the packet with bufferId == 22111 is being sent
+        // via a sendFlowModAdd(), which would be incorrect.  Is that really
+        // happening?
+
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // Now check the Drop Flow.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
@@ -816,7 +835,7 @@ public class TestNetworkController {
 
     }
 
-    @Test @Ignore /* FIXME: sendFlowModAdd sends a buffered packet */
+    @Test @Ignore
     public void testPacketFromTunnel() {
         // Send a packet into the tunnel port corresponding to router2's
         // second port and destined for router2's first port.
@@ -1171,7 +1190,7 @@ public class TestNetworkController {
                 OFPortStatus.OFPortReason.OFPPR_ADD);
     }
 
-    @Test @Ignore /* FIXME: sendFlowModAdd sends a buffered packet */
+    @Test @Ignore
     public void testDnat() throws IOException, KeeperException,
             InterruptedException, ZkStateSerializationException {
         // First add the uplink to router0.
@@ -1330,7 +1349,7 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 13131, true, actions);
     }
 
-    @Test @Ignore /* FIXME: sendFlowModAdd sends a buffered packet */
+    @Test @Ignore
     public void testSnat() throws IOException, KeeperException,
             InterruptedException, ZkStateSerializationException {
         // First add the uplink to router0.
