@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.util.concurrent.Future;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +42,7 @@ public class BridgeController extends AbstractController {
     Reactor reactor;
 
     // The delayed deletes for macPortMap.
-    HashMap<byte[], UUID> delayedDeletes;
+    HashMap<byte[], Future> delayedDeletes;
 
     HashMap<MacPort, Integer> flowCount;
 
@@ -48,8 +50,13 @@ public class BridgeController extends AbstractController {
 
     private class MacPort {
         // Pair<Mac, Port>
-        public UUID port;
         public byte[] mac;
+        public UUID port;
+
+        public MacPort(byte[] addr, UUID uuid) {
+            mac = addr;
+            port = uuid;
+        }
     }
 
     private class BridgeControllerWatcher implements
@@ -89,7 +96,7 @@ public class BridgeController extends AbstractController {
         macPortMap = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
-        delayedDeletes = new HashMap<byte[], UUID>();
+        delayedDeletes = new HashMap<byte[], Future>();
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
         macPortMap.addWatcher(macToPortWatcher);
@@ -201,7 +208,7 @@ public class BridgeController extends AbstractController {
 
         // Set up a forwarding rule for packets in this flow, and forward 
         // this packet.
-        OFMatch match = createMatchFromPacket(data, inPort);
+        OFMatch match = createMatchFromPacket(capturedPacket, inPort);
         //XXX addFlowAndPacketOut(match, 
         log.debug("installing flowmod at {}", new Date());
 
@@ -213,13 +220,34 @@ public class BridgeController extends AbstractController {
             increaseMacPortFlowCount(srcDlAddress, inPortUuid);
     }
 
-    private OFMatch createMatchFromPacket(byte[] data, short inPort) {
-        return new MidoMatch();
-        // FIXME
-    }
-
     private void increaseMacPortFlowCount(byte[] macAddr, UUID portUuid) {
-        // FIXME
+        MacPort flowcountKey = new MacPort(macAddr, portUuid);
+        Integer count = flowCount.get(flowcountKey);
+        if (count == null) {
+            count = 1;
+            // Remove any delayed delete.
+            Future delayedDelete = delayedDeletes.remove(macAddr);
+            if (delayedDelete != null)
+                delayedDelete.cancel(false);
+            flowCount.put(flowcountKey, count);
+        } else {
+            count++;
+        }
+
+        log.debug("Increased flow count for source MAC {} from port {} to {}",
+                  new Object[] { Net.convertByteMacToString(macAddr),
+                                 portUuid, count });
+        if (macPortMap.get(macAddr) != portUuid) {
+            try {
+                macPortMap.put(macAddr, portUuid);
+            } catch (KeeperException e) {
+                log.error("ZooKeeper threw exception {}", e);
+                // TODO: What should we do about this?
+            } catch (InterruptedException e) {
+                log.error("MacPortMap threw InterruptedException {}", e);
+                // TODO: What should we do about this?
+            }
+        }
     }
 
     private void invalidateFlowsFromMac(byte[] mac) {
