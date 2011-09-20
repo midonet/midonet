@@ -16,6 +16,7 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.state.MgmtPortZkManager;
 import com.midokura.midolman.mgmt.data.state.MgmtPortZkManager.PortMgmtConfig;
@@ -98,7 +99,7 @@ public class PortDataAccessor extends DataAccessor {
 		}
 	}
 
-	public LogicalRouterPort createLink(LogicalRouterPort port)
+	public PeerRouterLink createLink(LogicalRouterPort port)
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException, Exception {
 		PortZkManager manager = getPortZkManager();
@@ -111,9 +112,11 @@ public class PortDataAccessor extends DataAccessor {
 		peerPort.portAddr = Net.convertStringAddressToInt(port
 				.getPeerPortAddress());
 		ZkNodeEntry<UUID, UUID> entry = manager.createLink(localPort, peerPort);
-		port.setId(entry.key);
-		port.setPeerId(entry.value);
-		return port;
+		PeerRouterLink peer = new PeerRouterLink();
+		peer.setPortId(entry.key);
+		peer.setPeerPortId(entry.value);
+		peer.setPeerRouterId(peerPort.device_id);
+		return peer;
 	}
 
 	private static Port convertToPort(PortMgmtConfig mgmtConfig,

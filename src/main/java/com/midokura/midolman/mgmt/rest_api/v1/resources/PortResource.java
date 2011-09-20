@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Port;
 
 /**
@@ -211,9 +212,9 @@ public class PortResource extends RestResource {
 			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 
-			LogicalRouterPort logicalRouterPort = null;
+			PeerRouterLink peerRouter = null;
 			try {
-				logicalRouterPort = dao.createLink(port);
+				peerRouter = dao.createLink(port);
 			} catch (Exception ex) {
 				log.error("Error creating logical router port link", ex);
 				throw new WebApplicationException(ex, Response.status(
@@ -221,8 +222,8 @@ public class PortResource extends RestResource {
 						MediaType.APPLICATION_JSON).build());
 			}
 			URI uri = uriInfo.getBaseUriBuilder().path(
-					"ports/" + logicalRouterPort.getId()).build();
-			return Response.created(uri).entity(logicalRouterPort).build();
+					"ports/" + peerRouter.getPortId()).build();
+			return Response.created(uri).entity(peerRouter).build();
 		}
 
 		@GET
