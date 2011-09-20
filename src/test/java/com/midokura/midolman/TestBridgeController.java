@@ -133,6 +133,12 @@ public class TestBridgeController {
         match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
         match.setTransportSource((short)ICMP.TYPE_ECHO_REQUEST);
         match.setTransportDestination((short)0);
+        match.setDataLayerVirtualLan((short)0);    
+        // Python sets dl_vlan=0xFFFF, but packets.Ethernet.vlanID is 0 
+        // for no VLAN in use.
+        // TODO:  Which is really proper, 0 or 0xFFFF ?
+        match.setDataLayerVirtualLanPriorityCodePoint((byte)0);
+        match.setNetworkTypeOfService((byte)0);
         return match;
     }
 
@@ -263,7 +269,14 @@ public class TestBridgeController {
                             int hardTimeoutMin, int hardTimeoutMax,
                             int priority, OFAction[] actions) {
         assertEquals(1, controllerStub.addedFlows.size());
-        // XXX
+        MockControllerStub.Flow flow = controllerStub.addedFlows.get(0);
+        assertEquals(expectedMatch, flow.match);
+        assertEquals(idleTimeout, flow.idleTimeoutSecs);
+        //assertTrue(hardTimeoutMin <= flow.hardTimeoutSecs);  
+        //assertTrue(hardTimeoutMax >= flow.hardTimeoutSecs);  
+        // No member of Flow for hardTimeout.
+        assertEquals(priority, flow.priority);
+        assertArrayEquals(actions, flow.actions.toArray());
     }
 
     @Test
@@ -273,7 +286,6 @@ public class TestBridgeController {
         expectedMatch.setInputPort(inputPort);
         OFAction expectedActions[] = { 
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0) };
-        // TODO: Clear out flowmod list.
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
         checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
         // TODO: Check sent packet.
