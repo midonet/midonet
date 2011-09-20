@@ -20,7 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 import com.midokura.midolman.util.Net;
@@ -285,5 +291,39 @@ public abstract class AbstractController implements Controller {
             log.debug("Tearing down tunnel " + grePortName);
             ovsdb.delPort(grePortName);
         }
+    }
+
+    protected OFMatch createMatchFromPacket(Ethernet data, short inPort) {
+	MidoMatch match = new MidoMatch();
+	if (inPort != -1)
+	    match.setInputPort(inPort);
+	match.setDataLayerDestination(data.getDestinationMACAddress());
+	match.setDataLayerSource(data.getSourceMACAddress());
+	match.setDataLayerType(data.getEtherType());
+	match.setDataLayerVirtualLan(data.getVlanID());
+	match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
+	if (data.getEtherType() == IPv4.ETHERTYPE) {
+	    IPv4 packet = (IPv4) data.getPayload();
+	    match.setNetworkTypeOfService(packet.getDiffServ());
+	    match.setNetworkProtocol(packet.getProtocol());
+	    match.setNetworkSource(packet.getSourceAddress());
+	    match.setNetworkDestination(packet.getDestinationAddress());
+
+	    if (packet.getProtocol() == ICMP.PROTOCOL_NUMBER) {
+		ICMP dgram = (ICMP) packet.getPayload();
+		match.setTransportSource((short) dgram.getType());
+		match.setTransportDestination((short) dgram.getCode());
+	    } else if (packet.getProtocol() == TCP.PROTOCOL_NUMBER) {
+		TCP dgram = (TCP) packet.getPayload();
+		match.setTransportSource(dgram.getSourcePort());
+		match.setTransportDestination(dgram.getDestinationPort());
+	    } else if (packet.getProtocol() == UDP.PROTOCOL_NUMBER) {
+		UDP dgram = (UDP) packet.getPayload();
+		match.setTransportSource(dgram.getSourcePort());
+		match.setTransportDestination(dgram.getDestinationPort());
+	    }
+	}
+
+	return match;
     }
 }
