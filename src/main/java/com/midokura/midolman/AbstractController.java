@@ -294,36 +294,36 @@ public abstract class AbstractController implements Controller {
     }
 
     protected OFMatch createMatchFromPacket(Ethernet data, short inPort) {
-	MidoMatch match = new MidoMatch();
-	if (inPort != -1)
-	    match.setInputPort(inPort);
-	match.setDataLayerDestination(data.getDestinationMACAddress());
-	match.setDataLayerSource(data.getSourceMACAddress());
-	match.setDataLayerType(data.getEtherType());
-	match.setDataLayerVirtualLan(data.getVlanID());
-	match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
-	if (data.getEtherType() == IPv4.ETHERTYPE) {
-	    IPv4 packet = (IPv4) data.getPayload();
-	    match.setNetworkTypeOfService(packet.getDiffServ());
-	    match.setNetworkProtocol(packet.getProtocol());
-	    match.setNetworkSource(packet.getSourceAddress());
-	    match.setNetworkDestination(packet.getDestinationAddress());
+        MidoMatch match = new MidoMatch();
+        if (inPort != -1)
+            match.setInputPort(inPort);
+        match.setDataLayerDestination(data.getDestinationMACAddress());
+        match.setDataLayerSource(data.getSourceMACAddress());
+        match.setDataLayerType(data.getEtherType());
+        match.setDataLayerVirtualLan(data.getVlanID());
+        match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
+        if (data.getEtherType() == IPv4.ETHERTYPE) {
+            IPv4 packet = (IPv4) data.getPayload();
+            match.setNetworkTypeOfService(packet.getDiffServ());
+            match.setNetworkProtocol(packet.getProtocol());
+            match.setNetworkSource(packet.getSourceAddress());
+            match.setNetworkDestination(packet.getDestinationAddress());
 
-	    if (packet.getProtocol() == ICMP.PROTOCOL_NUMBER) {
-		ICMP dgram = (ICMP) packet.getPayload();
-		match.setTransportSource((short) dgram.getType());
-		match.setTransportDestination((short) dgram.getCode());
-	    } else if (packet.getProtocol() == TCP.PROTOCOL_NUMBER) {
-		TCP dgram = (TCP) packet.getPayload();
-		match.setTransportSource(dgram.getSourcePort());
-		match.setTransportDestination(dgram.getDestinationPort());
-	    } else if (packet.getProtocol() == UDP.PROTOCOL_NUMBER) {
-		UDP dgram = (UDP) packet.getPayload();
-		match.setTransportSource(dgram.getSourcePort());
-		match.setTransportDestination(dgram.getDestinationPort());
-	    }
-	}
+            if (packet.getProtocol() == ICMP.PROTOCOL_NUMBER) {
+                ICMP dgram = (ICMP) packet.getPayload();
+                match.setTransportSource((short) dgram.getType());
+                match.setTransportDestination((short) dgram.getCode());
+            } else if (packet.getProtocol() == TCP.PROTOCOL_NUMBER) {
+                TCP dgram = (TCP) packet.getPayload();
+                match.setTransportSource(dgram.getSourcePort());
+                match.setTransportDestination(dgram.getDestinationPort());
+            } else if (packet.getProtocol() == UDP.PROTOCOL_NUMBER) {
+                UDP dgram = (UDP) packet.getPayload();
+                match.setTransportSource(dgram.getSourcePort());
+                match.setTransportDestination(dgram.getDestinationPort());
+            }
+        }
 
-	return match;
+        return match;
     }
 }
