@@ -258,7 +258,7 @@ public class TestAbstractController {
     @Test
     public void testPeerIpToTunnelPortNum() {
         int peerIpInt = Net.convertStringAddressToInt("192.168.1.53");
-        InetAddress peerIp = controller.peerIpOfGrePortName(
+        Integer peerIp = controller.peerIpOfGrePortName(
                                 controller.makeGREPortName(peerIpInt));
         controller.peerIpToTunnelPortNum.put(peerIp, new Integer(54));
         assertEquals(controller.peerIpToTunnelPortNum.get(peerIpInt),
