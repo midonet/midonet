@@ -96,6 +96,13 @@ public class BridgeZkManager extends ZkManager {
 		ops.add(Op.create(pathManager.getBridgePortsPath(bridgeNode.key), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        ops.add(Op.create(pathManager.getBridgeMacPortsPath(bridgeNode.key),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        ops.add(Op.create(pathManager
+                .getBridgePortLocationsPath(bridgeNode.key), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
 		// Update GreKey to reference the bridge.
 		gre.value.bridgeId = bridgeNode.key;
 		ops.addAll(greZkManager.prepareGreUpdate(gre));
@@ -201,6 +208,9 @@ public class BridgeZkManager extends ZkManager {
 			ops.addAll(portZkManager.prepareBridgePortDelete(portEntry));
 		}
 		ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
+        ops.add(Op
+                .delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
 
 		// Delete GRE
 		GreKey gre = new GreKey(entry.key);
