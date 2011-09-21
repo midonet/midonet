@@ -19,6 +19,7 @@ import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.eventloop.Reactor;
@@ -266,7 +267,7 @@ public class TestBridgeController {
                                       : controller.makeGREPortName(
                                             Net.convertStringAddressToInt(
                                                     peerStrList[i])));
-            controller.addPort(phyPorts[i], (short)i);
+            controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
         }
     }
 
@@ -315,4 +316,17 @@ public class TestBridgeController {
         checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
         checkSentPacket(14, (short)-1, expectActions, new byte[] {});
     }
+
+    @Test
+    public void testMulticastTunnelInPort() {
+        final Ethernet packet = packet0MC;
+        short inPortNum = 5;
+        MidoMatch expectedMatch = flowmatch0MC.clone();
+        expectedMatch.setInputPort(inPortNum);
+        OFAction[] expectActions = { OUTPUT_FLOOD_ACTION };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
+        checkSentPacket(14, (short)-1, expectActions, new byte[] {});
+    }
+        
 }

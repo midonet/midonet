@@ -166,6 +166,9 @@ public class BridgeController extends AbstractController {
             //  * destIP (destination peer) unknown (not in portLocMap)
             //  * destIP is local and the output port not in portUuidToNumberMap
 
+            log.info("Flooding from {} port {}",
+                     isTunnelPortNum(inPort) ? "tunnel" : "non-tunnel",
+                     inPort);
             OFPort output = isTunnelPortNum(inPort) ? OFPort.OFPP_FLOOD
                                                     : OFPort.OFPP_ALL;
             actions = new OFAction[] { new OFActionOutput(output.getValue(), 
