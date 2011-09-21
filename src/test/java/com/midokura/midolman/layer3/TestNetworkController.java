@@ -48,6 +48,7 @@ import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -61,6 +62,8 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -82,11 +85,13 @@ public class TestNetworkController {
     private MockReactor reactor;
     private MockControllerStub controllerStub;
     private PortToIntNwAddrMap portLocMap;
+    private BgpZkManager bgpMgr;
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
     private MockOpenvSwitchDatabaseConnection ovsdb;
+    private MockPortService service;
     private long datapathId;
     private OFPhysicalPort uplinkPhyPort;
     private UUID uplinkId;
@@ -114,6 +119,7 @@ public class TestNetworkController {
         routeMgr = new RouteZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
+        bgpMgr = new BgpZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
         // Now build the network's port to location map.
@@ -125,13 +131,16 @@ public class TestNetworkController {
         // Now create the Open vSwitch database connection
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
+        // Now create the PortService
+        service = new MockPortService(bgpMgr);
+
         // Now we can create the NetworkController itself.
         InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); // 0xc0a80104;
         datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, (long) (60 * 1000), localNwAddr,
                 portMgr, routerMgr, routeMgr, chainMgr, ruleMgr, ovsdb,
-                reactor, new MockCache(), "midonet");
+                reactor, new MockCache(), "midonet", service);
         networkCtrl.setControllerStub(controllerStub);
 
         /*
@@ -1540,4 +1549,143 @@ public class TestNetworkController {
         Assert.assertEquals(14141, pkt.bufferId);
     }
 
+    @Test
+    public void testBgpDataPath() throws IOException, KeeperException,
+        InterruptedException, ZkStateSerializationException {
+        // No flows should be installed at the beginning.
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+
+        // Create BGP config to the local port0 on router0.
+        int routerId = 0;
+        int remotePortNum = 0;
+        UUID portId = ShortUUID.intTo32BitUUID(portNumToIntId.get(
+                                                   remotePortNum));
+        String remoteAddrString = "192.168.10.1";
+        bgpMgr.create(new BgpConfig(portId, 65104,
+                                    InetAddress.getByName(remoteAddrString),
+                                    12345));
+
+        //Add the port to the datapath to invoke adding a service port for BGP.
+        OFPhysicalPort remotePort = phyPorts.get(routerId).get(remotePortNum);
+        networkCtrl.onPortStatus(remotePort,
+                                 OFPortStatus.OFPortReason.OFPPR_DELETE);
+        networkCtrl.onPortStatus(remotePort,
+                                 OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        // Add the BGP service port.
+        OFPhysicalPort servicePort = new OFPhysicalPort();
+        // Offset local port number to avoid conflicts.
+        short localPortNum = MockPortService.BGP_TCP_PORT;
+        servicePort.setPortNumber(localPortNum);
+        servicePort.setHardwareAddress(new byte[] {
+                (byte) 0x02, (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
+                (byte) localPortNum });
+        networkCtrl.onPortStatus(servicePort,
+                                 OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        // 8 flows (BGPx4, ICMPx2, ARPx2) are installed.
+        Assert.assertEquals(8, controllerStub.addedFlows.size());
+
+        int localAddr = PortDirectory.MaterializedRouterPortConfig.class.cast(
+            portMgr.get(portId).value).portAddr;
+        int remoteAddr = Net.convertStringAddressToInt(remoteAddrString);
+	MidoMatch match;
+        List<OFAction> actions;
+
+        // Check BGP flows from local to remote with remote TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        match.setNetworkDestination(remoteAddr);
+        match.setTransportDestination(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check BGP flows from local to remote with local TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        match.setNetworkDestination(remoteAddr);
+        match.setTransportSource(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        //Check BGP flows from remote to local with local TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(remoteAddr);
+        match.setNetworkDestination(localAddr);
+        match.setTransportDestination(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(2), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check BGP flows from remote to local with remote TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(remoteAddr);
+        match.setNetworkDestination(localAddr);
+        match.setTransportSource(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(3), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ARP request to the peer.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(ARP.ETHERTYPE);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(4), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ARP request from the peer.
+        // One flow goes to the local, and the other goes to the controller.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(ARP.ETHERTYPE);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) localPortNum, (short) 0));
+        actions.add(new OFActionOutput(ControllerStub.CONTROLLER_PORT,
+                                       //actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
+                                       (short) 128));
+        checkInstalledFlow(controllerStub.addedFlows.get(5), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ICMP flows from local with local address specified.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(6), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ICMP flows to local with local address specified.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setNetworkDestination(localAddr);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) localPortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(7), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+    }
 }
