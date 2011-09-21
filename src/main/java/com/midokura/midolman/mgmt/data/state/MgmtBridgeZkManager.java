@@ -45,12 +45,12 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 		public String name;
 	}
 
-	private MgmtZkPathManager mgmtZkPathManager = null;
+	private ZkMgmtPathManager ZkMgmtPathManager = null;
 
 	public MgmtBridgeZkManager(ZooKeeper zk, String basePath,
 			String mgmtBasePath) {
 		super(zk, basePath);
-		mgmtZkPathManager = new MgmtZkPathManager(mgmtBasePath);
+		ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
 	public List<Op> prepareBridgeCreate(
@@ -62,7 +62,7 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 
 		// Add an entry.
 		try {
-			ops.add(Op.create(mgmtZkPathManager
+			ops.add(Op.create(ZkMgmtPathManager
 					.getBridgePath(bridgeMgmtNode.key),
 					serialize(bridgeMgmtNode.value), Ids.OPEN_ACL_UNSAFE,
 					CreateMode.PERSISTENT));
@@ -73,7 +73,7 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 		}
 
 		// Add under tenant.
-		ops.add(Op.create(mgmtZkPathManager.getTenantBridgePath(
+		ops.add(Op.create(ZkMgmtPathManager.getTenantBridgePath(
 				bridgeMgmtNode.value.tenantId, bridgeMgmtNode.key), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
@@ -96,7 +96,7 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 	public ZkNodeEntry<UUID, BridgeMgmtConfig> getMgmt(UUID id)
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException {
-		byte[] data = zk.get(mgmtZkPathManager.getBridgePath(id), null);
+		byte[] data = zk.get(ZkMgmtPathManager.getBridgePath(id), null);
 		BridgeMgmtConfig config = null;
 		try {
 			config = deserialize(data, BridgeMgmtConfig.class);
@@ -112,7 +112,7 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException {
 		List<ZkNodeEntry<UUID, BridgeMgmtConfig>> result = new ArrayList<ZkNodeEntry<UUID, BridgeMgmtConfig>>();
-		Set<String> bridgeIds = zk.getChildren(mgmtZkPathManager
+		Set<String> bridgeIds = zk.getChildren(ZkMgmtPathManager
 				.getTenantBridgesPath(tenantId), null);
 		for (String bridgeId : bridgeIds) {
 			// For now, get each one.
@@ -126,7 +126,7 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 			ZkStateSerializationException {
 		// Update any version for now.
 		try {
-			zk.update(mgmtZkPathManager.getBridgePath(entry.key),
+			zk.update(ZkMgmtPathManager.getBridgePath(entry.key),
 					serialize(entry.value));
 		} catch (IOException e) {
 			throw new ZkStateSerializationException(
@@ -149,9 +149,9 @@ public class MgmtBridgeZkManager extends BridgeZkManager {
 		}
 
 		// Delete the tenant bridge entry
-		ops.add(Op.delete(mgmtZkPathManager.getTenantBridgePath(
+		ops.add(Op.delete(ZkMgmtPathManager.getTenantBridgePath(
 				bridgeMgmtNode.value.tenantId, bridgeMgmtNode.key), -1));
-		ops.add(Op.delete(mgmtZkPathManager.getBridgePath(bridgeMgmtNode.key),
+		ops.add(Op.delete(ZkMgmtPathManager.getBridgePath(bridgeMgmtNode.key),
 				-1));
 
 		return ops;

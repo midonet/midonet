@@ -1,5 +1,5 @@
 /*
- * @(#)MgmtZkPathManager        1.6 19/09/08
+ * @(#)ZkMgmtPathManager        1.6 19/09/08
  *
  * Copyright 2011 Midokura KK
  */
@@ -7,7 +7,7 @@ package com.midokura.midolman.mgmt.data.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.ZkBasePathManager;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -16,7 +16,7 @@ import com.midokura.midolman.state.ZkPathManager;
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */
-public class MgmtZkPathManager extends ZkPathManager {
+public class ZkMgmtPathManager extends ZkBasePathManager {
 
 	/**
 	 * Constructor.
@@ -24,7 +24,7 @@ public class MgmtZkPathManager extends ZkPathManager {
 	 * @param basePath
 	 *            Base path of Zk.
 	 */
-	public MgmtZkPathManager(String basePath) {
+	public ZkMgmtPathManager(String basePath) {
 		super(basePath);
 	}
 
@@ -119,4 +119,91 @@ public class MgmtZkPathManager extends ZkPathManager {
 		return new StringBuilder(getTenantBridgesPath(tenantId)).append("/")
 				.append(bridgeId).toString();
 	}
+
+    /**
+     * Get ZK router path.
+     * 
+     * @return /routers
+     */
+    public String getRoutersPath() {
+        return new StringBuilder(basePath).append("/routers").toString();
+    }
+
+    /**
+     * Get ZK router path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId
+     */
+    public String getRouterPath(UUID id) {
+        return new StringBuilder(getRoutersPath()).append("/").append(id)
+                .toString();
+    }
+	
+	/**
+	 * Get ZK router peer router path.
+	 * 
+	 * @param routerId
+	 *            Router UUID
+	 * @return /routers/routerId/routers
+	 */
+	public String getRouterRoutersPath(UUID routerId) {
+		return new StringBuilder(getRouterPath(routerId)).append("/routers")
+				.toString();
+	}
+
+	/**
+	 * Get ZK router peer router path.
+	 * 
+	 * @param routerId
+	 *            Router UUID
+	 * @return /routers/routerId/routers/routerId
+	 */
+	public String getRouterRouterPath(UUID routerId, UUID peerRouterId) {
+		return new StringBuilder(getRouterRoutersPath(routerId)).append("/")
+				.append(peerRouterId).toString();
+	}
+	
+    /**
+     * Get ZK port path.
+     * 
+     * @return /ports
+     */
+    public String getPortsPath() {
+        return new StringBuilder(basePath).append("/ports").toString();
+    }
+
+    /**
+     * Get ZK port path.
+     * 
+     * @param id
+     *            Port ID.
+     * @return /ports/portId
+     */
+    public String getPortPath(UUID id) {
+        return new StringBuilder(getPortsPath()).append("/").append(id)
+                .toString();
+    }
+    
+    /**
+     * Get ZK bridges path.
+     * 
+     * @return /birdges
+     */
+    public String getBridgesPath() {
+        return new StringBuilder(basePath).append("/bridges").toString();
+    }
+
+    /**
+     * Get ZK bridge path.
+     * 
+     * @param id
+     *            Bridge UUID
+     * @return /bridges/bridgeId
+     */
+    public String getBridgePath(UUID id) {
+        return new StringBuilder(getBridgesPath()).append("/").append(id)
+                .toString();
+    }
 }

@@ -26,7 +26,7 @@ import com.midokura.midolman.state.ZkManager;
  */
 public class TenantZkManager extends ZkManager {
 
-	private MgmtZkPathManager mgmtZkPathManager = null;
+	private ZkMgmtPathManager ZkMgmtPathManager = null;
 
 	/**
 	 * TenantZkManager constructor.
@@ -38,7 +38,7 @@ public class TenantZkManager extends ZkManager {
 	 */
 	public TenantZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
 		super(new ZkDirectory(zk, "", null), basePath);
-		mgmtZkPathManager = new MgmtZkPathManager(mgmtBasePath);
+		ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
 	/**
@@ -73,11 +73,11 @@ public class TenantZkManager extends ZkManager {
 			id = UUID.randomUUID();
 		}
 		List<Op> ops = new ArrayList<Op>();
-		ops.add(Op.create(mgmtZkPathManager.getTenantPath(id), null,
+		ops.add(Op.create(ZkMgmtPathManager.getTenantPath(id), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(mgmtZkPathManager.getTenantRoutersPath(id), null,
+		ops.add(Op.create(ZkMgmtPathManager.getTenantRoutersPath(id), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(mgmtZkPathManager.getTenantBridgesPath(id), null,
+		ops.add(Op.create(ZkMgmtPathManager.getTenantBridgesPath(id), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 		this.zk.multi(ops);
 		return id;

@@ -39,12 +39,12 @@ public class MgmtRouterZkManager extends RouterZkManager {
 		public String name;
 	}
 
-	private MgmtZkPathManager mgmtZkPathManager = null;
+	private ZkMgmtPathManager ZkMgmtPathManager = null;
 
 	public MgmtRouterZkManager(ZooKeeper zk, String basePath,
 			String mgmtBasePath) {
 		super(zk, basePath);
-		mgmtZkPathManager = new MgmtZkPathManager(mgmtBasePath);
+		ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
 	public List<Op> prepareRouterCreate(
@@ -53,7 +53,7 @@ public class MgmtRouterZkManager extends RouterZkManager {
 			InterruptedException {
 		List<Op> ops = new ArrayList<Op>();
 		try {
-			ops.add(Op.create(mgmtZkPathManager
+			ops.add(Op.create(ZkMgmtPathManager
 					.getRouterPath(routerMgmtNode.key),
 					serialize(routerMgmtNode.value), Ids.OPEN_ACL_UNSAFE,
 					CreateMode.PERSISTENT));
@@ -64,7 +64,7 @@ public class MgmtRouterZkManager extends RouterZkManager {
 		}
 
 		// Add under tenant.
-		ops.add(Op.create(mgmtZkPathManager.getTenantRouterPath(
+		ops.add(Op.create(ZkMgmtPathManager.getTenantRouterPath(
 				routerMgmtNode.value.tenantId, routerMgmtNode.key), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
@@ -85,7 +85,7 @@ public class MgmtRouterZkManager extends RouterZkManager {
 	public ZkNodeEntry<UUID, RouterMgmtConfig> getMgmt(UUID id)
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException {
-		byte[] data = zk.get(mgmtZkPathManager.getRouterPath(id), null);
+		byte[] data = zk.get(ZkMgmtPathManager.getRouterPath(id), null);
 		RouterMgmtConfig config = null;
 		try {
 			config = deserialize(data, RouterMgmtConfig.class);
@@ -101,7 +101,7 @@ public class MgmtRouterZkManager extends RouterZkManager {
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException {
 		List<ZkNodeEntry<UUID, RouterMgmtConfig>> result = new ArrayList<ZkNodeEntry<UUID, RouterMgmtConfig>>();
-		Set<String> routerIds = zk.getChildren(mgmtZkPathManager
+		Set<String> routerIds = zk.getChildren(ZkMgmtPathManager
 				.getTenantRoutersPath(tenantId), null);
 		for (String routerId : routerIds) {
 			// For now, get each one.
@@ -115,7 +115,7 @@ public class MgmtRouterZkManager extends RouterZkManager {
 			ZkStateSerializationException {
 		// Update any version for now.
 		try {
-			zk.update(mgmtZkPathManager.getRouterPath(entry.key),
+			zk.update(ZkMgmtPathManager.getRouterPath(entry.key),
 					serialize(entry.value));
 		} catch (IOException e) {
 			throw new ZkStateSerializationException(
@@ -133,9 +133,9 @@ public class MgmtRouterZkManager extends RouterZkManager {
 		ops.addAll(super.prepareRouterDelete(routerMgmtNode.key));
 
 		// Delete the tenant router entry
-		ops.add(Op.delete(mgmtZkPathManager.getTenantRouterPath(
+		ops.add(Op.delete(ZkMgmtPathManager.getTenantRouterPath(
 				routerMgmtNode.value.tenantId, routerMgmtNode.key), -1));
-		ops.add(Op.delete(mgmtZkPathManager.getRouterPath(routerMgmtNode.key),
+		ops.add(Op.delete(ZkMgmtPathManager.getRouterPath(routerMgmtNode.key),
 				-1));
 		return ops;
 	}

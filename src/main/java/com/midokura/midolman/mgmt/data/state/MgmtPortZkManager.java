@@ -47,11 +47,11 @@ public class MgmtPortZkManager extends PortZkManager {
 		public UUID vifId = null;
 	}
 
-	private MgmtZkPathManager mgmtZkPathManager = null;
+	private ZkMgmtPathManager ZkMgmtPathManager = null;
 
 	public MgmtPortZkManager(Directory zk, String basePath, String mgmtBasePath) {
 		super(zk, basePath);
-		mgmtZkPathManager = new MgmtZkPathManager(mgmtBasePath);
+		ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
 	public MgmtPortZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
@@ -72,7 +72,7 @@ public class MgmtPortZkManager extends PortZkManager {
 			throws ZkStateSerializationException {
 		List<Op> ops = new ArrayList<Op>();
 		try {
-			ops.add(Op.create(mgmtZkPathManager.getPortPath(portMgmtNode.key),
+			ops.add(Op.create(ZkMgmtPathManager.getPortPath(portMgmtNode.key),
 					serialize(portMgmtNode.value), Ids.OPEN_ACL_UNSAFE,
 					CreateMode.PERSISTENT));
 
@@ -88,7 +88,7 @@ public class MgmtPortZkManager extends PortZkManager {
 		// If VIF is set, then create a new VIF entry.
 		if (vifNode != null) {
 			try {
-				ops.add(Op.create(mgmtZkPathManager.getVifPath(vifNode.key),
+				ops.add(Op.create(ZkMgmtPathManager.getVifPath(vifNode.key),
 						serialize(vifNode.value), Ids.OPEN_ACL_UNSAFE,
 						CreateMode.PERSISTENT));
 
@@ -107,7 +107,7 @@ public class MgmtPortZkManager extends PortZkManager {
 			throws ZkStateSerializationException {
 		List<Op> ops = new ArrayList<Op>();
 		try {
-			ops.add(Op.setData(mgmtZkPathManager.getPortPath(portNode.key),
+			ops.add(Op.setData(ZkMgmtPathManager.getPortPath(portNode.key),
 					serialize(portNode.value), -1));
 		} catch (IOException e) {
 			throw new ZkStateSerializationException(
@@ -115,7 +115,7 @@ public class MgmtPortZkManager extends PortZkManager {
 							+ " to PortMgmtConfig", e, PortMgmtConfig.class);
 		}
 		try {
-			ops.add(Op.create(mgmtZkPathManager.getVifPath(vifNode.key),
+			ops.add(Op.create(ZkMgmtPathManager.getVifPath(vifNode.key),
 					serialize(vifNode.value), Ids.OPEN_ACL_UNSAFE,
 					CreateMode.PERSISTENT));
 
@@ -136,7 +136,7 @@ public class MgmtPortZkManager extends PortZkManager {
 
 		List<Op> ops = new ArrayList<Op>();
 		try {
-			ops.add(Op.setData(mgmtZkPathManager.getPortPath(portNode.key),
+			ops.add(Op.setData(ZkMgmtPathManager.getPortPath(portNode.key),
 					serialize(portNode.value), -1));
 		} catch (IOException e) {
 			throw new ZkStateSerializationException(
@@ -145,7 +145,7 @@ public class MgmtPortZkManager extends PortZkManager {
 		}
 
 		if (vifId != null) {
-			ops.add(Op.delete(mgmtZkPathManager.getVifPath(vifId), -1));
+			ops.add(Op.delete(ZkMgmtPathManager.getVifPath(vifId), -1));
 		}
 		return ops;
 	}
@@ -161,11 +161,11 @@ public class MgmtPortZkManager extends PortZkManager {
 		ops.addAll(super.preparePortDelete(portNode));
 
 		// Delete the VIF attached
-		ops.add(Op.delete(mgmtZkPathManager
+		ops.add(Op.delete(ZkMgmtPathManager
 				.getVifPath(portMgmtNode.value.vifId), -1));
 
 		// Delete management port
-		ops.add(Op.delete(mgmtZkPathManager.getPortPath(portMgmtNode.key), -1));
+		ops.add(Op.delete(ZkMgmtPathManager.getPortPath(portMgmtNode.key), -1));
 
 		return ops;
 	}
@@ -173,7 +173,7 @@ public class MgmtPortZkManager extends PortZkManager {
 	public ZkNodeEntry<UUID, PortMgmtConfig> getMgmt(UUID id)
 			throws KeeperException, InterruptedException,
 			ZkStateSerializationException {
-		byte[] data = zk.get(mgmtZkPathManager.getPortPath(id), null);
+		byte[] data = zk.get(ZkMgmtPathManager.getPortPath(id), null);
 		PortMgmtConfig config = null;
 		try {
 			config = deserialize(data, PortMgmtConfig.class);

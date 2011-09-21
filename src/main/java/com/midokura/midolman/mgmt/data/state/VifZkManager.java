@@ -38,16 +38,16 @@ public class VifZkManager extends ZkManager {
 		public UUID portId;
 	}
 
-	private MgmtZkPathManager mgmtZkPathManager = null;
+	private ZkMgmtPathManager ZkMgmtPathManager = null;
 
 	public VifZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
 		super(new ZkDirectory(zk, "", null), basePath);
-		this.mgmtZkPathManager = new MgmtZkPathManager(mgmtBasePath);
+		this.ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
 	public ZkNodeEntry<UUID, VifConfig> get(UUID id) throws KeeperException,
 			InterruptedException, ZkStateSerializationException {
-		byte[] data = zk.get(mgmtZkPathManager.getVifPath(id), null);
+		byte[] data = zk.get(ZkMgmtPathManager.getVifPath(id), null);
 		VifConfig config = null;
 		try {
 			config = deserialize(data, VifConfig.class);
