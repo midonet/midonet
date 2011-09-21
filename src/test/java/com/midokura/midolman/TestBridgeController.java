@@ -48,6 +48,11 @@ public class TestBridgeController {
     int dp_id = 43;
     MockControllerStub controllerStub;
 
+    public static final OFAction OUTPUT_ALL_ACTION = 
+                new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
+    public static final OFAction OUTPUT_FLOOD_ACTION = 
+                new OFActionOutput(OFPort.OFPP_FLOOD.getValue(), (short)0);
+
     // MACs:  8 normal addresses, and one multicast.
     // TODO: Make this less ugly.
     byte macList[][] = 
@@ -293,10 +298,21 @@ public class TestBridgeController {
         MidoMatch expectedMatch = flowmatch01.clone();
         short inputPort = 0;
         expectedMatch.setInputPort(inputPort);
-        OFAction expectedActions[] = { 
-                new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0) };
+        OFAction expectedActions[] = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
         checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
         checkSentPacket(14, (short)-1, expectedActions, new byte[] {});
+    }
+
+    @Test
+    public void testMulticastLocalInPort() {
+        final Ethernet packet = packet0MC;
+        short inPortNum = 0;
+        MidoMatch expectedMatch = flowmatch0MC.clone();
+        expectedMatch.setInputPort(inPortNum);
+        OFAction[] expectActions = { OUTPUT_ALL_ACTION };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
+        checkSentPacket(14, (short)-1, expectActions, new byte[] {});
     }
 }
