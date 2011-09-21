@@ -184,7 +184,7 @@ public class BridgeController extends AbstractController {
         } else {
             // The virtual port is part of a remote datapath.  Tunnel the 
             // packet to it.
-            log.debug("send flow to peer at {}", 
+            log.info("send flow to peer at {}", 
                       Net.convertIntAddressToString(destIP));
             if (isTunnelPortNum(inPort)) {
                 // The packet came in on a tunnel.  Don't send it out the 
@@ -199,6 +199,7 @@ public class BridgeController extends AbstractController {
                     output = peerIpToTunnelPortNum.get(destIP).shortValue();
                 } catch (NullPointerException e) {
                     // Tunnel is down.  Flood until the tunnel port comes up.
+		    log.info("tunnel down:  Flooding");
                     output = OFPort.OFPP_ALL.getValue();
                 }
                 actions = new OFAction[] { new OFActionOutput(output,

@@ -47,8 +47,8 @@ public abstract class AbstractController implements Controller {
     protected PortToIntNwAddrMap portLocMap;
 
     // Tunnel management data structures
-    protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
-    protected HashMap<InetAddress, Integer> peerIpToTunnelPortNum;
+    protected HashMap<Integer, Integer> tunnelPortNumToPeerIp;
+    protected HashMap<Integer, Integer> peerIpToTunnelPortNum;
 
     protected PortToIntNwAddrMap.Watcher listener;
 
@@ -92,8 +92,8 @@ public abstract class AbstractController implements Controller {
                                       : 0;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
-        tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
-        peerIpToTunnelPortNum = new HashMap<InetAddress, Integer>();
+        tunnelPortNumToPeerIp = new HashMap<Integer, Integer>();
+        peerIpToTunnelPortNum = new HashMap<Integer, Integer>();
         listener = new PortLocMapListener(this);
         if (portLocMap != null)
             portLocMap.addWatcher(listener);
@@ -140,10 +140,12 @@ public abstract class AbstractController implements Controller {
         }
         // TODO(pino, jlm): should this be an else-if?
         if (isGREPortOfKey(portDesc.getName())) {
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+            Integer peerIp = peerIpOfGrePortName(portDesc.getName());
             // TODO: Error out if already tunneled to this peer.
             tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
             peerIpToTunnelPortNum.put(peerIp, new Integer(portNum));
+            log.info("Recording tunnel {} <=> {}", portNum,
+                     Net.convertIntAddressToString(peerIp.intValue()));
         }
 
         addPort(portDesc, portNum);
@@ -161,7 +163,7 @@ public abstract class AbstractController implements Controller {
             portNumToUuid.remove(portNum);
             portUuidToNumberMap.remove(
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
-            InetAddress peerIp = tunnelPortNumToPeerIp.remove(portNum);
+            Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
             peerIpToTunnelPortNum.remove(peerIp);
         } else {
             modifyPort(portDesc);
@@ -175,12 +177,11 @@ public abstract class AbstractController implements Controller {
                 portNumToUuid.remove(portNum);
 
             if (isGREPortOfKey(portDesc.getName())) {
-                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+                Integer peerIp = peerIpOfGrePortName(portDesc.getName());
                 tunnelPortNumToPeerIp.put(portNum, peerIp);
                 peerIpToTunnelPortNum.put(peerIp, portNum);
-                
             } else {
-                InetAddress peerIp = tunnelPortNumToPeerIp.remove(portNum);
+                Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
                 peerIpToTunnelPortNum.remove(peerIp);
             }
         }
@@ -220,7 +221,7 @@ public abstract class AbstractController implements Controller {
         return peerIpToTunnelPortNum.get(peerIp);
     }
 
-    protected InetAddress peerOfTunnelPortNum(int portNum) {
+    protected Integer peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
 
@@ -235,10 +236,9 @@ public abstract class AbstractController implements Controller {
         return portName.startsWith(greString);
     }
 
-    protected InetAddress peerIpOfGrePortName(String portName) {
+    protected Integer peerIpOfGrePortName(String portName) {
         String hexAddress = portName.substring(7, 15);
-        int intAddress = new BigInteger(hexAddress, 16).intValue();
-        return Net.convertIntToInetAddress(intAddress);
+        return (new BigInteger(hexAddress, 16)).intValue();
     }
 
     public String makeGREPortName(int address) {
