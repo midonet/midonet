@@ -233,7 +233,8 @@ public class ChainZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        RuleZkManager ruleZkManager = new RuleZkManager(zk, basePath);
+        RuleZkManager ruleZkManager = new RuleZkManager(zk, pathManager
+                .getBasePath());
         List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
         for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));

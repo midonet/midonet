@@ -33,215 +33,216 @@ import com.midokura.midolman.state.PortDirectory.PortConfig;
  */
 public class RouterZkManager extends ZkManager {
 
-	public static class PeerRouterConfig {
-		public PeerRouterConfig() {
-			super();
-		}
+    public static class PeerRouterConfig {
+        public PeerRouterConfig() {
+            super();
+        }
 
-		public PeerRouterConfig(UUID portId, UUID peerPortId) {
-			super();
-			this.portId = portId;
-			this.peerPortId = peerPortId;
-		}
+        public PeerRouterConfig(UUID portId, UUID peerPortId) {
+            super();
+            this.portId = portId;
+            this.peerPortId = peerPortId;
+        }
 
-		public UUID portId;
-		public UUID peerPortId;
-	}
+        public UUID portId;
+        public UUID peerPortId;
+    }
 
-	/**
-	 * Initializes a RouterZkManager object with a ZooKeeper client and the root
-	 * path of the ZooKeeper directory.
-	 * 
-	 * @param zk
-	 *            Directory object.
-	 * @param basePath
-	 *            The root path.
-	 */
-	public RouterZkManager(Directory zk, String basePath) {
-		super(zk, basePath);
-	}
+    /**
+     * Initializes a RouterZkManager object with a ZooKeeper client and the root
+     * path of the ZooKeeper directory.
+     * 
+     * @param zk
+     *            Directory object.
+     * @param basePath
+     *            The root path.
+     */
+    public RouterZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
 
-	public RouterZkManager(ZooKeeper zk, String basePath) {
-		this(new ZkDirectory(zk, "", null), basePath);
-	}
+    public RouterZkManager(ZooKeeper zk, String basePath) {
+        this(new ZkDirectory(zk, "", null), basePath);
+    }
 
-	public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
-			throws KeeperException, InterruptedException,
-			ZkStateSerializationException {
-		byte[] data = zk.get(pathManager.getRouterRouterPath(routerId,
-				peerRouterId), null);
-		try {
-			return deserialize(data, PeerRouterConfig.class);
-		} catch (IOException e) {
-			throw new ZkStateSerializationException(
-					"Could not deserialize peer router " + routerId
-							+ " to PeerRouterConfig", e, PeerRouterConfig.class);
-		}
-	}
+    public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        byte[] data = zk.get(pathManager.getRouterRouterPath(routerId,
+                peerRouterId), null);
+        try {
+            return deserialize(data, PeerRouterConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize peer router " + routerId
+                            + " to PeerRouterConfig", e, PeerRouterConfig.class);
+        }
+    }
 
-	/**
-	 * Constructs a list of ZooKeeper update operations to perform when adding a
-	 * new router.
-	 * 
-	 * @param routerNode
-	 *            ZooKeeper node representing a key-value entry of router UUID
-	 *            and RouterConfig object.
-	 * @return A list of Op objects to represent the operations to perform.
-	 * @throws ZkStateSerializationException
-	 *             Serialization error occurred.
-	 * @throws KeeperException
-	 *             ZooKeeper error occurred.
-	 * @throws InterruptedException
-	 *             ZooKeeper was unresponsive.
-	 */
-	public List<Op> prepareRouterCreate(UUID id)
-			throws ZkStateSerializationException, KeeperException,
-			InterruptedException {
-		List<Op> ops = new ArrayList<Op>();
-		ops.add(Op.create(pathManager.getRouterPath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(pathManager.getRouterPortsPath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(pathManager.getRouterRoutesPath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(pathManager.getRouterChainsPath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(pathManager.getRouterRoutersPath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
-				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+    /**
+     * Constructs a list of ZooKeeper update operations to perform when adding a
+     * new router.
+     * 
+     * @param routerNode
+     *            ZooKeeper node representing a key-value entry of router UUID
+     *            and RouterConfig object.
+     * @return A list of Op objects to represent the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRouterCreate(UUID id)
+            throws ZkStateSerializationException, KeeperException,
+            InterruptedException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.create(pathManager.getRouterPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterPortsPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterRoutesPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterChainsPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterRoutersPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-		return ops;
-	}
+        return ops;
+    }
 
-	/**
-	 * Performs an atomic update on the ZooKeeper to add a new router entry.
-	 * 
-	 * @param router
-	 *            Router object to add to the ZooKeeper directory.
-	 * @return The UUID of the newly created object.
-	 * @throws ZkStateSerializationException
-	 *             Serialization error occurred.
-	 * @throws KeeperException
-	 *             ZooKeeper error occurred.
-	 * @throws InterruptedException
-	 *             ZooKeeper was unresponsive.
-	 */
-	public UUID create() throws InterruptedException, KeeperException,
-			ZkStateSerializationException {
-		UUID id = UUID.randomUUID();
-		zk.multi(prepareRouterCreate(id));
-		return id;
-	}
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new router entry.
+     * 
+     * @param router
+     *            Router object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public UUID create() throws InterruptedException, KeeperException,
+            ZkStateSerializationException {
+        UUID id = UUID.randomUUID();
+        zk.multi(prepareRouterCreate(id));
+        return id;
+    }
 
-	/**
-	 * Constructs a list of operations to perform in a router deletion.
-	 * 
-	 * @param entry
-	 *            Router ZooKeeper entry to delete.
-	 * @return A list of Op objects representing the operations to perform.
-	 * @throws ZkStateSerializationException
-	 *             Serialization error occurred.
-	 * @throws KeeperException
-	 *             ZooKeeper error occurred.
-	 * @throws InterruptedException
-	 *             ZooKeeper was unresponsive.
-	 */
-	public List<Op> prepareRouterDelete(UUID id) throws KeeperException,
-			InterruptedException, ClassNotFoundException,
-			ZkStateSerializationException {
-		List<Op> ops = new ArrayList<Op>();
-		ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
-		RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
-		PortZkManager portZkManager = new PortZkManager(zk, basePath);
-		// Get chains delete ops.
-		List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager.list(id);
-		for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
-			ops.addAll(chainZkManager.prepareChainDelete(entry));
-		}
-		ops.add(Op.delete(pathManager.getRouterChainsPath(id), -1));
-		// Get routes delete ops.
-		List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
-				.listRouterRoutes(id, null);
-		for (ZkNodeEntry<UUID, Route> entry : routes) {
-			ops.addAll(routeZkManager.prepareRouteDelete(entry));
-		}
-		ops.add(Op.delete(pathManager.getRouterRoutesPath(id), -1));
-		// Get ports delete ops
-		List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
-				.listRouterPorts(id);
-		for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
-			ops.addAll(portZkManager.prepareRouterPortDelete(entry));
-		}
-		ops.add(Op.delete(pathManager.getRouterPortsPath(id), -1));
+    /**
+     * Constructs a list of operations to perform in a router deletion.
+     * 
+     * @param entry
+     *            Router ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRouterDelete(UUID id) throws KeeperException,
+            InterruptedException, ClassNotFoundException,
+            ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        String basePath = pathManager.getBasePath();
+        ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
+        RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
+        PortZkManager portZkManager = new PortZkManager(zk, basePath);
+        // Get chains delete ops.
+        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager.list(id);
+        for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
+            ops.addAll(chainZkManager.prepareChainDelete(entry));
+        }
+        ops.add(Op.delete(pathManager.getRouterChainsPath(id), -1));
+        // Get routes delete ops.
+        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
+                .listRouterRoutes(id, null);
+        for (ZkNodeEntry<UUID, Route> entry : routes) {
+            ops.addAll(routeZkManager.prepareRouteDelete(entry));
+        }
+        ops.add(Op.delete(pathManager.getRouterRoutesPath(id), -1));
+        // Get ports delete ops
+        List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
+                .listRouterPorts(id);
+        for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
+            ops.addAll(portZkManager.prepareRouterPortDelete(entry));
+        }
+        ops.add(Op.delete(pathManager.getRouterPortsPath(id), -1));
 
-		// Remove the router-router mappings
-		Set<String> peers = zk.getChildren(
-				pathManager.getRouterRoutersPath(id), null);
-		for (String peer : peers) {
-			UUID peerId = UUID.fromString(peer);
-			ops.add(Op.delete(pathManager.getRouterRouterPath(id, peerId), -1));
-			ops.add(Op.delete(pathManager.getRouterRouterPath(peerId, id), -1));
-		}
-		ops.add(Op.delete(pathManager.getRouterRoutersPath(id), -1));
+        // Remove the router-router mappings
+        Set<String> peers = zk.getChildren(
+                pathManager.getRouterRoutersPath(id), null);
+        for (String peer : peers) {
+            UUID peerId = UUID.fromString(peer);
+            ops.add(Op.delete(pathManager.getRouterRouterPath(id, peerId), -1));
+            ops.add(Op.delete(pathManager.getRouterRouterPath(peerId, id), -1));
+        }
+        ops.add(Op.delete(pathManager.getRouterRoutersPath(id), -1));
 
-		ops.add(Op.delete(pathManager.getRouterPath(id), -1));
-		return ops;
-	}
+        ops.add(Op.delete(pathManager.getRouterPath(id), -1));
+        return ops;
+    }
 
-	/***
-	 * Deletes a router and its related data from the ZooKeeper directories
-	 * atomically.
-	 * 
-	 * @param id
-	 *            ID of the router to delete.
-	 * @throws ZkStateSerializationException
-	 *             Serialization error occurred.
-	 * @throws KeeperException
-	 *             ZooKeeper error occurred.
-	 * @throws InterruptedException
-	 *             ZooKeeper was unresponsive.
-	 */
-	public void delete(UUID id) throws InterruptedException, KeeperException,
-			IOException, ClassNotFoundException, ZkStateSerializationException {
-		this.zk.multi(prepareRouterDelete(id));
-	}
+    /***
+     * Deletes a router and its related data from the ZooKeeper directories
+     * atomically.
+     * 
+     * @param id
+     *            ID of the router to delete.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public void delete(UUID id) throws InterruptedException, KeeperException,
+            IOException, ClassNotFoundException, ZkStateSerializationException {
+        this.zk.multi(prepareRouterDelete(id));
+    }
 
-	public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
-			throws KeeperException, InterruptedException {
-		StringBuilder sb = new StringBuilder(pathManager
-				.getRouterSnatBlocksPath(routerId));
-		sb.append("/").append(Integer.toHexString(ip));
-		TreeSet<Short> ports = new TreeSet<Short>();
-		Set<String> blocks = null;
-		try {
-			blocks = zk.getChildren(sb.toString(), null);
-		} catch (NoNodeException e) {
-			return ports;
-		}
-		for (String str : blocks)
-			ports.add((short) Integer.parseInt(str));
-		return ports;
-	}
+    public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
+            throws KeeperException, InterruptedException {
+        StringBuilder sb = new StringBuilder(pathManager
+                .getRouterSnatBlocksPath(routerId));
+        sb.append("/").append(Integer.toHexString(ip));
+        TreeSet<Short> ports = new TreeSet<Short>();
+        Set<String> blocks = null;
+        try {
+            blocks = zk.getChildren(sb.toString(), null);
+        } catch (NoNodeException e) {
+            return ports;
+        }
+        for (String str : blocks)
+            ports.add((short) Integer.parseInt(str));
+        return ports;
+    }
 
-	public void addSnatReservation(UUID routerId, int ip, short startPort)
-			throws KeeperException, InterruptedException {
-		StringBuilder sb = new StringBuilder(pathManager
-				.getRouterSnatBlocksPath(routerId));
-		sb.append("/").append(Integer.toHexString(ip));
-		try {
-			zk.add(sb.toString(), null, CreateMode.PERSISTENT);
-		} catch (NodeExistsException e) {
-		}
-		sb.append("/").append(startPort);
-		zk.add(sb.toString(), null, CreateMode.EPHEMERAL);
-	}
+    public void addSnatReservation(UUID routerId, int ip, short startPort)
+            throws KeeperException, InterruptedException {
+        StringBuilder sb = new StringBuilder(pathManager
+                .getRouterSnatBlocksPath(routerId));
+        sb.append("/").append(Integer.toHexString(ip));
+        try {
+            zk.add(sb.toString(), null, CreateMode.PERSISTENT);
+        } catch (NodeExistsException e) {
+        }
+        sb.append("/").append(startPort);
+        zk.add(sb.toString(), null, CreateMode.EPHEMERAL);
+    }
 
-	public Directory getRoutingTableDirectory(UUID routerId)
-			throws KeeperException {
-		return zk.getSubDirectory(pathManager
-				.getRouterRoutingTablePath(routerId));
-	}
+    public Directory getRoutingTableDirectory(UUID routerId)
+            throws KeeperException {
+        return zk.getSubDirectory(pathManager
+                .getRouterRoutingTablePath(routerId));
+    }
 }

@@ -57,7 +57,8 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> preparePortCreate(ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode)
+    public List<Op> preparePortCreate(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode)
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
@@ -67,7 +68,8 @@ public class PortZkManager extends ZkManager {
                     CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize PortConfig", e, PortDirectory.PortConfig.class);
+                    "Could not serialize PortConfig", e,
+                    PortDirectory.PortConfig.class);
         }
 
         if (portNode.value instanceof PortDirectory.RouterPortConfig) {
@@ -105,9 +107,11 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public UUID create(PortDirectory.PortConfig port) throws IOException, KeeperException,
-            InterruptedException, ZkStateSerializationException {
-        // TODO(pino) - port UUIDs should be created using a sequential persistent
+    public UUID create(PortDirectory.PortConfig port) throws IOException,
+            KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // TODO(pino) - port UUIDs should be created using a sequential
+        // persistent
         // create in a ZK directory.
         UUID id = ShortUUID.generate32BitUUID();
         ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
@@ -147,7 +151,8 @@ public class PortZkManager extends ZkManager {
     }
 
     public ZkNodeEntry<UUID, UUID> createLink(
-            PortDirectory.LogicalRouterPortConfig localPort, PortDirectory.LogicalRouterPortConfig peerPort)
+            PortDirectory.LogicalRouterPortConfig localPort,
+            PortDirectory.LogicalRouterPortConfig peerPort)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         // Check that they are not currently linked.
@@ -181,8 +186,9 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public ZkNodeEntry<UUID, PortDirectory.PortConfig> get(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
+    public ZkNodeEntry<UUID, PortDirectory.PortConfig> get(UUID id)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         return get(id, null);
     }
 
@@ -203,8 +209,8 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public ZkNodeEntry<UUID, PortDirectory.PortConfig> get(UUID id, Runnable watcher)
-            throws KeeperException, InterruptedException,
+    public ZkNodeEntry<UUID, PortDirectory.PortConfig> get(UUID id,
+            Runnable watcher) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         byte[] data = zk.get(pathManager.getPortPath(id), watcher);
         PortDirectory.PortConfig config = null;
@@ -234,9 +240,9 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listPorts(String path,
-            Runnable watcher) throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
+    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listPorts(
+            String path, Runnable watcher) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
         List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> result = new ArrayList<ZkNodeEntry<UUID, PortDirectory.PortConfig>>();
         Set<String> portIds = zk.getChildren(path, watcher);
         for (String portId : portIds) {
@@ -260,8 +266,8 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listRouterPorts(UUID routerId)
-            throws KeeperException, InterruptedException,
+    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listRouterPorts(
+            UUID routerId) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         return listRouterPorts(routerId, null);
     }
@@ -283,9 +289,9 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listRouterPorts(UUID routerId,
-            Runnable watcher) throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
+    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listRouterPorts(
+            UUID routerId, Runnable watcher) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
         return listPorts(pathManager.getRouterPortsPath(routerId), watcher);
     }
 
@@ -303,8 +309,8 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listBridgePorts(UUID bridgeId)
-            throws KeeperException, InterruptedException,
+    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listBridgePorts(
+            UUID bridgeId) throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         return listBridgePorts(bridgeId, null);
     }
@@ -326,9 +332,9 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listBridgePorts(UUID bridgeId,
-            Runnable watcher) throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
+    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listBridgePorts(
+            UUID bridgeId, Runnable watcher) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
         return listPorts(pathManager.getBridgePortsPath(bridgeId), watcher);
     }
 
@@ -354,15 +360,18 @@ public class PortZkManager extends ZkManager {
 
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize port "
-                    + entry.key + " to PortConfig", e, PortDirectory.PortConfig.class);
+                    + entry.key + " to PortConfig", e,
+                    PortDirectory.PortConfig.class);
         }
     }
 
     private List<Op> prepareCommonRouterPortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
+        RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
+                .getBasePath());
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
                 entry.key, null);
         for (ZkNodeEntry<UUID, Route> route : routes) {
@@ -387,7 +396,8 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<Op> prepareRouterPortDelete(ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+    public List<Op> prepareRouterPortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         List<Op> ops = prepareCommonRouterPortDelete(entry);
@@ -425,7 +435,8 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<Op> prepareBridgePortDelete(ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+    public List<Op> prepareBridgePortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
             throws KeeperException, InterruptedException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getBridgePortPath(entry.value.device_id,
@@ -447,7 +458,8 @@ public class PortZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public List<Op> preparePortDelete(ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+    public List<Op> preparePortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         if (entry.value instanceof PortDirectory.BridgePortConfig) {

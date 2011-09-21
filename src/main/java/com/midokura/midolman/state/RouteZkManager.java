@@ -52,7 +52,8 @@ public class RouteZkManager extends ZkManager {
         // Determine whether to add the Route data under routers or ports.
         if (entry.value.nextHop == Route.NextHop.PORT) {
             // Check what kind of port this is.
-            PortZkManager portZkManager = new PortZkManager(zk, basePath);
+            PortZkManager portZkManager = new PortZkManager(zk, pathManager
+                    .getBasePath());
             ZkNodeEntry<UUID, PortDirectory.PortConfig> port = portZkManager
                     .get(entry.value.nextHopPort);
             if (!(port.value instanceof PortDirectory.RouterPortConfig)) {
@@ -263,7 +264,8 @@ public class RouteZkManager extends ZkManager {
             } catch (IOException e) {
                 throw new ZkStateSerializationException(
                         "Could not deserialize port " + portUUID
-                                + " to PortConfig", e, PortDirectory.PortConfig.class);
+                                + " to PortConfig", e,
+                        PortDirectory.PortConfig.class);
             }
             if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;

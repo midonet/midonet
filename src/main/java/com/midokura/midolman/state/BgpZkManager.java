@@ -165,7 +165,7 @@ public class BgpZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the advertising routes
-        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, basePath);
+        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, pathManager.getBasePath());
         List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
                 .list(entry.key);
         for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {
