@@ -100,7 +100,7 @@ class AbstractControllerTester extends AbstractController {
     }
 
     @Override
-    public InetAddress peerIpOfGrePortName(String s) {
+    public Integer peerIpOfGrePortName(String s) {
 	return super.peerIpOfGrePortName(s);
     }
 }
@@ -165,9 +165,7 @@ public class TestAbstractController {
 	assertFalse(controller.isTunnelPortNum(37));
 	assertTrue(controller.isTunnelPortNum(47));
 	assertEquals(null, controller.peerOfTunnelPortNum(37));
-	assertEquals(InetAddress.getByAddress(
-			 new byte[] { 0x0a, 0x00, 0x11, 0x22}),
-		     controller.peerOfTunnelPortNum(47));
+	assertEquals(0x0a001122, controller.peerOfTunnelPortNum(47).intValue());
     }
 
     @Test
@@ -193,7 +191,7 @@ public class TestAbstractController {
     }
 
     @Test
-    public void testClearAdd() throws UnknownHostException {
+    public void testClearAdd() {
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
 			  controller.portsAdded.toArray());
         assertEquals(0, controller.numClearCalls);
@@ -208,12 +206,12 @@ public class TestAbstractController {
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
         assertEquals(port2uuid, controller.portNumToUuid.get(47));
         assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
-        assertEquals(InetAddress.getByName("10.0.17.34"),
-	             controller.tunnelPortNumToPeerIp.get(47));
+        assertEquals(Net.convertStringAddressToInt("10.0.17.34"),
+	             controller.tunnelPortNumToPeerIp.get(47).intValue());
     }
 
     @Test
-    public void testModifyPort() throws UnknownHostException {
+    public void testModifyPort() {
         port2.setName("tne12340a001123");
         UUID port2newUuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
@@ -223,8 +221,8 @@ public class TestAbstractController {
         assertArrayEquals(new OFPhysicalPort[] { port2 },
 			  controller.portsModified.toArray());
         assertEquals(port2newUuid, controller.portNumToUuid.get(47));
-        assertEquals(InetAddress.getByName("10.0.17.35"),
-                     controller.tunnelPortNumToPeerIp.get(47));
+        assertEquals(Net.convertStringAddressToInt("10.0.17.35"),
+                     controller.tunnelPortNumToPeerIp.get(47).intValue());
     }
 
     @Test
@@ -254,8 +252,7 @@ public class TestAbstractController {
     @Test
     public void testPeerIpOfGrePortName() {
 	assertEquals(0xff0011aa,
-	    Net.convertInetAddressToInt(
-		controller.peerIpOfGrePortName("tne1234ff0011aa")));
+		controller.peerIpOfGrePortName("tne1234ff0011aa").intValue());
     }
 
     @Test

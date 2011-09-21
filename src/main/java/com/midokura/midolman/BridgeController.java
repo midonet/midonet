@@ -199,7 +199,7 @@ public class BridgeController extends AbstractController {
                     output = peerIpToTunnelPortNum.get(destIP).shortValue();
                 } catch (NullPointerException e) {
                     // Tunnel is down.  Flood until the tunnel port comes up.
-		    log.info("tunnel down:  Flooding");
+                    log.info("tunnel down:  Flooding");
                     output = OFPort.OFPP_ALL.getValue();
                 }
                 actions = new OFAction[] { new OFActionOutput(output,
@@ -305,7 +305,7 @@ public class BridgeController extends AbstractController {
         // FIXME
     }
 
-    private void invalidateFlowsToPeer(InetAddress peer_ip) {
+    private void invalidateFlowsToPeer(Integer peer_ip) {
         // FIXME
     }
 }
