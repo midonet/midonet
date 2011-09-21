@@ -600,7 +600,7 @@ public class TestNetworkController {
                 NetworkController.IDLE_TIMEOUT_SECS, 37654, true, actions);
     }
 
-    @Test @Ignore
+    @Test 
     public void testRemoteOutputTunnelDown() {
         // First, with the tunnel up.
         // Send a packet to router1's first port destined to an address on
@@ -657,18 +657,15 @@ public class TestNetworkController {
         // installed and an ICMP !N packet sent to the source of the trigger
         // packet.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
-        // TODO: With the new semantics of MockControllerStub, this seems
-        // to indicate that the packet with bufferId == 22111 is being sent
-        // via a sendFlowModAdd(), which would be incorrect.  Is that really
-        // happening?
-
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // Now check the Drop Flow.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 22111, true,
                 new ArrayList<OFAction>());
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        // ICMP !N sent not through a buffer.
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(-1, pkt.bufferId);
         Assert.assertEquals(1, pkt.actions.size());
         ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
