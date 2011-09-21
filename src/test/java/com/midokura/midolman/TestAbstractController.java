@@ -48,7 +48,7 @@ class AbstractControllerTester extends AbstractController {
             long idleFlowExpireMillis,
             InetAddress internalIp) {
         super(datapathId, switchUuid, greKey, ovsdb, dict, flowExpireMinMillis,
-	      flowExpireMaxMillis, idleFlowExpireMillis, internalIp,
+              flowExpireMaxMillis, idleFlowExpireMillis, internalIp,
               "midonet");
         portsAdded = new ArrayList<OFPhysicalPort>();
         portsRemoved = new ArrayList<OFPhysicalPort>();
@@ -58,7 +58,7 @@ class AbstractControllerTester extends AbstractController {
 
     @Override 
     public void onPacketIn(int bufferId, int totalLen, short inPort,
-		           byte[] data) { }
+                           byte[] data) { }
 
     @Override
     public void onFlowRemoved(OFMatch match, long cookie,
@@ -71,7 +71,7 @@ class AbstractControllerTester extends AbstractController {
         portsAdded = new ArrayList<OFPhysicalPort>();
         portsRemoved = new ArrayList<OFPhysicalPort>();
         portsModified = new ArrayList<OFPhysicalPort>();
-	numClearCalls++;
+        numClearCalls++;
     }
 
     @Override
@@ -91,17 +91,17 @@ class AbstractControllerTester extends AbstractController {
     }
 
     public void setFeatures(OFFeaturesReply features) {
-	((MockControllerStub) controllerStub).setFeatures(features);
+        ((MockControllerStub) controllerStub).setFeatures(features);
     }
 
     @Override
     public String makeGREPortName(int a) {
-	return super.makeGREPortName(a);
+        return super.makeGREPortName(a);
     }
 
     @Override
     public Integer peerIpOfGrePortName(String s) {
-	return super.peerIpOfGrePortName(s);
+        return super.peerIpOfGrePortName(s);
     }
 }
 
@@ -126,19 +126,19 @@ public class TestAbstractController {
         dp_id = 43;
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
-	mockDir = new MockDirectory();
+        mockDir = new MockDirectory();
         portLocMap = new PortToIntNwAddrMap(mockDir);
 
         controller = new AbstractControllerTester(
-	                     dp_id /* datapathId */,
-			     UUID.randomUUID() /* switchUuid */,
-       			     0xe1234 /* greKey */,
- 			     ovsdb /* ovsdb */,
- 			     portLocMap /* portLocationMap */,
- 			     260 * 1000 /* flowExpireMinMillis */,
- 			     320 * 1000 /* flowExpireMaxMillis */,
- 			     60 * 1000 /* idleFlowExpireMillis */,
-			     null /* internalIp */);
+                             dp_id /* datapathId */,
+                             UUID.randomUUID() /* switchUuid */,
+                             0xe1234 /* greKey */,
+                             ovsdb /* ovsdb */,
+                             portLocMap /* portLocationMap */,
+                             260 * 1000 /* flowExpireMinMillis */,
+                             320 * 1000 /* flowExpireMaxMillis */,
+                             60 * 1000 /* idleFlowExpireMillis */,
+                             null /* internalIp */);
         controller.setControllerStub(new MockControllerStub());
 
         port1 = new OFPhysicalPort();
@@ -162,52 +162,52 @@ public class TestAbstractController {
     public void testPortMap() throws UnknownHostException {
         assertEquals(37, controller.portUuidToNumber(port1uuid));
         assertEquals(47, controller.portUuidToNumber(port2uuid));
-	assertFalse(controller.isTunnelPortNum(37));
-	assertTrue(controller.isTunnelPortNum(47));
-	assertEquals(null, controller.peerOfTunnelPortNum(37));
-	assertEquals(0x0a001122, controller.peerOfTunnelPortNum(47).intValue());
+        assertFalse(controller.isTunnelPortNum(37));
+        assertTrue(controller.isTunnelPortNum(47));
+        assertEquals(null, controller.peerOfTunnelPortNum(37));
+        assertEquals(0x0a001122, controller.peerOfTunnelPortNum(47).intValue());
     }
 
     @Test
     public void testConnectionMade() {
         OFFeaturesReply features = new OFFeaturesReply();
         ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();
-	portList.add(port1);
-	portList.add(port2);
+        portList.add(port1);
+        portList.add(port2);
         features.setPorts(portList);
         controller.setFeatures(features);
         controller.onConnectionLost();
         assertArrayEquals(new OFPhysicalPort[] { },
                           controller.portsAdded.toArray());
         MockControllerStub stub = 
-		(MockControllerStub) controller.controllerStub;
+                (MockControllerStub) controller.controllerStub;
         assertEquals(0, stub.deletedFlows.size());
         controller.onConnectionMade();
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
                           controller.portsAdded.toArray());
         assertEquals(1, stub.deletedFlows.size());
         assertEquals(OFMatch.OFPFW_ALL, 
-		     stub.deletedFlows.get(0).match.getWildcards());
+                     stub.deletedFlows.get(0).match.getWildcards());
     }
 
     @Test
     public void testClearAdd() {
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-			  controller.portsAdded.toArray());
+                          controller.portsAdded.toArray());
         assertEquals(0, controller.numClearCalls);
         controller.onConnectionLost();
         assertEquals(1, controller.numClearCalls);
         assertArrayEquals(new OFPhysicalPort[] { },
-			  controller.portsAdded.toArray());
+                          controller.portsAdded.toArray());
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-			  controller.portsAdded.toArray());
+                          controller.portsAdded.toArray());
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
         assertEquals(port2uuid, controller.portNumToUuid.get(47));
         assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
         assertEquals(Net.convertStringAddressToInt("10.0.17.34"),
-	             controller.tunnelPortNumToPeerIp.get(47).intValue());
+                     controller.tunnelPortNumToPeerIp.get(47).intValue());
     }
 
     @Test
@@ -216,10 +216,10 @@ public class TestAbstractController {
         UUID port2newUuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
         assertArrayEquals(new OFPhysicalPort[] { },
-			  controller.portsModified.toArray());
+                          controller.portsModified.toArray());
         controller.onPortStatus(port2, OFPortReason.OFPPR_MODIFY);
         assertArrayEquals(new OFPhysicalPort[] { port2 },
-			  controller.portsModified.toArray());
+                          controller.portsModified.toArray());
         assertEquals(port2newUuid, controller.portNumToUuid.get(47));
         assertEquals(Net.convertStringAddressToInt("10.0.17.35"),
                      controller.tunnelPortNumToPeerIp.get(47).intValue());
@@ -228,72 +228,82 @@ public class TestAbstractController {
     @Test
     public void testDeletePort() {
         assertArrayEquals(new OFPhysicalPort[] { },
-			  controller.portsRemoved.toArray());
-	assertTrue(controller.portNumToUuid.containsKey(37));
-	assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
+                          controller.portsRemoved.toArray());
+        assertTrue(controller.portNumToUuid.containsKey(37));
+        assertFalse(controller.tunnelPortNumToPeerIp.containsKey(37));
         controller.onPortStatus(port1, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new OFPhysicalPort[] { port1 },
-			  controller.portsRemoved.toArray());
-	assertFalse(controller.portNumToUuid.containsKey(37));
-	assertTrue(controller.portNumToUuid.containsKey(47));
-	assertTrue(controller.tunnelPortNumToPeerIp.containsKey(47));
+                          controller.portsRemoved.toArray());
+        assertFalse(controller.portNumToUuid.containsKey(37));
+        assertTrue(controller.portNumToUuid.containsKey(47));
+        assertTrue(controller.tunnelPortNumToPeerIp.containsKey(47));
         controller.onPortStatus(port2, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-			  controller.portsRemoved.toArray());
-	assertFalse(controller.portNumToUuid.containsKey(47));
-	assertFalse(controller.tunnelPortNumToPeerIp.containsKey(47));
+                          controller.portsRemoved.toArray());
+        assertFalse(controller.portNumToUuid.containsKey(47));
+        assertFalse(controller.tunnelPortNumToPeerIp.containsKey(47));
     }
 
     @Test
     public void testMakeGREPortName() {
-	assertEquals("tne1234ff0011aa", controller.makeGREPortName(0xff0011aa));
+        assertEquals("tne1234ff0011aa", controller.makeGREPortName(0xff0011aa));
     }
 
     @Test
     public void testPeerIpOfGrePortName() {
-	assertEquals(0xff0011aa,
-		controller.peerIpOfGrePortName("tne1234ff0011aa").intValue());
+        assertEquals(0xff0011aa,
+                controller.peerIpOfGrePortName("tne1234ff0011aa").intValue());
+    }
+
+    @Test
+    public void testPeerIpToTunnelPortNum() {
+        int peerIpInt = Net.convertStringAddressToInt("192.168.1.53");
+        InetAddress peerIp = controller.peerIpOfGrePortName(
+                                controller.makeGREPortName(peerIpInt));
+        controller.peerIpToTunnelPortNum.put(peerIp, new Integer(54));
+        assertEquals(controller.peerIpToTunnelPortNum.get(peerIpInt),
+                     new Integer(54));
     }
 
     @Test
     public void testPortLocMapListener() throws KeeperException {
-	UUID portUuid = UUID.randomUUID();
-	String path1 = "/"+portUuid.toString()+",ff0011aa,";
-	String path2 = "/"+portUuid.toString()+",ff0011ac,";
+        UUID portUuid = UUID.randomUUID();
+        String path1 = "/"+portUuid.toString()+",ff0011aa,";
+        String path2 = "/"+portUuid.toString()+",ff0011ac,";
 
-	// Port comes up.  Verify tunnel made.
-	String fullpath1 = mockDir.add(path1, null,
-				       CreateMode.PERSISTENT_SEQUENTIAL);
-	portLocMap.start();
-	assertEquals(1, ovsdb.addedGrePorts.size());
-	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
-			    "43", "tne1234ff0011aa", "255.0.17.170")).equals(
-	           ovsdb.addedGrePorts.get(0)));
-	assertEquals(0xff0011aa, portLocMap.get(portUuid).intValue());
-	assertEquals(0, ovsdb.deletedPorts.size());
+        // Port comes up.  Verify tunnel made.
+        String fullpath1 = mockDir.add(path1, null,
+                                       CreateMode.PERSISTENT_SEQUENTIAL);
+        portLocMap.start();
+        assertEquals(1, ovsdb.addedGrePorts.size());
+        assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
+                            "43", "tne1234ff0011aa", "255.0.17.170")).equals(
+                   ovsdb.addedGrePorts.get(0)));
+        assertEquals(0xff0011aa, portLocMap.get(portUuid).intValue());
+        assertEquals(0, ovsdb.deletedPorts.size());
 
-	// Port moves.  Verify old tunnel rm'd, new tunnel made.
-	String fullpath2 = mockDir.add(path2, null,
-				       CreateMode.PERSISTENT_SEQUENTIAL);
+        // Port moves.  Verify old tunnel rm'd, new tunnel made.
+        String fullpath2 = mockDir.add(path2, null,
+                                       CreateMode.PERSISTENT_SEQUENTIAL);
         mockDir.delete(fullpath1);
-	assertEquals(2, ovsdb.addedGrePorts.size());
-	assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
-			    "43", "tne1234ff0011ac", "255.0.17.172")).equals(
-	           ovsdb.addedGrePorts.get(1)));
-	assertEquals(0xff0011ac, portLocMap.get(portUuid).intValue());
-	assertEquals(1, ovsdb.deletedPorts.size());
-	assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
+        assertEquals(2, ovsdb.addedGrePorts.size());
+        assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
+                            "43", "tne1234ff0011ac", "255.0.17.172")).equals(
+                   ovsdb.addedGrePorts.get(1)));
+        assertEquals(0xff0011ac, portLocMap.get(portUuid).intValue());
+        assertEquals(1, ovsdb.deletedPorts.size());
+        assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
 
-	// Port doesn't move.  Verify tunnel not rm'd.
-	String path3 = mockDir.add(path2, null,
-				   CreateMode.PERSISTENT_SEQUENTIAL);
+        // Port doesn't move.  Verify tunnel not rm'd.
+        String path3 = mockDir.add(path2, null,
+                                   CreateMode.PERSISTENT_SEQUENTIAL);
         mockDir.delete(fullpath2);
-	assertEquals(1, ovsdb.deletedPorts.size());
+        assertEquals(1, ovsdb.deletedPorts.size());
 
-	// Port goes down.  Verify tunnel rm'd.
-	log.info("Deleting path {}", path3);
+        // Port goes down.  Verify tunnel rm'd.
+        log.info("Deleting path {}", path3);
         mockDir.delete(path3);
-	assertEquals(2, ovsdb.deletedPorts.size());
-	assertEquals("tne1234ff0011ac", ovsdb.deletedPorts.get(1));
+        assertEquals(2, ovsdb.deletedPorts.size());
+        assertEquals("tne1234ff0011ac", ovsdb.deletedPorts.get(1));
     }
 }
