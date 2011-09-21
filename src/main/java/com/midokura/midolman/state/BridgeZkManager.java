@@ -58,6 +58,13 @@ public class BridgeZkManager extends ZkManager {
         this(new ZkDirectory(zk, "", Ids.OPEN_ACL_UNSAFE), basePath);
     }
 
+    public List<Op> prepareBridgeCreate(UUID id, BridgeConfig bridgeNode)
+            throws ZkStateSerializationException, KeeperException,
+            InterruptedException {
+        return prepareBridgeCreate(new ZkNodeEntry<UUID, BridgeConfig>(id,
+                bridgeNode));
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new bridge.
@@ -141,7 +148,7 @@ public class BridgeZkManager extends ZkManager {
         List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
                 .listBridgePorts(entry.key);
         for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
-            ops.addAll(portZkManager.prepareBridgePortDelete(portEntry));
+            ops.addAll(portZkManager.preparePortDelete(portEntry));
         }
         ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
         ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));

@@ -33,21 +33,6 @@ import com.midokura.midolman.state.PortDirectory.PortConfig;
  */
 public class RouterZkManager extends ZkManager {
 
-    public static class PeerRouterConfig {
-        public PeerRouterConfig() {
-            super();
-        }
-
-        public PeerRouterConfig(UUID portId, UUID peerPortId) {
-            super();
-            this.portId = portId;
-            this.peerPortId = peerPortId;
-        }
-
-        public UUID portId;
-        public UUID peerPortId;
-    }
-
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -92,8 +77,6 @@ public class RouterZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterChainsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterRoutersPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
@@ -123,6 +106,25 @@ public class RouterZkManager extends ZkManager {
         ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
         RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
         PortZkManager portZkManager = new PortZkManager(zk, basePath);
+
+        // Delete SNAT blocks
+        Set<String> snatBlocks = zk.getChildren(pathManager
+                .getRouterSnatBlocksPath(id), null);
+        for (String snatBlock : snatBlocks) {
+            ops.add(Op.delete(pathManager.getRouterSnatBlocksPath(id) + "/"
+                    + snatBlock, -1));
+        }
+        ops.add(Op.delete(pathManager.getRouterSnatBlocksPath(id), -1));
+
+        // Delete routing table
+        Set<String> tableEntries = zk.getChildren(pathManager
+                .getRouterRoutingTablePath(id), null);
+        for (String tableEntry : tableEntries) {
+            ops.add(Op.delete(pathManager.getRouterRoutingTablePath(id) + "/"
+                    + tableEntry, -1));
+        }
+        ops.add(Op.delete(pathManager.getRouterRoutingTablePath(id), -1));
+
         // Get chains delete ops.
         List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager.list(id);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
@@ -140,36 +142,12 @@ public class RouterZkManager extends ZkManager {
         List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
                 .listRouterPorts(id);
         for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
-            ops.addAll(portZkManager.prepareRouterPortDelete(entry));
+            ops.addAll(portZkManager.preparePortDelete(entry));
         }
         ops.add(Op.delete(pathManager.getRouterPortsPath(id), -1));
 
-        // Remove the router-router mappings
-        Set<String> peers = zk.getChildren(
-                pathManager.getRouterRoutersPath(id), null);
-        for (String peer : peers) {
-            UUID peerId = UUID.fromString(peer);
-            ops.add(Op.delete(pathManager.getRouterRouterPath(id, peerId), -1));
-            ops.add(Op.delete(pathManager.getRouterRouterPath(peerId, id), -1));
-        }
-        ops.add(Op.delete(pathManager.getRouterRoutersPath(id), -1));
-
         ops.add(Op.delete(pathManager.getRouterPath(id), -1));
         return ops;
-    }
-
-    public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        byte[] data = zk.get(pathManager.getRouterRouterPath(routerId,
-                peerRouterId), null);
-        try {
-            return deserialize(data, PeerRouterConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize peer router " + routerId
-                            + " to PeerRouterConfig", e, PeerRouterConfig.class);
-        }
     }
 
     /**
