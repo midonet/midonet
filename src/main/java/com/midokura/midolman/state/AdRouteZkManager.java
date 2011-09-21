@@ -74,6 +74,11 @@ public class AdRouteZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareAdRouteDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException, IOException {
+        return prepareAdRouteDelete(get(id));
+    }
+
     public List<Op> prepareAdRouteDelete(ZkNodeEntry<UUID, AdRouteConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException, IOException {
@@ -150,6 +155,6 @@ public class AdRouteZkManager extends ZkManager {
 
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException, IOException {
-        this.zk.multi(prepareAdRouteDelete(get(id)));
+        this.zk.multi(prepareAdRouteDelete(id));
     }
 }

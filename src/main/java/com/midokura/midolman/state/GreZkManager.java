@@ -83,6 +83,25 @@ public class GreZkManager extends ZkManager {
         return ops;
     }
 
+    public ZkNodeEntry<Integer, GreKey> get(int key) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        byte[] data = zk.get(pathManager.getGreKeyPath(key), null);
+        GreKey gre = null;
+        try {
+            gre = deserialize(data, GreKey.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize chain " + key + " to GreKey", e,
+                    GreKey.class);
+        }
+        return new ZkNodeEntry<Integer, GreKey>(new Integer(key), gre);
+    }
+
+    public List<Op> prepareGreDelete(int key) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return prepareGreDelete(get(key));
+    }
+
     /***
      * Constructs a list of operations to perform in a gre deletion.
      * 

@@ -97,13 +97,19 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareBgpDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException, IOException {
+        return prepareBgpDelete(get(id));
+    }
+
     public List<Op> prepareBgpDelete(ZkNodeEntry<UUID, BgpConfig> entry)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException, IOException {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the advertising routes
-        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, pathManager.getBasePath());
+        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, pathManager
+                .getBasePath());
         List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
                 .list(entry.key);
         for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {
@@ -184,6 +190,6 @@ public class BgpZkManager extends ZkManager {
 
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException, IOException {
-        this.zk.multi(prepareBgpDelete(get(id)));
+        this.zk.multi(prepareBgpDelete(id));
     }
 }

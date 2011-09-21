@@ -18,8 +18,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
-import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 
 /**
  * Class to manage the routing ZooKeeper data.
@@ -104,6 +102,11 @@ public class RouteZkManager extends ZkManager {
         ops.add(Op.create(getSubDirectoryRoutePath(entry), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
+    }
+
+    public List<Op> prepareRouteDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return prepareRouteDelete(get(id));
     }
 
     /**
@@ -321,7 +324,7 @@ public class RouteZkManager extends ZkManager {
      */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException {
-        this.zk.multi(prepareRouteDelete(get(id)));
+        this.zk.multi(prepareRouteDelete(id));
     }
 
 }

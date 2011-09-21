@@ -92,6 +92,11 @@ public class ChainZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareChainDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return prepareChainDelete(get(id));
+    }
+
     /**
      * Constructs a list of operations to perform in a chain deletion.
      * 
@@ -260,6 +265,6 @@ public class ChainZkManager extends ZkManager {
      */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ClassNotFoundException, ZkStateSerializationException {
-        this.zk.multi(prepareChainDelete(get(id)));
+        this.zk.multi(prepareChainDelete(id));
     }
 }

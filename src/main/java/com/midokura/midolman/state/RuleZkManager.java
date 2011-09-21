@@ -76,6 +76,10 @@ public class RuleZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareRuleDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return prepareRuleDelete(get(id));
+    }
 
     /**
      * Constructs a list of operations to perform in a rule deletion.
@@ -210,7 +214,7 @@ public class RuleZkManager extends ZkManager {
      */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ClassNotFoundException, ZkStateSerializationException {
-        this.zk.multi(prepareRuleDelete(get(id)));
+        this.zk.multi(prepareRuleDelete(id));
     }
 
 }

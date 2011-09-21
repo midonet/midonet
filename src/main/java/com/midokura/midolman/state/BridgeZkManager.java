@@ -109,7 +109,12 @@ public class BridgeZkManager extends ZkManager {
         ops.addAll(greZkManager.prepareGreUpdate(gre));
         return ops;
     }
-    
+
+    public List<Op> prepareBridgeDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException, IOException {
+        return prepareBridgeDelete(get(id));
+    }
+
     /**
      * Constructs a list of operations to perform in a bridge deletion.
      * 
@@ -153,7 +158,7 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));
         return ops;
     }
-    
+
     /**
      * Performs an atomic update on the ZooKeeper to add a new bridge entry.
      * 
@@ -241,6 +246,6 @@ public class BridgeZkManager extends ZkManager {
      */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException, IOException {
-        this.zk.multi(prepareBridgeDelete(get(id)));
+        this.zk.multi(prepareBridgeDelete(id));
     }
 }

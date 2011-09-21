@@ -204,6 +204,12 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> preparePortDelete(UUID id)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        return preparePortDelete(get(id));
+    }
+    
     /**
      * Constructs a list of operations to perform in a port deletion.
      * 
@@ -484,7 +490,7 @@ public class PortZkManager extends ZkManager {
      */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException {
-        this.zk.multi(preparePortDelete(get(id)));
+        this.zk.multi(preparePortDelete(id));
     }
 
 }
