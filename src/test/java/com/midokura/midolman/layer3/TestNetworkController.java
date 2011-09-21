@@ -114,7 +114,7 @@ public class TestNetworkController {
         ZkPathManager pathMgr = new ZkPathManager(basePath);
         Directory dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
-        Setup.createZkDirectoryStructure(dir.getSubDirectory(basePath));
+        Setup.createZkDirectoryStructure(dir, basePath);
         portMgr = new PortZkManager(dir, basePath);
         routeMgr = new RouteZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
