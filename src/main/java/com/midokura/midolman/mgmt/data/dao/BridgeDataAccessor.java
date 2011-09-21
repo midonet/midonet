@@ -12,8 +12,8 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.state.MgmtBridgeZkManager;
-import com.midokura.midolman.mgmt.data.state.MgmtBridgeZkManager.BridgeMgmtConfig;
+import com.midokura.midolman.mgmt.data.state.BridgeZkManagerProxy;
+import com.midokura.midolman.mgmt.data.state.BridgeZkManagerProxy.BridgeMgmtConfig;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
 
@@ -36,9 +36,9 @@ public class BridgeDataAccessor extends DataAccessor {
 		super(zkConn, timeout, rootPath, mgmtRootPath);
 	}
 
-	private MgmtBridgeZkManager getBridgeZkManager() throws Exception {
+	private BridgeZkManagerProxy getBridgeZkManager() throws Exception {
 		ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-		return new MgmtBridgeZkManager(conn.getZooKeeper(), zkRoot, zkMgmtRoot);
+		return new BridgeZkManagerProxy(conn.getZooKeeper(), zkRoot, zkMgmtRoot);
 	}
 
 	private static BridgeMgmtConfig convertToConfig(Bridge bridge) {
@@ -81,13 +81,13 @@ public class BridgeDataAccessor extends DataAccessor {
 	 */
 	public Bridge get(UUID id) throws Exception {
 		// TODO: Throw NotFound exception here.
-		return convertToBridge(getBridgeZkManager().getMgmt(id));
+		return convertToBridge(getBridgeZkManager().get(id));
 	}
 
 	public Bridge[] list(UUID tenantId) throws Exception {
-		MgmtBridgeZkManager manager = getBridgeZkManager();
+		BridgeZkManagerProxy manager = getBridgeZkManager();
 		List<Bridge> bridges = new ArrayList<Bridge>();
-		List<ZkNodeEntry<UUID, BridgeMgmtConfig>> entries = manager.listMgmt(tenantId);
+		List<ZkNodeEntry<UUID, BridgeMgmtConfig>> entries = manager.list(tenantId);
 		for (ZkNodeEntry<UUID, BridgeMgmtConfig> entry : entries) {
 			bridges.add(convertToBridge(entry));
 		}
@@ -95,9 +95,9 @@ public class BridgeDataAccessor extends DataAccessor {
 	}
 
 	public void update(UUID id, Bridge bridge) throws Exception {
-		MgmtBridgeZkManager manager = getBridgeZkManager();
+		BridgeZkManagerProxy manager = getBridgeZkManager();
 		// Only allow an update of 'name'
-		ZkNodeEntry<UUID, BridgeMgmtConfig> entry = manager.getMgmt(id);
+		ZkNodeEntry<UUID, BridgeMgmtConfig> entry = manager.get(id);
 		// Just allow copy of the name.
 		entry.value.name = bridge.getName();
 		manager.update(entry);
