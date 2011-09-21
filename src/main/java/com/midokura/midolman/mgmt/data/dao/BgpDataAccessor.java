@@ -6,7 +6,6 @@
 
 package com.midokura.midolman.mgmt.data.dao;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,8 +32,8 @@ public class BgpDataAccessor extends DataAccessor {
      *            Zookeeper connection string
      */
     public BgpDataAccessor(String zkConn, int timeout, String rootPath,
-			String mgmtRootPath) {
-		super(zkConn, timeout, rootPath, mgmtRootPath);
+            String mgmtRootPath) {
+        super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private BgpZkManager getBgpZkManager() throws Exception {
@@ -42,27 +41,6 @@ public class BgpDataAccessor extends DataAccessor {
         return new BgpZkManager(conn.getZooKeeper(), zkRoot);
     }
 
-    private static BgpConfig convertToConfig(Bgp bgp) throws Exception {
-        return new BgpConfig(bgp.getPortId(), bgp.getLocalAS(),
-                             InetAddress.getByName(bgp.getPeerAddr()),
-                             bgp.getPeerAS());
-    }
-
-    private static Bgp convertToBgp(BgpConfig config) {
-        Bgp b = new Bgp();
-        b.setLocalAS(config.localAS);
-        b.setPeerAddr(config.peerAddr.getHostAddress());
-        b.setPeerAS(config.peerAS);
-        b.setPortId(config.portId);
-        return b;
-    }
-
-    private static Bgp convertToBgp(ZkNodeEntry<UUID, BgpConfig> entry) {
-        Bgp b = convertToBgp(entry.value);
-        b.setId(entry.key);
-        return b;
-    }
-    
     /**
      * Add a JAXB object the ZK directories.
      * 
@@ -73,7 +51,7 @@ public class BgpDataAccessor extends DataAccessor {
      */
     public UUID create(Bgp bgp) throws Exception {
         BgpZkManager manager = getBgpZkManager();
-        return manager.create(convertToConfig(bgp));
+        return manager.create(bgp.toConfig());
     }
 
     /**
@@ -87,7 +65,7 @@ public class BgpDataAccessor extends DataAccessor {
     public Bgp get(UUID id) throws Exception {
         BgpZkManager manager = getBgpZkManager();
         // TODO: Throw NotFound exception here.
-        return convertToBgp(manager.get(id));
+        return Bgp.createBgp(id, manager.get(id).value);
     }
 
     public Bgp[] list(UUID portId) throws Exception {
@@ -95,18 +73,18 @@ public class BgpDataAccessor extends DataAccessor {
         List<Bgp> bgps = new ArrayList<Bgp>();
         List<ZkNodeEntry<UUID, BgpConfig>> entries = manager.list(portId);
         for (ZkNodeEntry<UUID, BgpConfig> entry : entries) {
-            bgps.add(convertToBgp(entry));
+            bgps.add(Bgp.createBgp(entry.key, entry.value));
         }
         return bgps.toArray(new Bgp[bgps.size()]);
     }
 
     public void update(UUID id, Bgp bgp) throws Exception {
-        //BgpZkManager manager = getBgpZkManager();
-        //ZkNodeEntry<UUID, BgpConfig> entry = manager.get(id);
-        //copyBgp(bgp, entry.value);
-        //manager.update(entry);
+        // BgpZkManager manager = getBgpZkManager();
+        // ZkNodeEntry<UUID, BgpConfig> entry = manager.get(id);
+        // copyBgp(bgp, entry.value);
+        // manager.update(entry);
     }
-    
+
     public void delete(UUID id) throws Exception {
         // TODO: catch NoNodeException if does not exist.
         getBgpZkManager().delete(id);

@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+
 /**
  * Class representing chain.
  * 
@@ -57,5 +59,17 @@ public class Chain {
      */
     public void setName(String name) {
         this.name = name;
+    }
+    
+    public ChainConfig toConfig() {
+        return new ChainConfig(this.getName(), this.getRouterId());
+    }
+
+    public static Chain createChain(UUID id, ChainConfig config) {
+        Chain chain = new Chain();
+        chain.setName(config.name);
+        chain.setRouterId(config.routerId);
+        chain.setId(id);
+        return chain;
     }
 }

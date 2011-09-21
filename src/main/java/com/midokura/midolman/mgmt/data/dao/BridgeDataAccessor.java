@@ -25,86 +25,69 @@ import com.midokura.midolman.state.ZkNodeEntry;
  */
 public class BridgeDataAccessor extends DataAccessor {
 
-	/**
-	 * Constructor
-	 * 
-	 * @param zkConn
-	 *            Zookeeper connection string
-	 */
-	public BridgeDataAccessor(String zkConn, int timeout, String rootPath,
-			String mgmtRootPath) {
-		super(zkConn, timeout, rootPath, mgmtRootPath);
-	}
+    /**
+     * Constructor
+     * 
+     * @param zkConn
+     *            Zookeeper connection string
+     */
+    public BridgeDataAccessor(String zkConn, int timeout, String rootPath,
+            String mgmtRootPath) {
+        super(zkConn, timeout, rootPath, mgmtRootPath);
+    }
 
-	private BridgeZkManagerProxy getBridgeZkManager() throws Exception {
-		ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-		return new BridgeZkManagerProxy(conn.getZooKeeper(), zkRoot, zkMgmtRoot);
-	}
+    private BridgeZkManagerProxy getBridgeZkManager() throws Exception {
+        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
+        return new BridgeZkManagerProxy(conn.getZooKeeper(), zkRoot, zkMgmtRoot);
+    }
 
-	private static BridgeMgmtConfig convertToConfig(Bridge bridge) {
-		return new BridgeMgmtConfig(bridge.getTenantId(), bridge.getName());
-	}
+    /**
+     * Add a JAXB object the ZK directories.
+     * 
+     * @param bridge
+     *            Bridge object to add.
+     * @throws Exception
+     *             Error connecting to Zookeeper.
+     */
+    public UUID create(Bridge bridge) throws Exception {
+        return getBridgeZkManager().create(bridge.toConfig());
+    }
 
-	private static Bridge convertToBridge(BridgeMgmtConfig config) {
-		Bridge b = new Bridge();
-		b.setName(config.name);
-		b.setTenantId(config.tenantId);
-		return b;
-	}
+    /**
+     * Fetch a JAXB object from the ZooKeeper.
+     * 
+     * @param id
+     *            Bridge UUID to fetch..
+     * @throws Exception
+     *             Error connecting to Zookeeper.
+     */
+    public Bridge get(UUID id) throws Exception {
+        // TODO: Throw NotFound exception here.
+        return Bridge.createBridge(id, getBridgeZkManager().get(id).value);
+    }
 
-	private static Bridge convertToBridge(
-			ZkNodeEntry<UUID, BridgeMgmtConfig> entry) {
-		Bridge b = convertToBridge(entry.value);
-		b.setId(entry.key);
-		return b;
-	}
+    public Bridge[] list(UUID tenantId) throws Exception {
+        BridgeZkManagerProxy manager = getBridgeZkManager();
+        List<Bridge> bridges = new ArrayList<Bridge>();
+        List<ZkNodeEntry<UUID, BridgeMgmtConfig>> entries = manager
+                .list(tenantId);
+        for (ZkNodeEntry<UUID, BridgeMgmtConfig> entry : entries) {
+            bridges.add(Bridge.createBridge(entry.key, entry.value));
+        }
+        return bridges.toArray(new Bridge[bridges.size()]);
+    }
 
-	/**
-	 * Add a JAXB object the ZK directories.
-	 * 
-	 * @param bridge
-	 *            Bridge object to add.
-	 * @throws Exception
-	 *             Error connecting to Zookeeper.
-	 */
-	public UUID create(Bridge bridge) throws Exception {
-		return getBridgeZkManager().create(convertToConfig(bridge));
-	}
+    public void update(UUID id, Bridge bridge) throws Exception {
+        BridgeZkManagerProxy manager = getBridgeZkManager();
+        // Only allow an update of 'name'
+        ZkNodeEntry<UUID, BridgeMgmtConfig> entry = manager.get(id);
+        // Just allow copy of the name.
+        entry.value.name = bridge.getName();
+        manager.update(entry);
+    }
 
-	/**
-	 * Fetch a JAXB object from the ZooKeeper.
-	 * 
-	 * @param id
-	 *            Bridge UUID to fetch..
-	 * @throws Exception
-	 *             Error connecting to Zookeeper.
-	 */
-	public Bridge get(UUID id) throws Exception {
-		// TODO: Throw NotFound exception here.
-		return convertToBridge(getBridgeZkManager().get(id));
-	}
-
-	public Bridge[] list(UUID tenantId) throws Exception {
-		BridgeZkManagerProxy manager = getBridgeZkManager();
-		List<Bridge> bridges = new ArrayList<Bridge>();
-		List<ZkNodeEntry<UUID, BridgeMgmtConfig>> entries = manager.list(tenantId);
-		for (ZkNodeEntry<UUID, BridgeMgmtConfig> entry : entries) {
-			bridges.add(convertToBridge(entry));
-		}
-		return bridges.toArray(new Bridge[bridges.size()]);
-	}
-
-	public void update(UUID id, Bridge bridge) throws Exception {
-		BridgeZkManagerProxy manager = getBridgeZkManager();
-		// Only allow an update of 'name'
-		ZkNodeEntry<UUID, BridgeMgmtConfig> entry = manager.get(id);
-		// Just allow copy of the name.
-		entry.value.name = bridge.getName();
-		manager.update(entry);
-	}
-
-	public void delete(UUID id) throws Exception {
-		// TODO: catch NoNodeException if does not exist.
-		getBridgeZkManager().delete(id);
-	}
+    public void delete(UUID id) throws Exception {
+        // TODO: catch NoNodeException if does not exist.
+        getBridgeZkManager().delete(id);
+    }
 }

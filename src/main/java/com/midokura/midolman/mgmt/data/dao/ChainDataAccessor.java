@@ -31,8 +31,8 @@ public class ChainDataAccessor extends DataAccessor {
      *            Zookeeper connection string
      */
     public ChainDataAccessor(String zkConn, int timeout, String rootPath,
-			String mgmtRootPath) {
-		super(zkConn, timeout, rootPath, mgmtRootPath);
+            String mgmtRootPath) {
+        super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private ChainZkManager getChainZkManager() throws Exception {
@@ -40,30 +40,13 @@ public class ChainDataAccessor extends DataAccessor {
         return new ChainZkManager(conn.getZooKeeper(), zkRoot);
     }
 
-    private static ChainConfig convertToConfig(Chain chain) {
-        return new ChainConfig(chain.getName(), chain.getRouterId());
-    }
-
-    private static Chain convertToChain(ChainConfig config) {
-        Chain chain = new Chain();
-        chain.setName(config.name);
-        chain.setRouterId(config.routerId);
-        return chain;
-    }
-
-    private static Chain convertToChain(ZkNodeEntry<UUID, ChainConfig> entry) {
-        Chain c = convertToChain(entry.value);
-        c.setId(entry.key);
-        return c;
-    }
-
     public UUID create(Chain chain) throws Exception {
-        return getChainZkManager().create(convertToConfig(chain));
+        return getChainZkManager().create(chain.toConfig());
     }
 
     public Chain get(UUID id) throws Exception {
         // TODO: Throw NotFound exception here.
-        return convertToChain(getChainZkManager().get(id));
+        return Chain.createChain(id, getChainZkManager().get(id).value);
     }
 
     public Chain[] list(UUID routerId) throws Exception {
@@ -71,11 +54,11 @@ public class ChainDataAccessor extends DataAccessor {
         List<Chain> chains = new ArrayList<Chain>();
         List<ZkNodeEntry<UUID, ChainConfig>> entries = manager.list(routerId);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
-            chains.add(convertToChain(entry));
+            chains.add(Chain.createChain(entry.key, entry.value));
         }
         return chains.toArray(new Chain[chains.size()]);
     }
-   
+
     public void delete(UUID id) throws Exception {
         ChainZkManager manager = getChainZkManager();
         // TODO: catch NoNodeException if does not exist.

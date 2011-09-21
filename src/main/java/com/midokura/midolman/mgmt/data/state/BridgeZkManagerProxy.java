@@ -18,9 +18,11 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -54,18 +56,23 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         zkManager = new BridgeZkManager(zk, basePath);
     }
 
-    public List<Op> prepareBridgeCreate(
-            ZkNodeEntry<UUID, BridgeMgmtConfig> bridgeMgmtNode,
-            ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
+    public List<Op> prepareBridgeCreate(UUID id, BridgeMgmtConfig config)
+            throws ZkStateSerializationException, KeeperException,
+            InterruptedException {
+        ZkNodeEntry<UUID, BridgeMgmtConfig> node = new ZkNodeEntry<UUID, BridgeMgmtConfig>(
+                id, config);
+        return prepareBridgeCreate(node);
+    }
+
+    public List<Op> prepareBridgeCreate(ZkNodeEntry<UUID, BridgeMgmtConfig> node)
             throws ZkStateSerializationException, KeeperException,
             InterruptedException {
         List<Op> ops = new ArrayList<Op>();
 
         // Add an entry.
         try {
-            ops.add(Op.create(
-                    mgmtPathManager.getBridgePath(bridgeMgmtNode.key),
-                    serialize(bridgeMgmtNode.value), Ids.OPEN_ACL_UNSAFE,
+            ops.add(Op.create(mgmtPathManager.getBridgePath(node.key),
+                    serialize(node.value), Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
@@ -75,22 +82,23 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
 
         // Add under tenant.
         ops.add(Op.create(mgmtPathManager.getTenantBridgePath(
-                bridgeMgmtNode.value.tenantId, bridgeMgmtNode.key), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                node.value.tenantId, node.key), null, Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
-        ops.addAll(zkManager.prepareBridgeCreate(bridgeNode));
+        ops.addAll(zkManager.prepareBridgeCreate(node.key, new BridgeConfig()));
         return ops;
     }
 
     public List<Op> prepareBridgeDelete(UUID id) throws KeeperException,
-            InterruptedException, ZkStateSerializationException {
+            InterruptedException, ZkStateSerializationException,
+            ClassNotFoundException {
         return prepareBridgeDelete(get(id));
     }
 
     public List<Op> prepareBridgeDelete(
             ZkNodeEntry<UUID, BridgeMgmtConfig> bridgeMgmtNode)
             throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, ClassNotFoundException {
         List<Op> ops = new ArrayList<Op>();
         ZkNodeEntry<UUID, BridgeConfig> bridgeNode = zkManager
                 .get(bridgeMgmtNode.key);
@@ -107,6 +115,17 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         ops.add(Op
                 .delete(mgmtPathManager.getBridgePath(bridgeMgmtNode.key), -1));
 
+        // Remove all the ports in mgmt directory but don't cascade here.
+        PortZkManagerProxy portMgr = new PortZkManagerProxy(zooKeeper,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        PortZkManager portZkManager = new PortZkManager(zk, pathManager
+                .getBasePath());
+        List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager
+                .listBridgePorts(bridgeMgmtNode.key);
+        for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
+            ops.addAll(portMgr.preparePortDelete(portNode.key, false));
+        }
+
         return ops;
     }
 
@@ -114,11 +133,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
             throws InterruptedException, KeeperException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, BridgeMgmtConfig> bridgeMgmtNode = new ZkNodeEntry<UUID, BridgeMgmtConfig>(
-                id, bridgeMgmtConfig);
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = new ZkNodeEntry<UUID, BridgeConfig>(
-                id, new BridgeConfig());
-        zk.multi(prepareBridgeCreate(bridgeMgmtNode, bridgeNode));
+        zk.multi(prepareBridgeCreate(id, bridgeMgmtConfig));
         return id;
     }
 
@@ -165,7 +180,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
     }
 
     public void delete(UUID id) throws InterruptedException, KeeperException,
-            ZkStateSerializationException, IOException {
+            ZkStateSerializationException, IOException, ClassNotFoundException {
         this.zk.multi(prepareBridgeDelete(id));
     }
 }

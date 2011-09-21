@@ -9,11 +9,13 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.state.RouterZkManagerProxy.RouterMgmtConfig;
+
 /**
  * Class representing Virtual Router.
- *
- * @version        1.6 05 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 05 Sept 2011
+ * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Router {
@@ -25,7 +27,7 @@ public class Router {
     /**
      * Get router ID.
      * 
-     * @return  Router ID.
+     * @return Router ID.
      */
     public UUID getId() {
         return id;
@@ -34,7 +36,8 @@ public class Router {
     /**
      * Set router ID.
      * 
-     * @param  id  ID of the router.
+     * @param id
+     *            ID of the router.
      */
     public void setId(UUID id) {
         this.id = id;
@@ -43,7 +46,7 @@ public class Router {
     /**
      * Get router name.
      * 
-     * @return  Router name.
+     * @return Router name.
      */
     public String getName() {
         return name;
@@ -52,16 +55,17 @@ public class Router {
     /**
      * Set router name.
      * 
-     * @param  name  Name of the router.
+     * @param name
+     *            Name of the router.
      */
     public void setName(String name) {
         this.name = name;
     }
-    
+
     /**
      * Get tenant ID.
      * 
-     * @return  Tenant ID.
+     * @return Tenant ID.
      */
     public UUID getTenantId() {
         return tenantId;
@@ -70,9 +74,22 @@ public class Router {
     /**
      * Set tenant ID.
      * 
-     * @param  tenantId  Tenant ID of the router.
+     * @param tenantId
+     *            Tenant ID of the router.
      */
     public void setTenantId(UUID tenantId) {
         this.tenantId = tenantId;
-    }    
+    }
+
+    public RouterMgmtConfig toConfig() {
+        return new RouterMgmtConfig(this.getTenantId(), this.getName());
+    }
+    
+    public static Router createRouter(UUID id, RouterMgmtConfig config) {
+        Router router = new Router();
+        router.setName(config.name);
+        router.setTenantId(config.tenantId);
+        router.setId(id);
+        return router;
+    }
 }

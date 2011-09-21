@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.state.BridgeZkManagerProxy.BridgeMgmtConfig;
+
 /**
  * Class representing Virtual Bridge.
  * 
@@ -79,4 +81,15 @@ public class Bridge {
         this.tenantId = tenantId;
     }
 
+    public BridgeMgmtConfig toConfig() {
+        return new BridgeMgmtConfig(this.getTenantId(), this.getName());
+    }
+
+    public static Bridge createBridge(UUID id, BridgeMgmtConfig config) {
+        Bridge b = new Bridge();
+        b.setName(config.name);
+        b.setTenantId(config.tenantId);
+        b.setId(id);
+        return b;
+    }
 }

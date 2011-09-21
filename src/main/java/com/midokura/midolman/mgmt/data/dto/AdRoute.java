@@ -5,9 +5,13 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 /**
  * Class representing advertising route.
@@ -97,5 +101,19 @@ public class AdRoute {
      */
     public void setBgpId(UUID bgpId) {
         this.bgpId = bgpId;
+    }
+
+    public AdRouteConfig toConfig() throws UnknownHostException {
+        return new AdRouteConfig(this.getBgpId(), InetAddress.getByName(this
+                .getNwPrefix()), this.getPrefixLength());
+    }
+    
+    public static AdRoute createAdRoute(UUID id, AdRouteConfig config) {
+        AdRoute adRoute = new AdRoute();
+        adRoute.setNwPrefix(config.nwPrefix.getHostAddress());
+        adRoute.setPrefixLength(config.prefixLength);
+        adRoute.setBgpId(config.bgpId);
+        adRoute.setId(id);
+        return adRoute;
     }
 }

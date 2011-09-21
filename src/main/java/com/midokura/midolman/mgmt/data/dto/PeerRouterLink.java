@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.state.RouterZkManagerProxy.PeerRouterConfig;
+
 /**
  * Class representing port.
  * 
@@ -58,4 +60,12 @@ public class PeerRouterLink {
 	public void setPeerRouterId(UUID peerRouterId) {
 		this.peerRouterId = peerRouterId;
 	}
+	
+    public static PeerRouterLink createPeerRouterLink(
+            PeerRouterConfig config) {
+        PeerRouterLink link = new PeerRouterLink();
+        link.setPortId(config.portId);
+        link.setPeerPortId(config.peerPortId);
+        return link;
+    }
 }

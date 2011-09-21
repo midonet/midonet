@@ -5,9 +5,13 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
  * Class representing BGP.
@@ -119,4 +123,18 @@ public class Bgp {
         this.portId = portId;
     }
 
+    public BgpConfig toConfig() throws UnknownHostException {
+        return new BgpConfig(this.getPortId(), this.getLocalAS(), InetAddress
+                .getByName(this.getPeerAddr()), this.getPeerAS());
+    }
+    
+    public static Bgp createBgp(UUID id, BgpConfig config) {
+        Bgp b = new Bgp();
+        b.setLocalAS(config.localAS);
+        b.setPeerAddr(config.peerAddr.getHostAddress());
+        b.setPeerAS(config.peerAS);
+        b.setPortId(config.portId);
+        b.setId(id);
+        return b;
+    }
 }
