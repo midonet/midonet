@@ -532,7 +532,7 @@ public class TestNetworkController {
         MockControllerStub.Packet sentPacket = 
                 controllerStub.sentPackets.get(0);
         Assert.assertEquals(999, sentPacket.bufferId);
-        Assert.assertEquals(phyPortIn.getPortNumber(), sentPacket.inPort);
+        Assert.assertEquals(-1, sentPacket.inPort);
         // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -575,7 +575,7 @@ public class TestNetworkController {
         MockControllerStub.Packet sentPacket = 
                 controllerStub.sentPackets.get(0);
         Assert.assertEquals(37654, sentPacket.bufferId);
-        Assert.assertEquals(phyPortIn.getPortNumber(), sentPacket.inPort);
+        Assert.assertEquals(-1, sentPacket.inPort);
         // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -623,7 +623,7 @@ public class TestNetworkController {
         MockControllerStub.Packet sentPacket = 
                 controllerStub.sentPackets.get(0);
         Assert.assertEquals(22333, sentPacket.bufferId);
-        Assert.assertEquals(phyPortIn.getPortNumber(), sentPacket.inPort);
+        Assert.assertEquals(-1, sentPacket.inPort);
         // TODO: Check sentPacket.actions
 
         // A flow was installed.

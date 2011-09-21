@@ -22,7 +22,7 @@ public interface ControllerStub {
     void sendFlowModAdd(OFMatch match, long cookie, short idleTimeoutSecs, 
                         short priority, int bufferId, boolean sendFlowRemove, 
                         boolean checkOverlap, boolean emergency, 
-                        List<OFAction> actions, short outPort);
+                        List<OFAction> actions);
 
     void sendFlowModDelete(OFMatch match, boolean strict,
                            short priority, short outPort);

@@ -341,8 +341,7 @@ public abstract class AbstractController implements Controller {
         List<OFAction> actionList = Arrays.asList(actions);
         controllerStub.sendFlowModAdd(match, cookie, idleTimeout,
                                       priority, bufferId, sendFlowRemoval,
-                                      checkOverlap, emergency, actionList, 
-                                      inPort);
+                                      checkOverlap, emergency, actionList);
         if (bufferId == 0xffffffff)
             controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
     }

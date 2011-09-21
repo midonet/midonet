@@ -298,6 +298,6 @@ public class TestBridgeController {
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0) };
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
         checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
-        checkSentPacket(14, inputPort, expectedActions, new byte[] {});
+        checkSentPacket(14, (short)-1, expectedActions, new byte[] {});
     }
 }
