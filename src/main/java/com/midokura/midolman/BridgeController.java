@@ -132,10 +132,10 @@ public class BridgeController extends AbstractController {
         capturedPacket.deserialize(data, 0, data.length);
         byte[] srcDlAddress = capturedPacket.getSourceMACAddress();
         byte[] dstDlAddress = capturedPacket.getDestinationMACAddress();
-        log.debug("Packet recv'd on port {} destination {}",
+        log.info("Packet recv'd on port {} destination {}",
                   inPort, Net.convertByteMacToString(dstDlAddress));
         UUID outPort = macPortMap.get(dstDlAddress);
-        log.debug(outPort == null ? "no port found for MAC"
+        log.info(outPort == null ? "no port found for MAC"
                                   : "MAC is on port " + outPort.toString());
         int destIP = 0;
         OFAction[] actions;
@@ -169,6 +169,7 @@ public class BridgeController extends AbstractController {
             log.info("Flooding from {} port {}",
                      isTunnelPortNum(inPort) ? "tunnel" : "non-tunnel",
                      inPort);
+            log.info("outPort {}, destIP {}", outPort, destIP);
             OFPort output = isTunnelPortNum(inPort) ? OFPort.OFPP_FLOOD
                                                     : OFPort.OFPP_ALL;
             actions = new OFAction[] { new OFActionOutput(output.getValue(), 

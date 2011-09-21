@@ -21,6 +21,8 @@ import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectLoop;
@@ -38,6 +40,7 @@ import com.midokura.midolman.util.Net;
 
 
 public class TestBridgeController {
+    Logger log = LoggerFactory.getLogger(TestBridgeController.class);
 
     private BridgeController controller;
 
@@ -248,15 +251,18 @@ public class TestBridgeController {
                 /* externalIdKey */             "midolman-vnet");
         controller.setControllerStub(controllerStub);
 
-        portLocMap.start();
-        macPortMap.start();
-
         // Insert ports 3..8 into portLocMap and macPortMap.
         for (int i = 3; i < 8; i++) {
             portLocMap.put(portUuids[i], 
                            Net.convertStringAddressToInt(peerStrList[i]));
             macPortMap.put(macList[i], portUuids[i]);
+            log.info("Adding map MAC {} -> port {} -> loc {}",
+                     new Object[] { Net.convertByteMacToString(macList[i]), 
+                                    portUuids[i], peerStrList[i] });
         }
+
+        portLocMap.start();
+        macPortMap.start();
 
         // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
@@ -287,7 +293,8 @@ public class TestBridgeController {
     void checkSentPacket(int bufferId, short inPort, OFAction[] actions,
                          byte[] data) {
         assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet sentPacket = controllerStub.sentPackets.get(0);
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
         assertEquals(bufferId, sentPacket.bufferId);
         assertEquals(inPort, sentPacket.inPort);
         assertArrayEquals(actions, sentPacket.actions.toArray());
@@ -327,6 +334,19 @@ public class TestBridgeController {
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
         checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
         checkSentPacket(14, (short)-1, expectActions, new byte[] {});
+    }
+
+    @Test
+    public void testRemoteMACWithTunnel() {
+        final Ethernet packet = packet13;
+        short inPortNum = 1;
+        short outPortNum = 3;
+        MidoMatch expectMatch = flowmatch13.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
     }
         
 }
