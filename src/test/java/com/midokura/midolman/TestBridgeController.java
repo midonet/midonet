@@ -37,6 +37,7 @@ import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.MAC;
 
 
 public class TestBridgeController {
@@ -58,18 +59,15 @@ public class TestBridgeController {
                 new OFActionOutput(OFPort.OFPP_FLOOD.getValue(), (short)0);
 
     // MACs:  8 normal addresses, and one multicast.
-    // TODO: Make this less ugly.
-    byte macList[][] = 
-      {{(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x00},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x01},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x02},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x03},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x04},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x05},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x06},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x07},
-       {(byte)0x01, (byte)0xEE, (byte)0xEE, (byte)0xEE, (byte)0xEE, (byte)0xEE}
-      };
+    MAC macList[] = { MAC.fromString("00:22:33:EE:EE:00"),
+                      MAC.fromString("00:22:33:EE:EE:01"),
+                      MAC.fromString("00:22:33:EE:EE:02"),
+                      MAC.fromString("00:22:33:EE:EE:03"),
+                      MAC.fromString("00:22:33:EE:EE:04"),
+                      MAC.fromString("00:22:33:EE:EE:05"),
+                      MAC.fromString("00:22:33:EE:EE:06"),
+                      MAC.fromString("00:22:33:EE:EE:07"),
+                      MAC.fromString("01:EE:EE:EE:EE:EE") };
 
     // Packets
     Ethernet packet01 = makePacket(macList[0], macList[1]);
@@ -114,7 +112,7 @@ public class TestBridgeController {
                              "192.168.1.55",
                              "192.168.1.55" };
 
-    static Ethernet makePacket(byte[] srcMac, byte[] dstMac) {
+    static Ethernet makePacket(MAC srcMac, MAC dstMac) {
         ICMP icmpPacket = new ICMP();
         icmpPacket.setEchoRequest((short)0, (short)0,
                                   "echoechoecho".getBytes());
@@ -125,16 +123,16 @@ public class TestBridgeController {
         ipPacket.setDestinationAddress(0x21212121);
         Ethernet packet = new Ethernet();
         packet.setPayload(ipPacket);
-        packet.setDestinationMACAddress(dstMac);
-        packet.setSourceMACAddress(srcMac);
+        packet.setDestinationMACAddress(dstMac.address);
+        packet.setSourceMACAddress(srcMac.address);
         packet.setEtherType(IPv4.ETHERTYPE);
         return packet;
     }
 
-    static MidoMatch makeFlowMatch(byte[] srcMac, byte[] dstMac) {
+    static MidoMatch makeFlowMatch(MAC srcMac, MAC dstMac) {
         MidoMatch match = new MidoMatch();
-        match.setDataLayerDestination(dstMac);
-        match.setDataLayerSource(srcMac);
+        match.setDataLayerDestination(dstMac.address);
+        match.setDataLayerSource(srcMac.address);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setInputPort((short)1);
         match.setNetworkDestination(0x21212121);
@@ -257,8 +255,8 @@ public class TestBridgeController {
                            Net.convertStringAddressToInt(peerStrList[i]));
             macPortMap.put(macList[i], portUuids[i]);
             log.info("Adding map MAC {} -> port {} -> loc {}",
-                     new Object[] { Net.convertByteMacToString(macList[i]), 
-                                    portUuids[i], peerStrList[i] });
+                     new Object[] { macList[i], portUuids[i],
+                                    peerStrList[i] });
         }
 
         portLocMap.start();
@@ -267,7 +265,7 @@ public class TestBridgeController {
         // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
             phyPorts[i].setPortNumber((short)i);
-            phyPorts[i].setHardwareAddress(macList[i]);
+            phyPorts[i].setHardwareAddress(macList[i].address);
             // First three ports are local.  The rest are tunneled.
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(
