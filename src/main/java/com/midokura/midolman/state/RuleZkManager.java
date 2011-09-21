@@ -76,6 +76,28 @@ public class RuleZkManager extends ZkManager {
         return ops;
     }
 
+
+    /**
+     * Constructs a list of operations to perform in a rule deletion.
+     * 
+     * @param entry
+     *            Rule ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRuleDelete(ZkNodeEntry<UUID, Rule> entry) {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getChainRulePath(entry.value.chainId,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getRulePath(entry.key), -1));
+        return ops;
+    }
+
     /**
      * Performs an atomic update on the ZooKeeper to add a new rule entry.
      * 
@@ -171,27 +193,6 @@ public class RuleZkManager extends ZkManager {
             result.add(get(UUID.fromString(rule)));
         }
         return result;
-    }
-
-    /**
-     * Constructs a list of operations to perform in a rule deletion.
-     * 
-     * @param entry
-     *            Rule ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> prepareRuleDelete(ZkNodeEntry<UUID, Rule> entry) {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getChainRulePath(entry.value.chainId,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getRulePath(entry.key), -1));
-        return ops;
     }
 
     /***

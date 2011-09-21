@@ -97,6 +97,29 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareBgpDelete(ZkNodeEntry<UUID, BgpConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Delete the advertising routes
+        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, pathManager.getBasePath());
+        List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
+                .list(entry.key);
+        for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {
+            ops.addAll(adRouteManager.prepareAdRouteDelete(adRoute));
+        }
+        ops.add(Op.delete(pathManager.getBgpAdRoutesPath(entry.key), -1));
+
+        // Delete the port bgp entry
+        ops.add(Op.delete(pathManager.getPortBgpPath(entry.value.portId,
+                entry.key), -1));
+
+        // Delete the bgp
+        ops.add(Op.delete(pathManager.getBgpPath(entry.key), -1));
+        return ops;
+    }
+
     public UUID create(BgpConfig bgp) throws InterruptedException,
             KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
@@ -157,29 +180,6 @@ public class BgpZkManager extends ZkManager {
             throw new ZkStateSerializationException("Could not serialize bgp "
                     + entry.key + " to BgpConfig", e, BgpConfig.class);
         }
-    }
-
-    public List<Op> prepareBgpDelete(ZkNodeEntry<UUID, BgpConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException, IOException {
-        List<Op> ops = new ArrayList<Op>();
-
-        // Delete the advertising routes
-        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, pathManager.getBasePath());
-        List<ZkNodeEntry<UUID, AdRouteConfig>> adRoutes = adRouteManager
-                .list(entry.key);
-        for (ZkNodeEntry<UUID, AdRouteConfig> adRoute : adRoutes) {
-            ops.addAll(adRouteManager.prepareAdRouteDelete(adRoute));
-        }
-        ops.add(Op.delete(pathManager.getBgpAdRoutesPath(entry.key), -1));
-
-        // Delete the port bgp entry
-        ops.add(Op.delete(pathManager.getPortBgpPath(entry.value.portId,
-                entry.key), -1));
-
-        // Delete the bgp
-        ops.add(Op.delete(pathManager.getBgpPath(entry.key), -1));
-        return ops;
     }
 
     public void delete(UUID id) throws InterruptedException, KeeperException,

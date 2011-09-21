@@ -65,20 +65,6 @@ public class RouterZkManager extends ZkManager {
         this(new ZkDirectory(zk, "", null), basePath);
     }
 
-    public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        byte[] data = zk.get(pathManager.getRouterRouterPath(routerId,
-                peerRouterId), null);
-        try {
-            return deserialize(data, PeerRouterConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize peer router " + routerId
-                            + " to PeerRouterConfig", e, PeerRouterConfig.class);
-        }
-    }
-
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new router.
@@ -114,26 +100,6 @@ public class RouterZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
-    }
-
-    /**
-     * Performs an atomic update on the ZooKeeper to add a new router entry.
-     * 
-     * @param router
-     *            Router object to add to the ZooKeeper directory.
-     * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public UUID create() throws InterruptedException, KeeperException,
-            ZkStateSerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareRouterCreate(id));
-        return id;
     }
 
     /**
@@ -190,6 +156,40 @@ public class RouterZkManager extends ZkManager {
 
         ops.add(Op.delete(pathManager.getRouterPath(id), -1));
         return ops;
+    }
+
+    public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        byte[] data = zk.get(pathManager.getRouterRouterPath(routerId,
+                peerRouterId), null);
+        try {
+            return deserialize(data, PeerRouterConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize peer router " + routerId
+                            + " to PeerRouterConfig", e, PeerRouterConfig.class);
+        }
+    }
+
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new router entry.
+     * 
+     * @param router
+     *            Router object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public UUID create() throws InterruptedException, KeeperException,
+            ZkStateSerializationException {
+        UUID id = UUID.randomUUID();
+        zk.multi(prepareRouterCreate(id));
+        return id;
     }
 
     /***

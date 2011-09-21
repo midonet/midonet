@@ -94,30 +94,22 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    /**
-     * Performs an atomic update on the ZooKeeper to add a new port entry.
-     * 
-     * @param route
-     *            PortConfig object to add to the ZooKeeper directory.
-     * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public UUID create(PortDirectory.PortConfig port) throws IOException,
-            KeeperException, InterruptedException,
+    private List<Op> prepareCommonRouterPortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        // TODO(pino) - port UUIDs should be created using a sequential
-        // persistent
-        // create in a ZK directory.
-        UUID id = ShortUUID.generate32BitUUID();
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
-                id, port);
-        zk.multi(preparePortCreate(portNode));
-        return id;
+        List<Op> ops = new ArrayList<Op>();
+        RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
+                .getBasePath());
+        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
+                entry.key, null);
+        for (ZkNodeEntry<UUID, Route> route : routes) {
+            ops.addAll(routeZkManager.prepareRouteDelete(route));
+        }
+        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        return ops;
     }
 
     public List<Op> preparePortCreateLink(
@@ -148,6 +140,118 @@ public class PortZkManager extends ZkManager {
         }
 
         return ops;
+    }
+
+    /**
+     * Constructs a list of operations to perform in a router port deletion.
+     * 
+     * @param entry
+     *            Port ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRouterPortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<Op> ops = prepareCommonRouterPortDelete(entry);
+
+        if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
+            UUID peerPortId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
+            // For logical router ports, we need to delete the peer Port.
+            if (peerPortId != null) {
+                ZkNodeEntry<UUID, PortDirectory.PortConfig> peerPortEntry = get(peerPortId);
+                if (peerPortEntry != null) {
+                    ops.addAll(prepareCommonRouterPortDelete(peerPortEntry));
+                    // Remove the peer router associations
+                    ops.add(Op.delete(pathManager.getRouterRouterPath(
+                            entry.value.device_id,
+                            peerPortEntry.value.device_id), -1));
+                    ops.add(Op.delete(pathManager.getRouterRouterPath(
+                            peerPortEntry.value.device_id,
+                            entry.value.device_id), -1));
+                }
+            }
+        }
+        return ops;
+    }
+
+    /**
+     * Constructs a list of operations to perform in a bridge port deletion.
+     * 
+     * @param entry
+     *            Port ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareBridgePortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            throws KeeperException, InterruptedException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getBridgePortPath(entry.value.device_id,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        return ops;
+    }
+
+    /**
+     * Constructs a list of operations to perform in a port deletion.
+     * 
+     * @param entry
+     *            Port ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> preparePortDelete(
+            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        if (entry.value instanceof PortDirectory.BridgePortConfig) {
+            return prepareBridgePortDelete(entry);
+        } else {
+            return prepareRouterPortDelete(entry);
+        }
+    }
+
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new port entry.
+     * 
+     * @param route
+     *            PortConfig object to add to the ZooKeeper directory.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public UUID create(PortDirectory.PortConfig port) throws IOException,
+            KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        // TODO(pino) - port UUIDs should be created using a sequential
+        // persistent
+        // create in a ZK directory.
+        UUID id = ShortUUID.generate32BitUUID();
+        ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
+                id, port);
+        zk.multi(preparePortCreate(portNode));
+        return id;
     }
 
     public ZkNodeEntry<UUID, UUID> createLink(
@@ -362,110 +466,6 @@ public class PortZkManager extends ZkManager {
             throw new ZkStateSerializationException("Could not serialize port "
                     + entry.key + " to PortConfig", e,
                     PortDirectory.PortConfig.class);
-        }
-    }
-
-    private List<Op> prepareCommonRouterPortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
-                .getBasePath());
-        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
-                entry.key, null);
-        for (ZkNodeEntry<UUID, Route> route : routes) {
-            ops.addAll(routeZkManager.prepareRouteDelete(route));
-        }
-        ops.add(Op.delete(pathManager.getRouterPortPath(entry.value.device_id,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
-        return ops;
-    }
-
-    /**
-     * Constructs a list of operations to perform in a router port deletion.
-     * 
-     * @param entry
-     *            Port ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> prepareRouterPortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        List<Op> ops = prepareCommonRouterPortDelete(entry);
-
-        if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
-            UUID peerPortId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
-            // For logical router ports, we need to delete the peer Port.
-            if (peerPortId != null) {
-                ZkNodeEntry<UUID, PortDirectory.PortConfig> peerPortEntry = get(peerPortId);
-                if (peerPortEntry != null) {
-                    ops.addAll(prepareCommonRouterPortDelete(peerPortEntry));
-                    // Remove the peer router associations
-                    ops.add(Op.delete(pathManager.getRouterRouterPath(
-                            entry.value.device_id,
-                            peerPortEntry.value.device_id), -1));
-                    ops.add(Op.delete(pathManager.getRouterRouterPath(
-                            peerPortEntry.value.device_id,
-                            entry.value.device_id), -1));
-                }
-            }
-        }
-        return ops;
-    }
-
-    /**
-     * Constructs a list of operations to perform in a bridge port deletion.
-     * 
-     * @param entry
-     *            Port ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> prepareBridgePortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
-            throws KeeperException, InterruptedException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getBridgePortPath(entry.value.device_id,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
-        return ops;
-    }
-
-    /**
-     * Constructs a list of operations to perform in a port deletion.
-     * 
-     * @param entry
-     *            Port ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> preparePortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        if (entry.value instanceof PortDirectory.BridgePortConfig) {
-            return prepareBridgePortDelete(entry);
-        } else {
-            return prepareRouterPortDelete(entry);
         }
     }
 

@@ -109,7 +109,51 @@ public class BridgeZkManager extends ZkManager {
         ops.addAll(greZkManager.prepareGreUpdate(gre));
         return ops;
     }
+    
+    /**
+     * Constructs a list of operations to perform in a bridge deletion.
+     * 
+     * @param entry
+     *            Bridge ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException, IOException {
+        List<Op> ops = new ArrayList<Op>();
+        PortZkManager portZkManager = new PortZkManager(zk, pathManager
+                .getBasePath());
+        GreZkManager greZkManager = new GreZkManager(zk, pathManager
+                .getBasePath());
 
+        // Delete the ports
+        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
+                .listBridgePorts(entry.key);
+        for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
+            ops.addAll(portZkManager.prepareBridgePortDelete(portEntry));
+        }
+        ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
+        ops.add(Op
+                .delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
+
+        // Delete GRE
+        GreKey gre = new GreKey(entry.key);
+        ops.addAll(greZkManager
+                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
+                        entry.value.greKey, gre)));
+
+        // Delete the bridge
+        ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));
+        return ops;
+    }
+    
     /**
      * Performs an atomic update on the ZooKeeper to add a new bridge entry.
      * 
@@ -180,50 +224,6 @@ public class BridgeZkManager extends ZkManager {
                     e, BridgeConfig.class);
         }
         return new ZkNodeEntry<UUID, BridgeConfig>(id, config);
-    }
-
-    /**
-     * Constructs a list of operations to perform in a bridge deletion.
-     * 
-     * @param entry
-     *            Bridge ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException, IOException {
-        List<Op> ops = new ArrayList<Op>();
-        PortZkManager portZkManager = new PortZkManager(zk, pathManager
-                .getBasePath());
-        GreZkManager greZkManager = new GreZkManager(zk, pathManager
-                .getBasePath());
-
-        // Delete the ports
-        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
-                .listBridgePorts(entry.key);
-        for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
-            ops.addAll(portZkManager.prepareBridgePortDelete(portEntry));
-        }
-        ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
-        ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
-        ops.add(Op
-                .delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
-
-        // Delete GRE
-        GreKey gre = new GreKey(entry.key);
-        ops.addAll(greZkManager
-                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
-                        entry.value.greKey, gre)));
-
-        // Delete the bridge
-        ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));
-        return ops;
     }
 
     /***

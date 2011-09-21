@@ -74,6 +74,17 @@ public class AdRouteZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareAdRouteDelete(ZkNodeEntry<UUID, AdRouteConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException, IOException {
+        // Delete the advertising route
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getAdRoutePath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBgpAdRoutePath(entry.value.bgpId,
+                entry.key), -1));
+        return ops;
+    }
+
     public UUID create(AdRouteConfig adRoute) throws InterruptedException,
             KeeperException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
@@ -135,17 +146,6 @@ public class AdRouteZkManager extends ZkManager {
                     "Could not serialize adRoute " + entry.key
                             + " to AdRouteConfig", e, AdRouteConfig.class);
         }
-    }
-
-    public List<Op> prepareAdRouteDelete(ZkNodeEntry<UUID, AdRouteConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException, IOException {
-        // Delete the advertising route
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getAdRoutePath(entry.key), -1));
-        ops.add(Op.delete(pathManager.getBgpAdRoutePath(entry.value.bgpId,
-                entry.key), -1));
-        return ops;
     }
 
     public void delete(UUID id) throws InterruptedException, KeeperException,

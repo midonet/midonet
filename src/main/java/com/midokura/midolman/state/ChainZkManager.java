@@ -93,6 +93,35 @@ public class ChainZkManager extends ZkManager {
     }
 
     /**
+     * Constructs a list of operations to perform in a chain deletion.
+     * 
+     * @param entry
+     *            Chain ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareChainDelete(ZkNodeEntry<UUID, ChainConfig> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        RuleZkManager ruleZkManager = new RuleZkManager(zk, pathManager
+                .getBasePath());
+        List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
+        for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
+            ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
+        }
+        ops.add(Op.delete(pathManager.getRouterChainPath(entry.value.routerId,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getChainPath(entry.key), -1));
+        return ops;
+    }
+
+    /**
      * Performs an atomic update on the ZooKeeper to add a new chain entry.
      * 
      * @param chain
@@ -214,35 +243,6 @@ public class ChainZkManager extends ZkManager {
                     "Could not serialize chain " + entry.key
                             + " to ChainConfig", e, ChainConfig.class);
         }
-    }
-
-    /**
-     * Constructs a list of operations to perform in a chain deletion.
-     * 
-     * @param entry
-     *            Chain ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> prepareChainDelete(ZkNodeEntry<UUID, ChainConfig> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        RuleZkManager ruleZkManager = new RuleZkManager(zk, pathManager
-                .getBasePath());
-        List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
-        for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
-            ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
-        }
-        ops.add(Op.delete(pathManager.getRouterChainPath(entry.value.routerId,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getChainPath(entry.key), -1));
-        return ops;
     }
 
     /***
