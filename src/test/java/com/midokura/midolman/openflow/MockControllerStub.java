@@ -28,6 +28,7 @@ public class MockControllerStub implements ControllerStub {
         public OFMatch match;
         public long cookie;
         public short idleTimeoutSecs;
+        public short hardTimeoutSecs;
         public short priority;
         public int bufferId;
         public boolean sendFlowRemove;
@@ -36,12 +37,13 @@ public class MockControllerStub implements ControllerStub {
         public List<OFAction> actions;
 
         public Flow(OFMatch match, long cookie, short idleTimeoutSecs,
-                short priority, int bufferId, boolean sendFlowRemove,
-                boolean checkOverlap, boolean emergency,
-                List<OFAction> actions) {
+                short hardTimoutSecs, short priority, int bufferId, 
+                boolean sendFlowRemove, boolean checkOverlap, 
+                boolean emergency, List<OFAction> actions) {
             this.match = match;
             this.cookie = cookie;
             this.idleTimeoutSecs = idleTimeoutSecs;
+            this.hardTimeoutSecs = hardTimeoutSecs;
             this.priority = priority;
             this.bufferId = bufferId;
             this.sendFlowRemove = sendFlowRemove;
@@ -72,11 +74,12 @@ public class MockControllerStub implements ControllerStub {
 
     @Override
     public void sendFlowModAdd(OFMatch match, long cookie,
-            short idleTimeoutSecs, short priority, int bufferId,
-            boolean sendFlowRemove, boolean checkOverlap, boolean emergency,
-            List<OFAction> actions) {
-        addedFlows.add(new Flow(match, cookie, idleTimeoutSecs, priority,
-                bufferId, sendFlowRemove, checkOverlap, emergency, actions));
+            short idleTimeoutSecs, short hardTimoutSecs, short priority,
+            int bufferId, boolean sendFlowRemove, boolean checkOverlap,
+            boolean emergency, List<OFAction> actions) {
+        addedFlows.add(new Flow(match, cookie, idleTimeoutSecs, hardTimoutSecs,
+                priority, bufferId, sendFlowRemove, checkOverlap, emergency, 
+                actions));
         if (bufferId != 0xffffffff && null != actions && 0 != actions.size()) {
             sentPackets.add(new Packet(bufferId, (short)-1, actions,
                                        new byte[] {}));
@@ -86,9 +89,10 @@ public class MockControllerStub implements ControllerStub {
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict,
                                   short priority, short port) {
-        deletedFlows.add(new Flow(match, 0, (short)0, priority, 0, strict, 
-                                  false, false, null));
-        // Not using port because it's not a member of Flow
+        // For deletedFlows, use hardTimeout for outPort and 
+        // sendFlowRemove for strict.
+        deletedFlows.add(new Flow(match, 0, (short)0, port, priority, 0, 
+                                  strict, false, false, null));
     }
 
     @Override

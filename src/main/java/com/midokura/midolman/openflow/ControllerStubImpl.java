@@ -225,9 +225,8 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
 
     @Override
     public void sendFlowModAdd(OFMatch match, long cookie, 
-            short idleTimeoutSecs, short priority, int bufferId, 
-            boolean sendFlowRemove, boolean checkOverlap, boolean emergency,
-            List<OFAction> actions) {
+            short idleTimeoutSecs, short hardTimeoutSecs, short priority, 
+            int bufferId, boolean sendFlowRemove, boolean checkOverlap,                     boolean emergency, List<OFAction> actions) {
         log.debug("sendFlowModAdd");
 
         short flags = 0;
@@ -245,9 +244,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
 
         OFFlowMod fm = (OFFlowMod) factory.getMessage(OFType.FLOW_MOD);
         fm.setCommand(OFFlowMod.OFPFC_ADD);
-        fm.setMatch(match).setCookie(cookie).setIdleTimeout(idleTimeoutSecs)
-                          .setPriority(priority).setBufferId(bufferId);
-        fm.setFlags(flags).setActions(actions);
+        fm.setMatch(match).setCookie(cookie).setIdleTimeout(idleTimeoutSecs);
+        fm.setHardTimeout(hardTimeoutSecs).setPriority(priority);
+        fm.setBufferId(bufferId).setFlags(flags).setActions(actions);
 
         stream.write(fm);
     }

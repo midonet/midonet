@@ -425,8 +425,9 @@ public class NetworkController extends AbstractController {
             short hardTimeoutSecs, short idleTimeoutSecs,
             boolean sendFlowRemove, List<OFAction> actions, short inPort,
             byte[] data) {
-        controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs, FLOW_PRIORITY,
-                bufferId, sendFlowRemove, false, false, actions);
+        controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs,
+                hardTimeoutSecs, FLOW_PRIORITY, bufferId, sendFlowRemove,
+                false, false, actions);
         // If packet was unbuffered, we need to explicitly send it otherwise the
         // flow won't be applied to it.
         if (bufferId == ControllerStub.UNBUFFERED_ID)
@@ -803,7 +804,8 @@ public class NetworkController extends AbstractController {
         // TODO(pino): can we just send a null list instead of an empty list?
         List<OFAction> actions = new ArrayList<OFAction>();
         controllerStub.sendFlowModAdd(flowMatch, (long) 0, IDLE_TIMEOUT_SECS,
-                (short) 0, bufferId, true, false, false, actions);
+                OFP_FLOW_PERMANENT, (short) 0, bufferId, true, false, false,
+                actions);
         // Note that if the packet was buffered, then the datapath will apply
         // the flow and drop it. If the packet was unbuffered, we don't need
         // to do anything.
