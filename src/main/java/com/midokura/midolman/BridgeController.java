@@ -216,10 +216,11 @@ public class BridgeController extends AbstractController {
         // this packet.
         OFMatch match = createMatchFromPacket(capturedPacket, inPort);
         addFlowAndPacketOut(match, 0L, idleFlowExpireSeconds, 
-                            flowExpireSeconds /* unused */, flowPriority,
+                            flowExpireSeconds, flowPriority,
                             bufferId, true, false, false, actions,
                             inPort, data);
-        log.info("installing flowmod at {} with actions {}", new Date(), actions);
+        log.info("installing flowmod at {} with actions {}", new Date(),
+                 actions);
 
         // If the message didn't come from the tunnel port, learn the MAC 
         // source address.  We wait to learn a MAC-port mapping until 

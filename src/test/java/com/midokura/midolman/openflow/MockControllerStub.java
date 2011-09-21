@@ -37,7 +37,7 @@ public class MockControllerStub implements ControllerStub {
         public List<OFAction> actions;
 
         public Flow(OFMatch match, long cookie, short idleTimeoutSecs,
-                short hardTimoutSecs, short priority, int bufferId, 
+                short hardTimeoutSecs, short priority, int bufferId, 
                 boolean sendFlowRemove, boolean checkOverlap, 
                 boolean emergency, List<OFAction> actions) {
             this.match = match;

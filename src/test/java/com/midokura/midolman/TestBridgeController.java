@@ -272,9 +272,8 @@ public class TestBridgeController {
         MockControllerStub.Flow flow = controllerStub.addedFlows.get(0);
         assertEquals(expectedMatch, flow.match);
         assertEquals(idleTimeout, flow.idleTimeoutSecs);
-        //assertTrue(hardTimeoutMin <= flow.hardTimeoutSecs);  
-        //assertTrue(hardTimeoutMax >= flow.hardTimeoutSecs);  
-        // No member of Flow for hardTimeout.
+        assertTrue(hardTimeoutMin <= flow.hardTimeoutSecs);  
+        assertTrue(hardTimeoutMax >= flow.hardTimeoutSecs);  
         assertEquals(priority, flow.priority);
         assertArrayEquals(actions, flow.actions.toArray());
     }
