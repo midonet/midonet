@@ -19,10 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.BgpPortService;
 import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.PortService;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.state.AdRouteZkManager;
+import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.ChainZkManager;
@@ -116,6 +120,17 @@ public class ControllerTrampoline implements Controller {
                 
                 Cache cache = new MemcacheCache(memcacheHosts, 3);
                 
+                PortZkManager portMgr = new PortZkManager(directory, "");
+                RouteZkManager routeMgr = new RouteZkManager(directory, "");
+                BgpZkManager bgpMgr = new BgpZkManager(directory, "");
+                AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory,
+                                                                   "");
+
+                PortService service = new BgpPortService(
+                    ovsdb, "midolman_port_id", "midolman_port_service",
+                    portMgr, routeMgr, bgpMgr, adRouteMgr,
+                    Runtime.getRuntime());
+
                 newController = new NetworkController(
                         datapathId,
                         deviceId,
@@ -123,15 +138,16 @@ public class ControllerTrampoline implements Controller {
                         portLocationMap,
                         idleFlowExpireMillis,
                         localNwAddr,
-                        new PortZkManager(directory, ""),
+                        portMgr,
                         new RouterZkManager(directory, ""),
-                        new RouteZkManager(directory, ""),
+                        routeMgr,
                         new ChainZkManager(directory, ""),
                         new RuleZkManager(directory, ""),
                         ovsdb,
                         reactor,
                         cache,
-                        externalIdKey);
+                        externalIdKey,
+                        service);
             } 
             else {
                 BridgeConfig bridgeConfig;

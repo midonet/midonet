@@ -87,7 +87,7 @@ public class NetworkController extends AbstractController {
             RouterZkManager routerMgr, RouteZkManager routeMgr,
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
-            String externalIdKey) {
+            String externalIdKey, PortService service) {
         super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
                 idleFlowExpireMillis, localNwAddr, externalIdKey);
         // TODO Auto-generated constructor stub
@@ -98,6 +98,8 @@ public class NetworkController extends AbstractController {
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Short, L3DevicePort>();
 
+        this.service = service;
+        this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
     }
 
