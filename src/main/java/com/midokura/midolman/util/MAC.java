@@ -7,8 +7,10 @@ package com.midokura.midolman.util;
 
 import java.util.Arrays;
 
+import com.midokura.midolman.packets.Ethernet;
 
-class MAC implements Cloneable {
+
+public class MAC implements Cloneable {
     public byte[] address;
 
     public MAC(MAC rhs) { address = rhs.address.clone(); }
@@ -18,6 +20,14 @@ class MAC implements Cloneable {
     }
 
     public MAC clone() { return new MAC(this); }
+
+    public static MAC fromString(String str) {
+        return new MAC(Ethernet.toMACAddress(str));
+    }
+
+    public String toString() {
+        return Net.convertByteMacToString(address);
+    }
 
     public boolean equals(Object rhs) {
         if (this == rhs)

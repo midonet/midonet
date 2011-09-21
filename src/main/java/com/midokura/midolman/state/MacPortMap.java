@@ -6,21 +6,22 @@ import java.util.UUID;
 
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.MAC;
 
-public class MacPortMap extends ReplicatedMap<byte[], UUID> {
+public class MacPortMap extends ReplicatedMap<MAC, UUID> {
 
     public MacPortMap(Directory dir) {
         super(dir);
     }
 
     @Override
-    protected String encodeKey(byte[] key) {
-        return Net.convertByteMacToString(key);
+    protected String encodeKey(MAC key) {
+        return key.toString();
     }
 
     @Override
-    protected byte[] decodeKey(String str) {
-        return Ethernet.toMACAddress(str);
+    protected MAC decodeKey(String str) {
+        return MAC.fromString(str);
         // TODO: Test this.
     }
 
