@@ -18,8 +18,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
-import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 
 /**
  * Class to manage the routing ZooKeeper data.
@@ -52,7 +50,8 @@ public class RouteZkManager extends ZkManager {
         // Determine whether to add the Route data under routers or ports.
         if (entry.value.nextHop == Route.NextHop.PORT) {
             // Check what kind of port this is.
-            PortZkManager portZkManager = new PortZkManager(zk, basePath);
+            PortZkManager portZkManager = new PortZkManager(zk, pathManager
+                    .getBasePath());
             ZkNodeEntry<UUID, PortDirectory.PortConfig> port = portZkManager
                     .get(entry.value.nextHopPort);
             if (!(port.value instanceof PortDirectory.RouterPortConfig)) {
@@ -102,6 +101,39 @@ public class RouteZkManager extends ZkManager {
         // Add under port or router
         ops.add(Op.create(getSubDirectoryRoutePath(entry), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        return ops;
+    }
+
+    public List<Op> prepareRouteDelete(UUID id) throws KeeperException,
+            InterruptedException, ZkStateSerializationException {
+        return prepareRouteDelete(get(id));
+    }
+
+    /**
+     * Constructs a list of operations to perform in a route deletion.
+     * 
+     * @param entry
+     *            Route ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws KeeperException
+     *             ZooKeeper error occurred.
+     * @throws InterruptedException
+     *             ZooKeeper was unresponsive.
+     */
+    public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getRoutePath(entry.key), -1));
+        if (entry.value.nextHop == Route.NextHop.PORT) {
+            ops.add(Op.delete(pathManager.getPortRoutePath(
+                    entry.value.nextHopPort, entry.key), -1));
+        } else {
+            ops.add(Op.delete(pathManager.getRouterRoutePath(
+                    entry.value.routerId, entry.key), -1));
+        }
         return ops;
     }
 
@@ -263,7 +295,8 @@ public class RouteZkManager extends ZkManager {
             } catch (IOException e) {
                 throw new ZkStateSerializationException(
                         "Could not deserialize port " + portUUID
-                                + " to PortConfig", e, PortDirectory.PortConfig.class);
+                                + " to PortConfig", e,
+                        PortDirectory.PortConfig.class);
             }
             if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;
@@ -274,34 +307,6 @@ public class RouteZkManager extends ZkManager {
             routes.addAll(portRoutes);
         }
         return routes;
-    }
-
-    /**
-     * Constructs a list of operations to perform in a route deletion.
-     * 
-     * @param entry
-     *            Route ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
-     */
-    public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
-            throws KeeperException, InterruptedException,
-            ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getRoutePath(entry.key), -1));
-        if (entry.value.nextHop == Route.NextHop.PORT) {
-            ops.add(Op.delete(pathManager.getPortRoutePath(
-                    entry.value.nextHopPort, entry.key), -1));
-        } else {
-            ops.add(Op.delete(pathManager.getRouterRoutePath(
-                    entry.value.routerId, entry.key), -1));
-        }
-        return ops;
     }
 
     /***
@@ -319,7 +324,7 @@ public class RouteZkManager extends ZkManager {
      */
     public void delete(UUID id) throws InterruptedException, KeeperException,
             ZkStateSerializationException {
-        this.zk.multi(prepareRouteDelete(get(id)));
+        this.zk.multi(prepareRouteDelete(id));
     }
 
 }

@@ -5,6 +5,8 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
+import java.util.concurrent.Future;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -16,6 +18,7 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +30,7 @@ import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.MAC;
 
 
 public class BridgeController extends AbstractController {
@@ -37,9 +41,11 @@ public class BridgeController extends AbstractController {
     MacPortMap macPortMap;
     long mac_port_timeout;
     Reactor reactor;
+    short flowExpireSeconds, idleFlowExpireSeconds;
+    static final short flowPriority = 1000;    // TODO: Make configurable.
 
     // The delayed deletes for macPortMap.
-    HashMap<byte[], UUID> delayedDeletes;
+    HashMap<MAC, Future> delayedDeletes;
 
     HashMap<MacPort, Integer> flowCount;
 
@@ -47,13 +53,18 @@ public class BridgeController extends AbstractController {
 
     private class MacPort {
         // Pair<Mac, Port>
+        public MAC mac;
         public UUID port;
-        public byte[] mac;
+
+        public MacPort(MAC addr, UUID uuid) {
+            mac = addr;
+            port = uuid;
+        }
     }
 
     private class BridgeControllerWatcher implements
-            ReplicatedMap.Watcher<byte[], UUID> {
-        public void processChange(byte[] key, UUID old_uuid, UUID new_uuid) {
+            ReplicatedMap.Watcher<MAC, UUID> {
+        public void processChange(MAC key, UUID old_uuid, UUID new_uuid) {
             /* Update callback for the MacPortMap */
 
             /* If the new port is local, the flow updates have already been
@@ -62,7 +73,7 @@ public class BridgeController extends AbstractController {
                 return;
             log.debug("BridgeControllerWatcher.processChange: mac {} changed "
                       + "from port {} to port {}", new Object[] {
-                      macAsAscii(key), old_uuid, new_uuid});
+                      key, old_uuid, new_uuid});
 
             /* If the MAC's old port was local, we need to invalidate its
              * flows. */
@@ -88,11 +99,13 @@ public class BridgeController extends AbstractController {
         macPortMap = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
-        delayedDeletes = new HashMap<byte[], UUID>();
+        delayedDeletes = new HashMap<MAC, Future>();
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
         macPortMap.addWatcher(macToPortWatcher);
         this.reactor = reactor;
+        idleFlowExpireSeconds = (short) (idleFlowExpireMillis / 1000);
+        flowExpireSeconds = (short) (flowExpireMillis / 1000);
     }
 
     @Override
@@ -118,13 +131,13 @@ public class BridgeController extends AbstractController {
                            byte[] data) {
         Ethernet capturedPacket = new Ethernet();
         capturedPacket.deserialize(data, 0, data.length);
-        byte[] srcDlAddress = capturedPacket.getSourceMACAddress();
-        byte[] dstDlAddress = capturedPacket.getDestinationMACAddress();
-        log.debug("Packet recv'd on port {} destination {}",
-                  inPort, Net.convertByteMacToString(dstDlAddress));
+        MAC srcDlAddress = new MAC(capturedPacket.getSourceMACAddress());
+        MAC dstDlAddress = new MAC(capturedPacket.getDestinationMACAddress());
+        log.info("Packet recv'd on port {} destination {}",
+                 inPort, dstDlAddress);
         UUID outPort = macPortMap.get(dstDlAddress);
-        log.debug(outPort == null ? "no port found for MAC"
-                                  : "MAC is on port " + outPort.toString());
+        log.info(outPort == null ? "no port found for MAC"
+                                 : "MAC is on port " + outPort.toString());
         int destIP = 0;
         OFAction[] actions;
 
@@ -138,10 +151,12 @@ public class BridgeController extends AbstractController {
             }
         }
 
-        if (Ethernet.isMcast(srcDlAddress)) {
+        boolean srcAddressIsMcast = Ethernet.isMcast(srcDlAddress.address);
+        if (srcAddressIsMcast) {
             // If a multicast source MAC, drop the packet.
             actions = new OFAction[] { };
-        } else if (Ethernet.isMcast(dstDlAddress) ||
+            log.info("multicast src MAC, dropping packet");
+        } else if (Ethernet.isMcast(dstDlAddress.address) ||
                    outPort == null ||
                    destIP == 0 ||
                    (destIP == publicIp && 
@@ -152,6 +167,10 @@ public class BridgeController extends AbstractController {
             //  * destIP (destination peer) unknown (not in portLocMap)
             //  * destIP is local and the output port not in portUuidToNumberMap
 
+            log.info("Flooding from {} port {}",
+                     isTunnelPortNum(inPort) ? "tunnel" : "non-tunnel",
+                     inPort);
+            log.info("outPort {}, destIP {}", outPort, destIP);
             OFPort output = isTunnelPortNum(inPort) ? OFPort.OFPP_FLOOD
                                                     : OFPort.OFPP_ALL;
             actions = new OFAction[] { new OFActionOutput(output.getValue(), 
@@ -165,58 +184,103 @@ public class BridgeController extends AbstractController {
         } else {
             // The virtual port is part of a remote datapath.  Tunnel the 
             // packet to it.
-            log.debug("send flow to peer at {}", 
-                      Net.convertIntAddressToString(destIP));
+            log.info("send flow to peer at {}", 
+                     Net.convertIntAddressToString(destIP));
             if (isTunnelPortNum(inPort)) {
                 // The packet came in on a tunnel.  Don't send it out the 
                 // tunnel to avoid loops.  Just drop.  The flow match will 
                 // be invalidated when the destination mac changes port_uuid 
                 // or the port_uuid changes location.
                 actions = new OFAction[] { };
+                log.info("tunnel looping, drop");
             } else {
                 short output;
                 try {
                     output = peerIpToTunnelPortNum.get(destIP).shortValue();
                 } catch (NullPointerException e) {
                     // Tunnel is down.  Flood until the tunnel port comes up.
+                    log.info("tunnel down:  Flooding");
                     output = OFPort.OFPP_ALL.getValue();
                 }
                 actions = new OFAction[] { new OFActionOutput(output,
                                                               (short)0) };
             }
-
         }
 
-        //XXX   dl_src_is_unicast = not ieee_802.is_mcast_eth(dl_src_address)
+        UUID inPortUuid = portNumToUuid.get(inPort);
+        UUID mappedPortUuid = macPortMap.get(srcDlAddress);
+        
+        if (!srcAddressIsMcast && inPortUuid != null &&
+                inPortUuid != mappedPortUuid) {
+            // The MAC changed port:  invalidate old flows before installing 
+            // a new flowmod for this MAC.
+            invalidateFlowsFromMac(srcDlAddress);
+            invalidateFlowsToMac(srcDlAddress);
+        }
+
+        // Set up a forwarding rule for packets in this flow, and forward 
+        // this packet.
+        OFMatch match = createMatchFromPacket(capturedPacket, inPort);
+        addFlowAndPacketOut(match, 0L, idleFlowExpireSeconds, 
+                            flowExpireSeconds, flowPriority,
+                            bufferId, true, false, false, actions,
+                            inPort, data);
+        log.info("installing flowmod at {} with actions {}", new Date(),
+                 actions);
+
+        // If the message didn't come from the tunnel port, learn the MAC 
+        // source address.  We wait to learn a MAC-port mapping until 
+        // there's a flow from the MAC because flows are used to 
+        // reference-count the mapping.
+        if (inPortUuid != null && !!srcAddressIsMcast)
+            increaseMacPortFlowCount(srcDlAddress, inPortUuid);
     }
 
-    private void invalidateFlowsFromMac(byte[] mac) {
-        log.debug("BridgeController: invalidating flows with dl_src " +
-                  macAsAscii(mac));
+    private void increaseMacPortFlowCount(MAC macAddr, UUID portUuid) {
+        MacPort flowcountKey = new MacPort(macAddr, portUuid);
+        Integer count = flowCount.get(flowcountKey);
+        if (count == null) {
+            count = 1;
+            // Remove any delayed delete.
+            Future delayedDelete = delayedDeletes.remove(macAddr);
+            if (delayedDelete != null)
+                delayedDelete.cancel(false);
+            flowCount.put(flowcountKey, count);
+        } else {
+            count++;
+        }
+
+        log.debug("Increased flow count for source MAC {} from port {} to {}",
+                  new Object[] { macAddr, portUuid, count });
+        if (macPortMap.get(macAddr) != portUuid) {
+            try {
+                macPortMap.put(macAddr, portUuid);
+            } catch (KeeperException e) {
+                log.error("ZooKeeper threw exception {}", e);
+                // TODO: What should we do about this?
+            } catch (InterruptedException e) {
+                log.error("MacPortMap threw InterruptedException {}", e);
+                // TODO: What should we do about this?
+            }
+        }
+    }
+
+    private void invalidateFlowsFromMac(MAC mac) {
+        log.debug("BridgeController: invalidating flows with dl_src {}", mac);
         OFMatch match = new MidoMatch();
-        match.setDataLayerSource(mac);
+        match.setDataLayerSource(mac.address);
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
-    private void invalidateFlowsToMac(byte[] mac) {
-        log.debug("BridgeController: invalidating flows with dl_dst " +
-                  macAsAscii(mac));
+    private void invalidateFlowsToMac(MAC mac) {
+        log.debug("BridgeController: invalidating flows with dl_dst {}", mac);
         OFMatch match = new MidoMatch();
-        match.setDataLayerDestination(mac);
+        match.setDataLayerDestination(mac.address);
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     private boolean port_is_local(UUID port) {
         return portUuidToNumberMap.containsKey(port);
-    }
-
-    static public String macAsAscii(byte[] mac) {
-        // FIXME: Move to packet/ somewhere.
-        assert mac.length == 6;
-        String rv = String.format("%02x:%02x:%02x:%02x:%02x:%02x",
-                                  mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
-                                 );
-        return rv;
     }
 
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
@@ -241,7 +305,7 @@ public class BridgeController extends AbstractController {
         // FIXME
     }
 
-    private void invalidateFlowsToPeer(InetAddress peer_ip) {
+    private void invalidateFlowsToPeer(Integer peer_ip) {
         // FIXME
     }
 }

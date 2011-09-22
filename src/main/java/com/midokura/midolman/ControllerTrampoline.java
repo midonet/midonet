@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.UUID;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -20,12 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.BgpPortService;
 import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.PortService;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.state.AdRouteZkManager;
+import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.DeviceToGreKeyMap;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -33,39 +37,41 @@ import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
 import com.midokura.midolman.util.Net;
 
 public class ControllerTrampoline implements Controller {
 
-    private static final Logger log = LoggerFactory.getLogger(ControllerTrampoline.class);
+    private static final Logger log = LoggerFactory
+            .getLogger(ControllerTrampoline.class);
 
     private HierarchicalConfiguration config;
-    private Configuration midolmanConfig;
     private OpenvSwitchDatabaseConnection ovsdb;
     private Directory directory;
+    private ZkPathManager pathMgr;
     private Reactor reactor;
+    private String externalIdKey;
 
-    private DeviceToGreKeyMap bridgeDirectory;
+    private BridgeZkManager bridgeMgr;
     private ControllerStub controllerStub;
 
     /* directory is the "midonet root", not zkConnection.getRootDirectory() */
-    public ControllerTrampoline(
-            HierarchicalConfiguration config,
-            OpenvSwitchDatabaseConnection ovsdb,
-            Directory directory,
+    public ControllerTrampoline(HierarchicalConfiguration config,
+            OpenvSwitchDatabaseConnection ovsdb, Directory directory,
             Reactor reactor) throws KeeperException {
 
         this.config = config;
         this.ovsdb = ovsdb;
         this.directory = directory;
         this.reactor = reactor;
-        
-        midolmanConfig = config.configurationAt("midolman");
+        this.pathMgr = new ZkPathManager("");
 
-        String bridgeRoot = midolmanConfig.getString("bridges_subdirectory");
-        this.bridgeDirectory = new DeviceToGreKeyMap(directory.getSubDirectory(bridgeRoot));
+        externalIdKey = config.configurationAt("openvswitch").getString(
+                "midolman_ext_id_key", "midolman-vnet");
+
+        this.bridgeMgr = new BridgeZkManager(directory, "");
     }
 
     @Override
@@ -81,7 +87,7 @@ public class ControllerTrampoline implements Controller {
             long datapathId = controllerStub.getFeatures().getDatapathId();
 
             // lookup midolman-vnet of datapath
-            String uuid = ovsdb.getDatapathExternalId(datapathId, midolmanConfig.getString("midolman_ext_id_key", "midolman-vnet"));
+            String uuid = ovsdb.getDatapathExternalId(datapathId, externalIdKey);
             
             if (uuid == null) {
                 log.warn("onConnectionMade: datapath {} connected but has no relevant external id, ignore it", datapathId);
@@ -93,12 +99,11 @@ public class ControllerTrampoline implements Controller {
             // TODO: is this the right way to check that a DP is for a VRN?
             // ----- No.  We should have a directory of VRN UUIDs in ZooKeeper,
             //       just like for Bridges and Routers.
+            Controller newController;
             if (uuid.equals(config.configurationAt("vrn")
                                   .getString("router_network_id"))) {
                 Directory portLocationDirectory = 
-                    directory.getSubDirectory(
-                        midolmanConfig.getString("port_locations_subdirectory"))
-                    .getSubDirectory("/" + uuid);
+                    directory.getSubDirectory(pathMgr.getVRNPortLocationsPath());
 
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
@@ -115,43 +120,57 @@ public class ControllerTrampoline implements Controller {
                 
                 Cache cache = new MemcacheCache(memcacheHosts, 3);
                 
-                Controller newController = new NetworkController(
+                PortZkManager portMgr = new PortZkManager(directory, "");
+                RouteZkManager routeMgr = new RouteZkManager(directory, "");
+                BgpZkManager bgpMgr = new BgpZkManager(directory, "");
+                AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory,
+                                                                   "");
+
+                PortService service = new BgpPortService(
+                    ovsdb, "midolman_port_id", "midolman_port_service",
+                    portMgr, routeMgr, bgpMgr, adRouteMgr,
+                    Runtime.getRuntime());
+
+                newController = new NetworkController(
                         datapathId,
                         deviceId,
                         config.configurationAt("vrn").getInt("router_network_gre_key"),
                         portLocationMap,
                         idleFlowExpireMillis,
                         localNwAddr,
-                        new PortZkManager(directory, ""),
+                        portMgr,
                         new RouterZkManager(directory, ""),
-                        new RouteZkManager(directory, ""),
+                        routeMgr,
                         new ChainZkManager(directory, ""),
                         new RuleZkManager(directory, ""),
                         ovsdb,
                         reactor,
                         cache,
-                        midolmanConfig.getString("midolman_ext_id_key", 
-                                                 "midolman-vnet"));
-                
-                controllerStub.setController(newController);
-                controllerStub = null;
-                
-                newController.onConnectionMade();
-            } else if (bridgeDirectory.exists(deviceId)) {
+                        externalIdKey,
+                        service);
+            } 
+            else {
+                BridgeConfig bridgeConfig;
+                try {
+                    bridgeConfig = bridgeMgr.get(deviceId).value;
+                }
+                catch (Exception e) {
+                    log.info("can't handle this datapath, disconnecting");
+                    controllerStub.close();
+                    return;
+                }
                 log.info("Creating Bridge {}", uuid);
 
                 Directory portLocationDirectory = 
                     directory.getSubDirectory(
-                        midolmanConfig.getString("port_locations_subdirectory"))
-                    .getSubDirectory("/" + uuid);
+                            pathMgr.getBridgePortLocationsPath(deviceId));
 
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
 
                 Directory macPortDir = 
                     directory.getSubDirectory(
-                        midolmanConfig.getString("mac_port_subdirectory", 
-                                                 "/mac_port"));
+                            pathMgr.getBridgeMacPortsPath(deviceId));
                 MacPortMap macPortMap = new MacPortMap(macPortDir);
 
                 long idleFlowExpireMillis = 
@@ -166,10 +185,10 @@ public class ControllerTrampoline implements Controller {
                 int localNwAddr = config.configurationAt("openflow")
                                         .getInt("public_ip_address");
 
-                Controller newController = new BridgeController(
+                newController = new BridgeController(
                         datapathId,
                         deviceId,
-                        bridgeDirectory.getGreKey(deviceId),
+                        bridgeConfig.greKey,
                         portLocationMap,
                         macPortMap,
                         flowExpireMillis,
@@ -178,24 +197,16 @@ public class ControllerTrampoline implements Controller {
                         macPortTimeoutMillis,
                         ovsdb,
                         reactor,
-                        midolmanConfig.getString("midolman_ext_id_key", 
-                                                 "midolman-vnet"));
-                
-                controllerStub.setController(newController);
-                controllerStub = null;
-                
-                newController.onConnectionMade();
-            } else {
-                log.info("can't handle this datapath, disconnecting");
-                controllerStub.close();
+                        externalIdKey);
             }
+            controllerStub.setController(newController);
+            controllerStub = null;
+            newController.onConnectionMade();
             
         } catch (KeeperException e) {
             log.warn("ZK error", e);
         } catch (IOException e) {
             log.warn("IO error", e);
-        } catch (InterruptedException e) {
-            log.warn("device construction interrupted", e);
         }
     }
 
@@ -211,8 +222,9 @@ public class ControllerTrampoline implements Controller {
 
     @Override
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
-            OFFlowRemovedReason reason, int durationSeconds, int durationNanoseconds,
-            short idleTimeout, long packetCount, long byteCount) {
+            OFFlowRemovedReason reason, int durationSeconds,
+            int durationNanoseconds, short idleTimeout, long packetCount,
+            long byteCount) {
         throw new UnsupportedOperationException();
     }
 

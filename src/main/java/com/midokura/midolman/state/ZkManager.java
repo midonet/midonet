@@ -20,7 +20,6 @@ public abstract class ZkManager {
 
     protected ZkPathManager pathManager = null;
     protected Directory zk = null;
-    protected String basePath = null;
 
     /**
      *  Constructor.
@@ -31,7 +30,6 @@ public abstract class ZkManager {
      *            Path to set as the base.
      */
     public ZkManager(Directory zk, String basePath) {
-        this.basePath = basePath;
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
     }

@@ -85,6 +85,30 @@ public class ZkPathManager {
     }
 
     /**
+     * Get the path of a bridge's dynamic filtering database (mac to ports map).
+     * 
+     * @param id
+     *            Bridge UUID
+     * @return /bridges/bridgeId/mac_ports
+     */
+    public String getBridgeMacPortsPath(UUID id) {
+        return new StringBuilder(getBridgePath(id)).append("/mac_ports")
+                .toString();
+    }
+
+    /**
+     * Get the path of a bridge's port to location map.
+     * 
+     * @param id
+     *            Bridge UUID
+     * @return /bridges/bridgeId/port_locations
+     */
+    public String getBridgePortLocationsPath(UUID id) {
+        return new StringBuilder(getBridgePath(id)).append("/port_locations")
+                .toString();
+    }
+
+    /**
      * Get ZK router path.
      * 
      * @return /routers
@@ -103,30 +127,6 @@ public class ZkPathManager {
     public String getRouterPath(UUID id) {
         return new StringBuilder(getRoutersPath()).append("/").append(id)
                 .toString();
-    }
-
-    /**
-     * Get ZK router peer router path.
-     * 
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/routers
-     */
-    public String getRouterRoutersPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId)).append("/routers")
-                .toString();
-    }
-
-    /**
-     * Get ZK router peer router path.
-     * 
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/routers/routerId
-     */
-    public String getRouterRouterPath(UUID routerId, UUID peerRouterId) {
-        return new StringBuilder(getRouterRoutersPath(routerId)).append("/")
-                .append(peerRouterId).toString();
     }
 
     /**
@@ -485,5 +485,15 @@ public class ZkPathManager {
     public String getBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
         return new StringBuilder(getBgpAdRoutesPath(bgpId)).append("/").append(
                 adRouteId).toString();
+    }
+
+    /**
+     * Get the path to the port to location map for the router network.
+     * 
+     * @return /vrn_port_locations
+     */
+    public String getVRNPortLocationsPath() {
+        return new StringBuilder(basePath).append("/vrn_port_locations")
+                .toString();
     }
 }

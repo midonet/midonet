@@ -15,7 +15,7 @@ public class MockControllerStub implements ControllerStub {
         public byte[] data;
 
         public Packet(int bufferId, short inPort, List<OFAction> actions,
-                byte[] data) {
+                      byte[] data) {
             super();
             this.bufferId = bufferId;
             this.inPort = inPort;
@@ -28,28 +28,28 @@ public class MockControllerStub implements ControllerStub {
         public OFMatch match;
         public long cookie;
         public short idleTimeoutSecs;
+        public short hardTimeoutSecs;
         public short priority;
         public int bufferId;
         public boolean sendFlowRemove;
         public boolean checkOverlap;
         public boolean emergency;
         public List<OFAction> actions;
-        public short outPort;
 
         public Flow(OFMatch match, long cookie, short idleTimeoutSecs,
-                short priority, int bufferId, boolean sendFlowRemove,
-                boolean checkOverlap, boolean emergency,
-                List<OFAction> actions, short outPort) {
+                short hardTimeoutSecs, short priority, int bufferId, 
+                boolean sendFlowRemove, boolean checkOverlap, 
+                boolean emergency, List<OFAction> actions) {
             this.match = match;
             this.cookie = cookie;
             this.idleTimeoutSecs = idleTimeoutSecs;
+            this.hardTimeoutSecs = hardTimeoutSecs;
             this.priority = priority;
             this.bufferId = bufferId;
             this.sendFlowRemove = sendFlowRemove;
             this.checkOverlap = checkOverlap;
             this.emergency = emergency;
             this.actions = actions;
-            this.outPort = outPort;
         }
     }
 
@@ -74,19 +74,25 @@ public class MockControllerStub implements ControllerStub {
 
     @Override
     public void sendFlowModAdd(OFMatch match, long cookie,
-            short idleTimeoutSecs, short priority, int bufferId,
-            boolean sendFlowRemove, boolean checkOverlap, boolean emergency,
-            List<OFAction> actions, short outPort) {
-        addedFlows.add(new Flow(match, cookie, idleTimeoutSecs, priority,
-                bufferId, sendFlowRemove, checkOverlap, emergency, actions,
-                outPort));
+            short idleTimeoutSecs, short hardTimoutSecs, short priority,
+            int bufferId, boolean sendFlowRemove, boolean checkOverlap,
+            boolean emergency, List<OFAction> actions) {
+        addedFlows.add(new Flow(match, cookie, idleTimeoutSecs, hardTimoutSecs,
+                priority, bufferId, sendFlowRemove, checkOverlap, emergency, 
+                actions));
+        if (bufferId != 0xffffffff && null != actions && 0 != actions.size()) {
+            sentPackets.add(new Packet(bufferId, (short)-1, actions,
+                                       new byte[] {}));
+        }
     }
 
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict,
-				  short priority, short port) {
-	deletedFlows.add(new Flow(match, 0, (short)0, priority, 0, strict, 
-				  false, false, null, port));
+                                  short priority, short port) {
+        // For deletedFlows, use hardTimeout for outPort and 
+        // sendFlowRemove for strict.
+        deletedFlows.add(new Flow(match, 0, (short)0, port, priority, 0, 
+                                  strict, false, false, null));
     }
 
     @Override

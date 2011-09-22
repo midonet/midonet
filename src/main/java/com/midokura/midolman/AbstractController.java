@@ -6,9 +6,12 @@ package com.midokura.midolman;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.List;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -20,7 +23,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 import com.midokura.midolman.util.Net;
@@ -38,8 +47,8 @@ public abstract class AbstractController implements Controller {
     protected PortToIntNwAddrMap portLocMap;
 
     // Tunnel management data structures
-    protected HashMap<Integer, InetAddress> tunnelPortNumToPeerIp;
-    protected HashMap<InetAddress, Integer> peerIpToTunnelPortNum;
+    protected HashMap<Integer, Integer> tunnelPortNumToPeerIp;
+    protected HashMap<Integer, Integer> peerIpToTunnelPortNum;
 
     protected PortToIntNwAddrMap.Watcher listener;
 
@@ -83,8 +92,8 @@ public abstract class AbstractController implements Controller {
                                       : 0;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
-        tunnelPortNumToPeerIp = new HashMap<Integer, InetAddress>();
-        peerIpToTunnelPortNum = new HashMap<InetAddress, Integer>();
+        tunnelPortNumToPeerIp = new HashMap<Integer, Integer>();
+        peerIpToTunnelPortNum = new HashMap<Integer, Integer>();
         listener = new PortLocMapListener(this);
         if (portLocMap != null)
             portLocMap.addWatcher(listener);
@@ -131,10 +140,12 @@ public abstract class AbstractController implements Controller {
         }
         // TODO(pino, jlm): should this be an else-if?
         if (isGREPortOfKey(portDesc.getName())) {
-            InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+            Integer peerIp = peerIpOfGrePortName(portDesc.getName());
             // TODO: Error out if already tunneled to this peer.
             tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
             peerIpToTunnelPortNum.put(peerIp, new Integer(portNum));
+            log.info("Recording tunnel {} <=> {}", portNum,
+                     Net.convertIntAddressToString(peerIp.intValue()));
         }
 
         addPort(portDesc, portNum);
@@ -152,7 +163,7 @@ public abstract class AbstractController implements Controller {
             portNumToUuid.remove(portNum);
             portUuidToNumberMap.remove(
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
-            InetAddress peerIp = tunnelPortNumToPeerIp.remove(portNum);
+            Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
             peerIpToTunnelPortNum.remove(peerIp);
         } else {
             modifyPort(portDesc);
@@ -166,12 +177,11 @@ public abstract class AbstractController implements Controller {
                 portNumToUuid.remove(portNum);
 
             if (isGREPortOfKey(portDesc.getName())) {
-                InetAddress peerIp = peerIpOfGrePortName(portDesc.getName());
+                Integer peerIp = peerIpOfGrePortName(portDesc.getName());
                 tunnelPortNumToPeerIp.put(portNum, peerIp);
                 peerIpToTunnelPortNum.put(peerIp, portNum);
-                
             } else {
-                InetAddress peerIp = tunnelPortNumToPeerIp.remove(portNum);
+                Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
                 peerIpToTunnelPortNum.remove(peerIp);
             }
         }
@@ -207,11 +217,10 @@ public abstract class AbstractController implements Controller {
         Integer intAddress = portLocMap.get(port_uuid);
         if (intAddress == null)
             return null;
-        InetAddress peerIp = Net.convertIntToInetAddress(intAddress);
-        return peerIpToTunnelPortNum.get(peerIp);
+        return peerIpToTunnelPortNum.get(intAddress);
     }
 
-    protected InetAddress peerOfTunnelPortNum(int portNum) {
+    protected Integer peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
 
@@ -226,10 +235,9 @@ public abstract class AbstractController implements Controller {
         return portName.startsWith(greString);
     }
 
-    protected InetAddress peerIpOfGrePortName(String portName) {
+    protected Integer peerIpOfGrePortName(String portName) {
         String hexAddress = portName.substring(7, 15);
-        int intAddress = new BigInteger(hexAddress, 16).intValue();
-        return Net.convertIntToInetAddress(intAddress);
+        return (new BigInteger(hexAddress, 16)).intValue();
     }
 
     public String makeGREPortName(int address) {
@@ -257,7 +265,7 @@ public abstract class AbstractController implements Controller {
          *          was deleted.
          */
 
-        log.info("PortLocationUpdate: {} moved from {} to {}",
+        log.debug("PortLocationUpdate: {} moved from {} to {}",
             new Object[] { 
                 portUuid, 
                 oldAddr == null ? "null" 
@@ -285,5 +293,52 @@ public abstract class AbstractController implements Controller {
             log.debug("Tearing down tunnel " + grePortName);
             ovsdb.delPort(grePortName);
         }
+    }
+
+    protected OFMatch createMatchFromPacket(Ethernet data, short inPort) {
+        MidoMatch match = new MidoMatch();
+        if (inPort != -1)
+            match.setInputPort(inPort);
+        match.setDataLayerDestination(data.getDestinationMACAddress());
+        match.setDataLayerSource(data.getSourceMACAddress());
+        match.setDataLayerType(data.getEtherType());
+        match.setDataLayerVirtualLan(data.getVlanID());
+        match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
+        if (data.getEtherType() == IPv4.ETHERTYPE) {
+            IPv4 packet = (IPv4) data.getPayload();
+            match.setNetworkTypeOfService(packet.getDiffServ());
+            match.setNetworkProtocol(packet.getProtocol());
+            match.setNetworkSource(packet.getSourceAddress());
+            match.setNetworkDestination(packet.getDestinationAddress());
+
+            if (packet.getProtocol() == ICMP.PROTOCOL_NUMBER) {
+                ICMP dgram = (ICMP) packet.getPayload();
+                match.setTransportSource((short) dgram.getType());
+                match.setTransportDestination((short) dgram.getCode());
+            } else if (packet.getProtocol() == TCP.PROTOCOL_NUMBER) {
+                TCP dgram = (TCP) packet.getPayload();
+                match.setTransportSource(dgram.getSourcePort());
+                match.setTransportDestination(dgram.getDestinationPort());
+            } else if (packet.getProtocol() == UDP.PROTOCOL_NUMBER) {
+                UDP dgram = (UDP) packet.getPayload();
+                match.setTransportSource(dgram.getSourcePort());
+                match.setTransportDestination(dgram.getDestinationPort());
+            }
+        }
+
+        return match;
+    }
+
+    protected void addFlowAndPacketOut(OFMatch match, long cookie, 
+                short idleTimeout, short hardTimeout, short priority,
+                int bufferId, boolean sendFlowRemoval, boolean checkOverlap,
+                boolean emergency, OFAction[] actions, short inPort,
+                byte[] data) {
+        List<OFAction> actionList = Arrays.asList(actions);
+        controllerStub.sendFlowModAdd(match, cookie, idleTimeout, hardTimeout,
+                                      priority, bufferId, sendFlowRemoval,
+                                      checkOverlap, emergency, actionList);
+        if (bufferId == 0xffffffff)
+            controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
     }
 }

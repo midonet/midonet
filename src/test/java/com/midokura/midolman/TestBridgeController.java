@@ -15,7 +15,14 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectLoop;
@@ -30,9 +37,11 @@ import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.MAC;
 
 
 public class TestBridgeController {
+    Logger log = LoggerFactory.getLogger(TestBridgeController.class);
 
     private BridgeController controller;
 
@@ -42,20 +51,23 @@ public class TestBridgeController {
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private InetAddress publicIp;
     int dp_id = 43;
+    MockControllerStub controllerStub;
+
+    public static final OFAction OUTPUT_ALL_ACTION = 
+                new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
+    public static final OFAction OUTPUT_FLOOD_ACTION = 
+                new OFActionOutput(OFPort.OFPP_FLOOD.getValue(), (short)0);
 
     // MACs:  8 normal addresses, and one multicast.
-    // TODO: Make this less ugly.
-    byte macList[][] = 
-      {{(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x00},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x01},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x02},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x03},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x04},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x05},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x06},
-       {(byte)0x00, (byte)0x22, (byte)0x33, (byte)0xEE, (byte)0xEE, (byte)0x07},
-       {(byte)0x01, (byte)0xEE, (byte)0xEE, (byte)0xEE, (byte)0xEE, (byte)0xEE}
-      };
+    MAC macList[] = { MAC.fromString("00:22:33:EE:EE:00"),
+                      MAC.fromString("00:22:33:EE:EE:01"),
+                      MAC.fromString("00:22:33:EE:EE:02"),
+                      MAC.fromString("00:22:33:EE:EE:03"),
+                      MAC.fromString("00:22:33:EE:EE:04"),
+                      MAC.fromString("00:22:33:EE:EE:05"),
+                      MAC.fromString("00:22:33:EE:EE:06"),
+                      MAC.fromString("00:22:33:EE:EE:07"),
+                      MAC.fromString("01:EE:EE:EE:EE:EE") };
 
     // Packets
     Ethernet packet01 = makePacket(macList[0], macList[1]);
@@ -100,7 +112,7 @@ public class TestBridgeController {
                              "192.168.1.55",
                              "192.168.1.55" };
 
-    static Ethernet makePacket(byte[] srcMac, byte[] dstMac) {
+    static Ethernet makePacket(MAC srcMac, MAC dstMac) {
         ICMP icmpPacket = new ICMP();
         icmpPacket.setEchoRequest((short)0, (short)0,
                                   "echoechoecho".getBytes());
@@ -111,16 +123,16 @@ public class TestBridgeController {
         ipPacket.setDestinationAddress(0x21212121);
         Ethernet packet = new Ethernet();
         packet.setPayload(ipPacket);
-        packet.setDestinationMACAddress(dstMac);
-        packet.setSourceMACAddress(srcMac);
+        packet.setDestinationMACAddress(dstMac.address);
+        packet.setSourceMACAddress(srcMac.address);
         packet.setEtherType(IPv4.ETHERTYPE);
         return packet;
     }
 
-    static MidoMatch makeFlowMatch(byte[] srcMac, byte[] dstMac) {
+    static MidoMatch makeFlowMatch(MAC srcMac, MAC dstMac) {
         MidoMatch match = new MidoMatch();
-        match.setDataLayerDestination(dstMac);
-        match.setDataLayerSource(srcMac);
+        match.setDataLayerDestination(dstMac.address);
+        match.setDataLayerSource(srcMac.address);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setInputPort((short)1);
         match.setNetworkDestination(0x21212121);
@@ -128,6 +140,12 @@ public class TestBridgeController {
         match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
         match.setTransportSource((short)ICMP.TYPE_ECHO_REQUEST);
         match.setTransportDestination((short)0);
+        match.setDataLayerVirtualLan((short)0);    
+        // Python sets dl_vlan=0xFFFF, but packets.Ethernet.vlanID is 0 
+        // for no VLAN in use.
+        // TODO:  Which is really proper, 0 or 0xFFFF ?
+        match.setDataLayerVirtualLanPriorityCodePoint((byte)0);
+        match.setNetworkTypeOfService((byte)0);
         return match;
     }
 
@@ -208,7 +226,7 @@ public class TestBridgeController {
         // ControllerTrampoline controllerManager = new ControllerTrampoline(
         //         hierarchicalConfiguration, ovsdb, zkDir, reactor);
 
-        MockControllerStub controllerStub = new MockControllerStub();
+        controllerStub = new MockControllerStub();
 
         UUID bridgeUUID = UUID.randomUUID();
 
@@ -231,27 +249,54 @@ public class TestBridgeController {
                 /* externalIdKey */             "midolman-vnet");
         controller.setControllerStub(controllerStub);
 
-        portLocMap.start();
-        macPortMap.start();
-
         // Insert ports 3..8 into portLocMap and macPortMap.
         for (int i = 3; i < 8; i++) {
             portLocMap.put(portUuids[i], 
                            Net.convertStringAddressToInt(peerStrList[i]));
             macPortMap.put(macList[i], portUuids[i]);
+            log.info("Adding map MAC {} -> port {} -> loc {}",
+                     new Object[] { macList[i], portUuids[i],
+                                    peerStrList[i] });
         }
+
+        portLocMap.start();
+        macPortMap.start();
 
         // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
             phyPorts[i].setPortNumber((short)i);
-            phyPorts[i].setHardwareAddress(macList[i]);
+            phyPorts[i].setHardwareAddress(macList[i].address);
             // First three ports are local.  The rest are tunneled.
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(
                                             Net.convertStringAddressToInt(
                                                     peerStrList[i])));
-            controller.addPort(phyPorts[i], (short)i);
+            controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
         }
+    }
+
+    void checkInstalledFlow(OFMatch expectedMatch, int idleTimeout,
+                            int hardTimeoutMin, int hardTimeoutMax,
+                            int priority, OFAction[] actions) {
+        assertEquals(1, controllerStub.addedFlows.size());
+        MockControllerStub.Flow flow = controllerStub.addedFlows.get(0);
+        assertEquals(expectedMatch, flow.match);
+        assertEquals(idleTimeout, flow.idleTimeoutSecs);
+        assertTrue(hardTimeoutMin <= flow.hardTimeoutSecs);  
+        assertTrue(hardTimeoutMax >= flow.hardTimeoutSecs);  
+        assertEquals(priority, flow.priority);
+        assertArrayEquals(actions, flow.actions.toArray());
+    }
+
+    void checkSentPacket(int bufferId, short inPort, OFAction[] actions,
+                         byte[] data) {
+        assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        assertEquals(bufferId, sentPacket.bufferId);
+        assertEquals(inPort, sentPacket.inPort);
+        assertArrayEquals(actions, sentPacket.actions.toArray());
+        assertArrayEquals(data, sentPacket.data);
     }
 
     @Test
@@ -259,10 +304,47 @@ public class TestBridgeController {
         MidoMatch expectedMatch = flowmatch01.clone();
         short inputPort = 0;
         expectedMatch.setInputPort(inputPort);
-        // TODO: Check actions.
-        // TODO: Clear out flowmod list.
+        OFAction expectedActions[] = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
-        // TODO: Check installed flow.
-        // TODO: Check sent packet.
+        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
+        checkSentPacket(14, (short)-1, expectedActions, new byte[] {});
     }
+
+    @Test
+    public void testMulticastLocalInPort() {
+        final Ethernet packet = packet0MC;
+        short inPortNum = 0;
+        MidoMatch expectedMatch = flowmatch0MC.clone();
+        expectedMatch.setInputPort(inPortNum);
+        OFAction[] expectActions = { OUTPUT_ALL_ACTION };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
+        checkSentPacket(14, (short)-1, expectActions, new byte[] {});
+    }
+
+    @Test
+    public void testMulticastTunnelInPort() {
+        final Ethernet packet = packet0MC;
+        short inPortNum = 5;
+        MidoMatch expectedMatch = flowmatch0MC.clone();
+        expectedMatch.setInputPort(inPortNum);
+        OFAction[] expectActions = { OUTPUT_FLOOD_ACTION };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
+        checkSentPacket(14, (short)-1, expectActions, new byte[] {});
+    }
+
+    @Test
+    public void testRemoteMACWithTunnel() {
+        final Ethernet packet = packet13;
+        short inPortNum = 1;
+        short outPortNum = 3;
+        MidoMatch expectMatch = flowmatch13.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+    }
+        
 }

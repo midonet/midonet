@@ -33,6 +33,7 @@ import org.openflow.protocol.action.OFActionTransportLayerSource;
 
 import scala.actors.threadpool.Arrays;
 
+import com.midokura.midolman.Setup;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.NetworkController.DecodedMacAddrs;
 import com.midokura.midolman.layer3.Route.NextHop;
@@ -46,6 +47,7 @@ import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -59,6 +61,8 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -80,11 +84,13 @@ public class TestNetworkController {
     private MockReactor reactor;
     private MockControllerStub controllerStub;
     private PortToIntNwAddrMap portLocMap;
+    private BgpZkManager bgpMgr;
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
     private MockOpenvSwitchDatabaseConnection ovsdb;
+    private MockPortService service;
     private long datapathId;
     private OFPhysicalPort uplinkPhyPort;
     private UUID uplinkId;
@@ -107,32 +113,25 @@ public class TestNetworkController {
         ZkPathManager pathMgr = new ZkPathManager(basePath);
         Directory dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
-        // Add the paths for rules and chains
-        dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
+        Setup.createZkDirectoryStructure(dir, basePath);
         portMgr = new PortZkManager(dir, basePath);
         routeMgr = new RouteZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
+        bgpMgr = new BgpZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
-        // Now build the Port to Location Map.
+        // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);
-        StringBuilder strBuilder = new StringBuilder(basePath);
-        strBuilder.append("/networks");
-        dir.add(strBuilder.toString(), null, CreateMode.PERSISTENT);
-        strBuilder.append('/').append(networkId.toString());
-        dir.add(strBuilder.toString(), null, CreateMode.PERSISTENT);
-        strBuilder.append("/portLocation");
-        dir.add(strBuilder.toString(), null, CreateMode.PERSISTENT);
-        Directory portLocSubdir = dir.getSubDirectory(strBuilder.toString());
+        Directory portLocSubdir = dir.getSubDirectory(pathMgr
+                .getVRNPortLocationsPath());
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
 
         // Now create the Open vSwitch database connection
         ovsdb = new MockOpenvSwitchDatabaseConnection();
+
+        // Now create the PortService
+        service = new MockPortService(bgpMgr);
 
         // Now we can create the NetworkController itself.
         InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); // 0xc0a80104;
@@ -140,7 +139,7 @@ public class TestNetworkController {
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, (long) (60 * 1000), localNwAddr,
                 portMgr, routerMgr, routeMgr, chainMgr, ruleMgr, ovsdb,
-                reactor, new MockCache(), "midonet");
+                reactor, new MockCache(), "midonet", service);
         networkCtrl.setControllerStub(controllerStub);
 
         /*
@@ -151,7 +150,6 @@ public class TestNetworkController {
          * router0 is the default next hop for router1 and router2 7) router0
          * has a single uplink to the global internet.
          */
-        Set<Route> routes = new HashSet<Route>();
         Route rt;
         PortDirectory.MaterializedRouterPortConfig portConfig;
         List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
@@ -187,11 +185,9 @@ public class TestNetworkController {
                 UUID portId = portMgr.create(portConfig);
                 portNumToIntId
                         .put((int) portNum, ShortUUID.UUID32toInt(portId));
-                routes.clear();
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 2,
                         null, rtrId);
                 routeMgr.create(rt);
-                routes.add(rt);
 
                 OFPhysicalPort phyPort = new OFPhysicalPort();
                 phyPorts.get(i).add(phyPort);
@@ -525,10 +521,14 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(999, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets were dropped or sent (the processed packet was buffered
-        // and therefore did not need to be sent manually.
+        // No packets dropped, and the buffered packet sent.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(999, sentPacket.bufferId);
+        Assert.assertEquals(-1, sentPacket.inPort);
+        // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
@@ -564,10 +564,14 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(37654, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets were dropped or sent (the processed packet was buffered
-        // and therefore did not need to be sent manually.
+        // No packets dropped, and the buffered packet sent.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(37654, sentPacket.bufferId);
+        Assert.assertEquals(-1, sentPacket.inPort);
+        // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
@@ -608,10 +612,16 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(22333, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets were dropped or sent (the processed packet was buffered
-        // and therefore did not need to be sent manually. A fow was installed.
+        // No packets dropped, and the buffered packet sent.  
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet sentPacket = 
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(22333, sentPacket.bufferId);
+        Assert.assertEquals(-1, sentPacket.inPort);
+        // TODO: Check sentPacket.actions
+
+        // A flow was installed.
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, phyPortIn.getPortNumber());
@@ -642,13 +652,15 @@ public class TestNetworkController {
         // installed and an ICMP !N packet sent to the source of the trigger
         // packet.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // Now check the Drop Flow.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 22111, true,
                 new ArrayList<OFAction>());
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        // ICMP !N sent not through a buffer.
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(-1, pkt.bufferId);
         Assert.assertEquals(1, pkt.actions.size());
         ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
@@ -738,10 +750,9 @@ public class TestNetworkController {
 
         // Make a normal UDP packet from a host on router2's second port
         // to a host on router0's second port. This can trigger ICMP.
-        short srcPort = 21;
         short dstPort = 1;
-        UUID dstPortId = ShortUUID
-                .intTo32BitUUID(portNumToIntId.get((int)dstPort));
+        UUID dstPortId = ShortUUID.intTo32BitUUID(portNumToIntId
+                .get((int) dstPort));
         int nwSrc = 0x0a020109;
         int nwDst = 0x0a00010d;
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -773,7 +784,7 @@ public class TestNetworkController {
         // the ethernet dst address to a multicast/broadcast.
         origIpPkt.setDestinationAddress(nwDst);
         Assert.assertTrue(networkCtrl.canSendICMP(eth, ShortUUID
-                .intTo32BitUUID(portNumToIntId.get((int)dstPort))));
+                .intTo32BitUUID(portNumToIntId.get((int) dstPort))));
         // Use any address that has an odd number if first byte.
         byte[] mcastMac = Ethernet.toMACAddress("07:cd:cd:ab:ab:34");
         eth.setDestinationMACAddress(mcastMac);
@@ -847,17 +858,14 @@ public class TestNetworkController {
                 .serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
-        // Now send an ARP reply. The flow should be installed as a result,
-        // and since the tunneled packet was buffered, it won't result in
-        // other packets in the sent/dropped packets queues. However,
-        // the ARP itself will be consumed, and since we're making it buffered,
-        // it will be in the dropped packets queue.
+        // Now send an ARP reply, which is consumed and added to the dropped
+        // packets queue. As a result the flow is installed and the original
+        // packet is sent from the switch.
         byte[] mac = Ethernet.toMACAddress("02:dd:dd:dd:dd:01");
         arpData = TestRouter.makeArpReply(mac, phyPortOut.getHardwareAddress(),
                 0x0a020011, 0x0a020001).serialize();
         networkCtrl.onPacketIn(8765, arpData.length,
                 phyPortOut.getPortNumber(), arpData);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertTrue(8765 == controllerStub.droppedPktBufIds.get(0));
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -875,22 +883,30 @@ public class TestNetworkController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 32331, true, actions);
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(32331, pkt.bufferId);
 
-        // Now if another packet comes in from the tunnel for the same
-        // destination port and ip address, it will immediately result in a
-        // flow being installed since the ARP is in the cache.
+        // Now, since the ARP is in the cache, if another packet comes in from
+        // the tunnel for the same destination port and ip address it
+        // immediately results in a newly installed flow and the packet is
+        // sent from the switch.
         reactor.incrementTime(10, TimeUnit.MINUTES);
         eth = TestRouter.makeUDP(dlSrc, dlDst, 0x0a0201ee, 0x0a020011,
                 (short) 103, (short) 2122, payload);
         data = eth.serialize();
         networkCtrl.onPacketIn(4444, data.length, inPortNum, data);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         match = new MidoMatch();
         match.loadFromPacket(data, inPortNum);
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 4444, true, actions);
+        Assert.assertEquals(3, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(2);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(4444, pkt.bufferId);
     }
 
     public static void checkICMP(char type, char code, IPv4 triggerIPPkt,
@@ -1148,7 +1164,6 @@ public class TestNetworkController {
             InterruptedException, ZkStateSerializationException {
         // Add an uplink to router0.
         uplinkId = ShortUUID.intTo32BitUUID(26473345);
-        Set<Route> routes = new HashSet<Route>();
         int p2pUplinkNwAddr = 0xc0a80004;
         uplinkGatewayAddr = p2pUplinkNwAddr + 1;
         uplinkPortAddr = p2pUplinkNwAddr + 2;
@@ -1238,15 +1253,13 @@ public class TestNetworkController {
                 .serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
-        // Now send an ARP reply. The flow should be installed as a result,
-        // and since the original packet and the ARP reply are both unbuffered,
-        // there should be no additional packets in the sent/dropped queues.
+        // Now send an ARP reply. A flow is installed and a packet is
+        // emitted from the switch.
         byte[] mac = Ethernet.toMACAddress("02:dd:33:33:dd:01");
         arpData = TestRouter.makeArpReply(mac, phyPortOut.getHardwareAddress(),
                 natPrivateNwAddr, 0x0a010001).serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 phyPortOut.getPortNumber(), arpData);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
@@ -1270,6 +1283,10 @@ public class TestNetworkController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 12121, true, actions);
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(12121, pkt.bufferId);
 
         // Now create a reply packet from the natted private addr/port.
         eth = TestRouter.makeUDP(mac, phyPortOut.getHardwareAddress(),
@@ -1280,11 +1297,10 @@ public class TestNetworkController {
                 data);
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        Assert.assertEquals(3, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(1, pkt.actions.size());
+        pkt = controllerStub.sentPackets.get(2);
         ofAction = new OFActionOutput(uplinkPhyPort.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
@@ -1292,16 +1308,14 @@ public class TestNetworkController {
                 uplinkPortAddr, uplinkGatewayAddr).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
-        // Now send an ARP reply. The flow should be installed as a result,
-        // and since the original packet and the ARP reply are both unbuffered,
-        // there should be no additional packets in the sent/dropped queues.
+        // Now send an ARP reply. A flow is installed and a packet is
+        // emitted from the switch.
         byte[] uplinkGatewayMac = Ethernet.toMACAddress("02:dd:55:66:dd:01");
         arpData = TestRouter.makeArpReply(uplinkGatewayMac,
                 uplinkPhyPort.getHardwareAddress(), uplinkGatewayAddr,
                 uplinkPortAddr).serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 uplinkPhyPort.getPortNumber(), arpData);
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         match = new MidoMatch();
@@ -1327,6 +1341,10 @@ public class TestNetworkController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 13131, true, actions);
+        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(3);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(13131, pkt.bufferId);
     }
 
     @Test
@@ -1432,15 +1450,13 @@ public class TestNetworkController {
                 uplinkGatewayAddr).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
-        // Now send an ARP reply. The flow should be installed as a result,
-        // and since the original packet and the ARP reply are both unbuffered,
-        // there should be no additional packets in the sent/dropped queues.
+        // Now send an ARP reply. A flow is installed and a packet is
+        // emitted from the switch.
         arpData = TestRouter.makeArpReply(uplinkGatewayMac,
                 uplinkPhyPort.getHardwareAddress(), uplinkGatewayAddr,
                 uplinkPortAddr).serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 uplinkPhyPort.getPortNumber(), arpData);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         match = new MidoMatch();
@@ -1471,6 +1487,10 @@ public class TestNetworkController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(flow, match, NetworkController.IDLE_TIMEOUT_SECS,
                 13131, true, actions);
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(13131, pkt.bufferId);
 
         // Now create a reply packet from the external addr/port.
         eth = TestRouter.makeUDP(uplinkGatewayMac, uplinkPhyPort
@@ -1481,10 +1501,10 @@ public class TestNetworkController {
                 .getPortNumber(), data);
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        Assert.assertEquals(3, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
-        pkt = controllerStub.sentPackets.get(1);
+        pkt = controllerStub.sentPackets.get(2);
         Assert.assertEquals(1, pkt.actions.size());
         ofAction = new OFActionOutput(phyPortRtr2.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
@@ -1493,15 +1513,13 @@ public class TestNetworkController {
                 0x0a020001, localNwAddr).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
-        // Now send an ARP reply. The flow should be installed as a result,
-        // and since the original packet and the ARP reply are both unbuffered,
-        // there should be no additional packets in the sent/dropped queues.
+        // Now send an ARP reply. A flow is installed and a packet is
+        // emitted from the switch.
         arpData = TestRouter.makeArpReply(localMac,
                 phyPortRtr2.getHardwareAddress(), localNwAddr, 0x0a020001)
                 .serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 phyPortRtr2.getPortNumber(), arpData);
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(3, controllerStub.addedFlows.size());
         match = new MidoMatch();
@@ -1524,6 +1542,149 @@ public class TestNetworkController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(2), match,
                 NetworkController.IDLE_TIMEOUT_SECS, 14141, true, actions);
+        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(3);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(14141, pkt.bufferId);
     }
 
+    @Test
+    public void testBgpDataPath() throws IOException, KeeperException,
+        InterruptedException, ZkStateSerializationException {
+        // No flows should be installed at the beginning.
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+
+        // Create BGP config to the local port0 on router0.
+        int routerId = 0;
+        int remotePortNum = 0;
+        UUID portId = ShortUUID.intTo32BitUUID(portNumToIntId.get(
+                                                   remotePortNum));
+        String remoteAddrString = "192.168.10.1";
+        bgpMgr.create(new BgpConfig(portId, 65104,
+                                    InetAddress.getByName(remoteAddrString),
+                                    12345));
+
+        //Add the port to the datapath to invoke adding a service port for BGP.
+        OFPhysicalPort remotePort = phyPorts.get(routerId).get(remotePortNum);
+        networkCtrl.onPortStatus(remotePort,
+                                 OFPortStatus.OFPortReason.OFPPR_DELETE);
+        networkCtrl.onPortStatus(remotePort,
+                                 OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        // Add the BGP service port.
+        OFPhysicalPort servicePort = new OFPhysicalPort();
+        // Offset local port number to avoid conflicts.
+        short localPortNum = MockPortService.BGP_TCP_PORT;
+        servicePort.setPortNumber(localPortNum);
+        servicePort.setHardwareAddress(new byte[] {
+                (byte) 0x02, (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
+                (byte) localPortNum });
+        networkCtrl.onPortStatus(servicePort,
+                                 OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        // 8 flows (BGPx4, ICMPx2, ARPx2) are installed.
+        Assert.assertEquals(8, controllerStub.addedFlows.size());
+
+        int localAddr = PortDirectory.MaterializedRouterPortConfig.class.cast(
+            portMgr.get(portId).value).portAddr;
+        int remoteAddr = Net.convertStringAddressToInt(remoteAddrString);
+	MidoMatch match;
+        List<OFAction> actions;
+
+        // Check BGP flows from local to remote with remote TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        match.setNetworkDestination(remoteAddr);
+        match.setTransportDestination(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check BGP flows from local to remote with local TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        match.setNetworkDestination(remoteAddr);
+        match.setTransportSource(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        //Check BGP flows from remote to local with local TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(remoteAddr);
+        match.setNetworkDestination(localAddr);
+        match.setTransportDestination(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(2), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check BGP flows from remote to local with remote TCP port specified.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        match.setNetworkSource(remoteAddr);
+        match.setNetworkDestination(localAddr);
+        match.setTransportSource(MockPortService.BGP_TCP_PORT);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(localPortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(3), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ARP request to the peer.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(ARP.ETHERTYPE);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(4), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ARP request from the peer.
+        // One flow goes to the local, and the other goes to the controller.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(ARP.ETHERTYPE);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) localPortNum, (short) 0));
+        actions.add(new OFActionOutput(ControllerStub.CONTROLLER_PORT,
+                                       //actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
+                                       (short) 128));
+        checkInstalledFlow(controllerStub.addedFlows.get(5), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ICMP flows from local with local address specified.
+        match = new MidoMatch();
+        match.setInputPort(localPortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setNetworkSource(localAddr);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(6), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+
+        // Check ICMP flows to local with local address specified.
+        match = new MidoMatch();
+        match.setInputPort((short) remotePortNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+        match.setNetworkDestination(localAddr);
+        actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) localPortNum, (short) 0));
+        checkInstalledFlow(controllerStub.addedFlows.get(7), match, (short) 0,
+                           ControllerStub.UNBUFFERED_ID, false, actions);
+    }
 }

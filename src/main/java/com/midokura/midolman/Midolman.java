@@ -40,7 +40,7 @@ public class Midolman implements SelectListener, Watcher {
     private HierarchicalConfiguration config;
     
     private int disconnected_ttl_seconds;
-    private ScheduledFuture disconnected_kill_timer = null;
+    private ScheduledFuture<?> disconnected_kill_timer = null;
     
     private ScheduledExecutorService executor;
     private OpenvSwitchDatabaseConnection ovsdb;
@@ -121,10 +121,6 @@ public class Midolman implements SelectListener, Watcher {
 
             sock.socket().setTcpNoDelay(true);
             sock.configureBlocking(false);
-
-            Directory midoDir = zkConnection.getRootDirectory().getSubDirectory(
-                    config.configurationAt("midolman")
-                          .getString("midolman_root_key"));
 
             ControllerTrampoline trampoline =
                 new ControllerTrampoline(config, ovsdb, midonetDirectory, loop);
