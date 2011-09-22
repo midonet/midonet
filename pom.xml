@@ -55,6 +55,11 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                  <artifactId>tomcat-maven-plugin</artifactId>
+		<configuration>
+		<systemProperties>
+		    <log4j.configuration>file:${basedir}/conf/log4j.xml</log4j.configuration>
+		</systemProperties>
+		</configuration>
             </plugin>
         </plugins>
     </build>
