@@ -1,8 +1,8 @@
-Package: midolmanj
-Version: @version@
+Package: [[name]]
+Version: [[version]]
 Section: misc
 Priority: optional
-Architecture: all
+Architecture: amd64
 Depends: sun-java6-jre
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
 Description: Midolman is a virtual network controller
