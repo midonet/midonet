@@ -47,7 +47,7 @@ object VtyConnection {
  * Interfaces for VtyConnection.
  */
 abstract class VtyConnection(val addr: String, val port: Int,
-                             val password: String, val portUUID: UUID) {
+                             val password: String) {
     import VtyConnection._
 
     var socket: Socket = _
@@ -147,17 +147,6 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 }
 
-class PeerNetwork(val nwPrefix: String, val nextHop: String, val weight: Int,
-                  val path: String) {
-    override def toString(): String = {
-        val string = new ListBuffer[String]
-        string += this.nwPrefix
-        string += this.nextHop
-        string += this.weight.toString
-        string += this.path
-        return string.mkString(",")
-    }
-}
 
 /**
  * Static methods and constants for BgpVtyConnection.
@@ -182,6 +171,7 @@ object BgpVtyConnection {
  * Interfaces for BgpConfig.
  */
 trait BgpConnection {
+    def create(localAddr: InetAddress, bgpUUID: UUID, bgp: BgpConfig)
     def getAs(): Int
     def setAs(as: Int)
     def deleteAs(as: Int)
@@ -193,61 +183,71 @@ trait BgpConnection {
 }
 
 class BgpVtyConnection(addr: String, port: Int, password: String,
-                       portUUID: UUID, val localAddr: InetAddress,
-                       val localNwLength: Int, val bgpZk: BgpZkManager,
+                       val bgpZk: BgpZkManager,
                        val adRouteZk: AdRouteZkManager)
-extends VtyConnection(addr, port, password, portUUID) with BgpConnection {
+extends VtyConnection(addr, port, password) with BgpConnection {
     import BgpVtyConnection._
 
     private class AdRouteWatcher(val localAS: Int, val adRouteUUID: UUID, 
                                  val oldConfig: AdRouteConfig,
                                  val adRouteZk: AdRouteZkManager)
             extends Runnable {
-        override def run() = {
-            // Whether this event is update or delete, we have to delete the
-            // old config first.
-            deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
-                          oldConfig.prefixLength)
-            try {
-                val newNode = adRouteZk.get(adRouteUUID, this)
-                if (newNode != null) {
-                    val adRoute = newNode.value
-                    setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
-                               adRoute.prefixLength)
+                override def run() = {
+                    // Whether this event is update or delete, we have to
+                    // delete the old config first.
+                    deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
+                                  oldConfig.prefixLength)
+                    try {
+                        val newNode = adRouteZk.get(adRouteUUID, this)
+                        if (newNode != null) {
+                            val adRoute = newNode.value
+                            setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
+                                       adRoute.prefixLength)
+                        }
+                    } catch {
+                        case e: NoNodeException =>
+                            { log.warn("AdRouteWatcher: node already deleted") }
+                    }
                 }
-            } catch {
-                case e: NoNodeException =>
-                    { log.warn("AdRouteWatcher: node already deleted") }
             }
-        }
-    }
 
     private class BgpWatcher(val localAddr: InetAddress, var bgpUUID: UUID,
                              var oldConfig: BgpConfig, val adRoutes: Set[UUID],
                              val bgpZk: BgpZkManager,
                              val adRouteZk: AdRouteZkManager)
             extends Runnable {
-        override def run() = {
-            // Compare the length of adRoutes and only handle adRoute events
-            // when routes are added.
-            try {
-                if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
-                    val newNode = bgpZk.get(bgpUUID, this)
-                    if (newNode != null) {
-                        val bgpUUID = newNode.key
-                        val bgp = newNode.value
-                        this.bgpUUID = newNode.key
-                        this.oldConfig = bgp
-                        adRoutes.clear
-                        create(bgpUUID, bgp, adRoutes, adRouteZk, this)
+                override def run() = {
+                    // Compare the length of adRoutes and only handle
+                    // adRoute events when routes are added.
+                    try {
+                        if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
+                            val newNode = bgpZk.get(bgpUUID, this)
+                            if (newNode != null) {
+                                val bgpUUID = newNode.key
+                                val bgp = newNode.value
+                                this.bgpUUID = newNode.key
+                                this.oldConfig = bgp
+                                create(localAddr, bgpUUID, bgp)
+                            }
+                        }
+                    } catch {
+                        case e: NoNodeException => {
+                            log.warn("BgpWatcher: node already deleted")
+                            deleteAs(oldConfig.localAS)
+                        }
                     }
                 }
-            } catch {
-                case e: NoNodeException => {
-                    log.warn("BgpWatcher: node already deleted")
-                    deleteAs(oldConfig.localAS)
-                }
             }
+
+    private class PeerNetwork(val nwPrefix: String, val nextHop: String,
+                              val weight: Int, val path: String) {
+        override def toString(): String = {
+            val string = new ListBuffer[String]
+            string += this.nwPrefix
+            string += this.nextHop
+            string += this.weight.toString
+            string += this.path
+            return string.mkString(",")
         }
     }
 
@@ -392,11 +392,15 @@ extends VtyConnection(addr, port, password, portUUID) with BgpConnection {
         }
     }
 
-    def create(bgpUUID: UUID, bgp: BgpConfig, adRoutes: Set[UUID],
-               adRouteZk: AdRouteZkManager, bgpWatcher: Runnable) {
+    override def create(localAddr: InetAddress, bgpUUID: UUID,
+                        bgp: BgpConfig) = {
         setAs(bgp.localAS)
         setLocalNw(bgp.localAS, localAddr)
         setPeer(bgp.localAS, bgp.peerAddr, bgp.peerAS)
+
+        val adRoutes = Set[UUID]()
+        val bgpWatcher = new BgpWatcher(localAddr, bgpUUID, bgp, adRoutes,
+                                        bgpZk, adRouteZk)
 
         for (adRouteNode <- adRouteZk.list(bgpUUID, bgpWatcher)) {
             val adRouteUUID = adRouteNode.key
@@ -408,24 +412,6 @@ extends VtyConnection(addr, port, password, portUUID) with BgpConnection {
             adRouteZk.get(adRouteUUID,
                           new AdRouteWatcher(bgp.localAS, adRouteUUID, adRoute,
                                              adRouteZk))
-        }
-    }
-
-    def start() = {
-        try {
-            for (bgpNode <- bgpZk.list(portUUID)) {
-                val bgpUUID = bgpNode.key
-                val bgp = bgpNode.value
-                val adRoutes = Set[UUID]()
-                val bgpWatcher = new BgpWatcher(localAddr, bgpUUID, bgp,
-                                                adRoutes, bgpZk, adRouteZk)
-                create(bgpUUID, bgp, adRoutes, adRouteZk, bgpWatcher)
-                // register bgp
-                //bgpZk.get(bgpUUID, bgpWatcher)
-            }
-        } catch {
-            case e: NoNodeException =>
-                { log.warn("no such node") }
         }
     }
 }
