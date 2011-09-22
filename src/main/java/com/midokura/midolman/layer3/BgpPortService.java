@@ -3,7 +3,7 @@ package com.midokura.midolman.layer3;
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
-import com.midokura.midolman.quagga.BgpVtyConnection;
+import com.midokura.midolman.quagga.BgpConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
@@ -48,7 +48,7 @@ public class BgpPortService implements PortService {
     protected AdRouteZkManager adRouteMgr;
 
     protected ZebraServer zebra;
-    protected BgpVtyConnection bgpd;
+    protected BgpConnection bgpd;
     protected Runtime runtime;
 
     private int bgpPortIdx = 0;
@@ -58,6 +58,7 @@ public class BgpPortService implements PortService {
                           String portIdExtIdKey, String portServiceExtIdKey,
                           PortZkManager portMgr, RouteZkManager routeMgr,
                           BgpZkManager bgpMgr, AdRouteZkManager adRouteMgr,
+                          ZebraServer zebra, BgpConnection bgpd,
                           Runtime runtime) {
         this.ovsdb = ovsdb;
         // "midolman_port_id"
@@ -68,6 +69,8 @@ public class BgpPortService implements PortService {
         this.routeMgr = routeMgr;
         this.bgpMgr = bgpMgr;
         this.adRouteMgr = adRouteMgr;
+        this.zebra = zebra;
+        this.bgpd = bgpd;
         this.runtime = runtime;
     }
 
