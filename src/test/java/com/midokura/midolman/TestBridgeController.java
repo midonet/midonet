@@ -398,6 +398,7 @@ public class TestBridgeController {
         }
 
         assertEquals(oldDelCount, controllerStub.deletedFlows.size());
+        log.info("Removing port {}", portUuids[3]);
         portLocMap.remove(portUuids[3]);
         if (true) return; //XXX
         assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());

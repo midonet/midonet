@@ -265,7 +265,7 @@ public abstract class AbstractController implements Controller {
          *          was deleted.
          */
 
-        log.debug("PortLocationUpdate: {} moved from {} to {}",
+        log.info("PortLocationUpdate: {} moved from {} to {}",
             new Object[] { 
                 portUuid, 
                 oldAddr == null ? "null" 
@@ -290,7 +290,7 @@ public abstract class AbstractController implements Controller {
 
             // Tear down the GRE tunnel.
             String grePortName = makeGREPortName(oldAddr);
-            log.debug("Tearing down tunnel " + grePortName);
+            log.info("Tearing down tunnel " + grePortName);
             ovsdb.delPort(grePortName);
         }
     }

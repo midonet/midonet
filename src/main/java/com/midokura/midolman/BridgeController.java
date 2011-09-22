@@ -70,9 +70,12 @@ public class BridgeController extends AbstractController {
 
             /* If the new port is local, the flow updates have already been
              * applied, and we return immediately. */
-            if (port_is_local(new_uuid))
+            if (port_is_local(new_uuid)) {
+                log.info("BridgeControllerWatcher.processChange: port {} is " +
+                         "local, returning without taking action", new_uuid);
                 return;
-            log.debug("BridgeControllerWatcher.processChange: mac {} changed "
+            }
+            log.info("BridgeControllerWatcher.processChange: mac {} changed "
                       + "from port {} to port {}", new Object[] {
                       key, old_uuid, new_uuid});
 
@@ -302,10 +305,10 @@ public class BridgeController extends AbstractController {
             invalidateFlowsToPeer(peerIP);
         if (inPortUuid == null)
             return;
-        log.debug("Removing all MAC-port mappings to port {}", inPortUuid);
+        log.info("Removing all MAC-port mappings to port {}", inPortUuid);
         List<MAC> macList = macPortMap.getByValue(inPortUuid);
         for (MAC mac : macList) {
-            log.debug("Removing mapping from MAC {} to port {}", mac,
+            log.info("Removing mapping from MAC {} to port {}", mac,
                       inPortUuid);
             flowCount.remove(new MacPort(mac, inPortUuid));
             invalidateFlowsFromMac(mac);
@@ -336,7 +339,7 @@ public class BridgeController extends AbstractController {
     private void invalidateFlowsToPeer(Integer peer_ip) {
         List<UUID> remotePorts = port_locs.getByValue(peer_ip);
         for (UUID port : remotePorts) {
-            log.debug("Invalidating flows for port {}", port);
+            log.info("Invalidating flows for port {}", port);
             invalidateFlowsToPortUuid(port);
         }
     }
