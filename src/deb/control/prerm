@@ -2,4 +2,4 @@
 
 # Midokura
 
-/etc/init.d/midolman stop 2>/dev/null >/dev/null
+/etc/init.d/midolmanj stop 2>/dev/null >/dev/null
