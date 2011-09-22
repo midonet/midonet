@@ -144,8 +144,8 @@ public abstract class AbstractController implements Controller {
             // TODO: Error out if already tunneled to this peer.
             tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
             peerIpToTunnelPortNum.put(peerIp, new Integer(portNum));
-            log.info("Recording tunnel {} <=> {}", portNum,
-                     Net.convertIntAddressToString(peerIp.intValue()));
+            log.debug("Recording tunnel {} <=> {}", portNum,
+                      Net.convertIntAddressToString(peerIp.intValue()));
         }
 
         addPort(portDesc, portNum);

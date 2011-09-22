@@ -99,7 +99,7 @@ public abstract class ReplicatedMap<K, V> {
 
     private Directory dir;
     private boolean running;
-    private Map<K, MapValue> map;
+    protected Map<K, MapValue> map;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
 
@@ -183,7 +183,7 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
-    private class MapValue {
+    protected class MapValue {
         V value;
         int version;
         boolean owner;

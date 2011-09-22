@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.util.concurrent.Future;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import org.openflow.protocol.action.OFAction;
@@ -294,7 +295,32 @@ public class BridgeController extends AbstractController {
     }
 
     protected void deletePort(OFPhysicalPort portDesc) {
-        // FIXME
+        short inPortNum = portDesc.getPortNumber();
+        UUID inPortUuid = portNumToUuid.get(inPortNum);
+        Integer peerIP = peerOfTunnelPortNum(inPortNum);
+        if (peerIP != null)
+            invalidateFlowsToPeer(peerIP);
+        if (inPortUuid == null)
+            return;
+        log.debug("Removing all MAC-port mappings to port {}", inPortUuid);
+        List<MAC> macList = macPortMap.getByUuid(inPortUuid);
+        for (MAC mac : macList) {
+            log.debug("Removing mapping from MAC {} to port {}", mac,
+                      inPortUuid);
+            flowCount.remove(new MacPort(mac, inPortUuid));
+            invalidateFlowsFromMac(mac);
+            invalidateFlowsToMac(mac);
+            try {
+                macPortMap.remove(mac);
+            } catch (KeeperException e) {
+                log.error("Caught ZooKeeper excetpion {}", e);
+                // TODO: What should we do?
+            } catch (InterruptedException e) {
+                log.error("ZooKeeper operation interrupted: {}", e);
+                // TODO: Is ignoring this OK, because we'll resynch with ZK 
+                // at the next ZK operation?
+            }
+        } 
     }
 
     protected void modifyPort(OFPhysicalPort portDesc) {
