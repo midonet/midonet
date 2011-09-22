@@ -21,7 +21,7 @@ public abstract class ReplicatedSet<T> {
             }
             Set<String> oldStrings = strings;
             try {
-                strings = new HashSet<String>(dir.getChildren("/", this));
+                strings = new HashSet<String>(dir.getChildren("", this));
             } catch (KeeperException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
