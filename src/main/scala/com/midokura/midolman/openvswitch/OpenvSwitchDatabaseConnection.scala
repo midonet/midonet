@@ -29,6 +29,7 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
 
 import OpenvSwitchDatabaseConsts._
+import com.midokura.midolman.openvswitch.OpenvSwitchException._
 
 /**
  * Static methods and constants for OpenvSwitchDatabaseConnection.
@@ -235,13 +236,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             }
             val responseId: Long = response.get("id").getValueAsLong
             if (responseId != requestId)
-                throw new RuntimeException(
+                throw new OVSDBException(
                     "wrong id in JSON-RPC result: %s".format(responseId))
             val errorValue = response.get("error")
             if (!errorValue.isNull) {
                 log.warn("doJsonRpc: error from server: ", errorValue)
-                throw new RuntimeException(
-                    "OVSDB request error: " + errorValue.toString)
+                throw new OVSDBException(
+                    "OVSDB request error: " + errorValue.toString,
+                    response.get("details").getTextValue)
             }
             // Error may appears in the result field of the response.
             if (response.has("result")) {
@@ -256,8 +258,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                         result.get("details").getTextValue if details != null
                 } {
                     log.warn("doJsonRpc: %s : %s".format(error, details))
-                    throw new RuntimeException(
-                        "OVSDB response error: %s : %s".format(error, details))
+                    throw new OVSDBException(
+                        "OVSDB response error: %s".format(error), details)
                 }
             }
             return response.get("result")
@@ -285,7 +287,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                 // Pass the JSON object to the caller, and
                                 // notify it.
                                 case Some(queue) => queue.add(json)
-                                case None => throw new RuntimeException(
+                                case None => throw new OVSDBException(
                                     "Invalid requestId %d".format(requestId))
                             }
                         }
@@ -543,7 +545,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List(ColumnUUID))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with id " + bridgeId)
+            throw new NotFoundException("no bridge with id " + bridgeId)
         for {
             bridgeRow <- bridgeRows
             _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
@@ -564,7 +566,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List(ColumnUUID))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with name " + bridgeName)
+            throw new NotFoundException("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
             _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
@@ -856,7 +858,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                  List(ColumnUUID, ColumnQueues, 
                                       ColumnOtherConfig, ColumnExternalIds))
             if (qosRows.isEmpty)
-                throw new RuntimeException("no QoS with uuid " + qosUUID)
+                throw new NotFoundException("no QoS with uuid " + qosUUID)
             for (qosRow <- qosRows) {
                 var updatedQosRow: Map[String, Any] =
                     objectNodeToMap(qosRow.asInstanceOf[ObjectNode])
@@ -1132,7 +1134,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID, ColumnInterfaces))
         if (portRows.isEmpty)
-            throw new Exception("no port with name " + portName)
+            throw new NotFoundException("no port with name " + portName)
         for {
             portRow <- portRows
             _uuid = portRow.get(ColumnUUID) if _uuid != null
@@ -1477,7 +1479,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List(ColumnUUID, ColumnPorts))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with id " + bridgeId)
+            throw new NotFoundException("no bridge with id " + bridgeId)
         delBridge(bridgeRows.getElements, bridgeId.toString)
     }
 
@@ -1490,7 +1492,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List(ColumnUUID, ColumnPorts))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with name " + bridgeName)
+            throw new NotFoundException("no bridge with name " + bridgeName)
         delBridge(bridgeRows.getElements, bridgeName)
     }
 
@@ -1504,7 +1506,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List(ColumnDatapathId, ColumnPorts))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with name " + bridgeName)
+            throw new NotFoundException("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
             datapathId = bridgeRow.get(ColumnDatapathId) if datapathId != null
@@ -1527,7 +1529,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List(ColumnExternalIds))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with id " + bridgeId)
+            throw new NotFoundException("no bridge with id " + bridgeId)
         for {
             bridgeRow <- bridgeRows
             ovsMap = bridgeRow.get(ColumnExternalIds) if ovsMap != null
@@ -1553,7 +1555,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List(ColumnExternalIds))
         if (bridgeRows.isEmpty)
-            throw new Exception("no bridge with name " + bridgeName)
+            throw new NotFoundException("no bridge with name " + bridgeName)
         for {
             bridgeRow <- bridgeRows
             ovsMap = bridgeRow.get(ColumnExternalIds) if ovsMap != null
@@ -1638,7 +1640,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID, ColumnExternalIds))
         if (portRows.isEmpty)
-            throw new Exception("no port with name " + portName)
+            throw new NotFoundException("no port with name " + portName)
         for {
             portRow <- portRows
             ovsMap = portRow.get(ColumnExternalIds) if ovsMap != null
@@ -1772,7 +1774,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
                              List(ColumnUUID, ColumnQueues))
         if (qosRows.getElements.isEmpty)
-          throw new RuntimeException("no QoS with uuid " + qosUUID)
+          throw new NotFoundException("no QoS with uuid " + qosUUID)
         tx.delete(TableQos, Some(qosUUID))
         tx.addComment("deleted QoS with uuid " + qosUUID)
         for (qosRow <- qosRows) {
@@ -1809,11 +1811,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID))
         if (portRows.getElements.isEmpty)
-            throw new RuntimeException("no port with the name " + portName)
+            throw new NotFoundException("no port with the name " + portName)
         val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
                              List(ColumnUUID))
         if (qosRows.getElements.isEmpty)
-            throw new RuntimeException("no QoS with the uuid " + qosUUID)
+            throw new NotFoundException("no QoS with the uuid " + qosUUID)
         for (portRow <- portRows) {
             val portUUID = portRow.get(ColumnUUID).get(1).getTextValue
             val qosUUID = qosRows.get(0).get(ColumnUUID)
@@ -1844,7 +1846,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID, ColumnQos))
         if (portRows.getElements.isEmpty)
-            throw new RuntimeException("no port with name " + portName)
+            throw new NotFoundException("no port with name " + portName)
         for (portRow <- portRows) {
             val portUUID = portRow.get(ColumnUUID).get(1).getTextValue
             if (deleteQos) {
@@ -1922,7 +1924,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
                                List(ColumnUUID))
         if (queueRows.getElements.isEmpty)
-            throw new RuntimeException("no Queue with uuid " + queueUUID)
+            throw new NotFoundException("no Queue with uuid " + queueUUID)
         tx.delete(TableQueue, Some(queueUUID))
         tx.addComment("deleted queue with uuid " + queueUUID)
         tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
@@ -2021,11 +2023,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
                     List(ColumnUUID, ColumnOtherConfig, ColumnExternalIds))
                 if (queueRows.isEmpty)
-                    throw new Exception("no queue with UUID " + queueUUID)
+                    throw new NotFoundException("no queue with UUID " + queueUUID)
                 return Some(queueRows.get(0))
             } catch {
                 case e: Exception => {
-                    throw new Exception(
+                    throw new NotFoundException(
                         "no queues with queue number " + queueNum.toString)
                 }
             }
