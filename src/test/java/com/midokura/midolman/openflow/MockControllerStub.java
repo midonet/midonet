@@ -53,7 +53,9 @@ public class MockControllerStub implements ControllerStub {
         }
     }
 
+    // Accumulated calls to sendFlowModAdd()
     public List<Flow> addedFlows = new ArrayList<Flow>();
+    // Accumulated calls to sendFlowModDelete()
     public List<Flow> deletedFlows = new ArrayList<Flow>();
     public List<Packet> sentPackets = new ArrayList<Packet>();
     public List<Integer> droppedPktBufIds = new ArrayList<Integer>(); 
