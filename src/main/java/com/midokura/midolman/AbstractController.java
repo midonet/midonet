@@ -217,8 +217,7 @@ public abstract class AbstractController implements Controller {
         Integer intAddress = portLocMap.get(port_uuid);
         if (intAddress == null)
             return null;
-        InetAddress peerIp = Net.convertIntToInetAddress(intAddress);
-        return peerIpToTunnelPortNum.get(peerIp);
+        return peerIpToTunnelPortNum.get(intAddress);
     }
 
     protected Integer peerOfTunnelPortNum(int portNum) {
