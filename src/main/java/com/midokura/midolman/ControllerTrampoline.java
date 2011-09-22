@@ -4,12 +4,15 @@
 
 package com.midokura.midolman;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
+import org.newsclub.net.unix.AFUNIXServerSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -25,6 +28,8 @@ import com.midokura.midolman.layer3.PortService;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.quagga.BgpVtyConnection;
+import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.BridgeZkManager;
@@ -126,9 +131,18 @@ public class ControllerTrampoline implements Controller {
                 AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory,
                                                                    "");
 
+                File socketFile = new File("/var/run/quagga/zserv.api");
+                AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
+                AFUNIXSocketAddress address =
+                    new AFUNIXSocketAddress(socketFile);
+                socketFile.delete();
+                ZebraServer zebra = new ZebraServer(server, address, portMgr,
+                                                    routeMgr, ovsdb);
                 PortService service = new BgpPortService(
                     ovsdb, "midolman_port_id", "midolman_port_service",
-                    portMgr, routeMgr, bgpMgr, adRouteMgr,
+                    portMgr, routeMgr, bgpMgr, adRouteMgr, zebra,
+                    new BgpVtyConnection("localhost", 2605, "zebra",
+                                         bgpMgr, adRouteMgr),
                     Runtime.getRuntime());
 
                 newController = new NetworkController(
