@@ -46,7 +46,7 @@ public class Setup implements Watcher {
 
     static final Logger log = LoggerFactory.getLogger(Setup.class);
     private static final String ZK_CREATE = "zk_create";
-    private static final String ZK_DESTROY = "zk_destory";
+    private static final String ZK_DESTROY = "zk_destroy";
     private static final String ZK_SETUP = "zk_setup";
     private static final String ZK_TEARDOWN = "zk_teardown";
     private static final String OVS_SETUP = "zk_setup";
@@ -129,9 +129,10 @@ public class Setup implements Watcher {
             InterruptedException {
         Set<String> children = rootDir.getChildren(path, null);
         for (String child : children) {
-            destroyZkDirectoryContents(path + "/" + child);
+            String childPath = path + "/" + child;
+            destroyZkDirectoryContents(childPath);
+            rootDir.delete(childPath);
         }
-        rootDir.delete(path);
     }
 
     private void zkSetup() throws Exception {
