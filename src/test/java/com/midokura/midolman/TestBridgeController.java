@@ -12,6 +12,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -52,6 +53,7 @@ public class TestBridgeController {
     private InetAddress publicIp;
     int dp_id = 43;
     MockControllerStub controllerStub;
+    UUID portUuids[];
 
     public static final OFAction OUTPUT_ALL_ACTION = 
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
@@ -158,10 +160,10 @@ public class TestBridgeController {
         // 'util_setup_controller_test':
         // Create portUuids:
         //      Seven random UUIDs, and an eighth being a dup of the seventh.
-        UUID portUuids[] = { UUID.randomUUID(), UUID.randomUUID(),
-                             UUID.randomUUID(), UUID.randomUUID(),
-                             UUID.randomUUID(), UUID.randomUUID(),
-                             UUID.randomUUID(), UUID.randomUUID() };
+        portUuids = new UUID[] { UUID.randomUUID(), UUID.randomUUID(),
+                                 UUID.randomUUID(), UUID.randomUUID(),
+                                 UUID.randomUUID(), UUID.randomUUID(),
+                                 UUID.randomUUID(), UUID.randomUUID() };
         portUuids[7] = portUuids[6];
 
         // Register local ports (ports 0, 1, 2) into datapath in ovsdb.
@@ -346,5 +348,64 @@ public class TestBridgeController {
         checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
     }
-        
+
+    @Test
+    public void testRemoteMACNoTunnel() {
+        final Ethernet packet = packet13;
+        short inPortNum = 1;
+        short outPortNum = 3;
+        MidoMatch expectMatch = flowmatch13.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { OUTPUT_ALL_ACTION };
+        controller.onPortStatus(phyPorts[3], OFPortReason.OFPPR_DELETE);
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+    }
+
+    @Test
+    public void testRemoteMACTunnelIn() {
+        short inPortNum = 4;
+        final Ethernet packet = packet13;
+        MidoMatch expectMatch = flowmatch13.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        // Verify drop rule & no packet sent.
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        assertEquals(0, controllerStub.sentPackets.size());
+    }
+
+    @Test
+    public void testFlowInvalidatePortUnreachable() 
+                throws KeeperException, InterruptedException {
+        int oldDelCount = controllerStub.deletedFlows.size();
+        controller.onPacketIn(14, 13, (short)0, packet03.serialize());
+        controller.onPacketIn(14, 13, (short)1, packet13.serialize());
+        controller.onPacketIn(14, 13, (short)0, packet04.serialize());
+
+        OFAction[][] expectedActions = {
+                { new OFActionOutput((short)3, (short)0) },
+                { new OFActionOutput((short)3, (short)0) },
+                { new OFActionOutput((short)4, (short)0) },
+        };
+
+        assertEquals(3, controllerStub.addedFlows.size());
+        for (int i = 0; i < 3; i++) {
+            assertArrayEquals(expectedActions[i], 
+                              controllerStub.addedFlows.get(i)
+                                            .actions.toArray());
+        }
+
+        assertEquals(oldDelCount, controllerStub.deletedFlows.size());
+        log.info("Removing port {}", portUuids[3]);
+        portLocMap.remove(portUuids[3]);
+        if (true) return; //XXX
+        assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
+        for (int i = oldDelCount; i < oldDelCount+2; i++) {
+            assertArrayEquals(expectedActions[i], 
+                              controllerStub.deletedFlows.get(i)
+                                            .actions.toArray());
+        }
+    }
 }

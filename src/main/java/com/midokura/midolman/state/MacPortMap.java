@@ -2,6 +2,7 @@
 
 package com.midokura.midolman.state;
 
+import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.packets.Ethernet;
@@ -34,5 +35,4 @@ public class MacPortMap extends ReplicatedMap<MAC, UUID> {
     protected UUID decodeValue(String str) {
         return UUID.fromString(str);
     }
-
 }
