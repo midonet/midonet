@@ -33,7 +33,7 @@ public class ZkMgmtManager extends ZkManager {
      */
     public ZkMgmtManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
         super(new ZkDirectory(zk, "", null), basePath);
-        this.mgmtPathManager = new ZkMgmtPathManager(basePath);
+        this.mgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
         this.zooKeeper = zk;
     }
 

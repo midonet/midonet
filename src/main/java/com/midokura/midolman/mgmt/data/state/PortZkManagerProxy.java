@@ -22,6 +22,7 @@ import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.util.ShortUUID;
 
 /**
  * ZK port management class.
@@ -189,12 +190,14 @@ public class PortZkManagerProxy extends ZkMgmtManager {
             ZkStateSerializationException {
         byte[] data = zk.get(mgmtPathManager.getPortPath(id), null);
         PortMgmtConfig mgmtConfig = null;
-        try {
-            mgmtConfig = deserialize(data, PortMgmtConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize port " + id + " to PortMgmtConfig",
-                    e, PortMgmtConfig.class);
+        if (data != null) {
+            try {
+                mgmtConfig = deserialize(data, PortMgmtConfig.class);
+            } catch (IOException e) {
+                throw new ZkStateSerializationException(
+                        "Could not deserialize port " + id
+                                + " to PortMgmtConfig", e, PortMgmtConfig.class);
+            }
         }
         return new ZkNodeEntry<UUID, PortMgmtConfig>(id, mgmtConfig);
     }
@@ -208,7 +211,7 @@ public class PortZkManagerProxy extends ZkMgmtManager {
                 mgmtNode.value, node.value);
     }
 
-    private List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> generateList (
+    private List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> generateList(
             List<ZkNodeEntry<UUID, PortConfig>> nodes) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
         List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> portNodes = new ArrayList<MgmtNode<UUID, PortMgmtConfig, PortConfig>>();
@@ -235,7 +238,7 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     public UUID create(PortMgmtConfig portMgmt,
             PortDirectory.PortConfig portConfig) throws KeeperException,
             InterruptedException, ZkStateSerializationException {
-        UUID id = UUID.randomUUID();
+        UUID id = ShortUUID.generate32BitUUID();
         MgmtNode<UUID, PortMgmtConfig, PortConfig> node = new MgmtNode<UUID, PortMgmtConfig, PortConfig>(
                 id, portMgmt, portConfig);
         zk.multi(preparePortCreate(node));

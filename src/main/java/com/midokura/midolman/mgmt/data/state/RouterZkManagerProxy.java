@@ -102,6 +102,11 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
+        ops.add(Op.create(mgmtPathManager.getPortPath(localPortEntry.key),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(mgmtPathManager.getPortPath(peerPortEntry.key),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         PortZkManager portZkManager = new PortZkManager(zooKeeper, pathManager
                 .getBasePath());
         ops.addAll(portZkManager.preparePortCreateLink(localPortEntry,
@@ -156,6 +161,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
                 .listRouterPorts(routerMgmtNode.key);
         for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
             ops.addAll(portMgr.preparePortDelete(portNode.key, false));
+            // TODO: Remove VIF if plugged, and remove peer port for logical
         }
 
         // Remove the router-router mappings
