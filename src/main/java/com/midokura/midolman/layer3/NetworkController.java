@@ -1017,10 +1017,12 @@ public class NetworkController extends AbstractController {
         ZkStateSerializationException, IOException {
         short portNum = portDesc.getPortNumber();
         String portName = portDesc.getName();
-        UUID portId = service.getRemotePort(datapathId, portNum, portName);
 
-        service.configurePort(datapathId, portId, portName);
-        startPortService(portNum, portId);
+        UUID portId = service.getRemotePort(datapathId, portNum, portName);
+        if (portId != null) {
+            service.configurePort(datapathId, portId, portName);
+            startPortService(portNum, portId);
+        }
    }
 
     private void addServicePort(L3DevicePort port) throws KeeperException,

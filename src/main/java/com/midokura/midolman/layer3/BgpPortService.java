@@ -145,13 +145,14 @@ public class BgpPortService implements PortService {
         String service = ovsdb.getPortExternalId(datapathId, portNum,
                                                  portServiceExtIdKey);
         if (service != BGP_SERVICE_EXT_ID) {
-            throw new RuntimeException("No service type found for this port");
+            log.info("No service type found for this port");
+            return null;
         }
         String extId = ovsdb.getPortExternalId(datapathId, portNum,
                                                portIdExtIdKey);
         if (extId == null) {
-            throw new RuntimeException(
-                "No remote port found for this service port ");
+            log.info("No remote port found for this service port ");
+            return null;
         }
 
         return UUID.fromString(extId);
