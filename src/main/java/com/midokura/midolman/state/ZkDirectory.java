@@ -8,14 +8,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.ACL;
 
 public class ZkDirectory implements Directory {
 
@@ -33,7 +34,8 @@ public class ZkDirectory implements Directory {
     public ZkDirectory(ZooKeeper zk, String basePath, List<ACL> acl) {
         this.zk = zk;
         this.basePath = basePath;
-        this.acl = acl;
+//        this.acl = acl;
+        this.acl = Ids.OPEN_ACL_UNSAFE;
     }
 
     @Override
