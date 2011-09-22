@@ -130,30 +130,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK router peer router path.
-     * 
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/routers
-     */
-    public String getRouterRoutersPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId)).append("/routers")
-                .toString();
-    }
-
-    /**
-     * Get ZK router peer router path.
-     * 
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/routers/routerId
-     */
-    public String getRouterRouterPath(UUID routerId, UUID peerRouterId) {
-        return new StringBuilder(getRouterRoutersPath(routerId)).append("/")
-                .append(peerRouterId).toString();
-    }
-
-    /**
      * Get ZK port path.
      * 
      * @return /ports
