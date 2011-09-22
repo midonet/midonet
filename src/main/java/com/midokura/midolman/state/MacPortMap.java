@@ -2,8 +2,6 @@
 
 package com.midokura.midolman.state;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,14 +34,5 @@ public class MacPortMap extends ReplicatedMap<MAC, UUID> {
     @Override
     protected UUID decodeValue(String str) {
         return UUID.fromString(str);
-    }
-
-    // TODO: Would this be better moved to ReplicatedMap.getByValue() ?
-    public List<MAC> getByUuid(UUID portUuid) {
-        ArrayList<MAC> macList = new ArrayList<MAC>();
-        for (Map.Entry<MAC, MapValue> entry : map.entrySet())
-            if (entry.getValue().value.equals(portUuid))
-                macList.add(entry.getKey());
-        return macList;
     }
 }

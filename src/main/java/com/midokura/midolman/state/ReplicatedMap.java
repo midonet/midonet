@@ -2,6 +2,7 @@ package com.midokura.midolman.state;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,7 @@ public abstract class ReplicatedMap<K, V> {
 
     private Directory dir;
     private boolean running;
-    protected Map<K, MapValue> map;
+    private Map<K, MapValue> map;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
 
@@ -145,6 +146,14 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
+    public List<K> getByValue(V value) {
+        ArrayList<K> keyList = new ArrayList<K>();
+        for (Map.Entry<K, MapValue> entry : map.entrySet())
+            if (entry.getValue().value.equals(value))
+                keyList.add(entry.getKey());
+        return keyList;
+    }
+
     public void put(K key, V value) throws KeeperException,
             InterruptedException {
         MapValue oldMv = map.get(key);
@@ -183,7 +192,7 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
-    protected class MapValue {
+    private class MapValue {
         V value;
         int version;
         boolean owner;

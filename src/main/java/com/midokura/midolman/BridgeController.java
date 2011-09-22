@@ -303,7 +303,7 @@ public class BridgeController extends AbstractController {
         if (inPortUuid == null)
             return;
         log.debug("Removing all MAC-port mappings to port {}", inPortUuid);
-        List<MAC> macList = macPortMap.getByUuid(inPortUuid);
+        List<MAC> macList = macPortMap.getByValue(inPortUuid);
         for (MAC mac : macList) {
             log.debug("Removing mapping from MAC {} to port {}", mac,
                       inPortUuid);
@@ -328,10 +328,16 @@ public class BridgeController extends AbstractController {
     }
 
     private void invalidateFlowsToPortUuid(UUID port_uuid) {
-        // FIXME
+        List<MAC> macs = macPortMap.getByValue(port_uuid);
+        for (MAC mac : macs)
+            invalidateFlowsToMac(mac);
     }
 
     private void invalidateFlowsToPeer(Integer peer_ip) {
-        // FIXME
+        List<UUID> remotePorts = port_locs.getByValue(peer_ip);
+        for (UUID port : remotePorts) {
+            log.debug("Invalidating flows for port {}", port);
+            invalidateFlowsToPortUuid(port);
+        }
     }
 }
