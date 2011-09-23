@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if [ "$JAVA_HOME" != "" ]; then
+  JAVA="$JAVA_HOME/bin/java"
+else
+  JAVA=java #${readlink -e `which java`}
+fi
+
 calculate_heap_sizes()
 {
     case "`uname`" in
@@ -159,3 +165,10 @@ JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT" 
 JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false" 
 JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false" 
+
+# Environment varibales for /etc/init.d/midomanj
+NAME=midolmanj
+PIDDIR=/var/run/midolman
+PIDFILE=$PIDDIR/midolmanj.pid
+USER=midonet
+GROUP=midokura
