@@ -24,6 +24,7 @@ import com.midokura.midolman.quagga.BgpConnection;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
 
 import java.util.List;
@@ -92,15 +93,14 @@ public class BgpPortService implements PortService {
     }
 
     @Override
-    public Set<String> getPorts(L3DevicePort port) throws KeeperException,
-        InterruptedException, ZkStateSerializationException {
+    public Set<String> getPorts(L3DevicePort port) throws StateAccessException, ZkStateSerializationException {
         UUID portId = port.getId();
         return ovsdb.getPortNamesByExternalId(portIdExtIdKey,
                                               portId.toString());
     }
 
     private void addPort(final long datapathId, final UUID portId) throws
-        KeeperException, InterruptedException, ZkStateSerializationException {
+            StateAccessException, ZkStateSerializationException {
         // Check service attributes in port configurations.
         List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(
             portId, new Runnable() {
@@ -145,8 +145,8 @@ public class BgpPortService implements PortService {
 
     @Override
     public void addPort(long datapathId, L3DevicePort port)
-        throws KeeperException, InterruptedException,
-        ZkStateSerializationException {
+        throws StateAccessException,
+        ZkStateSerializationException, KeeperException {
         UUID portId = port.getId();
         this.addPort(datapathId, portId);
     }
@@ -172,7 +172,7 @@ public class BgpPortService implements PortService {
 
     @Override
     public void configurePort(long datapathId, UUID portId, String portName)
-        throws KeeperException, InterruptedException,
+        throws StateAccessException,
         ZkStateSerializationException, IOException {
         // Turn on ARP and link up the interface.
         // mtu 1300 is to avoid ovs dropping packets.
@@ -199,7 +199,7 @@ public class BgpPortService implements PortService {
 
     public void start(final short localPortNum, final L3DevicePort remotePort)
         throws
-        KeeperException, InterruptedException, ZkStateSerializationException,
+        StateAccessException, ZkStateSerializationException,
         IOException {
         UUID remotePortId = remotePort.getId();
         short remotePortNum = remotePort.getNum();

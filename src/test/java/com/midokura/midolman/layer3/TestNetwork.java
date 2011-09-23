@@ -174,7 +174,7 @@ public class TestNetwork {
 
 	@Test
 	public void testOneRouterBlackhole() throws StateAccessException,
-			ZkStateSerializationException {
+			ZkStateSerializationException, IOException {
 		// Send a packet to router0's first materialized port to a destination
 		// that's blackholed.
 		byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -192,7 +192,7 @@ public class TestNetwork {
 
 	@Test
 	public void testOneRouterReject() throws ZkStateSerializationException,
-			StateAccessException {
+			StateAccessException, IOException {
 		// Send a packet to router0's first materialized port to a destination
 		// that's rejected.
 		byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -210,7 +210,7 @@ public class TestNetwork {
 
 	@Test
 	public void testOneRouterForward() throws StateAccessException,
-			ZkStateSerializationException {
+			ZkStateSerializationException, IOException {
 		// Send a packet to router0's first materialized port to a destination
 		// reachable from its second materialized port.
 		byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -230,7 +230,7 @@ public class TestNetwork {
 
 	@Test
 	public void testTwoRoutersForward() throws StateAccessException,
-			ZkStateSerializationException {
+			ZkStateSerializationException, IOException {
 		// Send a packet to router1's first materialized port to a destination
 		// reachable from router0's first materialized port.
 		byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -251,7 +251,7 @@ public class TestNetwork {
 
 	@Test
 	public void testThreeRoutersForward() throws StateAccessException,
-			ZkStateSerializationException {
+			ZkStateSerializationException, IOException {
 		// Send a packet to router1's second materialized port to a destination
 		// reachable from router2's second materialized port.
 		byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };

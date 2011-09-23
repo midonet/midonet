@@ -974,7 +974,7 @@ public class NetworkController extends AbstractController {
 
     private void startPortService(final short portNum, final UUID portId)
         throws KeeperException, InterruptedException,
-        ZkStateSerializationException, IOException {
+        ZkStateSerializationException, IOException, StateAccessException {
         // If the materiazlied router port isn't discovered yet, try
         // setting flows between BGP peers later.
         if (devPortById.containsKey(portId)) {
@@ -997,8 +997,7 @@ public class NetworkController extends AbstractController {
     }
 
 	private void setupServicePort(OFPhysicalPort portDesc)
-			throws StateAccessException, ZkStateSerializationException,
-			IOException {
+			throws StateAccessException, ZkStateSerializationException, IOException, KeeperException, InterruptedException {
 		short portNum = portDesc.getPortNumber();
 		String portName = portDesc.getName();
 
@@ -1010,7 +1009,7 @@ public class NetworkController extends AbstractController {
 	}
 
 	private void addServicePort(L3DevicePort port) throws StateAccessException,
-			ZkStateSerializationException, IOException {
+			ZkStateSerializationException, KeeperException {
 		Set<String> servicePorts = service.getPorts(port);
 		if (!servicePorts.isEmpty()) {
 			UUID portId = port.getId();
