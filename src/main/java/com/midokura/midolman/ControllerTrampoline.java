@@ -201,9 +201,10 @@ public class ControllerTrampoline implements Controller {
                                .getLong("flow_expire_millis");
                 long macPortTimeoutMillis = 
                          config.configurationAt("bridge")
-                               .getLong("mac_port_mapping_expire_millis");
-                int localNwAddr = config.configurationAt("openflow")
-                                        .getInt("public_ip_address");
+                               .getLong("mac_port_mapping_expire_millis");                
+                InetAddress localNwAddr = InetAddress.getByName(
+                        config.configurationAt("openflow")
+                            .getString("public_ip_address"));
 
                 newController = new BridgeController(
                         datapathId,
@@ -213,7 +214,7 @@ public class ControllerTrampoline implements Controller {
                         macPortMap,
                         flowExpireMillis,
                         idleFlowExpireMillis,
-                        Net.convertIntToInetAddress(localNwAddr),
+                        localNwAddr,
                         macPortTimeoutMillis,
                         ovsdb,
                         reactor,
