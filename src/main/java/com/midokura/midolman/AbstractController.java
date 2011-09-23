@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
@@ -138,6 +139,15 @@ public abstract class AbstractController implements Controller, AbstractControll
         if (uuid != null) {
             portNumToUuid.put(new Integer(portNum), uuid);
             portUuidToNumberMap.put(uuid, new Integer(portNum));
+            try {
+                portLocMap.put(uuid, publicIp);
+            } catch (KeeperException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
         // TODO(pino, jlm): should this be an else-if?
         if (isGREPortOfKey(portDesc.getName())) {

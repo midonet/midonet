@@ -135,6 +135,7 @@ public class TestNetworkController {
 
         // Now we can create the NetworkController itself.
         InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); // 0xc0a80104;
+        int localNwAddrInt = Net.convertInetAddressToInt(localNwAddr);
         datapathId = 43;
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, (long) (60 * 1000), localNwAddr,
@@ -195,15 +196,17 @@ public class TestNetworkController {
                 phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
                         (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
                         (byte) portNum });
+                int underlayIp;
                 if (0 == portNum % 2) {
                     // Even-numbered ports will be local to the controller.
                     ovsdb.setPortExternalId(datapathId, portNum, "midonet",
                             portId.toString());
                     phyPort.setName("port" + Integer.toString(portNum));
+                    underlayIp = localNwAddrInt;
                 } else {
                     // Odd-numbered ports are remote. Place port num x at
                     // 192.168.1.x.
-                    int underlayIp = 0xc0a80100 + portNum;
+                    underlayIp = 0xc0a80100 + portNum;
                     portLocMap.put(portId, underlayIp);
                     // The new port id in portLocMap should have resulted
                     // in a call to to the mock ovsdb to open a gre port.
@@ -218,6 +221,9 @@ public class TestNetworkController {
                 }
                 networkCtrl.onPortStatus(phyPort,
                         OFPortStatus.OFPortReason.OFPPR_ADD);
+                // Verify that the port location map is correctly initialized.
+                Assert.assertEquals(new Integer(underlayIp),
+                        portLocMap.get(portId));
             }
         }
         // Now add the logical links between router 0 and 1.
