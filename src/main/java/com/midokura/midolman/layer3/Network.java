@@ -26,6 +26,7 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
@@ -96,9 +97,8 @@ public class Network {
         }
     };
 
-    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException,
-            ZkStateSerializationException {
+    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws 
+            ZkStateSerializationException, StateAccessException {
         PortDirectory.RouterPortConfig rcfg = portIdToConfig.get(portId);
         if (null == rcfg)
             rcfg = refreshPortConfig(portId, null);
@@ -106,8 +106,7 @@ public class Network {
     }
 
     private PortDirectory.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
-            throws IOException, ClassNotFoundException, KeeperException,
-            InterruptedException, ZkStateSerializationException {
+            throws ZkStateSerializationException, StateAccessException {
         if (null == watcher)
             watcher = new PortWatcher(portId);
         ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId, watcher);
@@ -133,9 +132,8 @@ public class Network {
             watcher.call(routerId);
     }
 
-    protected Router getRouter(UUID routerId) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException,
-            ZkStateSerializationException {
+    protected Router getRouter(UUID routerId) throws 
+            ZkStateSerializationException, StateAccessException {
         Router rtr = routers.get(routerId);
         if (null != rtr)
             return rtr;
@@ -154,9 +152,8 @@ public class Network {
         return rtr;
     }
 
-    public Router getRouterByPort(UUID portId) throws IOException,
-            ClassNotFoundException, KeeperException, InterruptedException,
-            ZkStateSerializationException {
+    public Router getRouterByPort(UUID portId) throws 
+            ZkStateSerializationException, StateAccessException {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
@@ -167,9 +164,8 @@ public class Network {
         return rtr;
     }
 
-    public void addPort(L3DevicePort port) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException,
-            ZkStateSerializationException {
+    public void addPort(L3DevicePort port) throws 
+            ZkStateSerializationException, StateAccessException, KeeperException, InterruptedException {
         UUID routerId = port.getVirtualConfig().device_id;
         Router rtr = getRouter(routerId);
         rtr.addPort(port);
@@ -177,9 +173,8 @@ public class Network {
     }
 
     // This should only be called for materialized ports, not logical ports.
-    public void removePort(L3DevicePort port) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException,
-            ZkStateSerializationException {
+    public void removePort(L3DevicePort port) throws 
+            ZkStateSerializationException, StateAccessException, KeeperException, InterruptedException {
         Router rtr = getRouter(port.getVirtualConfig().device_id);
         rtr.removePort(port);
         routersByPortId.remove(port.getId());
@@ -199,8 +194,7 @@ public class Network {
     }
 
     public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
-            throws IOException, ClassNotFoundException, KeeperException,
-            InterruptedException, ZkStateSerializationException {
+            throws ZkStateSerializationException, StateAccessException {
         traversedRouters.clear();
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)

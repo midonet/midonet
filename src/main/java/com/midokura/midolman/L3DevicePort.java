@@ -20,6 +20,7 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -117,7 +118,7 @@ public class L3DevicePort {
         }
     }
 
-    private void updateRoutes() throws KeeperException, InterruptedException,
+    private void updateRoutes() throws StateAccessException,
             ZkStateSerializationException {
         List<ZkNodeEntry<UUID, Route>> entries = routeMgr.listPortRoutes(
                 portId, routesWatcher);

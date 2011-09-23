@@ -1,6 +1,5 @@
 package com.midokura.midolman.rules;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,7 +11,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +18,11 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Callback;
 
 public class RuleEngine {
@@ -69,8 +68,7 @@ public class RuleEngine {
     private Set<Callback<UUID>> watchers;
 
     public RuleEngine(ChainZkManager zkChainMgr, RuleZkManager zkRuleMgr,
-            UUID rtrId, NatMapping natMap) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException,
+            UUID rtrId, NatMapping natMap) throws StateAccessException,
             ZkStateSerializationException {
         this.rtrId = rtrId;
         this.zkChainMgr = zkChainMgr;
@@ -98,8 +96,7 @@ public class RuleEngine {
             watcher.call(rtrId);
     }
 
-    private void updateChains(boolean notify) throws KeeperException,
-            InterruptedException, IOException, ClassNotFoundException,
+    private void updateChains(boolean notify) throws StateAccessException,
             ZkStateSerializationException {
         Collection<ZkNodeEntry<UUID, ChainConfig>> entryList = zkChainMgr.
                 list(rtrId, rtrWatcher);
@@ -135,8 +132,7 @@ public class RuleEngine {
     }
 
     private void updateRules(UUID chainId, Runnable watcher)
-            throws KeeperException, InterruptedException, IOException,
-            ClassNotFoundException, ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException {
         List<Rule> curRules = new ArrayList<Rule>();
         List<ZkNodeEntry<UUID, Rule>> entries = zkRuleMgr.list(chainId, watcher);
         for (ZkNodeEntry<UUID, Rule> entry : entries)
