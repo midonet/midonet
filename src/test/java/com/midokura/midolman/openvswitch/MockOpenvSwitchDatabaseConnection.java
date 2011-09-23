@@ -82,18 +82,195 @@ public class MockOpenvSwitchDatabaseConnection implements
     }
 
     @Override
-    public GrePortBuilder addGrePort(long bridgeId, String portName,
-            String remoteIp) {
-        addedGrePorts.add(new GrePort(Long.toString(bridgeId), portName,
-                remoteIp));
-        return null;
+    public GrePortBuilder addGrePort(
+            final long bridgeId,
+            final String portName,
+            final String remoteIp) {
+        
+        return new GrePortBuilder() {
+            
+            @Override
+            public GrePortBuilder ttlInherit() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder ttl(byte ttl) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder tosInherit() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder tos(byte tos) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder outKeyFlow() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder outKey(int outKey) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder localIp(String localIp) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder keyFlow() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder key(int key) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder inKeyFlow() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder inKey(int inKey) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder ifMac(String ifMac) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder externalId(String key, String value) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder enableCsum() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder disablePmtud() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder disableHeaderCache() {
+                return this;
+            }
+            
+            @Override
+            public void build() {
+                addedGrePorts.add(
+                        new GrePort(
+                                Long.toString(bridgeId), portName, remoteIp));
+            }
+        };
     }
 
     @Override
-    public GrePortBuilder addGrePort(String bridgeName, String portName,
-            String remoteIp) {
-        addedGrePorts.add(new GrePort(bridgeName, portName, remoteIp));
-        return null;
+    public GrePortBuilder addGrePort(
+            final String bridgeName,
+            final String portName,
+            final String remoteIp) {
+        
+        return new GrePortBuilder() {
+            
+            @Override
+            public GrePortBuilder ttlInherit() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder ttl(byte ttl) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder tosInherit() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder tos(byte tos) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder outKeyFlow() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder outKey(int outKey) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder localIp(String localIp) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder keyFlow() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder key(int key) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder inKeyFlow() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder inKey(int inKey) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder ifMac(String ifMac) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder externalId(String key, String value) {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder enableCsum() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder disablePmtud() {
+                return this;
+            }
+            
+            @Override
+            public GrePortBuilder disableHeaderCache() {
+                return this;
+            }
+            
+            @Override
+            public void build() {
+                addedGrePorts.add(new GrePort(bridgeName, portName, remoteIp));
+            }
+        };
     }
 
     @Override
