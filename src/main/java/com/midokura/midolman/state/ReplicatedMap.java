@@ -143,6 +143,10 @@ public abstract class ReplicatedMap<K, V> {
         return mv.value;
     }
 
+    public boolean containsKey(K key) {
+        return map.containsKey(key);
+    }
+
     public Map<K, V> getMap() {
         Map<K, V> result = new HashMap<K, V>();
         for (Map.Entry<K, MapValue> entry : map.entrySet())

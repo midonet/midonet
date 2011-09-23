@@ -51,6 +51,21 @@ public class MockControllerStub implements ControllerStub {
             this.emergency = emergency;
             this.actions = actions;
         }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("match["+match+"]");
+            sb.append(",cookie:"+cookie);
+            sb.append(",idle:"+idleTimeoutSecs);
+            sb.append(",hard:"+hardTimeoutSecs);
+            sb.append(",pri:"+priority);
+            sb.append(",buf_id:"+bufferId);
+            sb.append(",flow_remove:"+sendFlowRemove);
+            sb.append(",overlap:"+checkOverlap);
+            sb.append(",emerg:"+emergency);
+            sb.append(",actions["+actions+"]");
+            return sb.toString();
+        }
     }
 
     // Accumulated calls to sendFlowModAdd()

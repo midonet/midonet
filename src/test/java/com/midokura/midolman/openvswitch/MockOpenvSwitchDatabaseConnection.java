@@ -5,8 +5,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class MockOpenvSwitchDatabaseConnection implements
         OpenvSwitchDatabaseConnection {
+
+    Logger log = LoggerFactory.getLogger(
+                               MockOpenvSwitchDatabaseConnection.class);
+
     Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
         new HashMap<Long, Map<Integer, Map<String, String>>>();
 
@@ -349,6 +357,8 @@ public class MockOpenvSwitchDatabaseConnection implements
     @Override
     public String getPortExternalId(long bridgeId, int portNum,
                                     String externalIdKey) {
+        log.info("reading external ID of dp#{} port#{} key:'{}'",
+                 new Object[] { bridgeId, portNum, externalIdKey });
         Map<Integer, Map<String, String>> portToExternalIds =
                 bridgeToExternalIds.get(bridgeId);
         if (null == portToExternalIds)
@@ -361,6 +371,8 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     public void setPortExternalId(long bridgeId, int portNum,
                                   String externalIdKey, String value) {
+        log.info("Setting external ID of dp#{} port#{} '{}' => '{}'",
+                 new Object[] { bridgeId, portNum, externalIdKey, value });
         Map<Integer, Map<String, String>> portToExternalIds =
                 bridgeToExternalIds.get(bridgeId);
         if (null == portToExternalIds) {

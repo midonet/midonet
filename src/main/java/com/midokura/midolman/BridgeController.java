@@ -203,7 +203,7 @@ public class BridgeController extends AbstractController {
             }
         }
 
-        UUID inPortUuid = portNumToUuid.get(inPort);
+        UUID inPortUuid = portNumToUuid.get(new Integer(inPort));
         UUID mappedPortUuid = macPortMap.get(srcDlAddress);
         
         if (!srcAddressIsMcast && inPortUuid != null &&
@@ -221,8 +221,9 @@ public class BridgeController extends AbstractController {
                             flowExpireSeconds, flowPriority,
                             bufferId, true, false, false, actions,
                             inPort, data);
-        log.info("installing flowmod at {} with actions {}", new Date(),
-                 actions);
+        log.info("installing flowmod at {} with actions {} triggered by " +
+                 "packet from port#{} id:{}", new Object[] { new Date(),
+                 actions, inPort, inPortUuid });
 
         // If the message didn't come from the tunnel port, learn the MAC 
         // source address.  We wait to learn a MAC-port mapping until 
@@ -248,7 +249,8 @@ public class BridgeController extends AbstractController {
 
         log.debug("Increased flow count for source MAC {} from port {} to {}",
                   new Object[] { macAddr, portUuid, count });
-        if (!macPortMap.get(macAddr).equals(portUuid)) {
+        if (!macPortMap.containsKey(macAddr) ||
+                                !macPortMap.get(macAddr).equals(portUuid)) {
             try {
                 macPortMap.put(macAddr, portUuid);
             } catch (KeeperException e) {

@@ -149,6 +149,7 @@ public abstract class AbstractController
 
     private void callAddPort(OFPhysicalPort portDesc, short portNum) {
         UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+        log.info("Adding port#{} id: {}", portNum, uuid);
         if (uuid != null) {
             portNumToUuid.put(new Integer(portNum), uuid);
             portUuidToNumberMap.put(uuid, new Integer(portNum));

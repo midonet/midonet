@@ -72,32 +72,32 @@ public class TestBridgeController {
                       MAC.fromString("01:EE:EE:EE:EE:EE") };
 
     // Packets
-    Ethernet packet01 = makePacket(macList[0], macList[1]);
-    Ethernet packet03 = makePacket(macList[0], macList[3]);
-    Ethernet packet04 = makePacket(macList[0], macList[4]);
-    Ethernet packet0MC = makePacket(macList[0], macList[8]);
-    Ethernet packet10 = makePacket(macList[1], macList[0]);
-    Ethernet packet13 = makePacket(macList[1], macList[3]);
-    Ethernet packet15 = makePacket(macList[1], macList[5]);
-    Ethernet packet20 = makePacket(macList[2], macList[0]);
-    Ethernet packet26 = makePacket(macList[2], macList[6]);
-    Ethernet packet27 = makePacket(macList[2], macList[7]);
-    Ethernet packet70 = makePacket(macList[7], macList[0]);
-    Ethernet packetMC0 = makePacket(macList[8], macList[0]);
+    final Ethernet packet01 = makePacket(macList[0], macList[1]);
+    final Ethernet packet03 = makePacket(macList[0], macList[3]);
+    final Ethernet packet04 = makePacket(macList[0], macList[4]);
+    final Ethernet packet0MC = makePacket(macList[0], macList[8]);
+    final Ethernet packet10 = makePacket(macList[1], macList[0]);
+    final Ethernet packet13 = makePacket(macList[1], macList[3]);
+    final Ethernet packet15 = makePacket(macList[1], macList[5]);
+    final Ethernet packet20 = makePacket(macList[2], macList[0]);
+    final Ethernet packet26 = makePacket(macList[2], macList[6]);
+    final Ethernet packet27 = makePacket(macList[2], macList[7]);
+    final Ethernet packet70 = makePacket(macList[7], macList[0]);
+    final Ethernet packetMC0 = makePacket(macList[8], macList[0]);
 
     // Flow matches
-    MidoMatch flowmatch01 = makeFlowMatch(macList[0], macList[1]);
-    MidoMatch flowmatch03 = makeFlowMatch(macList[0], macList[3]);
-    MidoMatch flowmatch04 = makeFlowMatch(macList[0], macList[4]);
-    MidoMatch flowmatch0MC = makeFlowMatch(macList[0], macList[8]);
-    MidoMatch flowmatch10 = makeFlowMatch(macList[1], macList[0]);
-    MidoMatch flowmatch13 = makeFlowMatch(macList[1], macList[3]);
-    MidoMatch flowmatch15 = makeFlowMatch(macList[1], macList[5]);
-    MidoMatch flowmatch20 = makeFlowMatch(macList[2], macList[0]);
-    MidoMatch flowmatch26 = makeFlowMatch(macList[2], macList[6]);
-    MidoMatch flowmatch27 = makeFlowMatch(macList[2], macList[7]);
-    MidoMatch flowmatch70 = makeFlowMatch(macList[7], macList[0]);
-    MidoMatch flowmatchMC0 = makeFlowMatch(macList[8], macList[0]);
+    final MidoMatch flowmatch01 = makeFlowMatch(macList[0], macList[1]);
+    final MidoMatch flowmatch03 = makeFlowMatch(macList[0], macList[3]);
+    final MidoMatch flowmatch04 = makeFlowMatch(macList[0], macList[4]);
+    final MidoMatch flowmatch0MC = makeFlowMatch(macList[0], macList[8]);
+    final MidoMatch flowmatch10 = makeFlowMatch(macList[1], macList[0]);
+    final MidoMatch flowmatch13 = makeFlowMatch(macList[1], macList[3]);
+    final MidoMatch flowmatch15 = makeFlowMatch(macList[1], macList[5]);
+    final MidoMatch flowmatch20 = makeFlowMatch(macList[2], macList[0]);
+    final MidoMatch flowmatch26 = makeFlowMatch(macList[2], macList[6]);
+    final MidoMatch flowmatch27 = makeFlowMatch(macList[2], macList[7]);
+    final MidoMatch flowmatch70 = makeFlowMatch(macList[7], macList[0]);
+    final MidoMatch flowmatchMC0 = makeFlowMatch(macList[8], macList[0]);
 
 
     OFPhysicalPort[] phyPorts = {
@@ -248,7 +248,7 @@ public class TestBridgeController {
                 /* macPortTimeoutMillis */      40*1000,
                 /* ovsdb */                     ovsdb,
                 /* reactor */                   reactor,
-                /* externalIdKey */             "midolman-vnet");
+                /* externalIdKey */             "midonet");
         controller.setControllerStub(controllerStub);
 
         // Insert ports 3..8 into portLocMap and macPortMap.
@@ -413,5 +413,62 @@ public class TestBridgeController {
         expectedMatch.setDataLayerDestination(macList[4].address);
         assertEquals(expectedMatch,
                      controllerStub.deletedFlows.get(oldDelCount+1).match);
+    }
+
+    @Test
+    public void testFlowInvalidatePortMoves() 
+                throws KeeperException, InterruptedException {
+        int oldDelCount = controllerStub.deletedFlows.size();
+        short inPortNum = 1;
+        short outPortNum = 3;
+        final Ethernet packet = packet13;
+        MidoMatch expectMatch = flowmatch13.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+
+        // Move the port, check that the controller removed the flow.
+        assertEquals(oldDelCount, controllerStub.deletedFlows.size());
+        portLocMap.put(portUuids[3], Net.convertStringAddressToInt("1.2.3.4"));
+        assertTrue(oldDelCount < controllerStub.deletedFlows.size());
+        MidoMatch expectedMatch = new MidoMatch();
+        expectedMatch.setDataLayerDestination(macList[3].address);
+        for (int i = oldDelCount; i < controllerStub.deletedFlows.size(); i++) {
+            assertEquals(expectedMatch,
+                         controllerStub.deletedFlows.get(i).match);
+        }
+    }
+        
+    @Test
+    public void testLocalMacLearned() {
+        short inPortNum = 0;
+        MAC mac = macList[inPortNum];
+        assertNull(macPortMap.get(mac));
+
+        short outPortNum = 1;
+        MidoMatch expectMatch = flowmatch01.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { OUTPUT_ALL_ACTION };
+        controller.onPacketIn(14, 13, inPortNum, packet01.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        
+        // Verify that MAC was learned.
+        assertEquals(portUuids[inPortNum], macPortMap.get(mac));
+
+        // Send packet to learned MAC.
+        inPortNum = 1;
+        outPortNum = 0;
+        expectMatch = flowmatch10.clone();
+        expectMatch.setInputPort(inPortNum);
+        expectAction = new OFAction[] { 
+                new OFActionOutput(outPortNum, (short)0) };
+        controllerStub.addedFlows.clear();
+        controllerStub.sentPackets.clear();
+        controller.onPacketIn(14, 13, inPortNum, packet10.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
     }
 }
