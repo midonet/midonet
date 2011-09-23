@@ -398,12 +398,10 @@ public class TestBridgeController {
         }
 
         assertEquals(oldDelCount, controllerStub.deletedFlows.size());
-        log.info("Removing port {}", portUuids[3]);
-        controller.onPortStatus(phyPorts[3], OFPortReason.OFPPR_DELETE);
+        log.info("Removing port {} from portLocMap", portUuids[3]);
+        portLocMap.remove(portUuids[3]);
         /* TODO: In the python, 
                 del self.port_uuid_to_location[self.port_uuids[3]]
-         * which corresponds to Java
-                portLocMap.remove(portUuids[3]);
          * was sufficient to trigger the controller.  Should we reproduce
          * that behavior?  */
         /* ---  Yes.  The port is remote, so we won't get an OVS callback

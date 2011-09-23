@@ -287,6 +287,7 @@ public class BridgeController extends AbstractController {
         return portUuidToNumberMap.containsKey(port);
     }
 
+    @Override
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
         if (isTunnelPortNum(portNum))
             invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
@@ -297,6 +298,7 @@ public class BridgeController extends AbstractController {
         }
     }
 
+    @Override
     protected void deletePort(OFPhysicalPort portDesc) {
         short inPortNum = portDesc.getPortNumber();
         UUID inPortUuid = portNumToUuid.get(new Integer(inPortNum));
@@ -330,8 +332,28 @@ public class BridgeController extends AbstractController {
         } 
     }
 
+    @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
         // FIXME
+    }
+
+    @Override
+    protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
+        // Here we don't care whether oldAddr is local, because we would 
+        // get the OVS notification first.
+
+        if (port_is_local(portUuid)) {
+            if (newAddr != publicIp) {
+                // TODO(pino): trigger a more useful action like removing 
+                // the port from OVSDB and raising an alarm.
+                log.error("portMoved: peer at {} claims to own my port {}",
+                          Net.convertIntAddressToString(newAddr), portUuid);
+            }
+            // We've already reacted to this change.
+            return;
+        }
+
+        invalidateFlowsToPortUuid(portUuid);
     }
 
     private void invalidateFlowsToPortUuid(UUID port_uuid) {
