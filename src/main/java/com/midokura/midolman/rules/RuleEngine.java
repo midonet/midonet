@@ -13,6 +13,8 @@ import java.util.Stack;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
@@ -25,6 +27,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Callback;
 
 public class RuleEngine {
+    
+    private final static Logger log = LoggerFactory.getLogger(RuleEngine.class);
 
     private class RouterWatcher implements Runnable {
         @Override
@@ -32,8 +36,7 @@ public class RuleEngine {
             try {
                 updateChains(true);
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("RouteWatcher.run", e);
             }
         }
     }
@@ -50,8 +53,7 @@ public class RuleEngine {
             try {
                 updateRules(chainId, this);
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("RuleChainWatcher.run", e);
             }
         }
     }

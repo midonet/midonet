@@ -40,7 +40,7 @@ public class ZkConnection implements Watcher {
             try {
                 wait();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.warn("open", e);
             }
         }
         if (!connected)
@@ -55,7 +55,7 @@ public class ZkConnection implements Watcher {
             try {
                 zk.close();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.warn("close", e);
             }
             // Don't reset zk to null. The class is not meant to be re-used.
         }

@@ -92,22 +92,18 @@ public class Router {
                 try {
                     table.addRoute(rt);
                 } catch (KeeperException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.warn("routesChanged", e);
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.warn("routesChanged", e);
                 }
             }
             for (Route rt : removed) {
                 try {
                     table.deleteRoute(rt);
                 } catch (KeeperException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.warn("routesChanged", e);
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.warn("routesChanged", e);
                 }
             }
         }

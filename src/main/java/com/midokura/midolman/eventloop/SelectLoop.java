@@ -147,7 +147,6 @@ public class SelectLoop implements Reactor {
                             registrationLock.wait();
                         } catch (InterruptedException e) {
                             log.warn("doLoop", e);
-                            e.printStackTrace();
                         }
                     }
                 }
@@ -164,7 +163,6 @@ public class SelectLoop implements Reactor {
                 ch.register(selector, (Integer) args[1], args[2]);
             } catch (ClosedChannelException e) {
                 log.warn("processRegistrationQueue", e);
-                e.printStackTrace();
             }
             it.remove();
         }

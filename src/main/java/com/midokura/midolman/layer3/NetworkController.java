@@ -136,8 +136,7 @@ public class NetworkController extends AbstractController {
                 network.getMacForIp(portsAndGw.lastEgressPortId,
                         portsAndGw.gatewayNwAddr, cb);
             } catch (ZkStateSerializationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("onPacketIn", e);
             }
             // The ARP will be completed asynchronously by the callback.
             return;
@@ -205,8 +204,7 @@ public class NetworkController extends AbstractController {
                     network.getMacForIp(fwdInfo.outPortId,
                             fwdInfo.gatewayNwAddr, cb);
                 } catch (ZkStateSerializationException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.warn("onPacketIn", e);
                 }
             } else { // devPortOut is null; the egress port is remote.
                 Integer tunPortNum = super
@@ -855,7 +853,7 @@ public class NetworkController extends AbstractController {
             devPort = new L3DevicePort(portMgr, routeMgr, portId, portNum,
                     portDesc.getHardwareAddress(), super.controllerStub);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("devPortOfPortDesc", e);
         }
         devPortById.put(portId, devPort);
         devPortByNum.put(portNum, devPort);
@@ -1005,7 +1003,7 @@ public class NetworkController extends AbstractController {
                         service.start(portNum, devPortById.get(portId));
                         //startPortService(portNum, portId);
                     } catch(Exception e) {
-                        e.printStackTrace();
+                        log.warn("startPortService", e);
                     }
                 }
             });
@@ -1053,7 +1051,7 @@ public class NetworkController extends AbstractController {
                     setupServicePort(portDesc);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("addPort", e);
             }
         }
     }
@@ -1065,7 +1063,7 @@ public class NetworkController extends AbstractController {
             try {
                 network.removePort(devPort);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("deletePort", e);
             }
             devPortById.remove(devPort.getId());
             devPortByNum.remove(portDesc.getPortNumber());
@@ -1074,6 +1072,8 @@ public class NetworkController extends AbstractController {
 
     @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
+        log.warn("modifyPort: not implemented");
+        
         // L3DevicePort devPort = devPortOfPortDesc(portDesc);
         // network.modifyPort(devPort);
         // FIXME: Call something in network.

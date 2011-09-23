@@ -90,8 +90,7 @@ public class Network {
                 try {
                     refreshPortConfig(portId, this);
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.warn("PortWatcher.log", e);
                 }
             }
         }
@@ -195,8 +194,7 @@ public class Network {
             rtr = getRouterByPort(portId);
             rtr.getMacForIp(portId, nwAddr, cb);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.warn("getMacForIp", e);
         }
     }
 

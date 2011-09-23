@@ -104,7 +104,7 @@ public class BgpPortService implements PortService {
                         }
                         addPort(datapathId, portId);
                     } catch(Exception e) {
-                        e.printStackTrace();
+                        log.warn("addPort", e);
                     }
                 }
             });
@@ -201,7 +201,7 @@ public class BgpPortService implements PortService {
                          try {
                              start(localPortNum, remotePort);
                          } catch(Exception e) {
-                             e.printStackTrace();
+                             log.warn("start", e);
                          }
                      }
                  })) {

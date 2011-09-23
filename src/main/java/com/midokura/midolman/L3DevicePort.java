@@ -11,12 +11,12 @@ import java.util.UUID;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -42,10 +42,15 @@ public class L3DevicePort {
     private RoutesWatcher routesWatcher;
     private PortDirectory.MaterializedRouterPortConfig portCfg;
     private Set<Listener> listeners;
+    
+    private final Logger log;
 
     public L3DevicePort(PortZkManager portMgr, RouteZkManager routeMgr,
             UUID portId, short portNum, byte[] mac, ControllerStub stub)
             throws Exception {
+        
+        log = LoggerFactory.getLogger(L3DevicePort.class.getCanonicalName() + '.' + portId);
+        
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
         this.portId = portId;
@@ -65,19 +70,19 @@ public class L3DevicePort {
                 updatePortConfig();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("PortWatcher.run", e);
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("PortWatcher.run", e);
             } catch (KeeperException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("PortWatcher.run", e);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("PortWatcher.run", e);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("PortWatcher.run", e);
             }
         }
     }
@@ -104,7 +109,7 @@ public class L3DevicePort {
                 updateRoutes();
             } catch (Exception e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("RoutesWatcher.run", e);
             }
         }
     }

@@ -2,13 +2,17 @@ package com.midokura.midolman.state;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReplicatedStringSet {
+    
+    private final static Logger log = LoggerFactory.getLogger(ReplicatedStringSet.class);
 
     public interface Watcher {
         void process(Collection<String> addedStrings,
@@ -24,11 +28,11 @@ public class ReplicatedStringSet {
             try {
                 strings = new HashSet<String>(dir.getChildren("/", this));
             } catch (KeeperException e) {
-                e.printStackTrace();
+                log.error("DirectoryWatcher.run", e);
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.error("DirectoryWatcher.run", e);
                 Thread.currentThread().interrupt();
             }
             // Compute the newly added strings

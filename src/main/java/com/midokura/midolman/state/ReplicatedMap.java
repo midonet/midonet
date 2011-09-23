@@ -1,8 +1,8 @@
 package com.midokura.midolman.state;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +10,12 @@ import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedMap<K, V> {
+    
+    private final static Logger log = LoggerFactory.getLogger(ReplicatedMap.class);
 
     /*
      * TODO(pino): don't allow deletes to be lost.
@@ -41,10 +45,10 @@ public abstract class ReplicatedMap<K, V> {
             try {
                 curPaths = dir.getChildren("/", this);
             } catch (KeeperException e) {
-                e.printStackTrace();
+                log.error("DirectoryWatcher.run", e);
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.error("DirectoryWatcher.run", e);
                 Thread.currentThread().interrupt();
             }
             List<String> cleanupPaths = new LinkedList<String>();
@@ -89,10 +93,10 @@ public abstract class ReplicatedMap<K, V> {
                 try {
                     dir.delete(path);
                 } catch (KeeperException e) {
-                    e.printStackTrace();
+                    log.error("DirectoryWatcher.run", e);
                     throw new RuntimeException(e);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error("DirectoryWatcher.run", e);
                     Thread.currentThread().interrupt();
                 }
         }

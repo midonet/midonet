@@ -38,7 +38,7 @@ import com.midokura.midolman.util.Net;
 
 public abstract class AbstractController implements Controller, AbstractControllerMXBean {
 
-    Logger log = LoggerFactory.getLogger(AbstractController.class);
+    private final static Logger log = LoggerFactory.getLogger(AbstractController.class);
 
     protected long datapathId;
 
@@ -142,11 +142,9 @@ public abstract class AbstractController implements Controller, AbstractControll
             try {
                 portLocMap.put(uuid, publicIp);
             } catch (KeeperException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("callAddPort", e);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.warn("callAddPort", e);
             }
         }
         // TODO(pino, jlm): should this be an else-if?
