@@ -399,13 +399,21 @@ public class TestBridgeController {
 
         assertEquals(oldDelCount, controllerStub.deletedFlows.size());
         log.info("Removing port {}", portUuids[3]);
-        portLocMap.remove(portUuids[3]);
-        if (true) return; //XXX
-        assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
-        for (int i = oldDelCount; i < oldDelCount+2; i++) {
-            assertArrayEquals(expectedActions[i], 
-                              controllerStub.deletedFlows.get(i)
-                                            .actions.toArray());
+        controller.onPortStatus(phyPorts[3], OFPortReason.OFPPR_DELETE);
+        /* TODO: In the python, 
+                del self.port_uuid_to_location[self.port_uuids[3]]
+         * which corresponds to Java
+                portLocMap.remove(portUuids[3]);
+         * was sufficient to trigger the controller.  Should we reproduce
+         * that behavior?  */
+        /* ---  Yes.  The port is remote, so we won't get an OVS callback
+         * when it goes down.  */
+        assertEquals(oldDelCount+1, controllerStub.deletedFlows.size());
+        MidoMatch expectedMatch = new MidoMatch();
+        expectedMatch.setDataLayerDestination(macList[3].address);
+        for (int i = 0; i < 1; i++) {
+            assertEquals(expectedMatch,
+                         controllerStub.deletedFlows.get(oldDelCount+i).match);
         }
     }
 }
