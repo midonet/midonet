@@ -19,6 +19,8 @@ import com.midokura.midolman.util.Net;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.io.IOException;
 
@@ -52,6 +54,7 @@ public class BgpPortService implements PortService {
     protected Runtime runtime;
 
     private int bgpPortIdx = 0;
+    private boolean run = false;
 
 
     public BgpPortService(OpenvSwitchDatabaseConnection ovsdb,
@@ -180,7 +183,7 @@ public class BgpPortService implements PortService {
         // Give the interface the address in vport configuration.
         Runtime.getRuntime().exec(
             String.format(
-                "ip link addr add %s/%d dev %s",
+                "ip addr add %s/%d dev %s",
                 Net.convertIntAddressToString(portConfig.portAddr),
                 portConfig.nwLength, portName));
     }
@@ -192,7 +195,7 @@ public class BgpPortService implements PortService {
         UUID remotePortId = remotePort.getId();
         short remotePortNum = remotePort.getNum();
         MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
-        int localAddr = portConfig.portAddr;
+        final int localAddr = portConfig.portAddr;
 
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(
                  remotePortId, new Runnable() {
@@ -205,7 +208,8 @@ public class BgpPortService implements PortService {
                          }
                      }
                  })) {
-            BgpConfig bgpConfig = bgpNode.value;
+            final UUID bgpId = bgpNode.key;
+            final BgpConfig bgpConfig = bgpNode.value;
             int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
             log.info(String.format("Port service flows: local %d remote %d " +
                                    "localAddr %d remoteAddr %d " +
@@ -216,8 +220,27 @@ public class BgpPortService implements PortService {
             controller.setServicePortFlows(localPortNum, remotePortNum,
                                            localAddr, remoteAddr,
                                            BGP_TCP_PORT, BGP_TCP_PORT);
-            // Call Zebra. Check only one is running.
-            // Call Vty.
+            if (!this.run) {
+                runtime.exec("killall bgpd");
+                zebra.start();
+                runtime.exec("/usr/lib/quagga/bgpd");
+                //Thread.sleep(1000);
+                // Need to wait bgpd to come up.
+                new Timer().schedule(new TimerTask() {
+                    public void run() {
+                        try {
+                            bgpd.create(Net.convertIntToInetAddress(localAddr),
+                                        bgpId, bgpConfig);
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, 1000);
+                this.run = true;
+            } else {
+                bgpd.create(Net.convertIntToInetAddress(localAddr), bgpId,
+                            bgpConfig);
+            }
         }
     }
 }
