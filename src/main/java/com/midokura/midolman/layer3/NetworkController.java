@@ -1084,4 +1084,7 @@ public class NetworkController extends AbstractController {
         // Do nothing.
     }
 
+    public final void clear() {
+        // Do nothing.
+    }
 }
