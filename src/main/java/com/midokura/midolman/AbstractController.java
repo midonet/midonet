@@ -293,7 +293,8 @@ public abstract class AbstractController implements Controller, AbstractControll
             log.debug("Requesting tunnel from " + 
                       Net.convertIntAddressToString(publicIp) + " to " + 
                       newAddrStr + " with name " + grePortName);
-            ovsdb.addGrePort(datapathId, grePortName, newAddrStr);
+
+            ovsdb.addGrePort(datapathId, grePortName, newAddrStr).build();
         }    
 
         if (oldAddr != null && oldAddr != publicIp) {
