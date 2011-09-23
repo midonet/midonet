@@ -250,8 +250,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         fm.setActions(actions);
         
         int totalActionLength = 0;
-        for (OFAction a : actions) {
-            totalActionLength += a.getLengthU();
+        if (null != actions) {
+            for (OFAction a : actions)
+                totalActionLength += a.getLengthU();
         }
         fm.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + totalActionLength));
         
@@ -283,12 +284,13 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         po.setPacketData(data);
         po.setActions(actions);
         int totalActionLength = 0;
-        for (OFAction a : actions) {
-            totalActionLength += a.getLengthU();
+        if (null != actions) {
+            for (OFAction a : actions)
+                totalActionLength += a.getLengthU();
         }
         po.setActionsLength((short)totalActionLength);
         po.setLengthU(OFPacketOut.MINIMUM_LENGTH + totalActionLength +
-                data.length);
+                (null == data? 0 : data.length));
         stream.write(po);
     }
 
