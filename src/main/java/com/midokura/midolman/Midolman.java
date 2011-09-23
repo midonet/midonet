@@ -89,8 +89,7 @@ public class Midolman implements SelectListener, Watcher {
         zkConnection.open();
         log.debug("done with ZkConnection.open()");
 
-        midonetDirectory = zkConnection.getRootDirectory().getSubDirectory(
-                midolmanConfig.getString("midolman_root_key"));
+        midonetDirectory = zkConnection.getRootDirectory();
 
         listenSock = ServerSocketChannel.open();
         listenSock.configureBlocking(false);

@@ -58,6 +58,7 @@ public class ControllerTrampoline implements Controller {
     private HierarchicalConfiguration config;
     private OpenvSwitchDatabaseConnection ovsdb;
     private Directory directory;
+    private String basePath;
     private ZkPathManager pathMgr;
     private Reactor reactor;
     private String externalIdKey;
@@ -74,12 +75,14 @@ public class ControllerTrampoline implements Controller {
         this.ovsdb = ovsdb;
         this.directory = directory;
         this.reactor = reactor;
-        this.pathMgr = new ZkPathManager("");
+        basePath = config.configurationAt("midolman").
+                getString("midolman_root_key");
+        this.pathMgr = new ZkPathManager(basePath);
 
         externalIdKey = config.configurationAt("openvswitch").getString(
                 "midolman_ext_id_key", "midolman-vnet");
 
-        this.bridgeMgr = new BridgeZkManager(directory, "");
+        this.bridgeMgr = new BridgeZkManager(directory, basePath);
     }
 
     @Override
@@ -131,11 +134,11 @@ public class ControllerTrampoline implements Controller {
                 
                 Cache cache = new MemcacheCache(memcacheHosts, 3);
                 
-                PortZkManager portMgr = new PortZkManager(directory, "");
-                RouteZkManager routeMgr = new RouteZkManager(directory, "");
-                BgpZkManager bgpMgr = new BgpZkManager(directory, "");
+                PortZkManager portMgr = new PortZkManager(directory, basePath);
+                RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
+                BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
                 AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory,
-                                                                   "");
+                        basePath);
 
                 File socketFile = new File("/var/run/quagga/zserv.api");
                 File socketDir = socketFile.getParentFile();
@@ -165,10 +168,10 @@ public class ControllerTrampoline implements Controller {
                         idleFlowExpireMillis,
                         localNwAddr,
                         portMgr,
-                        new RouterZkManager(directory, ""),
+                        new RouterZkManager(directory, basePath),
                         routeMgr,
-                        new ChainZkManager(directory, ""),
-                        new RuleZkManager(directory, ""),
+                        new ChainZkManager(directory, basePath),
+                        new RuleZkManager(directory, basePath),
                         ovsdb,
                         reactor,
                         cache,
