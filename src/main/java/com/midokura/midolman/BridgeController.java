@@ -248,7 +248,7 @@ public class BridgeController extends AbstractController {
 
         log.debug("Increased flow count for source MAC {} from port {} to {}",
                   new Object[] { macAddr, portUuid, count });
-        if (macPortMap.get(macAddr) != portUuid) {
+        if (!macPortMap.get(macAddr).equals(portUuid)) {
             try {
                 macPortMap.put(macAddr, portUuid);
             } catch (KeeperException e) {
@@ -338,7 +338,7 @@ public class BridgeController extends AbstractController {
         // get the OVS notification first.
 
         if (port_is_local(portUuid)) {
-            if (newAddr != publicIp) {
+            if (!newAddr.equals(publicIp)) {
                 // TODO(pino): trigger a more useful action like removing 
                 // the port from OVSDB and raising an alarm.
                 log.error("portMoved: peer at {} claims to own my port {}",
