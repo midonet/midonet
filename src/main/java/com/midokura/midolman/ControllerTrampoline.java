@@ -103,6 +103,9 @@ public class ControllerTrampoline implements Controller {
             }
             
             UUID deviceId = UUID.fromString(uuid);
+
+
+            log.info("onConnectionMade: DP with UUID {}", deviceId);
             
             // TODO: is this the right way to check that a DP is for a VRN?
             // ----- No.  We should have a directory of VRN UUIDs in ZooKeeper,
