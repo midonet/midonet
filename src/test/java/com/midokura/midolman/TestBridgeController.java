@@ -398,20 +398,20 @@ public class TestBridgeController {
         }
 
         assertEquals(oldDelCount, controllerStub.deletedFlows.size());
+        // Trigger a notification that the remote port on the other
+        // end of the tunnel has gone away.
         log.info("Removing port {} from portLocMap", portUuids[3]);
         portLocMap.remove(portUuids[3]);
-        /* TODO: In the python, 
-                del self.port_uuid_to_location[self.port_uuids[3]]
-         * was sufficient to trigger the controller.  Should we reproduce
-         * that behavior?  */
-        /* ---  Yes.  The port is remote, so we won't get an OVS callback
-         * when it goes down.  */
         assertEquals(oldDelCount+1, controllerStub.deletedFlows.size());
         MidoMatch expectedMatch = new MidoMatch();
         expectedMatch.setDataLayerDestination(macList[3].address);
-        for (int i = 0; i < 1; i++) {
-            assertEquals(expectedMatch,
-                         controllerStub.deletedFlows.get(oldDelCount+i).match);
-        }
+        assertEquals(expectedMatch,
+                     controllerStub.deletedFlows.get(oldDelCount).match);
+        log.info("Removing port {} from portLocMap", portUuids[4]);
+        portLocMap.remove(portUuids[4]);
+        assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
+        expectedMatch.setDataLayerDestination(macList[4].address);
+        assertEquals(expectedMatch,
+                     controllerStub.deletedFlows.get(oldDelCount+1).match);
     }
 }
