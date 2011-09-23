@@ -281,7 +281,12 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         po.setBufferId(bufferId).setActions(actions);
         po.setInPort(inPort);
         po.setPacketData(data);
-
+        int totalActionLength = 0;
+        for (OFAction a : actions) {
+            totalActionLength += a.getLengthU();
+        }
+        po.setLengthU(OFPacketOut.MINIMUM_LENGTH + totalActionLength +
+                data.length);
         stream.write(po);
     }
 
