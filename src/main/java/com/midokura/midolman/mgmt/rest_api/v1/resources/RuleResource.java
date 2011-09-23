@@ -15,7 +15,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -26,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RuleDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for rules.
@@ -41,33 +41,35 @@ public class RuleResource extends RestResource {
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Rule get(@PathParam("id") UUID id) {
+	public Rule get(@PathParam("id") UUID id) throws StateAccessException {
 		RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		Rule rule = null;
 		try {
 			rule = dao.get(id);
-		} catch (Exception ex) {
-			log.error("Error getting rule", ex);
-			throw new WebApplicationException(Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 		return rule;
 	}
 
 	@DELETE
 	@Path("{id}")
-	public void delete(@PathParam("id") UUID id) {
+	public void delete(@PathParam("id") UUID id) throws StateAccessException {
 		RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.delete(id);
-		} catch (Exception ex) {
-			log.error("Error deleting rule", ex);
-			throw new WebApplicationException(Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 	}
 
@@ -85,24 +87,26 @@ public class RuleResource extends RestResource {
 
 		@GET
 		@Produces(MediaType.APPLICATION_JSON)
-		public Rule[] list() {
+		public Rule[] list() throws StateAccessException {
 			RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 			Rule[] rules = null;
 			try {
 				rules = dao.list(chainId);
-			} catch (Exception ex) {
-				log.error("Error getting rules", ex);
-				throw new WebApplicationException(Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 			return rules;
 		}
 
 		@POST
 		@Consumes(MediaType.APPLICATION_JSON)
-		public Response create(Rule rule, @Context UriInfo uriInfo) {
+		public Response create(Rule rule, @Context UriInfo uriInfo)
+				throws StateAccessException {
 			// Add a new rule entry into zookeeper.
 			rule.setId(UUID.randomUUID());
 			rule.setChainId(chainId);
@@ -111,11 +115,12 @@ public class RuleResource extends RestResource {
 			UUID id = null;
 			try {
 				id = dao.create(rule);
-			} catch (Exception ex) {
-				log.error("Error creating rule", ex);
-				throw new WebApplicationException(Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 
 			URI uri = uriInfo.getBaseUriBuilder().path("rules/" + id).build();

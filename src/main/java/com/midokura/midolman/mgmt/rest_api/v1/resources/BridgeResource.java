@@ -16,7 +16,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortResource;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for Virtual bridges.
@@ -58,53 +58,57 @@ public class BridgeResource extends RestResource {
 	 * @param id
 	 *            Bridge UUID.
 	 * @return Bridge object.
+	 * @throws StateAccessException 
 	 */
 	@GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Bridge get(@PathParam("id") UUID id) {
+    public Bridge get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a bridge for the given ID.
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         try {
             return dao.get(id);
-        } catch (Exception ex) {
-            log.error("Error getting bridge", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
+		}
     }
 
 	@PUT
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response update(@PathParam("id") UUID id, Bridge bridge) {
+	public Response update(@PathParam("id") UUID id, Bridge bridge) throws StateAccessException {
 		BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.update(id, bridge);
-		} catch (Exception ex) {
-			log.error("Error updating bridge", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 		return Response.ok().build();
 	}
 
 	@DELETE
 	@Path("{id}")
-	public void delete(@PathParam("id") UUID id) {
+	public void delete(@PathParam("id") UUID id) throws StateAccessException {
 		BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.delete(id);
-		} catch (Exception ex) {
-			log.error("Error deleting bridge", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 	}
 
@@ -132,19 +136,21 @@ public class BridgeResource extends RestResource {
 		 * Index of bridges belonging to the tenant.
 		 * 
 		 * @return A list of bridges.
+		 * @throws StateAccessException 
 		 */
 		@GET
 		@Produces(MediaType.APPLICATION_JSON)
-		public Bridge[] list() {
+		public Bridge[] list() throws StateAccessException {
 			BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 			try {
 				return dao.list(tenantId);
-			} catch (Exception ex) {
-				log.error("Error getting bridges", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 		}
 
@@ -153,22 +159,24 @@ public class BridgeResource extends RestResource {
 		 * 
 		 * @param bridge
 		 *            Bridge object mapped to the request input.
+		 * @throws StateAccessException
 		 * @returns Response object with 201 status code set if successful.
 		 */
 		@POST
 		@Consumes(MediaType.APPLICATION_JSON)
-		public Response create(Bridge bridge, @Context UriInfo uriInfo) {
+		public Response create(Bridge bridge, @Context UriInfo uriInfo) throws StateAccessException {
 			bridge.setTenantId(tenantId);
 			BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 			UUID id = null;
 			try {
 				id = dao.create(bridge);
-			} catch (Exception ex) {
-				log.error("Error creating bridge", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 
 			URI uri = uriInfo.getBaseUriBuilder().path("bridges/" + id).build();

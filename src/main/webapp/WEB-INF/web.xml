@@ -56,7 +56,7 @@
     </init-param>
     <init-param>
       <param-name>service_host</param-name>
-      <param-value>127.0.0.1</param-value>
+      <param-value>mido-iida-2.midokura.jp</param-value>
     </init-param>
     <init-param>
       <param-name>service_port</param-name>

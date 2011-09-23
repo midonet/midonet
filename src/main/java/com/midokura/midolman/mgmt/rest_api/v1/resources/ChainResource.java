@@ -15,7 +15,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.ChainDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for chains.
@@ -51,31 +51,33 @@ public class ChainResource extends RestResource {
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Chain get(@PathParam("id") UUID id) {
+	public Chain get(@PathParam("id") UUID id) throws StateAccessException {
 		ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			return dao.get(id);
-		} catch (Exception ex) {
-			log.error("Error getting chain", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 	}
 
 	@DELETE
 	@Path("{id}")
-	public void delete(@PathParam("id") UUID id) {
+	public void delete(@PathParam("id") UUID id) throws StateAccessException {
 		ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.delete(id);
-		} catch (Exception ex) {
-			log.error("Error deleting chain", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 	}
 
@@ -93,22 +95,23 @@ public class ChainResource extends RestResource {
 
 		@GET
 		@Produces(MediaType.APPLICATION_JSON)
-		public Chain[] list() {
+		public Chain[] list() throws StateAccessException {
 			ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 			try {
 				return dao.list(routerId);
-			} catch (Exception ex) {
-				log.error("Error getting chains", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 		}
 
 		@POST
 		@Consumes(MediaType.APPLICATION_JSON)
-		public Response create(Chain chain, @Context UriInfo uriInfo) {
+		public Response create(Chain chain, @Context UriInfo uriInfo) throws StateAccessException {
 			chain.setId(UUID.randomUUID());
 			chain.setRouterId(routerId);
 			ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
@@ -116,11 +119,12 @@ public class ChainResource extends RestResource {
 			UUID id = null;
 			try {
 				id = dao.create(chain);
-			} catch (Exception ex) {
-				log.error("Error creating chain", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 
 			URI uri = uriInfo.getBaseUriBuilder().path("chains/" + id).build();

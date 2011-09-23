@@ -13,7 +13,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -24,6 +23,7 @@ import com.midokura.midolman.mgmt.data.dao.TenantDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for tenants.
@@ -61,24 +61,25 @@ public class TenantResource extends RestResource {
 	 * 
 	 * @param tenant
 	 *            Tenant object.
-	 * @throws Exception 
+	 * @throws StateAccessException
+	 * @throws Exception
 	 * @returns Response object with 201 status code set if successful.
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response create(Tenant tenant) throws Exception {
+	public Response create(Tenant tenant) throws StateAccessException {
 		TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot,
-				zookeeperMgmtRoot);
+				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		UUID id = null;
-		id = dao.create(tenant);
 		try {
-		} catch (Exception ex) {
-			log.error("Error creating tenant", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+			id = dao.create(tenant);
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 
 		return Response.created(URI.create("/" + id)).build();

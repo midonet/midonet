@@ -15,6 +15,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.ZkManager;
 
@@ -52,7 +53,7 @@ public class TenantZkManager extends ZkManager {
 	 * @throws InterruptedException
 	 *             Unresponsive thread getting interrupted by another thread.
 	 */
-	public UUID create() throws KeeperException, InterruptedException {
+	public UUID create() throws StateAccessException {
 		return create(null);
 	}
 
@@ -68,7 +69,7 @@ public class TenantZkManager extends ZkManager {
 	 * @throws InterruptedException
 	 *             Unresponsive thread getting interrupted by another thread.
 	 */
-	public UUID create(UUID id) throws KeeperException, InterruptedException {
+	public UUID create(UUID id) throws StateAccessException {
 		if (null == id) {
 			id = UUID.randomUUID();
 		}
@@ -79,7 +80,7 @@ public class TenantZkManager extends ZkManager {
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 		ops.add(Op.create(ZkMgmtPathManager.getTenantBridgesPath(id), null,
 				Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-		this.zk.multi(ops);
+		multi(ops);
 		return id;
 	}
 

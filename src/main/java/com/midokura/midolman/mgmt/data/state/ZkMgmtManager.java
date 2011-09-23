@@ -18,23 +18,23 @@ import com.midokura.midolman.state.ZkManager;
  */
 public class ZkMgmtManager extends ZkManager {
 
-    protected ZkMgmtPathManager mgmtPathManager = null;
-    protected ZooKeeper zooKeeper = null;
+	protected ZkMgmtPathManager mgmtPathManager = null;
+	protected ZooKeeper zooKeeper = null;
 
-    /**
-     * Constructor.
-     * 
-     * @param zk
-     *            ZooKeeper object.
-     * @param basePath
-     *            Path to set as the base.
-     * @param mgmtBasePath
-     *            Path to set as the base for mgmt paths.
-     */
-    public ZkMgmtManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
-        super(new ZkDirectory(zk, "", null), basePath);
-        this.mgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
-        this.zooKeeper = zk;
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param zk
+	 *            ZooKeeper object.
+	 * @param basePath
+	 *            Path to set as the base.
+	 * @param mgmtBasePath
+	 *            Path to set as the base for mgmt paths.
+	 */
+	public ZkMgmtManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
+		super(new ZkDirectory(zk, "", null), basePath);
+		this.mgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
+		this.zooKeeper = zk;
+	}
 
 }

@@ -16,7 +16,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -32,6 +31,7 @@ import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterChainResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for Virtual Router.
@@ -80,64 +80,68 @@ public class RouterResource extends RestResource {
         return new RouterRouterResource(zookeeperConn, id);
     }
 
-    /**
-     * Get the Router with the given ID.
-     * 
-     * @param id
-     *            Router UUID.
-     * @return Router object.
-     * @throws Exception
-     */
+	/**
+	 * Get the Router with the given ID.
+	 * 
+	 * @param id
+	 *            Router UUID.
+	 * @return Router object.
+	 * @throws StateAccessException
+	 * @throws Exception
+	 */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Router get(@PathParam("id") UUID id) {
+    public Router get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a router for the given ID.
         RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         Router router = null;
         try {
             router = dao.get(id);
-        } catch (Exception ex) {
-            log.error("Error getting router", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
+		}
         return router;
     }
 
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Router router) {
+    public Response update(@PathParam("id") UUID id, Router router) throws StateAccessException {
         RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.update(id, router);
-        } catch (Exception ex) {
-            log.error("Error updating router", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
+		}
 
         return Response.ok().build();
     }
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id) {
+    public void delete(@PathParam("id") UUID id) throws StateAccessException {
         RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
-        } catch (Exception ex) {
-            log.error("Error deleting router", ex);
-            throw new WebApplicationException(ex, Response.status(
-                    Response.Status.INTERNAL_SERVER_ERROR).type(
-                    MediaType.APPLICATION_JSON).build());
-        }
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
+		}
     }
 
     /**
@@ -164,20 +168,22 @@ public class RouterResource extends RestResource {
          * Return a list of routers.
          * 
          * @return A list of Router objects.
+         * @throws StateAccessException 
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Router[] list() {
+        public Router[] list() throws StateAccessException {
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(tenantId);
-            } catch (Exception ex) {
-                log.error("Error getting routers", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+    		} catch (StateAccessException e) {
+    			log.error("Error accessing data", e);
+    			throw e;
+    		} catch (Exception e) {
+    			log.error("Unhandled error", e);
+    			throw new UnknownRestApiException(e);
+    		}
         }
 
         /**
@@ -185,23 +191,25 @@ public class RouterResource extends RestResource {
          * 
          * @param router
          *            Router object mapped to the request input.
+         * @throws StateAccessException 
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Router router, @Context UriInfo uriInfo) {
+        public Response create(Router router, @Context UriInfo uriInfo) throws StateAccessException {
             router.setTenantId(tenantId);
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
             try {
                 id = dao.create(router);
-            } catch (Exception ex) {
-                log.error("Error creating router", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+    		} catch (StateAccessException e) {
+    			log.error("Error accessing data", e);
+    			throw e;
+    		} catch (Exception e) {
+    			log.error("Unhandled error", e);
+    			throw new UnknownRestApiException(e);
+    		}
 
             URI uri = uriInfo.getBaseUriBuilder().path("routers/" + id).build();
             return Response.created(uri).build();
@@ -231,7 +239,7 @@ public class RouterResource extends RestResource {
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(LogicalRouterPort port, @Context UriInfo uriInfo) {
+        public Response create(LogicalRouterPort port, @Context UriInfo uriInfo) throws StateAccessException {
             port.setDeviceId(routerId);
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
@@ -239,12 +247,13 @@ public class RouterResource extends RestResource {
             PeerRouterLink peerRouter = null;
             try {
                 peerRouter = dao.createLink(port);
-            } catch (Exception ex) {
-                log.error("Error creating logical router port link", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+    		} catch (StateAccessException e) {
+    			log.error("Error accessing data", e);
+    			throw e;
+    		} catch (Exception e) {
+    			log.error("Unhandled error", e);
+    			throw new UnknownRestApiException(e);
+    		}
             URI uri = uriInfo.getBaseUriBuilder().path(
                     "routers/" + peerRouter.getPeerRouterId()).build();
             return Response.created(uri).entity(peerRouter).build();
@@ -253,18 +262,20 @@ public class RouterResource extends RestResource {
         @GET
         @Path("{id}")
         @Produces(MediaType.APPLICATION_JSON)
-        public PeerRouterLink get(@PathParam("id") UUID id) {
+		public PeerRouterLink get(@PathParam("id") UUID id)
+				throws StateAccessException {
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             PeerRouterLink link = null;
             try {
                 link = dao.getPeerRouterLink(routerId, id);
-            } catch (Exception ex) {
-                log.error("Error getting router link", ex);
-                throw new WebApplicationException(ex, Response.status(
-                        Response.Status.INTERNAL_SERVER_ERROR).type(
-                        MediaType.APPLICATION_JSON).build());
-            }
+    		} catch (StateAccessException e) {
+    			log.error("Error accessing data", e);
+    			throw e;
+    		} catch (Exception e) {
+    			log.error("Unhandled error", e);
+    			throw new UnknownRestApiException(e);
+    		}
             return link;
         }
     }

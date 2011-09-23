@@ -8,103 +8,108 @@ package com.midokura.midolman.mgmt.auth;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
-
 /**
  * Client for Keystone.
- *
- * @version        1.6 05 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 05 Sept 2011
+ * @author Ryu Ishimoto
  */
 public final class KeystoneClient {
-    /*
-     * Implements Keystone authentication methods.
-     */
+	/*
+	 * Implements Keystone authentication methods.
+	 */
 
-    private String serviceUrl = null;
-    private String adminToken = null; // Token used to talk to Keystone.
+	private final static Logger log = LoggerFactory
+			.getLogger(KeystoneClient.class);
 
-    /**
-     * Default constructor for KeystoneClient.
-     *
-     * @param  protocol  Protocol to use to access Keystone server.
-     * @param  host  Keystone server host.
-     * @param  port  Keystone server port.
-     */
-    public KeystoneClient(String protocol, String host, int port) {
-        // Set the Keystone service URL.
-        this.serviceUrl = new StringBuilder(protocol)
-                .append("://")
-                .append(host)
-                .append(":")
-                .append(Integer.toString(port))
-                .append("/v2.0").toString();
-    }
+	private String serviceUrl = null;
+	private String adminToken = null; // Token used to talk to Keystone.
 
-    /**
-     * Set the admin token.
-     *
-     * @param  token  Token to set as the admin token.
-     */
-    public void setAdminToken(String token) {
-        this.adminToken = token;
-    }
+	/**
+	 * Default constructor for KeystoneClient.
+	 * 
+	 * @param protocol
+	 *            Protocol to use to access Keystone server.
+	 * @param host
+	 *            Keystone server host.
+	 * @param port
+	 *            Keystone server port.
+	 */
+	public KeystoneClient(String protocol, String host, int port) {
+		// Set the Keystone service URL.
+		this.serviceUrl = new StringBuilder(protocol).append("://")
+				.append(host).append(":").append(Integer.toString(port))
+				.append("/v2.0").toString();
+	}
 
-    /**
-     * Get the admin token.
-     *
-     * @return  The admin token.
-     */
-    public String getAdminToken() {
-        return this.adminToken;
-    }
+	/**
+	 * Set the admin token.
+	 * 
+	 * @param token
+	 *            Token to set as the admin token.
+	 */
+	public void setAdminToken(String token) {
+		this.adminToken = token;
+	}
 
-    /**
-     * Validate a token via Keystone.
-     *
-     * @param   token  Token to validate.
-     * @return  True if token is valid, False if invalid.
-     * @throws  IOException  IO error while getting Keystone response.
-     */
-    public boolean validateToken(String token) throws IOException {
-        // Validate by sending an HTTP request to Keystone server.
+	/**
+	 * Get the admin token.
+	 * 
+	 * @return The admin token.
+	 */
+	public String getAdminToken() {
+		return this.adminToken;
+	}
 
-        if (token == null) {
-           throw new NullPointerException(token);
-        }
+	/**
+	 * Validate a token via Keystone.
+	 * 
+	 * @param token
+	 *            Token to validate.
+	 * @return True if token is valid, False if invalid.
+	 * @throws IOException
+	 *             IO error while getting Keystone response.
+	 */
+	public boolean validateToken(String token) throws IOException {
+		// Validate by sending an HTTP request to Keystone server.
 
-        KeystoneJsonParser parser = new KeystoneJsonParser();
-        String url = new StringBuilder(this.serviceUrl)
-                .append("/tokens/")
-                .append(token).toString();
-        Client client = Client.create();
-        WebResource resource = client.resource(url);
-        String response = null;
-        try {
-            response = resource
-                .accept("text/json")
-                .header("X-Auth-Token", this.adminToken)
-                .get(String.class);
-        } catch (UniformInterfaceException e) {
-            // Invalid token.
-            return false;
-        }
+		if (token == null) {
+			throw new NullPointerException(token);
+		}
 
-        // TODO: Remove this later
-        System.out.println("Got " + response);
-        parser.parse(response);
-        System.out.println("Token = " + parser.getToken());
-        System.out.println("TokenExp = " + parser.getTokenExpiration());
-        System.out.println("TokenTenant = " + parser.getTokenTenant());
-        System.out.println("User = " + parser.getUser());
-        System.out.println("UserTenant = " + parser.getUserTenant());
-        String[] roles = parser.getUserRoles();
-        for(int i = 0; i < roles.length; i++)
-            System.out.println("UserRole = " + roles[i]);
+		KeystoneJsonParser parser = new KeystoneJsonParser();
+		String url = new StringBuilder(this.serviceUrl).append("/tokens/")
+				.append(token).toString();
+		Client client = Client.create();
+		WebResource resource = client.resource(url);
+		String response = null;
+		try {
+			response = resource.accept("text/json").header("X-Auth-Token",
+					this.adminToken).get(String.class);
+		} catch (UniformInterfaceException e) {
+			// Invalid token.
+			return false;
+		}
 
-        return true;
-    }
+		// TODO: Remove this later
+		log.info("Got " + response);
+		parser.parse(response);
+		log.info("Token = " + parser.getToken());
+		log.info("TokenExp = " + parser.getTokenExpiration());
+		log.info("TokenTenant = " + parser.getTokenTenant());
+		log.info("User = " + parser.getUser());
+		log.info("UserTenant = " + parser.getUserTenant());
+		String[] roles = parser.getUserRoles();
+		for (int i = 0; i < roles.length; i++)
+			System.out.println("UserRole = " + roles[i]);
+
+		return true;
+	}
 }

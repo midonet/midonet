@@ -8,9 +8,9 @@ package com.midokura.midolman.mgmt.data.state;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -45,9 +45,9 @@ public class VifZkManager extends ZkManager {
 		this.ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
-	public ZkNodeEntry<UUID, VifConfig> get(UUID id) throws KeeperException,
-			InterruptedException, ZkStateSerializationException {
-		byte[] data = zk.get(ZkMgmtPathManager.getVifPath(id), null);
+	public ZkNodeEntry<UUID, VifConfig> get(UUID id)
+			throws StateAccessException, ZkStateSerializationException {
+		byte[] data = get(ZkMgmtPathManager.getVifPath(id), null);
 		VifConfig config = null;
 		try {
 			config = deserialize(data, VifConfig.class);

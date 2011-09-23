@@ -16,7 +16,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for ports.
@@ -50,54 +50,58 @@ public class PortResource extends RestResource {
 	 * @param id
 	 *            Port UUID.
 	 * @return Port object.
+	 * @throws StateAccessException 
 	 * @throws Exception
 	 * @throws Exception
 	 */
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Port get(@PathParam("id") UUID id) {
+	public Port get(@PathParam("id") UUID id) throws StateAccessException {
 		// Get a port for the given ID.
 		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			return dao.get(id);
-		} catch (Exception ex) {
-			log.error("Error getting port", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 	}
 
 	@DELETE
 	@Path("{id}")
-	public void delete(@PathParam("id") UUID id) {
+	public void delete(@PathParam("id") UUID id) throws StateAccessException {
 		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.delete(id);
-		} catch (Exception ex) {
-			log.error("Error deleting port", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 	}
 	
 	@PUT
 	@Path("{id}/plug")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response plug(@PathParam("id") UUID id, Port port) {
+	public Response plug(@PathParam("id") UUID id, Port port) throws StateAccessException {
 		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.attachVif(id, port);
-		} catch (Exception ex) {
-			log.error("Error attaching VIF", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 		return Response.ok().build();
 	}
@@ -105,16 +109,17 @@ public class PortResource extends RestResource {
 	@PUT
 	@Path("{id}/unplug")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response unplug(@PathParam("id") UUID id) {
+	public Response unplug(@PathParam("id") UUID id) throws StateAccessException {
 		PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 		try {
 			dao.detachVif(id);
-		} catch (Exception ex) {
-			log.error("Error detaching VIF", ex);
-			throw new WebApplicationException(ex, Response.status(
-					Response.Status.INTERNAL_SERVER_ERROR).type(
-					MediaType.APPLICATION_JSON).build());
+		} catch (StateAccessException e) {
+			log.error("Error accessing data", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled error", e);
+			throw new UnknownRestApiException(e);
 		}
 		return Response.ok().build();
 	}
@@ -130,8 +135,8 @@ public class PortResource extends RestResource {
 
 		@POST
 		@Consumes(MediaType.APPLICATION_JSON)
-		public Response create(Port port, @Context UriInfo uriInfo)
-				throws Exception {
+		public Response create(Port port, @Context UriInfo uriInfo) throws StateAccessException
+				{
 			port.setDeviceId(bridgeId);
 			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
@@ -139,11 +144,12 @@ public class PortResource extends RestResource {
 			UUID id = null;
 			try {
 				id = dao.create(port);
-			} catch (Exception ex) {
-				log.error("Error creating bridge ports", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 
 			URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
@@ -152,16 +158,17 @@ public class PortResource extends RestResource {
 
 		@GET
 		@Produces(MediaType.APPLICATION_JSON)
-		public Port[] list() {
+		public Port[] list() throws StateAccessException {
 			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 			try {
 				return dao.listBridgePorts(bridgeId);
-			} catch (Exception ex) {
-				log.error("Error listing bridge ports", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 		}
 	}
@@ -181,7 +188,7 @@ public class PortResource extends RestResource {
 		@POST
 		@Consumes(MediaType.APPLICATION_JSON)
 		public Response create(MaterializedRouterPort port,
-				@Context UriInfo uriInfo) throws Exception {
+				@Context UriInfo uriInfo) throws StateAccessException {
 			port.setDeviceId(routerId);
 			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
@@ -189,11 +196,12 @@ public class PortResource extends RestResource {
 			UUID id = null;
 			try {
 				id = dao.create(port);
-			} catch (Exception ex) {
-				log.error("Error creating router ports", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 
 			URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
@@ -202,16 +210,17 @@ public class PortResource extends RestResource {
 
 		@GET
 		@Produces(MediaType.APPLICATION_JSON)
-		public Port[] list() {
+		public Port[] list() throws StateAccessException {
 			PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
 					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
 			try {
 				return dao.listRouterPorts(routerId);
-			} catch (Exception ex) {
-				log.error("Error listing router ports", ex);
-				throw new WebApplicationException(ex, Response.status(
-						Response.Status.INTERNAL_SERVER_ERROR).type(
-						MediaType.APPLICATION_JSON).build());
+			} catch (StateAccessException e) {
+				log.error("Error accessing data", e);
+				throw e;
+			} catch (Exception e) {
+				log.error("Unhandled error", e);
+				throw new UnknownRestApiException(e);
 			}
 		}
 	}
