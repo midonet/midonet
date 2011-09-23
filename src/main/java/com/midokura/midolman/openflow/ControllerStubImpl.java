@@ -245,7 +245,17 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         fm.setCommand(OFFlowMod.OFPFC_ADD);
         fm.setMatch(match).setCookie(cookie).setIdleTimeout(idleTimeoutSecs);
         fm.setHardTimeout(hardTimeoutSecs).setPriority(priority);
-        fm.setBufferId(bufferId).setFlags(flags).setActions(actions);
+        fm.setBufferId(bufferId).setFlags(flags);
+        
+        fm.setActions(actions);
+        
+        int totalActionLength = 0;
+        for (OFAction a : actions) {
+            totalActionLength += a.getLengthU();
+        }
+        fm.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + totalActionLength));
+        
+        log.debug("sendFlowModAdd: about to send {}", fm);
 
         stream.write(fm);
     }
