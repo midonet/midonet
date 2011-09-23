@@ -1080,6 +1080,11 @@ public class NetworkController extends AbstractController {
     }
 
     @Override
+    protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
+        // Do nothing.
+    }
+
+    @Override
     public void clear() {
         // TODO Auto-generated method stub
     }

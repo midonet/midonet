@@ -293,7 +293,12 @@ public abstract class AbstractController implements Controller {
             log.info("Tearing down tunnel " + grePortName);
             ovsdb.delPort(grePortName);
         }
+
+        portMoved(portUuid, oldAddr, newAddr);
     }
+
+    abstract protected void portMoved(UUID portUuid, Integer oldAddr,
+                                      Integer newAddr);
 
     protected OFMatch createMatchFromPacket(Ethernet data, short inPort) {
         MidoMatch match = new MidoMatch();
