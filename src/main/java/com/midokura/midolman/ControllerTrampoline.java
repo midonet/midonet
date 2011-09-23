@@ -132,6 +132,12 @@ public class ControllerTrampoline implements Controller {
                                                                    "");
 
                 File socketFile = new File("/var/run/quagga/zserv.api");
+                File socketDir = socketFile.getParentFile();
+                if (!socketDir.exists()) {
+                    socketDir.mkdirs();
+                    // Set permission to let quagga daemons write.
+                    socketDir.setWritable(true, false);
+                }
                 AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
                 AFUNIXSocketAddress address =
                     new AFUNIXSocketAddress(socketFile);
