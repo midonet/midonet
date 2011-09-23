@@ -144,7 +144,7 @@ public class BgpPortService implements PortService {
                               String portName) {
         String service = ovsdb.getPortExternalId(datapathId, portNum,
                                                  portServiceExtIdKey);
-        if (service != BGP_SERVICE_EXT_ID) {
+        if (!BGP_SERVICE_EXT_ID.equals(service)) {
             log.info("No service type found for this port");
             return null;
         }
@@ -185,7 +185,8 @@ public class BgpPortService implements PortService {
                 portConfig.nwLength, portName));
     }
 
-    public void start(short localPortNum, L3DevicePort remotePort) throws
+    public void start(final short localPortNum, final L3DevicePort remotePort)
+        throws
         KeeperException, InterruptedException, ZkStateSerializationException,
         IOException {
         UUID remotePortId = remotePort.getId();
@@ -193,7 +194,17 @@ public class BgpPortService implements PortService {
         MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
         int localAddr = portConfig.portAddr;
 
-        for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(remotePortId)) {
+        for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(
+                 remotePortId, new Runnable() {
+                     @Override
+                     public void run() {
+                         try {
+                             start(localPortNum, remotePort);
+                         } catch(Exception e) {
+                             e.printStackTrace();
+                         }
+                     }
+                 })) {
             BgpConfig bgpConfig = bgpNode.value;
             int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
             log.info(String.format("Port service flows: local %d remote %d " +
