@@ -175,6 +175,14 @@
                                     </mapper>
                                 </data>
                                 <data>
+                                    <src>${project.basedir}/conf</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/midolman</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
                                     <src>${project.basedir}/lib-native</src>
                                     <type>directory</type>
                                     <mapper>
