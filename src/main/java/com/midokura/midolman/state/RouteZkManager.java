@@ -48,7 +48,7 @@ public class RouteZkManager extends ZkManager {
             throws KeeperException, InterruptedException,
             ZkStateSerializationException {
         // Determine whether to add the Route data under routers or ports.
-        if (entry.value.nextHop == Route.NextHop.PORT) {
+        if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
             // Check what kind of port this is.
             PortZkManager portZkManager = new PortZkManager(zk, pathManager
                     .getBasePath());
@@ -127,7 +127,7 @@ public class RouteZkManager extends ZkManager {
             ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getRoutePath(entry.key), -1));
-        if (entry.value.nextHop == Route.NextHop.PORT) {
+        if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
             ops.add(Op.delete(pathManager.getPortRoutePath(
                     entry.value.nextHopPort, entry.key), -1));
         } else {

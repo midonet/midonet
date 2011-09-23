@@ -14,8 +14,8 @@ public abstract class NatRule extends Rule {
     public NatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action);
         this.dnat = dnat;
-        if (action != Action.ACCEPT && action != Action.CONTINUE
-                && action != Action.RETURN)
+        if (!action.equals(Action.ACCEPT) && !action.equals(Action.CONTINUE)
+                && !action.equals(Action.RETURN))
             throw new IllegalArgumentException("A nat rule's action "
                     + "must be one of: ACCEPT, CONTINUE, or RETURN.");
     }
@@ -27,8 +27,8 @@ public abstract class NatRule extends Rule {
             int position, boolean dnat) {
         super(condition, action, chainId, position);
         this.dnat = dnat;
-        if (action != Action.ACCEPT && action != Action.CONTINUE
-                && action != Action.RETURN)
+        if (!action.equals(Action.ACCEPT) && !action.equals(Action.CONTINUE)
+                && !action.equals(Action.RETURN))
             throw new IllegalArgumentException("A nat rule's action "
                     + "must be one of: ACCEPT, CONTINUE, or RETURN.");
     }

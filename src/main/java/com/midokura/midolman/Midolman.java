@@ -147,7 +147,8 @@ public class Midolman implements SelectListener, Watcher {
             disconnected_kill_timer = executor.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    log.error("have been disconnected for {} seconds, so exiting", disconnected_ttl_seconds);
+                    log.error("have been disconnected for {} seconds, " +
+                              "so exiting", disconnected_ttl_seconds);
                     System.exit(-1);
                 }
             }, disconnected_ttl_seconds, TimeUnit.SECONDS);

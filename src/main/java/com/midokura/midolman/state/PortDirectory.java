@@ -247,7 +247,7 @@ public class PortDirectory {
     public void updatePort(UUID portId, PortDirectory.PortConfig newPort) throws IOException,
             ClassNotFoundException, KeeperException, InterruptedException {
         PortDirectory.PortConfig oldPort = getPortConfig(portId, null, null);
-        if (oldPort.getClass() != newPort.getClass())
+        if (!oldPort.getClass().equals(newPort.getClass()))
             throw new IllegalArgumentException(
                     "Cannot change a port's type without first deleting it.");
         byte[] portData = portToBytes(newPort);

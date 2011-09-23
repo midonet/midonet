@@ -218,10 +218,10 @@ public class RuleEngine {
                 res.jumpToChain = null;
                 cp.rules.get(cp.position).process(inPortId, outPortId, res);
                 cp.position++;
-                if (res.action == Action.ACCEPT || res.action == Action.DROP
-                        || res.action == Action.REJECT) {
+                if (res.action.equals(Action.ACCEPT) || res.action.equals(Action.DROP)
+                        || res.action.equals(Action.REJECT)) {
                     return res;
-                } else if (res.action == Action.JUMP) {
+                } else if (res.action.equals(Action.JUMP)) {
                     if (traversedChains.contains(res.jumpToChain)) {
                         // TODO(pino): log a warning?
                         // Avoid jumping to chains we've already seen.
@@ -242,12 +242,16 @@ public class RuleEngine {
                     chainStack.push(new ChainPosition(res.jumpToChain,
                             nextChain, 0));
                     break;
-                } else if (res.action == Action.RETURN) {
+                } else if (res.action.equals(Action.RETURN)) {
                     // Stop processing this chain; return to the calling chain.
                     break;
-                } else { // Action.CONTINUE
-                         // TODO(pino): should we check that action == CONTINUE?
-                         // Move on to the next rule in the same chain.
+                } else if (res.action.equals(Action.CONTINUE)) {
+                    // Move on to the next rule in the same chain.
+                    continue;
+                } else {
+                    log.error("Unknown action type {} in rule chain", 
+                              res.action);
+                    // TODO: Should we throw an exception?
                     continue;
                 }
             }
