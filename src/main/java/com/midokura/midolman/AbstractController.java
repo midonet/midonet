@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.openflow.protocol.action.OFAction;
@@ -34,7 +35,7 @@ import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 import com.midokura.midolman.util.Net;
 
-public abstract class AbstractController implements Controller {
+public abstract class AbstractController implements Controller, AbstractControllerMXBean {
 
     Logger log = LoggerFactory.getLogger(AbstractController.class);
 
@@ -346,4 +347,9 @@ public abstract class AbstractController implements Controller {
         if (bufferId == 0xffffffff)
             controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
     }
+    
+    public Map<Integer, Integer> getTunnelPortNumToPeerIp() {
+        return tunnelPortNumToPeerIp;
+    }
+
 }

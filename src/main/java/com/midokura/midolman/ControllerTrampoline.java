@@ -6,8 +6,12 @@ package com.midokura.midolman;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.UUID;
+
+import javax.management.JMException;
+import javax.management.ObjectName;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
@@ -45,7 +49,6 @@ import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
-import com.midokura.midolman.util.Net;
 
 public class ControllerTrampoline implements Controller {
 
@@ -224,10 +227,15 @@ public class ControllerTrampoline implements Controller {
             controllerStub = null;
             newController.onConnectionMade();
             
+            ObjectName on = new ObjectName("com.midokura.midolman:type=Controller,name=" + deviceId);
+            ManagementFactory.getPlatformMBeanServer().registerMBean(newController, on);
+            
         } catch (KeeperException e) {
             log.warn("ZK error", e);
         } catch (IOException e) {
             log.warn("IO error", e);
+        } catch (JMException e) {
+            log.warn("JMX error", e);
         }
     }
 
