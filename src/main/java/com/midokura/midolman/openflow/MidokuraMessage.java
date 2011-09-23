@@ -8,7 +8,7 @@ import org.openflow.protocol.OFVendor;
 
 public class MidokuraMessage extends OFVendor {
     
-    public static final int MIDOKURA_VENDOR_ID = 1;
+    public static final int MIDOKURA_VENDOR_ID = 0x00ACCABA;
     
     public MidokuraMessage() {
         super.setVendor(MIDOKURA_VENDOR_ID);
