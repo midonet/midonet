@@ -170,10 +170,10 @@ public abstract class AbstractController implements Controller, AbstractControll
     @Override
     public final void onPortStatus(OFPhysicalPort portDesc,
                                    OFPortReason reason) {
-        if (reason == OFPortReason.OFPPR_ADD) {
+        if (reason.equals(OFPortReason.OFPPR_ADD)) {
             short portNum = portDesc.getPortNumber();
             callAddPort(portDesc, portNum);
-        } else if (reason == OFPortReason.OFPPR_DELETE) {
+        } else if (reason.equals(OFPortReason.OFPPR_DELETE)) {
             deletePort(portDesc);
             Integer portNum = new Integer(portDesc.getPortNumber());
             portNumToUuid.remove(portNum);
@@ -181,7 +181,7 @@ public abstract class AbstractController implements Controller, AbstractControll
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
             Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
             peerIpToTunnelPortNum.remove(peerIp);
-        } else {
+        } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
             modifyPort(portDesc);
             UUID uuid = getPortUuidFromOvsdb(datapathId, 
                                              portDesc.getPortNumber());
@@ -200,6 +200,8 @@ public abstract class AbstractController implements Controller, AbstractControll
                 Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
                 peerIpToTunnelPortNum.remove(peerIp);
             }
+        } else {
+            log.error("Unknown OFPortReason update: {}", reason);
         }
     }
 
@@ -285,7 +287,7 @@ public abstract class AbstractController implements Controller, AbstractControll
                                 : Net.convertIntAddressToString(oldAddr),
                 newAddr == null ? "null"
                                 : Net.convertIntAddressToString(newAddr)});
-        if (newAddr != null && newAddr != publicIp) {
+        if (newAddr != null && !newAddr.equals(publicIp)) {
             // Try opening the tunnel even if we already have one in order to
             // cancel any in-progress tunnel deletion requests.
             String grePortName = makeGREPortName(newAddr);
@@ -297,7 +299,7 @@ public abstract class AbstractController implements Controller, AbstractControll
             ovsdb.addGrePort(datapathId, grePortName, newAddrStr).build();
         }    
 
-        if (oldAddr != null && oldAddr != publicIp) {
+        if (oldAddr != null && !oldAddr.equals(publicIp)) {
             // Peer might still be in portLocMap under a different portUuid.
             if (portLocMapContainsPeer(oldAddr))
                 return;
