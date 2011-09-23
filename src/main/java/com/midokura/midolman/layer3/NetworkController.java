@@ -1001,7 +1001,6 @@ public class NetworkController extends AbstractController {
                 public void run() {
                     try {
                         service.start(portNum, devPortById.get(portId));
-                        //startPortService(portNum, portId);
                     } catch(Exception e) {
                         log.warn("startPortService", e);
                     }
