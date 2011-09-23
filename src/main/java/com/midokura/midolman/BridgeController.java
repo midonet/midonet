@@ -207,7 +207,7 @@ public class BridgeController extends AbstractController {
         UUID mappedPortUuid = macPortMap.get(srcDlAddress);
         
         if (!srcAddressIsMcast && inPortUuid != null &&
-                inPortUuid != mappedPortUuid) {
+                !inPortUuid.equals(mappedPortUuid)) {
             // The MAC changed port:  invalidate old flows before installing 
             // a new flowmod for this MAC.
             invalidateFlowsFromMac(srcDlAddress);
