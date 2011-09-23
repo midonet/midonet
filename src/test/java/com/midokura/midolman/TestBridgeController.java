@@ -443,8 +443,18 @@ public class TestBridgeController {
         checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
 
+        assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
+        MidoMatch expectSrcDelete = new MidoMatch();
+        expectSrcDelete.setDataLayerSource(macList[1].address);
+        MidoMatch expectDstDelete = new MidoMatch();
+        expectDstDelete.setDataLayerDestination(macList[1].address);
+        assertEquals(expectSrcDelete,
+                     controllerStub.deletedFlows.get(oldDelCount).match);
+        assertEquals(expectDstDelete,
+                     controllerStub.deletedFlows.get(oldDelCount+1).match);
+        oldDelCount += 2;
+
         // Move the port, check that the controller removed the flow.
-        assertEquals(oldDelCount, controllerStub.deletedFlows.size());
         portLocMap.put(portUuids[3], Net.convertStringAddressToInt("1.2.3.4"));
         assertTrue(oldDelCount < controllerStub.deletedFlows.size());
         MidoMatch expectedMatch = new MidoMatch();
