@@ -52,7 +52,7 @@ public abstract class AbstractController implements Controller, AbstractControll
     protected HashMap<Integer, Integer> tunnelPortNumToPeerIp;
     protected HashMap<Integer, Integer> peerIpToTunnelPortNum;
 
-    protected PortToIntNwAddrMap.Watcher listener;
+    protected PortToIntNwAddrMap.Watcher<UUID, Integer> listener;
 
     private OpenvSwitchDatabaseConnection ovsdb;
 

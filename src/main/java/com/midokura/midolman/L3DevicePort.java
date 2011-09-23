@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 public class L3DevicePort {
 
     public interface Listener {
-        void configChanged(UUID portId, PortDirectory.MaterializedRouterPortConfig old,
+        void configChanged(UUID portId,
+                PortDirectory.MaterializedRouterPortConfig old,
                 PortDirectory.MaterializedRouterPortConfig current);
 
         void routesChanged(UUID portId, Collection<Route> removed,
@@ -88,7 +90,8 @@ public class L3DevicePort {
     }
 
     private void updatePortConfig() throws Exception {
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId, portWatcher);
+        ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId,
+                portWatcher);
         PortDirectory.PortConfig cfg = entry.value;
         if (!(cfg instanceof PortDirectory.MaterializedRouterPortConfig))
             throw new Exception("L3DevicePort's virtual configuration isn't "
@@ -116,7 +119,8 @@ public class L3DevicePort {
 
     private void updateRoutes() throws KeeperException, InterruptedException,
             ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, Route>> entries = routeMgr.listPortRoutes(portId, routesWatcher);
+        List<ZkNodeEntry<UUID, Route>> entries = routeMgr.listPortRoutes(
+                portId, routesWatcher);
         Set<Route> routes = new HashSet<Route>();
         for (ZkNodeEntry<UUID, Route> entry : entries)
             routes.add(entry.value);
@@ -148,8 +152,8 @@ public class L3DevicePort {
     public void send(byte[] pktData) {
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(portNum, (short) 0));
-        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
-                ControllerStub.CONTROLLER_PORT, actions, pktData);
+        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID, OFPort.OFPP_CONTROLLER
+                .getValue(), actions, pktData);
     }
 
     public PortDirectory.MaterializedRouterPortConfig getVirtualConfig() {

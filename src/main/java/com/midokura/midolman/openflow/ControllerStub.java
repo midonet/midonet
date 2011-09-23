@@ -13,7 +13,6 @@ import org.openflow.protocol.action.OFAction;
 // This is the analogue to the openfaucet "protocol" class in Python.
 public interface ControllerStub {
     public static final int UNBUFFERED_ID = 0xffffffff;
-    public static final short CONTROLLER_PORT = -1; // TODO: check this.
 
     void setController(Controller controller);
 
