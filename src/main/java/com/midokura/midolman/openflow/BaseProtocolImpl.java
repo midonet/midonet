@@ -60,7 +60,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
     private final static Logger log = LoggerFactory.getLogger(BaseProtocolImpl.class);
 
-    protected SocketChannel sock;
     protected SelectionKey key;
 
     protected BasicFactory factory;
@@ -96,7 +95,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
     public BaseProtocolImpl(SocketChannel sock, Reactor reactor)
             throws IOException {
-        this.sock = sock;
+        this.socketChannel = sock;
         this.reactor = reactor;
 
         this.connectedSince = new Date();
@@ -219,7 +218,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
         key.cancel();
         onConnectionLost();
         try {
-            sock.socket().close();
+            socketChannel.socket().close();
         } catch (IOException e) {
             log.warn("disconnectSwitch", e);
         }
