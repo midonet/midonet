@@ -6,6 +6,7 @@ package com.midokura.midolman.openflow;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Date;
@@ -209,6 +210,9 @@ public abstract class BaseProtocolImpl implements SelectListener {
             // if we have an exception, disconnect the switch
             log.warn("handleEvent", e);
             disconnectSwitch();
+        } catch (CancelledKeyException e) {
+            // can occur if we alraedy disconnected and this handler is called
+            log.warn("handleEvent, must have already disconnected", e);
         }
     }
 
