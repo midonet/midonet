@@ -44,7 +44,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     protected Date connectedSince;
     protected OFFeaturesReply featuresReply;
     protected OFGetConfigReply configReply;
-    protected SocketChannel socketChannel;
     protected HashMap<Short, OFPhysicalPort> ports = new HashMap<Short, OFPhysicalPort>();
 
     public ControllerStubImpl(SocketChannel sock, Reactor reactor,
