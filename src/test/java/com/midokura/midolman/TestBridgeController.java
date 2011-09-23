@@ -380,6 +380,8 @@ public class TestBridgeController {
     public void testFlowInvalidatePortUnreachable() 
                 throws KeeperException, InterruptedException {
         int oldDelCount = controllerStub.deletedFlows.size();
+        log.info("Start of testFlowInvalidatePortUnreachable: del flow " +
+                 "count is {}", oldDelCount);
         controller.onPacketIn(14, 13, (short)0, packet03.serialize());
         controller.onPacketIn(14, 13, (short)1, packet13.serialize());
         controller.onPacketIn(14, 13, (short)0, packet04.serialize());
@@ -397,7 +399,19 @@ public class TestBridgeController {
                                             .actions.toArray());
         }
 
-        assertEquals(oldDelCount, controllerStub.deletedFlows.size());
+        assertEquals(oldDelCount+4, controllerStub.deletedFlows.size());
+        MidoMatch expectedDeletes[] = {
+                new MidoMatch(), new MidoMatch(),
+                new MidoMatch(), new MidoMatch() };
+        expectedDeletes[0].setDataLayerSource(macList[0].address);
+        expectedDeletes[1].setDataLayerDestination(macList[0].address);
+        expectedDeletes[2].setDataLayerSource(macList[1].address);
+        expectedDeletes[3].setDataLayerDestination(macList[1].address);
+        for (int i = 0; i < 4; i++) {
+            assertEquals(expectedDeletes[i],
+                         controllerStub.deletedFlows.get(oldDelCount+i).match);
+        }
+        oldDelCount += 4;
         // Trigger a notification that the remote port on the other
         // end of the tunnel has gone away.
         log.info("Removing port {} from portLocMap", portUuids[3]);
