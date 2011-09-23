@@ -948,7 +948,7 @@ public class NetworkController extends AbstractController {
         // are setting the standard max_len (128 bytes) in OpenFlow.
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
-        actions.add(new OFActionOutput(ControllerStub.CONTROLLER_PORT,
+        actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
                                        (short) 128));
         controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
                                       OFP_FLOW_PERMANENT,
@@ -1046,7 +1046,8 @@ public class NetworkController extends AbstractController {
                 if (devPort != null) {
                     network.addPort(devPort);
                     addServicePort(devPort);
-                } else if (portNum != ControllerStub.CONTROLLER_PORT) {
+                } else if (portNum != OFPort.OFPP_CONTROLLER.getValue() &&
+                           portNum != OFPort.OFPP_LOCAL.getValue()) {
                     // Service port is up.
                     setupServicePort(portDesc);
                 }

@@ -1665,8 +1665,7 @@ public class TestNetworkController {
         match.setDataLayerType(ARP.ETHERTYPE);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) localPortNum, (short) 0));
-        actions.add(new OFActionOutput(ControllerStub.CONTROLLER_PORT,
-                                       //actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
+        actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
                                        (short) 128));
         checkInstalledFlow(controllerStub.addedFlows.get(5), match, (short) 0,
                            ControllerStub.UNBUFFERED_ID, false, actions);
