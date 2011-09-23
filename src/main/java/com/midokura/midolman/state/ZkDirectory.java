@@ -79,6 +79,10 @@ public class ZkDirectory implements Directory {
     public Set<String> getChildren(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
+        // path cannot end with / so strip it off
+        if (absPath.endsWith("/")) {
+            absPath.substring(0, absPath.length() - 1);
+        }
         return new HashSet<String>(zk.getChildren(absPath,
                 (null == watcher) ? null : new MyWatcher(watcher)));
     }
