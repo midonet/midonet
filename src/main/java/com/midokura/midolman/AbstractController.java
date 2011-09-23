@@ -108,6 +108,8 @@ public abstract class AbstractController implements Controller, AbstractControll
 
     @Override
     public void onConnectionMade() {
+        log.info("onConnectionMade");
+
         // TODO: Maybe find and record the datapath_id?
         //       The python implementation did, but here we get the dp_id
         //       in the constructor.
@@ -119,11 +121,16 @@ public abstract class AbstractController implements Controller, AbstractControll
         // Add all the ports.
         for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
             callAddPort(portDesc, portDesc.getPortNumber());
+                
+        portLocMap.start();
     }
 
     @Override
     public void onConnectionLost() {
-        clear();
+        log.info("onConnectionLost");
+
+        portLocMap.stop();
+
         portNumToUuid.clear();
         portUuidToNumberMap.clear();
         tunnelPortNumToPeerIp.clear();
@@ -211,9 +218,6 @@ public abstract class AbstractController implements Controller, AbstractControll
         log.debug("onMessage: {}", m);
         // Don't do anything else.
     }
-
-    /* Clean up resources, especially the ZooKeeper state. */
-    abstract public void clear();
 
     /* Maps a port UUID to its number on the local datapath. */
     public int portUuidToNumber(UUID port_uuid) {

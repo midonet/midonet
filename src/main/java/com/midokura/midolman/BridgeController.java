@@ -113,16 +113,6 @@ public class BridgeController extends AbstractController {
     }
 
     @Override
-    public void clear() {
-        port_locs.stop();
-        macPortMap.stop();
-        // .stop() includes a .clear() of the underlying map, so we don't
-        // need to clear out the entries here.
-        macPortMap.removeWatcher(macToPortWatcher);
-        // FIXME(jlm): Clear all flows.
-    }
-
-    @Override
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
@@ -180,6 +170,8 @@ public class BridgeController extends AbstractController {
             actions = new OFAction[] { new OFActionOutput(output.getValue(), 
                                                           (short)0) };
         } else if (portUuidToNumberMap.containsKey(outPort)) {
+            log.debug("onPacketIn: outputting to local port {}", outPort);
+
             // The port is on this local datapath, so send the flow to it 
             // directly.
             short localPortNum = portUuidToNumberMap.get(outPort).shortValue();
@@ -289,6 +281,8 @@ public class BridgeController extends AbstractController {
 
     @Override
     protected void addPort(OFPhysicalPort portDesc, short portNum) {
+        log.info("addPort: {} {}", portDesc, portNum);
+
         if (isTunnelPortNum(portNum))
             invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
         else {
@@ -334,6 +328,7 @@ public class BridgeController extends AbstractController {
 
     @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
+        log.error("modifyPort: not implemented");
         // FIXME
     }
 
@@ -369,4 +364,27 @@ public class BridgeController extends AbstractController {
             invalidateFlowsToPortUuid(port);
         }
     }
+    
+    @Override
+    public void onConnectionMade() {
+        log.info("onConnectionMade");
+        
+        macPortMap.start();
+        
+        super.onConnectionMade();
+    }
+
+    @Override
+    public void onConnectionLost() {
+        log.info("onConnectionLost");
+
+        macPortMap.stop();
+        // .stop() includes a .clear() of the underlying map, so we don't
+        // need to clear out the entries here.
+        macPortMap.removeWatcher(macToPortWatcher);
+        // FIXME(jlm): Clear all flows.
+        
+        super.onConnectionLost();
+    }
+
 }

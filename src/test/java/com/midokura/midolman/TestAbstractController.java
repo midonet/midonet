@@ -67,7 +67,7 @@ class AbstractControllerTester extends AbstractController {
             long byteCount) { }
 
     @Override
-    public void clear() {
+    public void onConnectionLost() {
         portsAdded = new ArrayList<OFPhysicalPort>();
         portsRemoved = new ArrayList<OFPhysicalPort>();
         portsModified = new ArrayList<OFPhysicalPort>();
