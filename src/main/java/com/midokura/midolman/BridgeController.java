@@ -228,7 +228,7 @@ public class BridgeController extends AbstractController {
         // source address.  We wait to learn a MAC-port mapping until 
         // there's a flow from the MAC because flows are used to 
         // reference-count the mapping.
-        if (inPortUuid != null && !!srcAddressIsMcast)
+        if (inPortUuid != null && !srcAddressIsMcast)
             increaseMacPortFlowCount(srcDlAddress, inPortUuid);
     }
 
