@@ -1,7 +1,7 @@
 package com.midokura.midolman.layer3;
 
-import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,20 +55,21 @@ import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.BgpZkManager;
-import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
@@ -1166,8 +1166,7 @@ public class TestNetworkController {
         Assert.assertEquals(nwAddr, decoded.gatewayNwAddr);
     }
 
-    private void addUplink() throws IOException, KeeperException,
-            InterruptedException, ZkStateSerializationException {
+    private void addUplink() throws StateAccessException, ZkStateSerializationException {
         // Add an uplink to router0.
         uplinkId = ShortUUID.intTo32BitUUID(26473345);
         int p2pUplinkNwAddr = 0xc0a80004;
@@ -1192,8 +1191,7 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testDnat() throws IOException, KeeperException,
-            InterruptedException, ZkStateSerializationException {
+    public void testDnat() throws StateAccessException, ZkStateSerializationException {
         // First add the uplink to router0.
         addUplink();
         // Now add a dnat rule to map 0x808e0005:80 to 0x0a010009:10080, an
@@ -1354,8 +1352,7 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testSnat() throws IOException, KeeperException,
-            InterruptedException, ZkStateSerializationException {
+    public void testSnat() throws StateAccessException, ZkStateSerializationException {
         // First add the uplink to router0.
         addUplink();
         // Now add a snat rule to map source addresses on router2
@@ -1555,8 +1552,8 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testBgpDataPath() throws IOException, KeeperException,
-        InterruptedException, ZkStateSerializationException {
+	public void testBgpDataPath() throws StateAccessException,
+			ZkStateSerializationException, UnknownHostException {
         // No flows should be installed at the beginning.
         Assert.assertEquals(0, controllerStub.addedFlows.size());
 

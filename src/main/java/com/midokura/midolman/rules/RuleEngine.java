@@ -1,6 +1,5 @@
 package com.midokura.midolman.rules;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,10 +19,11 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Callback;
 
 public class RuleEngine {
