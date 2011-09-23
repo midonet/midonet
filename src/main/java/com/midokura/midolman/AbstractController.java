@@ -36,9 +36,11 @@ import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 import com.midokura.midolman.util.Net;
 
-public abstract class AbstractController implements Controller, AbstractControllerMXBean {
+public abstract class AbstractController 
+        implements Controller, AbstractControllerMXBean {
 
-    private final static Logger log = LoggerFactory.getLogger(AbstractController.class);
+    private final static Logger log = 
+                        LoggerFactory.getLogger(AbstractController.class);
 
     protected long datapathId;
 
@@ -126,8 +128,10 @@ public abstract class AbstractController implements Controller, AbstractControll
     }
 
     @Override
-    public void onConnectionLost() {
+    public final void onConnectionLost() {
         log.info("onConnectionLost");
+
+        clear();
 
         portLocMap.stop();
 
@@ -136,6 +140,8 @@ public abstract class AbstractController implements Controller, AbstractControll
         tunnelPortNumToPeerIp.clear();
         peerIpToTunnelPortNum.clear();
     }
+
+    public abstract void clear();
 
     @Override
     public abstract void onPacketIn(int bufferId, int totalLen, short inPort,

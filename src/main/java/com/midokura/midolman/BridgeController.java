@@ -374,17 +374,13 @@ public class BridgeController extends AbstractController {
         super.onConnectionMade();
     }
 
-    @Override
-    public void onConnectionLost() {
-        log.info("onConnectionLost");
+    public void clear() {
+        log.info("clear");
 
         macPortMap.stop();
         // .stop() includes a .clear() of the underlying map, so we don't
         // need to clear out the entries here.
         macPortMap.removeWatcher(macToPortWatcher);
         // FIXME(jlm): Clear all flows.
-        
-        super.onConnectionLost();
     }
-
 }
