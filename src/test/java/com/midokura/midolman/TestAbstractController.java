@@ -90,6 +90,11 @@ class AbstractControllerTester extends AbstractController {
         portsModified.add(portDesc);
     }
 
+    @Override 
+    protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
+	// Do nothing.
+    }
+
     public void setFeatures(OFFeaturesReply features) {
         ((MockControllerStub) controllerStub).setFeatures(features);
     }

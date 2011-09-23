@@ -398,14 +398,20 @@ public class TestBridgeController {
         }
 
         assertEquals(oldDelCount, controllerStub.deletedFlows.size());
-        log.info("Removing port {}", portUuids[3]);
+        // Trigger a notification that the remote port on the other
+        // end of the tunnel has gone away.
+        log.info("Removing port {} from portLocMap", portUuids[3]);
         portLocMap.remove(portUuids[3]);
-        if (true) return; //XXX
+        assertEquals(oldDelCount+1, controllerStub.deletedFlows.size());
+        MidoMatch expectedMatch = new MidoMatch();
+        expectedMatch.setDataLayerDestination(macList[3].address);
+        assertEquals(expectedMatch,
+                     controllerStub.deletedFlows.get(oldDelCount).match);
+        log.info("Removing port {} from portLocMap", portUuids[4]);
+        portLocMap.remove(portUuids[4]);
         assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
-        for (int i = oldDelCount; i < oldDelCount+2; i++) {
-            assertArrayEquals(expectedActions[i], 
-                              controllerStub.deletedFlows.get(i)
-                                            .actions.toArray());
-        }
+        expectedMatch.setDataLayerDestination(macList[4].address);
+        assertEquals(expectedMatch,
+                     controllerStub.deletedFlows.get(oldDelCount+1).match);
     }
 }
