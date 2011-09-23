@@ -357,8 +357,9 @@ public abstract class AbstractController implements Controller, AbstractControll
         controllerStub.sendFlowModAdd(match, cookie, idleTimeout, hardTimeout,
                                       priority, bufferId, sendFlowRemoval,
                                       checkOverlap, emergency, actionList);
-        if (bufferId == 0xffffffff)
+        if (bufferId == ControllerStub.UNBUFFERED_ID) {
             controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
+        }
     }
     
     public Map<Integer, Integer> getTunnelPortNumToPeerIp() {
