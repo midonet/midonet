@@ -303,7 +303,10 @@ public abstract class AbstractController
                       Net.convertIntAddressToString(publicIp) + " to " + 
                       newAddrStr + " with name " + grePortName);
 
-            ovsdb.addGrePort(datapathId, grePortName, newAddrStr).build();
+            ovsdb.addGrePort(datapathId, grePortName, newAddrStr)
+                    .key(greKey)
+                    .localIp(Net.convertIntAddressToString(publicIp))
+                    .build();
         }    
 
         if (oldAddr != null && !oldAddr.equals(publicIp)) {
