@@ -548,4 +548,30 @@ public class TestBridgeController {
                          controllerStub.deletedFlows.get(i).match);
         }
     }
+
+    @Test
+    public void testBadlyMappedPortUuid() 
+                throws KeeperException, InterruptedException {
+        MAC srcMac = MAC.fromString("00:AA:AA:AA:AA:00");
+        MAC dstMac = MAC.fromString("00:AA:AA:AA:AA:01");
+        UUID dstUuid = UUID.fromString("251cbfb6-9ca1-4685-9320-c7203c4ffff2");
+        macPortMap.put(dstMac, dstUuid);
+        portLocMap.put(dstUuid, Net.convertInetAddressToInt(publicIp));
+        Ethernet packet = makePacket(srcMac, dstMac);
+        MidoMatch flowmatch = makeFlowMatch(srcMac, dstMac);
+        
+        // Send the packet from both local and tunnel ports.
+        for (short inPortNum : new short[] { 2, 4 }) {
+            controllerStub.addedFlows.clear();
+            controllerStub.sentPackets.clear();
+            MidoMatch expectMatch = flowmatch.clone();
+            expectMatch.setInputPort(inPortNum);
+            OFAction[] expectAction = {
+                inPortNum == 2 ? OUTPUT_ALL_ACTION : OUTPUT_FLOOD_ACTION };
+            controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+            checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+            checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        }
+    }
+
 }
