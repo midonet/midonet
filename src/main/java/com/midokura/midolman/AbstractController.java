@@ -371,6 +371,10 @@ public abstract class AbstractController
         }
     }
     
+    public int getGreKey() {
+        return greKey;
+    }
+    
     public Map<Integer, Integer> getTunnelPortNumToPeerIp() {
         return tunnelPortNumToPeerIp;
     }
