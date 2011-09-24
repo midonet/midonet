@@ -305,7 +305,7 @@ public abstract class AbstractController
             // cancel any in-progress tunnel deletion requests.
             String grePortName = makeGREPortName(newAddr);
             String newAddrStr = Net.convertIntAddressToString(newAddr);
-            log.debug("Requesting tunnel from " + 
+            log.info("Requesting tunnel from " + 
                       Net.convertIntAddressToString(publicIp) + " to " + 
                       newAddrStr + " with name " + grePortName);
 
