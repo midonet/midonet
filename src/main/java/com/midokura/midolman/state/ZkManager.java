@@ -59,8 +59,8 @@ public abstract class ZkManager {
             return zk.getSubDirectory(path);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while adding a persistent node to path "
-                            + path, e);
+                    "ZooKeeper error occurred while getting the directory "
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -70,11 +70,11 @@ public abstract class ZkManager {
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while checking if path exists: "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while checking if path exists: "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -87,11 +87,11 @@ public abstract class ZkManager {
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a persistent node to path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a persistent node to the path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -102,11 +102,11 @@ public abstract class ZkManager {
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a persistent node to path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a persistent node to the path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -117,11 +117,11 @@ public abstract class ZkManager {
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a ephemeral node to path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a ephemeral node to the path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -132,11 +132,11 @@ public abstract class ZkManager {
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a sequential node to path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a sequential node to the path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -150,12 +150,12 @@ public abstract class ZkManager {
             return zk.get(path, watcher);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while getting the path " + path,
-                    e);
+                    "ZooKeeper error occurred while getting the path " + path
+                            + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while getting the path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -171,11 +171,11 @@ public abstract class ZkManager {
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error interrupted while getting the children of "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while getting the children of "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
         return children;
     }
@@ -185,7 +185,8 @@ public abstract class ZkManager {
             return this.zk.multi(ops);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while executing multi ops.", e);
+                    "ZooKeeper error occurred while executing multi ops. "
+                            + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while executing multi ops.",
@@ -200,12 +201,12 @@ public abstract class ZkManager {
             zk.update(path, data);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while updating the path " + path,
-                    e);
+                    "ZooKeeper error occurred while updating the path " + path
+                            + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while updating the path "
-                            + path, e);
+                            + path + ": " + e.getMessage(), e);
         }
     }
 }

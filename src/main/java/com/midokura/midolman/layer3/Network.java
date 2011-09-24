@@ -1,6 +1,5 @@
 package com.midokura.midolman.layer3;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -109,6 +108,10 @@ public class Network {
             throws ZkStateSerializationException, StateAccessException {
         if (null == watcher)
             watcher = new PortWatcher(portId);
+        else {
+            // The watcher is only set when refresh is called by the watcher.
+            log.debug("refreshPortConfig for {}", portId.toString());
+        }
         ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId, watcher);
         PortDirectory.PortConfig cfg = entry.value;
         if (!(cfg instanceof PortDirectory.RouterPortConfig))
@@ -137,7 +140,7 @@ public class Network {
         Router rtr = routers.get(routerId);
         if (null != rtr)
             return rtr;
-        // TODO(pino): replace the following with a real implementation.
+        log.debug("Creating new router instance for {}", routerId.toString());
         Cache cache = new CacheWithPrefix(this.cache, routerId.toString());
         NatMapping natMap = new NatLeaseManager(routerMgr, routerId, cache);
         RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, routerId,
@@ -199,7 +202,7 @@ public class Network {
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
             throw new RuntimeException("Packet arrived on a port that hasn't "
-                    + "been added to the network yet.");
+                    + "been added to the network instance (yet?).");
 
         for (int i = 0; i < MAX_HOPS; i++) {
             traversedRouters.add(rtr.routerId);
@@ -219,6 +222,8 @@ public class Network {
                     PortDirectory.LogicalRouterPortConfig lcfg = PortDirectory.LogicalRouterPortConfig.class
                             .cast(cfg);
                     rtr = getRouterByPort(lcfg.peer_uuid);
+                    log.debug("Packet exited router on logical port to "
+                            + "router {}", rtr.routerId.toString());
                     if (traversedRouters.contains(rtr)) {
                         log.warn("Detected a routing loop.");
                         fwdInfo.action = Action.BLACKHOLE;
@@ -237,13 +242,13 @@ public class Network {
         }
         // If we got here, we traversed MAX_HOPS routers without reaching a
         // materialized port.
-        log.warn("Detected a routing loop.");
+        log.warn("More than {} routers traversed; probably a loop; giving up.",
+                MAX_HOPS);
         fwdInfo.action = Action.BLACKHOLE;
         return;
     }
 
     public void undoRouterTransformation(Ethernet tunneledEthPkt) {
         // TODO Auto-generated method stub
-
     }
 }

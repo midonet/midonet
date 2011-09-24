@@ -405,13 +405,15 @@ public class TestRouter {
         rtr.getMacForIp(port1Id, 0x0a000105, cb);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testArpRequestNonLocalAddress() {
         // Try to get the MAC via port 12 for an address that isn't in that
         // port's local network segment (i.e. not in 10.0.1.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
         UUID port1Id = portNumToId.get(12);
         rtr.getMacForIp(port1Id, 0x0a000105, cb);
+        Assert.assertEquals(1, cb.macsReturned.size());
+        Assert.assertNull(cb.macsReturned.get(0));
     }
 
     @Test

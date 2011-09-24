@@ -408,10 +408,11 @@ public class NetworkController extends AbstractController {
 
         @Override
         public void call(byte[] mac) {
-            String nwDstStr = IPv4.fromIPv4Address(match.getNetworkDestination());
+            String nwDstStr = IPv4.fromIPv4Address(match
+                    .getNetworkDestination());
             if (null != mac) {
-                String msg = String
-                        .format("Mac resolved for tunneled packet to {}", nwDstStr);
+                String msg = String.format(
+                        "Mac resolved for tunneled packet to {}", nwDstStr);
                 L3DevicePort devPort = devPortById
                         .get(portsAndGw.lastEgressPortId);
                 if (null == devPort) {
@@ -446,7 +447,8 @@ public class NetworkController extends AbstractController {
                             ofActions, inPort, data);
                 }
             } else {
-                log.debug("ARP timed out for tunneled packet to {}", nwDstStr);
+                log.debug("ARP timed out for tunneled packet to {}, send ICMP",
+                        nwDstStr);
                 installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
                 // The packet came over a tunnel so its mac addresses were used
@@ -500,13 +502,19 @@ public class NetworkController extends AbstractController {
 
         @Override
         public void call(byte[] mac) {
+            String nwDstStr = IPv4.fromIPv4Address(match
+                    .getNetworkDestination());
             if (null != mac) {
+                String msg = String.format("Mac resolved for local packet to"
+                        + "{}", nwDstStr);
                 L3DevicePort devPort = devPortById.get(fwdInfo.outPortId);
                 if (null == devPort) {
+                    log.warn("{} -- port is no longer local", msg);
                     // TODO(pino): do we need to do anything for this?
                     // The port was removed while we waited for the ARP.
                     return;
                 }
+                log.debug("{} -- forward and install flow", msg);
                 fwdInfo.matchOut.setDataLayerSource(devPort.getMacAddr());
                 fwdInfo.matchOut.setDataLayerDestination(mac);
                 List<OFAction> ofActions = makeActionsForFlow(match,
@@ -522,6 +530,8 @@ public class NetworkController extends AbstractController {
                         IDLE_TIMEOUT_SECS, true, ofActions, inPort.getNum(),
                         data);
             } else {
+                log.debug("ARP timed out for local packet to {} - send ICMP",
+                        nwDstStr);
                 installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
                 sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_HOST, inPort
@@ -774,7 +784,7 @@ public class NetworkController extends AbstractController {
         if (ipPkt.getProtocol() == ICMP.PROTOCOL_NUMBER) {
             ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
             if (icmpPkt.isError()) {
-                log.info("Don't generate ICMP Unreachable for other ICMP "
+                log.debug("Don't generate ICMP Unreachable for other ICMP "
                         + "errors.");
                 return false;
             }
@@ -782,7 +792,7 @@ public class NetworkController extends AbstractController {
         // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
         // Ignore packets to IP mcast addresses.
         if (ipPkt.isMcast()) {
-            log.info("Don't generate ICMP Unreachable for packets to an IP "
+            log.debug("Don't generate ICMP Unreachable for packets to an IP "
                     + "multicast address.");
             return false;
         }
@@ -796,14 +806,14 @@ public class NetworkController extends AbstractController {
                 return false;
             }
             if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
-                log.info("Don't generate ICMP Unreachable for packets to "
+                log.debug("Don't generate ICMP Unreachable for packets to "
                         + "the subnet local broadcast address.");
                 return false;
             }
         }
         // Ignore packets to Ethernet broadcast and multicast addresses.
         if (ethPkt.isMcast()) {
-            log.info("Don't generate ICMP Unreachable for packets to "
+            log.debug("Don't generate ICMP Unreachable for packets to "
                     + "Ethernet broadcast or multicast address.");
             return false;
         }
@@ -811,14 +821,14 @@ public class NetworkController extends AbstractController {
         // TODO(pino): See RFC 1812 sec. 5.3.7
         if (ipPkt.getSourceAddress() == 0xffffffff
                 || ipPkt.getDestinationAddress() == 0xffffffff) {
-            log.info("Don't generate ICMP Unreachable for all-hosts broadcast "
+            log.debug("Don't generate ICMP Unreachable for all-hosts broadcast "
                     + "packet");
             return false;
         }
         // TODO(pino): check this fragment offset
         // Ignore datagram fragments other than the first one.
         if (0 != (ipPkt.getFragmentOffset() & 0x1fff)) {
-            log.info("Don't generate ICMP Unreachable for IP fragment packet");
+            log.debug("Don't generate ICMP Unreachable for IP fragment packet");
             return false;
         }
         return true;
@@ -1055,6 +1065,10 @@ public class NetworkController extends AbstractController {
             L3DevicePort devPort = devPortOfPortDesc(portDesc);
             try {
                 if (devPort != null) {
+                    log.info("addPort number {} bound to virtual port {} with "
+                            + "nw address {}", new Object[] { portNum,
+                            devPort.getId(),
+                            devPort.getVirtualConfig().portAddr });
                     network.addPort(devPort);
                     addServicePort(devPort);
                 } else if (portNum != OFPort.OFPP_CONTROLLER.getValue()
@@ -1072,6 +1086,11 @@ public class NetworkController extends AbstractController {
     protected void deletePort(OFPhysicalPort portDesc) {
         if (!super.isTunnelPortNum(portDesc.getPortNumber())) {
             L3DevicePort devPort = devPortOfPortDesc(portDesc);
+            if (null == devPort)
+                return;
+            log.info("deletePort number {} bound to virtual port {} with "
+                    + "nw address {}", new Object[] { devPort.getNum(),
+                    devPort.getId(), devPort.getVirtualConfig().portAddr });
             try {
                 network.removePort(devPort);
             } catch (Exception e) {

@@ -24,6 +24,7 @@ import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Net;
 
 /**
  * This class coordinates the routing logic for a single virtual router. It uses
@@ -83,12 +84,18 @@ public class Router {
         public void configChanged(UUID portId,
                 PortDirectory.MaterializedRouterPortConfig old,
                 PortDirectory.MaterializedRouterPortConfig current) {
+            // Do nothing here. We get the non-routes configuration from the
+            // L3DevicePort each time we use it.
         }
 
         @Override
         public void routesChanged(UUID portId, Collection<Route> added,
                 Collection<Route> removed) {
+            // The L3DevicePort keeps the routes up-to-date and notifies us
+            // of changes so we can keep the replicated routing table in sync.
             for (Route rt : added) {
+                log.debug("{} routesChanged adding {} to table", rtrIdStr, rt
+                        .toString());
                 try {
                     table.addRoute(rt);
                 } catch (KeeperException e) {
@@ -98,6 +105,8 @@ public class Router {
                 }
             }
             for (Route rt : removed) {
+                log.debug("{} routesChanged removing {} from table", rtrIdStr,
+                        rt.toString());
                 try {
                     table.deleteRoute(rt);
                 } catch (KeeperException e) {
@@ -110,6 +119,7 @@ public class Router {
     }
 
     protected UUID routerId;
+    private String rtrIdStr;
     protected RuleEngine ruleEngine;
     protected ReplicatedRoutingTable table;
     // Note that only materialized ports are tracked. Package visibility for
@@ -124,6 +134,7 @@ public class Router {
     public Router(UUID routerId, RuleEngine ruleEngine,
             ReplicatedRoutingTable table, Reactor reactor) {
         this.routerId = routerId;
+        this.rtrIdStr = routerId.toString();
         this.ruleEngine = ruleEngine;
         this.table = table;
         this.devicePorts = new HashMap<UUID, L3DevicePort>();
@@ -138,8 +149,11 @@ public class Router {
     public void addPort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.put(port.getId(), port);
+        log.debug("{} addPort {} with number {}", new Object[] { rtrIdStr,
+                port.getId(), port.getNum() });
         port.addListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
+            log.debug("{} adding route {} to table", rtrIdStr, rt.toString());
             table.addRoute(rt);
         }
         arpCaches.put(port.getId(), new HashMap<Integer, ArpCacheEntry>());
@@ -151,8 +165,12 @@ public class Router {
     public void removePort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.remove(port.getId());
+        log.debug("{} removePort {} with number", new Object[] { rtrIdStr,
+                port.getId(), port.getNum() });
         port.removeListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
+            log.debug("{} removing route {} from table", rtrIdStr, rt
+                    .toString());
             table.deleteRoute(rt);
         }
         arpCaches.remove(port.getId());
@@ -162,21 +180,30 @@ public class Router {
     public void getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb) {
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
         L3DevicePort devPort = devicePorts.get(portId);
+        String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
         if (null == arpCache || null == devPort)
-            throw new IllegalArgumentException("Cannot get mac for address "
-                    + "on a port that is not local to this controller");
-        // Check that the nwAddr to resolve is in the port's localNwAddr/
-        // localNwLength?
+            throw new IllegalArgumentException(String.format("%s cannot get "
+                    + "mac for %s on port %s - port not local.", rtrIdStr,
+                    nwAddrStr, portId.toString()));
+        // The nwAddr should be in the port's localNwAddr/localNwLength.
         int shift = 32 - devPort.getVirtualConfig().localNwLength;
-        if ((nwAddr >>> shift) != (devPort.getVirtualConfig().localNwAddr >>> shift))
-            throw new IllegalArgumentException("Cannot get mac for address "
-                    + "that is not in the port's local network segment.");
+        if ((nwAddr >>> shift) != (devPort.getVirtualConfig().localNwAddr >>> shift)) {
+            log.warn("{} cannot get mac for {} - address not in network "
+                    + "segment of port {}", new Object[] { rtrIdStr, nwAddrStr,
+                    portId.toString() });
+            // TODO(pino): should this call be invoked asynchronously?
+            cb.call(null);
+            return;
+        }
         ArpCacheEntry entry = arpCache.get(nwAddr);
         long now = reactor.currentTimeMillis();
         if (null != entry && null != entry.macAddr) {
-            if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now)
+            if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now) {
                 // Note that ARP-ing to refresh a stale entry doesn't retry.
+                log.debug("{} getMacForIp refreshing ARP cache entry for {}",
+                        rtrIdStr, nwAddrStr);
                 generateArpRequest(nwAddr, portId);
+            }
             // TODO(pino): should this call be invoked asynchronously?
             cb.call(entry.macAddr);
             return;
@@ -187,13 +214,18 @@ public class Router {
         // ARP was generated by a stale entry that was subsequently expired.
         Map<Integer, List<Callback<byte[]>>> cbLists = arpCallbackLists
                 .get(portId);
-        if (null == cbLists)
-            throw new IllegalArgumentException("Cannot get mac for a port "
-                    + "that is not local to this controller");
+        if (null == cbLists) {
+            // This should never happen.
+            log.error("{} getMacForIp found null arpCallbacks map for port {} "
+                    + "but arpCache was not null", rtrIdStr, portId.toString());
+            cb.call(null);
+        }
         List<Callback<byte[]>> cbList = cbLists.get(nwAddr);
         if (null == cbList) {
             cbList = new ArrayList<Callback<byte[]>>();
             cbLists.put(nwAddr, cbList);
+            log.debug("{} getMacForIp generating ARP request for {}", rtrIdStr,
+                    nwAddrStr);
             generateArpRequest(nwAddr, portId);
             arpCache.put(nwAddr, new ArpCacheEntry(null, now
                     + ARP_TIMEOUT_MILLIS, now + ARP_RETRY_MILLIS, now));
@@ -219,6 +251,16 @@ public class Router {
             return;
         }
 
+        log.debug(
+                "{} apply pre-routing rules on pkt from port {} from {} to "
+                        + "{}",
+                new Object[] {
+                        rtrIdStr,
+                        null == fwdInfo.inPortId ? "ICMP" : fwdInfo.inPortId
+                                .toString(),
+                        IPv4.fromIPv4Address(fwdInfo.matchIn.getNetworkSource()),
+                        IPv4.fromIPv4Address(fwdInfo.matchIn
+                                .getNetworkDestination()) });
         // Apply pre-routing rules. Clone the original match in order to avoid
         // changing it.
         RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.matchIn
@@ -236,6 +278,7 @@ public class Router {
                     + "than ACCEPT, DROP or REJECT.");
         fwdInfo.trackConnection = res.trackConnection;
 
+        log.debug("{} send pkt to routing table.", rtrIdStr);
         // Do a routing table lookup.
         Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {
@@ -253,12 +296,20 @@ public class Router {
         if (!rt.nextHop.equals(Route.NextHop.PORT))
             throw new RuntimeException("Routing table returned next hop "
                     + "that isn't one of BLACKHOLE, NO_ROUTE, PORT or REJECT.");
-        if (null == rt.nextHopPort)
-            // TODO(pino): malformed rule. Should we silently drop the packet?
-            throw new RuntimeException("Routing table returned next hop PORT "
-                    + "but no port UUID given.");
-        // TODO(pino): log next hop portId and gateway addr..
+        if (null == rt.nextHopPort) {
+            log.error(
+                    "{} route indicates forward to port, but no portId given",
+                    rtrIdStr);
+            // TODO(pino): should we remove this route?
+            // For now just drop packets that match this route.
+            fwdInfo.action = Action.BLACKHOLE;
+            return;
+        }
 
+        log.debug("{} pkt next hop {} and egress port {} - applying "
+                + "post-routing.", new Object[] { rtrIdStr,
+                IPv4.fromIPv4Address(rt.nextHopGateway),
+                rt.nextHopPort.toString() });
         // Apply post-routing rules.
         res = ruleEngine.applyChain(POST_ROUTING, res.match, fwdInfo.inPortId,
                 rt.nextHopPort);
@@ -285,27 +336,41 @@ public class Router {
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
-        if (!(etherPkt.getPayload() instanceof ARP))
+        if (!(etherPkt.getPayload() instanceof ARP)) {
+            log.warn("{} ignoring packet with ARP ethertype but non-ARP "
+                    + "payload.", rtrIdStr);
             return;
+        }
         ARP arpPkt = (ARP) etherPkt.getPayload();
         // Discard the arp if its protocol type is not IP.
-        if (arpPkt.getProtocolType() != ARP.PROTO_TYPE_IP)
+        if (arpPkt.getProtocolType() != ARP.PROTO_TYPE_IP) {
+            log.warn("{} ignoring an ARP packet with protocol type {}",
+                    rtrIdStr, arpPkt.getProtocolType());
             return;
+        }
+        L3DevicePort devPort = devicePorts.get(inPortId);
+        if (null == devPort) {
+            log.warn("{} ignoring an ARP on {} - port is not local.", rtrIdStr,
+                    inPortId.toString());
+            return;
+        }
         if (arpPkt.getOpCode() == ARP.OP_REQUEST) {
             // ARP requests should broadcast or multicast. Ignore otherwise.
             if (!etherPkt.isMcast()) {
-                // TODO(pino): logging.debug("Non-multicast/broadcast ARP
-                // request to ...",
+                log.warn("{} ignoring an ARP with a non-bcast/mcast dlDst {}",
+                        rtrIdStr, Net.convertByteMacToString(etherPkt
+                                .getDestinationMACAddress()));
                 return;
             }
-            processArpRequest(arpPkt, inPortId);
+            processArpRequest(arpPkt, devPort);
         } else if (arpPkt.getOpCode() == ARP.OP_REPLY)
-            processArpReply(arpPkt, inPortId);
-        else
-            // TODO(pino) log gratuitous arp packet.
-            // We ignore any other ARP packets: they may be malicious, bogus,
-            // gratuitous ARP announcement requests, etc.
-            return;
+            processArpReply(arpPkt, devPort);
+
+        // We ignore any other ARP packets: they may be malicious, bogus,
+        // gratuitous ARP announcement requests, etc.
+        // TODO(pino): above comment ported from Python, but I don't get it
+        // since there are only two possible ARP operations. Was this meant to
+        // go somewhere else?
     }
 
     private static boolean spoofL2Network(int hostNwAddr, int nwAddr,
@@ -325,7 +390,7 @@ public class Router {
         return !inNw;
     }
 
-    private void processArpRequest(ARP arpPkt, UUID inPortId) {
+    private void processArpRequest(ARP arpPkt, L3DevicePort devPortIn) {
         // If the request is for the ingress port's own address, it's for us.
         // Respond with the port's Mac address.
         // If the request is for an IP address which we emulate
@@ -335,10 +400,10 @@ public class Router {
         // are assumed to be already handled by a switch.)
 
         // First get the ingress port's mac address
-        L3DevicePort devPort = devicePorts.get(inPortId);
-        PortDirectory.MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
+                .getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
-        if (tpa != devPort.getVirtualConfig().portAddr
+        if (tpa != devPortIn.getVirtualConfig().portAddr
                 && !spoofL2Network(tpa, portConfig.nwAddr, portConfig.nwLength,
                         portConfig.localNwAddr, portConfig.localNwLength)) {
             // It's an ARP for someone else. Ignore it.
@@ -352,11 +417,16 @@ public class Router {
         arp.setHardwareAddressLength((byte) 6);
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REPLY);
-        byte[] portMac = devPort.getMacAddr();
+        byte[] portMac = devPortIn.getMacAddr();
         arp.setSenderHardwareAddress(portMac);
         arp.setSenderProtocolAddress(arpPkt.getTargetProtocolAddress());
         arp.setTargetHardwareAddress(arpPkt.getSenderHardwareAddress());
         arp.setTargetProtocolAddress(arpPkt.getSenderProtocolAddress());
+        int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
+        log.debug("{} replying to ARP request from {} for {} with own mac {}",
+                new Object[] { rtrIdStr, IPv4.fromIPv4Address(spa),
+                        IPv4.fromIPv4Address(tpa),
+                        Net.convertByteMacToString(portMac) });
         // TODO(pino) logging.
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
@@ -364,30 +434,43 @@ public class Router {
         pkt.setDestinationMACAddress(arpPkt.getSenderHardwareAddress());
         pkt.setEtherType(ARP.ETHERTYPE);
         // Now send it from the port.
-        devPort.send(pkt.serialize());
+        devPortIn.send(pkt.serialize());
     }
 
-    private void processArpReply(ARP arpPkt, UUID inPortId) {
-        // Verify that the reply was meant for us.
-        L3DevicePort devPort = devicePorts.get(inPortId);
-        PortDirectory.MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+    private void processArpReply(ARP arpPkt, L3DevicePort devPortIn) {
+        // Verify that the reply was meant for us: tpa is the port's nw addr,
+        // and tha is the port's mac.
+        // TODO(pino): only a suggestion in the Python, I implemented it. OK?
+        UUID inPortId = devPortIn.getId();
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
+                .getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         byte[] tha = arpPkt.getTargetHardwareAddress();
         if (tpa != portConfig.portAddr
-                || !Arrays.equals(tha, devPort.getMacAddr()))
+                || !Arrays.equals(tha, devPortIn.getMacAddr())) {
+            log.debug("{} ignoring ARP reply because its tpa or tha don't "
+                    + "match ip addr or mac of port {}", rtrIdStr, inPortId
+                    .toString());
             return;
-
+        }
         // Question: Should we make noise if an ARP reply disagrees with the
         // existing arp_cache entry?
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
-        if (null == arpCache)
-            return;
 
-        long now = reactor.currentTimeMillis();
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
+        if (null == arpCache) {
+            log.error("{} ignoring ARP reply - could not find ARP cache for "
+                    + "local port {}", rtrIdStr, inPortId.toString());
+            return;
+        }
+
         byte[] sha = arpPkt.getSenderHardwareAddress();
+        int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
+        log.debug("{} received an ARP reply with spa {} and sha {}",
+                new Object[] { rtrIdStr, IPv4.fromIPv4Address(spa),
+                        Net.convertByteMacToString(sha) });
+        long now = reactor.currentTimeMillis();
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
-        int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
         arpCache.put(spa, entry);
         reactor.schedule(new ArpExpiration(spa, inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
@@ -414,19 +497,29 @@ public class Router {
         @Override
         public void run() {
             Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
-            if (null == arpCache)
+            String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
+            if (null == arpCache) {
                 // ARP cache is gone, probably because port went down.
+                log.debug("{} ARP expiration triggered for {} but port {} has "
+                        + "no ARP cache - port was removed?", new Object[] {
+                        rtrIdStr, nwAddrStr, portId.toString() });
                 return;
+            }
             ArpCacheEntry entry = arpCache.get(nwAddr);
-            if (null == entry)
+            if (null == entry) {
                 // The entry has already been removed.
+                log.debug("{} ARP expiration triggered for {} but cache "
+                        + "entry has already been removed", rtrIdStr, nwAddrStr);
                 return;
+            }
             if (entry.expiry <= reactor.currentTimeMillis()) {
+                log.debug("{} expiring ARP cache entry for {}", rtrIdStr,
+                        nwAddrStr);
                 arpCache.remove(nwAddr);
                 Map<Integer, List<Callback<byte[]>>> cbLists = arpCallbackLists
                         .get(portId);
                 if (null != cbLists) {
-                    List<Callback<byte[]>> cbList = cbLists.get(nwAddr);
+                    List<Callback<byte[]>> cbList = cbLists.remove(nwAddr);
                     if (null != cbList) {
                         for (Callback<byte[]> cb : cbList)
                             cb.call(null);
@@ -441,26 +534,37 @@ public class Router {
     private class ArpRetry implements Runnable {
         int nwAddr;
         UUID portId;
+        String nwAddrStr;
 
         ArpRetry(int nwAddr, UUID inPortId) {
             this.nwAddr = nwAddr;
+            nwAddrStr = IPv4.fromIPv4Address(nwAddr);
             this.portId = inPortId;
         }
 
         @Override
         public void run() {
             Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
-            if (null == arpCache)
+            if (null == arpCache) {
                 // ARP cache is gone, probably because port went down.
+                log.debug("{} ARP retry triggered for {} but port {} has "
+                        + "no ARP cache - port was removed?", new Object[] {
+                        rtrIdStr, nwAddrStr, portId.toString() });
                 return;
+            }
             ArpCacheEntry entry = arpCache.get(nwAddr);
-            if (null == entry)
+            if (null == entry) {
                 // The entry has already been removed.
+                log.debug("{} ARP retry triggered for {} but cache "
+                        + "entry has already been removed", rtrIdStr, nwAddrStr);
                 return;
+            }
             if (null != entry.macAddr)
                 // An answer arrived.
                 return;
             // Re-ARP and schedule again.
+            log.debug("{} retry ARP request for {} on port {}", new Object[] {
+                    rtrIdStr, nwAddrStr, portId.toString() });
             generateArpRequest(nwAddr, portId);
             reactor.schedule(this, ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
         }
@@ -468,9 +572,13 @@ public class Router {
 
     private void generateArpRequest(int nwAddr, UUID portId) {
         L3DevicePort devPort = devicePorts.get(portId);
-        if (null == devPort)
+        if (null == devPort) {
+            log.warn("{} generateArpRequest could not find device port for "
+                    + "{} - was port removed?", rtrIdStr, portId.toString());
             return;
-        PortDirectory.MaterializedRouterPortConfig portConfig = devPort.getVirtualConfig();
+        }
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPort
+                .getVirtualConfig();
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -489,7 +597,6 @@ public class Router {
         byte b = (byte) 0xff;
         pkt.setDestinationMACAddress(new byte[] { b, b, b, b, b, b });
         pkt.setEtherType(ARP.ETHERTYPE);
-        // TODO(pino) add logging.
         // Now send it from the port.
         devPort.send(pkt.serialize());
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
