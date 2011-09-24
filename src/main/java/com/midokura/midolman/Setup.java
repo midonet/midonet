@@ -218,7 +218,7 @@ public class Setup implements Watcher {
         position++;
         ruleMgr.create(r);
         cond = new Condition();
-        cond.nwDstIp = 0x0a00000a;
+        cond.nwDstIp = 0x0a00010a;
         cond.nwDstLength = 32;
         r = new LiteralRule(cond, RuleResult.Action.REJECT, postChainId,
                 position);
