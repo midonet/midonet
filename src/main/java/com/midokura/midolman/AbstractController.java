@@ -193,6 +193,9 @@ public abstract class AbstractController
             portUuidToNumberMap.remove(
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
             Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
+            
+            log.debug("onPortStatus: removing {} {}", 
+                    Net.convertIntAddressToString(peerIp), portNum);
             peerIpToTunnelPortNum.remove(peerIp);
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
             modifyPort(portDesc);

@@ -125,6 +125,9 @@ public class BridgeController extends AbstractController {
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort,
                            byte[] data) {
+        log.debug("onPacketIn: bufferId {} totalLen {} inPort {}",
+                new Object[] {bufferId, totalLen, inPort});
+
         Ethernet capturedPacket = new Ethernet();
         capturedPacket.deserialize(data, 0, data.length);
         MAC srcDlAddress = new MAC(capturedPacket.getSourceMACAddress());
