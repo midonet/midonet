@@ -534,6 +534,18 @@ public class TestBridgeController {
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
         checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
-        //XXX
+
+        // Add the port->loc mapping, verify that the flow is removed.
+        assertEquals(1, controllerStub.addedFlows.size());
+        controllerStub.deletedFlows.clear();
+        MidoMatch removeMatchDst = new MidoMatch();
+        removeMatchDst.setDataLayerDestination(macList[outPortNum].address);
+        portLocMap.put(portUuids[outPortNum], 
+                       Net.convertStringAddressToInt(peerStrList[outPortNum]));
+        assertTrue(controllerStub.deletedFlows.size() > 0);
+        for (int i = 0; i < controllerStub.deletedFlows.size(); i++) {
+            assertEquals(removeMatchDst, 
+                         controllerStub.deletedFlows.get(i).match);
+        }
     }
 }
