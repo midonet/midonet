@@ -6,6 +6,7 @@ package com.midokura.midolman;
 
 import java.net.InetAddress;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -156,8 +157,56 @@ public class BridgeController extends AbstractController {
         }
     }
 
-    private void expireMacPortEntry(MAC mac, UUID port, boolean delete) {
-        //XXX
+    private void expireMacPortEntry(final MAC mac, UUID port, boolean delete) {
+        UUID currentPort = macPortMap.get(mac);
+        if (currentPort.equals(port)) {
+            if (delete) {
+                log.debug("expireMacPortEntry: deleting the mapping from " +
+                          "MAC {} to port {}", mac, port);
+                // TODO: Do we need to cancel this Future?
+                delayedDeletes.remove(mac);
+                // The macPortMap watcher will invalidate flows associated
+                // with this MAC, so we don't need to do it here.
+                try {
+                    macPortMap.remove(mac);
+                } catch (KeeperException e) {
+                    log.error("Delete of MAC {} threw ZooKeeper exception {}",
+                              mac, e);
+                    // TODO: What do we do about this?
+                } catch (InterruptedException e) {
+                    log.error("Delete of MAC {} interrupted: {}", mac, e);
+                    // TODO: What do we do about this?
+                }
+            } else {
+                log.debug("expireMacPortEntry: setting the mapping from " +
+                          "MAC {} to port {} to expire", mac, port);
+                Future future = reactor.schedule(
+                    new Runnable() {
+                        public void run() { 
+                            try {
+                                macPortMap.remove(mac); 
+                            } catch (KeeperException e) {
+                                log.error("Delayed delete of MAC {} from " +
+                                          "expireMacPortEntry threw ZooKeeper "+
+                                          "exception {}", mac, e);
+                                // TODO: What do we do about this?
+                            } catch (InterruptedException e) {
+                                log.error("Delayed delete of MAC {} from " +
+                                          "expireMacPortEntry was " +
+                                          "interrupted: {}", mac, e);
+                                // TODO: What do we do about this?
+                            }
+                        }
+                    }, mac_port_timeout, TimeUnit.SECONDS);
+                delayedDeletes.put(mac, future);
+            } 
+        } else if (currentPort == null) {
+            log.debug("expireMacPortEntry: MAC->port mapping for MAC {} " +
+                      "has already been removed", mac);
+        } else {
+            log.debug("expireMacPortEntry: MAC {} is now mapped to port {} " +
+                      "not {}", new Object[] { mac, currentPort, port });
+        }
     }
 
     @Override
