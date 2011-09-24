@@ -122,7 +122,7 @@ public class TestReplicatedMap {
 
     @Test
     public void testStringMapStartWithSomeEntries() 
-		throws KeeperException, InterruptedException {
+            throws KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("one", "100");
@@ -140,12 +140,12 @@ public class TestReplicatedMap {
 
     @Test
     public void testStringMapContainsValue() 
-		throws KeeperException, InterruptedException {
+            throws KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         mapDir.add("/one,100,", null, CreateMode.PERSISTENT_SEQUENTIAL);
         strMap.start();
-	Assert.assertTrue(strMap.containsValue("100"));
-	Assert.assertFalse(strMap.containsValue("200"));
+        Assert.assertTrue(strMap.containsValue("100"));
+        Assert.assertFalse(strMap.containsValue("200"));
     }
 
     @Test

@@ -91,7 +91,7 @@ class AbstractControllerTester extends AbstractController {
 
     @Override 
     protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
-	// Do nothing.
+        // Do nothing.
     }
 
     public void setFeatures(OFFeaturesReply features) {
