@@ -119,7 +119,45 @@ public class BridgeController extends AbstractController {
             long byteCount) {
         log.debug("onFlowRemoved: {} {} {} {}", 
                 new Object[] {match, reason, durationSeconds, packetCount});
-        // TODO Auto-generated method stub
+        if ((match.getWildcards() & OFMatch.OFPFW_IN_PORT) != 0) {
+            log.error("onFlowRemoved flow IN_PORT wildcarded");
+            return;
+        }
+        if ((match.getWildcards() & OFMatch.OFPFW_DL_SRC) != 0) {
+            log.error("onFlowRemoved flow DL_SRC wildcarded");
+            return;
+        }
+        
+        UUID inPortUuid = portNumToUuid.get(new Integer(match.getInputPort()));
+        if (inPortUuid == null) {
+            log.info("onFlowRemoved port has no UUID");
+            return;
+        }
+
+        // Decrement ref count
+        MacPort flowcountKey = new MacPort(new MAC(match.getDataLayerSource()),
+                                           inPortUuid);
+        Integer count = flowCount.get(flowcountKey);
+        if (count == null) {
+            log.debug("onFlowRemoved MAC {} port#{} id:{} but no flowCount",
+                      new Object[] { flowcountKey.mac, match.getInputPort(),
+                                     inPortUuid });
+        } else if (count > 1) {
+            count--;
+            log.debug("onFlowRemoved decreased flow count for srcMac {} from " +
+                      "port#{} id:{} to {}", new Object[] { flowcountKey.mac,
+                      match.getInputPort(), inPortUuid, count });
+        } else {
+            log.debug("onFlowRemoved last flow for srcMac {} on port #{} id:{}"+
+                      " removed at {}", new Object[] { flowcountKey.mac,
+                      match.getInputPort(), inPortUuid, new Date() });
+            flowCount.remove(flowcountKey);
+            expireMacPortEntry(flowcountKey.mac, inPortUuid, false);
+        }
+    }
+
+    private void expireMacPortEntry(MAC mac, UUID port, boolean delete) {
+        //XXX
     }
 
     @Override
@@ -388,6 +426,14 @@ public class BridgeController extends AbstractController {
         // .stop() includes a .clear() of the underlying map, so we don't
         // need to clear out the entries here.
         macPortMap.removeWatcher(macToPortWatcher);
-        // FIXME(jlm): Clear all flows.
+
+        for (MacPort macPort : flowCount.keySet()) {
+            expireMacPortEntry(macPort.mac, macPort.port, true);
+        }
+        flowCount.clear();
+
+        // Clear all flows.
+        MidoMatch match = new MidoMatch();
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 }
