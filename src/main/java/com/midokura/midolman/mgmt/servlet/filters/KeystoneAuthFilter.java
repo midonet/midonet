@@ -6,6 +6,7 @@
 
 package com.midokura.midolman.mgmt.servlet.filters;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.servlet.Filter;
@@ -16,6 +17,13 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.KeystoneClient;
 
@@ -32,6 +40,54 @@ public final class KeystoneAuthFilter implements Filter {
      */
 
     private KeystoneClient client = null;
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+    private final static Logger log = LoggerFactory
+            .getLogger(KeystoneAuthFilter.class);
+
+    public static class AuthError {
+        private int code;
+        private String message;
+
+        public AuthError(int code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public void setCode(int code) {
+            this.code = code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+    }
+
+    private String generateJsonError(int code, String msg) throws IOException {
+        AuthError err = new AuthError(code, msg);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(bos,
+                JsonEncoding.UTF8);
+        jsonGenerator.writeObject(err);
+        bos.close();
+        return bos.toString("UTF-8");
+    }
+
+    private void setErrorResponse(HttpServletResponse resp, int code, String msg)
+            throws IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setStatus(code);
+        resp.getWriter().write(generateJsonError(code, msg));
+    }
 
     /**
      * Called by the web container to indicate to a filter that it is being
@@ -46,6 +102,7 @@ public final class KeystoneAuthFilter implements Filter {
      */
     public void init(FilterConfig filterConfig) throws ServletException {
         // Initialize member variables.
+        log.debug("Initializing KeystoneAuthFilter.");
         String protocol = filterConfig.getInitParameter("service_protocol");
         String host = filterConfig.getInitParameter("service_host");
         int port = Integer.parseInt(filterConfig
@@ -73,13 +130,33 @@ public final class KeystoneAuthFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         // Ask the Keystone server if the token is valid.
+        log.debug("Filtering request for Keystone authentication.");
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
         String token = req.getHeader("HTTP_X_AUTH_TOKEN"); // Get token.
-        if (this.client.validateToken(token)) {
+        if (token == null) {
+            setErrorResponse((HttpServletResponse) response,
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "No token was passed in.");
+            return;
+        }
+
+        boolean isValid = false;
+        try {
+            isValid = this.client.validateToken(token);
+        } catch (Exception ex) {
+            // Unknown error occurred.
+            setErrorResponse((HttpServletResponse) response,
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Unknown error occurred while validating token.");
+            return;
+        }
+
+        if (isValid) {
             chain.doFilter(request, response); // Keep the chain going.
         } else {
-            HttpServletResponse resp = (HttpServletResponse) response;
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            setErrorResponse((HttpServletResponse) response,
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Invalid token passed in.");
         }
     }
 
@@ -88,6 +165,7 @@ public final class KeystoneAuthFilter implements Filter {
      * taken out of service.
      */
     public void destroy() {
+        log.debug("Destroying KeystoneAuthFilter resources.");
         // Reset all the member variables.
         this.client = null;
     }

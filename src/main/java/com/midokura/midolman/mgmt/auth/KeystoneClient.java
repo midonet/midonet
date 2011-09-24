@@ -43,6 +43,8 @@ public final class KeystoneClient {
      *            Keystone server port.
      */
     public KeystoneClient(String protocol, String host, int port) {
+        log.debug("Creating KeystoneClient for protocol=" + protocol
+                + ", host=" + host + ", and port=" + port);
         // Set the Keystone service URL.
         this.serviceUrl = new StringBuilder(protocol).append("://")
                 .append(host).append(":").append(Integer.toString(port))
@@ -79,7 +81,7 @@ public final class KeystoneClient {
      */
     public boolean validateToken(String token) throws IOException {
         // Validate by sending an HTTP request to Keystone server.
-
+        log.debug("Validating token " + token);
         if (token == null) {
             throw new NullPointerException(token);
         }
@@ -98,17 +100,15 @@ public final class KeystoneClient {
             return false;
         }
 
-        // TODO: Remove this later
-        log.info("Got " + response);
         parser.parse(response);
-        log.info("Token = " + parser.getToken());
-        log.info("TokenExp = " + parser.getTokenExpiration());
-        log.info("TokenTenant = " + parser.getTokenTenant());
-        log.info("User = " + parser.getUser());
-        log.info("UserTenant = " + parser.getUserTenant());
+        log.debug("Token = " + parser.getToken());
+        log.debug("TokenExp = " + parser.getTokenExpiration());
+        log.debug("TokenTenant = " + parser.getTokenTenant());
+        log.debug("User = " + parser.getUser());
+        log.debug("UserTenant = " + parser.getUserTenant());
         String[] roles = parser.getUserRoles();
         for (int i = 0; i < roles.length; i++)
-            System.out.println("UserRole = " + roles[i]);
+            log.debug("UserRole = " + roles[i]);
 
         return true;
     }

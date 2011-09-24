@@ -78,7 +78,7 @@ public class Rule {
     private UUID jumpChainId = null;
     private String jumpChainName = null;
     private String flowAction = null;
-    private String[] natTargets = null;
+    private String[][][] natTargets = new String[2][2][];
     private int position;
 
     /**
@@ -489,7 +489,7 @@ public class Rule {
     /**
      * @return the natTargets
      */
-    public String[] getNatTargets() {
+    public String[][][] getNatTargets() {
         return natTargets;
     }
 
@@ -497,7 +497,7 @@ public class Rule {
      * @param natTargets
      *            the natTargets to set
      */
-    public void setNatTargets(String[] natTargets) {
+    public void setNatTargets(String[][][] natTargets) {
         this.natTargets = natTargets;
     }
 
@@ -550,7 +550,7 @@ public class Rule {
         } else if (type.equals(Rule.Return)) {
             return Action.RETURN;
         } else {
-            throw new IllegalArgumentException("Invalid type passed in.");
+            return null;
         }
     }
 
@@ -580,28 +580,32 @@ public class Rule {
         return c;
     }
 
-    private static Set<NatTarget> makeNatTargets(String[] natTargets) {
+    private static Set<NatTarget> makeNatTargets(String[][][] natTargets) {
         Set<NatTarget> targets = new HashSet<NatTarget>(natTargets.length);
-        for (String natTarget : natTargets) {
-            String[] elems = natTarget.split(",");
-            NatTarget t = new NatTarget(
-                    Net.convertStringAddressToInt(elems[0]), Net
-                            .convertStringAddressToInt(elems[1]),
-                    (short) Integer.parseInt(elems[2]), (short) Integer
-                            .parseInt(elems[3]));
+        for (String[][] natTarget : natTargets) {
+            String[] addressRange = natTarget[0];
+            String[] portRange = natTarget[1];
+            NatTarget t = new NatTarget(Net
+                    .convertStringAddressToInt(addressRange[0]), Net
+                    .convertStringAddressToInt(addressRange[1]),
+                    (short) Integer.parseInt(portRange[0]), (short) Integer
+                            .parseInt(portRange[1]));
             targets.add(t);
         }
         return targets;
     }
 
-    public static String[] makeNatTargetStrings(Set<NatTarget> natTargets) {
-        List<String> targets = new ArrayList<String>(natTargets.size());
+    public static String[][][] makeNatTargetStrings(Set<NatTarget> natTargets) {
+        List<String[][]> targets = new ArrayList<String[][]>(natTargets.size());
         for (NatTarget t : natTargets) {
-            targets.add(Net.convertIntAddressToString(t.nwStart) + ","
-                    + Net.convertIntAddressToString(t.nwEnd) + "," + t.tpStart
-                    + "," + t.tpEnd);
+            String[] addressRange = { Net.convertIntAddressToString(t.nwStart),
+                    Net.convertIntAddressToString(t.nwEnd) };
+            String[] portRange = { String.valueOf(t.tpStart),
+                    String.valueOf(t.tpEnd) };
+            String[][] target = { addressRange, portRange };
+            targets.add(target);
         }
-        return targets.toArray(new String[targets.size()]);
+        return targets.toArray(new String[2][2][targets.size()]);
     }
 
     public com.midokura.midolman.rules.Rule toZkRule() {
@@ -622,6 +626,8 @@ public class Rule {
             // Jump
             r = new JumpRule(cond, this.getJumpChainName());
         }
+        r.chainId = chainId;
+        r.position = position;
         return r;
     }
 
@@ -657,7 +663,7 @@ public class Rule {
         if (zkRule instanceof LiteralRule) {
             rule.setType(Rule.getActionString(zkRule.action));
         } else if (zkRule instanceof ForwardNatRule) {
-            String[] targets = Rule
+            String[][][] targets = Rule
                     .makeNatTargetStrings(((ForwardNatRule) zkRule)
                             .getNatTargets());
             rule.setNatTargets(targets);

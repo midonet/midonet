@@ -113,7 +113,6 @@ public class ChainResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Chain chain, @Context UriInfo uriInfo)
                 throws StateAccessException {
-            chain.setId(UUID.randomUUID());
             chain.setRouterId(routerId);
             ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);

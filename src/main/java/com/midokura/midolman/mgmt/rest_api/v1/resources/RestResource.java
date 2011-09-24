@@ -15,39 +15,39 @@ import javax.ws.rs.core.Context;
  * @author Ryu Ishimoto
  */
 public abstract class RestResource {
-	/*
-	 * Provide resources that can be shared for all the subclassed resources.
-	 */
+    /*
+     * Provide resources that can be shared for all the subclassed resources.
+     */
 
-	/** Constants **/
-	private final static int DEFAULT_ZK_TIMEOUT = 3000;
+    /** Constants **/
+    private final static int DEFAULT_ZK_TIMEOUT = 3000;
 
-	/** Zookeeper connection string **/
-	protected String zookeeperConn = null;
-	protected int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
-	protected String zookeeperRoot = "/midolman";
-	protected String zookeeperMgmtRoot = "/midolman-mgmt";
+    /** Zookeeper connection string **/
+    protected String zookeeperConn = null;
+    protected int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
+    protected String zookeeperRoot = "/midolman";
+    protected String zookeeperMgmtRoot = "/midolman-mgmt";
 
-	/**
-	 * Set zookeeper connection from config at the application initialization.
-	 * 
-	 * @param context
-	 *            ServletContext object to which it gets data from.
-	 */
-	@Context
-	public void setZookeeperConn(ServletContext context) {
-		zookeeperConn = context.getInitParameter("zookeeper-connection");
-		String zkTo = context.getInitParameter("zookeeper-timeout");
-		if (zkTo != null) {
+    /**
+     * Set zookeeper connection from config at the application initialization.
+     * 
+     * @param context
+     *            ServletContext object to which it gets data from.
+     */
+    @Context
+    public void setZookeeperConn(ServletContext context) {
+        zookeeperConn = context.getInitParameter("zookeeper-connection");
+        String zkTo = context.getInitParameter("zookeeper-timeout");
+        if (zkTo != null) {
             zookeeperTimeout = Integer.parseInt(zkTo);
         }
-		String rootPath = context.getInitParameter("zookeeper-root");
-		if (rootPath != null) {
+        String rootPath = context.getInitParameter("zookeeper-root");
+        if (rootPath != null) {
             zookeeperRoot = rootPath;
         }
-		rootPath = context.getInitParameter("zookeeper-mgmt-root");
-		if (rootPath != null) {
-			zookeeperMgmtRoot = rootPath;
-		}
-	}
+        rootPath = context.getInitParameter("zookeeper-mgmt-root");
+        if (rootPath != null) {
+            zookeeperMgmtRoot = rootPath;
+        }
+    }
 }

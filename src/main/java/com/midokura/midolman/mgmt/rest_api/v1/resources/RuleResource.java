@@ -107,8 +107,6 @@ public class RuleResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Rule rule, @Context UriInfo uriInfo)
                 throws StateAccessException {
-            // Add a new rule entry into zookeeper.
-            rule.setId(UUID.randomUUID());
             rule.setChainId(chainId);
             RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
