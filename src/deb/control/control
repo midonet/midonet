@@ -3,7 +3,7 @@ Version: [[version]]
 Section: misc
 Priority: optional
 Architecture: amd64
-Depends: sun-java6-jre
+Depends: default-jre-headless | java6-runtime-headless
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
 Description: Midolman is a virtual network controller
 Distribution: development
