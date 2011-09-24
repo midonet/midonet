@@ -12,10 +12,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.rules.Rule;
 
@@ -26,6 +27,9 @@ import com.midokura.midolman.rules.Rule;
  * @author Ryu Ishimoto
  */
 public class RuleZkManager extends ZkManager {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(RuleZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.
@@ -56,17 +60,21 @@ public class RuleZkManager extends ZkManager {
      */
     public List<Op> prepareRuleCreate(ZkNodeEntry<UUID, Rule> ruleEntry)
             throws ZkStateSerializationException {
+        String rulePath = pathManager.getRulePath(ruleEntry.key);
+        String chainRulePath = pathManager.getChainRulePath(
+                ruleEntry.value.chainId, ruleEntry.key);
         List<Op> ops = new ArrayList<Op>();
+        log.debug("Preparing to create: " + rulePath);
         try {
-            ops.add(Op.create(pathManager.getRulePath(ruleEntry.key),
-                    serialize(ruleEntry.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
+            ops.add(Op.create(rulePath, serialize(ruleEntry.value),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize Rule",
                     e, Rule.class);
         }
-        ops.add(Op.create(pathManager.getChainRulePath(ruleEntry.value.chainId,
-                ruleEntry.key), null, Ids.OPEN_ACL_UNSAFE,
+
+        log.debug("Preparing to create: " + chainRulePath);
+        ops.add(Op.create(chainRulePath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
         return ops;
     }
