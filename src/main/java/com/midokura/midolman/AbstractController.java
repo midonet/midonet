@@ -120,9 +120,15 @@ public abstract class AbstractController
         OFMatch match = new OFMatch();
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
 
-        // Add all the ports.
-        for (OFPhysicalPort portDesc : controllerStub.getFeatures().getPorts())
-            callAddPort(portDesc, portDesc.getPortNumber());
+        // Add all the non-tunnel ports, delete all the pre-existing tunnel 
+        // ports.
+        for (OFPhysicalPort portDesc : controllerStub.getFeatures()
+                                                     .getPorts()) {
+            if (isGREPortOfKey(portDesc.getName()))
+                ovsdb.delPort(portDesc.getName());
+            else
+                callAddPort(portDesc, portDesc.getPortNumber());
+        }
                 
         portLocMap.start();
     }
