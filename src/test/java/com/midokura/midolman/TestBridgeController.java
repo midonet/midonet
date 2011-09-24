@@ -57,6 +57,7 @@ public class TestBridgeController {
     MockControllerStub controllerStub;
     UUID portUuids[];
     MockReactor reactor;
+    final int timeout_ms = 40*1000;
 
     public static final OFAction OUTPUT_ALL_ACTION = 
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
@@ -248,7 +249,7 @@ public class TestBridgeController {
                 /* flowExpireMillis */          300*1000,
                 /* idleFlowExpireMillis */      60*1000,
                 /* publicIp */                  publicIp,
-                /* macPortTimeoutMillis */      40*1000,
+                /* macPortTimeoutMillis */      timeout_ms,
                 /* ovsdb */                     ovsdb,
                 /* reactor */                   reactor,
                 /* externalIdKey */             "midonet");
@@ -590,7 +591,6 @@ public class TestBridgeController {
         MidoMatch match = new MidoMatch();
         match.setInputPort(inPortNum);
         match.setDataLayerSource(macList[inPortNum].address);
-        int timeout_ms = 40*1000;
         for (int i = 0; i < numFlows; i++) {
             reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
             controller.onFlowRemoved(match, 0, (short)1000, 
@@ -630,4 +630,73 @@ public class TestBridgeController {
         assertNull(macPortMap.get(macList[inPortNum]));
     }
 
+    @Test
+    public void testMacChangesPort() {
+        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));        
+        // MAC moves to port 2.
+        controller.onPacketIn(14, 13, (short)2, packet10.serialize());
+        assertEquals(portUuids[2], macPortMap.get(macList[1]));        
+        MidoMatch match = new MidoMatch();
+        match.setInputPort((short)1);
+        match.setDataLayerSource(macList[1].address);
+        controller.onFlowRemoved(match, 0, (short)1000, 
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+                        timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
+        reactor.incrementTime(timeout_ms+1, TimeUnit.MILLISECONDS);
+        assertEquals(portUuids[2], macPortMap.get(macList[1]));        
+
+        match.setInputPort((short)2);
+        controller.onFlowRemoved(match, 0, (short)1000, 
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+                        timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
+        reactor.incrementTime(timeout_ms+1, TimeUnit.MILLISECONDS);
+        assertNull(macPortMap.get(macList[1]));        
+    }
+
+    @Test
+    public void testLearnedMacPortDeleted() {
+        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));        
+        controller.onPacketIn(14, 13, (short)0, packet0MC.serialize());
+        assertEquals(portUuids[0], macPortMap.get(macList[0]));
+
+        // Delete port 1.
+        controller.onPortStatus(phyPorts[1], OFPortReason.OFPPR_DELETE);
+        assertNull(macPortMap.get(macList[1]));
+        assertEquals(portUuids[0], macPortMap.get(macList[0]));
+
+        // Delete port 0.
+        controller.onPortStatus(phyPorts[0], OFPortReason.OFPPR_DELETE);
+        assertNull(macPortMap.get(macList[1]));
+        assertNull(macPortMap.get(macList[0]));
+    }
+
+    @Test
+    public void testNotLearningMac() {
+        assertNull(macPortMap.get(macList[1]));
+        controller.onPacketIn(14, 13, (short)1, packet13.serialize());
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));
+
+        // Check multicast-source
+        controller.onPacketIn(14, 13, (short)2, packetMC0.serialize());
+        assertNull(macPortMap.get(macList[8]));
+
+        // Check unicast from tunnel port.
+        controller.onPacketIn(14, 13, (short)4, packet01.serialize());
+        assertNull(macPortMap.get(macList[0]));
+    }
+
+    @Test
+    public void testMulticastSrcMacAddrDropped() {
+        short inPortNum = 2;
+        short outPortNum = 4;
+        final Ethernet packet = packetMC0;
+        MidoMatch expectMatch = flowmatchMC0.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        assertEquals(0, controllerStub.sentPackets.size());
+    }
 }
