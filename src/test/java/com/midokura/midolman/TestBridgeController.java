@@ -699,4 +699,15 @@ public class TestBridgeController {
         checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
         assertEquals(0, controllerStub.sentPackets.size());
     }
+
+    @Test
+    public void testClear() {
+        controller.onPacketIn(14, 13, (short)0, packet04.serialize());
+        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
+        assertEquals(portUuids[0], macPortMap.get(macList[0]));
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));
+        controller.clear();
+        assertNull(macPortMap.get(macList[0]));
+        assertNull(macPortMap.get(macList[1]));
+    }
 }
