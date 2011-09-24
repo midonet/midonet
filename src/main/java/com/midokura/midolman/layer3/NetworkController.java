@@ -73,7 +73,6 @@ public class NetworkController extends AbstractController {
 
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
-    private RouterZkManager routerMgr;
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
@@ -126,10 +125,16 @@ public class NetworkController extends AbstractController {
                     .getDataLayerSource(), match.getDataLayerDestination());
             // If we don't own the egress port, there was a forwarding mistake.
             devPortOut = devPortById.get(portsAndGw.lastEgressPortId);
+            String msg = String.format("onPacketIn from tunnel port %d"
+                    + "to gateway %s and port id %s", inPort, IPv4
+                    .fromIPv4Address(portsAndGw.gatewayNwAddr),
+                    portsAndGw.lastEgressPortId.toString());
             if (null == devPortOut) {
+                log.warn("{} -- the egress port is not local.", msg);
                 // TODO: raise an exception or install a Blackhole?
                 return;
             }
+            log.debug(msg);
             TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
                     totalLen, inPort, data, match, portsAndGw);
             try {
@@ -144,9 +149,12 @@ public class NetworkController extends AbstractController {
 
         // Else it's a packet from a materialized port.
         L3DevicePort devPortIn = devPortByNum.get(inPort);
+        String msg = String.format("onPacketIn from local port %d", inPort);
         if (null == devPortIn) {
+            log.warn("{} -- wasn't previously added with addPort or "
+                    + "no virtual port Id found.", msg);
             // drop packets entering on ports that we don't recognize.
-            // TODO: free the buffer.
+            freeBuffer(bufferId);
             return;
         }
         Ethernet ethPkt = new Ethernet();
@@ -157,6 +165,7 @@ public class NetworkController extends AbstractController {
         if (!Arrays.equals(ethPkt.getDestinationMACAddress(), devPortIn
                 .getMacAddr())
                 && !ethPkt.isMcast()) {
+            log.warn("{} -- dlDst not mcast nor virtual port's addr", msg);
             installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
             return;
         }
@@ -168,6 +177,7 @@ public class NetworkController extends AbstractController {
         try {
             network.process(fwdInfo, routers);
         } catch (Exception e) {
+            log.warn(msg + " -- Network.process() threw exception {}", e);
             return;
         }
         boolean useWildcards = false; // TODO(pino): replace with real config.
@@ -186,17 +196,21 @@ public class NetworkController extends AbstractController {
                 flowMatch = makeWildcarded(match);
             else
                 flowMatch = match;
+            log.debug("{} -- Network.process() returned BLACKHOLE", msg);
             installBlackhole(flowMatch, bufferId, OFP_FLOW_PERMANENT);
             notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
                     routers);
             return;
         case CONSUMED:
+            log.debug("{} -- Network.process() returned CONSUMED", msg);
             freeBuffer(bufferId);
             return;
         case FORWARD:
             // If the egress port is local, ARP and forward the packet.
             devPortOut = devPortById.get(fwdInfo.outPortId);
             if (null != devPortOut) {
+                log.debug("{} -- Network.process() returned FORWARD to local"
+                        + "port {}", msg, devPortOut.getNum());
                 LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
@@ -210,8 +224,9 @@ public class NetworkController extends AbstractController {
                 Integer tunPortNum = super
                         .portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
-                    log.warn("Could not find location or tunnel port number "
-                            + "for Id " + fwdInfo.outPortId.toString());
+                    log.warn("{} -- Network.process() returned FORWARD to "
+                            + "remote port {} -- No tunnel port found.", msg,
+                            fwdInfo.outPortId.toString());
                     installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
                     // TODO: check whether this is the right error code (host?).
                     sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
@@ -219,6 +234,8 @@ public class NetworkController extends AbstractController {
                             fwdInfo.pktIn, fwdInfo.outPortId);
                     return;
                 }
+                log.debug("{} -- Network.process() returned FORWARD to remote"
+                        + "port {}", msg, tunPortNum);
                 byte[] dlSrc = new byte[6];
                 byte[] dlDst = new byte[6];
                 setDlHeadersForTunnel(dlSrc, dlDst, ShortUUID
@@ -235,6 +252,7 @@ public class NetworkController extends AbstractController {
             }
             return;
         case NOT_IPV4:
+            log.debug("{} -- Network.process() returned NOT_IPV4", msg);
             // If wildcards are enabled, wildcard everything but dl_type. One
             // rule per ethernet protocol type catches all non-IPv4 flows.
             if (useWildcards) {
@@ -245,6 +263,7 @@ public class NetworkController extends AbstractController {
             installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
             return;
         case NO_ROUTE:
+            log.debug("{} -- Network.process() returned NO_ROUTE", msg);
             // Intentionally use an exact match for this drop rule.
             // TODO(pino): wildcard the L2 fields.
             installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
@@ -255,6 +274,7 @@ public class NetworkController extends AbstractController {
             // This rule is temporary, don't notify the flow checker.
             return;
         case REJECT:
+            log.debug("{} -- Network.process() returned REJECT", msg);
             // Intentionally use an exact match for this drop rule.
             installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
             // Send an ICMP
@@ -264,6 +284,8 @@ public class NetworkController extends AbstractController {
             // This rule is temporary, don't notify the flow checker.
             return;
         default:
+            log.error("{} -- Network.process() returned unrecognized action.",
+                    msg);
             throw new RuntimeException("Unrecognized forwarding Action type.");
         }
     }
@@ -386,10 +408,14 @@ public class NetworkController extends AbstractController {
 
         @Override
         public void call(byte[] mac) {
+            String nwDstStr = IPv4.fromIPv4Address(match.getNetworkDestination());
             if (null != mac) {
+                String msg = String
+                        .format("Mac resolved for tunneled packet to {}", nwDstStr);
                 L3DevicePort devPort = devPortById
                         .get(portsAndGw.lastEgressPortId);
                 if (null == devPort) {
+                    log.warn("{} -- port is no longer local", msg);
                     // TODO(pino): do we need to do anything for this?
                     // The port was removed while we waited for the ARP.
                     return;
@@ -409,15 +435,18 @@ public class NetworkController extends AbstractController {
                 }
                 // If this is an ICMP error message from a peer controller,
                 // don't install a flow match, just send the packet
-                if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL)
+                if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL) {
+                    log.debug("{} -- forward ICMP without installing flow", msg);
                     NetworkController.super.controllerStub.sendPacketOut(
                             bufferId, inPort, ofActions, data);
-                else
+                } else {
+                    log.debug("{} -- forward and install flow", msg);
                     addFlowAndSendPacket(bufferId, match,
                             TUNNEL_EXPIRY_SECONDS, IDLE_TIMEOUT_SECS, true,
                             ofActions, inPort, data);
-
+                }
             } else {
+                log.debug("ARP timed out for tunneled packet to {}", nwDstStr);
                 installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
                 // The packet came over a tunnel so its mac addresses were used
@@ -603,9 +632,8 @@ public class NetworkController extends AbstractController {
             try {
                 network.process(fwdInfo, routerIds);
             } catch (Exception e) {
-                log
-                        .warn("Dropping ICMP error message. Don't know where to "
-                                + "forward it because network.process threw exception.");
+                log.warn("Dropping ICMP error message. Don't know where to "
+                        + "forward it because network.process threw exception.");
                 return;
             }
             if (!fwdInfo.action.equals(Action.FORWARD)) {
@@ -620,9 +648,8 @@ public class NetworkController extends AbstractController {
         if (null != devPort) {
             // The packet came over the tunnel, but the ICMP is being sent to
             // a local port? This should be rare, let's log it and drop it.
-            log
-                    .warn("Dropping ICMP error message. Original packet came from "
-                            + "a tunnel, but the ICMP would be emitted from a local port");
+            log.warn("Dropping ICMP error message. Original packet came from "
+                    + "a tunnel, but the ICMP would be emitted from a local port");
             return;
         }
         // The ICMP will be tunneled. Encode the outPortId and next hop gateway
@@ -940,12 +967,10 @@ public class NetworkController extends AbstractController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
-                                       (short) 128));
+                (short) 128));
         controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                                      OFP_FLOW_PERMANENT,
-                                      SERVICE_FLOW_PRIORITY,
-                                      ControllerStub.UNBUFFERED_ID,
-                                      false, false, false, actions);
+                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+                ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         // ICMP flows.
         // Only valid for the service port with specified address.
@@ -973,8 +998,8 @@ public class NetworkController extends AbstractController {
     }
 
     private void startPortService(final short portNum, final UUID portId)
-        throws KeeperException, InterruptedException,
-        ZkStateSerializationException, IOException, StateAccessException {
+            throws KeeperException, InterruptedException,
+            ZkStateSerializationException, IOException, StateAccessException {
         // If the materiazlied router port isn't discovered yet, try
         // setting flows between BGP peers later.
         if (devPortById.containsKey(portId)) {
@@ -988,7 +1013,7 @@ public class NetworkController extends AbstractController {
                 public void run() {
                     try {
                         service.start(portNum, devPortById.get(portId));
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         log.warn("startPortService", e);
                     }
                 }
@@ -997,7 +1022,8 @@ public class NetworkController extends AbstractController {
     }
 
     private void setupServicePort(OFPhysicalPort portDesc)
-            throws StateAccessException, ZkStateSerializationException, IOException, KeeperException, InterruptedException {
+            throws StateAccessException, ZkStateSerializationException,
+            IOException, KeeperException, InterruptedException {
         short portNum = portDesc.getPortNumber();
         String portName = portDesc.getName();
 
@@ -1031,8 +1057,8 @@ public class NetworkController extends AbstractController {
                 if (devPort != null) {
                     network.addPort(devPort);
                     addServicePort(devPort);
-                } else if (portNum != OFPort.OFPP_CONTROLLER.getValue() &&
-                           portNum != OFPort.OFPP_LOCAL.getValue()) {
+                } else if (portNum != OFPort.OFPP_CONTROLLER.getValue()
+                        && portNum != OFPort.OFPP_LOCAL.getValue()) {
                     // Service port is up.
                     setupServicePort(portDesc);
                 }
@@ -1059,7 +1085,7 @@ public class NetworkController extends AbstractController {
     @Override
     protected void modifyPort(OFPhysicalPort portDesc) {
         log.warn("modifyPort: not implemented");
-        
+
         // L3DevicePort devPort = devPortOfPortDesc(portDesc);
         // network.modifyPort(devPort);
         // FIXME: Call something in network.
