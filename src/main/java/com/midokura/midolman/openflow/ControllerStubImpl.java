@@ -56,7 +56,8 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     public void start() {
         stream.write(factory.getMessage(OFType.HELLO));
         
-        //sendEchoRequest();
+        log.debug("start: start sending ECHO requests");
+        sendEchoRequest();
     }
 
     @Override

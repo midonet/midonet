@@ -313,6 +313,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
         OFEchoRequest m = (OFEchoRequest) factory.getMessage(OFType.ECHO_REQUEST);
         m.setPayload(randPayload);
+        m.setLengthU(OFEchoRequest.MINIMUM_LENGTH + randPayload.length);
         m.setXid(initiateOperation(new SuccessHandler() {
             @Override
             public void onSuccess(Object data) {
