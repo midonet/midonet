@@ -1,8 +1,12 @@
 package com.midokura.midolman;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -23,23 +27,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.rules.Condition;
+import com.midokura.midolman.rules.ForwardNatRule;
+import com.midokura.midolman.rules.JumpRule;
+import com.midokura.midolman.rules.LiteralRule;
+import com.midokura.midolman.rules.NatTarget;
+import com.midokura.midolman.rules.ReverseNatRule;
+import com.midokura.midolman.rules.Rule;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortDirectory.*;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 
 public class Setup implements Watcher {
@@ -49,6 +67,8 @@ public class Setup implements Watcher {
     private static final String ZK_DESTROY = "zk_destroy";
     private static final String ZK_SETUP = "zk_setup";
     private static final String ZK_TEARDOWN = "zk_teardown";
+    private static final String ZK_ADD_RULES = "zk_add_rules";
+    private static final String ZK_DEL_RULES = "zk_del_rules";
     private static final String OVS_SETUP = "zk_setup";
     private static final String OVS_TEARDOWN = "zk_teardown";
 
@@ -87,6 +107,10 @@ public class Setup implements Watcher {
             zkDestroy();
         else if (command.equals(ZK_SETUP))
             zkSetup();
+        else if (command.equals(ZK_ADD_RULES))
+            zkAddRules(args[1]);
+        else if (command.equals(ZK_DEL_RULES))
+            zkDelRules(args[1]);
         else if (command.equals(ZK_TEARDOWN))
             zkTearDown();
         else if (command.equals(OVS_SETUP))
@@ -95,6 +119,111 @@ public class Setup implements Watcher {
             ovsTearDown();
         else
             System.out.println("Unrecognized command. Exiting.");
+    }
+
+    private void zkDelRules(String routerIdStr) throws Exception {
+        initZK();
+        UUID routerId = UUID.fromString(routerIdStr);
+        Iterator<ZkNodeEntry<UUID, ChainConfig>> iter = chainMgr.list(routerId)
+                .iterator();
+        while (iter.hasNext()) {
+            chainMgr.delete(iter.next().key);
+        }
+    }
+
+    private void zkAddRules(String routerIdStr) throws Exception {
+        initZK();
+        UUID routerId = UUID.fromString(routerIdStr);
+        UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
+                routerId));
+        String srcFilterChainName = "filterSrcByPortId";
+        UUID srcFilterChainId = chainMgr.create(new ChainConfig(
+                srcFilterChainName, routerId));
+        UUID postChainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
+                routerId));
+        // First, create a chain that will be jumped to from the pre-routing
+        // chain. This chain makes sure that packets arriving on a port have
+        // nwSrc addresses in that port's localNwAddr.
+        Condition cond;
+        int position = 0;
+        Rule r;
+        Iterator<ZkNodeEntry<UUID, PortConfig>> iter = portMgr.listRouterPorts(
+                routerId).iterator();
+        while (iter.hasNext()) {
+            ZkNodeEntry<UUID, PortConfig> entry = iter.next();
+            PortDirectory.MaterializedRouterPortConfig config;
+            config = MaterializedRouterPortConfig.class.cast(entry.value);
+            // A down-port can only receive packets from network addresses that
+            // are 'local' to the port.
+            cond = new Condition();
+            cond.inPortIds = new HashSet<UUID>();
+            cond.inPortIds.add(entry.key);
+            cond.nwSrcIp = config.localNwAddr;
+            cond.nwSrcLength = (byte) config.localNwLength;
+            r = new LiteralRule(cond, RuleResult.Action.RETURN,
+                    srcFilterChainId, position);
+            position++;
+            ruleMgr.create(r);
+        }
+        // Finally, anything that gets to the end of this chain is dropped.
+        r = new LiteralRule(new Condition(), RuleResult.Action.DROP,
+                srcFilterChainId, position);
+        position++;
+        ruleMgr.create(r);
+
+        // Now create the pre-routing chain. This chain first jumps to the
+        // srcFilterChain, then DNATs (tcp) address 180.0.0.4:80 to 10.0.0.20.
+        position = 0;
+        // The pre-routing chain needs a jump rule to the localAddressesChain
+        r = new JumpRule(new Condition(), srcFilterChainName, preChainId,
+                position);
+        position++;
+        ruleMgr.create(r);
+        int publicDnatAddr = 0xb4000004;
+        int internDnatAddr = 0x0a000014;
+        short natPublicTpPort = 80;
+        Set<NatTarget> nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(internDnatAddr, internDnatAddr, natPublicTpPort,
+                natPublicTpPort));
+        cond = new Condition();
+        cond.nwProto = TCP.PROTOCOL_NUMBER;
+        cond.nwDstIp = publicDnatAddr;
+        cond.nwDstLength = 32;
+        cond.tpDstStart = natPublicTpPort;
+        cond.tpDstEnd = natPublicTpPort;
+        r = new ForwardNatRule(cond, RuleResult.Action.ACCEPT, preChainId,
+                position, true /* dnat */, nats);
+        position++;
+        ruleMgr.create(r);
+
+        // Now create the post-routing chain. This reverses the dnat and
+        // quarantines certain hosts.
+        position = 0;
+        cond = new Condition();
+        cond.nwProto = TCP.PROTOCOL_NUMBER;
+        cond.nwSrcIp = internDnatAddr;
+        cond.nwSrcLength = 32;
+        cond.tpSrcStart = natPublicTpPort;
+        cond.tpSrcEnd = natPublicTpPort;
+        r = new ReverseNatRule(cond, RuleResult.Action.CONTINUE, postChainId,
+                position, true /* dnat */);
+        position++;
+        ruleMgr.create(r);
+        // Now add rules to quarantine hosts 10.0.0.10 and 10.0.1.10.
+        cond = new Condition();
+        cond.nwDstIp = 0x0a00000a;
+        cond.nwDstLength = 32;
+        r = new LiteralRule(cond, RuleResult.Action.REJECT, postChainId,
+                position);
+        position++;
+        ruleMgr.create(r);
+        cond = new Condition();
+        cond.nwDstIp = 0x0a00000a;
+        cond.nwDstLength = 32;
+        r = new LiteralRule(cond, RuleResult.Action.REJECT, postChainId,
+                position);
+        position++;
+        ruleMgr.create(r);
     }
 
     private void zkCreate() throws Exception {
@@ -108,8 +237,8 @@ public class Setup implements Watcher {
             zkBasePath = sb.toString();
             try {
                 rootDir.add(zkBasePath, null, CreateMode.PERSISTENT);
+            } catch (NodeExistsException e) {
             }
-            catch(NodeExistsException e) {}
         }
         // Create all the top level directories
         Setup.createZkDirectoryStructure(rootDir, zkBasePath);
@@ -117,6 +246,7 @@ public class Setup implements Watcher {
 
     /**
      * Destroy the base path and everything underneath.
+     * 
      * @throws Exception
      */
     private void zkDestroy() throws Exception {
@@ -125,8 +255,8 @@ public class Setup implements Watcher {
         rootDir.delete(zkBasePath);
     }
 
-    private void destroyZkDirectoryContents(String path) throws KeeperException,
-            InterruptedException {
+    private void destroyZkDirectoryContents(String path)
+            throws KeeperException, InterruptedException {
         Set<String> children = rootDir.getChildren(path, null);
         for (String child : children) {
             String childPath = path + "/" + child;
@@ -175,6 +305,7 @@ public class Setup implements Watcher {
     /**
      * Remove everything from Midonet's top-level paths but leave those
      * directories.
+     * 
      * @throws Exception
      */
     private void zkTearDown() throws Exception {
@@ -188,16 +319,16 @@ public class Setup implements Watcher {
     private void ovsSetup() {
         initOVS();
         /*
-        String externalIdKey = config.configurationAt("openvswitch").getString(
-                "midolman_ext_id_key", "midolman-vnet");
-        String dpName = "mido_bridge1";
-        BridgeBuilder ovsBridgeBuilder = ovsdb.addBridge(dpName);
-        ovsBridgeBuilder.externalId(externalIdKey, deviceId.toString());
-        ovsBridgeBuilder.build();
-        PortBuilder ovsPortBuilder = ovsdb.addTapPort(dpName, "mido_br_port" + i);
-        ovsPortBuilder.externalId(externalIdKey, portId.toString());
-        ovsPortBuilder.build();
-        */
+         * String externalIdKey =
+         * config.configurationAt("openvswitch").getString(
+         * "midolman_ext_id_key", "midolman-vnet"); String dpName =
+         * "mido_bridge1"; BridgeBuilder ovsBridgeBuilder =
+         * ovsdb.addBridge(dpName); ovsBridgeBuilder.externalId(externalIdKey,
+         * deviceId.toString()); ovsBridgeBuilder.build(); PortBuilder
+         * ovsPortBuilder = ovsdb.addTapPort(dpName, "mido_br_port" + i);
+         * ovsPortBuilder.externalId(externalIdKey, portId.toString());
+         * ovsPortBuilder.build();
+         */
 
     }
 

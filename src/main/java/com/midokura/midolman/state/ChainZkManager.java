@@ -111,6 +111,7 @@ public class ChainZkManager extends ZkManager {
         }
         ops.add(Op.delete(pathManager.getRouterChainPath(entry.value.routerId,
                 entry.key), -1));
+        ops.add(Op.delete(pathManager.getChainRulesPath(entry.key), -1));
         ops.add(Op.delete(pathManager.getChainPath(entry.key), -1));
         return ops;
     }

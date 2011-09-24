@@ -176,19 +176,23 @@ public class TestAbstractController {
     public void testConnectionMade() {
         OFFeaturesReply features = new OFFeaturesReply();
         ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();
-        portList.add(port1);
-        portList.add(port2);
+        portList.add(port1);    // Regular port, gets recorded.
+        portList.add(port2);    // Tunnel port, gets deleted.
         features.setPorts(portList);
         controller.setFeatures(features);
         controller.onConnectionLost();
         assertArrayEquals(new OFPhysicalPort[] { },
                           controller.portsAdded.toArray());
+        assertArrayEquals(new String[] { },
+                          ovsdb.deletedPorts.toArray());
         MockControllerStub stub = 
                 (MockControllerStub) controller.controllerStub;
         assertEquals(0, stub.deletedFlows.size());
         controller.onConnectionMade();
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+        assertArrayEquals(new OFPhysicalPort[] { port1 },
                           controller.portsAdded.toArray());
+        assertArrayEquals(new String[] { port2.getName() },
+                          ovsdb.deletedPorts.toArray());
         assertEquals(1, stub.deletedFlows.size());
         assertEquals(OFMatch.OFPFW_ALL, 
                      stub.deletedFlows.get(0).match.getWildcards());
