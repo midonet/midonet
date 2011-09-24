@@ -341,8 +341,9 @@ public abstract class AbstractController
         match.setDataLayerDestination(data.getDestinationMACAddress());
         match.setDataLayerSource(data.getSourceMACAddress());
         match.setDataLayerType(data.getEtherType());
-        match.setDataLayerVirtualLan(data.getVlanID());
-        match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
+        // See if wildcarding the VLAN fields results in the matches working.
+        // match.setDataLayerVirtualLan(data.getVlanID());
+        // match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
         if (data.getEtherType() == IPv4.ETHERTYPE) {
             IPv4 packet = (IPv4) data.getPayload();
             match.setNetworkTypeOfService(packet.getDiffServ());
