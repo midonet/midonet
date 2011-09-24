@@ -117,6 +117,8 @@ public class BridgeController extends AbstractController {
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
+        log.debug("onFlowRemoved: {} {} {} {}", 
+                new Object[] {match, reason, durationSeconds, packetCount});
         // TODO Auto-generated method stub
     }
 
