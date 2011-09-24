@@ -175,7 +175,10 @@ public class BridgeController extends AbstractController {
 
     private void expireMacPortEntry(final MAC mac, UUID port, boolean delete) {
         UUID currentPort = macPortMap.get(mac);
-        if (currentPort.equals(port)) {
+        if (currentPort == null) {
+            log.debug("expireMacPortEntry: MAC->port mapping for MAC {} " +
+                      "has already been removed", mac);
+        } else if (currentPort.equals(port)) {
             if (delete) {
                 log.debug("expireMacPortEntry: deleting the mapping from " +
                           "MAC {} to port {}", mac, port);
@@ -216,9 +219,6 @@ public class BridgeController extends AbstractController {
                     }, mac_port_timeout, TimeUnit.MILLISECONDS);
                 delayedDeletes.put(mac, future);
             } 
-        } else if (currentPort == null) {
-            log.debug("expireMacPortEntry: MAC->port mapping for MAC {} " +
-                      "has already been removed", mac);
         } else {
             log.debug("expireMacPortEntry: MAC {} is now mapped to port {} " +
                       "not {}", new Object[] { mac, currentPort, port });
