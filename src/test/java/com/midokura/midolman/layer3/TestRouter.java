@@ -55,6 +55,7 @@ import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
@@ -362,9 +363,7 @@ public class TestRouter {
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REQUEST);
         arp.setSenderHardwareAddress(sha);
-        arp
-                .setTargetHardwareAddress(Ethernet
-                        .toMACAddress("00:00:00:00:00:00"));
+        arp.setTargetHardwareAddress(Ethernet.toMACAddress("00:00:00:00:00:00"));
         arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(spa));
         arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(tpa));
         Ethernet pkt = new Ethernet();
@@ -616,6 +615,15 @@ public class TestRouter {
         Assert.fail();
     }
 
+    private void deleteRules() throws StateAccessException,
+            ZkStateSerializationException {
+        Iterator<ZkNodeEntry<UUID, ChainConfig>> iter = chainMgr.list(
+                rtr.routerId).iterator();
+        while (iter.hasNext()) {
+            chainMgr.delete(iter.next().key);
+        }
+    }
+
     private void createRules() throws StateAccessException,
             ZkStateSerializationException {
         UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
@@ -820,7 +828,8 @@ public class TestRouter {
 
         // Now remove the filterSrcByPortId rules and verify that all the
         // packets are again forwarded.
-        chainMgr.delete(srcFilterChainId);
+        deleteRules();
+        // chainMgr.delete(srcFilterChainId);
         fInfo = routePacket(port23Id, badEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port12Id, goodEthTo2);
@@ -862,6 +871,7 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
         fInfo = routePacket(uplinkId, ethToQuarantined);
         checkForwardInfo(fInfo, Action.REJECT, null, 0);
+        deleteRules();
     }
 
     @Test
@@ -911,5 +921,6 @@ public class TestRouter {
         fInfo.matchOut.setNetworkSource(0);
         fInfo.matchIn.setNetworkSource(0);
         Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
+        deleteRules();
     }
 }

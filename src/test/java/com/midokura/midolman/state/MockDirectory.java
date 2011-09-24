@@ -11,11 +11,10 @@ import org.apache.jute.Record;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.KeeperException.*;
-import org.apache.zookeeper.Op.Delete;
-import org.apache.zookeeper.proto.CheckVersionRequest;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
@@ -87,11 +86,14 @@ public class MockDirectory implements Directory {
             return new HashSet<String>(children.keySet());
         }
 
-        void deleteChild(String name) throws NoNodeException {
+        void deleteChild(String name) throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
+            String childPath = new StringBuilder(path).append("/").append(name)
+                    .toString();
             if (null == child)
-                throw new NoNodeException(new StringBuilder(path).append("/")
-                        .append(name).toString());
+                throw new NoNodeException(childPath);
+            if (child.children.size() > 0)
+                throw new NotEmptyException(childPath);
             children.remove(name);
             child.notifyDataWatchers();
             this.notifyChildrenWatchers();
@@ -185,7 +187,8 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void delete(String relativePath) throws NoNodeException {
+    public void delete(String relativePath) throws NoNodeException,
+            NotEmptyException {
         String[] path = relativePath.split("/");
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot delete the root node");
@@ -206,18 +209,18 @@ public class MockDirectory implements Directory {
         for (Op op : ops) {
             Record record = op.toRequestRecord();
             if (record instanceof CreateRequest) {
-                //TODO(pino, ryu): should we use the try/catch and create
+                // TODO(pino, ryu): should we use the try/catch and create
                 // new ErrorResult? Don't for now, but this means that the
-                // unit tests can't purposely make a bad Op. 
-                //try {
+                // unit tests can't purposely make a bad Op.
+                // try {
                 CreateRequest req = CreateRequest.class.cast(record);
-                String path = this.add(req.getPath(), req.getData(),
-                        CreateMode.fromFlag(req.getFlags()));
+                String path = this.add(req.getPath(), req.getData(), CreateMode
+                        .fromFlag(req.getFlags()));
                 results.add(new OpResult.CreateResult(path));
-                //} catch (KeeperException e) {
-                //    e.printStackTrace();
-                //    results.add(new OpResult.ErrorResult(e.code().intValue()));
-                //}
+                // } catch (KeeperException e) {
+                // e.printStackTrace();
+                // results.add(new OpResult.ErrorResult(e.code().intValue()));
+                // }
             } else if (record instanceof SetDataRequest) {
                 SetDataRequest req = SetDataRequest.class.cast(record);
                 this.update(req.getPath(), req.getData());

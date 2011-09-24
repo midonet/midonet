@@ -8,6 +8,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class TestMockDirectory {
 
     @Test
     public void testAddHasDelete() throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+            NoChildrenForEphemeralsException, NotEmptyException {
         String path = "/one";
         byte[] bytes = "pino".getBytes();
         dir.add(path, bytes, CreateMode.PERSISTENT);
@@ -91,7 +92,7 @@ public class TestMockDirectory {
 
     @Test
     public void testGetWatcher() throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+            NoChildrenForEphemeralsException, NotEmptyException {
         String path = "/one";
         byte[] bytes = "two".getBytes();
         dir.add(path, bytes, CreateMode.PERSISTENT);
@@ -121,7 +122,7 @@ public class TestMockDirectory {
 
     @Test
     public void testGetChildrenWatcher() throws NoNodeException, 
-            NodeExistsException, NoChildrenForEphemeralsException {
+            NodeExistsException, NoChildrenForEphemeralsException, NotEmptyException {
         dir.add("/a", "a".getBytes(), CreateMode.PERSISTENT);
         dir.add("/a/b", "ab".getBytes(), CreateMode.PERSISTENT);
         dir.add("/a/b/c", "abc".getBytes(), CreateMode.PERSISTENT);
