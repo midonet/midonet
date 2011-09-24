@@ -62,6 +62,22 @@ public class BridgeController extends AbstractController {
             mac = addr;
             port = uuid;
         }
+
+        public boolean equals(Object rhs) {
+            if (this == rhs)
+                return true;
+            if (null == rhs)
+                return false;
+            if (!(rhs instanceof MacPort))
+                return false;
+
+            return mac.equals(((MacPort)rhs).mac) &&
+                   port.equals(((MacPort)rhs).port);
+        }
+
+        public int hashCode() {
+            return mac.hashCode() ^ port.hashCode();
+        }
     }
 
     private class BridgeControllerWatcher implements
@@ -140,18 +156,18 @@ public class BridgeController extends AbstractController {
                                            inPortUuid);
         Integer count = flowCount.get(flowcountKey);
         if (count == null) {
-            log.debug("onFlowRemoved MAC {} port#{} id:{} but no flowCount",
-                      new Object[] { flowcountKey.mac, match.getInputPort(),
-                                     inPortUuid });
+            log.info("onFlowRemoved MAC {} port#{} id:{} but no flowCount",
+                     new Object[] { flowcountKey.mac, match.getInputPort(),
+                                    inPortUuid });
         } else if (count > 1) {
-            count--;
-            log.debug("onFlowRemoved decreased flow count for srcMac {} from " +
-                      "port#{} id:{} to {}", new Object[] { flowcountKey.mac,
-                      match.getInputPort(), inPortUuid, count });
+            flowCount.put(flowcountKey, new Integer(count-1));
+            log.info("onFlowRemoved decreased flow count for srcMac {} from " +
+                     "port#{} id:{} to {}", new Object[] { flowcountKey.mac,
+                     match.getInputPort(), inPortUuid, count-1 });
         } else {
-            log.debug("onFlowRemoved last flow for srcMac {} on port #{} id:{}"+
-                      " removed at {}", new Object[] { flowcountKey.mac,
-                      match.getInputPort(), inPortUuid, new Date() });
+            log.info("onFlowRemoved last flow for srcMac {} on port #{} id:{}"+
+                     " removed at {}", new Object[] { flowcountKey.mac,
+                     match.getInputPort(), inPortUuid, new Date() });
             flowCount.remove(flowcountKey);
             expireMacPortEntry(flowcountKey.mac, inPortUuid, false);
         }
@@ -178,8 +194,8 @@ public class BridgeController extends AbstractController {
                     // TODO: What do we do about this?
                 }
             } else {
-                log.debug("expireMacPortEntry: setting the mapping from " +
-                          "MAC {} to port {} to expire", mac, port);
+                log.info("expireMacPortEntry: setting the mapping from " +
+                         "MAC {} to port {} to expire", mac, port);
                 Future future = reactor.schedule(
                     new Runnable() {
                         public void run() { 
@@ -197,7 +213,7 @@ public class BridgeController extends AbstractController {
                                 // TODO: What do we do about this?
                             }
                         }
-                    }, mac_port_timeout, TimeUnit.SECONDS);
+                    }, mac_port_timeout, TimeUnit.MILLISECONDS);
                 delayedDeletes.put(mac, future);
             } 
         } else if (currentPort == null) {
@@ -336,11 +352,11 @@ public class BridgeController extends AbstractController {
                 delayedDelete.cancel(false);
             flowCount.put(flowcountKey, count);
         } else {
-            count++;
+            flowCount.put(flowcountKey, new Integer(count+1));
         }
 
-        log.debug("Increased flow count for source MAC {} from port {} to {}",
-                  new Object[] { macAddr, portUuid, count });
+        log.info("Increased flow count for source MAC {} from port {} to {}",
+                 new Object[] { macAddr, portUuid, count });
         if (!macPortMap.containsKey(macAddr) ||
                                 !macPortMap.get(macAddr).equals(portUuid)) {
             try {

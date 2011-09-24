@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -19,6 +20,7 @@ import static org.junit.Assert.*;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
@@ -26,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.eventloop.SelectLoop;
+import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
@@ -54,6 +56,7 @@ public class TestBridgeController {
     int dp_id = 43;
     MockControllerStub controllerStub;
     UUID portUuids[];
+    MockReactor reactor;
 
     public static final OFAction OUTPUT_ALL_ACTION = 
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
@@ -221,7 +224,7 @@ public class TestBridgeController {
                 midoConfig.getString("mac_port_subdirectory", "/mac_port"));
         macPortMap = new MacPortMap(macPortDir);
         
-        Reactor reactor = new SelectLoop(Executors.newScheduledThreadPool(1));
+        reactor = new MockReactor();
         
         // At this point in the python, we would create the controllerManager.
         // But we're not using a controllerManager in the Java tests.
@@ -572,6 +575,59 @@ public class TestBridgeController {
             checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
             checkSentPacket(14, (short)-1, expectAction, new byte[] {});
         }
+    }
+
+    @Test
+    public void testFlowCount() {
+        short inPortNum = 0;
+        int numFlows = 3;
+        for (int i = 0; i < numFlows; i++) {
+            controller.onPacketIn(14, 13, inPortNum, packet04.serialize());
+        }
+        assertEquals(numFlows, controllerStub.addedFlows.size());
+
+        assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
+        MidoMatch match = new MidoMatch();
+        match.setInputPort(inPortNum);
+        match.setDataLayerSource(macList[inPortNum].address);
+        int timeout_ms = 40*1000;
+        for (int i = 0; i < numFlows; i++) {
+            reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
+            controller.onFlowRemoved(match, 0, (short)1000, 
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+                        timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
+            assertEquals(portUuids[inPortNum], 
+                         macPortMap.get(macList[inPortNum]));
+        }
+        reactor.incrementTime(timeout_ms-1, TimeUnit.MILLISECONDS);
+        assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
+
+        reactor.incrementTime(2, TimeUnit.MILLISECONDS);
+        assertNull(macPortMap.get(macList[inPortNum]));
+
+        // Rediscover a mapping after the last flow has been removed.
+        // ref 0 -> 1
+        controller.onPacketIn(14, 13, inPortNum, packet01.serialize());
+        reactor.incrementTime(timeout_ms*3, TimeUnit.MILLISECONDS);
+        assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
+        // ref 1 -> 0
+        controller.onFlowRemoved(match, 0, (short)1000, 
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+                        timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
+        reactor.incrementTime(timeout_ms-1, TimeUnit.MILLISECONDS);
+        assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
+        // ref 0 -> 1:  Cancels delayed delete.
+        controller.onPacketIn(14, 13, inPortNum, packet0MC.serialize());
+        reactor.incrementTime(timeout_ms*2, TimeUnit.MILLISECONDS);
+        assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
+        // ref 1 -> 0
+        controller.onFlowRemoved(match, 0, (short)1000, 
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+                        timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
+        reactor.incrementTime(timeout_ms-1, TimeUnit.MILLISECONDS);
+        assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
+        reactor.incrementTime(2, TimeUnit.MILLISECONDS);
+        assertNull(macPortMap.get(macList[inPortNum]));
     }
 
 }
