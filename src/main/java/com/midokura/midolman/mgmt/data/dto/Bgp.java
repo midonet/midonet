@@ -127,7 +127,7 @@ public class Bgp {
         return new BgpConfig(this.getPortId(), this.getLocalAS(), InetAddress
                 .getByName(this.getPeerAddr()), this.getPeerAS());
     }
-    
+
     public static Bgp createBgp(UUID id, BgpConfig config) {
         Bgp b = new Bgp();
         b.setLocalAS(config.localAS);

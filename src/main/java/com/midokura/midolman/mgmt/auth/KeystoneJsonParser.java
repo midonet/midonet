@@ -15,9 +15,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * JSON parser for Keystone response.
- *
- * @version        1.6 05 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 05 Sept 2011
+ * @author Ryu Ishimoto
  */
 public final class KeystoneJsonParser {
     /*
@@ -34,22 +34,24 @@ public final class KeystoneJsonParser {
 
     /**
      * Parse the Keystone JSON string.
-     *
-     * @param   src  JSON string to parse.
-     * @throws  IOException  JSON parsing IO error.
+     * 
+     * @param src
+     *            JSON string to parse.
+     * @throws IOException
+     *             JSON parsing IO error.
      */
     public void parse(String src) throws IOException {
         // Parse with Jackson library.
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory factory = mapper.getJsonFactory();
         JsonParser jp = factory.createJsonParser(src);
-        this.node =  mapper.readTree(jp).get("auth");
-    } 
+        this.node = mapper.readTree(jp).get("auth");
+    }
 
     /**
      * Get token from JSON.
-     *
-     * @return  Token string.
+     * 
+     * @return Token string.
      */
     public String getToken() {
         return this.node.get("token").get("id").getTextValue();
@@ -57,8 +59,8 @@ public final class KeystoneJsonParser {
 
     /**
      * Get token expiration from JSON.
-     *
-     * @return  Token expiration string.
+     * 
+     * @return Token expiration string.
      */
     public String getTokenExpiration() {
         return this.node.get("token").get("expires").getTextValue();
@@ -66,8 +68,8 @@ public final class KeystoneJsonParser {
 
     /**
      * Get token tenant from JSON.
-     *
-     * @return  Token tenant string.
+     * 
+     * @return Token tenant string.
      */
     public String getTokenTenant() {
         return this.node.get("token").get("tenantId").getTextValue();
@@ -75,8 +77,8 @@ public final class KeystoneJsonParser {
 
     /**
      * Get user from JSON.
-     *
-     * @return  User string.
+     * 
+     * @return User string.
      */
     public String getUser() {
         return this.node.get("user").get("username").getTextValue();
@@ -84,8 +86,8 @@ public final class KeystoneJsonParser {
 
     /**
      * Get user tenant from JSON.
-     *
-     * @return  Tenant string.
+     * 
+     * @return Tenant string.
      */
     public String getUserTenant() {
         return this.node.get("user").get("tenantId").getTextValue();
@@ -93,16 +95,16 @@ public final class KeystoneJsonParser {
 
     /**
      * Get user roles from JSON.
-     *
-     * @return  A string array of roles.
+     * 
+     * @return A string array of roles.
      */
     public String[] getUserRoles() {
         // Parse out roles from the JSON string and return as an array.
-        JsonNode roleNode =  this.node.get("user").get("roleRefs");
+        JsonNode roleNode = this.node.get("user").get("roleRefs");
         String[] roles = new String[roleNode.size()];
         Iterator<JsonNode> roleNodeItr = roleNode.getElements();
         int ii = 0;
-        while (roleNodeItr.hasNext()){
+        while (roleNodeItr.hasNext()) {
             roleNode = roleNodeItr.next();
             roles[ii] = roleNode.get("roleId").getTextValue();
             ii++;
@@ -110,4 +112,3 @@ public final class KeystoneJsonParser {
         return roles;
     }
 }
-

@@ -107,7 +107,7 @@ public class AdRoute {
         return new AdRouteConfig(this.getBgpId(), InetAddress.getByName(this
                 .getNwPrefix()), this.getPrefixLength());
     }
-    
+
     public static AdRoute createAdRoute(UUID id, AdRouteConfig config) {
         AdRoute adRoute = new AdRoute();
         adRoute.setNwPrefix(config.nwPrefix.getHostAddress());

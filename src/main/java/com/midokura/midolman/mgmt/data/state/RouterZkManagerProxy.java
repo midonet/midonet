@@ -54,8 +54,8 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
 			this.peerPortId = peerPortId;
 		}
 
-		public UUID portId;
-		public UUID peerPortId;
+        public UUID portId;
+        public UUID peerPortId;
 	}
 
 	private RouterZkManager zkManager = null;

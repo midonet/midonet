@@ -36,149 +36,150 @@ import com.midokura.midolman.state.StateAccessException;
  */
 @Path("/ad_routes")
 public class AdRouteResource extends RestResource {
-	/*
-	 * Implements REST API end points for ad_routes.
-	 */
+    /*
+     * Implements REST API end points for ad_routes.
+     */
 
-	private final static Logger log = LoggerFactory
-			.getLogger(AdRouteResource.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(AdRouteResource.class);
 
-	/**
-	 * Get the advertising route with the given ID.
-	 * 
-	 * @param id
-	 *            AdRoute UUID.
-	 * @return AdRoute object.
-	 * @throws StateAccessException
-	 */
-	@GET
-	@Path("{id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public AdRoute get(@PathParam("id") UUID id) throws StateAccessException {
-		// Get a advertising route for the given ID.
-		AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		AdRoute adRoute = null;
-		try {
-			adRoute = dao.get(id);
-		} catch (StateAccessException e) {
-			log.error("Error accessing data", e);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled error", e);
-			throw new UnknownRestApiException(e);
-		}
-		return adRoute;
-	}
+    /**
+     * Get the advertising route with the given ID.
+     * 
+     * @param id
+     *            AdRoute UUID.
+     * @return AdRoute object.
+     * @throws StateAccessException
+     */
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AdRoute get(@PathParam("id") UUID id) throws StateAccessException {
+        // Get a advertising route for the given ID.
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        AdRoute adRoute = null;
+        try {
+            adRoute = dao.get(id);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+        return adRoute;
+    }
 
-	@PUT
-	@Path("{id}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response update(@PathParam("id") UUID id, AdRoute adRoute)
-			throws StateAccessException {
-		AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		try {
-			dao.update(id, adRoute);
-		} catch (StateAccessException e) {
-			log.error("Error accessing data", e);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled error", e);
-			throw new UnknownRestApiException(e);
-		}
-		return Response.ok().build();
-	}
+    @PUT
+    @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response update(@PathParam("id") UUID id, AdRoute adRoute)
+            throws StateAccessException {
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        try {
+            dao.update(id, adRoute);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+        return Response.ok().build();
+    }
 
-	@DELETE
-	@Path("{id}")
-	public void delete(@PathParam("id") UUID id) throws StateAccessException {
-		AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		try {
-			dao.delete(id);
-		} catch (StateAccessException e) {
-			log.error("Error accessing data", e);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled error", e);
-			throw new UnknownRestApiException(e);
-		}
-	}
+    @DELETE
+    @Path("{id}")
+    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        try {
+            dao.delete(id);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+    }
 
-	/**
-	 * Sub-resource class for bgp's advertising route.
-	 */
-	public static class BgpAdRouteResource extends RestResource {
+    /**
+     * Sub-resource class for bgp's advertising route.
+     */
+    public static class BgpAdRouteResource extends RestResource {
 
-		private UUID bgpId = null;
+        private UUID bgpId = null;
 
-		/**
-		 * Constructor.
-		 * 
-		 * @param zkConn
-		 *            ZooKeeper connection string.
-		 * @param bgpId
-		 *            UUID of a bgp.
-		 */
-		public BgpAdRouteResource(String zkConn, UUID bgpId) {
-			this.zookeeperConn = zkConn;
-			this.bgpId = bgpId;
-		}
+        /**
+         * Constructor.
+         * 
+         * @param zkConn
+         *            ZooKeeper connection string.
+         * @param bgpId
+         *            UUID of a bgp.
+         */
+        public BgpAdRouteResource(String zkConn, UUID bgpId) {
+            this.zookeeperConn = zkConn;
+            this.bgpId = bgpId;
+        }
 
-		/**
-		 * Index of advertising routes belonging to the bgp.
-		 * 
-		 * @return A list of advertising routes.
-		 * @throws StateAccessException 
-		 */
-		@GET
-		@Produces(MediaType.APPLICATION_JSON)
-		public AdRoute[] list() throws StateAccessException {
-			AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-			AdRoute[] adRoutes = null;
-			try {
-				adRoutes = dao.list(bgpId);
-			} catch (StateAccessException e) {
-				log.error("Error accessing data", e);
-				throw e;
-			} catch (Exception e) {
-				log.error("Unhandled error", e);
-				throw new UnknownRestApiException(e);
-			}
-			return adRoutes;
-		}
+        /**
+         * Index of advertising routes belonging to the bgp.
+         * 
+         * @return A list of advertising routes.
+         * @throws StateAccessException
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public AdRoute[] list() throws StateAccessException {
+            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            AdRoute[] adRoutes = null;
+            try {
+                adRoutes = dao.list(bgpId);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
+            return adRoutes;
+        }
 
-		/**
-		 * Handler for create advertising route.
-		 * 
-		 * @param adRoute
-		 *            AdRoute object mapped to the request input.
-		 * @throws StateAccessException 
-		 * @returns Response object with 201 status code set if successful.
-		 */
-		@POST
-		@Consumes(MediaType.APPLICATION_JSON)
-		public Response create(AdRoute adRoute, @Context UriInfo uriInfo) throws StateAccessException {
-			adRoute.setBgpId(bgpId);
-			AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-			UUID id = null;
-			try {
-				id = dao.create(adRoute);
-			} catch (StateAccessException e) {
-				log.error("Error accessing data", e);
-				throw e;
-			} catch (Exception e) {
-				log.error("Unhandled error", e);
-				throw new UnknownRestApiException(e);
-			}
+        /**
+         * Handler for create advertising route.
+         * 
+         * @param adRoute
+         *            AdRoute object mapped to the request input.
+         * @throws StateAccessException
+         * @returns Response object with 201 status code set if successful.
+         */
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response create(AdRoute adRoute, @Context UriInfo uriInfo)
+                throws StateAccessException {
+            adRoute.setBgpId(bgpId);
+            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
+                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            UUID id = null;
+            try {
+                id = dao.create(adRoute);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
 
-			URI uri = uriInfo.getBaseUriBuilder().path("ad_routes/" + id)
-					.build();
-			return Response.created(uri).build();
-		}
-	}
+            URI uri = uriInfo.getBaseUriBuilder().path("ad_routes/" + id)
+                    .build();
+            return Response.created(uri).build();
+        }
+    }
 
 }

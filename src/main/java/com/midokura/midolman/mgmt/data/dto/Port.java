@@ -63,28 +63,29 @@ public class Port {
         this.deviceId = deviceId;
     }
 
-	/**
-	 * @return the vifId
-	 */
-	public UUID getVifId() {
-		return vifId;
-	}
+    /**
+     * @return the vifId
+     */
+    public UUID getVifId() {
+        return vifId;
+    }
 
-	/**
-	 * @param vifId the vifId to set
-	 */
-	public void setVifId(UUID vifId) {
-		this.vifId = vifId;
-	}
-	
+    /**
+     * @param vifId
+     *            the vifId to set
+     */
+    public void setVifId(UUID vifId) {
+        this.vifId = vifId;
+    }
+
     public BridgePortConfig toBridgePortConfig() {
         return new BridgePortConfig(this.getDeviceId());
     }
-    
+
     public PortMgmtConfig toPortMgmtConfig() {
         return new PortMgmtConfig(this.getVifId());
     }
-    
+
     public static Port createPort(UUID id, PortMgmtConfig mgmtConfig,
             BridgePortConfig config) {
         Port port = new Port();

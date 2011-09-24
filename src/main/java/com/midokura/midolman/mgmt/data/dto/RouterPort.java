@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
-
 /**
  * Data transfer class for router port.
  * 

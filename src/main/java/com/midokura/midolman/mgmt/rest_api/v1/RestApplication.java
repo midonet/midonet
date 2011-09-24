@@ -28,44 +28,44 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
  * @author Ryu Ishimoto
  */
 public class RestApplication extends Application {
-	/*
-	 * Override methods to initialize application.
-	 */
+    /*
+     * Override methods to initialize application.
+     */
 
-	/**
-	 * Default constructor
-	 */
-	public RestApplication() {
-	}
+    /**
+     * Default constructor
+     */
+    public RestApplication() {
+    }
 
-	/**
-	 * Get a set of root resource and provider classes.
-	 * 
-	 * @return A list of Class objects.
-	 */
-	@Override
-	public Set<Class<?>> getClasses() {
-		HashSet<Class<?>> set = new HashSet<Class<?>>();
-		set.add(PortResource.class);
-		set.add(RuleResource.class);
-		set.add(RouteResource.class);
-		set.add(RouterResource.class);
-		set.add(TenantResource.class);
-		set.add(ChainResource.class);
-		set.add(BridgeResource.class);
-		set.add(StateAccessExceptionMapper.class);
-		return set;
-	}
+    /**
+     * Get a set of root resource and provider classes.
+     * 
+     * @return A list of Class objects.
+     */
+    @Override
+    public Set<Class<?>> getClasses() {
+        HashSet<Class<?>> set = new HashSet<Class<?>>();
+        set.add(PortResource.class);
+        set.add(RuleResource.class);
+        set.add(RouteResource.class);
+        set.add(RouterResource.class);
+        set.add(TenantResource.class);
+        set.add(ChainResource.class);
+        set.add(BridgeResource.class);
+        set.add(StateAccessExceptionMapper.class);
+        return set;
+    }
 
-	/**
-	 * Get a set of root resource and provider instances.
-	 * 
-	 * @return A list of singleton instances.
-	 */
-	@Override
-	public Set<Object> getSingletons() {
-		HashSet<Object> singletons = new HashSet<Object>();
-		singletons.add(new JacksonJaxbJsonProvider());
-		return singletons;
-	}
+    /**
+     * Get a set of root resource and provider instances.
+     * 
+     * @return A list of singleton instances.
+     */
+    @Override
+    public Set<Object> getSingletons() {
+        HashSet<Object> singletons = new HashSet<Object>();
+        singletons.add(new JacksonJaxbJsonProvider());
+        return singletons;
+    }
 }

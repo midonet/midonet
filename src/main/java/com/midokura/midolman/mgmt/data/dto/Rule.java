@@ -649,7 +649,8 @@ public class Rule {
         this.setTpSrcStart(c.tpSrcStart);
     }
 
-    public static Rule createRule(UUID id, com.midokura.midolman.rules.Rule zkRule) {
+    public static Rule createRule(UUID id,
+            com.midokura.midolman.rules.Rule zkRule) {
         Rule rule = new Rule();
         rule.setChainId(zkRule.chainId);
         rule.setFromCondition(zkRule.getCondition());

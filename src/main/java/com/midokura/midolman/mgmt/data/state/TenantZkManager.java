@@ -42,17 +42,17 @@ public class TenantZkManager extends ZkManager {
 		ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
 	}
 
-	/**
-	 * Add a new tenant entry in the ZooKeeper directory.
-	 * 
-	 * 
-	 * @param tenant
-	 *            TenantConfig object to store tenant data.
-	 * @throws KeeperException
-	 *             General ZooKeeper exception.
-	 * @throws InterruptedException
-	 *             Unresponsive thread getting interrupted by another thread.
-	 */
+    /**
+     * Add a new tenant entry in the ZooKeeper directory.
+     * 
+     * 
+     * @param tenant
+     *            TenantConfig object to store tenant data.
+     * @throws KeeperException
+     *             General ZooKeeper exception.
+     * @throws InterruptedException
+     *             Unresponsive thread getting interrupted by another thread.
+     */
 	public UUID create() throws StateAccessException {
 		return create(null);
 	}

@@ -24,38 +24,38 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  */
 public class VifZkManager extends ZkManager {
 
-	public static class VifConfig {
+    public static class VifConfig {
 
-		public VifConfig() {
-			super();
-		}
+        public VifConfig() {
+            super();
+        }
 
-		public VifConfig(UUID portId) {
-			super();
-			this.portId = portId;
-		}
+        public VifConfig(UUID portId) {
+            super();
+            this.portId = portId;
+        }
 
-		public UUID portId;
-	}
+        public UUID portId;
+    }
 
-	private ZkMgmtPathManager ZkMgmtPathManager = null;
+    private ZkMgmtPathManager ZkMgmtPathManager = null;
 
-	public VifZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
-		super(new ZkDirectory(zk, "", null), basePath);
-		this.ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
-	}
+    public VifZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
+        super(new ZkDirectory(zk, "", null), basePath);
+        this.ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
+    }
 
-	public ZkNodeEntry<UUID, VifConfig> get(UUID id)
-			throws StateAccessException, ZkStateSerializationException {
-		byte[] data = get(ZkMgmtPathManager.getVifPath(id), null);
-		VifConfig config = null;
-		try {
-			config = deserialize(data, VifConfig.class);
-		} catch (IOException e) {
-			throw new ZkStateSerializationException(
-					"Could not deserialize VIF " + id + " to VifConfig", e,
-					VifConfig.class);
-		}
-		return new ZkNodeEntry<UUID, VifConfig>(id, config);
-	}
+    public ZkNodeEntry<UUID, VifConfig> get(UUID id)
+            throws StateAccessException, ZkStateSerializationException {
+        byte[] data = get(ZkMgmtPathManager.getVifPath(id), null);
+        VifConfig config = null;
+        try {
+            config = deserialize(data, VifConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize VIF " + id + " to VifConfig", e,
+                    VifConfig.class);
+        }
+        return new ZkNodeEntry<UUID, VifConfig>(id, config);
+    }
 }

@@ -30,8 +30,8 @@ public class TenantDataAccessor extends DataAccessor {
      *            ZooKeeper connection string
      */
     public TenantDataAccessor(String zkConn, int timeout, String rootPath,
-			String mgmtRootPath) {
-		super(zkConn, timeout, rootPath, mgmtRootPath);
+            String mgmtRootPath) {
+        super(zkConn, timeout, rootPath, mgmtRootPath);
     }
 
     private TenantZkManager getTenantZkManager() throws Exception {

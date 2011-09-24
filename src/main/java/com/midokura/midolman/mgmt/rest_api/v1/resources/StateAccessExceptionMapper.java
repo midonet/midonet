@@ -10,15 +10,15 @@ import com.midokura.midolman.state.StateAccessException;
 
 @Provider
 public class StateAccessExceptionMapper implements
-		ExceptionMapper<StateAccessException> {
+        ExceptionMapper<StateAccessException> {
 
-	@Override
-	public Response toResponse(StateAccessException e) {
-		ErrorEntity error = new ErrorEntity();
-		error.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-		error.setMessage("Data access error.");
-		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
-				error).type(MediaType.APPLICATION_JSON).build();
-	}
+    @Override
+    public Response toResponse(StateAccessException e) {
+        ErrorEntity error = new ErrorEntity();
+        error.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        error.setMessage("Data access error.");
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
+                error).type(MediaType.APPLICATION_JSON).build();
+    }
 
 }

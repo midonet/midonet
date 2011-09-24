@@ -42,8 +42,8 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 	 * 
 	 * @return /vifs/vifId
 	 */
-	public String getVifPath(UUID vifId) {
-		return new StringBuilder(getVifsPath()).append("/").append(vifId)
+    public String getVifPath(UUID vifId) {
+        return new StringBuilder(getVifsPath()).append("/").append(vifId)
 				.toString();
 	}
 

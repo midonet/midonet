@@ -14,53 +14,61 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 /**
  * Class representing chain.
  * 
- * @version        1.6 11 Sept 2011
- * @author         Ryu Ishimoto
+ * @version 1.6 11 Sept 2011
+ * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Chain {
-    
+
     private UUID id = null;
     private UUID routerId = null;
     private String name = null;
-    
+
     /**
      * @return the id
      */
     public UUID getId() {
         return id;
     }
+
     /**
-     * @param id the id to set
+     * @param id
+     *            the id to set
      */
     public void setId(UUID id) {
         this.id = id;
     }
+
     /**
      * @return the routerId
      */
     public UUID getRouterId() {
         return routerId;
     }
+
     /**
-     * @param routerId the routerId to set
+     * @param routerId
+     *            the routerId to set
      */
     public void setRouterId(UUID routerId) {
         this.routerId = routerId;
     }
+
     /**
      * @return the name
      */
     public String getName() {
         return name;
     }
+
     /**
-     * @param name the name to set
+     * @param name
+     *            the name to set
      */
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public ChainConfig toConfig() {
         return new ChainConfig(this.getName(), this.getRouterId());
     }

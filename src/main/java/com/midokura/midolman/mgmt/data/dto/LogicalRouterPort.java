@@ -79,15 +79,14 @@ public class LogicalRouterPort extends RouterPort {
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPortAddress()), new HashSet<Route>(), null);
     }
-    
+
     public LogicalRouterPortConfig toPeerConfig() {
         return new LogicalRouterPortConfig(this.getPeerRouterId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPeerPortAddress()), new HashSet<Route>(), null);
     }
-    
-    
+
     public static Port createPort(UUID id, LogicalRouterPortConfig config) {
         LogicalRouterPort port = new LogicalRouterPort();
         port.setDeviceId(config.device_id);

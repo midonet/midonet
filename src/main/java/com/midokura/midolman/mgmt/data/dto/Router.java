@@ -84,7 +84,7 @@ public class Router {
     public RouterMgmtConfig toConfig() {
         return new RouterMgmtConfig(this.getTenantId(), this.getName());
     }
-    
+
     public static Router createRouter(UUID id, RouterMgmtConfig config) {
         Router router = new Router();
         router.setName(config.name);

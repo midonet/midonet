@@ -33,55 +33,55 @@ import com.midokura.midolman.state.StateAccessException;
  */
 @Path("/tenants")
 public class TenantResource extends RestResource {
-	/*
-	 * Implements REST API endpoints for tenants.
-	 */
+    /*
+     * Implements REST API endpoints for tenants.
+     */
 
-	private final static Logger log = LoggerFactory
-			.getLogger(TenantResource.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(TenantResource.class);
 
-	/**
-	 * Router resource locator for tenants
-	 */
-	@Path("/{id}/routers")
-	public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
-		return new TenantRouterResource(zookeeperConn, id);
-	}
+    /**
+     * Router resource locator for tenants
+     */
+    @Path("/{id}/routers")
+    public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
+        return new TenantRouterResource(zookeeperConn, id);
+    }
 
-	/**
-	 * Bridge resource locator for tenants
-	 */
-	@Path("/{id}/bridges")
-	public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
-		return new TenantBridgeResource(zookeeperConn, id);
-	}
+    /**
+     * Bridge resource locator for tenants
+     */
+    @Path("/{id}/bridges")
+    public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
+        return new TenantBridgeResource(zookeeperConn, id);
+    }
 
-	/**
-	 * Handler for create tenant API call.
-	 * 
-	 * @param tenant
-	 *            Tenant object.
-	 * @throws StateAccessException
-	 * @throws Exception
-	 * @returns Response object with 201 status code set if successful.
-	 */
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response create(Tenant tenant) throws StateAccessException {
-		TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		UUID id = null;
-		try {
-			id = dao.create(tenant);
-		} catch (StateAccessException e) {
-			log.error("Error accessing data", e);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled error", e);
-			throw new UnknownRestApiException(e);
-		}
+    /**
+     * Handler for create tenant API call.
+     * 
+     * @param tenant
+     *            Tenant object.
+     * @throws StateAccessException
+     * @throws Exception
+     * @returns Response object with 201 status code set if successful.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response create(Tenant tenant) throws StateAccessException {
+        TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn,
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        UUID id = null;
+        try {
+            id = dao.create(tenant);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
 
-		return Response.created(URI.create("/" + id)).build();
-	}
+        return Response.created(URI.create("/" + id)).build();
+    }
 }

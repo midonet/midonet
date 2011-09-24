@@ -21,14 +21,14 @@ import com.midokura.midolman.mgmt.auth.KeystoneClient;
 
 /**
  * Servlet filter for Keystone authentication.
- *
- * @version        1.6 05 Sept 2011
- * @author         Ryu Ishimoto
+ * 
+ * @version 1.6 05 Sept 2011
+ * @author Ryu Ishimoto
  */
 public final class KeystoneAuthFilter implements Filter {
     /*
-     * Servlet filter that authenticates the passed-in token via
-     * Keystone authentication server.
+     * Servlet filter that authenticates the passed-in token via Keystone
+     * authentication server.
      */
 
     private KeystoneClient client = null;
@@ -36,38 +36,43 @@ public final class KeystoneAuthFilter implements Filter {
     /**
      * Called by the web container to indicate to a filter that it is being
      * placed into service.
-     *
-     * @param   filterConfig  A filter configuration object used by a servlet
-     *                        servlet container to pass information to a
-     *                        filter during initialization.
-     * @throws  ServletException  A servlet error.
+     * 
+     * @param filterConfig
+     *            A filter configuration object used by a servlet servlet
+     *            container to pass information to a filter during
+     *            initialization.
+     * @throws ServletException
+     *             A servlet error.
      */
     public void init(FilterConfig filterConfig) throws ServletException {
-        // Initialize member variables. 
+        // Initialize member variables.
         String protocol = filterConfig.getInitParameter("service_protocol");
         String host = filterConfig.getInitParameter("service_host");
-        int port = Integer.parseInt(filterConfig.getInitParameter(
-                "service_port"));
+        int port = Integer.parseInt(filterConfig
+                .getInitParameter("service_port"));
         this.client = new KeystoneClient(protocol, host, port);
-        this.client.setAdminToken(filterConfig.getInitParameter(
-                "admin_token"));
+        this.client.setAdminToken(filterConfig.getInitParameter("admin_token"));
     }
 
     /**
      * Called by the container each time a request/response pair is passed
      * through the chain due to a client request for a resource at the end of
      * the chain.
-     *
-     * @param   request  Request passed along the chain.
-     * @param   response  Response passed along the chain.
-     * @param   chain  Filter chain to keep the request going.
-     * @throws  IOException  Keystone client IO error.
-     * @throws  ServletException  A servlet error. 
+     * 
+     * @param request
+     *            Request passed along the chain.
+     * @param response
+     *            Response passed along the chain.
+     * @param chain
+     *            Filter chain to keep the request going.
+     * @throws IOException
+     *             Keystone client IO error.
+     * @throws ServletException
+     *             A servlet error.
      */
     public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain)
-            throws IOException, ServletException {
-        // Ask the Keystone server if the token is valid. 
+            FilterChain chain) throws IOException, ServletException {
+        // Ask the Keystone server if the token is valid.
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
         String token = req.getHeader("HTTP_X_AUTH_TOKEN"); // Get token.
         if (this.client.validateToken(token)) {
@@ -79,11 +84,11 @@ public final class KeystoneAuthFilter implements Filter {
     }
 
     /**
-    * Called by the web container to indicate to a filter that it is being
-    * taken out of service.
-    */
+     * Called by the web container to indicate to a filter that it is being
+     * taken out of service.
+     */
     public void destroy() {
-        // Reset all the member variables. 
+        // Reset all the member variables.
         this.client = null;
     }
 }

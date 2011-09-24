@@ -39,12 +39,12 @@ public abstract class RestResource {
 		zookeeperConn = context.getInitParameter("zookeeper-connection");
 		String zkTo = context.getInitParameter("zookeeper-timeout");
 		if (zkTo != null) {
-			zookeeperTimeout = Integer.parseInt(zkTo);
-		}
+            zookeeperTimeout = Integer.parseInt(zkTo);
+        }
 		String rootPath = context.getInitParameter("zookeeper-root");
 		if (rootPath != null) {
-			zookeeperRoot = rootPath;
-		}
+            zookeeperRoot = rootPath;
+        }
 		rootPath = context.getInitParameter("zookeeper-mgmt-root");
 		if (rootPath != null) {
 			zookeeperMgmtRoot = rootPath;

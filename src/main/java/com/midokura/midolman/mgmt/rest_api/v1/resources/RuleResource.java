@@ -35,96 +35,96 @@ import com.midokura.midolman.state.StateAccessException;
  */
 public class RuleResource extends RestResource {
 
-	private final static Logger log = LoggerFactory
-			.getLogger(RuleResource.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(RuleResource.class);
 
-	@GET
-	@Path("{id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Rule get(@PathParam("id") UUID id) throws StateAccessException {
-		RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		Rule rule = null;
-		try {
-			rule = dao.get(id);
-		} catch (StateAccessException e) {
-			log.error("Error accessing data", e);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled error", e);
-			throw new UnknownRestApiException(e);
-		}
-		return rule;
-	}
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Rule get(@PathParam("id") UUID id) throws StateAccessException {
+        RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        Rule rule = null;
+        try {
+            rule = dao.get(id);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+        return rule;
+    }
 
-	@DELETE
-	@Path("{id}")
-	public void delete(@PathParam("id") UUID id) throws StateAccessException {
-		RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-				zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-		try {
-			dao.delete(id);
-		} catch (StateAccessException e) {
-			log.error("Error accessing data", e);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled error", e);
-			throw new UnknownRestApiException(e);
-		}
-	}
+    @DELETE
+    @Path("{id}")
+    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+        RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        try {
+            dao.delete(id);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+    }
 
-	/**
-	 * Sub-resource class for chain's rules.
-	 */
-	public static class ChainRuleResource extends RestResource {
+    /**
+     * Sub-resource class for chain's rules.
+     */
+    public static class ChainRuleResource extends RestResource {
 
-		private UUID chainId = null;
+        private UUID chainId = null;
 
-		public ChainRuleResource(String zkConn, UUID chainId) {
-			this.zookeeperConn = zkConn;
-			this.chainId = chainId;
-		}
+        public ChainRuleResource(String zkConn, UUID chainId) {
+            this.zookeeperConn = zkConn;
+            this.chainId = chainId;
+        }
 
-		@GET
-		@Produces(MediaType.APPLICATION_JSON)
-		public Rule[] list() throws StateAccessException {
-			RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-			Rule[] rules = null;
-			try {
-				rules = dao.list(chainId);
-			} catch (StateAccessException e) {
-				log.error("Error accessing data", e);
-				throw e;
-			} catch (Exception e) {
-				log.error("Unhandled error", e);
-				throw new UnknownRestApiException(e);
-			}
-			return rules;
-		}
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Rule[] list() throws StateAccessException {
+            RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            Rule[] rules = null;
+            try {
+                rules = dao.list(chainId);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
+            return rules;
+        }
 
-		@POST
-		@Consumes(MediaType.APPLICATION_JSON)
-		public Response create(Rule rule, @Context UriInfo uriInfo)
-				throws StateAccessException {
-			// Add a new rule entry into zookeeper.
-			rule.setId(UUID.randomUUID());
-			rule.setChainId(chainId);
-			RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-					zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-			UUID id = null;
-			try {
-				id = dao.create(rule);
-			} catch (StateAccessException e) {
-				log.error("Error accessing data", e);
-				throw e;
-			} catch (Exception e) {
-				log.error("Unhandled error", e);
-				throw new UnknownRestApiException(e);
-			}
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response create(Rule rule, @Context UriInfo uriInfo)
+                throws StateAccessException {
+            // Add a new rule entry into zookeeper.
+            rule.setId(UUID.randomUUID());
+            rule.setChainId(chainId);
+            RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
+                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            UUID id = null;
+            try {
+                id = dao.create(rule);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
 
-			URI uri = uriInfo.getBaseUriBuilder().path("rules/" + id).build();
-			return Response.created(uri).build();
-		}
-	}
+            URI uri = uriInfo.getBaseUriBuilder().path("rules/" + id).build();
+            return Response.created(uri).build();
+        }
+    }
 }
