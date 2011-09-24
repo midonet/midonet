@@ -713,7 +713,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def inKeyFlow() =
             { ifOptions += (ColumnInKey -> "flow"); this }
         override def key(key: Int) =
-            { ifOptions += (ColumnInKey -> key.toString); this }
+            { ifOptions += (ColumnKey -> key.toString); this }
         override def keyFlow() =
             { ifOptions += (ColumnInKey -> "flow"); this }
         override def tos(tos: Byte) =
