@@ -142,11 +142,11 @@ public class TestBridgeController {
         match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
         match.setTransportSource((short)ICMP.TYPE_ECHO_REQUEST);
         match.setTransportDestination((short)0);
-        match.setDataLayerVirtualLan((short)0);    
+        //match.setDataLayerVirtualLan((short)0);    
         // Python sets dl_vlan=0xFFFF, but packets.Ethernet.vlanID is 0 
         // for no VLAN in use.
         // TODO:  Which is really proper, 0 or 0xFFFF ?
-        match.setDataLayerVirtualLanPriorityCodePoint((byte)0);
+        //match.setDataLayerVirtualLanPriorityCodePoint((byte)0);
         match.setNetworkTypeOfService((byte)0);
         return match;
     }
