@@ -1552,8 +1552,8 @@ public class TestNetworkController {
     }
 
     @Test
-	public void testBgpDataPath() throws StateAccessException,
-			ZkStateSerializationException, UnknownHostException {
+    public void testBgpDataPath() throws StateAccessException,
+            ZkStateSerializationException, UnknownHostException {
         // No flows should be installed at the beginning.
         Assert.assertEquals(0, controllerStub.addedFlows.size());
 
@@ -1591,7 +1591,7 @@ public class TestNetworkController {
         int localAddr = PortDirectory.MaterializedRouterPortConfig.class.cast(
             portMgr.get(portId).value).portAddr;
         int remoteAddr = Net.convertStringAddressToInt(remoteAddrString);
-	MidoMatch match;
+        MidoMatch match;
         List<OFAction> actions;
 
         // Check BGP flows from local to remote with remote TCP port specified.

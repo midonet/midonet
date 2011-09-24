@@ -273,7 +273,7 @@ public class TestCondition {
     public void testSerialization() throws IOException, ClassNotFoundException {
         Condition cond = new Condition();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		OutputStream out = new BufferedOutputStream(bos);
+        OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =
             jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
         jsonGenerator.writeObject(cond);
@@ -284,7 +284,7 @@ public class TestCondition {
         JsonParser jsonParser =
             jsonFactory.createJsonParser(new InputStreamReader(in));
         Condition c = jsonParser.readValueAs(Condition.class);
-		in.close();
+        in.close();
         Assert.assertTrue(cond.equals(c));
     }
 }
