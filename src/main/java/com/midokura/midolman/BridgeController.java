@@ -446,8 +446,15 @@ public class BridgeController extends AbstractController {
     protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
         // Here we don't care whether oldAddr is local, because we would 
         // get the OVS notification first.
+        log.info("portMoved: ID {} from {} to {}", new Object[] {
+                    portUuid, 
+                    oldAddr == null ? "null" 
+                                    : Net.convertIntAddressToString(oldAddr),
+                    newAddr == null ? "null"
+                                    : Net.convertIntAddressToString(newAddr) });
 
         if (port_is_local(portUuid)) {
+            log.info("portMoved: port ID {} is local", portUuid);
             if (!newAddr.equals(publicIp)) {
                 // TODO(pino): trigger a more useful action like removing 
                 // the port from OVSDB and raising an alarm.
@@ -462,6 +469,7 @@ public class BridgeController extends AbstractController {
     }
 
     private void invalidateFlowsToPortUuid(UUID port_uuid) {
+        log.info("Invalidating flows to port ID {}", port_uuid);
         List<MAC> macs = macPortMap.getByValue(port_uuid);
         for (MAC mac : macs)
             invalidateFlowsToMac(mac);

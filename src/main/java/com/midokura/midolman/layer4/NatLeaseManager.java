@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.util.Cache;
@@ -33,6 +34,7 @@ public class NatLeaseManager implements NatMapping {
     Map<Integer, NavigableSet<Short>> ipToFreePortsMap;
     private RouterZkManager routerMgr;
     private UUID routerId;
+    private String rtrIdStr;
     private Cache cache;
     private Random rand;
 
@@ -40,6 +42,7 @@ public class NatLeaseManager implements NatMapping {
         this.routerMgr = routerMgr;
         this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Short>>();
         this.routerId = routerId;
+        rtrIdStr = routerId.toString();
         this.cache = cache;
         this.rand = new Random();
     }
@@ -55,6 +58,11 @@ public class NatLeaseManager implements NatMapping {
             nat = iter.next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
         short newTpDst = (short) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
+        log.debug("{} DNAT allocated new DST {}:{} to flow from {}:{} to "
+                + "{}:{}", new Object[] { rtrIdStr,
+                IPv4.fromIPv4Address(newNwDst), newTpDst,
+                IPv4.fromIPv4Address(nwSrc), tpSrc,
+                IPv4.fromIPv4Address(oldNwDst), oldTpDst });
         cache.set(makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst, oldTpDst),
                 makeCacheValue(newNwDst, newTpDst));
         cache.set(makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst, newTpDst),
@@ -100,11 +108,17 @@ public class NatLeaseManager implements NatMapping {
         String reverseKey = makeCacheKey("snatrev", newNwSrc, newTpSrc, nwDst,
                 tpDst);
         if (null != cache.get(reverseKey)) {
-            log.warn("Snat encountered a collision in the reverse"
-                    + " mapping for %8x,%d.", newNwSrc, newTpSrc);
+            log.warn("{} Snat encountered a collision reserving SRC {}:{}",
+                    new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
+                            newTpSrc });
             return false;
         }
         // If we got here, we can use this port.
+        log.debug("{} SNAT reserved new SRC {}:{} for flow from {}:{} to "
+                + "{}:{}", new Object[] { rtrIdStr,
+                IPv4.fromIPv4Address(newNwSrc), newTpSrc,
+                IPv4.fromIPv4Address(oldNwSrc), oldTpSrc,
+                IPv4.fromIPv4Address(nwDst), tpDst });
         cache.set(makeCacheKey("snatfwd", oldNwSrc, oldTpSrc, nwDst, tpDst),
                 makeCacheValue(newNwSrc, newTpSrc));
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
