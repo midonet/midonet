@@ -1,5 +1,5 @@
 /*
- * @(#)MgmtRouterZkManager        1.6 19/09/08
+ * @(#)RouterZkManagerProxy        1.6 19/09/08
  *
  * Copyright 2011 Midokura KK
  */
@@ -15,6 +15,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
@@ -59,6 +61,8 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
     }
 
     private RouterZkManager zkManager = null;
+    private final static Logger log = LoggerFactory
+            .getLogger(RouterZkManagerProxy.class);
 
     public RouterZkManagerProxy(ZooKeeper zk, String basePath,
             String mgmtBasePath) {
@@ -70,9 +74,11 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
             ZkNodeEntry<UUID, RouterMgmtConfig> routerMgmtNode)
             throws ZkStateSerializationException, StateAccessException {
         List<Op> ops = new ArrayList<Op>();
+        UUID routerId = routerMgmtNode.key;
+        ChainZkManagerProxy chainZkManager = new ChainZkManagerProxy(zooKeeper,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
         try {
-            ops.add(Op.create(
-                    mgmtPathManager.getRouterPath(routerMgmtNode.key),
+            ops.add(Op.create(mgmtPathManager.getRouterPath(routerId),
                     serialize(routerMgmtNode.value), Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT));
         } catch (IOException e) {
@@ -82,16 +88,20 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         }
 
         // Add a node to keep track of inter-router connections.
-        ops.add(Op.create(mgmtPathManager
-                .getRouterRoutersPath(routerMgmtNode.key), null,
+        ops.add(Op.create(mgmtPathManager.getRouterRoutersPath(routerId), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Add under tenant.
         ops.add(Op.create(mgmtPathManager.getTenantRouterPath(
-                routerMgmtNode.value.tenantId, routerMgmtNode.key), null,
+                routerMgmtNode.value.tenantId, routerId), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.addAll(zkManager.prepareRouterCreate(routerMgmtNode.key));
+        // Create the Midolman side.
+        ops.addAll(zkManager.prepareRouterCreate(routerId));
+
+        // Initialize chains directories
+        ops.addAll(chainZkManager.prepareRouterInit(routerId));
+
         return ops;
     }
 
@@ -143,11 +153,17 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
             throws StateAccessException, ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
+
+        // Get all the paths to delete
+        String tenantRouterPath = mgmtPathManager.getTenantRouterPath(
+                routerMgmtNode.value.tenantId, routerMgmtNode.key);
+
+        // Delete router in Midolman side.
         ops.addAll(zkManager.prepareRouterDelete(routerMgmtNode.key));
 
         // Delete the tenant router entry
-        ops.add(Op.delete(mgmtPathManager.getTenantRouterPath(
-                routerMgmtNode.value.tenantId, routerMgmtNode.key), -1));
+        log.debug("Preparing to delete: " + tenantRouterPath);
+        ops.add(Op.delete(tenantRouterPath, -1));
 
         // Remove all the ports in mgmt directory but don't cascade here.
         PortZkManagerProxy portMgr = new PortZkManagerProxy(zooKeeper,
@@ -157,7 +173,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager
                 .listRouterPorts(routerMgmtNode.key);
         for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
-            ops.addAll(portMgr.preparePortDelete(portNode.key, false));
+            ops.addAll(portMgr.prepareDelete(portNode.key, false));
             // TODO: Remove VIF if plugged, and remove peer port for logical
         }
 

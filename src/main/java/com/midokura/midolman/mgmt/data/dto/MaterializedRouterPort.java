@@ -12,6 +12,7 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.state.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.util.Net;
 
 /**
@@ -59,7 +60,7 @@ public class MaterializedRouterPort extends RouterPort {
         this.localNetworkLength = localNetworkLength;
     }
 
-    public MaterializedRouterPortConfig toMaterializedRouterPortConfig() {
+    public PortConfig toConfig() {
         return new MaterializedRouterPortConfig(this.getDeviceId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this

@@ -10,5 +10,4 @@ public class MgmtNode<S, T, U> extends ZkNodeEntry<S, T> {
         super(key, value);
         this.extra = extra;
     }
-
 }

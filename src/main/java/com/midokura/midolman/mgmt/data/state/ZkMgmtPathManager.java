@@ -206,4 +206,72 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
         return new StringBuilder(getBridgesPath()).append("/").append(id)
                 .toString();
     }
+
+    /**
+     * Get ZK router tables path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId/tables
+     */
+    public String getRouterTablesPath(UUID id) {
+        return new StringBuilder(getRoutersPath()).append("/").append(id)
+                .append("/tables").toString();
+    }
+
+    /**
+     * Get ZK router tables path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId/tables/table_name
+     */
+    public String getRouterTablePath(UUID id, String tableName) {
+        return new StringBuilder(getRouterTablesPath(id)).append("/").append(
+                tableName).toString();
+    }
+
+    /**
+     * Get ZK router table chains path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId/tables/tableName/chains
+     */
+    public String getRouterTableChainsPath(UUID id, String tableName) {
+        return new StringBuilder(getRouterTablePath(id, tableName)).append(
+                "/chains").toString();
+    }
+
+    /**
+     * Get ZK router router table chain path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId/tables/tableName/chains/chainId
+     */
+    public String getRouterTableChainPath(UUID routerId, String tableName,
+            UUID chainId) {
+        return new StringBuilder(getRouterTableChainsPath(routerId, tableName))
+                .append("/").append(chainId).toString();
+    }
+
+    /**
+     * Get ZK chains path.
+     * 
+     * @return /chains
+     */
+    public String getChainsPath() {
+        return new StringBuilder(basePath).append("/chains").toString();
+    }
+
+    /**
+     * Get ZK chain path.
+     * 
+     * @return /chains/chainId
+     */
+    public String getChainPath(UUID id) {
+        return new StringBuilder(getChainsPath()).append("/").append(id)
+                .toString();
+    }
 }

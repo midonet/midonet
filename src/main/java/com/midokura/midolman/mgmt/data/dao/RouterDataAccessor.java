@@ -59,7 +59,8 @@ public class RouterDataAccessor extends DataAccessor {
         RouterZkManagerProxy manager = getRouterZkManager();
 
         // Create two logical router ports
-        LogicalRouterPortConfig localPort = port.toConfig();
+        LogicalRouterPortConfig localPort = (LogicalRouterPortConfig) port
+                .toConfig();
         LogicalRouterPortConfig peerPort = port.toPeerConfig();
         ZkNodeEntry<UUID, UUID> entry = manager.createLink(localPort, peerPort);
         PeerRouterLink peer = new PeerRouterLink();

@@ -115,7 +115,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager
                 .listBridgePorts(bridgeMgmtNode.key);
         for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
-            ops.addAll(portMgr.preparePortDelete(portNode.key, false));
+            ops.addAll(portMgr.prepareDelete(portNode.key, false));
         }
 
         return ops;

@@ -23,6 +23,7 @@ public class Chain {
     private UUID id = null;
     private UUID routerId = null;
     private String name = null;
+    private String table = null;
 
     /**
      * @return the id
@@ -69,6 +70,20 @@ public class Chain {
         this.name = name;
     }
 
+    /**
+     * @return the table
+     */
+    public String getTable() {
+        return table;
+    }
+
+    /**
+     * @param table the table to set
+     */
+    public void setTable(String table) {
+        this.table = table;
+    }
+    
     public ChainConfig toConfig() {
         return new ChainConfig(this.getName(), this.getRouterId());
     }
@@ -80,4 +95,5 @@ public class Chain {
         chain.setId(id);
         return chain;
     }
+
 }

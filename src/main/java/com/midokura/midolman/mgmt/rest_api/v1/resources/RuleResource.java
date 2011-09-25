@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -44,9 +45,8 @@ public class RuleResource extends RestResource {
     public Rule get(@PathParam("id") UUID id) throws StateAccessException {
         RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-        Rule rule = null;
         try {
-            rule = dao.get(id);
+            return dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -54,7 +54,6 @@ public class RuleResource extends RestResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        return rule;
     }
 
     @DELETE
@@ -87,12 +86,11 @@ public class RuleResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Rule[] list() throws StateAccessException {
+        public List<Rule> list() throws StateAccessException {
             RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-            Rule[] rules = null;
             try {
-                rules = dao.list(chainId);
+                return dao.list(chainId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -100,7 +98,6 @@ public class RuleResource extends RestResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
-            return rules;
         }
 
         @POST

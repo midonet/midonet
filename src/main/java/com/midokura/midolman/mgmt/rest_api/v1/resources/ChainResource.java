@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -82,24 +83,49 @@ public class ChainResource extends RestResource {
     }
 
     /**
-     * Sub-resource class for router's chains.
+     * Sub-resource class for router's chain tables.
      */
-    public static class RouterChainResource extends RestResource {
+    public static class RouterTableResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterChainResource(String zkConn, UUID routerId) {
+        public RouterTableResource(String zkConn, UUID routerId) {
             this.zookeeperConn = zkConn;
             this.routerId = routerId;
         }
 
+        /**
+         * Chain resource locator for chain table
+         */
+        @Path("/{name}/chains")
+        public RouterTableChainResource getChainTableResource(
+                @PathParam("name") String name) {
+            return new RouterTableChainResource(zookeeperConn, routerId, name);
+        }
+    }
+
+    /**
+     * Sub-resource class for router's table chains.
+     */
+    public static class RouterTableChainResource extends RestResource {
+
+        private UUID routerId = null;
+        private String table = null;
+
+        public RouterTableChainResource(String zkConn, UUID routerId,
+                String table) {
+            this.zookeeperConn = zkConn;
+            this.routerId = routerId;
+            this.table = table;
+        }
+
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Chain[] list() throws StateAccessException {
+        public List<Chain> list() throws StateAccessException {
             ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             try {
-                return dao.list(routerId);
+                return dao.list(routerId, table);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -114,6 +140,7 @@ public class ChainResource extends RestResource {
         public Response create(Chain chain, @Context UriInfo uriInfo)
                 throws StateAccessException {
             chain.setRouterId(routerId);
+            chain.setTable(table);
             ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
@@ -129,6 +156,35 @@ public class ChainResource extends RestResource {
 
             URI uri = uriInfo.getBaseUriBuilder().path("chains/" + id).build();
             return Response.created(uri).build();
+        }
+    }
+
+    /**
+     * Sub-resource class for router's table chains.
+     */
+    public static class RouterChainResource extends RestResource {
+
+        private UUID routerId = null;
+
+        public RouterChainResource(String zkConn, UUID routerId) {
+            this.zookeeperConn = zkConn;
+            this.routerId = routerId;
+        }
+
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public List<Chain> list() throws StateAccessException {
+            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
+                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            try {
+                return dao.list(routerId);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
         }
     }
 }

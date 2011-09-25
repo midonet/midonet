@@ -79,7 +79,7 @@ public class RuleDataAccessor extends DataAccessor {
      * @throws Exception
      *             Zookeeper(or any) error.
      */
-    public Rule[] list(UUID chainId) throws Exception {
+    public List<Rule> list(UUID chainId) throws Exception {
         RuleZkManager manager = getRuleZkManager();
         List<Rule> rules = new ArrayList<Rule>();
         List<ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule>> entries = manager
@@ -87,7 +87,7 @@ public class RuleDataAccessor extends DataAccessor {
         for (ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule> entry : entries) {
             rules.add(Rule.createRule(entry.key, entry.value));
         }
-        return rules.toArray(new Rule[rules.size()]);
+        return rules;
     }
 
 }

@@ -6,13 +6,13 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -97,44 +97,6 @@ public class PortResource extends RestResource {
         }
     }
 
-    @PUT
-    @Path("{id}/plug")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response plug(@PathParam("id") UUID id, Port port)
-            throws StateAccessException {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-        try {
-            dao.attachVif(id, port);
-        } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        return Response.ok().build();
-    }
-
-    @PUT
-    @Path("{id}/unplug")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response unplug(@PathParam("id") UUID id)
-            throws StateAccessException {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
-        try {
-            dao.detachVif(id);
-        } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        return Response.ok().build();
-    }
-
     public static class BridgePortResource extends RestResource {
 
         private UUID bridgeId = null;
@@ -169,7 +131,7 @@ public class PortResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() throws StateAccessException {
+        public List<Port> list() throws StateAccessException {
             PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -221,7 +183,7 @@ public class PortResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Port[] list() throws StateAccessException {
+        public List<Port> list() throws StateAccessException {
             PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             try {

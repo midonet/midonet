@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.state.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
  * Class representing port.
@@ -78,16 +79,16 @@ public class Port {
         this.vifId = vifId;
     }
 
-    public BridgePortConfig toBridgePortConfig() {
+    public PortConfig toConfig() {
         return new BridgePortConfig(this.getDeviceId());
     }
 
-    public PortMgmtConfig toPortMgmtConfig() {
+    public PortMgmtConfig toMgmtConfig() {
         return new PortMgmtConfig(this.getVifId());
     }
 
     public static Port createPort(UUID id, PortMgmtConfig mgmtConfig,
-            BridgePortConfig config) {
+            PortConfig config) {
         Port port = new Port();
         port.setVifId(mgmtConfig.vifId);
         port.setDeviceId(config.device_id);

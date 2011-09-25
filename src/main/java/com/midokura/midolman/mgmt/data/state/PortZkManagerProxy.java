@@ -14,13 +14,18 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.state.VifZkManager.VifConfig;
-import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.util.ShortUUID;
 
@@ -47,135 +52,107 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     }
 
     private PortZkManager zkManager = null;
+    private final static Logger log = LoggerFactory
+            .getLogger(PortZkManagerProxy.class);
 
     public PortZkManagerProxy(ZooKeeper zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new PortZkManager(zk, basePath);
     }
 
-    public List<Op> preparePortCreate(
-            MgmtNode<UUID, PortMgmtConfig, PortConfig> node)
-            throws ZkStateSerializationException {
-        return preparePortCreate(node, null);
-    }
-
-    public List<Op> preparePortCreate(
-            MgmtNode<UUID, PortMgmtConfig, PortConfig> node,
-            ZkNodeEntry<UUID, VifConfig> vifNode)
+    public List<Op> prepareCreate(Port port)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
+        String portPath = mgmtPathManager.getPortPath(port.getId());
+        log.debug("Preparing to create: " + portPath);
         try {
-            ops.add(Op.create(mgmtPathManager.getPortPath(node.key),
-                    serialize(node.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
+            ops.add(Op.create(portPath, serialize(port.toMgmtConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize port mgmt " + node.key
+                    "Could not serialize port mgmt " + port.getId()
                             + " to PortMgmtConfig", e, PortMgmtConfig.class);
         }
 
         // Create PortConfig
-        ops.addAll(zkManager.preparePortCreate(node.key, node.extra));
+        log.debug("Preparing to create Midolman config.");
+        ops.addAll(zkManager.preparePortCreate(port.getId(), port.toConfig()));
 
-        // If VIF is set, then create a new VIF entry.
-        if (vifNode != null) {
-            try {
-                ops.add(Op.create(mgmtPathManager.getVifPath(vifNode.key),
-                        serialize(vifNode.value), Ids.OPEN_ACL_UNSAFE,
-                        CreateMode.PERSISTENT));
-
-            } catch (IOException e) {
-                throw new ZkStateSerializationException(
-                        "Could not serialize vif " + vifNode.key
-                                + " to VifConfig", e, VifConfig.class);
-            }
-        }
         return ops;
     }
 
-    public List<Op> preparePortVifAttach(
-            ZkNodeEntry<UUID, PortMgmtConfig> portNode,
-            ZkNodeEntry<UUID, VifConfig> vifNode)
+    public List<Op> prepareVifAttach(Port port)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
+        String portPath = mgmtPathManager.getPortPath(port.getId());
+        log.debug("Preparing to update: " + portPath);
         try {
-            ops.add(Op.setData(mgmtPathManager.getPortPath(portNode.key),
-                    serialize(portNode.value), -1));
+            ops.add(Op.setData(portPath, serialize(port.toMgmtConfig()), -1));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize port mgmt " + portNode.key
+                    "Could not serialize port mgmt " + port.getId()
                             + " to PortMgmtConfig", e, PortMgmtConfig.class);
-        }
-        try {
-            ops.add(Op.create(mgmtPathManager.getVifPath(vifNode.key),
-                    serialize(vifNode.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-
-        } catch (IOException e) {
-            throw new ZkStateSerializationException("Could not serialize vif "
-                    + vifNode.key + " to VifConfig", e, VifConfig.class);
         }
         return ops;
     }
 
-    public List<Op> preparePortVifDettach(UUID portId)
+    public List<Op> prepareVifDettach(UUID portId)
             throws ZkStateSerializationException, StateAccessException {
 
-        ZkNodeEntry<UUID, PortMgmtConfig> portNode = get(portId);
-        UUID vifId = portNode.value.vifId;
-        portNode.value.vifId = null;
+        Port port = get(portId);
+        port.setVifId(null);
 
         List<Op> ops = new ArrayList<Op>();
+        String portPath = mgmtPathManager.getPortPath(port.getId());
+
+        log.debug("Preparing to update: " + portPath);
         try {
-            ops.add(Op.setData(mgmtPathManager.getPortPath(portNode.key),
-                    serialize(portNode.value), -1));
+            ops.add(Op.setData(portPath, serialize(port.toConfig()), -1));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize port mgmt " + portNode.key
+                    "Could not serialize port mgmt " + port.getId()
                             + " to PortMgmtConfig", e, PortMgmtConfig.class);
         }
 
-        if (vifId != null) {
-            ops.add(Op.delete(mgmtPathManager.getVifPath(vifId), -1));
-        }
         return ops;
     }
 
-    public List<Op> preparePortDelete(UUID id) throws StateAccessException,
+    public List<Op> prepareDelete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
-        return preparePortDelete(id, true);
+        return prepareDelete(id, true);
     }
 
-    public List<Op> preparePortDelete(UUID id, boolean cascade)
+    public List<Op> prepareDelete(UUID id, boolean cascade)
             throws StateAccessException, ZkStateSerializationException {
-        return preparePortDelete(get(id), cascade);
+        return prepareDelete(get(id), cascade);
     }
 
-    public List<Op> preparePortDelete(
-            ZkNodeEntry<UUID, PortMgmtConfig> portMgmtNode)
-            throws StateAccessException, ZkStateSerializationException {
-        return preparePortDelete(portMgmtNode, true);
+    public List<Op> prepareDelete(Port port) throws StateAccessException,
+            ZkStateSerializationException {
+        return prepareDelete(port, true);
     }
 
-    public List<Op> preparePortDelete(
-            ZkNodeEntry<UUID, PortMgmtConfig> portMgmtNode, boolean cascade)
+    public List<Op> prepareDelete(Port port, boolean cascade)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
+        String vifPath = mgmtPathManager.getVifPath(port.getVifId());
+        String portPath = mgmtPathManager.getPortPath(port.getId());
 
         // Prepare the midolman port deletion.
         if (cascade) {
             ZkNodeEntry<UUID, PortConfig> portNode = zkManager
-                    .get(portMgmtNode.key);
+                    .get(port.getId());
             ops.addAll(zkManager.preparePortDelete(portNode));
         }
 
         // Delete the VIF attached
-        ops.add(Op.delete(mgmtPathManager.getVifPath(portMgmtNode.value.vifId),
-                -1));
+        log.debug("Preparing to delete: " + vifPath);
+        ops.add(Op.delete(vifPath, -1));
 
         // Delete management port
-        ops.add(Op.delete(mgmtPathManager.getPortPath(portMgmtNode.key), -1));
+        log.debug("Preparing to delete: " + portPath);
+        ops.add(Op.delete(portPath, -1));
 
         return ops;
     }
@@ -196,61 +173,61 @@ public class PortZkManagerProxy extends ZkMgmtManager {
         return new ZkNodeEntry<UUID, PortMgmtConfig>(id, mgmtConfig);
     }
 
-    public MgmtNode<UUID, PortMgmtConfig, PortConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
-        ZkNodeEntry<UUID, PortMgmtConfig> mgmtNode = getMgmt(id);
-        ZkNodeEntry<UUID, PortConfig> node = zkManager.get(id);
-        return new MgmtNode<UUID, PortMgmtConfig, PortConfig>(id,
-                mgmtNode.value, node.value);
+    private Port createPort(ZkNodeEntry<UUID, PortMgmtConfig> mgmtNode,
+            ZkNodeEntry<UUID, PortConfig> node) {
+        UUID id = mgmtNode.key;
+        if (node.value instanceof LogicalRouterPortConfig) {
+            return LogicalRouterPort.createPort(id,
+                    (LogicalRouterPortConfig) node.value);
+        } else if (node.value instanceof MaterializedRouterPortConfig) {
+            return MaterializedRouterPort.createPort(id, mgmtNode.value,
+                    (MaterializedRouterPortConfig) node.value);
+        } else {
+            return Port.createPort(id, mgmtNode.value, node.value);
+        }
     }
 
-    private List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> generateList(
-            List<ZkNodeEntry<UUID, PortConfig>> nodes)
+    public Port get(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        ZkNodeEntry<UUID, PortMgmtConfig> mgmtNode = getMgmt(id);
+        ZkNodeEntry<UUID, PortConfig> node = zkManager.get(id);
+        return createPort(mgmtNode, node);
+    }
+
+    private List<Port> generateList(List<ZkNodeEntry<UUID, PortConfig>> nodes)
             throws StateAccessException, ZkStateSerializationException {
-        List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> portNodes = new ArrayList<MgmtNode<UUID, PortMgmtConfig, PortConfig>>();
+        List<Port> portNodes = new ArrayList<Port>();
         for (ZkNodeEntry<UUID, PortConfig> node : nodes) {
             ZkNodeEntry<UUID, PortMgmtConfig> mgmtNode = getMgmt(node.key);
-            portNodes.add(new MgmtNode<UUID, PortMgmtConfig, PortConfig>(
-                    node.key, mgmtNode.value, node.value));
+            portNodes.add(createPort(mgmtNode, node));
         }
         return portNodes;
     }
 
-    public List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> listRouterPorts(
-            UUID routerId) throws StateAccessException,
-            ZkStateSerializationException {
+    public List<Port> listRouterPorts(UUID routerId)
+            throws StateAccessException, ZkStateSerializationException {
         return generateList(zkManager.listRouterPorts(routerId));
     }
 
-    public List<MgmtNode<UUID, PortMgmtConfig, PortConfig>> listBridgePorts(
-            UUID bridgeId) throws StateAccessException,
-            ZkStateSerializationException {
+    public List<Port> listBridgePorts(UUID bridgeId)
+            throws StateAccessException, ZkStateSerializationException {
         return generateList(zkManager.listBridgePorts(bridgeId));
     }
 
-    public UUID create(PortMgmtConfig portMgmt,
-            PortDirectory.PortConfig portConfig) throws StateAccessException,
+    public UUID create(Port port) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = ShortUUID.generate32BitUUID();
-        MgmtNode<UUID, PortMgmtConfig, PortConfig> node = new MgmtNode<UUID, PortMgmtConfig, PortConfig>(
-                id, portMgmt, portConfig);
-        multi(preparePortCreate(node));
+        port.setId(id);
+        multi(prepareCreate(port));
         return id;
+    }
+
+    public boolean exists(UUID id) {
+        return exists(id);
     }
 
     public void delete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
-        multi(preparePortDelete(id));
-    }
-
-    public void attachVif(ZkNodeEntry<UUID, PortMgmtConfig> portNode,
-            ZkNodeEntry<UUID, VifConfig> vifNode) throws StateAccessException,
-            ZkStateSerializationException, ClassNotFoundException {
-        multi(preparePortVifAttach(portNode, vifNode));
-    }
-
-    public void detachVif(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
-        multi(preparePortVifDettach(id));
+        multi(prepareDelete(id));
     }
 }
