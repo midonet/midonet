@@ -12,6 +12,8 @@ import javax.ws.rs.core.Application;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
+import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource;
@@ -53,6 +55,8 @@ public class RestApplication extends Application {
         set.add(TenantResource.class);
         set.add(ChainResource.class);
         set.add(BridgeResource.class);
+        set.add(BgpResource.class);
+        set.add(AdRouteResource.class);
         set.add(StateAccessExceptionMapper.class);
         return set;
     }
