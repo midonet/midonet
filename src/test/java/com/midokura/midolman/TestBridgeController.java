@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -84,6 +85,8 @@ public class TestBridgeController {
     final Ethernet packet13 = makePacket(macList[1], macList[3]);
     final Ethernet packet15 = makePacket(macList[1], macList[5]);
     final Ethernet packet20 = makePacket(macList[2], macList[0]);
+    final Ethernet packet23 = makePacket(macList[2], macList[3]);
+    final Ethernet packet25 = makePacket(macList[2], macList[5]);
     final Ethernet packet26 = makePacket(macList[2], macList[6]);
     final Ethernet packet27 = makePacket(macList[2], macList[7]);
     final Ethernet packet70 = makePacket(macList[7], macList[0]);
@@ -98,6 +101,8 @@ public class TestBridgeController {
     final MidoMatch flowmatch13 = makeFlowMatch(macList[1], macList[3]);
     final MidoMatch flowmatch15 = makeFlowMatch(macList[1], macList[5]);
     final MidoMatch flowmatch20 = makeFlowMatch(macList[2], macList[0]);
+    final MidoMatch flowmatch23 = makeFlowMatch(macList[2], macList[3]);
+    final MidoMatch flowmatch25 = makeFlowMatch(macList[2], macList[5]);
     final MidoMatch flowmatch26 = makeFlowMatch(macList[2], macList[6]);
     final MidoMatch flowmatch27 = makeFlowMatch(macList[2], macList[7]);
     final MidoMatch flowmatch70 = makeFlowMatch(macList[7], macList[0]);
@@ -115,8 +120,8 @@ public class TestBridgeController {
                              "192.168.1.53",
                              "192.168.1.54",
                              "192.168.1.55",
-                             "192.168.1.55",
-                             "192.168.1.55" };
+                             "192.168.1.56",
+                             "192.168.1.57" };
 
     static Ethernet makePacket(MAC srcMac, MAC dstMac) {
         ICMP icmpPacket = new ICMP();
@@ -709,5 +714,217 @@ public class TestBridgeController {
         controller.clear();
         assertNull(macPortMap.get(macList[0]));
         assertNull(macPortMap.get(macList[1]));
+    }
+
+    @Test
+    public void testMacPortUpdateInvalidatesFlows() 
+                throws KeeperException, InterruptedException {
+        controller.onPacketIn(14, 13, (short)5, packet70.serialize());
+        OFAction[] expectAction = { OUTPUT_FLOOD_ACTION };
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        assertEquals(1, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction, 
+                          controllerStub.addedFlows.get(0).actions.toArray());
+
+        // Send a packet[src=0 dst=1] to port 0.
+        controllerStub.sentPackets.clear();     
+        controllerStub.deletedFlows.clear();     
+        expectAction = new OFAction[] { OUTPUT_ALL_ACTION };
+        controller.onPacketIn(14, 13, (short)0, packet01.serialize());
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        // New flow added, old flow removed.
+        assertEquals(2, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction, 
+                          controllerStub.addedFlows.get(1).actions.toArray());
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[0].address);
+        assertTrue(0 < controllerStub.deletedFlows.size());
+        assertEquals(expectMatch,
+                     controllerStub.deletedFlows.get(
+                                controllerStub.deletedFlows.size()-1).match);
+
+        // Send a packet[src=1 dst=0] to port 1.
+        controllerStub.sentPackets.clear();
+        controllerStub.deletedFlows.clear();    
+        expectAction = new OFAction[] { 
+                                new OFActionOutput((short)0, (short)0) };
+        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        // New flow added, old flow removed.
+        assertEquals(3, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction, 
+                          controllerStub.addedFlows.get(2).actions.toArray());
+        expectMatch.setDataLayerDestination(macList[1].address);
+        assertTrue(0 < controllerStub.deletedFlows.size());
+        assertEquals(expectMatch,
+                     controllerStub.deletedFlows.get(
+                                controllerStub.deletedFlows.size()-1).match);
+        
+        // Send a packet[src=0 dst=4] to port 1.  (MAC 0 moves from port 0
+        // to port 1.)
+        controllerStub.sentPackets.clear();
+        controllerStub.deletedFlows.clear();
+        expectAction = new OFAction[] {
+                                new OFActionOutput((short)4, (short)0) };
+        controller.onPacketIn(14, 13, (short)1, packet04.serialize());
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        // New flow added, invalidation of srcMAC = MAC 0 or dstMAC = MAC 0.
+        assertEquals(4, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction,
+                          controllerStub.addedFlows.get(3).actions.toArray());
+        assertEquals(2, controllerStub.deletedFlows.size());
+        expectMatch.setDataLayerDestination(macList[0].address);
+        assertEquals(expectMatch, controllerStub.deletedFlows.get(1).match);
+        expectMatch = new MidoMatch();
+        expectMatch.setDataLayerSource(macList[0].address);
+        assertEquals(expectMatch, controllerStub.deletedFlows.get(0).match);
+
+        // MAC 0 moves to remote port 5.
+        controllerStub.deletedFlows.clear();
+        macPortMap.put(macList[0], portUuids[5]);
+        // Flows to or from MAC 0 invalidated.
+        for (MockControllerStub.Flow flow : controllerStub.deletedFlows) {
+            log.info("Deleted flow: {}", flow);
+        }
+        assertTrue(2 <= controllerStub.deletedFlows.size());
+        assertEquals(expectMatch, controllerStub.deletedFlows.get(0).match);
+        expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[0].address);
+        assertEquals(expectMatch, controllerStub.deletedFlows.get(1).match);
+
+        // Send a packet[src=1 dst=0] to port 1.
+        controllerStub.sentPackets.clear();
+        expectAction = new OFAction[] {
+                                new OFActionOutput((short)5, (short)0) };
+        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        // New flow to tunnel port 5 added.
+        assertEquals(5, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction,
+                          controllerStub.addedFlows.get(4).actions.toArray());
+        
+        // Send a packet[src=0 dst=1] to port 5.
+        controllerStub.sentPackets.clear();
+        expectAction = new OFAction[] {
+                                new OFActionOutput((short)1, (short)0) };
+        controller.onPacketIn(14, 13, (short)5, packet01.serialize());
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        assertEquals(6, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction,
+                          controllerStub.addedFlows.get(5).actions.toArray());
+        
+        // Send a packet[src=1 dst=3] to port 1.
+        controllerStub.sentPackets.clear();
+        expectAction = new OFAction[] {
+                                new OFActionOutput((short)3, (short)0) };
+        controller.onPacketIn(14, 13, (short)1, packet13.serialize());
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        assertEquals(7, controllerStub.addedFlows.size());
+        assertArrayEquals(expectAction,
+                          controllerStub.addedFlows.get(6).actions.toArray());
+
+        // Remove MAC 0 from macPortMap.
+        controllerStub.deletedFlows.clear();
+        macPortMap.remove(macList[0]);
+        // Only flows with dstMAC = MAC 0 should be invalidated.  Flows with
+        // srcMAC = MAC 0 should still be valid.
+        assertEquals(1, controllerStub.deletedFlows.size());
+        expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[0].address);
+        assertEquals(expectMatch, controllerStub.deletedFlows.get(0).match);
+    }
+
+    @Test
+    public void testPortLocUpdateInvalidatesFlows()
+                throws KeeperException, InterruptedException {
+        controller.onPacketIn(14, 13, (short)0, packet04.serialize());
+        controller.onPacketIn(14, 13, (short)1, packet15.serialize());
+        controller.onPacketIn(14, 13, (short)2, packet23.serialize());
+        controller.onPacketIn(14, 13, (short)2, packet25.serialize());
+
+        OFAction expectedActions[][] = {
+                { new OFActionOutput((short)4, (short)0) },
+                { new OFActionOutput((short)5, (short)0) },
+                { new OFActionOutput((short)3, (short)0) },
+                { new OFActionOutput((short)5, (short)0) } };
+        MidoMatch expectedMatches[] = {
+                flowmatch04.clone(), flowmatch15.clone(),
+                flowmatch23.clone(), flowmatch25.clone() };
+        expectedMatches[0].setInputPort((short)0);
+        expectedMatches[1].setInputPort((short)1);
+        expectedMatches[2].setInputPort((short)2);
+        expectedMatches[3].setInputPort((short)2);
+
+        assertEquals(4, controllerStub.addedFlows.size());
+        for (int i = 0; i < 4; i++) {
+            assertArrayEquals(expectedActions[i], 
+                              controllerStub.addedFlows.get(i).actions.toArray()
+                             );
+            assertEquals(expectedMatches[i],
+                         controllerStub.addedFlows.get(i).match);
+        }
+
+        // Move portUuid 5 to peer 3.
+        controllerStub.deletedFlows.clear();
+        portLocMap.put(portUuids[5], 
+                       Net.convertStringAddressToInt(peerStrList[3]));
+        // Flows to MAC 5 should have been invalidated.
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[5].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+
+        // Now packet25 should go to peer 3 not peer 5.
+        controller.onPacketIn(14, 13, (short)2, packet25.serialize());
+        assertEquals(5, controllerStub.addedFlows.size());
+        assertArrayEquals(new OFAction[] { 
+                                  new OFActionOutput((short)3, (short)0) }, 
+                          controllerStub.addedFlows.get(4).actions.toArray());
+        expectMatch = flowmatch25.clone();
+        expectMatch.setInputPort((short)2);
+        assertEquals(expectMatch, controllerStub.addedFlows.get(4).match);
+
+        // Delete the portLocMap entry for portUuid[5].  Flows to MAC 5 should
+        // be invalidated.
+        controllerStub.deletedFlows.clear();
+        portLocMap.remove(portUuids[5]);
+        expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[5].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+
+        // Now packet25 should go to ALL.
+        controller.onPacketIn(14, 13, (short)2, packet25.serialize());
+        assertEquals(6, controllerStub.addedFlows.size());
+        assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
+                          controllerStub.addedFlows.get(5).actions.toArray());
+        expectMatch = flowmatch25.clone();
+        expectMatch.setInputPort((short)2);
+        assertEquals(expectMatch, controllerStub.addedFlows.get(5).match);
+
+        // Re-add portUuid 5 at peer 5.
+        controllerStub.deletedFlows.clear();
+        portLocMap.put(portUuids[5],         
+                       Net.convertStringAddressToInt(peerStrList[5]));
+        // Flows to MAC 5 should have been invalidated.
+        expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[5].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+
+        controllerStub.deletedFlows.clear();
+        portLocMap.remove(portUuids[4]);
+        expectMatch.setDataLayerDestination(macList[4].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+    }
+
+    boolean flowListContainsMatch(List<MockControllerStub.Flow> flowList,
+                                  OFMatch match) {
+        for (MockControllerStub.Flow flow : flowList)
+            if (flow.match.equals(match))
+                return true;
+
+        return false;
     }
 }

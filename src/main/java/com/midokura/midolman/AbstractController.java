@@ -319,13 +319,12 @@ public abstract class AbstractController
 
         if (oldAddr != null && !oldAddr.equals(publicIp)) {
             // Peer might still be in portLocMap under a different portUuid.
-            if (portLocMapContainsPeer(oldAddr))
-                return;
-
-            // Tear down the GRE tunnel.
-            String grePortName = makeGREPortName(oldAddr);
-            log.info("Tearing down tunnel " + grePortName);
-            ovsdb.delPort(grePortName);
+            if (!portLocMapContainsPeer(oldAddr)) {
+                // Tear down the GRE tunnel.
+                String grePortName = makeGREPortName(oldAddr);
+                log.info("Tearing down tunnel " + grePortName);
+                ovsdb.delPort(grePortName);
+            }
         }
 
         portMoved(portUuid, oldAddr, newAddr);
