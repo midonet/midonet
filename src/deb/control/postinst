@@ -30,3 +30,6 @@ mkdir /var/log/$NAME
 chown $USER:$GROUP /var/log/$NAME
 chown $USER:$GROUP $DATADIR
 
+# allow group access to /var/run/quagga
+usermod -G quagga $USER
+chmod g+w /var/run/quagga
