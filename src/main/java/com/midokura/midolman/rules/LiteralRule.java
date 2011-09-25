@@ -2,9 +2,16 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class LiteralRule extends Rule {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(LiteralRule.class);
+
     public LiteralRule(Condition condition, Action action) {
         super(condition, action);
         if (action != Action.ACCEPT && action != Action.DROP
@@ -14,7 +21,9 @@ public class LiteralRule extends Rule {
     }
 
     // Default constructor for the Jackson deserialization.
-    public LiteralRule() { super(); }
+    public LiteralRule() {
+        super();
+    }
 
     public LiteralRule(Condition condition, Action action, UUID chainId,
             int position) {
@@ -28,6 +37,7 @@ public class LiteralRule extends Rule {
     @Override
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         res.action = action;
+        log.debug("Packet matched literal rule with action {}", action);
     }
 
     @Override

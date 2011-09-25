@@ -26,7 +26,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Callback;
 
 public class RuleEngine {
-    
+
     private final static Logger log = LoggerFactory.getLogger(RuleEngine.class);
 
     private class RouterWatcher implements Runnable {
@@ -58,6 +58,7 @@ public class RuleEngine {
     }
 
     private UUID rtrId;
+    private String rtrIdStr;
     private ChainZkManager zkChainMgr;
     private RuleZkManager zkRuleMgr;
     private NatMapping natMap;
@@ -71,6 +72,7 @@ public class RuleEngine {
             UUID rtrId, NatMapping natMap) throws StateAccessException,
             ZkStateSerializationException {
         this.rtrId = rtrId;
+        rtrIdStr = rtrId.toString();
         this.zkChainMgr = zkChainMgr;
         this.zkRuleMgr = zkRuleMgr;
         this.natMap = natMap;
@@ -98,9 +100,9 @@ public class RuleEngine {
 
     private void updateChains(boolean notify) throws StateAccessException,
             ZkStateSerializationException {
-        Collection<ZkNodeEntry<UUID, ChainConfig>> entryList = zkChainMgr.
-                list(rtrId, rtrWatcher);
-        Map<UUID, String> newChainNames = new HashMap<UUID, String>(); 
+        Collection<ZkNodeEntry<UUID, ChainConfig>> entryList = zkChainMgr.list(
+                rtrId, rtrWatcher);
+        Map<UUID, String> newChainNames = new HashMap<UUID, String>();
         for (ZkNodeEntry<UUID, ChainConfig> entry : entryList) {
             newChainNames.put(entry.key, entry.value.name);
         }
@@ -115,6 +117,7 @@ public class RuleEngine {
             ruleChains.remove(chain);
             String name = chainIdToName.remove(chain);
             chainNameToUUID.remove(name);
+            log.debug("{} removed a chain named {}", rtrIdStr, name);
         }
         // Any brand new chains should be processed.
         for (UUID chain : newChains) {
@@ -122,6 +125,7 @@ public class RuleEngine {
             String name = newChainNames.get(chain);
             chainIdToName.put(chain, name);
             chainNameToUUID.put(name, chain);
+            log.debug("{} added a chain named {}", rtrIdStr, name);
         }
         // If no chains were added or deleted we're done. Otherwise, we need to
         // recompute the resources and notify listeners.
@@ -133,8 +137,12 @@ public class RuleEngine {
 
     private void updateRules(UUID chainId, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
+        // TODO(pino): this implementation doesn't use the UUIDs (it preceeded
+        // the introduction of the UUIDs) but they make it possible to know
+        // exactly which rules changed.
         List<Rule> curRules = new ArrayList<Rule>();
-        List<ZkNodeEntry<UUID, Rule>> entries = zkRuleMgr.list(chainId, watcher);
+        List<ZkNodeEntry<UUID, Rule>> entries = zkRuleMgr
+                .list(chainId, watcher);
         for (ZkNodeEntry<UUID, Rule> entry : entries)
             curRules.add(entry.value);
         Collections.sort(curRules);
@@ -143,6 +151,10 @@ public class RuleEngine {
         if (null != oldRules && oldRules.equals(curRules))
             // The chain was updated with the same rules. Do nothing.
             return;
+        log.debug(
+                "{} updating chain {}. Old length {}, new length {}.",
+                new Object[] { rtrIdStr, chainIdToName.get(chainId),
+                        null == oldRules ? 0 : oldRules.size(), curRules.size() });
 
         // Initialize rules that need it.
         for (Rule r : curRules) {
@@ -196,8 +208,10 @@ public class RuleEngine {
         UUID chainId = chainNameToUUID.get(chainName);
         if (null != chainId)
             chain = ruleChains.get(chainId);
-        if (null == chain || chain.size() == 0)
+        if (null == chain || chain.size() == 0) {
+            log.debug("applyChain {} - empty, return ACCEPT", chainName);
             return new RuleResult(Action.ACCEPT, null, pktMatch, false);
+        }
 
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(chainName, chain, 0));
@@ -214,13 +228,16 @@ public class RuleEngine {
                 res.jumpToChain = null;
                 cp.rules.get(cp.position).process(inPortId, outPortId, res);
                 cp.position++;
-                if (res.action.equals(Action.ACCEPT) || res.action.equals(Action.DROP)
+                if (res.action.equals(Action.ACCEPT)
+                        || res.action.equals(Action.DROP)
                         || res.action.equals(Action.REJECT)) {
                     return res;
                 } else if (res.action.equals(Action.JUMP)) {
                     if (traversedChains.contains(res.jumpToChain)) {
-                        // TODO(pino): log a warning?
                         // Avoid jumping to chains we've already seen.
+                        log.warn("{} applyChain {} cannot jump to chain {} - "
+                                + "already visited.", new Object[] { rtrIdStr,
+                                chainName, res.jumpToChain });
                         continue;
                     }
                     List<Rule> nextChain = null;
@@ -228,8 +245,9 @@ public class RuleEngine {
                     if (null != chainId)
                         nextChain = ruleChains.get(chainId);
                     if (null == nextChain) {
-                        // TODO(pino): should we throw an exception?
                         // Let's just ignore jumps to non-existent chains.
+                        log.warn("{} ignoring jump to chain {} - not found.",
+                                rtrIdStr, res.jumpToChain);
                         continue;
                     }
                     traversedChains.add(res.jumpToChain);
@@ -245,8 +263,8 @@ public class RuleEngine {
                     // Move on to the next rule in the same chain.
                     continue;
                 } else {
-                    log.error("Unknown action type {} in rule chain", 
-                              res.action);
+                    log.error("Unknown action type {} in rule chain",
+                            res.action);
                     // TODO: Should we throw an exception?
                     continue;
                 }

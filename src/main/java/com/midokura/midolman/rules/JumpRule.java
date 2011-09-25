@@ -2,10 +2,14 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class JumpRule extends Rule {
 
+    private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
     public String jumpToChain;
 
@@ -15,7 +19,9 @@ public class JumpRule extends Rule {
     }
 
     // Default constructor for the Jackson deserialization.
-    public JumpRule() { super(); }
+    public JumpRule() {
+        super();
+    }
 
     public JumpRule(Condition condition, String jumpToChain, UUID chainId,
             int position) {
@@ -27,6 +33,7 @@ public class JumpRule extends Rule {
     public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChain;
+        log.debug("Rule evaluation jumping to chain {}.", jumpToChain);
     }
 
     @Override

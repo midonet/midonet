@@ -3,11 +3,17 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.layer4.NwTpPair;
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
+    private final static Logger log = LoggerFactory
+            .getLogger(ForwardNatRule.class);
 
     public ForwardNatRule(Condition condition, Set<NatTarget> targets,
             Action action, boolean dnat) {
@@ -19,7 +25,9 @@ public class ForwardNatRule extends NatRule {
     }
 
     // Default constructor for the Jackson deserialization.
-    public ForwardNatRule() { super(); }
+    public ForwardNatRule() {
+        super();
+    }
 
     public ForwardNatRule(Condition condition, Action action, UUID chainId,
             int position, boolean dnat, Set<NatTarget> targets) {
@@ -49,6 +57,14 @@ public class ForwardNatRule extends NatRule {
             conn = natMap.allocateDnat(res.match.getNetworkSource(), res.match
                     .getTransportSource(), res.match.getNetworkDestination(),
                     res.match.getTransportDestination(), targets);
+        else
+            log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
+                    + "to {}:{}", new Object[] {
+                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort,
+                    IPv4.fromIPv4Address(res.match.getNetworkSource()),
+                    res.match.getTransportSource(),
+                    IPv4.fromIPv4Address(res.match.getNetworkDestination()),
+                    res.match.getTransportDestination() });
         // TODO(pino): deal with case that conn couldn't be allocated.
         res.match.setNetworkDestination(conn.nwAddr);
         res.match.setTransportDestination(conn.tpPort);
@@ -65,6 +81,14 @@ public class ForwardNatRule extends NatRule {
             conn = natMap.allocateSnat(res.match.getNetworkSource(), res.match
                     .getTransportSource(), res.match.getNetworkDestination(),
                     res.match.getTransportDestination(), targets);
+        else 
+            log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
+                    + "to {}:{}", new Object[] {
+                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort,
+                    IPv4.fromIPv4Address(res.match.getNetworkSource()),
+                    res.match.getTransportSource(),
+                    IPv4.fromIPv4Address(res.match.getNetworkDestination()),
+                    res.match.getTransportDestination() });
         // TODO(pino): deal with case that conn couldn't be allocated.
         res.match.setNetworkSource(conn.nwAddr);
         res.match.setTransportSource(conn.tpPort);
@@ -79,7 +103,9 @@ public class ForwardNatRule extends NatRule {
     }
 
     // Setter for the JSON serialization.
-    public void setNatTargets(Set<NatTarget> targets) { this.targets = targets; }
+    public void setNatTargets(Set<NatTarget> targets) {
+        this.targets = targets;
+    }
 
     @Override
     public int hashCode() {
