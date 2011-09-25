@@ -1,3 +1,32 @@
 #!/bin/sh
 
 #TODO: something
+
+NAME="midolman"
+GROUP="midokura"
+USER="midolman"
+DATADIR=/var/lib/midolman
+
+# shamelessly copied from debian mysql-server package...
+if ! getent group $GROUP >/dev/null ; then
+        # Adding system group
+        addgroup --system $GROUP >/dev/null
+fi
+
+# creating midonet user if it isn't already there
+if ! getent passwd $USER >/dev/null ; then
+        # Adding system user
+        adduser \
+          --system \
+          --disabled-login \
+          --ingroup $GROUP \
+          --home $DATADIR \
+          --gecos "MidoNet" \
+          --shell /bin/false \
+          $USER  >/dev/null
+fi
+
+mkdir /var/log/$NAME
+chown $USER:$GROUP /var/log/$NAME
+chown $USER:$GROUP $DATADIR
+

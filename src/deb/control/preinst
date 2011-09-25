@@ -2,6 +2,6 @@
 
 # Midokura
 
-getent group midokura 2>/dev/null >/dev/null || /usr/sbin/groupadd -r midokura
+#getent group midokura 2>/dev/null >/dev/null || /usr/sbin/groupadd -r midokura
 
-/usr/sbin/useradd --comment "MidoNet" --shell /bin/bash -M -r --groups midokura --home /usr/share/midonet midonet 2> /dev/null || :
+#/usr/sbin/useradd --comment "MidoNet" --shell /bin/bash -M -r --groups midokura --home /usr/share/midonet midonet 2> /dev/null || :
