@@ -898,8 +898,25 @@ public class TestBridgeController {
         assertEquals(6, controllerStub.addedFlows.size());
         assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
                           controllerStub.addedFlows.get(5).actions.toArray());
+        expectMatch = flowmatch25.clone();
+        expectMatch.setInputPort((short)2);
+        assertEquals(expectMatch, controllerStub.addedFlows.get(5).match);
 
+        // Re-add portUuid 5 at peer 5.
+        controllerStub.deletedFlows.clear();
+        portLocMap.put(portUuids[5],         
+                       Net.convertStringAddressToInt(peerStrList[5]));
+        // Flows to MAC 5 should have been invalidated.
+        expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[5].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
 
+        controllerStub.deletedFlows.clear();
+        portLocMap.remove(portUuids[4]);
+        expectMatch.setDataLayerDestination(macList[4].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
     }
 
     boolean flowListContainsMatch(List<MockControllerStub.Flow> flowList,
