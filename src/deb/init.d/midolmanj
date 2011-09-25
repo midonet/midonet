@@ -21,7 +21,7 @@ MIDO_MAIN=com.midokura.midolman.Midolman
 # FIXME(tfukushima): Remove hard coded version number.
 MIDO_JAR=$MIDO_HOME/midolmanj-0.1.0-SNAPSHOT.jar
 MIDO_CFG=$MIDO_ETC/midolman.conf
-MIDO_LOG_DIR=/var/midolman/log
+MIDO_LOG_DIR=/var/log/midolman/
 
 # Exit if the package is not installed
 # Test that midolmanj is installed
@@ -30,6 +30,9 @@ MIDO_LOG_DIR=/var/midolman/log
 [ -r $MIDO_CFG ] || exit 0
 umask 022
 . $MIDO_ETC/midolman-env.sh
+
+#add log dir java env variable
+JAVA_OPTS="$JAVA_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin

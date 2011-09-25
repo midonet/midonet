@@ -10,7 +10,7 @@
   </appender>
   
   <appender name="file" class="org.apache.log4j.FileAppender">
-    <param name="file" value="midolman.log" />
+    <param name="file" value="${midolman.log.dir}midolman.log" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{yyyy.MM.dd HH:mm:ss,SSS} %-5p %c{1} - %m%n"/> 
     </layout>
@@ -21,5 +21,5 @@
     <appender-ref ref="console" />
     <appender-ref ref="file" />
   </root>
-  
+
 </log4j:configuration>
