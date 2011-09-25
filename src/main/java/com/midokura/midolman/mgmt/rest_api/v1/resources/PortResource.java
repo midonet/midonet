@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -43,6 +44,14 @@ public class PortResource extends RestResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortResource.class);
+
+    /**
+     * Port resource locator for bgp
+     */
+    @Path("/{id}/bgps")
+    public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
+        return new PortBgpResource(zookeeperConn, id);
+    }
 
     /**
      * Get the port with the given ID.
