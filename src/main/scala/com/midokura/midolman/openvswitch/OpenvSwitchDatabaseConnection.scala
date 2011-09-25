@@ -17,7 +17,6 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import java.io.{IOException, InputStreamReader, OutputStreamWriter, Writer}
 import java.net.{Socket, SocketException}
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import java.util.{UUID, Timer, TimerTask}
@@ -30,6 +29,7 @@ import org.slf4j.LoggerFactory
 
 import OpenvSwitchDatabaseConsts._
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
+import java.io._
 
 /**
  * Static methods and constants for OpenvSwitchDatabaseConnection.
@@ -299,6 +299,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     { log.warn("run", e) }
                 case e: SocketException =>
                     // Ignore this when the parent thread close the socket.
+                case e: EOFException =>
+                    { log.info("run", "EOF: the socket closed.") }
                 case e: IOException =>
                     { log.warn("run", e) }
             }
