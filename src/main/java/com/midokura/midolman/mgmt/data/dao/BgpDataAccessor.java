@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.ZookeeperService;
+import org.apache.zookeeper.ZooKeeper;
+
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.state.BgpZkManager;
-import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
@@ -31,14 +31,13 @@ public class BgpDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public BgpDataAccessor(String zkConn, int timeout, String rootPath,
+    public BgpDataAccessor(ZooKeeper zkConn, String rootPath,
             String mgmtRootPath) {
-        super(zkConn, timeout, rootPath, mgmtRootPath);
+        super(zkConn, rootPath, mgmtRootPath);
     }
 
     private BgpZkManager getBgpZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new BgpZkManager(conn.getZooKeeper(), zkRoot);
+        return new BgpZkManager(zkConn, zkRoot);
     }
 
     /**

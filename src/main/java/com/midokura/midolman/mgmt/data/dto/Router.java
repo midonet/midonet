@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.state.RouterZkManagerProxy.RouterMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy.RouterMgmtConfig;
 
 /**
  * Class representing Virtual Router.

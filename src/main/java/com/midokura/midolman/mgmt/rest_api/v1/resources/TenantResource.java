@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.TenantDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
@@ -45,7 +45,7 @@ public class TenantResource extends RestResource {
      */
     @Path("/{id}/routers")
     public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
-        return new TenantRouterResource(zookeeperConn, id);
+        return new TenantRouterResource(zooKeeper, id);
     }
 
     /**
@@ -53,7 +53,7 @@ public class TenantResource extends RestResource {
      */
     @Path("/{id}/bridges")
     public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
-        return new TenantBridgeResource(zookeeperConn, id);
+        return new TenantBridgeResource(zooKeeper, id);
     }
 
     /**
@@ -69,11 +69,11 @@ public class TenantResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(Tenant tenant) throws StateAccessException {
-        TenantDataAccessor dao = new TenantDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         UUID id = null;
         try {
-            id = dao.create(tenant);
+            id = dao.create(tenant.getId());
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;

@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.ZookeeperService;
+import org.apache.zookeeper.ZooKeeper;
+
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
@@ -29,14 +29,13 @@ public class RuleDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public RuleDataAccessor(String zkConn, int timeout, String rootPath,
+    public RuleDataAccessor(ZooKeeper zkConn, String rootPath,
             String mgmtRootPath) {
-        super(zkConn, timeout, rootPath, mgmtRootPath);
+        super(zkConn, rootPath, mgmtRootPath);
     }
 
     private RuleZkManager getRuleZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new RuleZkManager(conn.getZooKeeper(), zkRoot);
+        return new RuleZkManager(zkConn, zkRoot);
     }
 
     /**

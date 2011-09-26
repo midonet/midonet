@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.state.ChainZkManagerProxy.ChainMgmtConfig;
-import com.midokura.midolman.mgmt.data.state.ChainZkManagerProxy.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy.ChainMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy.ChainNameMgmtConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**

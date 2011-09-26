@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.ZookeeperService;
+import org.apache.zookeeper.ZooKeeper;
+
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.AdRouteZkManager;
-import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
@@ -31,14 +31,13 @@ public class AdRouteDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public AdRouteDataAccessor(String zkConn, int timeout, String rootPath,
+    public AdRouteDataAccessor(ZooKeeper zkConn, String rootPath,
             String mgmtRootPath) {
-        super(zkConn, timeout, rootPath, mgmtRootPath);
+        super(zkConn, rootPath, mgmtRootPath);
     }
 
     private AdRouteZkManager getAdRouteZkManager() throws Exception {
-        ZkConnection conn = ZookeeperService.getConnection(zkConn, zkTimeout);
-        return new AdRouteZkManager(conn.getZooKeeper(), zkRoot);
+        return new AdRouteZkManager(zkConn, zkRoot);
     }
 
     /**

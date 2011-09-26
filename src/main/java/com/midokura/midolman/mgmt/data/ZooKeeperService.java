@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.mgmt.data;
 
+import org.apache.zookeeper.ZooKeeper;
+
 import com.midokura.midolman.state.ZkConnection;
 
 /**
@@ -13,24 +15,18 @@ import com.midokura.midolman.state.ZkConnection;
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
-public class ZookeeperService {
+public class ZooKeeperService {
     /*
-     * Singleton implementation for Zookeeper connection.
+     * Singleton implementation for ZooKeeper connection.
      */
 
     private static ZkConnection conn = null;
 
-    private ZookeeperService() {
+    private ZooKeeperService() {
     }
 
     /**
      * Get the Zookeeper connection.
-     * 
-     * @param connStr
-     *            Connection string.
-     * @return ZkConnection object.
-     * @throws Exception
-     *             Any exception thrown from connecting to Zookeeper.
      */
     public static synchronized ZkConnection getConnection(String connStr,
             int timeout) throws Exception {
@@ -39,5 +35,10 @@ public class ZookeeperService {
             conn.open();
         }
         return conn;
+    }
+
+    public static synchronized ZooKeeper getZooKeeper(String connStr,
+            int timeout) throws Exception {
+        return getConnection(connStr, timeout).getZooKeeper();
     }
 }

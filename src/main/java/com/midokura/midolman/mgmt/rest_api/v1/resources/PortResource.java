@@ -21,10 +21,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.PortDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
@@ -50,7 +51,7 @@ public class PortResource extends RestResource {
      */
     @Path("/{id}/bgps")
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
-        return new PortBgpResource(zookeeperConn, id);
+        return new PortBgpResource(zooKeeper, id);
     }
 
     /**
@@ -68,8 +69,8 @@ public class PortResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Port get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a port for the given ID.
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -84,8 +85,8 @@ public class PortResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -101,8 +102,8 @@ public class PortResource extends RestResource {
 
         private UUID bridgeId = null;
 
-        public BridgePortResource(String zkConn, UUID bridgeId) {
-            this.zookeeperConn = zkConn;
+        public BridgePortResource(ZooKeeper zkConn, UUID bridgeId) {
+            this.zooKeeper = zkConn;
             this.bridgeId = bridgeId;
         }
 
@@ -111,8 +112,8 @@ public class PortResource extends RestResource {
         public Response create(Port port, @Context UriInfo uriInfo)
                 throws StateAccessException {
             port.setDeviceId(bridgeId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
 
             UUID id = null;
             try {
@@ -132,8 +133,8 @@ public class PortResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Port> list() throws StateAccessException {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.listBridgePorts(bridgeId);
             } catch (StateAccessException e) {
@@ -153,8 +154,8 @@ public class PortResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterPortResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
+        public RouterPortResource(ZooKeeper zkConn, UUID routerId) {
+            this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
 
@@ -163,8 +164,8 @@ public class PortResource extends RestResource {
         public Response create(MaterializedRouterPort port,
                 @Context UriInfo uriInfo) throws StateAccessException {
             port.setDeviceId(routerId);
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
 
             UUID id = null;
             try {
@@ -184,8 +185,8 @@ public class PortResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Port> list() throws StateAccessException {
-            PortDataAccessor dao = new PortDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.listRouterPorts(routerId);
             } catch (StateAccessException e) {

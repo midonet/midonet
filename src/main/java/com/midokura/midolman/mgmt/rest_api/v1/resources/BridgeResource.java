@@ -22,10 +22,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.BridgeDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortResource;
 import com.midokura.midolman.state.StateAccessException;
@@ -50,7 +51,7 @@ public class BridgeResource extends RestResource {
      */
     @Path("/{id}/ports")
     public BridgePortResource getPortResource(@PathParam("id") UUID id) {
-        return new BridgePortResource(zookeeperConn, id);
+        return new BridgePortResource(zooKeeper, id);
     }
 
     /**
@@ -66,8 +67,8 @@ public class BridgeResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Bridge get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a bridge for the given ID.
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -85,8 +86,8 @@ public class BridgeResource extends RestResource {
     public Response update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException {
         bridge.setId(id);
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.update(bridge);
         } catch (StateAccessException e) {
@@ -102,8 +103,8 @@ public class BridgeResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -130,8 +131,8 @@ public class BridgeResource extends RestResource {
          * @param tenantId
          *            UUID of a tenant.
          */
-        public TenantBridgeResource(String zkConn, UUID tenantId) {
-            this.zookeeperConn = zkConn;
+        public TenantBridgeResource(ZooKeeper zkConn, UUID tenantId) {
+            this.zooKeeper = zkConn;
             this.tenantId = tenantId;
         }
 
@@ -144,8 +145,8 @@ public class BridgeResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Bridge> list() throws StateAccessException {
-            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(tenantId);
             } catch (StateAccessException e) {
@@ -170,8 +171,8 @@ public class BridgeResource extends RestResource {
         public Response create(Bridge bridge, @Context UriInfo uriInfo)
                 throws StateAccessException {
             bridge.setTenantId(tenantId);
-            BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
             try {
                 id = dao.create(bridge);

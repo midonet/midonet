@@ -8,6 +8,10 @@ package com.midokura.midolman.mgmt.rest_api.v1.resources;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 
+import org.apache.zookeeper.ZooKeeper;
+
+import com.midokura.midolman.mgmt.data.ZooKeeperService;
+
 /**
  * Base abstract class for all the resources.
  * 
@@ -23,24 +27,28 @@ public abstract class RestResource {
     private final static int DEFAULT_ZK_TIMEOUT = 3000;
 
     /** Zookeeper connection string **/
-    protected String zookeeperConn = null;
-    protected int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
+    private String zookeeperConn = null;
+    private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
     protected String zookeeperRoot = "/midolman";
     protected String zookeeperMgmtRoot = "/midolman-mgmt";
+    protected ZooKeeper zooKeeper = null;
 
     /**
      * Set zookeeper connection from config at the application initialization.
      * 
      * @param context
      *            ServletContext object to which it gets data from.
+     * @throws Exception
      */
     @Context
-    public void setZookeeperConn(ServletContext context) {
+    public void setZookeeperConn(ServletContext context) throws Exception {
+
         zookeeperConn = context.getInitParameter("zookeeper-connection");
         String zkTo = context.getInitParameter("zookeeper-timeout");
         if (zkTo != null) {
             zookeeperTimeout = Integer.parseInt(zkTo);
         }
+
         String rootPath = context.getInitParameter("zookeeper-root");
         if (rootPath != null) {
             zookeeperRoot = rootPath;
@@ -49,5 +57,8 @@ public abstract class RestResource {
         if (rootPath != null) {
             zookeeperMgmtRoot = rootPath;
         }
+
+        zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
+                zookeeperTimeout);
     }
 }

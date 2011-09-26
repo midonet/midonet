@@ -21,10 +21,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.ChainDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
 import com.midokura.midolman.state.StateAccessException;
@@ -46,15 +47,15 @@ public class ChainResource extends RestResource {
      */
     @Path("/{id}/rules")
     public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
-        return new ChainRuleResource(zookeeperConn, id);
+        return new ChainRuleResource(zooKeeper, id);
     }
 
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Chain get(@PathParam("id") UUID id) throws StateAccessException {
-        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -69,8 +70,8 @@ public class ChainResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -89,8 +90,8 @@ public class ChainResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterTableResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
+        public RouterTableResource(ZooKeeper zkConn, UUID routerId) {
+            this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
 
@@ -100,7 +101,7 @@ public class ChainResource extends RestResource {
         @Path("/{name}/chains")
         public RouterTableChainResource getChainTableResource(
                 @PathParam("name") String name) {
-            return new RouterTableChainResource(zookeeperConn, routerId, name);
+            return new RouterTableChainResource(zooKeeper, routerId, name);
         }
     }
 
@@ -112,9 +113,9 @@ public class ChainResource extends RestResource {
         private UUID routerId = null;
         private String table = null;
 
-        public RouterTableChainResource(String zkConn, UUID routerId,
+        public RouterTableChainResource(ZooKeeper zkConn, UUID routerId,
                 String table) {
-            this.zookeeperConn = zkConn;
+            this.zooKeeper = zkConn;
             this.routerId = routerId;
             this.table = table;
         }
@@ -122,10 +123,10 @@ public class ChainResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Chain> list() throws StateAccessException {
-            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
-                return dao.list(routerId, table);
+                return dao.listTableChains(routerId, table);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -143,8 +144,8 @@ public class ChainResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterChainResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
+        public RouterChainResource(ZooKeeper zkConn, UUID routerId) {
+            this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
 
@@ -153,8 +154,8 @@ public class ChainResource extends RestResource {
         public Response create(Chain chain, @Context UriInfo uriInfo)
                 throws StateAccessException {
             chain.setRouterId(routerId);
-            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
             try {
                 id = dao.create(chain);
@@ -173,8 +174,8 @@ public class ChainResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Chain> list() throws StateAccessException {
-            ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(routerId);
             } catch (StateAccessException e) {

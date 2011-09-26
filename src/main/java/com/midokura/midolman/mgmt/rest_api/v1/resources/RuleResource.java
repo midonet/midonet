@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +44,8 @@ public class RuleResource extends RestResource {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Rule get(@PathParam("id") UUID id) throws StateAccessException {
-        RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        RuleDataAccessor dao = new RuleDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -59,8 +60,8 @@ public class RuleResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        RuleDataAccessor dao = new RuleDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -79,16 +80,16 @@ public class RuleResource extends RestResource {
 
         private UUID chainId = null;
 
-        public ChainRuleResource(String zkConn, UUID chainId) {
-            this.zookeeperConn = zkConn;
+        public ChainRuleResource(ZooKeeper zkConn, UUID chainId) {
+            this.zooKeeper = zkConn;
             this.chainId = chainId;
         }
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Rule> list() throws StateAccessException {
-            RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            RuleDataAccessor dao = new RuleDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(chainId);
             } catch (StateAccessException e) {
@@ -105,8 +106,8 @@ public class RuleResource extends RestResource {
         public Response create(Rule rule, @Context UriInfo uriInfo)
                 throws StateAccessException {
             rule.setChainId(chainId);
-            RuleDataAccessor dao = new RuleDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            RuleDataAccessor dao = new RuleDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
             try {
                 id = dao.create(rule);

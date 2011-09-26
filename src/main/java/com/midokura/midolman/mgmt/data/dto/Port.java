@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.state.PortZkManagerProxy.PortMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;

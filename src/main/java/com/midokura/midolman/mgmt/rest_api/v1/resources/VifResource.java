@@ -23,7 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.VifDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.VifZkManager;
 import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -46,8 +46,8 @@ public class VifResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(Vif vif, @Context UriInfo uriInfo)
             throws StateAccessException {
-        VifDataAccessor dao = new VifDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        VifZkManager dao = new VifZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         UUID id = null;
         try {
             id = dao.create(vif);
@@ -66,8 +66,8 @@ public class VifResource extends RestResource {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Vif get(@PathParam("id") UUID id) throws StateAccessException {
-        VifDataAccessor dao = new VifDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        VifZkManager dao = new VifZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -84,8 +84,8 @@ public class VifResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response delete(@PathParam("id") UUID id)
             throws StateAccessException {
-        VifDataAccessor dao = new VifDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        VifZkManager dao = new VifZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {

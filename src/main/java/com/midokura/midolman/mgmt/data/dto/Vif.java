@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.state.VifZkManager.VifConfig;
+import com.midokura.midolman.mgmt.data.dao.VifZkManager.VifConfig;
 
 /**
  * Class representing Vif.

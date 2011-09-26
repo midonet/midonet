@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class BgpResource extends RestResource {
      */
     @Path("/{id}/ad_routes")
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
-        return new BgpAdRouteResource(zookeeperConn, id);
+        return new BgpAdRouteResource(zooKeeper, id);
     }
 
     /**
@@ -65,8 +66,8 @@ public class BgpResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Bgp get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a bgp for the given ID.
-        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        BgpDataAccessor dao = new BgpDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         Bgp bgp = null;
         try {
             bgp = dao.get(id);
@@ -85,8 +86,8 @@ public class BgpResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Bgp bgp)
             throws StateAccessException {
-        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        BgpDataAccessor dao = new BgpDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             dao.update(id, bgp);
         } catch (StateAccessException e) {
@@ -102,8 +103,8 @@ public class BgpResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        BgpDataAccessor dao = new BgpDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -130,8 +131,8 @@ public class BgpResource extends RestResource {
          * @param portId
          *            UUID of a port.
          */
-        public PortBgpResource(String zkConn, UUID portId) {
-            this.zookeeperConn = zkConn;
+        public PortBgpResource(ZooKeeper zkConn, UUID portId) {
+            this.zooKeeper = zkConn;
             this.portId = portId;
         }
 
@@ -144,8 +145,8 @@ public class BgpResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Bgp[] list() throws StateAccessException {
-            BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            BgpDataAccessor dao = new BgpDataAccessor(zooKeeper, zookeeperRoot,
+                    zookeeperMgmtRoot);
             Bgp[] bgps = null;
             try {
                 bgps = dao.list(portId);
@@ -172,8 +173,8 @@ public class BgpResource extends RestResource {
         public Response create(Bgp bgp, @Context UriInfo uriInfo)
                 throws StateAccessException {
             bgp.setPortId(portId);
-            BgpDataAccessor dao = new BgpDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            BgpDataAccessor dao = new BgpDataAccessor(zooKeeper, zookeeperRoot,
+                    zookeeperMgmtRoot);
             UUID id = null;
             try {
                 id = dao.create(bgp);

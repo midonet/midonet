@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.state;
+package com.midokura.midolman.mgmt.data.dao;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +61,12 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     }
 
     public List<Op> prepareCreate(Port port)
-            throws ZkStateSerializationException {
+            throws ZkStateSerializationException, UnsupportedOperationException {
+        if (port instanceof LogicalRouterPort) {
+            // Cannot create a single logical router object
+            throw new UnsupportedOperationException(
+                    "Cannot create a single logical router port");
+        }
         List<Op> ops = new ArrayList<Op>();
         String portPath = mgmtPathManager.getPortPath(port.getId());
         log.debug("Preparing to create: " + portPath);
@@ -230,7 +235,7 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     }
 
     public UUID create(Port port) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         UUID id = ShortUUID.generate32BitUUID();
         port.setId(id);
         multi(prepareCreate(port));

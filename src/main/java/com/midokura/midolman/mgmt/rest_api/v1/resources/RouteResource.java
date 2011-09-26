@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +56,8 @@ public class RouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Route get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a route for the given ID.
-        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        RouteDataAccessor dao = new RouteDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -71,8 +72,8 @@ public class RouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        RouteDataAccessor dao = new RouteDataAccessor(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -99,8 +100,8 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public RouterRouteResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
+        public RouterRouteResource(ZooKeeper zkConn, UUID routerId) {
+            this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
 
@@ -113,8 +114,8 @@ public class RouteResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Route[] list() throws StateAccessException {
-            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(routerId);
             } catch (StateAccessException e) {
@@ -140,8 +141,8 @@ public class RouteResource extends RestResource {
         public Response create(Route route, @Context UriInfo uriInfo)
                 throws StateAccessException {
             route.setRouterId(routerId);
-            RouteDataAccessor dao = new RouteDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
 
             UUID id = null;
             try {

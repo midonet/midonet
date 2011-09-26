@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +57,8 @@ public class AdRouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public AdRoute get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a advertising route for the given ID.
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         AdRoute adRoute = null;
         try {
             adRoute = dao.get(id);
@@ -76,8 +77,8 @@ public class AdRouteResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, AdRoute adRoute)
             throws StateAccessException {
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.update(id, adRoute);
         } catch (StateAccessException e) {
@@ -93,8 +94,8 @@ public class AdRouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-                zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+        AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -121,8 +122,8 @@ public class AdRouteResource extends RestResource {
          * @param bgpId
          *            UUID of a bgp.
          */
-        public BgpAdRouteResource(String zkConn, UUID bgpId) {
-            this.zookeeperConn = zkConn;
+        public BgpAdRouteResource(ZooKeeper zkConn, UUID bgpId) {
+            this.zooKeeper = zkConn;
             this.bgpId = bgpId;
         }
 
@@ -135,8 +136,8 @@ public class AdRouteResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public AdRoute[] list() throws StateAccessException {
-            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             AdRoute[] adRoutes = null;
             try {
                 adRoutes = dao.list(bgpId);
@@ -163,8 +164,8 @@ public class AdRouteResource extends RestResource {
         public Response create(AdRoute adRoute, @Context UriInfo uriInfo)
                 throws StateAccessException {
             adRoute.setBgpId(bgpId);
-            AdRouteDataAccessor dao = new AdRouteDataAccessor(zookeeperConn,
-                    zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
+            AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
             try {
                 id = dao.create(adRoute);

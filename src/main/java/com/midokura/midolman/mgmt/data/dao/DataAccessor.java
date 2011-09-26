@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.mgmt.data.dao;
 
+import org.apache.zookeeper.ZooKeeper;
+
 /**
  * Base data access class.
  * 
@@ -12,8 +14,7 @@ package com.midokura.midolman.mgmt.data.dao;
  * @author Ryu Ishimoto
  */
 public abstract class DataAccessor {
-    protected String zkConn = null;
-    protected int zkTimeout = -1;
+    protected ZooKeeper zkConn = null;
     protected String zkRoot = null;
     protected String zkMgmtRoot = null;
 
@@ -23,10 +24,8 @@ public abstract class DataAccessor {
      * @param zkConn
      *            Zookeeper connection string.
      */
-    public DataAccessor(String zkConn, int timeout, String zkRoot,
-            String zkMgmtRoot) {
+    public DataAccessor(ZooKeeper zkConn, String zkRoot, String zkMgmtRoot) {
         this.zkConn = zkConn;
-        this.zkTimeout = timeout;
         this.zkRoot = zkRoot;
         this.zkMgmtRoot = zkMgmtRoot;
     }

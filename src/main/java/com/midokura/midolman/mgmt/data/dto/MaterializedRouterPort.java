@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.mgmt.data.state.PortZkManagerProxy.PortMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
