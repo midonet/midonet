@@ -89,6 +89,14 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }
     }
     
+    protected void deleteAllFlows() {
+        OFMatch match = new OFMatch().setWildcards(OFMatch.OFPFW_ALL);
+        OFMessage fm = ((OFFlowMod) factory.getMessage(OFType.FLOW_MOD))
+              .setMatch(match).setCommand(OFFlowMod.OFPFC_DELETE)
+              .setOutPort(OFPort.OFPP_NONE).setLength(U16.t(OFFlowMod.MINIMUM_LENGTH));
+        stream.write(fm);
+    }
+    
     protected void sendFeaturesRequest() {
         log.info("sendFeaturesRequest");
         
@@ -99,13 +107,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 log.debug("received features reply");
                 
                 featuresReply = data;
-                
-                // Delete all pre-existing flows
-                OFMatch match = new OFMatch().setWildcards(OFMatch.OFPFW_ALL);
-                OFMessage fm = ((OFFlowMod) factory.getMessage(OFType.FLOW_MOD))
-                      .setMatch(match).setCommand(OFFlowMod.OFPFC_DELETE)
-                      .setOutPort(OFPort.OFPP_NONE).setLength(U16.t(OFFlowMod.MINIMUM_LENGTH));
-                stream.write(fm);
                 
                 sendConfigRequest();
             }
@@ -169,6 +170,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         case HELLO:
             log.debug("handleMessage: HELLO");
             sendFeaturesRequest();
+            deleteAllFlows();
             return true;
         case FEATURES_REPLY:
             log.debug("handleMessage: FEATURES_REPLY");
