@@ -153,12 +153,11 @@ public class ControllerTrampoline implements Controller {
                 socketFile.delete();
                 ZebraServer zebra = new ZebraServer(server, address, portMgr,
                                                     routeMgr, ovsdb);
-                PortService service = new BgpPortService(
+                PortService service = new BgpPortService(reactor,
                     ovsdb, "midolman_port_id", "midolman_port_service",
                     portMgr, routeMgr, bgpMgr, adRouteMgr, zebra,
                     new BgpVtyConnection("localhost", 2605, "zebra",
-                                         bgpMgr, adRouteMgr),
-                    Runtime.getRuntime());
+                                         bgpMgr, adRouteMgr));
 
                 newController = new NetworkController(
                         datapathId,
