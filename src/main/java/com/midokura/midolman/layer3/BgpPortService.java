@@ -175,7 +175,7 @@ public class BgpPortService implements PortService {
                 "sudo ip link set dev %s arp on mtu 1300 multicast off up",
                 portName));
         
-        log.debug("configurePort: ran ip link with result {}", ipLinkCommand.exitValue());
+        log.debug("configurePort: ran ip link");
         
         // Assume that materialized port config is already there.
         PortConfig config = portMgr.get(portId).value;
@@ -192,7 +192,7 @@ public class BgpPortService implements PortService {
                 Net.convertIntAddressToString(portConfig.portAddr),
                 portConfig.nwLength, portName));
         
-        log.debug("configurePort: ran ip addr with result {}", ipLinkCommand.exitValue());
+        log.debug("configurePort: ran ip addr");
     }
 
     public void start(final short localPortNum, final L3DevicePort remotePort)
