@@ -53,7 +53,7 @@ public class BridgeController extends AbstractController {
 
     BridgeControllerWatcher macToPortWatcher;
 
-    private class MacPort {
+    static private class MacPort {
         // Pair<Mac, Port>
         public MAC mac;
         public UUID port;
@@ -180,7 +180,7 @@ public class BridgeController extends AbstractController {
                       "has already been removed", mac);
         } else if (currentPort.equals(port)) {
             if (delete) {
-                log.debug("expireMacPortEntry: deleting the mapping from " +
+                log.info("expireMacPortEntry: deleting the mapping from " +
                           "MAC {} to port {}", mac, port);
                 // TODO: Do we need to cancel this Future?
                 delayedDeletes.remove(mac);
@@ -437,12 +437,6 @@ public class BridgeController extends AbstractController {
     }
 
     @Override
-    protected void modifyPort(OFPhysicalPort portDesc) {
-        log.error("modifyPort: not implemented");
-        // FIXME
-    }
-
-    @Override
     protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
         // Here we don't care whether oldAddr is local, because we would 
         // get the OVS notification first.
@@ -495,15 +489,24 @@ public class BridgeController extends AbstractController {
     public void clear() {
         log.info("clear");
 
-        macPortMap.stop();
-        // .stop() includes a .clear() of the underlying map, so we don't
-        // need to clear out the entries here.
-        macPortMap.removeWatcher(macToPortWatcher);
-
+        // Using flowCount for the entries to delete from macPortMap prior
+        // to macPortMap.stop() means that entries which aren't in the 
+        // flowCount map because they're in the process of expiring 
+        // (delayedDelete) won't be removed.  
+        // TODO: Is this proper?
         for (MacPort macPort : flowCount.keySet()) {
+            log.info("clear: Deleting MAC-Port entry {} :: {}", macPort.mac,
+                     macPort.port);
             expireMacPortEntry(macPort.mac, macPort.port, true);
         }
         flowCount.clear();
+        // TODO: Should we .cancel() all these Futures?
+        delayedDeletes.clear();
+
+        macPortMap.removeWatcher(macToPortWatcher);
+        macPortMap.stop();
+        // .stop() includes a .clear() of the underlying map, so we don't
+        // need to clear out the entries here.
 
         // Clear all flows.
         MidoMatch match = new MidoMatch();
