@@ -1102,19 +1102,11 @@ public class NetworkController extends AbstractController {
     }
 
     @Override
-    protected void modifyPort(OFPhysicalPort portDesc) {
-        log.warn("modifyPort: not implemented");
-
-        // L3DevicePort devPort = devPortOfPortDesc(portDesc);
-        // network.modifyPort(devPort);
-        // FIXME: Call something in network.
-    }
-
-    @Override
     protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
         // Do nothing.
     }
 
+    @Override
     public final void clear() {
         // Do nothing.
     }

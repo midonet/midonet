@@ -197,7 +197,8 @@ public abstract class AbstractController
             log.debug("onPortStatus: removing {}", portNum);
             peerIpToTunnelPortNum.remove(peerIp);
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
-            modifyPort(portDesc);
+            //modifyPort(portDesc);
+            // FIXME(dmd): modifyPort no longer used.
             UUID uuid = getPortUuidFromOvsdb(datapathId, 
                                              portDesc.getPortNumber());
             Integer portNum = new Integer(portDesc.getPortNumber());
@@ -222,7 +223,6 @@ public abstract class AbstractController
 
     protected abstract void addPort(OFPhysicalPort portDesc, short portNum);
     protected abstract void deletePort(OFPhysicalPort portDesc);
-    protected abstract void modifyPort(OFPhysicalPort portDesc);
 
     @Override
     public abstract void onFlowRemoved(OFMatch match, long cookie,
