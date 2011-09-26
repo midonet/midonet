@@ -171,7 +171,7 @@
                                     <mapper>
                                         <type>perm</type>
                                         <prefix>/etc/init.d</prefix>
-					<filemode>755</filemode>
+                                        <filemode>755</filemode>
                                     </mapper>
                                 </data>
                                 <data>
@@ -188,6 +188,14 @@
                                     <mapper>
                                         <type>perm</type>
                                         <prefix>/usr/lib64</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/src/deb/sudoers/midolman</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/sudoers.d</prefix>
                                     </mapper>
                                 </data>
                             </dataSet>

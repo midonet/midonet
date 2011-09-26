@@ -1,0 +1,8 @@
+Cmnd_Alias MIDOCMDS = /sbin/ip,
+                      /usr/lib/quagga/bgpd,
+                      /usr/lib/quagga/ospfd,
+                      /usr/lib/quagga/ospf6d,
+                      /usr/lib/quagga/ripd,
+                      /usr/lib/quagga/ripngd
+
+midolman ALL = (root) NOPASSWD: SETENV: MIDOCMDS
