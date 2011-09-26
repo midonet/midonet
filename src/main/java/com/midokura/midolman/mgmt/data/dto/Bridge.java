@@ -81,7 +81,7 @@ public class Bridge {
         this.tenantId = tenantId;
     }
 
-    public BridgeMgmtConfig toConfig() {
+    public BridgeMgmtConfig toMgmtConfig() {
         return new BridgeMgmtConfig(this.getTenantId(), this.getName());
     }
 

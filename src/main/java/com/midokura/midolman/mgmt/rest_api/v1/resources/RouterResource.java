@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -123,10 +124,11 @@ public class RouterResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Router router)
             throws StateAccessException {
+        router.setId(id);
         RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         try {
-            dao.update(id, router);
+            dao.update(router);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -182,7 +184,7 @@ public class RouterResource extends RestResource {
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Router[] list() throws StateAccessException {
+        public List<Router> list() throws StateAccessException {
             RouterDataAccessor dao = new RouterDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             try {

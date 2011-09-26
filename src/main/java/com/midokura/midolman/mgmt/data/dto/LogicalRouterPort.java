@@ -9,7 +9,10 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.mgmt.data.state.RouterZkManagerProxy.PeerRouterConfig;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.util.Net;
 
 /**
@@ -73,18 +76,40 @@ public class LogicalRouterPort extends RouterPort {
         this.peerRouterId = peerRouterId;
     }
 
-    public LogicalRouterPortConfig toConfig() {
+    @Override
+    public PortConfig toConfig() {
         return new LogicalRouterPortConfig(this.getDeviceId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPortAddress()), new HashSet<Route>(), null);
     }
 
-    public LogicalRouterPortConfig toPeerConfig() {
+    public PortConfig toPeerConfig() {
         return new LogicalRouterPortConfig(this.getPeerRouterId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPeerPortAddress()), new HashSet<Route>(), null);
+    }
+
+    public PeerRouterConfig toPeerRouterConfig() {
+        return new PeerRouterConfig(this.getId(), this.getPeerId());
+    }
+
+    public PeerRouterConfig toPeerPeerRouterConfig() {
+        return new PeerRouterConfig(this.getPeerId(), this.getId());
+    }
+
+    public PeerRouterLink toPeerRouterLink() {
+        PeerRouterLink link = new PeerRouterLink();
+        link.setPortId(this.getId());
+        link.setPeerPortId(peerId);
+        link.setPeerRouterId(peerRouterId);
+        return link;
+    }
+
+    public ZkNodeEntry<UUID, PortConfig> toPeerZkNode() {
+        return new ZkNodeEntry<UUID, PortConfig>(this.getPeerId(),
+                toPeerConfig());
     }
 
     public static Port createPort(UUID id, LogicalRouterPortConfig config) {

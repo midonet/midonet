@@ -134,13 +134,25 @@ public class ChainResource extends RestResource {
                 throw new UnknownRestApiException(e);
             }
         }
+    }
+
+    /**
+     * Sub-resource class for router's table chains.
+     */
+    public static class RouterChainResource extends RestResource {
+
+        private UUID routerId = null;
+
+        public RouterChainResource(String zkConn, UUID routerId) {
+            this.zookeeperConn = zkConn;
+            this.routerId = routerId;
+        }
 
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Chain chain, @Context UriInfo uriInfo)
                 throws StateAccessException {
             chain.setRouterId(routerId);
-            chain.setTable(table);
             ChainDataAccessor dao = new ChainDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
@@ -156,19 +168,6 @@ public class ChainResource extends RestResource {
 
             URI uri = uriInfo.getBaseUriBuilder().path("chains/" + id).build();
             return Response.created(uri).build();
-        }
-    }
-
-    /**
-     * Sub-resource class for router's table chains.
-     */
-    public static class RouterChainResource extends RestResource {
-
-        private UUID routerId = null;
-
-        public RouterChainResource(String zkConn, UUID routerId) {
-            this.zookeeperConn = zkConn;
-            this.routerId = routerId;
         }
 
         @GET

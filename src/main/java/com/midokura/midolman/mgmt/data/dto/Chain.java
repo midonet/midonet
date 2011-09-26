@@ -1,5 +1,5 @@
 /*
- * @(#)Route      1.6 11/09/10
+ * @(#)Chain      1.6 11/09/10
  *
  * Copyright 2011 Midokura KK
  */
@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.state.ChainZkManagerProxy.ChainMgmtConfig;
+import com.midokura.midolman.mgmt.data.state.ChainZkManagerProxy.ChainNameMgmtConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
@@ -78,22 +80,32 @@ public class Chain {
     }
 
     /**
-     * @param table the table to set
+     * @param table
+     *            the table to set
      */
     public void setTable(String table) {
         this.table = table;
     }
-    
+
     public ChainConfig toConfig() {
         return new ChainConfig(this.getName(), this.getRouterId());
     }
 
-    public static Chain createChain(UUID id, ChainConfig config) {
+    public ChainMgmtConfig toMgmtConfig() {
+        return new ChainMgmtConfig(this.getTable());
+    }
+
+    public ChainNameMgmtConfig toNameMgmtConfig() {
+        return new ChainNameMgmtConfig(this.getId());
+    }
+
+    public static Chain createChain(UUID id, ChainConfig config,
+            ChainMgmtConfig mgmtConfig) {
         Chain chain = new Chain();
         chain.setName(config.name);
         chain.setRouterId(config.routerId);
+        chain.setTable(mgmtConfig.table);
         chain.setId(id);
         return chain;
     }
-
 }

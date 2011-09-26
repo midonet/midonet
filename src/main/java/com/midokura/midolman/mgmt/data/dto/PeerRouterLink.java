@@ -69,6 +69,10 @@ public class PeerRouterLink {
         this.peerRouterId = peerRouterId;
     }
 
+    public PeerRouterConfig toConfig() {
+        return new PeerRouterConfig(portId, peerPortId);
+    }
+
     public static PeerRouterLink createPeerRouterLink(PeerRouterConfig config) {
         PeerRouterLink link = new PeerRouterLink();
         link.setPortId(config.portId);

@@ -43,6 +43,19 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
         public String table;
     }
 
+    public static class ChainNameMgmtConfig {
+        public ChainNameMgmtConfig() {
+            super();
+        }
+
+        public ChainNameMgmtConfig(UUID id) {
+            super();
+            this.id = id;
+        }
+
+        public UUID id;
+    }
+
     public final static String NAT_TABLE = "nat";
     private static String[] builtInChainNames = { Router.POST_ROUTING,
             Router.PRE_ROUTING };
@@ -73,46 +86,81 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
         UUID preRoutingId = UUID.randomUUID();
         UUID postRoutingId = UUID.randomUUID();
 
+        // Create router tables path
         String routerTablesPath = mgmtPathManager.getRouterTablesPath(routerId);
-        String routerNatTablePath = mgmtPathManager.getRouterTablePath(
-                routerId, NAT_TABLE);
-        String routerNatTableChainsPath = mgmtPathManager
-                .getRouterTableChainsPath(routerId, NAT_TABLE);
-        String preRoutingRouterTableChainPath = mgmtPathManager
-                .getRouterTableChainPath(routerId, NAT_TABLE, preRoutingId);
-        String postRoutingRouterTableChainPath = mgmtPathManager
-                .getRouterTableChainPath(routerId, NAT_TABLE, postRoutingId);
-        String preRoutingChainPath = mgmtPathManager.getChainPath(preRoutingId);
-        String postRoutingChainPath = mgmtPathManager
-                .getChainPath(postRoutingId);
-
-        ZkNodeEntry<UUID, ChainConfig> preRoutingEntry = new ZkNodeEntry<UUID, ChainConfig>(
-                preRoutingId, new ChainConfig(Router.PRE_ROUTING, routerId));
-        ZkNodeEntry<UUID, ChainConfig> postRoutingEntry = new ZkNodeEntry<UUID, ChainConfig>(
-                postRoutingId, new ChainConfig(Router.POST_ROUTING, routerId));
-        ChainMgmtConfig preRoutingMgmtConfig = new ChainMgmtConfig(NAT_TABLE);
-        ChainMgmtConfig postRoutingMgmtConfig = new ChainMgmtConfig(NAT_TABLE);
-
         log.debug("Preparing to create: " + routerTablesPath);
         ops.add(Op.create(routerTablesPath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
+
+        // Create router NAT table path
+        String routerNatTablePath = mgmtPathManager.getRouterTablePath(
+                routerId, NAT_TABLE);
         log.debug("Preparing to create: " + routerNatTablePath);
         ops.add(Op.create(routerNatTablePath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
+
+        // Create router NAT table chains path.
+        String routerNatTableChainsPath = mgmtPathManager
+                .getRouterTableChainsPath(routerId, NAT_TABLE);
         log.debug("Preparing to create: " + routerNatTableChainsPath);
         ops.add(Op.create(routerNatTableChainsPath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
+        // Create router NAT table chain names path.
+        String routerNatTableChainNamesPath = mgmtPathManager
+                .getRouterTableChainNamesPath(routerId, NAT_TABLE);
+        log.debug("Preparing to create: " + routerNatTableChainNamesPath);
+        ops.add(Op.create(routerNatTableChainNamesPath, null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        // Create Router NAT table pre-routing chain
+        String preRoutingRouterTableChainPath = mgmtPathManager
+                .getRouterTableChainPath(routerId, NAT_TABLE, preRoutingId);
         log.debug("Preparing to create: " + preRoutingRouterTableChainPath);
         ops.add(Op.create(preRoutingRouterTableChainPath, null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        // Create router NAT table post-routing chain
+        String postRoutingRouterTableChainPath = mgmtPathManager
+                .getRouterTableChainPath(routerId, NAT_TABLE, postRoutingId);
         log.debug("Preparing to create: " + postRoutingRouterTableChainPath);
         ops.add(Op.create(postRoutingRouterTableChainPath, null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        // Add chains entry
+        // Create Router NAT table pre-routing chain
+        String preRoutingChainNamePath = mgmtPathManager
+                .getRouterTableChainNamePath(routerId, NAT_TABLE,
+                        Router.PRE_ROUTING);
+        log.debug("Preparing to create: " + preRoutingChainNamePath);
+        try {
+            ops.add(Op.create(preRoutingChainNamePath,
+                    serialize(new ChainNameMgmtConfig(preRoutingId)),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize prerouting ChainNameMgmtConfig", e,
+                    ChainNameMgmtConfig.class);
+        }
+
+        // Create router NAT table post-routing chain
+        String postRoutingChainNamePath = mgmtPathManager
+                .getRouterTableChainNamePath(routerId, NAT_TABLE,
+                        Router.POST_ROUTING);
+        log.debug("Preparing to create: " + postRoutingChainNamePath);
+        try {
+            ops.add(Op.create(postRoutingChainNamePath,
+                    serialize(new ChainNameMgmtConfig(postRoutingId)),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize posdrouting ChainNameMgmtConfig", e,
+                    ChainNameMgmtConfig.class);
+        }
+
+        // Add a pre-routing chain entry
+        String preRoutingChainPath = mgmtPathManager.getChainPath(preRoutingId);
         log.debug("Preparing to create: " + preRoutingChainPath);
+        ChainMgmtConfig preRoutingMgmtConfig = new ChainMgmtConfig(NAT_TABLE);
         try {
             ops.add(Op.create(preRoutingChainPath,
                     serialize(preRoutingMgmtConfig), Ids.OPEN_ACL_UNSAFE,
@@ -123,7 +171,11 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
                     ChainMgmtConfig.class);
         }
 
+        // Add a post-routing chain entry.
+        String postRoutingChainPath = mgmtPathManager
+                .getChainPath(postRoutingId);
         log.debug("Preparing to create: " + postRoutingChainPath);
+        ChainMgmtConfig postRoutingMgmtConfig = new ChainMgmtConfig(NAT_TABLE);
         try {
             ops.add(Op.create(postRoutingChainPath,
                     serialize(postRoutingMgmtConfig), Ids.OPEN_ACL_UNSAFE,
@@ -135,9 +187,59 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
         }
 
         // Create Pre-routing and post-routing in Midolman
+        ZkNodeEntry<UUID, ChainConfig> preRoutingEntry = new ZkNodeEntry<UUID, ChainConfig>(
+                preRoutingId, new ChainConfig(Router.PRE_ROUTING, routerId));
+        ZkNodeEntry<UUID, ChainConfig> postRoutingEntry = new ZkNodeEntry<UUID, ChainConfig>(
+                postRoutingId, new ChainConfig(Router.POST_ROUTING, routerId));
         log.debug("Preparing Midolman post-routing/pre-routing chains");
         ops.addAll(zkManager.prepareChainCreate(preRoutingEntry));
         ops.addAll(zkManager.prepareChainCreate(postRoutingEntry));
+
+        return ops;
+    }
+
+    public List<Op> prepareRouterDelete(UUID routerId)
+            throws ZkStateSerializationException, StateAccessException {
+        return prepareRouterDelete(routerId, true);
+    }
+
+    public List<Op> prepareRouterDelete(UUID routerId, boolean cascade)
+            throws StateAccessException, ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get all the chains and delete. NAT-only for now.
+        String natChainsPath = mgmtPathManager.getRouterTableChainsPath(
+                routerId, NAT_TABLE);
+        Set<String> chainIds = getChildren(natChainsPath);
+        for (String chainId : chainIds) {
+            ops.addAll(prepareDelete(UUID.fromString(chainId), cascade));
+        }
+
+        // Remove the chain-names directory
+        String namesPath = mgmtPathManager.getRouterTableChainNamesPath(
+                routerId, NAT_TABLE);
+        log.debug("Preparing to delete: " + namesPath);
+        ops.add(Op.delete(namesPath, -1));
+
+        // Remove the chains directory
+        String chainsPath = mgmtPathManager.getRouterTableChainsPath(routerId,
+                NAT_TABLE);
+        log.debug("Preparing to delete: " + chainsPath);
+        ops.add(Op.delete(chainsPath, -1));
+
+        // Remove all the tables
+        String tablesPath = mgmtPathManager.getRouterTablesPath(routerId);
+        Set<String> tables = getChildren(tablesPath);
+        for (String table : tables) {
+            String tablePath = mgmtPathManager.getRouterTablePath(routerId,
+                    table);
+            log.debug("Preparing to delete: " + tablePath);
+            ops.add(Op.delete(tablePath, -1));
+        }
+
+        // Remove the parent table directory
+        log.debug("Preparing to delete: " + tablesPath);
+        ops.add(Op.delete(tablesPath, -1));
 
         return ops;
     }
@@ -155,23 +257,39 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
                     + chain.getTable());
         }
 
+        // Make sure that no chain with the same name exists.
+        String namePath = mgmtPathManager.getRouterTableChainNamePath(chain
+                .getRouterId(), chain.getTable(), chain.getName());
+        if (exists(namePath)) {
+            throw new IllegalArgumentException(
+                    "A chain with the same name already exists for this table.");
+        }
+
         List<Op> ops = new ArrayList<Op>();
-        String chainPath = mgmtPathManager.getChainPath(chain.getId());
-        String routerTableChainPath = mgmtPathManager.getRouterTableChainPath(
-                chain.getRouterId(), chain.getTable(), chain.getId());
-        ZkNodeEntry<UUID, ChainConfig> entry = new ZkNodeEntry<UUID, ChainConfig>(
-                chain.getId(), chain.toConfig());
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig(chain.getTable());
 
         // Create under router table.
+        String routerTableChainPath = mgmtPathManager.getRouterTableChainPath(
+                chain.getRouterId(), chain.getTable(), chain.getId());
         log.debug("Preparing to create: " + routerTableChainPath);
         ops.add(Op.create(routerTableChainPath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
+        // Create a name index for this chain.
+        log.debug("Preparing to create: " + namePath);
+        try {
+            ops.add(Op.create(namePath, serialize(chain.toNameMgmtConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize ChainNameMgmtConfig", e,
+                    ChainNameMgmtConfig.class);
+        }
+
         // Create one under top level.
+        String chainPath = mgmtPathManager.getChainPath(chain.getId());
         log.debug("Preparing to create: " + chainPath);
         try {
-            ops.add(Op.create(chainPath, serialize(mgmtConfig),
+            ops.add(Op.create(chainPath, serialize(chain.toMgmtConfig()),
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
@@ -179,6 +297,8 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
                     ChainMgmtConfig.class);
         }
 
+        ZkNodeEntry<UUID, ChainConfig> entry = new ZkNodeEntry<UUID, ChainConfig>(
+                chain.getId(), chain.toConfig());
         log.debug("Preparing Midolman chain");
         ops.addAll(zkManager.prepareChainCreate(entry));
 
@@ -187,10 +307,20 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
 
     public List<Op> prepareDelete(UUID id)
             throws ZkStateSerializationException, StateAccessException {
-        return prepareDelete(get(id));
+        return prepareDelete(id, true);
+    }
+
+    public List<Op> prepareDelete(UUID id, boolean cascade)
+            throws ZkStateSerializationException, StateAccessException {
+        return prepareDelete(get(id), cascade);
     }
 
     public List<Op> prepareDelete(Chain chain)
+            throws ZkStateSerializationException, StateAccessException {
+        return prepareDelete(chain, true);
+    }
+
+    public List<Op> prepareDelete(Chain chain, boolean cascade)
             throws ZkStateSerializationException, StateAccessException {
         // Cannot delete built-in chains
         if (isBuiltInChainName(chain.getName())) {
@@ -205,22 +335,29 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
 
         List<Op> ops = new ArrayList<Op>();
 
-        // Construct paths
-        String chainPath = mgmtPathManager.getChainPath(chain.getId());
-        String routerTableChainPath = mgmtPathManager.getRouterTableChainPath(
-                chain.getRouterId(), chain.getTable(), chain.getId());
-
-        // Delete Midolman data.
-        ZkNodeEntry<UUID, ChainConfig> entry = new ZkNodeEntry<UUID, ChainConfig>(
-                chain.getId(), chain.toConfig());
-        log.debug("Preparing deletion of Midolman chain");
-        ops.addAll(zkManager.prepareChainDelete(entry));
+        // Delete Midolman data if cascading.
+        if (cascade) {
+            ZkNodeEntry<UUID, ChainConfig> entry = new ZkNodeEntry<UUID, ChainConfig>(
+                    chain.getId(), chain.toConfig());
+            log.debug("Preparing deletion of Midolman chain");
+            ops.addAll(zkManager.prepareChainDelete(entry));
+        }
 
         // Delete the top level chain entry
+        String chainPath = mgmtPathManager.getChainPath(chain.getId());
         log.debug("Preparing to delete: " + chainPath);
         ops.add(Op.delete(chainPath, -1));
 
+        // Delete the name index.
+        String routerTableChainNamePath = mgmtPathManager
+                .getRouterTableChainNamePath(chain.getRouterId(), chain
+                        .getTable(), chain.getName());
+        log.debug("Preparing to delete: " + routerTableChainNamePath);
+        ops.add(Op.delete(routerTableChainNamePath, -1));
+
         // Delete from the table.
+        String routerTableChainPath = mgmtPathManager.getRouterTableChainPath(
+                chain.getRouterId(), chain.getTable(), chain.getId());
         log.debug("Preparing to delete: " + routerTableChainPath);
         ops.add(Op.delete(routerTableChainPath, -1));
 
@@ -269,12 +406,7 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
                     "Could not serialize ChainMgmtConfig", e,
                     ChainMgmtConfig.class);
         }
-        Chain c = new Chain();
-        c.setId(config.key);
-        c.setRouterId(config.value.routerId);
-        c.setName(config.value.name);
-        c.setTable(mgmtConfig.table);
-        return c;
+        return Chain.createChain(id, config.value, mgmtConfig);
     }
 
     public void delete(UUID id) throws StateAccessException,

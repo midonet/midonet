@@ -18,7 +18,9 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
+import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -70,17 +72,14 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         zkManager = new RouterZkManager(zk, basePath);
     }
 
-    public List<Op> prepareRouterCreate(
-            ZkNodeEntry<UUID, RouterMgmtConfig> routerMgmtNode)
+    public List<Op> prepareRouterCreate(Router router)
             throws ZkStateSerializationException, StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        UUID routerId = routerMgmtNode.key;
-        ChainZkManagerProxy chainZkManager = new ChainZkManagerProxy(zooKeeper,
-                pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        String routerPath = mgmtPathManager.getRouterPath(router.getId());
+        log.debug("Preparing to create:" + routerPath);
         try {
-            ops.add(Op.create(mgmtPathManager.getRouterPath(routerId),
-                    serialize(routerMgmtNode.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
+            ops.add(Op.create(routerPath, serialize(router.toMgmtConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize RouterMgmtConfig", e,
@@ -88,55 +87,66 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         }
 
         // Add a node to keep track of inter-router connections.
-        ops.add(Op.create(mgmtPathManager.getRouterRoutersPath(routerId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        String routerRouterPath = mgmtPathManager.getRouterRoutersPath(router
+                .getId());
+        log.debug("Preparing to create:" + routerRouterPath);
+        ops.add(Op.create(routerRouterPath, null, Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
         // Add under tenant.
-        ops.add(Op.create(mgmtPathManager.getTenantRouterPath(
-                routerMgmtNode.value.tenantId, routerId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        String tenantRouterPath = mgmtPathManager.getTenantRouterPath(router
+                .getTenantId(), router.getId());
+        log.debug("Preparing to create:" + tenantRouterPath);
+        ops.add(Op.create(tenantRouterPath, null, Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
         // Create the Midolman side.
-        ops.addAll(zkManager.prepareRouterCreate(routerId));
+        ops.addAll(zkManager.prepareRouterCreate(router.getId()));
 
         // Initialize chains directories
-        ops.addAll(chainZkManager.prepareRouterInit(routerId));
+        ChainZkManagerProxy chainZkManager = new ChainZkManagerProxy(zooKeeper,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        ops.addAll(chainZkManager.prepareRouterInit(router.getId()));
 
         return ops;
     }
 
-    public List<Op> preparePortCreateLink(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> localPortEntry,
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> peerPortEntry)
+    public List<Op> preparePortCreateLink(LogicalRouterPort port)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
-        ops.add(Op.create(mgmtPathManager.getPortPath(localPortEntry.key),
-                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(mgmtPathManager.getPortPath(peerPortEntry.key), null,
+        ops.add(Op.create(mgmtPathManager.getPortPath(port.getId()), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(mgmtPathManager.getPortPath(port.getPeerId()), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         PortZkManager portZkManager = new PortZkManager(zooKeeper, pathManager
                 .getBasePath());
-        ops.addAll(portZkManager.preparePortCreateLink(localPortEntry,
-                peerPortEntry));
+        ops.addAll(portZkManager.preparePortCreateLink(port.toZkNode(), port
+                .toPeerZkNode()));
 
-        PeerRouterConfig peerRouter = new PeerRouterConfig(localPortEntry.key,
-                peerPortEntry.key);
-        PeerRouterConfig localRouter = new PeerRouterConfig(peerPortEntry.key,
-                localPortEntry.key);
+        String linkPath = mgmtPathManager.getRouterRouterPath(port
+                .getDeviceId(), port.getPeerRouterId());
+        log.debug("Preparing to create: " + linkPath);
         try {
-            ops.add(Op.create(mgmtPathManager.getRouterRouterPath(
-                    localPortEntry.value.device_id,
-                    peerPortEntry.value.device_id), serialize(peerRouter),
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            ops.add(Op.create(mgmtPathManager.getRouterRouterPath(
-                    peerPortEntry.value.device_id,
-                    localPortEntry.value.device_id), serialize(localRouter),
+            ops.add(Op.create(linkPath, serialize(port.toPeerRouterConfig()),
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not deserialize peer routers to PeerRouterConfig",
+                    e, PeerRouterConfig.class);
+        }
+
+        linkPath = mgmtPathManager.getRouterRouterPath(port.getPeerRouterId(),
+                port.getDeviceId());
+        log.debug("Preparing to create: " + linkPath);
+        try {
+            ops.add(Op.create(linkPath,
+                    serialize(port.toPeerPeerRouterConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize reverse peer routers to PeerRouterConfig",
                     e, PeerRouterConfig.class);
         }
 
@@ -148,20 +158,23 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         return prepareRouterDelete(get(id));
     }
 
-    public List<Op> prepareRouterDelete(
-            ZkNodeEntry<UUID, RouterMgmtConfig> routerMgmtNode)
+    public List<Op> prepareRouterDelete(Router router)
             throws StateAccessException, ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
-        // Get all the paths to delete
-        String tenantRouterPath = mgmtPathManager.getTenantRouterPath(
-                routerMgmtNode.value.tenantId, routerMgmtNode.key);
-
         // Delete router in Midolman side.
-        ops.addAll(zkManager.prepareRouterDelete(routerMgmtNode.key));
+        ops.addAll(zkManager.prepareRouterDelete(router.getId()));
+
+        // Delete the chains
+        ChainZkManagerProxy chainManager = new ChainZkManagerProxy(zooKeeper,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        chainManager.prepareRouterDelete(router.getId(), false);
 
         // Delete the tenant router entry
+        // Get all the paths to delete
+        String tenantRouterPath = mgmtPathManager.getTenantRouterPath(router
+                .getTenantId(), router.getId());
         log.debug("Preparing to delete: " + tenantRouterPath);
         ops.add(Op.delete(tenantRouterPath, -1));
 
@@ -171,7 +184,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         PortZkManager portZkManager = new PortZkManager(zk, pathManager
                 .getBasePath());
         List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager
-                .listRouterPorts(routerMgmtNode.key);
+                .listRouterPorts(router.getId());
         for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
             ops.addAll(portMgr.prepareDelete(portNode.key, false));
             // TODO: Remove VIF if plugged, and remove peer port for logical
@@ -179,55 +192,47 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
 
         // Remove the router-router mappings
         Set<String> peers = getChildren(mgmtPathManager
-                .getRouterRoutersPath(routerMgmtNode.key), null);
+                .getRouterRoutersPath(router.getId()), null);
         for (String peer : peers) {
             UUID peerId = UUID.fromString(peer);
-            ops.add(Op.delete(mgmtPathManager.getRouterRouterPath(
-                    routerMgmtNode.key, peerId), -1));
+            ops.add(Op.delete(mgmtPathManager.getRouterRouterPath(router
+                    .getId(), peerId), -1));
             ops.add(Op.delete(mgmtPathManager.getRouterRouterPath(peerId,
-                    routerMgmtNode.key), -1));
+                    router.getId()), -1));
         }
-        ops.add(Op.delete(mgmtPathManager
-                .getRouterRoutersPath(routerMgmtNode.key), -1));
+        ops.add(Op.delete(mgmtPathManager.getRouterRoutersPath(router.getId()),
+                -1));
 
-        ops.add(Op
-                .delete(mgmtPathManager.getRouterPath(routerMgmtNode.key), -1));
+        ops.add(Op.delete(mgmtPathManager.getRouterPath(router.getId()), -1));
         return ops;
     }
 
-    public UUID create(RouterMgmtConfig routerMgmtConfig)
-            throws StateAccessException, ZkStateSerializationException {
+    public UUID create(Router router) throws StateAccessException,
+            ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, RouterMgmtConfig> routerMgmtNode = new ZkNodeEntry<UUID, RouterMgmtConfig>(
-                id, routerMgmtConfig);
-        multi(prepareRouterCreate(routerMgmtNode));
+        router.setId(id);
+        multi(prepareRouterCreate(router));
         return id;
     }
 
-    public ZkNodeEntry<UUID, UUID> createLink(
-            PortDirectory.LogicalRouterPortConfig localPort,
-            PortDirectory.LogicalRouterPortConfig peerPort)
+    public PeerRouterLink createLink(LogicalRouterPort port)
             throws StateAccessException, ZkStateSerializationException {
         // Check that they are not currently linked.
-        if (exists(mgmtPathManager.getRouterRouterPath(localPort.device_id,
-                peerPort.device_id))) {
+        if (exists(mgmtPathManager.getRouterRouterPath(port.getDeviceId(), port
+                .getPeerRouterId()))) {
             throw new IllegalArgumentException(
                     "Invalid connection.  The router ports are already connected.");
         }
-        localPort.peer_uuid = ShortUUID.generate32BitUUID();
-        peerPort.peer_uuid = ShortUUID.generate32BitUUID();
-
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> localPortEntry = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
-                peerPort.peer_uuid, localPort);
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> peerPortEntry = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
-                localPort.peer_uuid, peerPort);
-        multi(preparePortCreateLink(localPortEntry, peerPortEntry));
-        return new ZkNodeEntry<UUID, UUID>(peerPort.peer_uuid,
-                localPort.peer_uuid);
+        UUID portId = ShortUUID.generate32BitUUID();
+        UUID peerPortId = ShortUUID.generate32BitUUID();
+        port.setId(portId);
+        port.setPeerId(peerPortId);
+        multi(preparePortCreateLink(port));
+        return port.toPeerRouterLink();
     }
 
-    public ZkNodeEntry<UUID, RouterMgmtConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+    public Router get(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
         byte[] data = get(mgmtPathManager.getRouterPath(id), null);
         RouterMgmtConfig config = null;
         try {
@@ -237,15 +242,16 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
                     "Could not deserialize router " + id
                             + " to RouterMgmtConfig", e, RouterMgmtConfig.class);
         }
-        return new ZkNodeEntry<UUID, RouterMgmtConfig>(id, config);
+        return Router.createRouter(id, config);
     }
 
-    public PeerRouterConfig getPeerRouterLink(UUID routerId, UUID peerRouterId)
+    public PeerRouterLink getPeerRouterLink(UUID routerId, UUID peerRouterId)
             throws StateAccessException, ZkStateSerializationException {
         byte[] data = get(mgmtPathManager.getRouterRouterPath(routerId,
                 peerRouterId), null);
         try {
-            return deserialize(data, PeerRouterConfig.class);
+            return PeerRouterLink.createPeerRouterLink(deserialize(data,
+                    PeerRouterConfig.class));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not deserialize peer router " + routerId
@@ -253,9 +259,9 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         }
     }
 
-    public List<ZkNodeEntry<UUID, RouterMgmtConfig>> list(UUID tenantId)
-            throws StateAccessException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, RouterMgmtConfig>> result = new ArrayList<ZkNodeEntry<UUID, RouterMgmtConfig>>();
+    public List<Router> list(UUID tenantId) throws StateAccessException,
+            ZkStateSerializationException {
+        List<Router> result = new ArrayList<Router>();
         Set<String> routerIds = getChildren(mgmtPathManager
                 .getTenantRoutersPath(tenantId), null);
         for (String routerId : routerIds) {
@@ -265,15 +271,16 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         return result;
     }
 
-    public void update(ZkNodeEntry<UUID, RouterMgmtConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
+    public void update(Router router) throws StateAccessException,
+            ZkStateSerializationException {
         // Update any version for now.
+        String path = mgmtPathManager.getRouterPath(router.getId());
+
         try {
-            update(mgmtPathManager.getRouterPath(entry.key),
-                    serialize(entry.value));
+            update(path, serialize(router.toMgmtConfig()));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize router mgmt " + entry.key
+                    "Could not serialize router mgmt " + router.getId()
                             + " to RouterMgmtConfig", e, RouterMgmtConfig.class);
         }
     }

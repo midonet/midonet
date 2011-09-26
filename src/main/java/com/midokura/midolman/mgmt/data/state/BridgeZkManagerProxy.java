@@ -15,14 +15,15 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -49,6 +50,8 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
     }
 
     private BridgeZkManager zkManager = null;
+    private final static Logger log = LoggerFactory
+            .getLogger(BridgeZkManagerProxy.class);
 
     public BridgeZkManagerProxy(ZooKeeper zk, String basePath,
             String mgmtBasePath) {
@@ -56,80 +59,79 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         zkManager = new BridgeZkManager(zk, basePath);
     }
 
-    public List<Op> prepareBridgeCreate(UUID id, BridgeMgmtConfig config)
-            throws StateAccessException, ZkStateSerializationException {
-        ZkNodeEntry<UUID, BridgeMgmtConfig> node = new ZkNodeEntry<UUID, BridgeMgmtConfig>(
-                id, config);
-        return prepareBridgeCreate(node);
-    }
-
-    public List<Op> prepareBridgeCreate(ZkNodeEntry<UUID, BridgeMgmtConfig> node)
+    public List<Op> prepareCreate(Bridge bridge)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
-        byte[] data = null;
+        // Create the root bridge path
+        String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
+        log.debug("Preparing to create: " + bridgePath);
         try {
-            serialize(node.value);
+            ops.add(Op.create(bridgePath, serialize(bridge.toMgmtConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Serialization error occurred while preparing bridge creation multi ops for UUID "
-                            + node.key, e, BridgeMgmtConfig.class);
+                            + bridge.getId(), e, BridgeMgmtConfig.class);
         }
 
-        // Add an entry.
-        ops.add(Op.create(mgmtPathManager.getBridgePath(node.key), data,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         // Add under tenant.
-        ops.add(Op.create(mgmtPathManager.getTenantBridgePath(
-                node.value.tenantId, node.key), null, Ids.OPEN_ACL_UNSAFE,
+        String tenantBridgePath = mgmtPathManager.getTenantBridgePath(bridge
+                .getTenantId(), bridge.getId());
+        log.debug("Preparing to create: " + tenantBridgePath);
+        ops.add(Op.create(tenantBridgePath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.addAll(zkManager.prepareBridgeCreate(node.key, new BridgeConfig()));
+
+        // Create Midolman data
+        ops.addAll(zkManager.prepareBridgeCreate(bridge.getId(),
+                new BridgeConfig()));
 
         return ops;
     }
 
-    public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException,
+    public List<Op> prepareDelete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
-        return prepareBridgeDelete(get(id));
+        return prepareDelete(get(id));
     }
 
-    public List<Op> prepareBridgeDelete(
-            ZkNodeEntry<UUID, BridgeMgmtConfig> bridgeMgmtNode)
+    public List<Op> prepareDelete(Bridge bridge)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = zkManager
-                .get(bridgeMgmtNode.key);
+
+        // Delete the Midolman side.
+        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = zkManager.get(bridge
+                .getId());
         ops.addAll(zkManager.prepareBridgeDelete(bridgeNode));
 
         // Delete the tenant bridge entry
-        ops.add(Op.delete(mgmtPathManager.getTenantBridgePath(
-                bridgeMgmtNode.value.tenantId, bridgeMgmtNode.key), -1));
-        ops.add(Op
-                .delete(mgmtPathManager.getBridgePath(bridgeMgmtNode.key), -1));
+        String tenantBridgePath = mgmtPathManager.getTenantBridgePath(bridge
+                .getTenantId(), bridge.getId());
+        log.debug("Preparing to delete: " + tenantBridgePath);
+        ops.add(Op.delete(tenantBridgePath, -1));
+
+        // Delete the root bridge path.
+        String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
+        log.debug("Preparing to delete: " + bridgePath);
+        ops.add(Op.delete(bridgePath, -1));
 
         // Remove all the ports in mgmt directory but don't cascade here.
         PortZkManagerProxy portMgr = new PortZkManagerProxy(zooKeeper,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
-        PortZkManager portZkManager = new PortZkManager(zk, pathManager
-                .getBasePath());
-        List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager
-                .listBridgePorts(bridgeMgmtNode.key);
-        for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
-            ops.addAll(portMgr.prepareDelete(portNode.key, false));
-        }
+        ops.addAll(portMgr.prepareBridgeDelete(bridge.getId()));
 
         return ops;
     }
 
-    public UUID create(BridgeMgmtConfig bridgeMgmtConfig)
-            throws StateAccessException, ZkStateSerializationException {
+    public UUID create(Bridge bridge) throws StateAccessException,
+            ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareBridgeCreate(id, bridgeMgmtConfig));
+        bridge.setId(id);
+        multi(prepareCreate(bridge));
         return id;
     }
 
-    public ZkNodeEntry<UUID, BridgeMgmtConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+    public Bridge get(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
         byte[] data = get(mgmtPathManager.getBridgePath(id));
         BridgeMgmtConfig config = null;
         try {
@@ -139,12 +141,12 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
                     "Serialization error occurred while getting the bridge with UUID "
                             + id, e, BridgeMgmtConfig.class);
         }
-        return new ZkNodeEntry<UUID, BridgeMgmtConfig>(id, config);
+        return Bridge.createBridge(id, config);
     }
 
-    public List<ZkNodeEntry<UUID, BridgeMgmtConfig>> list(UUID tenantId)
-            throws StateAccessException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, BridgeMgmtConfig>> result = new ArrayList<ZkNodeEntry<UUID, BridgeMgmtConfig>>();
+    public List<Bridge> list(UUID tenantId) throws StateAccessException,
+            ZkStateSerializationException {
+        List<Bridge> result = new ArrayList<Bridge>();
         String path = mgmtPathManager.getTenantBridgesPath(tenantId);
         Set<String> ids = getChildren(path);
         for (String id : ids) {
@@ -154,22 +156,22 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         return result;
     }
 
-    public void update(ZkNodeEntry<UUID, BridgeMgmtConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
-        byte[] data = null;
-        try {
-            data = serialize(entry.value);
+    public void update(Bridge bridge) throws StateAccessException,
+            ZkStateSerializationException {
 
+        String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
+        log.debug("Updating path: " + bridgePath);
+        try {
+            update(bridgePath, serialize(bridge.toMgmtConfig()));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Serialization error occurred while updating the bridge with UUID "
-                            + entry.key, e, BridgeMgmtConfig.class);
+                            + bridge.getId(), e, BridgeMgmtConfig.class);
         }
-        update(mgmtPathManager.getBridgePath(entry.key), data);
     }
 
     public void delete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
-        multi(prepareBridgeDelete(id));
+        multi(prepareDelete(id));
     }
 }

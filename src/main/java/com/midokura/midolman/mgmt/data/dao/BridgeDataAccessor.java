@@ -6,16 +6,13 @@
 
 package com.midokura.midolman.mgmt.data.dao;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.ZookeeperService;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.state.BridgeZkManagerProxy;
-import com.midokura.midolman.mgmt.data.state.BridgeZkManagerProxy.BridgeMgmtConfig;
 import com.midokura.midolman.state.ZkConnection;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for bridge.
@@ -50,7 +47,7 @@ public class BridgeDataAccessor extends DataAccessor {
      *             Error connecting to Zookeeper.
      */
     public UUID create(Bridge bridge) throws Exception {
-        return getBridgeZkManager().create(bridge.toConfig());
+        return getBridgeZkManager().create(bridge);
     }
 
     /**
@@ -63,27 +60,15 @@ public class BridgeDataAccessor extends DataAccessor {
      */
     public Bridge get(UUID id) throws Exception {
         // TODO: Throw NotFound exception here.
-        return Bridge.createBridge(id, getBridgeZkManager().get(id).value);
+        return getBridgeZkManager().get(id);
     }
 
-    public Bridge[] list(UUID tenantId) throws Exception {
-        BridgeZkManagerProxy manager = getBridgeZkManager();
-        List<Bridge> bridges = new ArrayList<Bridge>();
-        List<ZkNodeEntry<UUID, BridgeMgmtConfig>> entries = manager
-                .list(tenantId);
-        for (ZkNodeEntry<UUID, BridgeMgmtConfig> entry : entries) {
-            bridges.add(Bridge.createBridge(entry.key, entry.value));
-        }
-        return bridges.toArray(new Bridge[bridges.size()]);
+    public List<Bridge> list(UUID tenantId) throws Exception {
+        return getBridgeZkManager().list(tenantId);
     }
 
-    public void update(UUID id, Bridge bridge) throws Exception {
-        BridgeZkManagerProxy manager = getBridgeZkManager();
-        // Only allow an update of 'name'
-        ZkNodeEntry<UUID, BridgeMgmtConfig> entry = manager.get(id);
-        // Just allow copy of the name.
-        entry.value.name = bridge.getName();
-        manager.update(entry);
+    public void update(Bridge bridge) throws Exception {
+        getBridgeZkManager().update(bridge);
     }
 
     public void delete(UUID id) throws Exception {

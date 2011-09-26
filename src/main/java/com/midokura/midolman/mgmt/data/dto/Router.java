@@ -81,7 +81,7 @@ public class Router {
         this.tenantId = tenantId;
     }
 
-    public RouterMgmtConfig toConfig() {
+    public RouterMgmtConfig toMgmtConfig() {
         return new RouterMgmtConfig(this.getTenantId(), this.getName());
     }
 

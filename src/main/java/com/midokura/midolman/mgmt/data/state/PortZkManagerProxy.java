@@ -82,6 +82,19 @@ public class PortZkManagerProxy extends ZkMgmtManager {
         return ops;
     }
 
+    public List<Op> prepareBridgeDelete(UUID bridgeId)
+            throws StateAccessException, ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get all the bridge ports to delete.
+        List<Port> ports = listBridgePorts(bridgeId);
+        for (Port port : ports) {
+            ops.addAll(prepareDelete(port, false));
+        }
+
+        return ops;
+    }
+
     public List<Op> prepareVifAttach(Port port)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
@@ -136,8 +149,6 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     public List<Op> prepareDelete(Port port, boolean cascade)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        String vifPath = mgmtPathManager.getVifPath(port.getVifId());
-        String portPath = mgmtPathManager.getPortPath(port.getId());
 
         // Prepare the midolman port deletion.
         if (cascade) {
@@ -146,11 +157,15 @@ public class PortZkManagerProxy extends ZkMgmtManager {
             ops.addAll(zkManager.preparePortDelete(portNode));
         }
 
-        // Delete the VIF attached
-        log.debug("Preparing to delete: " + vifPath);
-        ops.add(Op.delete(vifPath, -1));
+        // Delete the VIF attache
+        if (port.getVifId() != null) {
+            VifZkManager vifManager = new VifZkManager(zooKeeper, pathManager
+                    .getBasePath(), mgmtPathManager.getBasePath());
+            ops.addAll(vifManager.prepareDelete(port.getVifId()));
+        }
 
         // Delete management port
+        String portPath = mgmtPathManager.getPortPath(port.getId());
         log.debug("Preparing to delete: " + portPath);
         ops.add(Op.delete(portPath, -1));
 

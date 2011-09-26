@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.state.PortZkManagerProxy.PortMgmtConfig;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.PortConfig;
 
@@ -85,6 +86,10 @@ public class Port {
 
     public PortMgmtConfig toMgmtConfig() {
         return new PortMgmtConfig(this.getVifId());
+    }
+
+    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
+        return new ZkNodeEntry<UUID, PortConfig>(this.id, toConfig());
     }
 
     public static Port createPort(UUID id, PortMgmtConfig mgmtConfig,

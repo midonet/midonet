@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -83,10 +84,11 @@ public class BridgeResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException {
+        bridge.setId(id);
         BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
                 zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
         try {
-            dao.update(id, bridge);
+            dao.update(bridge);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -141,7 +143,7 @@ public class BridgeResource extends RestResource {
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Bridge[] list() throws StateAccessException {
+        public List<Bridge> list() throws StateAccessException {
             BridgeDataAccessor dao = new BridgeDataAccessor(zookeeperConn,
                     zookeeperTimeout, zookeeperRoot, zookeeperMgmtRoot);
             try {

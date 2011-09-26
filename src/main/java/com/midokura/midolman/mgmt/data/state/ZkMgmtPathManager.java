@@ -257,6 +257,31 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
     }
 
     /**
+     * Get ZK router router table chain names path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId/tables/tableName/chain-names
+     */
+    public String getRouterTableChainNamesPath(UUID routerId, String tableName) {
+        return new StringBuilder(getRouterTablePath(routerId, tableName))
+                .append("/chain-names").toString();
+    }
+
+    /**
+     * Get ZK router router table chain path.
+     * 
+     * @param id
+     *            Router UUID
+     * @return /routers/routerId/tables/tableName/chain-names/chainName
+     */
+    public String getRouterTableChainNamePath(UUID routerId, String tableName,
+            String chainName) {
+        return new StringBuilder(getRouterTableChainNamesPath(routerId,
+                tableName)).append("/").append(chainName).toString();
+    }
+
+    /**
      * Get ZK chains path.
      * 
      * @return /chains

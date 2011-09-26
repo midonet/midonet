@@ -60,6 +60,7 @@ public class MaterializedRouterPort extends RouterPort {
         this.localNetworkLength = localNetworkLength;
     }
 
+    @Override
     public PortConfig toConfig() {
         return new MaterializedRouterPortConfig(this.getDeviceId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
