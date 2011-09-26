@@ -196,6 +196,7 @@
                                     <mapper>
                                         <type>perm</type>
                                         <prefix>/etc/sudoers.d</prefix>
+                                        <filemode>0440</filemode>
                                     </mapper>
                                 </data>
                             </dataSet>
