@@ -4,39 +4,29 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
+import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.quagga.BgpConnection;
+import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.BgpZkManager.BgpConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.quagga.ZebraServer;
-import com.midokura.midolman.quagga.BgpConnection;
-import com.midokura.midolman.state.BgpZkManager.BgpConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
-import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
-
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
-import java.io.IOException;
-
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BgpPortService implements PortService {
 
@@ -47,6 +37,7 @@ public class BgpPortService implements PortService {
     private static final short BGP_TCP_PORT = 179;
     private static final String BGP_PORT_NAME = "midobgp";
 
+    protected Reactor reactor;
     protected OpenvSwitchDatabaseConnection ovsdb;
     // The external id key for port service.
     protected String portIdExtIdKey;
@@ -61,18 +52,18 @@ public class BgpPortService implements PortService {
 
     protected ZebraServer zebra;
     protected BgpConnection bgpd;
-    protected Runtime runtime;
 
     private int bgpPortIdx = 0;
     private boolean run = false;
 
+    private Process bgpdProcess;
 
-    public BgpPortService(OpenvSwitchDatabaseConnection ovsdb,
+    public BgpPortService(Reactor reactor, OpenvSwitchDatabaseConnection ovsdb,
                           String portIdExtIdKey, String portServiceExtIdKey,
                           PortZkManager portMgr, RouteZkManager routeMgr,
                           BgpZkManager bgpMgr, AdRouteZkManager adRouteMgr,
-                          ZebraServer zebra, BgpConnection bgpd,
-                          Runtime runtime) {
+                          ZebraServer zebra, BgpConnection bgpd) {
+        this.reactor = reactor;
         this.ovsdb = ovsdb;
         // "midolman_port_id"
         this.portIdExtIdKey = portIdExtIdKey;
@@ -84,7 +75,6 @@ public class BgpPortService implements PortService {
         this.adRouteMgr = adRouteMgr;
         this.zebra = zebra;
         this.bgpd = bgpd;
-        this.runtime = runtime;
     }
 
     @Override
@@ -130,8 +120,8 @@ public class BgpPortService implements PortService {
                     "The name of the service port is too long");
             }
 
-            log.info(String.format("Add %s port %s to datapath %d",
-                                   BGP_SERVICE_EXT_ID, portName, datapathId));
+            log.info("Add {} port {} to datapath {}",
+                                   new Object[] {BGP_SERVICE_EXT_ID, portName, datapathId});
             PortBuilder portBuilder = ovsdb.addInternalPort(datapathId,
                                                             portName);
             portBuilder.externalId(portIdExtIdKey, portId.toString());
@@ -174,13 +164,19 @@ public class BgpPortService implements PortService {
     public void configurePort(long datapathId, UUID portId, String portName)
         throws StateAccessException,
         ZkStateSerializationException, IOException {
+        log.debug("configurePort: {} {}", portId, portName);
+        
         // Turn on ARP and link up the interface.
         // mtu 1300 is to avoid ovs dropping packets.
         // TODO(yoshi): Make MTU variable configurable.
-        runtime.exec(
+        
+        Process ipLinkCommand = Runtime.getRuntime().exec(
             String.format(
-                "ip link set dev %s arp on mtu 1300 multicast off up",
+                "sudo ip link set dev %s arp on mtu 1300 multicast off up",
                 portName));
+        
+        log.debug("configurePort: ran ip link");
+        
         // Assume that materialized port config is already there.
         PortConfig config = portMgr.get(portId).value;
         if (!(config instanceof MaterializedRouterPortConfig)) {
@@ -190,11 +186,13 @@ public class BgpPortService implements PortService {
         MaterializedRouterPortConfig portConfig =
             MaterializedRouterPortConfig.class.cast(config);
         // Give the interface the address in vport configuration.
-        Runtime.getRuntime().exec(
+        Process ipAddrCommand = Runtime.getRuntime().exec(
             String.format(
-                "ip addr add %s/%d dev %s",
+                "sudo ip addr add %s/%d dev %s",
                 Net.convertIntAddressToString(portConfig.portAddr),
                 portConfig.nwLength, portName));
+        
+        log.debug("configurePort: ran ip addr");
     }
 
     public void start(final short localPortNum, final L3DevicePort remotePort)
@@ -230,21 +228,24 @@ public class BgpPortService implements PortService {
                                            localAddr, remoteAddr,
                                            BGP_TCP_PORT, BGP_TCP_PORT);
             if (!this.run) {
-                runtime.exec("killall bgpd");
+                Runtime.getRuntime().exec("sudo killall bgpd");
                 zebra.start();
-                runtime.exec("/usr/lib/quagga/bgpd");
-                //Thread.sleep(1000);
-                // Need to wait bgpd to come up.
-                new Timer().schedule(new TimerTask() {
+                
+                log.debug("start: launching bgpd");
+                bgpdProcess = Runtime.getRuntime().exec("sudo /usr/lib/quagga/bgpd");
+
+                // Need to wait for bgpd to come up before sending command.
+                reactor.schedule(new Runnable() {
                     public void run() {
                         try {
+                            log.debug("start,Runnable.run: setting bgp config");
                             bgpd.create(Net.convertIntToInetAddress(localAddr),
                                         bgpId, bgpConfig);
                         } catch(Exception e) {
                             e.printStackTrace();
                         }
                     }
-                }, 1000);
+                }, 1000, TimeUnit.MILLISECONDS);
                 this.run = true;
             } else {
                 bgpd.create(Net.convertIntToInetAddress(localAddr), bgpId,

@@ -135,7 +135,7 @@ public class L3DevicePort {
         oldRoutes.removeAll(portCfg.getRoutes());
         for (Listener listener : listeners)
             // TODO(pino): should we schedule this instead?
-            listener.routesChanged(portId, oldRoutes, routes);
+            listener.routesChanged(portId, routes, oldRoutes);
     }
 
     public UUID getId() {

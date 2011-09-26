@@ -153,12 +153,11 @@ public class ControllerTrampoline implements Controller {
                 socketFile.delete();
                 ZebraServer zebra = new ZebraServer(server, address, portMgr,
                                                     routeMgr, ovsdb);
-                PortService service = new BgpPortService(
+                PortService service = new BgpPortService(reactor,
                     ovsdb, "midolman_port_id", "midolman_port_service",
                     portMgr, routeMgr, bgpMgr, adRouteMgr, zebra,
                     new BgpVtyConnection("localhost", 2605, "zebra",
-                                         bgpMgr, adRouteMgr),
-                    Runtime.getRuntime());
+                                         bgpMgr, adRouteMgr));
 
                 newController = new NetworkController(
                         datapathId,
@@ -252,6 +251,7 @@ public class ControllerTrampoline implements Controller {
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+        log.warn("onPacketIn");
         throw new UnsupportedOperationException();
     }
 
@@ -260,16 +260,19 @@ public class ControllerTrampoline implements Controller {
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
-        throw new UnsupportedOperationException();
+        log.warn("onFlowRemoved");
+//        throw new UnsupportedOperationException();
     }
 
     @Override
     public void onPortStatus(OFPhysicalPort port, OFPortReason status) {
+        log.warn("onPortStatus");
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void onMessage(OFMessage m) {
+        log.warn("onMessage");
         throw new UnsupportedOperationException();
     }
 
