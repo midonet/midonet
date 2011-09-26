@@ -927,4 +927,121 @@ public class TestBridgeController {
 
         return false;
     }
+
+    @Test
+    public void testNontunnelPortDeleteInvalidatesFlows() {
+        controller.onPacketIn(14, 13, (short)0, packet04.serialize());
+        assertEquals(portUuids[0], macPortMap.get(macList[0]));
+        MAC newMac = MAC.fromString("00:AA:AA:AA:22:22");
+        final Ethernet packet = makePacket(newMac, macList[5]);
+        MidoMatch flowmatch = makeFlowMatch(newMac, macList[5]);
+        controller.onPacketIn(14, 13, (short)0, packet.serialize());
+        assertEquals(portUuids[0], macPortMap.get(newMac));
+        
+        // Send several packets to MAC 0.
+        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
+        controller.onPacketIn(14, 13, (short)2, packet20.serialize());
+        controller.onPacketIn(14, 13, (short)7, packet70.serialize());
+
+        OFAction expectedActions[][] = {
+                { new OFActionOutput((short)4, (short)0) },
+                { new OFActionOutput((short)5, (short)0) },
+                { new OFActionOutput((short)0, (short)0) },
+                { new OFActionOutput((short)0, (short)0) },
+                { new OFActionOutput((short)0, (short)0) } };
+        MidoMatch expectedMatches[] = {
+                flowmatch04.clone(), flowmatch, flowmatch10.clone(),
+                flowmatch20.clone(), flowmatch70.clone() };
+        short flowMatchInPorts[] = { 0, 0, 1, 2, 7 };
+        for (int i = 0; i < 5; i++) {
+            expectedMatches[i].setInputPort(flowMatchInPorts[i]);
+        }
+        
+        assertEquals(5, controllerStub.addedFlows.size());
+        for (int i = 0; i < 5; i++) {
+            assertArrayEquals(expectedActions[i],
+                              controllerStub.addedFlows.get(i).actions.toArray()
+                             );
+            assertEquals(expectedMatches[i],
+                         controllerStub.addedFlows.get(i).match);
+        }
+
+        // Delete port 0.
+        controllerStub.deletedFlows.clear();
+        controller.onPortStatus(phyPorts[0], OFPortReason.OFPPR_DELETE);
+
+        assertNull(macPortMap.get(macList[0]));
+        assertNull(macPortMap.get(newMac));
+
+        MidoMatch expectedMatchSrc = new MidoMatch();
+        MidoMatch expectedMatchDst = new MidoMatch();
+        expectedMatchSrc.setDataLayerSource(macList[0].address);
+        expectedMatchDst.setDataLayerDestination(macList[0].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows, 
+                                         expectedMatchSrc));
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows, 
+                                         expectedMatchDst));
+    }
+
+    @Test
+    public void testTunnelRemovalAndReaddition() {
+        controller.onPacketIn(0, 12, (short)13, packet04.serialize());
+        controller.onPacketIn(1, 12, (short)13, packet15.serialize());
+        controller.onPacketIn(2, 12, (short)13, packet26.serialize());
+        controller.onPacketIn(2, 12, (short)13, packet27.serialize());
+
+        OFAction expectedActions[][] = {
+                { new OFActionOutput((short)4, (short)0) },
+                { new OFActionOutput((short)5, (short)0) },
+                { new OFActionOutput((short)7, (short)0) },
+                { new OFActionOutput((short)7, (short)0) } };
+        assertEquals(4, controllerStub.addedFlows.size());
+        for (int i = 0; i < 4; i++) {
+            assertArrayEquals(expectedActions[i],
+                              controllerStub.addedFlows.get(i).actions.toArray()                             );
+        }
+
+        controllerStub.deletedFlows.clear();
+        controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_DELETE);
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerDestination(macList[7].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+        expectMatch.setDataLayerDestination(macList[6].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+        expectMatch.setDataLayerDestination(macList[5].address);
+        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
+                                          expectMatch));
+        expectMatch.setDataLayerDestination(macList[4].address);
+        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
+                                          expectMatch));
+
+        // Send more packets.  They should make flood rules.
+        controllerStub.addedFlows.clear();
+        controller.onPacketIn(14, 13, (short)2, packet26.serialize());
+        controller.onPacketIn(14, 13, (short)2, packet27.serialize());
+        
+        assertEquals(2, controllerStub.addedFlows.size());
+        assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
+                          controllerStub.addedFlows.get(0).actions.toArray());
+        assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
+                          controllerStub.addedFlows.get(1).actions.toArray());
+
+        // Bringing up port 7 again should invalidate MACs 6 & 7 (only).
+        controllerStub.deletedFlows.clear();
+        controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_ADD);
+        expectMatch.setDataLayerDestination(macList[7].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+        expectMatch.setDataLayerDestination(macList[6].address);
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
+                                         expectMatch));
+        expectMatch.setDataLayerDestination(macList[5].address);
+        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
+                                          expectMatch));
+        expectMatch.setDataLayerDestination(macList[4].address);
+        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
+                                          expectMatch));
+    }
 }
