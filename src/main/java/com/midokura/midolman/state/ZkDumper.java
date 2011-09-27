@@ -66,8 +66,12 @@ public class ZkDumper {
         }
 
         try {
-            for (String path : argList)
-                 dumpSubTree(path, 0);
+            for (String path : argList) {
+                byte[] data = zk.getData(path, false, null);
+                String dataStr = (data == null) ? null : new String(data);
+                System.out.println("\n" + path + ": " + dataStr);
+                dumpSubTree(path, 0);
+            }
         } catch (Exception e) {
             System.err.println("Error dumping tree: " + e);
             System.exit(-1);
