@@ -53,10 +53,6 @@ public class UDP extends BasePacket implements Transport {
         this.destinationPort = destinationPort;
         return this;
     }
-    
-    public Data getPayload() {
-        return (Data) payload;
-    }
 
     /**
      * @return the length
