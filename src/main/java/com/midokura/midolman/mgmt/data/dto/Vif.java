@@ -68,8 +68,9 @@ public class Vif {
         return c;
     }
     
-    public static Vif createVif(VifConfig c) {
+    public static Vif createVif(UUID id, VifConfig c) {
         Vif v = new Vif();
+        v.setId(id);
         v.setName(c.name);
         v.setPortId(c.portId);
         return v;

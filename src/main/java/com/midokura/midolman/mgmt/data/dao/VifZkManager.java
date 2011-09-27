@@ -140,6 +140,6 @@ public class VifZkManager extends ZkMgmtManager {
                     "Could not deserialize VIF " + id + " to VifConfig", e,
                     VifConfig.class);
         }
-        return Vif.createVif(config);
+        return Vif.createVif(id, config);
     }
 }
