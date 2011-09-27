@@ -102,7 +102,7 @@ public class VifZkManager extends ZkMgmtManager {
         PortZkManagerProxy portZkManager = new PortZkManagerProxy(zooKeeper,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         if (vif.getPortId() != null) {
-            portZkManager.prepareVifDettach(vif.getPortId());
+            ops.addAll(portZkManager.prepareVifDettach(vif.getPortId()));
         }
 
         log.debug("Preparing to delete: " + vifPath);
