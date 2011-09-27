@@ -27,14 +27,21 @@ import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
 /**
- * This class coordinates the routing logic for a single virtual router. It uses
- * an instance of ReplicatedRoutingTable and an instance of RuleEngine to
- * delegate matching the best route and applying pre- and post-routing filtering
- * and nat rules.
+ * This class coordinates the routing logic for a single virtual router. It
+ * delegates much of its internal logic to other class instances:
+ * ReplicatedRoutingTable maintains the routing table and matches flows to
+ * routes; RuleEngine maintains the rule chains and applies their logic to
+ * packets in the router; NatLeaseManager (in RuleEngine) manages NAT mappings
+ * and ip:port reservations.
  * 
+ * Router is directly responsible for three main tasks:
+ * 1) Shepherding a packet through the pre-routing/routing/post-routing flow.
+ * 2) Handling all ARP-related packets and maintaining ARP caches (per port).
+ * 3) Populating the replicated routing table with routes to this router's
+ *    ports that are materialized on the local host.
  * 
- * @author pino
- * 
+ * @version ?
+ * @author Pino de Candia
  */
 public class Router {
 
@@ -52,15 +59,25 @@ public class Router {
         BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED;
     }
 
+    /**
+     * Clients of Router create and partially populate an instance of
+     * ForwardInfo to call Router.process(fInfo). The Router populates a number
+     * of field to indicate various decisions: the next action for the packet,
+     * the next hop gateway address, the egress port, the packet at egress
+     * (i.e. after possible modifications).
+     */
     public static class ForwardInfo {
-        public Action action;
+        // These fields are filled by the caller of Router.process():
         public UUID inPortId;
+        public Ethernet pktIn;
+        public MidoMatch matchIn;
+
+        // These fields are filled by Router.process():
+        public Action action;
         public UUID outPortId;
         public int gatewayNwAddr;
         public MidoMatch matchOut;
         public boolean trackConnection;
-        public Ethernet pktIn;
-        public MidoMatch matchIn;
     }
 
     private static class ArpCacheEntry {
@@ -79,6 +96,12 @@ public class Router {
         }
     }
 
+    /**
+     * Router uses one instance of this class to get a callback when there are
+     * changes to the routes of any local materialized ports. The callback
+     * keeps mirrors those changes to the shared/replicated routing table.
+     * of any 
+     */
     private class PortListener implements L3DevicePort.Listener {
         @Override
         public void configChanged(UUID portId,
