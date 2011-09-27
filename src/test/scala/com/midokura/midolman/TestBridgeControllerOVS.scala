@@ -18,22 +18,25 @@ import org.junit.{AfterClass, BeforeClass, Test}
 import org.junit.Assert._
 import org.scalatest.junit.JUnitSuite
 
+import java.io.{File, RandomAccessFile}
 import java.net.InetAddress
+import java.nio.channels.FileLock
 import java.util.concurrent.Executors
-import java.util.UUID
+import java.util.{Date, UUID}
 
 /**
  * Test the BridgeController's interaction with Open vSwitch.
  */
-object TestBridgeControllerOVS extends JUnitSuite {
+// Disabled, because cannot be run with TestOpenvSwitchDatabaseConnection.
+object TestBridgeControllerOVS /* extends JUnitSuite */ {
     // All the "static" variables and methods.
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
     private final val port = 12344
-    private final val bridgeName = "testbr"
+    private final val bridgeName = "testbrctrlr"
+    private final val testportName = "testbrport"
     private final val bridgeExtIdKey = "midolman-vnet"
-    private final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
-    private final val bridgeOfPortNum = 65534
+    private final val bridgeExtIdValue = "ffbf1195-ae26-21e1-c3b4-ca417460eb6a"
     private final val ovsdb =
         new OpenvSwitchDatabaseConnectionImpl(database, host, port)
     private final var bridgeId: Long = _
@@ -41,11 +44,17 @@ object TestBridgeControllerOVS extends JUnitSuite {
         InetAddress.getByAddress(
             Array(192.toByte, 168.toByte, 1.toByte, 50.toByte))
     private final var controller: BridgeController = _
-    private var zkDir = new MockDirectory()
+    private var zkDir = new MockDirectory
     private final val zkRoot = "/zk_root"
+    private final val lockfile = new File("/tmp/ovs_tests.lock")
+    private final val lockchannel = 
+        new RandomAccessFile(lockfile, "rw").getChannel
+    private var lock: FileLock = _
 
     @BeforeClass def initializeTest() {
-        testAddBridge()
+        lock = lockchannel.lock
+        Console.err.println("Entering testBridge at " + new Date)
+        testAddBridge
         bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName), 16)
 
         // Set up the (mock) ZooKeeper directories.
@@ -100,9 +109,11 @@ object TestBridgeControllerOVS extends JUnitSuite {
      * Disconnect the OVSDB connection.
      */
     @AfterClass def finalizeTest() = {
-        testDelBridge()
+        testDelBridge
         assertFalse(ovsdb.hasBridge(bridgeName))
         ovsdb.close
+        Console.err.println("Closing testBridge at " + new Date)
+        lock.release
     }
 
     def addSystemPort(portName : String) = {
@@ -118,12 +129,13 @@ object TestBridgeControllerOVS extends JUnitSuite {
     }
 }
 
-class TestBridgeControllerOVS extends JUnitSuite {
+// Disabled, because cannot be run with TestOpenvSwitchDatabaseConnection.
+class TestBridgeControllerOVS /* extends JUnitSuite */ {
     // import all the statics.
     import TestBridgeControllerOVS._
 
     @Test def testAddSystemPort() = {
-        val portName = "testport"
+        val portName = testportName
         addSystemPort(portName)
         assertTrue(ovsdb.hasPort(portName))
         // TODO: Verify this is a system port.
@@ -132,7 +144,7 @@ class TestBridgeControllerOVS extends JUnitSuite {
     }
 
     @Test def testAddInternalPort() = {
-        val portName = "testport"
+        val portName = testportName
         addInternalPort(portName)
         assertTrue(ovsdb.hasPort(portName))
         // TODO: Verify this is an internal port.
@@ -141,7 +153,7 @@ class TestBridgeControllerOVS extends JUnitSuite {
     }
 
     @Test def testAddTapPort() = {
-        val portName = "testport"
+        val portName = testportName
         addTapPort(portName)
         assertTrue(ovsdb.hasPort(portName))
         // TODO: Verify this is a TAP port.
