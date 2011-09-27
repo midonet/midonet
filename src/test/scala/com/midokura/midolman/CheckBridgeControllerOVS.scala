@@ -7,33 +7,35 @@
 
 package com.midokura.midolman
 
-import com.midokura.midolman.eventloop.SelectLoop
+import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
+import com.midokura.midolman.openflow.ControllerStubImpl
 import com.midokura.midolman.openvswitch.{
-		BridgeBuilder, 
-		OpenvSwitchDatabaseConnectionImpl, 
-		TestShareOneOpenvSwitchDatabaseConnection}
+                BridgeBuilder, 
+                OpenvSwitchDatabaseConnectionImpl, 
+                TestShareOneOpenvSwitchDatabaseConnection}
 import com.midokura.midolman.state.{MacPortMap, MockDirectory, 
                                     PortToIntNwAddrMap}
 
 import org.apache.zookeeper.CreateMode
 import org.junit.{AfterClass, BeforeClass, Test}
 import org.junit.Assert._
-import org.scalatest.junit.JUnitSuite
+import org.slf4j.LoggerFactory
 
 import java.io.{File, RandomAccessFile}
-import java.net.InetAddress
-import java.nio.channels.FileLock
+import java.net.{InetAddress, InetSocketAddress}
+import java.nio.channels.{FileLock, SelectionKey, ServerSocketChannel}
 import java.util.concurrent.Executors
 import java.util.{Date, UUID}
 
 /**
  * Test the BridgeController's interaction with Open vSwitch.
  */
-object CheckBridgeControllerOVS {
+object CheckBridgeControllerOVS extends SelectListener {
     // Share a common OVSDB connection because using two breaks.
     import TestShareOneOpenvSwitchDatabaseConnection._
 
     // All the "static" variables and methods.
+    final val log = LoggerFactory.getLogger(classOf[CheckBridgeControllerOVS])
     private final val testportName = "testbrport"
     private final val publicIP = /* 192.168.1.50 */
         InetAddress.getByAddress(
@@ -41,6 +43,9 @@ object CheckBridgeControllerOVS {
     private final var controller: BridgeController = _
     private var zkDir = new MockDirectory
     private final val zkRoot = "/zk_root"
+    private final val of_port = 6633
+    private final var listenSock: ServerSocketChannel = _
+    private final var reactor: SelectLoop = _
 
     @BeforeClass def initializeTest() {
         // Set up the (mock) ZooKeeper directories.
@@ -54,7 +59,7 @@ object CheckBridgeControllerOVS {
         val portLocMap = new PortToIntNwAddrMap(
             midoDir.getSubDirectory(portLocKey))
         val macPortMap = new MacPortMap(midoDir.getSubDirectory(macPortKey))
-        val reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
+        reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
         controller = new BridgeController(
             /* datapathId */                bridgeId,
@@ -70,7 +75,41 @@ object CheckBridgeControllerOVS {
             /* reactor */                   reactor,
             /* externalIdKey */             bridgeExtIdKey);
 
-        // XXX: Get a connection to the OF switch, triggering onConnectionMade
+        // Get a connection to the OF switch.
+        listenSock = ServerSocketChannel.open
+        listenSock.configureBlocking(false)
+        listenSock.socket.bind(new InetSocketAddress(of_port))
+
+        reactor.register(listenSock, SelectionKey.OP_ACCEPT, this)
+
+        registerController
+        
+        log.info("Entering doLoop")
+        reactor.doLoop
+        log.info("Leaving doLoop")
+    }
+
+    def registerController() = {
+        val target = "tcp:127.0.0.1"
+        var cb = ovsdb.addBridgeOpenflowController(bridgeName, target)
+        cb.build
+        assertTrue(ovsdb.hasController(target))
+    }
+
+    def handleEvent(key: SelectionKey) = {
+        log.info("handleEvent {}", key)
+
+        var sock = listenSock.accept
+        log.info("accepted connection from {}", sock.socket.getRemoteSocketAddress)
+        sock.socket.setTcpNoDelay(true)
+        sock.configureBlocking(false)
+        
+        var controllerStub = new ControllerStubImpl(sock, reactor, controller)
+        var switchKey = reactor.registerBlocking(sock, SelectionKey.OP_READ,
+                                                 controllerStub)
+        switchKey.interestOps(SelectionKey.OP_READ)
+        reactor.wakeup
+        controllerStub.start
     }
 
     def addSystemPort(portName : String) = {
