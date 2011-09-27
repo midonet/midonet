@@ -89,7 +89,7 @@ public class BgpPortService implements PortService {
                                               portId.toString());
     }
 
-    private void addPort(final long datapathId, final UUID portId) throws
+    private void addPort(final long datapathId, final UUID portId, final String mac) throws
             StateAccessException, ZkStateSerializationException {
         // Check service attributes in port configurations.
         List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(
@@ -104,7 +104,7 @@ public class BgpPortService implements PortService {
                                 return;
                             }
                         }
-                        addPort(datapathId, portId);
+                        addPort(datapathId, portId, mac);
                     } catch(Exception e) {
                         log.warn("addPort", e);
                     }
@@ -126,6 +126,7 @@ public class BgpPortService implements PortService {
                                                             portName);
             portBuilder.externalId(portIdExtIdKey, portId.toString());
             portBuilder.externalId(portServiceExtIdKey, BGP_SERVICE_EXT_ID);
+            portBuilder.ifMac(mac);
             // If there is an existing service port, ovs will return False.
             portBuilder.build();
 
@@ -138,7 +139,7 @@ public class BgpPortService implements PortService {
         throws StateAccessException,
         ZkStateSerializationException, KeeperException {
         UUID portId = port.getId();
-        this.addPort(datapathId, portId);
+        this.addPort(datapathId, portId, Net.convertByteMacToString(port.getMacAddr()));
     }
 
     @Override
