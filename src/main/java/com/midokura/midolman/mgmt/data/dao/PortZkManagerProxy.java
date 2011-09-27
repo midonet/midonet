@@ -104,7 +104,8 @@ public class PortZkManagerProxy extends ZkMgmtManager {
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         String portPath = mgmtPathManager.getPortPath(port.getId());
-        log.debug("Preparing to update: " + portPath);
+        log.debug("Preparing to update: " + portPath + " with vif "
+                + port.getVifId());
         try {
             ops.add(Op.setData(portPath, serialize(port.toMgmtConfig()), -1));
         } catch (IOException e) {
@@ -124,9 +125,10 @@ public class PortZkManagerProxy extends ZkMgmtManager {
         List<Op> ops = new ArrayList<Op>();
         String portPath = mgmtPathManager.getPortPath(port.getId());
 
-        log.debug("Preparing to update: " + portPath);
+        log.debug("Preparing to update: " + portPath + " with vif "
+                + port.getVifId());
         try {
-            ops.add(Op.setData(portPath, serialize(port.toConfig()), -1));
+            ops.add(Op.setData(portPath, serialize(port.toMgmtConfig()), -1));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize port mgmt " + port.getId()
