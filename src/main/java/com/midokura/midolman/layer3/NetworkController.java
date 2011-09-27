@@ -861,6 +861,10 @@ public class NetworkController extends AbstractController {
         }
         eth.setSourceMACAddress(firstIngressDevPort.getMacAddr());
         eth.setDestinationMACAddress(pktAtFirstIngress.getSourceMACAddress());
+        log.debug("sendICMPforLocalPkt from OFport {}, {} to {}", new Object[] {
+                firstIngressDevPort.getNum(),
+                IPv4.fromIPv4Address(ip.getSourceAddress()),
+                IPv4.fromIPv4Address(ip.getDestinationAddress()) });
         sendUnbufferedPacketFromPort(eth, firstIngressDevPort.getNum());
     }
 
