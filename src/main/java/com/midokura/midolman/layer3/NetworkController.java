@@ -104,6 +104,8 @@ public class NetworkController extends AbstractController {
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+        log.debug("onPacketIn: {} {}", totalLen, inPort);
+        
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPort);
         L3DevicePort devPortOut;

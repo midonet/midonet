@@ -91,6 +91,8 @@ public class Router {
         @Override
         public void routesChanged(UUID portId, Collection<Route> added,
                 Collection<Route> removed) {
+            log.debug("routesChanged: added {} removed {}", added, removed);
+
             // The L3DevicePort keeps the routes up-to-date and notifies us
             // of changes so we can keep the replicated routing table in sync.
             for (Route rt : added) {
