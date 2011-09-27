@@ -394,6 +394,24 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
         return listNatChains(routerId);
     }
 
+    public Chain get(UUID routerId, String table, String name)
+            throws StateAccessException, ZkStateSerializationException {
+        String namePath = mgmtPathManager.getRouterTableChainNamePath(routerId,
+                table.toLowerCase(), name.toLowerCase());
+        byte[] data = get(namePath);
+        ChainNameMgmtConfig nameConfig = null;
+        try {
+            nameConfig = deserialize(data, ChainNameMgmtConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize ChainNameMgmtConfig", e,
+                    ChainMgmtConfig.class);
+        }
+
+        // Now get the data
+        return get(nameConfig.id);
+    }
+
     public Chain get(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         ZkNodeEntry<UUID, ChainConfig> config = zkManager.get(id);

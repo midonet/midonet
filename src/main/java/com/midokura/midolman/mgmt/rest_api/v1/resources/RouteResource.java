@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -93,7 +94,7 @@ public class RouteResource extends RestResource {
         private UUID routerId = null;
 
         /**
-         * Default constructor.
+         * Constructor.
          * 
          * @param zkConn
          *            Zookeeper connection string.
@@ -113,7 +114,7 @@ public class RouteResource extends RestResource {
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Route[] list() throws StateAccessException {
+        public List<Route> list() throws StateAccessException {
             RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -158,5 +159,49 @@ public class RouteResource extends RestResource {
             URI uri = uriInfo.getBaseUriBuilder().path("routes/" + id).build();
             return Response.created(uri).build();
         }
+    }
+
+    /**
+     * Sub-resource class for port's route.
+     */
+    public static class PortRouteResource extends RestResource {
+
+        private UUID portId = null;
+
+        /**
+         * Constructor.
+         * 
+         * @param zkConn
+         *            Zookeeper connection string.
+         * @param routerId
+         *            UUID of a router.
+         */
+        public PortRouteResource(ZooKeeper zkConn, UUID portId) {
+            this.zooKeeper = zkConn;
+            this.portId = portId;
+        }
+
+        /**
+         * Return a list of routes.
+         * 
+         * @return A list of Route objects.
+         * @throws StateAccessException
+         */
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public List<Route> list() throws StateAccessException {
+            RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            try {
+                return dao.listByPort(portId);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
+        }
+
     }
 }

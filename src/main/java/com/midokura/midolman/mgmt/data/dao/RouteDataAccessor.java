@@ -67,6 +67,17 @@ public class RouteDataAccessor extends DataAccessor {
         return Route.createRoute(id, rt.value);
     }
 
+    private List<Route> generateRouteList(
+            List<ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route>> routes) {
+        List<Route> routeList = new ArrayList<Route>();
+        for (ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route> entry : routes) {
+            Route router = Route.createRoute(entry.key, entry.value);
+            router.setId(entry.key);
+            routeList.add(router);
+        }
+        return routeList;
+    }
+
     /**
      * Get a list of routes of a router.
      * 
@@ -76,17 +87,14 @@ public class RouteDataAccessor extends DataAccessor {
      * @throws Exception
      *             Zookeeper(or any) error.
      */
-    public Route[] list(UUID routerId) throws Exception {
+    public List<Route> list(UUID routerId) throws Exception {
         RouteZkManager manager = getRouteZkManager();
-        List<Route> routes = new ArrayList<Route>();
-        List<ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route>> zkRoutes = manager
-                .list(routerId);
-        for (ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route> entry : zkRoutes) {
-            Route router = Route.createRoute(entry.key, entry.value);
-            router.setId(entry.key);
-            routes.add(router);
-        }
-        return routes.toArray(new Route[routes.size()]);
+        return generateRouteList(manager.list(routerId));
+    }
+
+    public List<Route> listByPort(UUID portId) throws Exception {
+        RouteZkManager manager = getRouteZkManager();
+        return generateRouteList(manager.listPortRoutes(portId));
     }
 
     public void delete(UUID id) throws Exception {

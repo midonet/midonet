@@ -135,6 +135,24 @@ public class ChainResource extends RestResource {
                 throw new UnknownRestApiException(e);
             }
         }
+
+        @GET
+        @Path("{name}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Chain get(@PathParam("name") String name)
+                throws StateAccessException {
+            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            try {
+                return dao.get(routerId, table, name);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
+        }
     }
 
     /**

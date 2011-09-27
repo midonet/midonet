@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -52,6 +53,14 @@ public class PortResource extends RestResource {
     @Path("/{id}/bgps")
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
         return new PortBgpResource(zooKeeper, id);
+    }
+
+    /**
+     * Route resource locator for ports
+     */
+    @Path("/{id}/routes")
+    public PortRouteResource getRouteResource(@PathParam("id") UUID id) {
+        return new PortRouteResource(zooKeeper, id);
     }
 
     /**
