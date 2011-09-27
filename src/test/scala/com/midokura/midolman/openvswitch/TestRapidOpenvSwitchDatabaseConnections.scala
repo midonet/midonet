@@ -38,7 +38,6 @@ object TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
     }
 
     @AfterClass def finalizeTest() = {
-        java.lang.Thread.sleep(1000)
         lock.release
     }
 

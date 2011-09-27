@@ -4,6 +4,7 @@
  *
  * Copyright 2011 Midokura Inc.  All rights reserved.
  */
+// Disabled because it can't run alongside TestOpenvSwitchDatabaseConnection.
 
 package com.midokura.midolman
 
@@ -27,8 +28,7 @@ import java.util.{Date, UUID}
 /**
  * Test the BridgeController's interaction with Open vSwitch.
  */
-// Disabled, because cannot be run with TestOpenvSwitchDatabaseConnection.
-object TestBridgeControllerOVS /* extends JUnitSuite */ {
+object TestBridgeControllerOVS extends JUnitSuite {
     // All the "static" variables and methods.
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
@@ -129,8 +129,7 @@ object TestBridgeControllerOVS /* extends JUnitSuite */ {
     }
 }
 
-// Disabled, because cannot be run with TestOpenvSwitchDatabaseConnection.
-class TestBridgeControllerOVS /* extends JUnitSuite */ {
+class TestBridgeControllerOVS extends JUnitSuite {
     // import all the statics.
     import TestBridgeControllerOVS._
 
