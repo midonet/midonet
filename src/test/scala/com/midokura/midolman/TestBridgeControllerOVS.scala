@@ -37,8 +37,7 @@ object TestBridgeControllerOVS extends JUnitSuite {
     private final val testportName = "testbrport"
     private final val bridgeExtIdKey = "midolman-vnet"
     private final val bridgeExtIdValue = "ffbf1195-ae26-21e1-c3b4-ca417460eb6a"
-    private final val ovsdb =
-        new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+    private final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
     private final var bridgeId: Long = _
     private final val publicIP = /* 192.168.1.50 */
         InetAddress.getByAddress(
@@ -54,6 +53,7 @@ object TestBridgeControllerOVS extends JUnitSuite {
     @BeforeClass def initializeTest() {
         lock = lockchannel.lock
         Console.err.println("Entering testBridge at " + new Date)
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge
         bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName), 16)
 

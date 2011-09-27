@@ -33,8 +33,7 @@ object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     private final val bridgeExtIdKey = "midolman-vnet"
     private final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     private final val bridgeOfPortNum = 65534
-    private final val ovsdb =
-        new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+    private final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
     private final var bridgeId: Long = _
     private final val lockfile = new File("/tmp/ovs_tests.lock")
     private final val lockchannel = 
@@ -44,6 +43,7 @@ object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     @BeforeClass def initializeTest() {
         lock = lockchannel.lock
         Console.err.println("Entering testOVSConn at " + new Date)
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge()
         bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName), 16)
     }
