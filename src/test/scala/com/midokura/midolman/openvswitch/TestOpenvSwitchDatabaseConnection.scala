@@ -10,6 +10,7 @@ package com.midokura.midolman.openvswitch
 import org.junit.{AfterClass, BeforeClass, Test}
 import org.junit.Assert._
 import org.junit.runner.RunWith
+import org.junit.runners.Suite
 import org.scalatest.junit.JUnitSuite
 
 import com.midokura.midolman.openvswitch._
@@ -20,21 +21,30 @@ import java.io.{File, RandomAccessFile}
 import java.nio.channels.FileLock
 import java.util.Date
 
+object ShareOneOpenvSwitchDatabaseConnection {
+    private final val database = "Open_vSwitch"
+    private final val host = "localhost"
+    private final val port = 12344
+    private final val ovsdb =
+        new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+
+}
+
+@RunWith(classOf[Suite])
+@Suite.SuiteClasses(Array(classOf[TestOpenvSwitchDatabaseConnection]))
+class ShareOneOpenvSwitchDatabaseConnection { 
+
+}
 
 /**
  * Test for the Open vSwitch database connection.
  */
-object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
-    private final val database = "Open_vSwitch"
-    private final val host = "localhost"
-    private final val port = 12344
+object TestOpenvSwitchDatabaseConnection {
     private final val bridgeName = "testovsbr"
     private final val portName = "testovsport"
     private final val bridgeExtIdKey = "midolman-vnet"
     private final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     private final val bridgeOfPortNum = 65534
-    private final val ovsdb =
-        new OpenvSwitchDatabaseConnectionImpl(database, host, port)
     private final var bridgeId: Long = _
     private final val lockfile = new File("/tmp/ovs_tests.lock")
     private final val lockchannel = 
@@ -78,7 +88,7 @@ object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     }
 }
 
-class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
+class TestOpenvSwitchDatabaseConnection {
     import TestOpenvSwitchDatabaseConnection._
 
     /**
