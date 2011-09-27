@@ -1,5 +1,5 @@
 /**
- * OpenvSwitchDatabaaseConnection.scala - OVSDB connection management classes.
+ * OpenvSwitchDatabaaseConnectionImpl.scala - OVSDB connection management classes.
  *
  * A pure Scala implementation of the Open vSwitch database protocol used to
  * configure bridges, ports, etc.
@@ -296,13 +296,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 //TODO: handle "notification" type
             } catch {
                 case e: InterruptedException =>
-                    { log.warn("run", e) }
+                    { continue = false; log.warn("run", e) }
                 case e: SocketException =>
-                    // Ignore this when the parent thread close the socket.
+                    { continue = false
+                      // TODO: Ignore this when the parent thread close the 
+                      //       socket.
+                    }
                 case e: EOFException =>
-                    { log.info("run", "EOF: the socket closed.") }
+                    { continue = false; log.info("run", "EOF: the socket closed.") }
                 case e: IOException =>
-                    { log.warn("run", e) }
+                    { continue = false; log.warn("run", e) }
             }
         }
     }
@@ -2013,7 +2016,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     * @param queueNum The local number of the queue on the port.
     * @return The row of the queue, as a dictionary. None if no QoS with that
     *         UUID exists, or if no queue with number exists in that QoS.
-	*/
+    */
     private def getQueueRowByQueueNum(qosUUID: String,
                                       queueNum: Long): Option[JsonNode] = {
         val qosRows = select(TableQos, whereUUIDEquals(qosUUID),

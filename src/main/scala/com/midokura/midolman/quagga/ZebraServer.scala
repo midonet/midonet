@@ -15,6 +15,8 @@ package com.midokura.midolman.quagga
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection
 import com.midokura.midolman.state.{PortZkManager, RouteZkManager}
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig
+import com.midokura.midolman.state.{NoStatePathException,
+                                    StatePathExistsException}
 import com.midokura.midolman.layer3.Route
 
 import scala.actors._
@@ -32,8 +34,6 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
-import org.apache.zookeeper.KeeperException.{NoNodeException,
-                                             NodeExistsException}
 
 
 case class Request(socket: Socket, reqId: Int)
@@ -379,7 +379,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                                     val routeUUID = routeMgr.create(route)
                                     zebraToRoute(advertised) = routeUUID
                                 } catch {
-                                    case e: NodeExistsException =>
+                                    case e: StatePathExistsException =>
                                         { log.warn("node already exists") }
                                 }
                             }
@@ -434,7 +434,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                                 try {
                                     routeMgr.delete(routeUUID)
                                 } catch {
-                                    case e: NoNodeException =>
+                                    case e: NoStatePathException =>
                                         { log.warn("no such node") }
                                 }
                             }
@@ -578,7 +578,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                         handleRequest(conn.getInputStream,
                                       conn.getOutputStream, requestId)
                     } catch {
-                        case e: NoNodeException =>
+                        case e: NoStatePathException =>
                             { log.warn("config isn't in the directory") }
                         case e: EOFException =>
                             { log.warn("connection closed by the peer") }

@@ -118,6 +118,7 @@ public class SyncOpenvSwitchDatabaseConnection
     private boolean stop = false;
 
     // TODO: Javadoc.
+    @Deprecated /* Use OpenvSwitchDatabaseConnectionImpl */
     public SyncOpenvSwitchDatabaseConnection(
             String database,
             String addr, int port) throws IOException {

@@ -12,6 +12,7 @@ package com.midokura.midolman.quagga
 import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager}
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.NoStatePathException
 import com.midokura.midolman.layer3.Route
 
 import scala.collection.JavaConversions._
@@ -23,7 +24,6 @@ import java.io.{BufferedReader, InputStreamReader, PrintWriter}
 import java.net.{InetAddress,Socket,SocketException}
 import java.util.UUID
 
-import org.apache.zookeeper.KeeperException.NoNodeException
 import org.slf4j.LoggerFactory
 
 
@@ -205,7 +205,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                                        adRoute.prefixLength)
                         }
                     } catch {
-                        case e: NoNodeException =>
+                        case e: NoStatePathException =>
                             { log.warn("AdRouteWatcher: node already deleted") }
                     }
                 }
@@ -231,7 +231,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                             }
                         }
                     } catch {
-                        case e: NoNodeException => {
+                        case e: NoStatePathException => {
                             log.warn("BgpWatcher: node already deleted")
                             deleteAs(oldConfig.localAS)
                         }
