@@ -25,8 +25,7 @@ object ShareOneOpenvSwitchDatabaseConnection {
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
     private final val port = 12344
-    private final val ovsdb =
-        new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+    private final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
 
 }
 
@@ -54,6 +53,7 @@ object TestOpenvSwitchDatabaseConnection {
     @BeforeClass def initializeTest() {
         lock = lockchannel.lock
         Console.err.println("Entering testOVSConn at " + new Date)
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge()
         bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName), 16)
     }
