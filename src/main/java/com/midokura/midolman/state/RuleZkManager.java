@@ -47,6 +47,64 @@ public class RuleZkManager extends ZkManager {
         this(new ZkDirectory(zk, "", null), basePath);
     }
 
+    private List<Op> prepareInsertPositionOrdering(
+            ZkNodeEntry<UUID, Rule> ruleEntry)
+            throws ZkStateSerializationException, StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+        // Add this one
+        ops.addAll(prepareRuleCreate(ruleEntry));
+
+        // Get all the rules for this chain
+        List<ZkNodeEntry<UUID, Rule>> rules = list(ruleEntry.value.chainId);
+
+        int position = ruleEntry.value.position;
+        for (ZkNodeEntry<UUID, Rule> rule : rules) {
+            // For any node that has the >= position value, shift up.
+            if (rule.value.position >= position) {
+                String path = pathManager.getChainRulePath(rule.value.chainId,
+                        rule.key);
+                rule.value.position++;
+                try {
+                    ops.add(Op.setData(path, serialize(rule), -1));
+                } catch (IOException e) {
+                    throw new ZkStateSerializationException(
+                            "Could not serialize Rule", e, Rule.class);
+                }
+            }
+        }
+
+        return ops;
+    }
+
+    private List<Op> prepareDeletePositionOrdering(
+            ZkNodeEntry<UUID, Rule> ruleEntry)
+            throws ZkStateSerializationException, StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+        // Delete this one
+        ops.addAll(prepareRuleDelete(ruleEntry));
+
+        // Get all the rules for this chain
+        List<ZkNodeEntry<UUID, Rule>> rules = list(ruleEntry.value.chainId);
+
+        int position = ruleEntry.value.position;
+        for (ZkNodeEntry<UUID, Rule> rule : rules) {
+            // For any node that has the > position value, shift down.
+            if (rule.value.position > position) {
+                String path = pathManager.getChainRulePath(rule.value.chainId,
+                        rule.key);
+                rule.value.position--;
+                try {
+                    ops.add(Op.setData(path, serialize(rule), -1));
+                } catch (IOException e) {
+                    throw new ZkStateSerializationException(
+                            "Could not serialize Rule", e, Rule.class);
+                }
+            }
+        }
+
+        return ops;
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new rule.
@@ -81,7 +139,7 @@ public class RuleZkManager extends ZkManager {
 
     public List<Op> prepareRuleDelete(UUID id)
             throws ZkStateSerializationException, StateAccessException {
-        return prepareRuleDelete(get(id));
+        return prepareDeletePositionOrdering(get(id));
     }
 
     /**
@@ -115,7 +173,7 @@ public class RuleZkManager extends ZkManager {
             StateAccessException {
         UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, Rule> ruleNode = new ZkNodeEntry<UUID, Rule>(id, rule);
-        multi(prepareRuleCreate(ruleNode));
+        multi(prepareInsertPositionOrdering(ruleNode));
         return id;
     }
 
