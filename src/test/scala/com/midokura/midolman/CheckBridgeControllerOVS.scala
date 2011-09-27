@@ -1,10 +1,9 @@
 /**
- * TestBridgeControllerOVS.scala - Test BridgeController's interactions with
- *                                 Open vSwitch.
+ * CheckBridgeControllerOVS.scala - Test BridgeController's interactions with
+ *                                  Open vSwitch.
  *
  * Copyright 2011 Midokura Inc.  All rights reserved.
  */
-// Disabled because it can't run alongside TestOpenvSwitchDatabaseConnection.
 
 package com.midokura.midolman
 
@@ -31,6 +30,7 @@ import java.util.{Date, UUID}
  * Test the BridgeController's interaction with Open vSwitch.
  */
 object CheckBridgeControllerOVS {
+    // Share a common OVSDB connection because using two breaks.
     import TestShareOneOpenvSwitchDatabaseConnection._
 
     // All the "static" variables and methods.
@@ -118,5 +118,4 @@ class CheckBridgeControllerOVS {
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
     }
-
 }
