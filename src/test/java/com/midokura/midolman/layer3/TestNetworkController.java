@@ -226,6 +226,13 @@ public class TestNetworkController {
                         portLocMap.get(portId));
             }
         }
+
+        // TODO(pino, dan): fix this.
+        // One flow should have been installed for each locally added port.
+        Assert.assertEquals(3, controllerStub.addedFlows.size());
+        // Clear the flows: unit-tests assume the addedFlows queue starts empty.
+        controllerStub.addedFlows.clear();
+
         // Now add the logical links between router 0 and 1.
         // First from 0 to 1
         PortDirectory.LogicalRouterPortConfig logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
@@ -1188,6 +1195,12 @@ public class TestNetworkController {
                 (byte) 0xee, (byte) 0xda, (byte) 0xde, (byte) 0xed });
         networkCtrl.onPortStatus(uplinkPhyPort,
                 OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        // TODO(pino, dan): fix this.
+        // One flow should have been installed for each locally added port.
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        // Clear the flows: unit-tests assume the addedFlows queue starts empty.
+        controllerStub.addedFlows.clear();
     }
 
     @Test
@@ -1585,8 +1598,13 @@ public class TestNetworkController {
         networkCtrl.onPortStatus(servicePort,
                                  OFPortStatus.OFPortReason.OFPPR_ADD);
 
-        // 8 flows (BGPx4, ICMPx2, ARPx2) are installed.
-        Assert.assertEquals(8, controllerStub.addedFlows.size());
+        // 9 flows (BGPx4, ICMPx2, ARPx2, DHCPx1) are installed.
+        // The DHCP flow is not specific to the BGP port setup. All locally
+        // added ports get a pre-installed flow.
+        Assert.assertEquals(9, controllerStub.addedFlows.size());
+        // TODO(pino, dan): fix this. For now remove the DHCP flow because
+        // the rest of the test is oblivious to it.
+        controllerStub.addedFlows.remove(0);
 
         int localAddr = PortDirectory.MaterializedRouterPortConfig.class.cast(
             portMgr.get(portId).value).portAddr;

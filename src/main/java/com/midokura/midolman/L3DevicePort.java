@@ -120,6 +120,8 @@ public class L3DevicePort {
 
     private void updateRoutes() throws StateAccessException,
             ZkStateSerializationException {
+        log.debug("updaetRoutes");
+        
         List<ZkNodeEntry<UUID, Route>> entries = routeMgr.listPortRoutes(
                 portId, routesWatcher);
         Set<Route> routes = new HashSet<Route>();

@@ -16,6 +16,11 @@ import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
+import java.io.{File, RandomAccessFile}
+import java.nio.channels.FileLock
+import java.util.Date
+
+
 /**
  * Test for the Open vSwitch database connection.
  */
@@ -23,19 +28,24 @@ object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
     private final val port = 12344
-    private final val bridgeName = "testbr"
-    private final val portName = "testport"
+    private final val bridgeName = "testovsbr"
+    private final val portName = "testovsport"
     private final val bridgeExtIdKey = "midolman-vnet"
     private final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     private final val bridgeOfPortNum = 65534
     private final val ovsdb =
         new OpenvSwitchDatabaseConnectionImpl(database, host, port)
     private final var bridgeId: Long = _
+    private final val lockfile = new File("/tmp/ovs_tests.lock")
+    private final val lockchannel = 
+        new RandomAccessFile(lockfile, "rw").getChannel
+    private var lock: FileLock = _
 
     @BeforeClass def initializeTest() {
+        lock = lockchannel.lock
+        Console.err.println("Entering testOVSConn at " + new Date)
         testAddBridge()
-        bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName),
-                                            16)
+        bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName), 16)
     }
 
     /**
@@ -63,6 +73,8 @@ object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
         testDelBridge()
         assertFalse(ovsdb.hasBridge(bridgeName))
         ovsdb.close
+        Console.err.println("Closing testOVSConn at " + new Date)
+        lock.release
     }
 }
 

@@ -4,5 +4,5 @@ public interface Transport {
 
     short getSourcePort();
     short getDestinationPort();
-    Data getPayload();
+    IPacket getPayload();
 }

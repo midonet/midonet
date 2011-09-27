@@ -11,10 +11,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
-import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionDataLayer;
 import org.openflow.protocol.action.OFActionDataLayerDestination;
@@ -40,10 +40,13 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.ARP;
+import com.midokura.midolman.packets.DHCP;
+import com.midokura.midolman.packets.DHCPOption;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -101,9 +104,99 @@ public class NetworkController extends AbstractController {
         this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
     }
+    
+    /*
+     * Setup a flow that sends all DHCP request packets to 
+     * the controller.
+     */
+    private void setFlowsForHandlingDhcpInController(L3DevicePort devPortIn) {
+        log.debug("setFlowsForHandlingDhcpInController: on port {}", devPortIn);
+        
+        MidoMatch match = new MidoMatch();
+        match.setInputPort(devPortIn.getNum());
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
+        match.setTransportSource((short) 68);
+        match.setTransportDestination((short) 67);
+        
+        List<OFAction> actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
+                (short) 128));
+
+        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
+                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+                ControllerStub.UNBUFFERED_ID, false, false, false, actions);
+    }
+    
+    private void onDhcpRequest(L3DevicePort devPortIn, DHCP request, byte[] sourceMac) {
+        log.debug("onDhcpRequest: {}", devPortIn);
+        
+        log.debug("onDhcpRequest: requestling client has IP {}", IPv4.fromIPv4Address(request.getClientIPAddress()));
+        
+        DHCP reply = new DHCP();
+        reply.setOpCode(DHCP.OPCODE_REPLY);
+        reply.setTransactionId(request.getTransactionId());
+        reply.setHardwareAddressLength((byte) 6);
+        reply.setHardwareType((byte) ARP.HW_TYPE_ETHERNET);
+        reply.setClientHardwareAddress(sourceMac);
+        reply.setServerIPAddress(devPortIn.getVirtualConfig().portAddr);
+        
+        /*
+         * TODO: fix big hack - don't return localNwAddr, 
+         * but rather IP addr explicitly assigned for the requesters
+         */
+        reply.setYourIPAddress(devPortIn.getVirtualConfig().localNwAddr);
+        
+        /*
+         * set options for offer (53) router (3) and netmask (1) and dns (6)
+         */
+        List<DHCPOption> options = new ArrayList<DHCPOption>();
+        
+        DHCPOption netmaskOption = new DHCPOption();
+        netmaskOption.setCode((byte) 1);
+        netmaskOption.setLength((byte) 4);
+        netmaskOption.setData(IPv4.toIPv4AddressBytes((~0 << (32 - devPortIn.getVirtualConfig().nwLength))));
+        options.add(netmaskOption);
+
+        DHCPOption routerOption = new DHCPOption();
+        routerOption.setCode((byte) 3);
+        routerOption.setLength((byte) 4);
+        routerOption.setData(IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+        options.add(routerOption);
+        
+        DHCPOption offerOption = new DHCPOption();
+        offerOption.setCode((byte) 53);
+        offerOption.setLength((byte) 1);
+        options.add(offerOption);
+        
+        reply.setOptions(options);
+        
+        UDP udp = new UDP();
+        udp.setSourcePort((short) 67);
+        udp.setDestinationPort((short) 78);
+        udp.setPayload(reply);
+        
+        IPv4 ip = new IPv4();
+        ip.setSourceAddress(devPortIn.getVirtualConfig().portAddr);
+        ip.setDestinationAddress("255.255.255.255");
+        ip.setProtocol(UDP.PROTOCOL_NUMBER);
+        ip.setPayload(udp);
+        
+        Ethernet eth = new Ethernet();
+        eth.setEtherType(IPv4.ETHERTYPE);
+        eth.setPayload(ip);
+
+        eth.setSourceMACAddress(devPortIn.getMacAddr());
+        eth.setDestinationMACAddress(sourceMac);
+        
+        log.debug("onDhcpRequest: sending DHCP reply {} to port {}", eth, devPortIn);
+        sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
+    }
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+        log.debug("onPacketIn: {} {}", totalLen, inPort);
+        
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPort);
         L3DevicePort devPortOut;
@@ -159,6 +252,26 @@ public class NetworkController extends AbstractController {
         }
         Ethernet ethPkt = new Ethernet();
         ethPkt.deserialize(data, 0, data.length);
+        
+        // check if the packet is a DHCP request
+        if (ethPkt.getEtherType() == IPv4.ETHERTYPE) {
+            IPv4 ipv4 = (IPv4) ethPkt.getPayload();
+            if (ipv4.getProtocol() == UDP.PROTOCOL_NUMBER) {
+                UDP udp = (UDP) ipv4.getPayload();
+                if (udp.getSourcePort() == 68 && udp.getDestinationPort() == 67) {
+                    DHCP dhcp = (DHCP) udp.getPayload();
+                    if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
+                        log.debug("onPacketIn: got a DHCP request");
+                        
+                        onDhcpRequest(devPortIn, dhcp, ethPkt.getSourceMACAddress());
+                        
+                        freeBuffer(bufferId);
+                        return;
+                    }
+                }
+            }
+        }
+        
         // Drop the packet if it's not addressed to an L2 mcast address or
         // the ingress port's own address.
         // TODO(pino): check this with Jacob.
@@ -748,6 +861,10 @@ public class NetworkController extends AbstractController {
         }
         eth.setSourceMACAddress(firstIngressDevPort.getMacAddr());
         eth.setDestinationMACAddress(pktAtFirstIngress.getSourceMACAddress());
+        log.debug("sendICMPforLocalPkt from OFport {}, {} to {}", new Object[] {
+                firstIngressDevPort.getNum(),
+                IPv4.fromIPv4Address(ip.getSourceAddress()),
+                IPv4.fromIPv4Address(ip.getDestinationAddress()) });
         sendUnbufferedPacketFromPort(eth, firstIngressDevPort.getNum());
     }
 
@@ -922,7 +1039,7 @@ public class NetworkController extends AbstractController {
         match.setInputPort(localPortNum);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
-        match.setNetworkSource(localAddr);
+            match.setNetworkSource(localAddr);
         match.setNetworkDestination(remoteAddr);
         match.setTransportSource(localTport);
         actions = new ArrayList<OFAction>();
@@ -1071,6 +1188,8 @@ public class NetworkController extends AbstractController {
                             devPort.getVirtualConfig().portAddr });
                     network.addPort(devPort);
                     addServicePort(devPort);
+                    
+                    setFlowsForHandlingDhcpInController(devPort);
                 } else if (portNum != OFPort.OFPP_CONTROLLER.getValue()
                         && portNum != OFPort.OFPP_LOCAL.getValue()) {
                     // Service port is up.
