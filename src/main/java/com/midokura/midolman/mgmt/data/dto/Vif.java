@@ -21,7 +21,6 @@ import com.midokura.midolman.mgmt.data.dao.VifZkManager.VifConfig;
 public class Vif {
 
     private UUID id;
-    private String name;
     private UUID portId;
     
     /**
@@ -35,18 +34,6 @@ public class Vif {
      */
     public void setId(UUID id) {
         this.id = id;
-    }
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
     }
     /**
      * @return the portId
@@ -63,7 +50,6 @@ public class Vif {
     
     public VifConfig toConfig() {
         VifConfig c = new VifConfig();
-        c.name = this.name;
         c.portId = this.portId;
         return c;
     }
@@ -71,7 +57,6 @@ public class Vif {
     public static Vif createVif(UUID id, VifConfig c) {
         Vif v = new Vif();
         v.setId(id);
-        v.setName(c.name);
         v.setPortId(c.portId);
         return v;
     }
