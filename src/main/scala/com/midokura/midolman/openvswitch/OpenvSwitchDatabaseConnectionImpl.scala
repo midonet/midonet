@@ -1230,8 +1230,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *         ip Open vSwitch listens on for connections from controllers; the
      *         given ip must be expressed as an IP address (not a DNS name).
      *     'ptcp:$(ip)[:$(port)s]': The specified TCP port (default: 6633) and
-     *         ip Open vSwitch listens on for connections from controllers; the
-     *         given ip must be expressed as an IP address (not a DNS name).
+     *         IP Open vSwitch listens on for connections from controllers; the
+     *         given IP must be expressed as an IP address (not a DNS name).
      *
      * @param bridgeName The name of the bridge to add the controller to.
      * @param target     The target to connect to the OpenFlow controller.
@@ -1290,6 +1290,38 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             select(TableBridge, whereUUIDEquals(getBridgeUUID(bridgeId)),
                    List(ColumnUUID, ColumnController))
         delBridgeOpenflowControllers(bridgeRows, bridgeId.toString)
+    }
+
+    /**
+     * Delete all the OpenFlow controller entries in the OVS DB.
+     */
+    def delAllOpenflowControllers() = {
+        val controllerRows = select(TableController, List(), List(ColumnUUID))
+        var tx = new Transaction(database)
+        for { row <- controllerRows } {
+            log.info("delAllOpenflowControllers: {}", row)
+            tx.delete(TableController, 
+                      Some(row.get(ColumnUUID).get(1).getTextValue))
+        }
+        doJsonRpc(tx)
+    }
+
+    /**
+     * Delete all the OpenFlow controller entries of a target.
+     *
+     * @param target The target to delete.
+     */
+    def delTargetOpenflowControllers(target: String) = {
+        val controllerRows = select(
+            TableController, List(List(ColumnTarget, "==", target)),
+            List(ColumnUUID))
+        var tx = new Transaction(database)
+        for { row <- controllerRows } {
+            log.info("delTargetOpenflowControllers: {}", row)
+            tx.delete(TableController, 
+                      Some(row.get(ColumnUUID).get(1).getTextValue))
+        }
+        doJsonRpc(tx)
     }
 
     /**

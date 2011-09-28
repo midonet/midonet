@@ -100,7 +100,6 @@ class CheckOpenvSwitchDatabaseConnection {
      * Test addOpenflowController().
      */
     @Test def testAddOpenflowController() = {
-        val target = "tcp:127.0.0.1"
         var cb = ovsdb.addBridgeOpenflowController(bridgeName, target)
         cb.build
         assertTrue(ovsdb.hasController(target))

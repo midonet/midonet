@@ -25,7 +25,7 @@ import java.io.{File, RandomAccessFile}
 import java.lang.Runnable
 import java.net.{InetAddress, InetSocketAddress}
 import java.nio.channels.{FileLock, SelectionKey, ServerSocketChannel}
-import java.util.concurrent.{Executors, TimeUnit, ScheduledFuture}
+import java.util.concurrent.{Executors, TimeUnit, ScheduledFuture, Semaphore}
 import java.util.{Date, UUID}
 
 /**
@@ -44,11 +44,13 @@ object CheckBridgeControllerOVS extends SelectListener {
     private final var controller: BridgeController = _
     private var zkDir = new MockDirectory
     private final val zkRoot = "/zk_root"
-    private final val of_port = 6633
+    private final val of_port = 6634
     private final var listenSock: ServerSocketChannel = _
     private final var reactor: SelectLoop = _
-    private final val target = "tcp:127.0.0.1"
     private final var tookTooLong: ScheduledFuture[_] = _
+    private final var reactorThread: Thread = _
+    private final var semLock = new Semaphore(1)
+    @volatile private var tooLongFlag = false
 
     @BeforeClass def initializeTest() {
         // Set up the (mock) ZooKeeper directories.
@@ -62,39 +64,57 @@ object CheckBridgeControllerOVS extends SelectListener {
         val portLocMap = new PortToIntNwAddrMap(
             midoDir.getSubDirectory(portLocKey))
         val macPortMap = new MacPortMap(midoDir.getSubDirectory(macPortKey))
-        reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
-        controller = new BridgeControllerTester(
-            /* datapathId */                bridgeId,
-            /* switchUuid */                UUID.fromString(bridgeExtIdValue),
-            /* greKey */                    0xe1234,
-            /* port_loc_map */              portLocMap,
-            /* mac_port_map */              macPortMap,
-            /* flowExpireMillis */          300*1000,
-            /* idleFlowExpireMillis */      60*1000,
-            /* publicIp */                  publicIP,
-            /* macPortTimeoutMillis */      40*1000,
-            /* ovsdb */                     ovsdb,
-            /* reactor */                   reactor,
-            /* externalIdKey */             bridgeExtIdKey);
+        semLock.acquire
+        reactorThread = new Thread() { override def run() = {
+            log.info("reactorThread starting")
+            reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
-        // Get a connection to the OF switch.
-        listenSock = ServerSocketChannel.open
-        listenSock.configureBlocking(false)
-        listenSock.socket.bind(new InetSocketAddress(of_port))
+            controller = new BridgeControllerTester(
+                /* datapathId */              bridgeId,
+                /* switchUuid */              UUID.fromString(bridgeExtIdValue),
+                /* greKey */                  0xe1234,
+                /* port_loc_map */            portLocMap,
+                /* mac_port_map */            macPortMap,
+                /* flowExpireMillis */        300*1000,
+                /* idleFlowExpireMillis */    60*1000,
+                /* publicIp */                publicIP,
+                /* macPortTimeoutMillis */    40*1000,
+                /* ovsdb */                   ovsdb,
+                /* reactor */                 reactor,
+                /* externalIdKey */           bridgeExtIdKey,
+                /* semLock */                 semLock);
 
-        reactor.register(listenSock, SelectionKey.OP_ACCEPT, this)
+            // Get a connection to the OF switch.
+            listenSock = ServerSocketChannel.open
+            listenSock.configureBlocking(false)
+            listenSock.socket.bind(new InetSocketAddress(of_port))
 
-        registerController
+            reactor.register(listenSock, SelectionKey.OP_ACCEPT, 
+                             CheckBridgeControllerOVS.this)
 
-        tookTooLong = reactor.schedule(
-                         new Runnable() { def run = { reactor.shutdown } }, 
-                         4000, TimeUnit.MILLISECONDS)
-        reactor.doLoop
-        assertFalse(tookTooLong.isDone)
+            registerController
+
+            tookTooLong = reactor.schedule(
+                              new Runnable() { 
+                                  def run = { 
+                                      log.info("Took too long!")
+                                      tooLongFlag = true
+                                      reactor.shutdown
+                                      semLock.release
+                                  } }, 
+                              4000, TimeUnit.MILLISECONDS)
+            reactor.doLoop
+        } }
+
+        reactorThread.start
+
+        log.info("Leaving initializeTest()")
     }
 
     @AfterClass def finalizeTest() {
+        reactor.shutdown
+        assertFalse(tooLongFlag)
         assertTrue(ovsdb.hasController(target))
         ovsdb.delBridgeOpenflowControllers(bridgeId)
         assertFalse(ovsdb.hasController(target))
@@ -110,7 +130,8 @@ object CheckBridgeControllerOVS extends SelectListener {
         log.info("handleEvent {}", key)
 
         var sock = listenSock.accept
-        log.info("accepted connection from {}", sock.socket.getRemoteSocketAddress)
+        log.info("accepted connection from {}", 
+                 sock.socket.getRemoteSocketAddress)
         sock.socket.setTcpNoDelay(true)
         sock.configureBlocking(false)
         
@@ -167,6 +188,13 @@ class CheckBridgeControllerOVS {
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
     }
+
+    @Test def testConnectionMade() = {
+        log.info("testConnectionMade")
+        semLock.acquire
+        log.info("have semaphore")
+        reactor.shutdown
+    }
 }
 
 private class BridgeControllerTester(datapath: Long, switchID: UUID, 
@@ -174,12 +202,14 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
         flowExpireMillis: Long, idleFlowExpireMillis: Long, 
         publicIP: InetAddress, macPortTimeoutMillis: Long, 
         ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop, 
-        externalIDKey: String) extends BridgeController(datapath, switchID, 
-                greKey, portLocMap, macPortMap, flowExpireMillis, 
-                idleFlowExpireMillis, publicIP, macPortTimeoutMillis, 
-                ovsdb, reactor, externalIDKey) {
+        externalIDKey: String, semLock: Semaphore) extends 
+                BridgeController(datapath, switchID, greKey, portLocMap, 
+                        macPortMap, flowExpireMillis, idleFlowExpireMillis, 
+                        publicIP, macPortTimeoutMillis, ovsdb, reactor, 
+                        externalIDKey) {
     override def onConnectionMade() = {
+        log.info("BridgeControllerTester: onConnectionMade")
         super.onConnectionMade
-        reactor.shutdown
+        semLock.release
     }
 }
