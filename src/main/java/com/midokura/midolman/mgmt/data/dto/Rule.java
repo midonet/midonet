@@ -564,12 +564,16 @@ public class Rule {
         }
         c.inPortInv = this.isInvInPorts();
         c.nwDstInv = this.isInvNwDst();
-        c.nwDstIp = Net.convertStringAddressToInt(this.getNwDstAddress());
+        if (this.getNwDstAddress() != null) {
+            c.nwDstIp = Net.convertStringAddressToInt(this.getNwDstAddress());
+        }
         c.nwDstLength = (byte) this.getNwDstLength();
         c.nwProto = (byte) this.getNwProto();
         c.nwProtoInv = this.isInvNwProto();
         c.nwSrcInv = this.isInvNwSrc();
-        c.nwSrcIp = Net.convertStringAddressToInt(this.getNwSrcAddress());
+        if (this.getNwSrcAddress() != null) {
+            c.nwSrcIp = Net.convertStringAddressToInt(this.getNwSrcAddress());
+        }
         c.nwSrcLength = (byte) this.getNwSrcLength();
         c.nwTos = (byte) this.getNwTos();
         c.nwTosInv = this.isInvNwTos();
