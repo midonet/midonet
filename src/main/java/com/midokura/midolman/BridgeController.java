@@ -231,8 +231,8 @@ public class BridgeController extends AbstractController {
 
         Ethernet capturedPacket = new Ethernet();
         capturedPacket.deserialize(data, 0, data.length);
-        MAC srcDlAddress = new MAC(capturedPacket.getSourceMACAddress());
-        MAC dstDlAddress = new MAC(capturedPacket.getDestinationMACAddress());
+        MAC srcDlAddress = capturedPacket.getSourceMACAddress();
+        MAC dstDlAddress = capturedPacket.getDestinationMACAddress();
         log.info("Packet recv'd on port {} destination {}",
                  inPort, dstDlAddress);
         UUID outPort = macPortMap.get(dstDlAddress);

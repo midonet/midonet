@@ -13,13 +13,18 @@ public class MAC implements Cloneable {
     //package scope
     final byte[] address;
 
-    public MAC(MAC rhs) { address = rhs.address.clone(); }
     public MAC(byte[] rhs) { 
         assert rhs.length == 6;
         address = rhs.clone();
     }
 
-    public MAC clone() { return new MAC(this); }
+    private MAC(MAC rhs) {
+        address = rhs.address.clone();
+    }
+    
+    public MAC clone() {
+        return new MAC(this);
+    }
 
     public byte[] getAddress() {
         return address;

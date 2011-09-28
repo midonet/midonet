@@ -447,7 +447,7 @@ public class TestNetworkController {
         OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
         OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), 0x0a010005, 0x0a020008,
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a010005, 0x0a020008,
                 (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, data.length,
@@ -513,7 +513,7 @@ public class TestNetworkController {
         // installed immediately. No additional sent/dropped packets.
         phyPortIn = phyPorts.get(0).get(0);
         eth = TestRouter.makeUDP(MAC.fromString("02:44:33:ff:22:01"),
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), 0x0a0000d4, 0x0a020008,
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a0000d4, 0x0a020008,
                 (short) 101, (short) 212, payload);
         data = eth.serialize();
         networkCtrl.onPacketIn(9896, data.length, phyPortIn.getPortNumber(),
@@ -534,7 +534,7 @@ public class TestNetworkController {
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         OFPhysicalPort phyPortIn = phyPorts.get(2).get(0);
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), 0x0a020012, 0x0a020145,
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a020012, 0x0a020145,
                 (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(999, data.length, phyPortIn.getPortNumber(),
@@ -575,7 +575,7 @@ public class TestNetworkController {
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd };
         OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), 0x0a0100c5, 0x0a0201e4,
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a0100c5, 0x0a0201e4,
                 (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(37654, data.length, phyPortIn.getPortNumber(),
@@ -623,7 +623,7 @@ public class TestNetworkController {
         int nwSrc = 0x0a0100c5;
         int nwDst = 0x0a0201e4;
         Ethernet eth = TestRouter.makeUDP(dlSrc,
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), nwSrc, nwDst, (short) 101,
+                new MAC(phyPortIn.getHardwareAddress()), nwSrc, nwDst, (short) 101,
                 (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(22333, data.length, phyPortIn.getPortNumber(),
@@ -685,7 +685,7 @@ public class TestNetworkController {
         // The ICMP's source address is that of router2's logical port.
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
                 IPv4.class.cast(eth.getPayload()),
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), dlSrc, rtr2LogPortNwAddr,
+                new MAC(phyPortIn.getHardwareAddress()), dlSrc, rtr2LogPortNwAddr,
                 nwSrc, pkt.data);
     }
 
@@ -1104,7 +1104,7 @@ public class TestNetworkController {
         OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         MAC mac = MAC.fromString("02:00:11:22:00:01");
         Ethernet eth = TestRouter.makeUDP(mac,
-                new MAC(new MAC(phyPortIn.getHardwareAddress())), 0x0a010005,
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a010005,
                 0x0a020008, (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(123456, data.length, phyPortIn.getPortNumber(),
