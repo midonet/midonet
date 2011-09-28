@@ -70,6 +70,7 @@ public class Midolman implements SelectListener, Watcher {
             midolmanConfig.getInteger("disconnected_ttl_seconds", 30);
 
         executor = Executors.newScheduledThreadPool(1);
+        loop = new SelectLoop(executor);
 
         // open the OVSDB connection
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
@@ -83,7 +84,7 @@ public class Midolman implements SelectListener, Watcher {
                 config.configurationAt("zookeeper")
                       .getString("zookeeper_hosts", "127.0.0.1:2181"), 
                 config.configurationAt("zookeeper")
-                      .getInt("session_timeout", 30000), this);
+                      .getInt("session_timeout", 30000), this, loop);
 
         log.debug("about to ZkConnection.open()");
         zkConnection.open();
@@ -97,8 +98,6 @@ public class Midolman implements SelectListener, Watcher {
                 new java.net.InetSocketAddress(
                         config.configurationAt("openflow")
                               .getInt("controller_port", 6633)));
-
-        loop = new SelectLoop(executor);
 
         loop.register(listenSock, SelectionKey.OP_ACCEPT, this);
         

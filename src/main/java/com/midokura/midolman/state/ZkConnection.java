@@ -12,11 +12,14 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.eventloop.Reactor;
+
 public class ZkConnection implements Watcher {
 
     private final static Logger log =
             LoggerFactory.getLogger(ZkConnection.class);
     private ZooKeeper zk;
+    private Reactor reactor;
     private String zkHosts;
     private int sessionTimeoutMillis;
     private Watcher watcher;
@@ -27,6 +30,16 @@ public class ZkConnection implements Watcher {
         this.zkHosts = zkHosts;
         this.sessionTimeoutMillis = sessionTimeoutMillis;
         this.watcher = watcher;
+        connecting = false;
+        connected = false;
+    }
+
+    public ZkConnection(String zkHosts, int sessionTimeoutMillis,
+            Watcher watcher, Reactor reactor) throws Exception {
+        this.zkHosts = zkHosts;
+        this.sessionTimeoutMillis = sessionTimeoutMillis;
+        this.watcher = watcher;
+        this.reactor = reactor;
         connecting = false;
         connected = false;
     }
@@ -77,7 +90,7 @@ public class ZkConnection implements Watcher {
     }
 
     public Directory getRootDirectory() {
-        return new ZkDirectory(this.zk, "", Ids.OPEN_ACL_UNSAFE);
+        return new ZkDirectory(this.zk, "", Ids.OPEN_ACL_UNSAFE, reactor);
     }
     
     public ZooKeeper getZooKeeper() {

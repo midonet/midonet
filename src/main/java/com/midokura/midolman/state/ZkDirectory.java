@@ -18,11 +18,14 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 
+import com.midokura.midolman.eventloop.Reactor;
+
 public class ZkDirectory implements Directory {
 
     public ZooKeeper zk;
     private String basePath;
     private List<ACL> acl;
+    private Reactor reactor;
 
     /**
      * @param zk
@@ -36,6 +39,14 @@ public class ZkDirectory implements Directory {
         this.basePath = basePath;
 //        this.acl = acl;
         this.acl = Ids.OPEN_ACL_UNSAFE;
+    }
+
+    public ZkDirectory(ZooKeeper zk, String basePath, List<ACL> acl,
+            Reactor reactor) {
+        this.zk = zk;
+        this.basePath = basePath;
+        this.acl = Ids.OPEN_ACL_UNSAFE;
+        this.reactor = reactor;
     }
 
     @Override
@@ -63,7 +74,10 @@ public class ZkDirectory implements Directory {
 
         @Override
         public void process(WatchedEvent arg0) {
-            watcher.run();
+            if (null == reactor)
+                watcher.run();
+            else
+                reactor.submit(watcher);
         }
     }
 
@@ -103,7 +117,8 @@ public class ZkDirectory implements Directory {
 
     @Override
     public Directory getSubDirectory(String relativePath) {
-        return new ZkDirectory(zk, getAbsolutePath(relativePath), null);
+        return new ZkDirectory(zk, getAbsolutePath(relativePath), null,
+                reactor);
     }
 
     private String getAbsolutePath(String relativePath) {
