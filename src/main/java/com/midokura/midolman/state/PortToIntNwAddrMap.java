@@ -6,6 +6,8 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
+import com.midokura.midolman.util.Net;
+
 public class PortToIntNwAddrMap extends ReplicatedMap<UUID, Integer> {
 
     public PortToIntNwAddrMap(Directory dir) {
@@ -24,13 +26,11 @@ public class PortToIntNwAddrMap extends ReplicatedMap<UUID, Integer> {
 
     @Override
     protected String encodeValue(Integer value) {
-        return Integer.toHexString(value);
+        return Net.convertIntAddressToString(value);
     }
 
     @Override
     protected Integer decodeValue(String str) {
-        // Can't use Integer.parseInt because it treats the string as a signed
-        // value.
-        return (int)Long.parseLong(str, 16);
+        return Net.convertStringAddressToInt(str);
     }
 }
