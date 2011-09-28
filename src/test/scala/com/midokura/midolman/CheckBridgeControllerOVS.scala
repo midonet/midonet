@@ -22,9 +22,10 @@ import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
 import java.io.{File, RandomAccessFile}
+import java.lang.Runnable
 import java.net.{InetAddress, InetSocketAddress}
 import java.nio.channels.{FileLock, SelectionKey, ServerSocketChannel}
-import java.util.concurrent.Executors
+import java.util.concurrent.{Executors, TimeUnit}
 import java.util.{Date, UUID}
 
 /**
@@ -46,6 +47,7 @@ object CheckBridgeControllerOVS extends SelectListener {
     private final val of_port = 6633
     private final var listenSock: ServerSocketChannel = _
     private final var reactor: SelectLoop = _
+    private final val target = "tcp:127.0.0.1"
 
     @BeforeClass def initializeTest() {
         // Set up the (mock) ZooKeeper directories.
@@ -83,14 +85,19 @@ object CheckBridgeControllerOVS extends SelectListener {
         reactor.register(listenSock, SelectionKey.OP_ACCEPT, this)
 
         registerController
-        
-        log.info("Entering doLoop")
+
+        reactor.schedule(new Runnable() { def run = { reactor.shutdown } }, 
+                         2000, TimeUnit.MILLISECONDS)
         reactor.doLoop
-        log.info("Leaving doLoop")
+    }
+
+    @AfterClass def finalizeTest() {
+        assertTrue(ovsdb.hasController(target))
+        ovsdb.delBridgeOpenflowControllers(bridgeId)
+        assertFalse(ovsdb.hasController(target))
     }
 
     def registerController() = {
-        val target = "tcp:127.0.0.1"
         var cb = ovsdb.addBridgeOpenflowController(bridgeName, target)
         cb.build
         assertTrue(ovsdb.hasController(target))
