@@ -209,6 +209,8 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                       val ovsdb: OpenvSwitchDatabaseConnection) extends Actor {
     import ZebraConnection._
 
+    private final val log = LoggerFactory.getLogger(this.getClass)
+    
     // Map to get port uuid from route type.
     private val ribTypeToPortUUID = mutable.Map[Int, String]()
     // Map to track zebra route and MidoNet Route.
@@ -649,6 +651,8 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
             loopWhile(run) {
                 try {
                     val conn = server.accept
+                    log.debug("start.actor accepted connection {}", conn);
+                    
                     dispatcher ! Request(conn, requestId)
                     requestId += 1
                 } catch {
