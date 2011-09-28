@@ -31,6 +31,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Net;
 
 public class Network {
 
@@ -106,12 +107,12 @@ public class Network {
 
     private PortDirectory.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
             throws ZkStateSerializationException, StateAccessException {
-        if (null == watcher)
+        log.debug("refreshPortConfig for {} watcher", portId.toString(), watcher);
+        
+        if (null == watcher) {
             watcher = new PortWatcher(portId);
-        else {
-            // The watcher is only set when refresh is called by the watcher.
-            log.debug("refreshPortConfig for {}", portId.toString());
         }
+        
         ZkNodeEntry<UUID, PortDirectory.PortConfig> entry = portMgr.get(portId, watcher);
         PortDirectory.PortConfig cfg = entry.value;
         if (!(cfg instanceof PortDirectory.RouterPortConfig))
@@ -169,6 +170,8 @@ public class Network {
 
     public void addPort(L3DevicePort port) throws 
             ZkStateSerializationException, StateAccessException, KeeperException, InterruptedException {
+        log.debug("addPort: {}", port);
+        
         UUID routerId = port.getVirtualConfig().device_id;
         Router rtr = getRouter(routerId);
         rtr.addPort(port);
@@ -178,6 +181,8 @@ public class Network {
     // This should only be called for materialized ports, not logical ports.
     public void removePort(L3DevicePort port) throws 
             ZkStateSerializationException, StateAccessException, KeeperException, InterruptedException {
+        log.debug("removePort: {}", port);
+        
         Router rtr = getRouter(port.getVirtualConfig().device_id);
         rtr.removePort(port);
         routersByPortId.remove(port.getId());
@@ -187,6 +192,8 @@ public class Network {
 
     public void getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb)
             throws ZkStateSerializationException {
+        log.debug("getMacForIp: port {} in {}", portId, Net.convertIntAddressToString(nwAddr));
+        
         Router rtr;
         try {
             rtr = getRouterByPort(portId);
@@ -198,6 +205,8 @@ public class Network {
 
     public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
             throws ZkStateSerializationException, StateAccessException {
+        log.debug("process: fwdInfo {} traversedRouters {}", fwdInfo, traversedRouters);
+        
         traversedRouters.clear();
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
@@ -249,6 +258,7 @@ public class Network {
     }
 
     public void undoRouterTransformation(Ethernet tunneledEthPkt) {
+        log.debug("getMacForIp: tunneledEthPkt {}", tunneledEthPkt);
         // TODO Auto-generated method stub
     }
 }
