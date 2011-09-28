@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +40,6 @@ public class RuleZkManager extends ZkManager {
      */
     public RuleZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-    }
-
-    public RuleZkManager(ZooKeeper zk, String basePath) {
-        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     private List<Op> prepareInsertPositionOrdering(

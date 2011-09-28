@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.rules.Rule;
@@ -50,10 +49,6 @@ public class ChainZkManager extends ZkManager {
      */
     public ChainZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-    }
-
-    public ChainZkManager(ZooKeeper zk, String basePath) {
-        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     /**

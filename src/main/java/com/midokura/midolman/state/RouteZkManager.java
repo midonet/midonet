@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
@@ -37,10 +36,6 @@ public class RouteZkManager extends ZkManager {
      */
     public RouteZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-    }
-
-    public RouteZkManager(ZooKeeper zk, String basePath) {
-        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     private String getSubDirectoryRoutePath(ZkNodeEntry<UUID, Route> entry)
