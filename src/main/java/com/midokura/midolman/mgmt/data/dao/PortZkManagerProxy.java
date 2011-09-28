@@ -20,13 +20,13 @@ import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfig.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.util.ShortUUID;
 
 /**
@@ -198,9 +198,9 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     private Port createPort(ZkNodeEntry<UUID, PortMgmtConfig> mgmtNode,
             ZkNodeEntry<UUID, PortConfig> node) {
         UUID id = mgmtNode.key;
-        if (node.value instanceof LogicalRouterPortConfig) {
+        if (node.value instanceof PortConfig.LogicalRouterPortConfig) {
             return LogicalRouterPort.createPort(id,
-                    (LogicalRouterPortConfig) node.value);
+                    (PortConfig.LogicalRouterPortConfig) node.value);
         } else if (node.value instanceof MaterializedRouterPortConfig) {
             return MaterializedRouterPort.createPort(id, mgmtNode.value,
                     (MaterializedRouterPortConfig) node.value);

@@ -21,12 +21,12 @@ import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 import com.midokura.midolman.util.ShortUUID;
 
 public class RouterZkManagerProxy extends ZkMgmtManager {
