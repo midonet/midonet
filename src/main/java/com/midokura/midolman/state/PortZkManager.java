@@ -40,7 +40,7 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareRouterPortCreate(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode)
+            ZkNodeEntry<UUID, PortConfig> portNode)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         try {
@@ -50,7 +50,7 @@ public class PortZkManager extends ZkManager {
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize PortConfig", e,
-                    PortDirectory.PortConfig.class);
+                    PortConfig.class);
         }
         ops.add(Op.create(pathManager.getRouterPortPath(
                 portNode.value.device_id, portNode.key), null,
@@ -58,7 +58,7 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getPortRoutesPath(portNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        if (portNode.value instanceof PortDirectory.MaterializedRouterPortConfig) {
+        if (portNode.value instanceof PortConfig.MaterializedRouterPortConfig) {
             ops.add(Op.create(pathManager.getPortBgpPath(portNode.key), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
@@ -66,7 +66,7 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareBridgePortCreate(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode)
+            ZkNodeEntry<UUID, PortConfig> portNode)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
@@ -77,7 +77,7 @@ public class PortZkManager extends ZkManager {
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize PortConfig", e,
-                    PortDirectory.PortConfig.class);
+                    PortConfig.class);
         }
 
         ops.add(Op.create(pathManager.getBridgePortPath(
@@ -86,9 +86,9 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> preparePortCreate(UUID id, PortDirectory.PortConfig portNode)
+    public List<Op> preparePortCreate(UUID id, PortConfig portNode)
             throws ZkStateSerializationException {
-        return preparePortCreate(new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
+        return preparePortCreate(new ZkNodeEntry<UUID, PortConfig>(
                 id, portNode));
     }
 
@@ -104,13 +104,13 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public List<Op> preparePortCreate(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            ZkNodeEntry<UUID, PortConfig> entry)
             throws ZkStateSerializationException {
-        if (entry.value instanceof PortDirectory.BridgePortConfig) {
+        if (entry.value instanceof PortConfig.BridgePortConfig) {
             return prepareBridgePortCreate(entry);
-        } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
+        } else if (entry.value instanceof PortConfig.MaterializedRouterPortConfig) {
             return prepareRouterPortCreate(entry);
-        } else if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
+        } else if (entry.value instanceof PortConfig.LogicalRouterPortConfig) {
             throw new IllegalArgumentException(
                     "A single logical port cannot be created.");
         } else {
@@ -119,8 +119,8 @@ public class PortZkManager extends ZkManager {
     }
 
     public List<Op> preparePortCreateLink(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> localPortEntry,
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> peerPortEntry)
+            ZkNodeEntry<UUID, PortConfig> localPortEntry,
+            ZkNodeEntry<UUID, PortConfig> peerPortEntry)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
@@ -131,10 +131,10 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareRouterPortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
+        if (entry.value instanceof PortConfig.MaterializedRouterPortConfig) {
             ops.add(Op.delete(pathManager.getPortBgpPath(entry.key), -1));
         }
         RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
@@ -160,7 +160,7 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     private List<Op> prepareBridgePortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getBridgePortPath(entry.value.device_id,
@@ -170,11 +170,11 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareLinkDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            ZkNodeEntry<UUID, PortConfig> entry)
             throws ZkStateSerializationException, StateAccessException {
         List<Op> ops = prepareRouterPortDelete(entry);
-        UUID peerId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> peer = get(peerId);
+        UUID peerId = ((PortConfig.LogicalRouterPortConfig) entry.value).peer_uuid;
+        ZkNodeEntry<UUID, PortConfig> peer = get(peerId);
         ops.addAll(prepareRouterPortDelete(peer));
         return ops;
     }
@@ -194,13 +194,13 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public List<Op> preparePortDelete(
-            ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+            ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        if (entry.value instanceof PortDirectory.BridgePortConfig) {
+        if (entry.value instanceof PortConfig.BridgePortConfig) {
             return prepareBridgePortDelete(entry);
-        } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
+        } else if (entry.value instanceof PortConfig.MaterializedRouterPortConfig) {
             return prepareRouterPortDelete(entry);
-        } else if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
+        } else if (entry.value instanceof PortConfig.LogicalRouterPortConfig) {
             return prepareLinkDelete(entry);
         } else {
             throw new IllegalArgumentException("Unsupported port type");
@@ -216,28 +216,28 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public UUID create(PortDirectory.PortConfig port)
+    public UUID create(PortConfig port)
             throws StateAccessException, ZkStateSerializationException {
         // TODO(pino) - port UUIDs should be created using a sequential
         // persistent
         // create in a ZK directory.
         UUID id = ShortUUID.generate32BitUUID();
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> portNode = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
+        ZkNodeEntry<UUID, PortConfig> portNode = new ZkNodeEntry<UUID, PortConfig>(
                 id, port);
         multi(preparePortCreate(portNode));
         return id;
     }
 
     public ZkNodeEntry<UUID, UUID> createLink(
-            PortDirectory.LogicalRouterPortConfig localPort,
-            PortDirectory.LogicalRouterPortConfig peerPort)
+            PortConfig.LogicalRouterPortConfig localPort,
+            PortConfig.LogicalRouterPortConfig peerPort)
             throws StateAccessException, ZkStateSerializationException {
         localPort.peer_uuid = ShortUUID.generate32BitUUID();
         peerPort.peer_uuid = ShortUUID.generate32BitUUID();
 
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> localPortEntry = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
+        ZkNodeEntry<UUID, PortConfig> localPortEntry = new ZkNodeEntry<UUID, PortConfig>(
                 peerPort.peer_uuid, localPort);
-        ZkNodeEntry<UUID, PortDirectory.PortConfig> peerPortEntry = new ZkNodeEntry<UUID, PortDirectory.PortConfig>(
+        ZkNodeEntry<UUID, PortConfig> peerPortEntry = new ZkNodeEntry<UUID, PortConfig>(
                 localPort.peer_uuid, peerPort);
         multi(preparePortCreateLink(localPortEntry, peerPortEntry));
         return new ZkNodeEntry<UUID, UUID>(peerPort.peer_uuid,
@@ -253,7 +253,7 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public ZkNodeEntry<UUID, PortDirectory.PortConfig> get(UUID id)
+    public ZkNodeEntry<UUID, PortConfig> get(UUID id)
             throws StateAccessException, ZkStateSerializationException {
         return get(id, null);
     }
@@ -271,19 +271,19 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public ZkNodeEntry<UUID, PortDirectory.PortConfig> get(UUID id,
+    public ZkNodeEntry<UUID, PortConfig> get(UUID id,
             Runnable watcher) throws StateAccessException,
             ZkStateSerializationException {
         byte[] data = get(pathManager.getPortPath(id), watcher);
-        PortDirectory.PortConfig config = null;
+        PortConfig config = null;
         try {
-            config = deserialize(data, PortDirectory.PortConfig.class);
+            config = deserialize(data, PortConfig.class);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not deserialize port " + id + " to PortConfig", e,
-                    PortDirectory.PortConfig.class);
+                    PortConfig.class);
         }
-        return new ZkNodeEntry<UUID, PortDirectory.PortConfig>(id, config);
+        return new ZkNodeEntry<UUID, PortConfig>(id, config);
     }
 
     /**
@@ -298,10 +298,10 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listPorts(
+    public List<ZkNodeEntry<UUID, PortConfig>> listPorts(
             String path, Runnable watcher) throws StateAccessException,
             ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> result = new ArrayList<ZkNodeEntry<UUID, PortDirectory.PortConfig>>();
+        List<ZkNodeEntry<UUID, PortConfig>> result = new ArrayList<ZkNodeEntry<UUID, PortConfig>>();
         Set<String> portIds = getChildren(path, watcher);
         for (String portId : portIds) {
             // For now, get each one.
@@ -320,7 +320,7 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listRouterPorts(
+    public List<ZkNodeEntry<UUID, PortConfig>> listRouterPorts(
             UUID routerId) throws StateAccessException,
             ZkStateSerializationException {
         return listRouterPorts(routerId, null);
@@ -339,7 +339,7 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listRouterPorts(
+    public List<ZkNodeEntry<UUID, PortConfig>> listRouterPorts(
             UUID routerId, Runnable watcher) throws StateAccessException,
             ZkStateSerializationException {
         return listPorts(pathManager.getRouterPortsPath(routerId), watcher);
@@ -355,7 +355,7 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listBridgePorts(
+    public List<ZkNodeEntry<UUID, PortConfig>> listBridgePorts(
             UUID bridgeId) throws StateAccessException,
             ZkStateSerializationException {
         return listBridgePorts(bridgeId, null);
@@ -374,7 +374,7 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<ZkNodeEntry<UUID, PortDirectory.PortConfig>> listBridgePorts(
+    public List<ZkNodeEntry<UUID, PortConfig>> listBridgePorts(
             UUID bridgeId, Runnable watcher) throws StateAccessException,
             ZkStateSerializationException {
         return listPorts(pathManager.getBridgePortsPath(bridgeId), watcher);
@@ -388,7 +388,7 @@ public class PortZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public void update(ZkNodeEntry<UUID, PortDirectory.PortConfig> entry)
+    public void update(ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
         // Update any version for now.
         byte[] data = null;
@@ -398,7 +398,7 @@ public class PortZkManager extends ZkManager {
         } catch (IOException e) {
             throw new ZkStateSerializationException("Could not serialize port "
                     + entry.key + " to PortConfig", e,
-                    PortDirectory.PortConfig.class);
+                    PortConfig.class);
         }
         update(pathManager.getPortPath(entry.key), data);
     }

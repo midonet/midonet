@@ -28,7 +28,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -80,7 +80,7 @@ public class TestNetwork {
          * has a single uplink to the global internet.
          */
         Route rt;
-        PortDirectory.MaterializedRouterPortConfig portConfig;
+        PortConfig.MaterializedRouterPortConfig portConfig;
         for (int i = 0; i < 3; i++) {
             UUID rtrId = routerMgr.create();
             routerIds.add(rtrId);
@@ -101,7 +101,7 @@ public class TestNetwork {
                 int portNw = routerNw + (j << 8);
                 int portAddr = portNw + 1;
                 short portNum = (short) (i * 10 + j);
-                portConfig = new PortDirectory.MaterializedRouterPortConfig(
+                portConfig = new PortConfig.MaterializedRouterPortConfig(
                         rtrId, portNw, 24, portAddr, null, portNw, 24, null);
                 UUID portId = portMgr.create(portConfig);
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 2,
@@ -118,9 +118,9 @@ public class TestNetwork {
         }
         // Now add the logical links between router 0 and 1.
         // First from 0 to 1
-        PortDirectory.LogicalRouterPortConfig logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
+        PortConfig.LogicalRouterPortConfig logPortConfig1 = new PortConfig.LogicalRouterPortConfig(
                 routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, null, null);
-        PortDirectory.LogicalRouterPortConfig logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
+        PortConfig.LogicalRouterPortConfig logPortConfig2 = new PortConfig.LogicalRouterPortConfig(
                 routerIds.get(1), 0xc0a80100, 30, 0xc0a80102, null, null);
         ZkNodeEntry<UUID, UUID> idPair = portMgr.createLink(logPortConfig1,
                 logPortConfig2);
@@ -137,9 +137,9 @@ public class TestNetwork {
         network.getRouter(routerIds.get(1)).table.addRoute(rt);
         // Now add the logical links between router 0 and 2.
         // First from 0 to 2
-        logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(routerIds
+        logPortConfig1 = new PortConfig.LogicalRouterPortConfig(routerIds
                 .get(0), 0xc0a80100, 30, 0xc0a80101, null, null);
-        logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(routerIds
+        logPortConfig2 = new PortConfig.LogicalRouterPortConfig(routerIds
                 .get(2), 0xc0a80100, 30, 0xc0a80102, null, null);
         idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
         UUID portOn0to2 = idPair.key;

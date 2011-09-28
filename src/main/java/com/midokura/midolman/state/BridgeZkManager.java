@@ -16,7 +16,6 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.GreZkManager.GreKey;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
  * Class to manage the bridge ZooKeeper data.

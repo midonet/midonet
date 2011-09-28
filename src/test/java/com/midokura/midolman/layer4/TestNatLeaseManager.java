@@ -14,7 +14,6 @@ import org.junit.Test;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.RouterDirectory;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.MockCache;

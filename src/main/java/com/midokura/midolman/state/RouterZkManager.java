@@ -20,7 +20,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.state.PortDirectory.PortConfig;
 
 /**
  * Class to manage the router ZooKeeper data.

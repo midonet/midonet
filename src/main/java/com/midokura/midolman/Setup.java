@@ -48,10 +48,9 @@ import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortDirectory.*;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -152,8 +151,8 @@ public class Setup implements Watcher {
                 routerId).iterator();
         while (iter.hasNext()) {
             ZkNodeEntry<UUID, PortConfig> entry = iter.next();
-            PortDirectory.MaterializedRouterPortConfig config;
-            config = MaterializedRouterPortConfig.class.cast(entry.value);
+            PortConfig.MaterializedRouterPortConfig config;
+            config = PortConfig.MaterializedRouterPortConfig.class.cast(entry.value);
             // A down-port can only receive packets from network addresses that
             // are 'local' to the port.
             cond = new Condition();
@@ -275,7 +274,7 @@ public class Setup implements Watcher {
         UUID portId;
         PortConfig portConfig;
         for (int i = 0; i < 3; i++) {
-            portConfig = new BridgePortConfig(deviceId);
+            portConfig = new PortConfig.BridgePortConfig(deviceId);
             portId = portMgr.create(portConfig);
             log.info("Created a bridge port with id {}", portId.toString());
         }
@@ -288,7 +287,7 @@ public class Setup implements Watcher {
         for (int j = 0; j < 3; j++) {
             int portNw = routerNw + (j << 8);
             int portAddr = portNw + 1;
-            portConfig = new PortDirectory.MaterializedRouterPortConfig(
+            portConfig = new PortConfig.MaterializedRouterPortConfig(
                     deviceId, portNw, 24, portAddr, null, portNw, 24, null);
             portId = portMgr.create(portConfig);
             log.info("Created a router port with id {} that routes to {}",

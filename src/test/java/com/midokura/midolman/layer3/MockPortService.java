@@ -17,6 +17,8 @@ import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -24,7 +26,6 @@ import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Net;
 
 public class MockPortService implements PortService {
@@ -123,7 +124,7 @@ public class MockPortService implements PortService {
             throws StateAccessException, ZkStateSerializationException {
         UUID remotePortId = remotePort.getId();
         short remotePortNum = remotePort.getNum();
-        MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
+        PortConfig.MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
         int localAddr = portConfig.portAddr;
 
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(remotePortId)) {
