@@ -58,6 +58,7 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 
 public class NetworkController extends AbstractController {
@@ -200,7 +201,10 @@ public class NetworkController extends AbstractController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPort);
         L3DevicePort devPortOut;
+
         if (super.isTunnelPortNum(inPort)) {
+            log.debug("onPacketIn: got packet from tunnel {}", inPort);
+
             // TODO: Check for multicast packets we generated ourself for a
             // group we're in, and drop them.
 
@@ -216,23 +220,26 @@ public class NetworkController extends AbstractController {
             // Extract the gateway IP and vport uuid.
             DecodedMacAddrs portsAndGw = decodeMacAddrs(match
                     .getDataLayerSource(), match.getDataLayerDestination());
+
+            log.debug("onPacketIn: from tunnel port {} decoded mac {}",
+                    inPort, portsAndGw);
+            
             // If we don't own the egress port, there was a forwarding mistake.
             devPortOut = devPortById.get(portsAndGw.lastEgressPortId);
-            String msg = String.format("onPacketIn from tunnel port %d"
-                    + "to gateway %s and port id %s", inPort, IPv4
-                    .fromIPv4Address(portsAndGw.gatewayNwAddr),
-                    portsAndGw.lastEgressPortId.toString());
+            
             if (null == devPortOut) {
-                log.warn("{} -- the egress port is not local.", msg);
+                log.warn("onPacketIn: the egress port {} is not local", portsAndGw.lastEgressPortId);
                 // TODO: raise an exception or install a Blackhole?
                 return;
             }
-            log.debug(msg);
+            
             TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
                     totalLen, inPort, data, match, portsAndGw);
             try {
+                log.warn("onPacketIn: need mac for ip", portsAndGw.lastEgressPortId);
+                
                 network.getMacForIp(portsAndGw.lastEgressPortId,
-                        portsAndGw.gatewayNwAddr, cb);
+                        portsAndGw.nextHopNwAddr, cb);
             } catch (ZkStateSerializationException e) {
                 log.warn("onPacketIn", e);
             }
@@ -481,7 +488,14 @@ public class NetworkController extends AbstractController {
     public static class DecodedMacAddrs {
         UUID lastIngressPortId;
         UUID lastEgressPortId;
-        int gatewayNwAddr;
+        int nextHopNwAddr;
+        
+        public String toString() {
+            return String.format("DecodedMacAddrs: ingress %s egress %s gw %s",
+                    lastIngressPortId,
+                    lastEgressPortId,
+                    Net.convertIntAddressToString(nextHopNwAddr));
+        }
     }
 
     public static DecodedMacAddrs decodeMacAddrs(final byte[] src,
@@ -491,10 +505,10 @@ public class NetworkController extends AbstractController {
         for (int i = 0; i < 4; i++)
             port32BitId |= (src[i] & 0xff) << ((3 - i) * 8);
         result.lastIngressPortId = ShortUUID.intTo32BitUUID(port32BitId);
-        result.gatewayNwAddr = (src[4] & 0xff) << 24;
-        result.gatewayNwAddr |= (src[5] & 0xff) << 16;
-        result.gatewayNwAddr |= (dst[0] & 0xff) << 8;
-        result.gatewayNwAddr |= (dst[1] & 0xff);
+        result.nextHopNwAddr = (src[4] & 0xff) << 24;
+        result.nextHopNwAddr |= (src[5] & 0xff) << 16;
+        result.nextHopNwAddr |= (dst[0] & 0xff) << 8;
+        result.nextHopNwAddr |= (dst[1] & 0xff);
         port32BitId = 0;
         for (int i = 2; i < 6; i++)
             port32BitId |= (dst[i] & 0xff) << (5 - i) * 8;
@@ -526,16 +540,17 @@ public class NetworkController extends AbstractController {
             String nwDstStr = IPv4.fromIPv4Address(match
                     .getNetworkDestination());
             if (null != mac) {
-                String msg = String.format(
-                        "Mac resolved for tunneled packet to {}", nwDstStr);
+                log.debug("TunneledPktArpCallback.call: Mac resolved for tunneled packet to {}", nwDstStr);
                 L3DevicePort devPort = devPortById
                         .get(portsAndGw.lastEgressPortId);
+                
                 if (null == devPort) {
-                    log.warn("{} -- port is no longer local", msg);
+                    log.warn("TunneledPktArpCallback.call: port {} is no longer local", portsAndGw.lastEgressPortId);
                     // TODO(pino): do we need to do anything for this?
                     // The port was removed while we waited for the ARP.
                     return;
                 }
+                
                 MidoMatch newMatch = match.clone();
                 // TODO(pino): get the port's mac address from the ZK config.
                 newMatch.setDataLayerSource(devPort.getMacAddr());
@@ -549,20 +564,21 @@ public class NetworkController extends AbstractController {
                     // inPort, dlType, nwSrc.
                     match = makeWildcardedFromTunnel(match);
                 }
+
                 // If this is an ICMP error message from a peer controller,
                 // don't install a flow match, just send the packet
                 if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL) {
-                    log.debug("{} -- forward ICMP without installing flow", msg);
+                    log.debug("TunneledPktArpCallback.call: forward ICMP without installing flow");
                     NetworkController.super.controllerStub.sendPacketOut(
                             bufferId, inPort, ofActions, data);
                 } else {
-                    log.debug("{} -- forward and install flow", msg);
+                    log.debug("TunneledPktArpCallback.call: forward and install flow {}", match);
                     addFlowAndSendPacket(bufferId, match,
                             TUNNEL_EXPIRY_SECONDS, IDLE_TIMEOUT_SECS, true,
                             ofActions, inPort, data);
                 }
             } else {
-                log.debug("ARP timed out for tunneled packet to {}, send ICMP",
+                log.debug("TunneledPktArpCallback.call: ARP timed out for tunneled packet to {}, send ICMP",
                         nwDstStr);
                 installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
@@ -620,16 +636,17 @@ public class NetworkController extends AbstractController {
             String nwDstStr = IPv4.fromIPv4Address(match
                     .getNetworkDestination());
             if (null != mac) {
-                String msg = String.format("Mac resolved for local packet to"
-                        + "{}", nwDstStr);
+                log.debug("LocalPktArpCallback.call: mac resolved for local packet to {}", nwDstStr);
+
                 L3DevicePort devPort = devPortById.get(fwdInfo.outPortId);
                 if (null == devPort) {
-                    log.warn("{} -- port is no longer local", msg);
+                    log.warn("LocalPktArpCallback.call: port is no longer local");
                     // TODO(pino): do we need to do anything for this?
                     // The port was removed while we waited for the ARP.
                     return;
                 }
-                log.debug("{} -- forward and install flow", msg);
+                log.debug("LocalPktArpCallback.call: forward and install flow");
+                
                 fwdInfo.matchOut.setDataLayerSource(devPort.getMacAddr());
                 fwdInfo.matchOut.setDataLayerDestination(mac);
                 List<OFAction> ofActions = makeActionsForFlow(match,
@@ -686,8 +703,11 @@ public class NetworkController extends AbstractController {
          * requires invoking the routing logic and then ARPing the next hop
          * gateway network address.
          */
-        if (!canSendICMP(tunneledEthPkt, lastEgress))
+        if (!canSendICMP(tunneledEthPkt, lastEgress)) {
+            log.debug("sendICMPforTunneledPkt: cannot send ICMP");
             return;
+        }
+
         // First, we ask the last router to undo any transformation it may have
         // applied on the packet.
         network.undoRouterTransformation(tunneledEthPkt);

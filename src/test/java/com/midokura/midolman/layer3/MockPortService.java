@@ -99,9 +99,8 @@ public class MockPortService implements PortService {
         // Check service attributes in port configurations.
         List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(portId);
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpNodes) {
-            String portName = String.format(BGP_PORT_NAME + "%d", bgpPortIdx);
-            log.debug(String.format("Add %s port %s to datapath %d",
-                    BGP_SERVICE_EXT_ID, portName, datapathId));
+            log.debug("Add {}{} port {} to datapath {}",
+                    new Object[] {BGP_PORT_NAME, bgpPortIdx, BGP_SERVICE_EXT_ID, datapathId});
             portNumtoRemoteUUID.put(bgpPortNum, portId);
             bgpPortIdx += 1;
         }
@@ -130,11 +129,11 @@ public class MockPortService implements PortService {
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(remotePortId)) {
             BgpConfig bgpConfig = bgpNode.value;
             int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
-            log.debug(String.format("Port service flows: local %d remote %d "
-                    + "localAddr %d remoteAddr %d "
-                    + "localPort %d remotePort %d", localPortNum,
+            log.debug("Port service flows: local {} remote {} "
+                    + "localAddr {} remoteAddr {} "
+                    + "localPort {} remotePort {}", new Object[] {localPortNum,
                     remotePortNum, localAddr, remoteAddr, BGP_TCP_PORT,
-                    BGP_TCP_PORT));
+                    BGP_TCP_PORT});
             controller.setServicePortFlows(localPortNum, remotePortNum,
                     localAddr, remoteAddr, BGP_TCP_PORT, BGP_TCP_PORT);
         }

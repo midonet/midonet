@@ -1171,7 +1171,7 @@ public class TestNetworkController {
                 .UUID32toInt(decoded.lastIngressPortId));
         Assert.assertEquals(outPort, ShortUUID
                 .UUID32toInt(decoded.lastEgressPortId));
-        Assert.assertEquals(nwAddr, decoded.gatewayNwAddr);
+        Assert.assertEquals(nwAddr, decoded.nextHopNwAddr);
     }
 
     private void addUplink() throws StateAccessException,

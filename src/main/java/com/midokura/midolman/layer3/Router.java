@@ -213,7 +213,7 @@ public class Router {
         // The nwAddr should be in the port's localNwAddr/localNwLength.
         int shift = 32 - devPort.getVirtualConfig().localNwLength;
         if ((nwAddr >>> shift) != (devPort.getVirtualConfig().localNwAddr >>> shift)) {
-            log.warn("{} cannot get mac for {} - address not in network "
+            log.warn("getMacForIp: {} cannot get mac for {} - address not in network "
                     + "segment of port {}", new Object[] { rtrIdStr, nwAddrStr,
                     portId.toString() });
             // TODO(pino): should this call be invoked asynchronously?
@@ -225,7 +225,7 @@ public class Router {
         if (null != entry && null != entry.macAddr) {
             if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now) {
                 // Note that ARP-ing to refresh a stale entry doesn't retry.
-                log.debug("{} getMacForIp refreshing ARP cache entry for {}",
+                log.debug("getMacForIp: {} getMacForIp refreshing ARP cache entry for {}",
                         rtrIdStr, nwAddrStr);
                 generateArpRequest(nwAddr, portId);
             }
@@ -241,7 +241,7 @@ public class Router {
                 .get(portId);
         if (null == cbLists) {
             // This should never happen.
-            log.error("{} getMacForIp found null arpCallbacks map for port {} "
+            log.error("getMacForIp: {} getMacForIp found null arpCallbacks map for port {} "
                     + "but arpCache was not null", rtrIdStr, portId.toString());
             cb.call(null);
         }
@@ -249,7 +249,7 @@ public class Router {
         if (null == cbList) {
             cbList = new ArrayList<Callback<byte[]>>();
             cbLists.put(nwAddr, cbList);
-            log.debug("{} getMacForIp generating ARP request for {}", rtrIdStr,
+            log.debug("getMacForIp: {} getMacForIp generating ARP request for {}", rtrIdStr,
                     nwAddrStr);
             generateArpRequest(nwAddr, portId);
             arpCache.put(nwAddr, new ArpCacheEntry(null, now

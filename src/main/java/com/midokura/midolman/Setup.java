@@ -63,6 +63,7 @@ import com.midokura.midolman.state.ZkPathManager;
 public class Setup implements Watcher {
 
     static final Logger log = LoggerFactory.getLogger(Setup.class);
+    
     private static final String ZK_CREATE = "zk_create";
     private static final String ZK_DESTROY = "zk_destroy";
     private static final String ZK_SETUP = "zk_setup";
@@ -270,20 +271,17 @@ public class Setup implements Watcher {
 
         // First, create a simple bridge with 3 ports.
         UUID deviceId = bridgeMgr.create(new BridgeConfig());
-        System.out.println(String.format("Created a bridge with id %s",
-                deviceId.toString()));
+        log.info("Created a bridge with id {}", deviceId.toString());
         UUID portId;
         PortConfig portConfig;
         for (int i = 0; i < 3; i++) {
             portConfig = new BridgePortConfig(deviceId);
             portId = portMgr.create(portConfig);
-            System.out.println(String.format(
-                    "Created a bridge port with id %s", portId.toString()));
+            log.info("Created a bridge port with id {}", portId.toString());
         }
         // Now create a router with 3 ports.
         deviceId = routerMgr.create();
-        System.out.println(String.format("Created a router with id %s",
-                deviceId.toString()));
+        log.info("Created a router with id {}", deviceId.toString());
         // Add two ports to the router. Port-j should route to subnet
         // 10.0.<j>.0/24.
         int routerNw = 0x0a000000;
@@ -293,9 +291,9 @@ public class Setup implements Watcher {
             portConfig = new PortDirectory.MaterializedRouterPortConfig(
                     deviceId, portNw, 24, portAddr, null, portNw, 24, null);
             portId = portMgr.create(portConfig);
-            System.out.println(String.format("Created a router port with id "
-                    + "%s that routes to %s", portId.toString(), IPv4
-                    .addrToString(portNw)));
+            log.info("Created a router port with id {} that routes to {}",
+                    portId.toString(), IPv4.addrToString(portNw));
+            
             Route rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 10,
                     null, deviceId);
             routeMgr.create(rt);

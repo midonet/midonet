@@ -219,12 +219,12 @@ public class BgpPortService implements PortService {
             final UUID bgpId = bgpNode.key;
             final BgpConfig bgpConfig = bgpNode.value;
             int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
-            log.info(String.format("Port service flows: local %d remote %d " +
-                                   "localAddr %d remoteAddr %d " +
-                                   "localPort %d remotePort %d",
-                                   localPortNum, remotePortNum,
+            log.info("Port service flows: local {} remote {} " +
+                                   "localAddr {} remoteAddr {} " +
+                                   "localPort {} remotePort {}",
+                                   new Object[] {localPortNum, remotePortNum,
                                    localAddr, remoteAddr,
-                                   BGP_TCP_PORT, BGP_TCP_PORT));
+                                   BGP_TCP_PORT, BGP_TCP_PORT});
             controller.setServicePortFlows(localPortNum, remotePortNum,
                                            localAddr, remoteAddr,
                                            BGP_TCP_PORT, BGP_TCP_PORT);
