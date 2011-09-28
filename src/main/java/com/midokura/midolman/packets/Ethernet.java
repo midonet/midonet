@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.midokura.midolman.util.Net;
+
 
 /**
  * FIXME(dmd): Record the license this is under here.
@@ -28,6 +30,21 @@ public class Ethernet extends BasePacket {
     protected short vlanID;
     protected short etherType;
     protected boolean pad = false;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Ethernet [dlSrc=");
+        sb.append(null == sourceMACAddress ? "null" : Net
+                .convertByteMacToString(sourceMACAddress));
+        sb.append(", dlDst=").append(
+                null == destinationMACAddress ? "null" : Net
+                        .convertByteMacToString(destinationMACAddress));
+        sb.append(", etherType=").append(etherType).append(", payload=");
+        sb.append(null == payload ? "null" : payload.toString());
+        sb.append("]");
+        return sb.toString();
+    }
 
     /**
      * @return the destinationMACAddress

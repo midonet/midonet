@@ -24,6 +24,17 @@ public class UDP extends BasePacket implements Transport {
     protected short length;
     protected short checksum;
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("UDP [sport=").append(sourcePort);
+        sb.append(", dport=").append(destinationPort);
+        sb.append(", length=").append(length);
+        sb.append(", cksum=").append(checksum);
+        sb.append("]");
+        return sb.toString();
+    }
+
     /**
      * @return the sourcePort
      */

@@ -197,11 +197,13 @@ public class NetworkController extends AbstractController {
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
-        log.debug("onPacketIn: {} {}", totalLen, inPort);
-        
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPort);
         L3DevicePort devPortOut;
+
+        Ethernet ethPkt = new Ethernet();
+        ethPkt.deserialize(data, 0, data.length);
+        log.debug("onPacketIn: port {} packet {}", inPort, ethPkt);
 
         if (super.isTunnelPortNum(inPort)) {
             log.debug("onPacketIn: got packet from tunnel {}", inPort);
@@ -257,9 +259,7 @@ public class NetworkController extends AbstractController {
             freeBuffer(bufferId);
             return;
         }
-        Ethernet ethPkt = new Ethernet();
-        ethPkt.deserialize(data, 0, data.length);
-        
+
         // check if the packet is a DHCP request
         if (ethPkt.getEtherType() == IPv4.ETHERTYPE) {
             IPv4 ipv4 = (IPv4) ethPkt.getPayload();

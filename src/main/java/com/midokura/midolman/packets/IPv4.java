@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.midokura.midolman.util.Net;
+
 /**
  * @author David Erickson (daviderickson@cs.stanford.edu)
  *
@@ -46,6 +48,24 @@ public class IPv4 extends BasePacket {
     public IPv4() {
         super();
         this.version = 4;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("IPv4 [headerL=").append(headerLength);
+        sb.append(", totalL=").append(totalLength);
+        sb.append(", ttl=").append(ttl);
+        sb.append(", frag=").append(fragmentOffset);
+        sb.append(", cksum=").append(checksum);
+        sb.append(", proto=").append(protocol);
+        sb.append(", nwSrc=").append(
+                Net.convertIntAddressToString(sourceAddress));
+        sb.append(", nwDst=").append(
+                Net.convertIntAddressToString(destinationAddress));
+        sb.append(", payload=").append(
+                null == payload ? "null" : payload.toString());
+        sb.append("]");
+        return sb.toString();
     }
 
     /**

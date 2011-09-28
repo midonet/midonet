@@ -16,7 +16,19 @@ public class TCP extends BasePacket implements Transport {
     protected short windowSize;
     protected short checksum;
     protected short urgent;
-    
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("TCP [sport=").append(sourcePort);
+        sb.append(", dport=").append(destinationPort);
+        sb.append(", seqNo=").append(seqNo);
+        sb.append(", ackNo=").append(ackNo);
+        sb.append(", cksum=").append(checksum);
+        sb.append("]");
+        return sb.toString();
+    }
+
     @Override
     public byte[] serialize() {
         // TODO Auto-generated method stub

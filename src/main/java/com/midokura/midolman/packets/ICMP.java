@@ -36,6 +36,17 @@ public class ICMP extends BasePacket {
     int quench;
     byte[] data;
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ICMP [type=").append(type);
+        sb.append(", code=").append(code);
+        sb.append(", cksum=").append(checksum);
+        sb.append(", quench=").append(quench);
+        sb.append("]");
+        return sb.toString();
+    }
+
     public boolean isError() {
         return TYPE_UNREACH == code || TYPE_SOURCE_QUENCH == code ||
                 TYPE_REDIRECT == code || TYPE_TIME_EXCEEDED == code ||

@@ -1,10 +1,16 @@
-package com.midokura.midolman.util;
+package com.midokura.midolman.packets;
+
+import com.midokura.midolman.util.Net;
 
 public class IntIPv4 implements Cloneable{
     public final int address;
 
     public IntIPv4(int addr) {
         address = addr;
+    }
+
+    public IntIPv4(byte[] addr) {
+        address = IPv4.toIPv4Address(addr);
     }
 
     public IntIPv4 clone() { return new IntIPv4(address); }

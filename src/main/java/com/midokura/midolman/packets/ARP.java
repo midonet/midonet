@@ -3,6 +3,8 @@ package com.midokura.midolman.packets;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import com.midokura.midolman.util.Net;
+
 /**
  *
  * @author David Erickson (daviderickson@cs.stanford.edu)
@@ -26,6 +28,30 @@ public class ARP extends BasePacket {
     protected byte[] senderProtocolAddress;
     protected byte[] targetHardwareAddress;
     protected byte[] targetProtocolAddress;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ARP [opcode=").append(opCode);
+        sb.append(", hwType=").append(hardwareType);
+        sb.append(", protoType=").append(protocolType);
+        sb.append(", sha=").append(
+                null == senderHardwareAddress ? "null" : Net
+                        .convertByteMacToString(senderHardwareAddress));
+        sb.append(", tha=").append(
+                null == targetHardwareAddress ? "null" : Net
+                        .convertByteMacToString(targetHardwareAddress));
+        sb.append(", spa=").append(
+                null == senderProtocolAddress
+                        || senderProtocolAddress.length != 4 ? "null"
+                        : (new IntIPv4(senderProtocolAddress)).toString());
+        sb.append(", tpa=").append(
+                null == targetProtocolAddress
+                        || targetProtocolAddress.length != 4 ? "null"
+                        : (new IntIPv4(targetProtocolAddress)).toString());
+        sb.append("]");
+        return sb.toString();
+    }
 
     /**
      * @return the hardwareType
@@ -253,7 +279,6 @@ public class ARP extends BasePacket {
 
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return "ARP [hardwareType=" + hardwareType + ", protocolType="
@@ -269,4 +294,5 @@ public class ARP extends BasePacket {
                 + ", targetProtocolAddress="
                 + Arrays.toString(targetProtocolAddress) + "]";
     }
+     */
 }
