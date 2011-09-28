@@ -67,11 +67,10 @@ public class RuleZkManager extends ZkManager {
             }
             // For any node that has the >= position value, shift up.
             if (rule.value.position >= position) {
-                String path = pathManager.getChainRulePath(rule.value.chainId,
-                        rule.key);
-                rule.value.position++;
+                String path = pathManager.getRulePath(rule.key);
+                (rule.value.position)++;
                 try {
-                    ops.add(Op.setData(path, serialize(rule), -1));
+                    ops.add(Op.setData(path, serialize(rule.value), -1));
                 } catch (IOException e) {
                     throw new ZkStateSerializationException(
                             "Could not serialize Rule", e, Rule.class);
