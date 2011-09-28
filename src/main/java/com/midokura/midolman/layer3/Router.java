@@ -219,6 +219,17 @@ public class Router {
         arpCallbackLists.remove(port.getId());
     }
 
+    /**
+     * Get the mac address for an ip address that is accessible from a local
+     * L3 port. The callback is invoked immediately within this method if the
+     * address is in the ARP cache, otherwise the callback is invoked
+     * asynchronously when the address is resolved or the ARP request times out,
+     * whichever comes first.
+     * 
+     * @param portId
+     * @param nwAddr
+     * @param cb
+     */
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb) {
         log.debug("getMacForIp: port {} ip {}", portId, Net.convertIntAddressToString(nwAddr));
         
