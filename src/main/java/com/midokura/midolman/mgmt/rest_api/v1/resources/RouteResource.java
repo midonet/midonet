@@ -25,7 +25,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.RouteDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.RouteZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -57,7 +57,7 @@ public class RouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Route get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a route for the given ID.
-        RouteDataAccessor dao = new RouteDataAccessor(zooKeeper, zookeeperRoot,
+        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         try {
             return dao.get(id);
@@ -73,7 +73,7 @@ public class RouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        RouteDataAccessor dao = new RouteDataAccessor(zooKeeper, zookeeperRoot,
+        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         try {
             dao.delete(id);
@@ -115,7 +115,7 @@ public class RouteResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Route> list() throws StateAccessException {
-            RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
+            RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(routerId);
@@ -142,7 +142,7 @@ public class RouteResource extends RestResource {
         public Response create(Route route, @Context UriInfo uriInfo)
                 throws StateAccessException {
             route.setRouterId(routerId);
-            RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
+            RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
 
             UUID id = null;
@@ -190,7 +190,7 @@ public class RouteResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Route> list() throws StateAccessException {
-            RouteDataAccessor dao = new RouteDataAccessor(zooKeeper,
+            RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.listByPort(portId);

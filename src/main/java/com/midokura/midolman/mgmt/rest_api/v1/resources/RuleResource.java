@@ -25,7 +25,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.RuleDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -44,7 +44,7 @@ public class RuleResource extends RestResource {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Rule get(@PathParam("id") UUID id) throws StateAccessException {
-        RuleDataAccessor dao = new RuleDataAccessor(zooKeeper, zookeeperRoot,
+        RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         try {
             return dao.get(id);
@@ -60,7 +60,7 @@ public class RuleResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        RuleDataAccessor dao = new RuleDataAccessor(zooKeeper, zookeeperRoot,
+        RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         try {
             dao.delete(id);
@@ -88,7 +88,7 @@ public class RuleResource extends RestResource {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public List<Rule> list() throws StateAccessException {
-            RuleDataAccessor dao = new RuleDataAccessor(zooKeeper,
+            RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
                 return dao.list(chainId);
@@ -105,10 +105,10 @@ public class RuleResource extends RestResource {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Rule rule, @Context UriInfo uriInfo)
                 throws StateAccessException {
-            rule.setChainId(chainId);
-            RuleDataAccessor dao = new RuleDataAccessor(zooKeeper,
+            RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
-            UUID id = null;
+            rule.setChainId(chainId);
+           UUID id = null;
             try {
                 id = dao.create(rule);
             } catch (StateAccessException e) {

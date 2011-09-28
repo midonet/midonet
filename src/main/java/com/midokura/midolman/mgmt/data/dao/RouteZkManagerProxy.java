@@ -1,5 +1,5 @@
 /*
- * @(#)RouteDataAccessor        1.6 11/09/05
+ * @(#)RouteZkManager        1.6 11/09/05
  *
  * Copyright 2011 Midokura KK
  */
@@ -21,21 +21,14 @@ import com.midokura.midolman.state.ZkNodeEntry;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-public class RouteDataAccessor extends DataAccessor {
+public class RouteZkManagerProxy extends ZkMgmtManager {
 
-    /**
-     * Constructor
-     * 
-     * @param zkConn
-     *            Zookeeper connection string
-     */
-    public RouteDataAccessor(ZooKeeper zkConn, String rootPath,
-            String mgmtRootPath) {
-        super(zkConn, rootPath, mgmtRootPath);
-    }
+    private RouteZkManager zkManager = null;
 
-    private RouteZkManager getRouteZkManager() throws Exception {
-        return new RouteZkManager(zkConn, zkRoot);
+    public RouteZkManagerProxy(ZooKeeper zk, String basePath,
+            String mgmtBasePath) {
+        super(zk, basePath, mgmtBasePath);
+        zkManager = new RouteZkManager(zk, basePath);
     }
 
     /**
@@ -47,7 +40,7 @@ public class RouteDataAccessor extends DataAccessor {
      *             Error adding data to Zookeeper.
      */
     public UUID create(Route route) throws Exception {
-        return getRouteZkManager().create(route.toZkRoute());
+        return zkManager.create(route.toZkRoute());
     }
 
     /**
@@ -60,11 +53,8 @@ public class RouteDataAccessor extends DataAccessor {
      *             Error getting data to Zookeeper.
      */
     public Route get(UUID id) throws Exception {
-        RouteZkManager manager = getRouteZkManager();
-        ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route> rt = manager
-                .get(id);
         // TODO: Throw NotFound exception here.
-        return Route.createRoute(id, rt.value);
+        return Route.createRoute(id, zkManager.get(id).value);
     }
 
     private List<Route> generateRouteList(
@@ -88,18 +78,15 @@ public class RouteDataAccessor extends DataAccessor {
      *             Zookeeper(or any) error.
      */
     public List<Route> list(UUID routerId) throws Exception {
-        RouteZkManager manager = getRouteZkManager();
-        return generateRouteList(manager.list(routerId));
+        return generateRouteList(zkManager.list(routerId));
     }
 
     public List<Route> listByPort(UUID portId) throws Exception {
-        RouteZkManager manager = getRouteZkManager();
-        return generateRouteList(manager.listPortRoutes(portId));
+        return generateRouteList(zkManager.listPortRoutes(portId));
     }
 
     public void delete(UUID id) throws Exception {
-        RouteZkManager manager = getRouteZkManager();
         // TODO: catch NoNodeException if does not exist.
-        manager.delete(id);
+        zkManager.delete(id);
     }
 }

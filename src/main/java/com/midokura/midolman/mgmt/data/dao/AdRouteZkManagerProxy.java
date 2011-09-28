@@ -1,5 +1,5 @@
 /*
- * @(#)AdRouteDataAccessor        1.6 11/09/11
+ * @(#)AdRouteZkManagerProxy        1.6 11/09/11
  *
  * Copyright 2011 Midokura KK
  */
@@ -23,7 +23,9 @@ import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-public class AdRouteDataAccessor extends DataAccessor {
+public class AdRouteZkManagerProxy extends ZkMgmtManager {
+
+    private AdRouteZkManager zkManager = null;
 
     /**
      * Constructor
@@ -31,13 +33,10 @@ public class AdRouteDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public AdRouteDataAccessor(ZooKeeper zkConn, String rootPath,
-            String mgmtRootPath) {
-        super(zkConn, rootPath, mgmtRootPath);
-    }
-
-    private AdRouteZkManager getAdRouteZkManager() throws Exception {
-        return new AdRouteZkManager(zkConn, zkRoot);
+    public AdRouteZkManagerProxy(ZooKeeper zk, String basePath,
+            String mgmtBasePath) {
+        super(zk, basePath, mgmtBasePath);
+        zkManager = new AdRouteZkManager(zk, basePath);
     }
 
     /**
@@ -49,8 +48,7 @@ public class AdRouteDataAccessor extends DataAccessor {
      *             Error connecting to Zookeeper.
      */
     public UUID create(AdRoute adRoute) throws Exception {
-        AdRouteZkManager manager = getAdRouteZkManager();
-        return manager.create(adRoute.toConfig());
+        return zkManager.create(adRoute.toConfig());
     }
 
     /**
@@ -62,30 +60,26 @@ public class AdRouteDataAccessor extends DataAccessor {
      *             Error connecting to Zookeeper.
      */
     public AdRoute get(UUID id) throws Exception {
-        AdRouteZkManager manager = getAdRouteZkManager();
         // TODO: Throw NotFound exception here.
-        return AdRoute.createAdRoute(id, manager.get(id).value);
+        return AdRoute.createAdRoute(id, zkManager.get(id).value);
     }
 
-    public AdRoute[] list(UUID bgpId) throws Exception {
-        AdRouteZkManager manager = getAdRouteZkManager();
+    public List<AdRoute> list(UUID bgpId) throws Exception {
         List<AdRoute> adRoutes = new ArrayList<AdRoute>();
-        List<ZkNodeEntry<UUID, AdRouteConfig>> entries = manager.list(bgpId);
+        List<ZkNodeEntry<UUID, AdRouteConfig>> entries = zkManager.list(bgpId);
         for (ZkNodeEntry<UUID, AdRouteConfig> entry : entries) {
             adRoutes.add(AdRoute.createAdRoute(entry.key, entry.value));
         }
-        return adRoutes.toArray(new AdRoute[adRoutes.size()]);
+        return adRoutes;
     }
 
     public void update(UUID id, AdRoute adRoute) throws Exception {
-        // AdRouteZkManager manager = getAdRouteZkManager();
-        // ZkNodeEntry<UUID, AdRouteConfig> entry = manager.get(id);
-        // copyAdRoute(adRoute, entry.value);
-        // manager.update(entry);
+        throw new UnsupportedOperationException(
+                "Ad route update is not currently supported.");
     }
 
     public void delete(UUID id) throws Exception {
         // TODO: catch NoNodeException if does not exist.
-        getAdRouteZkManager().delete(id);
+        zkManager.delete(id);
     }
 }

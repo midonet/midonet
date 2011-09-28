@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -25,7 +26,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.AdRouteDataAccessor;
+import com.midokura.midolman.mgmt.data.dao.AdRouteZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -57,7 +58,7 @@ public class AdRouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public AdRoute get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a advertising route for the given ID.
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+        AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
         AdRoute adRoute = null;
         try {
@@ -77,7 +78,7 @@ public class AdRouteResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") UUID id, AdRoute adRoute)
             throws StateAccessException {
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+        AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.update(id, adRoute);
@@ -94,7 +95,7 @@ public class AdRouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+        AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
@@ -135,10 +136,10 @@ public class AdRouteResource extends RestResource {
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public AdRoute[] list() throws StateAccessException {
-            AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+        public List<AdRoute> list() throws StateAccessException {
+            AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
-            AdRoute[] adRoutes = null;
+            List<AdRoute> adRoutes = null;
             try {
                 adRoutes = dao.list(bgpId);
             } catch (StateAccessException e) {
@@ -164,7 +165,7 @@ public class AdRouteResource extends RestResource {
         public Response create(AdRoute adRoute, @Context UriInfo uriInfo)
                 throws StateAccessException {
             adRoute.setBgpId(bgpId);
-            AdRouteDataAccessor dao = new AdRouteDataAccessor(zooKeeper,
+            AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             UUID id = null;
             try {

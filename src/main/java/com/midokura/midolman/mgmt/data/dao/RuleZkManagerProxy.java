@@ -1,5 +1,5 @@
 /*
- * @(#)RuleDataAccessor        1.6 11/09/05
+ * @(#)RuleZkManagerProxy        1.6 11/09/05
  *
  * Copyright 2011 Midokura KK
  */
@@ -21,7 +21,9 @@ import com.midokura.midolman.state.ZkNodeEntry;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-public class RuleDataAccessor extends DataAccessor {
+public class RuleZkManagerProxy extends ZkMgmtManager {
+
+    private RuleZkManager zkManager = null;
 
     /**
      * Constructor
@@ -29,13 +31,9 @@ public class RuleDataAccessor extends DataAccessor {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public RuleDataAccessor(ZooKeeper zkConn, String rootPath,
-            String mgmtRootPath) {
-        super(zkConn, rootPath, mgmtRootPath);
-    }
-
-    private RuleZkManager getRuleZkManager() throws Exception {
-        return new RuleZkManager(zkConn, zkRoot);
+    public RuleZkManagerProxy(ZooKeeper zk, String basePath, String mgmtBasePath) {
+        super(zk, basePath, mgmtBasePath);
+        zkManager = new RuleZkManager(zk, basePath);
     }
 
     /**
@@ -47,13 +45,12 @@ public class RuleDataAccessor extends DataAccessor {
      *             Error adding data to Zookeeper.
      */
     public UUID create(Rule rule) throws Exception {
-        return getRuleZkManager().create(rule.toZkRule());
+        return zkManager.create(rule.toZkRule());
     }
 
     public void delete(UUID id) throws Exception {
-        RuleZkManager manager = getRuleZkManager();
         // TODO: catch NoNodeException if does not exist.
-        manager.delete(id);
+        zkManager.delete(id);
     }
 
     /**
@@ -66,7 +63,7 @@ public class RuleDataAccessor extends DataAccessor {
      *             Error getting data to Zookeeper.
      */
     public Rule get(UUID id) throws Exception {
-        return Rule.createRule(id, getRuleZkManager().get(id).value);
+        return Rule.createRule(id, zkManager.get(id).value);
     }
 
     /**
@@ -79,9 +76,8 @@ public class RuleDataAccessor extends DataAccessor {
      *             Zookeeper(or any) error.
      */
     public List<Rule> list(UUID chainId) throws Exception {
-        RuleZkManager manager = getRuleZkManager();
         List<Rule> rules = new ArrayList<Rule>();
-        List<ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule>> entries = manager
+        List<ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule>> entries = zkManager
                 .list(chainId);
         for (ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule> entry : entries) {
             rules.add(Rule.createRule(entry.key, entry.value));
