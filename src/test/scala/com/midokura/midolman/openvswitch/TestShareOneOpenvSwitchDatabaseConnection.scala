@@ -49,8 +49,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge
         bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
-        //ovsdb.delBridgeOpenflowControllers(bridgeId)
-        //assertFalse(ovsdb.hasController("tcp:127.0.0.1"))
+        assertFalse(ovsdb.hasController("tcp:127.0.0.1"))
     }
 
     @AfterClass def disconnectFromOVSDB() {
