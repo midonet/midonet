@@ -21,12 +21,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RouteZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Route;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -101,7 +101,7 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public RouterRouteResource(ZooKeeper zkConn, UUID routerId) {
+        public RouterRouteResource(Directory zkConn, UUID routerId) {
             this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
@@ -176,7 +176,7 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public PortRouteResource(ZooKeeper zkConn, UUID portId) {
+        public PortRouteResource(Directory zkConn, UUID portId) {
             this.zooKeeper = zkConn;
             this.portId = portId;
         }

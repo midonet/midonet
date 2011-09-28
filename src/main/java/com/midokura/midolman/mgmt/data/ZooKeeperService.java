@@ -5,9 +5,9 @@
  */
 package com.midokura.midolman.mgmt.data;
 
-import org.apache.zookeeper.ZooKeeper;
-
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkDirectory;
 
 /**
  * Class implementing a singleton Zookeeper connection.
@@ -37,8 +37,9 @@ public class ZooKeeperService {
         return conn;
     }
 
-    public static synchronized ZooKeeper getZooKeeper(String connStr,
+    public static synchronized Directory getZooKeeper(String connStr,
             int timeout) throws Exception {
-        return getConnection(connStr, timeout).getZooKeeper();
+        return new ZkDirectory(getConnection(connStr, timeout).getZooKeeper(),
+                "", null);
     }
 }

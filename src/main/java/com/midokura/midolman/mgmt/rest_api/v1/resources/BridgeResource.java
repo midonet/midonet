@@ -22,13 +22,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortResource;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -131,7 +131,7 @@ public class BridgeResource extends RestResource {
          * @param tenantId
          *            UUID of a tenant.
          */
-        public TenantBridgeResource(ZooKeeper zkConn, UUID tenantId) {
+        public TenantBridgeResource(Directory zkConn, UUID tenantId) {
             this.zooKeeper = zkConn;
             this.tenantId = tenantId;
         }

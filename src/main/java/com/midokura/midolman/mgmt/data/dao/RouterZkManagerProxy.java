@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -66,7 +66,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkManagerProxy.class);
 
-    public RouterZkManagerProxy(ZooKeeper zk, String basePath,
+    public RouterZkManagerProxy(Directory zk, String basePath,
             String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new RouterZkManager(zk, basePath);
@@ -104,7 +104,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         ops.addAll(zkManager.prepareRouterCreate(router.getId()));
 
         // Initialize chains directories
-        ChainZkManagerProxy chainZkManager = new ChainZkManagerProxy(zooKeeper,
+        ChainZkManagerProxy chainZkManager = new ChainZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         ops.addAll(chainZkManager.prepareRouterInit(router.getId()));
 
@@ -120,7 +120,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         ops.add(Op.create(mgmtPathManager.getPortPath(port.getPeerId()), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        PortZkManager portZkManager = new PortZkManager(zooKeeper, pathManager
+        PortZkManager portZkManager = new PortZkManager(zk, pathManager
                 .getBasePath());
         ops.addAll(portZkManager.preparePortCreateLink(port.toZkNode(), port
                 .toPeerZkNode()));
@@ -167,7 +167,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         ops.addAll(zkManager.prepareRouterDelete(router.getId()));
 
         // Delete the chains
-        ChainZkManagerProxy chainManager = new ChainZkManagerProxy(zooKeeper,
+        ChainZkManagerProxy chainManager = new ChainZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         chainManager.prepareRouterDelete(router.getId(), false);
 
@@ -179,7 +179,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         ops.add(Op.delete(tenantRouterPath, -1));
 
         // Remove all the ports in mgmt directory but don't cascade here.
-        PortZkManagerProxy portMgr = new PortZkManagerProxy(zooKeeper,
+        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         PortZkManager portZkManager = new PortZkManager(zk, pathManager
                 .getBasePath());

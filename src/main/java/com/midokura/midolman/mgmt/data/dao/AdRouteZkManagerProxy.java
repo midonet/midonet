@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.ZooKeeper;
-
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.AdRouteZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
@@ -33,7 +32,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public AdRouteZkManagerProxy(ZooKeeper zk, String basePath,
+    public AdRouteZkManagerProxy(Directory zk, String basePath,
             String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new AdRouteZkManager(zk, basePath);

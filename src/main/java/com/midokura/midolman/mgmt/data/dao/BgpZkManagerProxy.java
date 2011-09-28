@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.ZooKeeper;
-
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
@@ -33,7 +32,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public BgpZkManagerProxy(ZooKeeper zk, String basePath, String mgmtBasePath) {
+    public BgpZkManagerProxy(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new BgpZkManager(zk, basePath);
     }

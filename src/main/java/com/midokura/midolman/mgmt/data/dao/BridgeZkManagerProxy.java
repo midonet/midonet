@@ -13,13 +13,13 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -53,7 +53,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManagerProxy.class);
 
-    public BridgeZkManagerProxy(ZooKeeper zk, String basePath,
+    public BridgeZkManagerProxy(Directory zk, String basePath,
             String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new BridgeZkManager(zk, basePath);
@@ -115,7 +115,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         ops.add(Op.delete(bridgePath, -1));
 
         // Remove all the ports in mgmt directory but don't cascade here.
-        PortZkManagerProxy portMgr = new PortZkManagerProxy(zooKeeper,
+        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         ops.addAll(portMgr.prepareBridgeDelete(bridge.getId()));
 

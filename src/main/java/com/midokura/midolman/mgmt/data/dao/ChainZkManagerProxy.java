@@ -14,7 +14,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -65,7 +65,7 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
     private final static Logger log = LoggerFactory
             .getLogger(ChainZkManagerProxy.class);
 
-    public ChainZkManagerProxy(ZooKeeper zk, String basePath,
+    public ChainZkManagerProxy(Directory zk, String basePath,
             String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new ChainZkManager(zk, basePath);

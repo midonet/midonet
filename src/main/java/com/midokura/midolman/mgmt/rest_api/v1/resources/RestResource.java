@@ -8,9 +8,8 @@ package com.midokura.midolman.mgmt.rest_api.v1.resources;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 
-import org.apache.zookeeper.ZooKeeper;
-
 import com.midokura.midolman.mgmt.data.ZooKeeperService;
+import com.midokura.midolman.state.Directory;
 
 /**
  * Base abstract class for all the resources.
@@ -31,7 +30,7 @@ public abstract class RestResource {
     private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
     protected String zookeeperRoot = "/midolman";
     protected String zookeeperMgmtRoot = "/midolman-mgmt";
-    protected ZooKeeper zooKeeper = null;
+    protected Directory zooKeeper = null;
 
     /**
      * Set zookeeper connection from config at the application initialization.

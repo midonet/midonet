@@ -22,12 +22,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.AdRouteZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -123,7 +123,7 @@ public class AdRouteResource extends RestResource {
          * @param bgpId
          *            UUID of a bgp.
          */
-        public BgpAdRouteResource(ZooKeeper zkConn, UUID bgpId) {
+        public BgpAdRouteResource(Directory zkConn, UUID bgpId) {
             this.zooKeeper = zkConn;
             this.bgpId = bgpId;
         }

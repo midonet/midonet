@@ -12,11 +12,10 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.ZkManager;
 
 /**
@@ -37,8 +36,8 @@ public class TenantZkManager extends ZkManager {
      * @param basePath
      *            Directory to set as the base.
      */
-    public TenantZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
-        super(new ZkDirectory(zk, "", null), basePath);
+    public TenantZkManager(Directory zk, String basePath, String mgmtBasePath) {
+        super(zk, basePath);
         ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
     }
 

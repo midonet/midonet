@@ -21,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +29,7 @@ import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.PortRouteResource;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -111,7 +111,7 @@ public class PortResource extends RestResource {
 
         private UUID bridgeId = null;
 
-        public BridgePortResource(ZooKeeper zkConn, UUID bridgeId) {
+        public BridgePortResource(Directory zkConn, UUID bridgeId) {
             this.zooKeeper = zkConn;
             this.bridgeId = bridgeId;
         }
@@ -163,7 +163,7 @@ public class PortResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterPortResource(ZooKeeper zkConn, UUID routerId) {
+        public RouterPortResource(Directory zkConn, UUID routerId) {
             this.zooKeeper = zkConn;
             this.routerId = routerId;
         }

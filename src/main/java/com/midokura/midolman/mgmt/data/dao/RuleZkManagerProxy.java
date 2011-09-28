@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.ZooKeeper;
-
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 
@@ -31,7 +30,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager {
      * @param zkConn
      *            Zookeeper connection string
      */
-    public RuleZkManagerProxy(ZooKeeper zk, String basePath, String mgmtBasePath) {
+    public RuleZkManagerProxy(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new RuleZkManager(zk, basePath);
     }

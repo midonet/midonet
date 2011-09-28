@@ -12,7 +12,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -55,7 +55,7 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     private final static Logger log = LoggerFactory
             .getLogger(PortZkManagerProxy.class);
 
-    public PortZkManagerProxy(ZooKeeper zk, String basePath, String mgmtBasePath) {
+    public PortZkManagerProxy(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new PortZkManager(zk, basePath);
     }
@@ -166,7 +166,7 @@ public class PortZkManagerProxy extends ZkMgmtManager {
 
         // Delete the VIF attache
         if (port.getVifId() != null) {
-            VifZkManager vifManager = new VifZkManager(zooKeeper, pathManager
+            VifZkManager vifManager = new VifZkManager(zk, pathManager
                     .getBasePath(), mgmtPathManager.getBasePath());
             ops.addAll(vifManager.prepareDelete(port.getVifId()));
         }

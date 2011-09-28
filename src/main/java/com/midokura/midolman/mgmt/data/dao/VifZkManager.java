@@ -12,13 +12,13 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Vif;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -47,7 +47,7 @@ public class VifZkManager extends ZkMgmtManager {
     private final static Logger log = LoggerFactory
             .getLogger(VifZkManager.class);
 
-    public VifZkManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
+    public VifZkManager(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
     }
 
@@ -58,7 +58,7 @@ public class VifZkManager extends ZkMgmtManager {
                     "VIF must be plugged into a port: " + vif.getId());
         }
 
-        PortZkManagerProxy portZkManager = new PortZkManagerProxy(zooKeeper,
+        PortZkManagerProxy portZkManager = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
 
         Port port = null;
@@ -99,7 +99,7 @@ public class VifZkManager extends ZkMgmtManager {
         List<Op> ops = new ArrayList<Op>();
         String vifPath = mgmtPathManager.getVifPath(vif.getId());
 
-        PortZkManagerProxy portZkManager = new PortZkManagerProxy(zooKeeper,
+        PortZkManagerProxy portZkManager = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         if (vif.getPortId() != null) {
             ops.addAll(portZkManager.prepareVifDettach(vif.getPortId()));

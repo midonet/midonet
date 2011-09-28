@@ -21,12 +21,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -81,7 +81,7 @@ public class RuleResource extends RestResource {
 
         private UUID chainId = null;
 
-        public ChainRuleResource(ZooKeeper zkConn, UUID chainId) {
+        public ChainRuleResource(Directory zkConn, UUID chainId) {
             this.zooKeeper = zkConn;
             this.chainId = chainId;
         }

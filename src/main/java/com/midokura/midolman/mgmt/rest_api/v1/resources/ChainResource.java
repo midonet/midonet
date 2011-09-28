@@ -21,13 +21,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -90,7 +90,7 @@ public class ChainResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterTableResource(ZooKeeper zkConn, UUID routerId) {
+        public RouterTableResource(Directory zkConn, UUID routerId) {
             this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
@@ -113,7 +113,7 @@ public class ChainResource extends RestResource {
         private UUID routerId = null;
         private String table = null;
 
-        public RouterTableChainResource(ZooKeeper zkConn, UUID routerId,
+        public RouterTableChainResource(Directory zkConn, UUID routerId,
                 String table) {
             this.zooKeeper = zkConn;
             this.routerId = routerId;
@@ -162,7 +162,7 @@ public class ChainResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterChainResource(ZooKeeper zkConn, UUID routerId) {
+        public RouterChainResource(Directory zkConn, UUID routerId) {
             this.zooKeeper = zkConn;
             this.routerId = routerId;
         }

@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.ZooKeeper;
-
 import com.midokura.midolman.mgmt.data.dto.Route;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 
@@ -25,7 +24,7 @@ public class RouteZkManagerProxy extends ZkMgmtManager {
 
     private RouteZkManager zkManager = null;
 
-    public RouteZkManagerProxy(ZooKeeper zk, String basePath,
+    public RouteZkManagerProxy(Directory zk, String basePath,
             String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
         zkManager = new RouteZkManager(zk, basePath);

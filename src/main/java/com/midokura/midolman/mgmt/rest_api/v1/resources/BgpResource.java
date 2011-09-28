@@ -22,13 +22,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.BgpZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource.BgpAdRouteResource;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -132,7 +132,7 @@ public class BgpResource extends RestResource {
          * @param portId
          *            UUID of a port.
          */
-        public PortBgpResource(ZooKeeper zkConn, UUID portId) {
+        public PortBgpResource(Directory zkConn, UUID portId) {
             this.zooKeeper = zkConn;
             this.portId = portId;
         }

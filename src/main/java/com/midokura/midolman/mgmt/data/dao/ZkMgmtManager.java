@@ -5,9 +5,7 @@
  */
 package com.midokura.midolman.mgmt.data.dao;
 
-import org.apache.zookeeper.ZooKeeper;
-
-import com.midokura.midolman.state.ZkDirectory;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;
 
 /**
@@ -19,7 +17,6 @@ import com.midokura.midolman.state.ZkManager;
 public class ZkMgmtManager extends ZkManager {
 
     protected ZkMgmtPathManager mgmtPathManager = null;
-    protected ZooKeeper zooKeeper = null;
 
     /**
      * Constructor.
@@ -31,10 +28,8 @@ public class ZkMgmtManager extends ZkManager {
      * @param mgmtBasePath
      *            Path to set as the base for mgmt paths.
      */
-    public ZkMgmtManager(ZooKeeper zk, String basePath, String mgmtBasePath) {
-        super(new ZkDirectory(zk, "", null), basePath);
+    public ZkMgmtManager(Directory zk, String basePath, String mgmtBasePath) {
+        super(zk, basePath);
         this.mgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
-        this.zooKeeper = zk;
     }
-
 }
