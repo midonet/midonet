@@ -49,6 +49,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge
         bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
+	ovsdb.delAllOpenflowControllers
         assertFalse(ovsdb.hasController("tcp:127.0.0.1"))
     }
 
