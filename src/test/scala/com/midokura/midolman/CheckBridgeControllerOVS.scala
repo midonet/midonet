@@ -17,7 +17,7 @@ import com.midokura.midolman.state.{MacPortMap, MockDirectory,
                                     PortToIntNwAddrMap}
 
 import org.apache.zookeeper.CreateMode
-import org.junit.{AfterClass, BeforeClass, Test}
+import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
 import org.openflow.protocol.OFPhysicalPort
 import org.slf4j.LoggerFactory
@@ -194,7 +194,7 @@ class CheckBridgeControllerOVS {
         serializeTestsSemaphore.release
     }
 
-    @Test def testNewSystemPort() = {
+    @Test @Ignore def testNewSystemPort() = {
         log.info("testNewSystemPort called")
         serializeTestsSemaphore.acquire
         try {
