@@ -199,6 +199,14 @@
                                         <filemode>0440</filemode>
                                     </mapper>
                                 </data>
+                                <data>
+                                    <src>${project.basedir}/src/deb/quagga/bgpd.conf</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/quagga</prefix>
+                                    </mapper>
+                                </data>
                             </dataSet>
                         </configuration>
                     </execution>
