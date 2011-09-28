@@ -19,8 +19,13 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
  * Test for the Open vSwitch database connection.
  */
 object CheckOpenvSwitchDatabaseConnection {
+    import TestShareOneOpenvSwitchDatabaseConnection._
+
     private final val portName = "testovsport"
     private final val bridgeOfPortNum = 65534
+
+    @BeforeClass def before() = { mutex.acquire }
+    @AfterClass def after() = { mutex.release }
 }
 
 class CheckOpenvSwitchDatabaseConnection {

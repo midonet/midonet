@@ -56,7 +56,7 @@ object CheckBridgeControllerOVS extends SelectListener {
     private final val publicIP = /* 192.168.1.50 */
         InetAddress.getByAddress(
             Array(192.toByte, 168.toByte, 1.toByte, 50.toByte))
-    private final var controller: BridgeController = _
+    private final var controller: BridgeControllerTester = _
     private var zkDir = new MockDirectory
     private final val zkRoot = "/zk_root"
     private final val of_port = 6634
@@ -70,6 +70,7 @@ object CheckBridgeControllerOVS extends SelectListener {
     @volatile private var tooLongFlag = false
 
     @BeforeClass def initializeTest() {
+        mutex.acquire
         // Set up the (mock) ZooKeeper directories.
         val portLocKey = "/port_locs"
         val macPortKey = "/mac_port"
@@ -118,7 +119,7 @@ object CheckBridgeControllerOVS extends SelectListener {
                                       log.info("Took too long!")
                                       tooLongFlag = true
                                       reactor.shutdown
-                                      portModSemaphore.release
+                                      portModSemaphore.release(10)
                                   } }, 
                               4000, TimeUnit.MILLISECONDS)
             reactor.doLoop
@@ -131,11 +132,13 @@ object CheckBridgeControllerOVS extends SelectListener {
     }
 
     @AfterClass def finalizeTest() {
-        reactor.shutdown
-        assertFalse(tooLongFlag)
-        assertTrue(ovsdb.hasController(target))
-        ovsdb.delBridgeOpenflowControllers(bridgeId)
-        assertFalse(ovsdb.hasController(target))
+        try {
+            reactor.shutdown
+            assertFalse(tooLongFlag)
+            assertTrue(ovsdb.hasController(target))
+            ovsdb.delBridgeOpenflowControllers(bridgeId)
+            assertFalse(ovsdb.hasController(target))
+        } finally { mutex.release }
     }
 
     def registerController() = {
@@ -194,43 +197,59 @@ class CheckBridgeControllerOVS {
     @Test def testNewSystemPort() = {
         log.info("testNewSystemPort called")
         serializeTestsSemaphore.acquire
-        log.info("testNewSystemPort has semaphore")
-        val portName = "sys" + testportName
-        addSystemPort(portName)
-        assertTrue(ovsdb.hasPort(portName))
-        // TODO: Verify this is a system port.
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
-        serializeTestsSemaphore.release
-        log.info("testNewSystemPort exiting")
+        try {
+            log.info("testNewSystemPort has semaphore")
+            val portName = "sys" + testportName
+            // Clear the list of added ports, and make a new port which should
+            // trigger an addPort callback.
+            controller.addedPorts = List()
+            addSystemPort(portName)
+            assertTrue(ovsdb.hasPort(portName))
+            // TODO: Verify this is a system port.
+            portModSemaphore.acquire
+            assertEquals(1, controller.addedPorts.size)
+            assertEquals(portName, controller.addedPorts(0).getName)
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+            controller.addedPorts = List()
+        } finally {
+            serializeTestsSemaphore.release
+            log.info("testNewSystemPort exiting")
+        }
     }
 
     @Test def testNewInternalPort() = {
         log.info("testNewInternalPort")
         serializeTestsSemaphore.acquire
         log.info("testNewInternalPort has semaphore")
-        val portName = "int" + testportName
-        addInternalPort(portName)
-        assertTrue(ovsdb.hasPort(portName))
-        // TODO: Verify this is an internal port.
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
-        serializeTestsSemaphore.release
-        log.info("testNewInternalPort exiting")
+        try {
+            val portName = "int" + testportName
+            addInternalPort(portName)
+            assertTrue(ovsdb.hasPort(portName))
+            // TODO: Verify this is an internal port.
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        } finally {
+            serializeTestsSemaphore.release
+            log.info("testNewInternalPort exiting")
+        }
     }
 
     @Test def testNewTapPort() = {
         log.info("testNewTapPort")
         serializeTestsSemaphore.acquire
         log.info("testNewTapPort has semaphore")
-        val portName = "tap" + testportName
-        addTapPort(portName)
-        assertTrue(ovsdb.hasPort(portName))
-        // TODO: Verify this is a TAP port.
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
-        serializeTestsSemaphore.release
-        log.info("testNewTapPort exiting")
+        try {
+            val portName = "tap" + testportName
+            addTapPort(portName)
+            assertTrue(ovsdb.hasPort(portName))
+            // TODO: Verify this is a TAP port.
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        } finally {
+            serializeTestsSemaphore.release
+            log.info("testNewTapPort exiting")
+        }
     }
 }
 

@@ -8,7 +8,8 @@
  * breaks if you try to use it multiply.  The sharing is accomplished by
  * having an junit Suite make the connection, then call all the classes
  * registered with it.  To make a new class for testing a client of OVSDB,
- * have it import TestShareOneOpenvSwitchDatabaseConnection._ and add it
+ * have it import TestShareOneOpenvSwitchDatabaseConnection._ and 
+ * acquire/release mutex in its @BeforeClass/@AfterClass, and add it
  * to the list of SuiteClasses.
  */
  
@@ -28,6 +29,7 @@ import java.io.{File, RandomAccessFile}
 import java.lang.Long.parseLong
 import java.nio.channels.FileLock
 import java.util.Date
+import java.util.concurrent.Semaphore
 
 object TestShareOneOpenvSwitchDatabaseConnection {
     private final val database = "Open_vSwitch"
@@ -43,6 +45,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     private final val lockchannel =
         new RandomAccessFile(lockfile, "rw").getChannel
     private var lock: FileLock = _
+    final var mutex = new Semaphore(1)
 
     @BeforeClass def connectToOVSDB() {
         lock = lockchannel.lock
