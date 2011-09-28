@@ -6,17 +6,17 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import com.midokura.midolman.mgmt.data.dto.ErrorEntity;
-import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.InvalidStateOperationException;
 
 @Provider
-public class StateAccessExceptionMapper implements
-        ExceptionMapper<StateAccessException> {
+public abstract class InvalidStateOperationExceptionMapper implements
+        ExceptionMapper<InvalidStateOperationException> {
 
     @Override
-    public Response toResponse(StateAccessException e) {
+    public Response toResponse(InvalidStateOperationException e) {
         ErrorEntity error = new ErrorEntity();
         error.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        error.setMessage("Data access error: " + e.getMessage());
+        error.setMessage("Invalid operation: " + e.getMessage());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
                 error).type(MediaType.APPLICATION_JSON).build();
     }

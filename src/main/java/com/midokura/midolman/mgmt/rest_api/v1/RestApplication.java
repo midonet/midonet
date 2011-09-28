@@ -16,6 +16,7 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.InvalidStateOperationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource;
@@ -60,6 +61,7 @@ public class RestApplication extends Application {
         set.add(AdRouteResource.class);
         set.add(VifResource.class);
         set.add(StateAccessExceptionMapper.class);
+        set.add(InvalidStateOperationExceptionMapper.class);
         return set;
     }
 
