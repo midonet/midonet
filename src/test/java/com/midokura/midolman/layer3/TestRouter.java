@@ -53,6 +53,7 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -627,7 +628,7 @@ public class TestRouter {
     }
 
     private void createRules() throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
                 rtr.routerId));
         String srcFilterChainName = "filterSrcByPortId";
@@ -648,7 +649,7 @@ public class TestRouter {
         List<Rule> srcFilterChain = new Vector<Rule>();
         Iterator<Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig>> iter = portConfigs
                 .entrySet().iterator();
-        int i = 0;
+        int i = 1;
         Rule r;
         while (iter.hasNext()) {
             Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig> entry = iter
@@ -688,7 +689,7 @@ public class TestRouter {
         ruleMgr.create(r);
         srcFilterChain.add(r);
 
-        i = 0;
+        i = 1;
         // The pre-routing chain needs a jump rule to the localAddressesChain
         r = new JumpRule(new Condition(), srcFilterChainName, preChainId, i);
         i++;
@@ -716,7 +717,7 @@ public class TestRouter {
         ruleMgr.create(r);
         preChain.add(r);
 
-        i = 0;
+        i = 1;
         List<Rule> postChain = new Vector<Rule>();
         // Now add a post-routing rule that stops communication between
         // ports 1, 11, and 21. None of them can send to any of the others.
@@ -756,7 +757,7 @@ public class TestRouter {
 
     @Test
     public void testFilterBadSrcForPort() throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         // Make a packet that comes in on port 23 but with a nwSrc outside
         // the expected range (10.0.2.12/30) and a nwDst that matches port 12
         // (i.e. inside 10.0.1.8/30).
@@ -848,7 +849,7 @@ public class TestRouter {
 
     @Test
     public void testFilterBadDestinations() throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         // Send a packet from port 11 to port 21.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port11Id = portNumToId.get(11);
@@ -878,7 +879,7 @@ public class TestRouter {
 
     @Test
     public void testDnat() throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         createRules();
         // Send a packet from 10.0.2.6 to 192.11.11.10.
         int extNwAddr = 0xc00b0b0a;

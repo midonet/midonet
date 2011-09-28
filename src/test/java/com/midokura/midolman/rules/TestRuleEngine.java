@@ -22,6 +22,7 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
@@ -127,7 +128,7 @@ public class TestRuleEngine {
     @Before
     public void setup() throws StateAccessException,
             ZkStateSerializationException, KeeperException,
-            InterruptedException {
+            InterruptedException, RuleIndexOutOfBoundsException {
         String basePath = "/midolman";
         ZkPathManager pathMgr = new ZkPathManager(basePath);
         Directory dir = new MockDirectory();
@@ -149,7 +150,7 @@ public class TestRuleEngine {
         chain1 = new Vector<Rule>();
         chain2 = new Vector<Rule>();
         chain3 = new Vector<Rule>();
-        Rule r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c1Id, 0);
+        Rule r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c1Id, 1);
         // Remember the id's of the first 2 rules of this chain for use in
         // subsequent unit tests.
         delRule1 = ruleMgr.create(r);
@@ -157,41 +158,41 @@ public class TestRuleEngine {
         Condition cond = new Condition();
         cond.conjunctionInv = true;
         // This rule should never be applied.
-        r = new MyLiteralRule(cond, Action.DROP, c1Id, 1);
+        r = new MyLiteralRule(cond, Action.DROP, c1Id, 2);
         delRule2 = ruleMgr.create(r);
         chain1.add(r);
-        r = new JumpRule(new Condition(), "Chain2", c1Id, 2);
+        r = new JumpRule(new Condition(), "Chain2", c1Id, 3);
         ruleMgr.create(r);
         chain1.add(r);
-        r = new MyLiteralRule(new Condition(), Action.ACCEPT, c1Id, 3);
+        r = new MyLiteralRule(new Condition(), Action.ACCEPT, c1Id, 4);
         ruleMgr.create(r);
         chain1.add(r);
         // This rule should never be applied.
-        r = new MyLiteralRule(new Condition(), Action.REJECT, c1Id, 4);
+        r = new MyLiteralRule(new Condition(), Action.REJECT, c1Id, 5);
         ruleMgr.create(r);
         chain1.add(r);
 
-        r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c2Id, 0);
+        r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c2Id, 1);
         // Remember the id of the next rule for use in the tests.
         delRule3 = ruleMgr.create(r);
         chain2.add(r);
-        r = new JumpRule(new Condition(), "Chain3", c2Id, 1);
+        r = new JumpRule(new Condition(), "Chain3", c2Id, 2);
         ruleMgr.create(r);
         chain2.add(r);
-        r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c2Id, 2);
+        r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c2Id, 3);
         ruleMgr.create(r);
         chain2.add(r);
-        r = new MyLiteralRule(new Condition(), Action.RETURN, c2Id, 3);
+        r = new MyLiteralRule(new Condition(), Action.RETURN, c2Id, 4);
         ruleMgr.create(r);
         chain2.add(r);
 
-        r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c3Id, 0);
-        ruleMgr.create(r);
-        chain3.add(r);
         r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c3Id, 1);
         ruleMgr.create(r);
         chain3.add(r);
-        r = new MyLiteralRule(new Condition(), Action.RETURN, c3Id, 2);
+        r = new MyRevSnatRule(new Condition(), Action.CONTINUE, c3Id, 2);
+        ruleMgr.create(r);
+        chain3.add(r);
+        r = new MyLiteralRule(new Condition(), Action.RETURN, c3Id, 3);
         ruleMgr.create(r);
         chain3.add(r);
 
@@ -279,16 +280,16 @@ public class TestRuleEngine {
 
     @Test
     public void testDnatRules() throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         UUID c4Id = chainMgr.create(new ChainConfig("Chain4", rtrId));
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
         List<Rule> chain4 = new Vector<Rule>();
-        Rule r = new ForwardNatRule(cond, Action.CONTINUE, c4Id, 0, true, nats);
+        Rule r = new ForwardNatRule(cond, Action.CONTINUE, c4Id, 1, true, nats);
         ruleMgr.create(r);
         chain4.add(r);
-        r = new ReverseNatRule(new Condition(), Action.RETURN, c4Id, 1, true);
+        r = new ReverseNatRule(new Condition(), Action.RETURN, c4Id, 2, true);
         ruleMgr.create(r);
         chain4.add(r);
 
@@ -334,16 +335,16 @@ public class TestRuleEngine {
 
     @Test
     public void testSnatRules() throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         UUID c4Id = chainMgr.create(new ChainConfig("Chain4", rtrId));
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
         List<Rule> chain4 = new Vector<Rule>();
-        Rule r = new ForwardNatRule(cond, Action.CONTINUE, c4Id, 0, false, nats);
+        Rule r = new ForwardNatRule(cond, Action.CONTINUE, c4Id, 1, false, nats);
         ruleMgr.create(r);
         chain4.add(r);
-        r = new ReverseNatRule(new Condition(), Action.RETURN, c4Id, 1, false);
+        r = new ReverseNatRule(new Condition(), Action.RETURN, c4Id, 2, false);
         ruleMgr.create(r);
         chain4.add(r);
 

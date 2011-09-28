@@ -49,7 +49,15 @@ public class RuleZkManager extends ZkManager {
 
     private List<Op> prepareInsertPositionOrdering(
             ZkNodeEntry<UUID, Rule> ruleEntry)
-            throws ZkStateSerializationException, StateAccessException {
+            throws ZkStateSerializationException, StateAccessException,
+            RuleIndexOutOfBoundsException {
+        // Make sure the position is greater than 0;
+        int position = ruleEntry.value.position;
+        if (position <= 0) {
+            throw new RuleIndexOutOfBoundsException("Invalid rule position "
+                    + position);
+        }
+
         List<Op> ops = new ArrayList<Op>();
         // Add this one
         ops.addAll(prepareRuleCreate(ruleEntry));
@@ -57,8 +65,11 @@ public class RuleZkManager extends ZkManager {
         // Get all the rules for this chain
         List<ZkNodeEntry<UUID, Rule>> rules = list(ruleEntry.value.chainId);
 
-        int position = ruleEntry.value.position;
+        int max = 0;
         for (ZkNodeEntry<UUID, Rule> rule : rules) {
+            if (rule.value.position > max) {
+                max = rule.value.position;
+            }
             // For any node that has the >= position value, shift up.
             if (rule.value.position >= position) {
                 String path = pathManager.getChainRulePath(rule.value.chainId,
@@ -72,13 +83,19 @@ public class RuleZkManager extends ZkManager {
                 }
             }
         }
-
+        // If the new rule index is bigger than the max position by
+        // more than 1, it's invalid.
+        if (position > max + 1) {
+            throw new RuleIndexOutOfBoundsException("Invalid rule position "
+                    + position);
+        }
         return ops;
     }
 
     private List<Op> prepareDeletePositionOrdering(
             ZkNodeEntry<UUID, Rule> ruleEntry)
             throws ZkStateSerializationException, StateAccessException {
+
         List<Op> ops = new ArrayList<Op>();
         // Delete this one
         ops.addAll(prepareRuleDelete(ruleEntry));
@@ -168,9 +185,10 @@ public class RuleZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws StateAccessException
+     * @throws RuleIndexOutOfBoundsException
      */
     public UUID create(Rule rule) throws ZkStateSerializationException,
-            StateAccessException {
+            StateAccessException, RuleIndexOutOfBoundsException {
         UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, Rule> ruleNode = new ZkNodeEntry<UUID, Rule>(id, rule);
         multi(prepareInsertPositionOrdering(ruleNode));

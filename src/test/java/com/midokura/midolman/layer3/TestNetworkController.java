@@ -64,6 +64,7 @@ import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -625,7 +626,7 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(22333, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets dropped, and the buffered packet sent.  
+        // No packets dropped, and the buffered packet sent.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         MockControllerStub.Packet sentPacket = 
@@ -1173,7 +1174,8 @@ public class TestNetworkController {
         Assert.assertEquals(nwAddr, decoded.gatewayNwAddr);
     }
 
-    private void addUplink() throws StateAccessException, ZkStateSerializationException {
+    private void addUplink() throws StateAccessException,
+            ZkStateSerializationException {
         // Add an uplink to router0.
         uplinkId = ShortUUID.intTo32BitUUID(26473345);
         int p2pUplinkNwAddr = 0xc0a80004;
@@ -1204,7 +1206,8 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testDnat() throws StateAccessException, ZkStateSerializationException {
+    public void testDnat() throws StateAccessException,
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         // First add the uplink to router0.
         addUplink();
         // Now add a dnat rule to map 0x808e0005:80 to 0x0a010009:10080, an
@@ -1226,7 +1229,7 @@ public class TestNetworkController {
         cond.nwDstLength = 32;
         cond.tpDstStart = natPublicTpPort;
         cond.tpDstEnd = natPublicTpPort;
-        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 0,
+        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 1,
                 true /* dnat */, nats);
         ruleMgr.create(r);
         cond = new Condition();
@@ -1239,7 +1242,7 @@ public class TestNetworkController {
         cond.tpSrcEnd = natPrivateTpPort;
         chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
                 routerIds.get(0)));
-        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 0, true /* dnat */);
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, true /* dnat */);
         ruleMgr.create(r);
 
         // Now send a packet into the uplink directed to the natted addr/port.
@@ -1365,7 +1368,8 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testSnat() throws StateAccessException, ZkStateSerializationException {
+    public void testSnat() throws StateAccessException,
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
         // First add the uplink to router0.
         addUplink();
         // Now add a snat rule to map source addresses on router2
@@ -1390,7 +1394,7 @@ public class TestNetworkController {
         cond.nwDstIp = 0x0a000000;
         cond.nwDstLength = 8;
         cond.nwDstInv = true;
-        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 0,
+        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 1,
                 false /* snat */, nats);
         ruleMgr.create(r);
         // Make another post-routing rule that drops packets that ingress the
@@ -1400,7 +1404,7 @@ public class TestNetworkController {
         cond.inPortIds.add(uplinkId);
         cond.outPortIds = new HashSet<UUID>();
         cond.outPortIds.add(uplinkId);
-        r = new LiteralRule(cond, Action.DROP, chainId, 1);
+        r = new LiteralRule(cond, Action.DROP, chainId, 2);
         ruleMgr.create(r);
 
         chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING, routerIds
@@ -1414,7 +1418,7 @@ public class TestNetworkController {
         cond.nwSrcInv = true;
         cond.nwDstIp = natPublicNwAddr;
         cond.nwDstLength = 32;
-        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 0, false /* snat */);
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, false /* snat */);
         ruleMgr.create(r);
 
         // Send a packet into the uplink directed to the natted addr/port.
@@ -1576,27 +1580,25 @@ public class TestNetworkController {
         UUID portId = ShortUUID.intTo32BitUUID(portNumToIntId.get(
                                                    remotePortNum));
         String remoteAddrString = "192.168.10.1";
-        bgpMgr.create(new BgpConfig(portId, 65104,
-                                    InetAddress.getByName(remoteAddrString),
-                                    12345));
+        bgpMgr.create(new BgpConfig(portId, 65104, InetAddress
+                .getByName(remoteAddrString), 12345));
 
-        //Add the port to the datapath to invoke adding a service port for BGP.
+        // Add the port to the datapath to invoke adding a service port for BGP.
         OFPhysicalPort remotePort = phyPorts.get(routerId).get(remotePortNum);
         networkCtrl.onPortStatus(remotePort,
-                                 OFPortStatus.OFPortReason.OFPPR_DELETE);
+                OFPortStatus.OFPortReason.OFPPR_DELETE);
         networkCtrl.onPortStatus(remotePort,
-                                 OFPortStatus.OFPortReason.OFPPR_ADD);
+                OFPortStatus.OFPortReason.OFPPR_ADD);
 
         // Add the BGP service port.
         OFPhysicalPort servicePort = new OFPhysicalPort();
         // Offset local port number to avoid conflicts.
         short localPortNum = MockPortService.BGP_TCP_PORT;
         servicePort.setPortNumber(localPortNum);
-        servicePort.setHardwareAddress(new byte[] {
-                (byte) 0x02, (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
-                (byte) localPortNum });
+        servicePort.setHardwareAddress(new byte[] { (byte) 0x02, (byte) 0xee,
+                (byte) 0xdd, (byte) 0xcc, (byte) 0xff, (byte) localPortNum });
         networkCtrl.onPortStatus(servicePort,
-                                 OFPortStatus.OFPortReason.OFPPR_ADD);
+                OFPortStatus.OFPortReason.OFPPR_ADD);
 
         // 9 flows (BGPx4, ICMPx2, ARPx2, DHCPx1) are installed.
         // The DHCP flow is not specific to the BGP port setup. All locally
@@ -1606,8 +1608,8 @@ public class TestNetworkController {
         // the rest of the test is oblivious to it.
         controllerStub.addedFlows.remove(0);
 
-        int localAddr = PortDirectory.MaterializedRouterPortConfig.class.cast(
-            portMgr.get(portId).value).portAddr;
+        int localAddr = PortDirectory.MaterializedRouterPortConfig.class
+                .cast(portMgr.get(portId).value).portAddr;
         int remoteAddr = Net.convertStringAddressToInt(remoteAddrString);
         MidoMatch match;
         List<OFAction> actions;
@@ -1623,7 +1625,7 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(0), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check BGP flows from local to remote with local TCP port specified.
         match = new MidoMatch();
@@ -1636,9 +1638,9 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(1), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
-        //Check BGP flows from remote to local with local TCP port specified.
+        // Check BGP flows from remote to local with local TCP port specified.
         match = new MidoMatch();
         match.setInputPort((short) remotePortNum);
         match.setDataLayerType(IPv4.ETHERTYPE);
@@ -1649,7 +1651,7 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(2), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check BGP flows from remote to local with remote TCP port specified.
         match = new MidoMatch();
@@ -1662,7 +1664,7 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(3), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ARP request to the peer.
         match = new MidoMatch();
@@ -1671,7 +1673,7 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(4), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ARP request from the peer.
         // One flow goes to the local, and the other goes to the controller.
@@ -1681,9 +1683,9 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) localPortNum, (short) 0));
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
-                                       (short) 128));
+                (short) 128));
         checkInstalledFlow(controllerStub.addedFlows.get(5), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ICMP flows from local with local address specified.
         match = new MidoMatch();
@@ -1694,7 +1696,7 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(6), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ICMP flows to local with local address specified.
         match = new MidoMatch();
@@ -1705,6 +1707,6 @@ public class TestNetworkController {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) localPortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(7), match, (short) 0,
-                           ControllerStub.UNBUFFERED_ID, false, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
     }
 }
