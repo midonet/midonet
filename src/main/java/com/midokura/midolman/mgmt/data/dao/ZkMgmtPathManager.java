@@ -121,6 +121,46 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
     }
 
     /**
+     * Get ZK tenant bridge names path.
+     * 
+     * @return /tenants/tenantId/bridge-names
+     */
+    public String getTenantBridgeNamesPath(UUID tenantId) {
+        return new StringBuilder(getTenantPath(tenantId)).append(
+                "/bridge-names").toString();
+    }
+
+    /**
+     * Get ZK tenant bridge name path.
+     * 
+     * @return /tenants/tenantId/bridge-names/name
+     */
+    public String getTenantBridgeNamePath(UUID tenantId, String name) {
+        return new StringBuilder(getTenantBridgeNamesPath(tenantId))
+                .append("/").append(name).toString();
+    }
+
+    /**
+     * Get ZK tenant router names path.
+     * 
+     * @return /tenants/tenantId/router-names
+     */
+    public String getTenantRouterNamesPath(UUID tenantId) {
+        return new StringBuilder(getTenantPath(tenantId)).append(
+                "/router-names").toString();
+    }
+
+    /**
+     * Get ZK tenant router name path.
+     * 
+     * @return /tenants/tenantId/router-names/name
+     */
+    public String getTenantRouterNamePath(UUID tenantId, String name) {
+        return new StringBuilder(getTenantRouterNamesPath(tenantId))
+                .append("/").append(name).toString();
+    }
+
+    /**
      * Get ZK router path.
      * 
      * @return /routers

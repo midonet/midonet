@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy.BridgeMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy.BridgeNameMgmtConfig;
 
 /**
  * Class representing Virtual Bridge.
@@ -91,5 +92,9 @@ public class Bridge {
         b.setTenantId(config.tenantId);
         b.setId(id);
         return b;
+    }
+
+    public BridgeNameMgmtConfig toNameMgmtConfig() {
+        return new BridgeNameMgmtConfig(this.getId());
     }
 }

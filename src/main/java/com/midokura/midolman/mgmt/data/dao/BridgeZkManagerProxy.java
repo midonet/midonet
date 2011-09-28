@@ -49,6 +49,19 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         public String name;
     }
 
+    public static class BridgeNameMgmtConfig {
+        public BridgeNameMgmtConfig() {
+            super();
+        }
+
+        public BridgeNameMgmtConfig(UUID id) {
+            super();
+            this.id = id;
+        }
+
+        public UUID id;
+    }
+
     private BridgeZkManager zkManager = null;
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManagerProxy.class);
@@ -59,8 +72,8 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         zkManager = new BridgeZkManager(zk, basePath);
     }
 
-    public List<Op> prepareCreate(Bridge bridge)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<Op> prepareCreate(Bridge bridge) throws StateAccessException,
+            ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Create the root bridge path
@@ -82,6 +95,19 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         ops.add(Op.create(tenantBridgePath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
+        String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
+                bridge.getTenantId(), bridge.getName());
+        log.debug("Preparing to create:" + tenantBridgeNamePath);
+        try {
+            ops.add(Op.create(tenantBridgeNamePath, serialize(bridge
+                    .toNameMgmtConfig()), Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize BridgeNameMgmtConfig", e,
+                    BridgeNameMgmtConfig.class);
+        }
+
         // Create Midolman data
         ops.addAll(zkManager.prepareBridgeCreate(bridge.getId(),
                 new BridgeConfig()));
@@ -94,8 +120,8 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         return prepareDelete(get(id));
     }
 
-    public List<Op> prepareDelete(Bridge bridge)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<Op> prepareDelete(Bridge bridge) throws StateAccessException,
+            ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the Midolman side.
@@ -103,7 +129,12 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
                 .getId());
         ops.addAll(zkManager.prepareBridgeDelete(bridgeNode));
 
-        // Delete the tenant bridge entry
+        // Delete the tenant router entry
+        String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
+                bridge.getTenantId(), bridge.getName());
+        log.debug("Preparing to delete:" + tenantBridgeNamePath);
+        ops.add(Op.delete(tenantBridgeNamePath, -1));
+
         String tenantBridgePath = mgmtPathManager.getTenantBridgePath(bridge
                 .getTenantId(), bridge.getId());
         log.debug("Preparing to delete: " + tenantBridgePath);
@@ -115,8 +146,8 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         ops.add(Op.delete(bridgePath, -1));
 
         // Remove all the ports in mgmt directory but don't cascade here.
-        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk,
-                pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
         ops.addAll(portMgr.prepareBridgeDelete(bridge.getId()));
 
         return ops;

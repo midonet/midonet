@@ -79,6 +79,10 @@ public class TenantZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(ZkMgmtPathManager.getTenantBridgesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(ZkMgmtPathManager.getTenantRouterNamesPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(ZkMgmtPathManager.getTenantBridgeNamesPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         multi(ops);
         return id;
     }

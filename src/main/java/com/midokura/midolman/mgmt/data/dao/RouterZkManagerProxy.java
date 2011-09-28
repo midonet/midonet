@@ -62,6 +62,19 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         public UUID peerPortId;
     }
 
+    public static class RouterNameMgmtConfig {
+        public RouterNameMgmtConfig() {
+            super();
+        }
+
+        public RouterNameMgmtConfig(UUID id) {
+            super();
+            this.id = id;
+        }
+
+        public UUID id;
+    }
+
     private RouterZkManager zkManager = null;
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkManagerProxy.class);
@@ -99,6 +112,19 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         log.debug("Preparing to create:" + tenantRouterPath);
         ops.add(Op.create(tenantRouterPath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
+
+        String tenantRouterNamePath = mgmtPathManager.getTenantRouterNamePath(
+                router.getTenantId(), router.getName());
+        log.debug("Preparing to create:" + tenantRouterNamePath);
+        try {
+            ops.add(Op.create(tenantRouterNamePath, serialize(router
+                    .toNameMgmtConfig()), Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize RouterNameMgmtConfig", e,
+                    RouterNameMgmtConfig.class);
+        }
 
         // Create the Midolman side.
         ops.addAll(zkManager.prepareRouterCreate(router.getId()));
@@ -172,6 +198,11 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         chainManager.prepareRouterDelete(router.getId(), false);
 
         // Delete the tenant router entry
+        String tenantRouterNamePath = mgmtPathManager.getTenantRouterNamePath(
+                router.getTenantId(), router.getName());
+        log.debug("Preparing to delete:" + tenantRouterNamePath);
+        ops.add(Op.delete(tenantRouterNamePath, -1));
+
         // Get all the paths to delete
         String tenantRouterPath = mgmtPathManager.getTenantRouterPath(router
                 .getTenantId(), router.getId());
@@ -179,8 +210,8 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         ops.add(Op.delete(tenantRouterPath, -1));
 
         // Remove all the ports in mgmt directory but don't cascade here.
-        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk,
-                pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
         PortZkManager portZkManager = new PortZkManager(zk, pathManager
                 .getBasePath());
         List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager

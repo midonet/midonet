@@ -21,12 +21,11 @@ import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfig.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.ShortUUID;
 
 /**

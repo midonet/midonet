@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy.RouterMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy.RouterNameMgmtConfig;
 
 /**
  * Class representing Virtual Router.
@@ -91,5 +92,9 @@ public class Router {
         router.setTenantId(config.tenantId);
         router.setId(id);
         return router;
+    }
+
+    public RouterNameMgmtConfig toNameMgmtConfig() {
+        return new RouterNameMgmtConfig(this.getId());
     }
 }

@@ -11,7 +11,6 @@ import java.util.UUID;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy.PeerRouterConfig;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfig.LogicalRouterPortConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 

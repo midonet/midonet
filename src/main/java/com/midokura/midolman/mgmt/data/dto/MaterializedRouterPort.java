@@ -12,7 +12,6 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Net;
 
 /**

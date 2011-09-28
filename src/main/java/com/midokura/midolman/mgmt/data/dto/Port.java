@@ -11,7 +11,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfig.BridgePortConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
