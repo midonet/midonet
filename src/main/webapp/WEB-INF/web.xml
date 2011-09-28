@@ -33,6 +33,10 @@
         com.midokura.midolman.mgmt.rest_api.v1.RestApplication
              </param-value>
     </init-param>
+    <init-param>
+      <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+      <param-value>com.midokura.midolman.mgmt.auth.KeystoneAuthzFilter</param-value>
+    </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>

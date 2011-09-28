@@ -13,12 +13,15 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.KeystoneSecurityContext;
 import com.midokura.midolman.mgmt.data.dao.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
@@ -68,7 +71,11 @@ public class TenantResource extends RestResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(Tenant tenant) throws StateAccessException {
+    public Response create(Tenant tenant, @Context SecurityContext context)
+            throws StateAccessException {
+        if (context instanceof KeystoneSecurityContext) {
+            log.debug("--------------------->" + context.getAuthenticationScheme());
+        }
         TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         UUID id = null;
