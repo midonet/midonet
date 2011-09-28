@@ -183,6 +183,8 @@ public abstract class AbstractController
     @Override
     public final void onPortStatus(OFPhysicalPort portDesc,
                                    OFPortReason reason) {
+        log.debug("onPortStatus: portDesc {} reason {}", portDesc, reason);
+
         if (reason.equals(OFPortReason.OFPPR_ADD)) {
             short portNum = portDesc.getPortNumber();
             callAddPort(portDesc, portNum);
@@ -219,6 +221,8 @@ public abstract class AbstractController
         } else {
             log.error("Unknown OFPortReason update: {}", reason);
         }
+        
+        log.debug("onPortStatus: peerIpToTunnelPortNum {}", peerIpToTunnelPortNum);
     }
 
     protected abstract void addPort(OFPhysicalPort portDesc, short portNum);

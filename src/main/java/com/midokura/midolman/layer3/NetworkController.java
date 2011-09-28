@@ -340,6 +340,8 @@ public class NetworkController extends AbstractController {
                     log.warn("{} -- Network.process() returned FORWARD to "
                             + "remote port {} -- No tunnel port found.", msg,
                             fwdInfo.outPortId.toString());
+                    log.debug("onPacketIn: peerIpToTunnelPortNum {}", peerIpToTunnelPortNum);
+                    
                     installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
                     // TODO: check whether this is the right error code (host?).
                     sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
