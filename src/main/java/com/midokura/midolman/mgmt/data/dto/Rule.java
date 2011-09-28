@@ -557,7 +557,11 @@ public class Rule {
     private Condition makeCondition() {
         Condition c = new Condition();
         c.conjunctionInv = this.isCondInvert();
-        c.inPortIds = new HashSet<UUID>(Arrays.asList(this.getInPorts()));
+        if (this.getInPorts() != null) {
+            c.inPortIds = new HashSet<UUID>(Arrays.asList(this.getInPorts()));
+        } else {
+            c.inPortIds = new HashSet<UUID>();
+        }
         c.inPortInv = this.isInvInPorts();
         c.nwDstInv = this.isInvNwDst();
         c.nwDstIp = Net.convertStringAddressToInt(this.getNwDstAddress());
@@ -569,7 +573,11 @@ public class Rule {
         c.nwSrcLength = (byte) this.getNwSrcLength();
         c.nwTos = (byte) this.getNwTos();
         c.nwTosInv = this.isInvNwTos();
-        c.outPortIds = new HashSet<UUID>(Arrays.asList(this.getOutPorts()));
+        if (this.getOutPorts() != null) {
+            c.outPortIds = new HashSet<UUID>(Arrays.asList(this.getOutPorts()));
+        } else {
+            c.outPortIds = new HashSet<UUID>();
+        }
         c.outPortInv = this.isInvOutPorts();
         c.tpDstEnd = this.getTpDstEnd();
         c.tpDstInv = this.isInvTpDst();
