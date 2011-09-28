@@ -264,8 +264,8 @@ public class TestAbstractController {
     @Test
     public void testPortLocMapListener() throws KeeperException {
         UUID portUuid = UUID.randomUUID();
-        String path1 = "/"+portUuid.toString()+",ff0011aa,";
-        String path2 = "/"+portUuid.toString()+",ff0011ac,";
+        String path1 = "/"+portUuid.toString()+",255.0.17.170,";
+        String path2 = "/"+portUuid.toString()+",255.0.17.172,";
 
         // Port comes up.  Verify tunnel made.
         String fullpath1 = mockDir.add(path1, null,
