@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 public class AdRouteZkManager extends ZkManager {
@@ -46,10 +45,6 @@ public class AdRouteZkManager extends ZkManager {
      */
     public AdRouteZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-    }
-
-    public AdRouteZkManager(ZooKeeper zk, String basePath) {
-        this(new ZkDirectory(zk, "", null), basePath);
     }
 
     public List<Op> prepareAdRouteCreate(

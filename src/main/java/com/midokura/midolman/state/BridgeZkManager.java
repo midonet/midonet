@@ -13,7 +13,6 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.midokura.midolman.state.GreZkManager.GreKey;
@@ -52,10 +51,6 @@ public class BridgeZkManager extends ZkManager {
      */
     public BridgeZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-    }
-
-    public BridgeZkManager(ZooKeeper zk, String basePath) {
-        this(new ZkDirectory(zk, "", Ids.OPEN_ACL_UNSAFE), basePath);
     }
 
     public List<Op> prepareBridgeCreate(UUID id, BridgeConfig bridgeNode)

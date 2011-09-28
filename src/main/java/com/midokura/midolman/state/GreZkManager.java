@@ -51,10 +51,6 @@ public class GreZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    public GreZkManager(ZooKeeper zk, String basePath) {
-        this(new ZkDirectory(zk, "", Ids.OPEN_ACL_UNSAFE), basePath);
-    }
-
     private int extractGreKeyFromPath(String path) {
         int idx = path.lastIndexOf('/');
         return Integer.parseInt(path.substring(idx + 1));
