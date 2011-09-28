@@ -103,7 +103,8 @@ public final class KeystoneClient {
         parser.parse(response);
         log.debug("Token = " + parser.getToken());
         log.debug("TokenExp = " + parser.getTokenExpiration());
-        log.debug("TokenTenant = " + parser.getTokenTenant());
+        log.debug("TokenTenantName = " + parser.getTokenTenantName());
+        log.debug("TokenTenantId = " + parser.getTokenTenantId());
         log.debug("User = " + parser.getUser());
         log.debug("UserTenant = " + parser.getUserTenant());
         String[] roles = parser.getUserRoles();

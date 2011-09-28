@@ -41,11 +41,12 @@ public final class KeystoneJsonParser {
      *             JSON parsing IO error.
      */
     public void parse(String src) throws IOException {
+        System.err.println("----->" + src);
         // Parse with Jackson library.
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory factory = mapper.getJsonFactory();
         JsonParser jp = factory.createJsonParser(src);
-        this.node = mapper.readTree(jp).get("auth");
+        this.node = mapper.readTree(jp).get("access");
     }
 
     /**
@@ -71,8 +72,17 @@ public final class KeystoneJsonParser {
      * 
      * @return Token tenant string.
      */
-    public String getTokenTenant() {
-        return this.node.get("token").get("tenantId").getTextValue();
+    public String getTokenTenantId() {
+        return this.node.get("token").get("tenant").get("id").getTextValue();
+    }
+
+    /**
+     * Get token tenant name from JSON.
+     * 
+     * @return Token tenant string.
+     */
+    public String getTokenTenantName() {
+        return this.node.get("token").get("tenant").get("name").getTextValue();
     }
 
     /**
@@ -100,13 +110,13 @@ public final class KeystoneJsonParser {
      */
     public String[] getUserRoles() {
         // Parse out roles from the JSON string and return as an array.
-        JsonNode roleNode = this.node.get("user").get("roleRefs");
+        JsonNode roleNode = this.node.get("user").get("roles");
         String[] roles = new String[roleNode.size()];
         Iterator<JsonNode> roleNodeItr = roleNode.getElements();
         int ii = 0;
         while (roleNodeItr.hasNext()) {
             roleNode = roleNodeItr.next();
-            roles[ii] = roleNode.get("roleId").getTextValue();
+            roles[ii] = roleNode.get("name").getTextValue();
             ii++;
         }
         return roles;

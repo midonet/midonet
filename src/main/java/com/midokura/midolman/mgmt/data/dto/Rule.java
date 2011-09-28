@@ -645,7 +645,9 @@ public class Rule {
 
     public void setFromCondition(Condition c) {
         this.setCondInvert(c.conjunctionInv);
-        this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
+        if (c.inPortIds != null) {
+            this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
+        }
         this.setInvInPorts(c.inPortInv);
         this.setInvNwDst(c.nwDstInv);
         this.setInvNwProto(c.nwProtoInv);
@@ -654,13 +656,20 @@ public class Rule {
         this.setInvOutPorts(c.outPortInv);
         this.setInvTpDst(c.tpDstInv);
         this.setInvTpSrc(c.tpSrcInv);
-        this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
+        if (c.nwDstIp > 0) {
+            this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
+        }
         this.setNwDstLength(c.nwDstLength);
         this.setNwProto(c.nwProto);
-        this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
+        if (c.nwSrcIp > 0) {
+            this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
+        }
         this.setNwSrcLength(c.nwSrcLength);
         this.setNwTos(c.nwTos);
-        this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
+        if (c.outPortIds != null) {
+            this.setOutPorts(c.outPortIds
+                    .toArray(new UUID[c.outPortIds.size()]));
+        }
         this.setTpDstEnd(c.tpDstEnd);
         this.setTpDstStart(c.tpDstStart);
         this.setTpSrcEnd(c.tpSrcEnd);
