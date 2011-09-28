@@ -33,3 +33,6 @@ chown $USER:$GROUP $DATADIR
 # allow group access to /var/run/quagga
 usermod -G quagga $USER
 chmod g+w /var/run/quagga
+
+# enable OVSDB TCP interface on port 12344
+echo 'OVSDB_SERVER_OPTS="$OVSDB_SERVER_OPTS --remote ptcp:12344"' >> /etc/default/openvswitch-switch
