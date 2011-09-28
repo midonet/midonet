@@ -1,5 +1,5 @@
 /**
- * TestOpenvSwitchDatabaaseConnection.scala - OVSDB connection Test.
+ * CheckOpenvSwitchDatabaaseConnection.scala - OVSDB connection Test.
  *
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
@@ -9,77 +9,24 @@ package com.midokura.midolman.openvswitch
 
 import org.junit.{AfterClass, BeforeClass, Test}
 import org.junit.Assert._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitSuite
 
 import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
-import java.io.{File, RandomAccessFile}
-import java.nio.channels.FileLock
-import java.util.Date
-
 
 /**
  * Test for the Open vSwitch database connection.
  */
-object TestOpenvSwitchDatabaseConnection extends JUnitSuite {
-    private final val database = "Open_vSwitch"
-    private final val host = "localhost"
-    private final val port = 12344
-    private final val bridgeName = "testovsbr"
+object CheckOpenvSwitchDatabaseConnection {
     private final val portName = "testovsport"
-    private final val bridgeExtIdKey = "midolman-vnet"
-    private final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     private final val bridgeOfPortNum = 65534
-    private final val ovsdb =
-        new OpenvSwitchDatabaseConnectionImpl(database, host, port)
-    private final var bridgeId: Long = _
-    private final val lockfile = new File("/tmp/ovs_tests.lock")
-    private final val lockchannel = 
-        new RandomAccessFile(lockfile, "rw").getChannel
-    private var lock: FileLock = _
-
-    @BeforeClass def initializeTest() {
-        lock = lockchannel.lock
-        Console.err.println("Entering testOVSConn at " + new Date)
-        testAddBridge()
-        bridgeId = java.lang.Long.parseLong(ovsdb.getDatapathId(bridgeName), 16)
-    }
-
-    /**
-     * Test addBridge().
-     */
-    def testAddBridge() = {
-        val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
-        bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
-        bb.build
-        assertTrue(ovsdb.hasBridge(bridgeName))
-    }
-
-    /**
-     * Test delBridge().
-     */
-    def testDelBridge() = {
-        ovsdb.delBridge(bridgeName)
-        assertFalse(ovsdb.hasBridge(bridgeName))
-    }
-
-    /**
-     * Disconnect the OVSDB connection.
-     */
-    @AfterClass def finalizeTest() = {
-        testDelBridge()
-        assertFalse(ovsdb.hasBridge(bridgeName))
-        ovsdb.close
-        Console.err.println("Closing testOVSConn at " + new Date)
-        lock.release
-    }
 }
 
-class TestOpenvSwitchDatabaseConnection extends JUnitSuite {
-    import TestOpenvSwitchDatabaseConnection._
+class CheckOpenvSwitchDatabaseConnection {
+    import CheckOpenvSwitchDatabaseConnection._
+    // Share a common OVSDB connection because using two breaks.
+    import TestShareOneOpenvSwitchDatabaseConnection._
 
     /**
      * Test addSystemPort().
