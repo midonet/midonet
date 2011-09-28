@@ -25,6 +25,8 @@ import org.openflow.protocol.OFPacketIn;
 import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFPortStatus;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.util.HexString;
@@ -207,6 +209,11 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             controller.onFlowRemoved(fr.getMatch(), fr.getCookie(), fr.getPriority(),
                     fr.getReason(), fr.getDurationSeconds(), fr.getDurationNanoseconds(),
                     fr.getIdleTimeout(), fr.getPacketCount(), fr.getByteCount());
+            return true;
+        case PORT_STATUS:
+            log.debug("handleMessage: PORT_STATUS");
+            OFPortStatus ps = (OFPortStatus) m;
+            controller.onPortStatus(ps.getDesc(), OFPortReason.values()[ps.getReason()]);
             return true;
         default:
             log.debug("handleMessages: default: " + m.getType());
