@@ -14,6 +14,7 @@ import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.quagga.BgpConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
@@ -89,7 +90,7 @@ public class BgpPortService implements PortService {
                                               portId.toString());
     }
 
-    private void addPort(final long datapathId, final UUID portId, final String mac) throws
+    private void addPort(final long datapathId, final UUID portId, final MAC mac) throws
             StateAccessException, ZkStateSerializationException {
         // Check service attributes in port configurations.
         List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(
@@ -126,7 +127,7 @@ public class BgpPortService implements PortService {
                                                             portName);
             portBuilder.externalId(portIdExtIdKey, portId.toString());
             portBuilder.externalId(portServiceExtIdKey, BGP_SERVICE_EXT_ID);
-            portBuilder.ifMac(mac);
+            portBuilder.ifMac(mac.toString());
             // If there is an existing service port, ovs will return False.
             portBuilder.build();
 
@@ -139,7 +140,7 @@ public class BgpPortService implements PortService {
         throws StateAccessException,
         ZkStateSerializationException, KeeperException {
         UUID portId = port.getId();
-        this.addPort(datapathId, portId, Net.convertByteMacToString(port.getMacAddr()));
+        this.addPort(datapathId, portId, port.getMacAddr());
     }
 
     @Override

@@ -4,9 +4,9 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.util.MAC;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;

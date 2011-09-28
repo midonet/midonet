@@ -19,6 +19,7 @@ import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
@@ -190,7 +191,7 @@ public class Network {
         // routersByPortId map.
     }
 
-    public void getMacForIp(UUID portId, int nwAddr, Callback<byte[]> cb)
+    public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb)
             throws ZkStateSerializationException {
         log.debug("getMacForIp: port {} in {}", portId, Net.convertIntAddressToString(nwAddr));
         

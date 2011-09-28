@@ -2,37 +2,42 @@
 
 package com.midokura.midolman;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.OFFeaturesReply;
-import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
-import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
@@ -40,12 +45,12 @@ import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.util.MAC;
 
 
 public class TestBridgeController {
@@ -138,16 +143,16 @@ public class TestBridgeController {
         ipPacket.setDestinationAddress(0x21212121);
         Ethernet packet = new Ethernet();
         packet.setPayload(ipPacket);
-        packet.setDestinationMACAddress(dstMac.address);
-        packet.setSourceMACAddress(srcMac.address);
+        packet.setDestinationMACAddress(dstMac);
+        packet.setSourceMACAddress(srcMac);
         packet.setEtherType(IPv4.ETHERTYPE);
         return packet;
     }
 
     static MidoMatch makeFlowMatch(MAC srcMac, MAC dstMac) {
         MidoMatch match = new MidoMatch();
-        match.setDataLayerDestination(dstMac.address);
-        match.setDataLayerSource(srcMac.address);
+        match.setDataLayerDestination(dstMac);
+        match.setDataLayerSource(srcMac);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setNetworkDestination(0x21212121);
         match.setNetworkSource(0x11111111);
@@ -285,7 +290,7 @@ public class TestBridgeController {
         // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
             phyPorts[i].setPortNumber((short)i);
-            phyPorts[i].setHardwareAddress(macList[i].address);
+            phyPorts[i].setHardwareAddress(macList[i].getAddress());
             // First three ports are local.  The rest are tunneled.
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(
@@ -421,10 +426,10 @@ public class TestBridgeController {
         MidoMatch expectedDeletes[] = {
                 new MidoMatch(), new MidoMatch(),
                 new MidoMatch(), new MidoMatch() };
-        expectedDeletes[0].setDataLayerSource(macList[0].address);
-        expectedDeletes[1].setDataLayerDestination(macList[0].address);
-        expectedDeletes[2].setDataLayerSource(macList[1].address);
-        expectedDeletes[3].setDataLayerDestination(macList[1].address);
+        expectedDeletes[0].setDataLayerSource(macList[0]);
+        expectedDeletes[1].setDataLayerDestination(macList[0]);
+        expectedDeletes[2].setDataLayerSource(macList[1]);
+        expectedDeletes[3].setDataLayerDestination(macList[1]);
         for (int i = 0; i < 4; i++) {
             assertEquals(expectedDeletes[i],
                          controllerStub.deletedFlows.get(oldDelCount+i).match);
@@ -436,13 +441,13 @@ public class TestBridgeController {
         portLocMap.remove(portUuids[3]);
         assertEquals(oldDelCount+1, controllerStub.deletedFlows.size());
         MidoMatch expectedMatch = new MidoMatch();
-        expectedMatch.setDataLayerDestination(macList[3].address);
+        expectedMatch.setDataLayerDestination(macList[3]);
         assertEquals(expectedMatch,
                      controllerStub.deletedFlows.get(oldDelCount).match);
         log.info("Removing port {} from portLocMap", portUuids[4]);
         portLocMap.remove(portUuids[4]);
         assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
-        expectedMatch.setDataLayerDestination(macList[4].address);
+        expectedMatch.setDataLayerDestination(macList[4]);
         assertEquals(expectedMatch,
                      controllerStub.deletedFlows.get(oldDelCount+1).match);
     }
@@ -463,9 +468,9 @@ public class TestBridgeController {
 
         assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
         MidoMatch expectSrcDelete = new MidoMatch();
-        expectSrcDelete.setDataLayerSource(macList[1].address);
+        expectSrcDelete.setDataLayerSource(macList[1]);
         MidoMatch expectDstDelete = new MidoMatch();
-        expectDstDelete.setDataLayerDestination(macList[1].address);
+        expectDstDelete.setDataLayerDestination(macList[1]);
         assertEquals(expectSrcDelete,
                      controllerStub.deletedFlows.get(oldDelCount).match);
         assertEquals(expectDstDelete,
@@ -476,7 +481,7 @@ public class TestBridgeController {
         portLocMap.put(portUuids[3], Net.convertStringAddressToInt("1.2.3.4"));
         assertTrue(oldDelCount < controllerStub.deletedFlows.size());
         MidoMatch expectedMatch = new MidoMatch();
-        expectedMatch.setDataLayerDestination(macList[3].address);
+        expectedMatch.setDataLayerDestination(macList[3]);
         for (int i = oldDelCount; i < controllerStub.deletedFlows.size(); i++) {
             assertEquals(expectedMatch,
                          controllerStub.deletedFlows.get(i).match);
@@ -557,7 +562,7 @@ public class TestBridgeController {
         assertEquals(1, controllerStub.addedFlows.size());
         controllerStub.deletedFlows.clear();
         MidoMatch removeMatchDst = new MidoMatch();
-        removeMatchDst.setDataLayerDestination(macList[outPortNum].address);
+        removeMatchDst.setDataLayerDestination(macList[outPortNum]);
         portLocMap.put(portUuids[outPortNum], 
                        Net.convertStringAddressToInt(peerStrList[outPortNum]));
         assertTrue(controllerStub.deletedFlows.size() > 0);
@@ -604,7 +609,7 @@ public class TestBridgeController {
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
         MidoMatch match = new MidoMatch();
         match.setInputPort(inPortNum);
-        match.setDataLayerSource(macList[inPortNum].address);
+        match.setDataLayerSource(macList[inPortNum]);
         for (int i = 0; i < numFlows; i++) {
             reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
             controller.onFlowRemoved(match, 0, (short)1000, 
@@ -659,7 +664,7 @@ public class TestBridgeController {
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
         MidoMatch match = new MidoMatch();
         match.setInputPort(inPortNum);
-        match.setDataLayerSource(macList[inPortNum].address);
+        match.setDataLayerSource(macList[inPortNum]);
         for (int i = 0; i < numFlows; i++) {
             reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
             controller.onFlowRemoved(match, 0, (short)1000,
@@ -699,7 +704,7 @@ public class TestBridgeController {
         assertEquals(portUuids[2], macPortMap.get(macList[1]));        
         MidoMatch match = new MidoMatch();
         match.setInputPort((short)1);
-        match.setDataLayerSource(macList[1].address);
+        match.setDataLayerSource(macList[1]);
         controller.onFlowRemoved(match, 0, (short)1000, 
                         OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
@@ -792,7 +797,7 @@ public class TestBridgeController {
         assertArrayEquals(expectAction, 
                           controllerStub.addedFlows.get(1).actions.toArray());
         MidoMatch expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[0].address);
+        expectMatch.setDataLayerDestination(macList[0]);
         assertTrue(0 < controllerStub.deletedFlows.size());
         assertEquals(expectMatch,
                      controllerStub.deletedFlows.get(
@@ -809,7 +814,7 @@ public class TestBridgeController {
         assertEquals(3, controllerStub.addedFlows.size());
         assertArrayEquals(expectAction, 
                           controllerStub.addedFlows.get(2).actions.toArray());
-        expectMatch.setDataLayerDestination(macList[1].address);
+        expectMatch.setDataLayerDestination(macList[1]);
         assertTrue(0 < controllerStub.deletedFlows.size());
         assertEquals(expectMatch,
                      controllerStub.deletedFlows.get(
@@ -828,10 +833,10 @@ public class TestBridgeController {
         assertArrayEquals(expectAction,
                           controllerStub.addedFlows.get(3).actions.toArray());
         assertEquals(2, controllerStub.deletedFlows.size());
-        expectMatch.setDataLayerDestination(macList[0].address);
+        expectMatch.setDataLayerDestination(macList[0]);
         assertEquals(expectMatch, controllerStub.deletedFlows.get(1).match);
         expectMatch = new MidoMatch();
-        expectMatch.setDataLayerSource(macList[0].address);
+        expectMatch.setDataLayerSource(macList[0]);
         assertEquals(expectMatch, controllerStub.deletedFlows.get(0).match);
 
         // MAC 0 moves to remote port 5.
@@ -844,7 +849,7 @@ public class TestBridgeController {
         assertTrue(2 <= controllerStub.deletedFlows.size());
         assertEquals(expectMatch, controllerStub.deletedFlows.get(0).match);
         expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[0].address);
+        expectMatch.setDataLayerDestination(macList[0]);
         assertEquals(expectMatch, controllerStub.deletedFlows.get(1).match);
 
         // Send a packet[src=1 dst=0] to port 1.
@@ -885,7 +890,7 @@ public class TestBridgeController {
         // srcMAC = MAC 0 should still be valid.
         assertEquals(1, controllerStub.deletedFlows.size());
         expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[0].address);
+        expectMatch.setDataLayerDestination(macList[0]);
         assertEquals(expectMatch, controllerStub.deletedFlows.get(0).match);
     }
 
@@ -925,7 +930,7 @@ public class TestBridgeController {
                        Net.convertStringAddressToInt(peerStrList[3]));
         // Flows to MAC 5 should have been invalidated.
         MidoMatch expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[5].address);
+        expectMatch.setDataLayerDestination(macList[5]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
 
@@ -944,7 +949,7 @@ public class TestBridgeController {
         controllerStub.deletedFlows.clear();
         portLocMap.remove(portUuids[5]);
         expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[5].address);
+        expectMatch.setDataLayerDestination(macList[5]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
 
@@ -963,13 +968,13 @@ public class TestBridgeController {
                        Net.convertStringAddressToInt(peerStrList[5]));
         // Flows to MAC 5 should have been invalidated.
         expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[5].address);
+        expectMatch.setDataLayerDestination(macList[5]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
 
         controllerStub.deletedFlows.clear();
         portLocMap.remove(portUuids[4]);
-        expectMatch.setDataLayerDestination(macList[4].address);
+        expectMatch.setDataLayerDestination(macList[4]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
     }
@@ -1030,8 +1035,8 @@ public class TestBridgeController {
 
         MidoMatch expectedMatchSrc = new MidoMatch();
         MidoMatch expectedMatchDst = new MidoMatch();
-        expectedMatchSrc.setDataLayerSource(macList[0].address);
-        expectedMatchDst.setDataLayerDestination(macList[0].address);
+        expectedMatchSrc.setDataLayerSource(macList[0]);
+        expectedMatchDst.setDataLayerDestination(macList[0]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows, 
                                          expectedMatchSrc));
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows, 
@@ -1059,16 +1064,16 @@ public class TestBridgeController {
         controllerStub.deletedFlows.clear();
         controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_DELETE);
         MidoMatch expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[7].address);
+        expectMatch.setDataLayerDestination(macList[7]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
-        expectMatch.setDataLayerDestination(macList[6].address);
+        expectMatch.setDataLayerDestination(macList[6]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
-        expectMatch.setDataLayerDestination(macList[5].address);
+        expectMatch.setDataLayerDestination(macList[5]);
         assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
                                           expectMatch));
-        expectMatch.setDataLayerDestination(macList[4].address);
+        expectMatch.setDataLayerDestination(macList[4]);
         assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
                                           expectMatch));
 
@@ -1086,16 +1091,16 @@ public class TestBridgeController {
         // Bringing up port 7 again should invalidate MACs 6 & 7 (only).
         controllerStub.deletedFlows.clear();
         controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_ADD);
-        expectMatch.setDataLayerDestination(macList[7].address);
+        expectMatch.setDataLayerDestination(macList[7]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
-        expectMatch.setDataLayerDestination(macList[6].address);
+        expectMatch.setDataLayerDestination(macList[6]);
         assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectMatch));
-        expectMatch.setDataLayerDestination(macList[5].address);
+        expectMatch.setDataLayerDestination(macList[5]);
         assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
                                           expectMatch));
-        expectMatch.setDataLayerDestination(macList[4].address);
+        expectMatch.setDataLayerDestination(macList[4]);
         assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
                                           expectMatch));
     }
@@ -1162,13 +1167,13 @@ public class TestBridgeController {
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
         assertEquals(new Integer(1), controller.flowCount.get(key));
-        match.setDataLayerSource(macList[3].address);
+        match.setDataLayerSource(macList[3]);
         controller.onFlowRemoved(match, 13, (short)1000, 
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
         assertEquals(new Integer(1), controller.flowCount.get(key));
-        match.setDataLayerSource(macList[2].address);
+        match.setDataLayerSource(macList[2]);
         match.setInputPort((short)30);
         controller.onFlowRemoved(match, 13, (short)1000, 
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,

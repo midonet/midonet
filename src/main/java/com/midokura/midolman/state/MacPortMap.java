@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.util.MAC;
 
 public class MacPortMap extends ReplicatedMap<MAC, UUID> {
 

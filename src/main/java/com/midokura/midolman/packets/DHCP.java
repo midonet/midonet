@@ -204,8 +204,8 @@ public class DHCP extends BasePacket {
     /**
      * @param clientHardwareAddress the clientHardwareAddress to set
      */
-    public DHCP setClientHardwareAddress(byte[] clientHardwareAddress) {
-        this.clientHardwareAddress = clientHardwareAddress;
+    public DHCP setClientHardwareAddress(MAC clientHardwareAddress) {
+        this.clientHardwareAddress = clientHardwareAddress.getAddress();
         return this;
     }
 

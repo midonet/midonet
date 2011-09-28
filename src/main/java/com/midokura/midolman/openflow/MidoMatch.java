@@ -6,6 +6,8 @@ package com.midokura.midolman.openflow;
 
 import org.openflow.protocol.OFMatch;
 
+import com.midokura.midolman.packets.MAC;
+
 /**
  * MidoMatch extends OFMatch and sets the wildcard bits automatically.
  *
@@ -18,28 +20,14 @@ public class MidoMatch extends OFMatch {
         // this.wildcards correctly set to OFPFW_ALL in OFMatch's ctor
     }
 
-    @Override
-    public OFMatch setDataLayerDestination(byte[] dataLayerDestination) {
+    public OFMatch setDataLayerDestination(MAC dataLayerDestination) {
         wildcards &= ~OFPFW_DL_DST;
-        return super.setDataLayerDestination(dataLayerDestination);
+        return super.setDataLayerDestination(dataLayerDestination.getAddress());
     }
 
-    @Override
-    public OFMatch setDataLayerDestination(String mac) {
-        wildcards &= ~OFPFW_DL_DST;
-        return super.setDataLayerDestination(mac);
-    }
-
-    @Override
-    public OFMatch setDataLayerSource(byte[] dataLayerSource) {
+    public OFMatch setDataLayerSource(MAC dataLayerSource) {
         wildcards &= ~OFPFW_DL_SRC;
-        return super.setDataLayerSource(dataLayerSource);
-    }
-
-    @Override
-    public OFMatch setDataLayerSource(String mac) {
-        wildcards &= ~OFPFW_DL_SRC;
-        return super.setDataLayerSource(mac);
+        return super.setDataLayerSource(dataLayerSource.getAddress());
     }
 
     @Override

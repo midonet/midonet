@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -25,6 +24,7 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -109,9 +109,9 @@ public class TestNetwork {
                 routeMgr.create(rt);
                 // All the ports will be local to this controller.
                 L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
-                        portId, portNum, new byte[] { (byte) 0x02, (byte) 0x00,
+                        portId, portNum, new MAC(new byte[] { (byte) 0x02, (byte) 0x00,
                                 (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                (byte) portNum }, controllerStub);
+                                (byte) portNum }), controllerStub);
                 network.addPort(devPort);
                 devPorts.add(devPort);
             }
@@ -179,8 +179,8 @@ public class TestNetwork {
         // that's blackholed.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         L3DevicePort ingrDevPort = devPorts.get(0);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
+        Ethernet eth = TestRouter.makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a040005, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
@@ -197,8 +197,8 @@ public class TestNetwork {
         // that's rejected.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         L3DevicePort ingrDevPort = devPorts.get(0);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
+        Ethernet eth = TestRouter.makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a000c05, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
@@ -216,8 +216,8 @@ public class TestNetwork {
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         L3DevicePort ingrDevPort = devPorts.get(0);
         L3DevicePort egrDevPort = devPorts.get(1);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
+        Ethernet eth = TestRouter.makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a000105, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
@@ -236,8 +236,8 @@ public class TestNetwork {
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         L3DevicePort ingrDevPort = devPorts.get(2);
         L3DevicePort egrDevPort = devPorts.get(0);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
+        Ethernet eth = TestRouter.makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0100cc, 0x0a0000aa, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
@@ -257,8 +257,8 @@ public class TestNetwork {
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         L3DevicePort ingrDevPort = devPorts.get(3);
         L3DevicePort egrDevPort = devPorts.get(5);
-        Ethernet eth = TestRouter.makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
+        Ethernet eth = TestRouter.makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0101bb, 0x0a020188, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();

@@ -45,6 +45,7 @@ import com.midokura.midolman.packets.DHCPOption;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.ChainZkManager;
@@ -129,7 +130,7 @@ public class NetworkController extends AbstractController {
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
     
-    private void onDhcpRequest(L3DevicePort devPortIn, DHCP request, byte[] sourceMac) {
+    private void onDhcpRequest(L3DevicePort devPortIn, DHCP request, MAC sourceMac) {
         log.debug("onDhcpRequest: {}", devPortIn);
         
         log.debug("onDhcpRequest: requestling client has IP {}", IPv4.fromIPv4Address(request.getClientIPAddress()));
@@ -281,8 +282,7 @@ public class NetworkController extends AbstractController {
         // Drop the packet if it's not addressed to an L2 mcast address or
         // the ingress port's own address.
         // TODO(pino): check this with Jacob.
-        if (!Arrays.equals(ethPkt.getDestinationMACAddress(), devPortIn
-                .getMacAddr())
+        if (!ethPkt.getDestinationMACAddress().equals(devPortIn.getMacAddr())
                 && !ethPkt.isMcast()) {
             log.warn("onPacketIn: dlDst {} not mcast nor virtual port's addr", ethPkt.getDestinationMACAddress());
             installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
@@ -361,13 +361,14 @@ public class NetworkController extends AbstractController {
                 
                 log.debug("onPacketIn: FORWARDing to remote port {}", tunPortNum);
 
-                byte[] dlSrc = new byte[6];
-                byte[] dlDst = new byte[6];
-                setDlHeadersForTunnel(dlSrc, dlDst, ShortUUID
-                        .UUID32toInt(fwdInfo.inPortId), ShortUUID
-                        .UUID32toInt(fwdInfo.outPortId), fwdInfo.nextHopNwAddr);
-                fwdInfo.matchOut.setDataLayerSource(dlSrc);
-                fwdInfo.matchOut.setDataLayerDestination(dlDst);
+                MAC[] dlHeaders = getDlHeadersForTunnel(
+                        ShortUUID.UUID32toInt(fwdInfo.inPortId),
+                        ShortUUID.UUID32toInt(fwdInfo.outPortId),
+                        fwdInfo.nextHopNwAddr);
+                
+                fwdInfo.matchOut.setDataLayerSource(dlHeaders[0]);
+                fwdInfo.matchOut.setDataLayerDestination(dlHeaders[1]);
+                
                 List<OFAction> ofActions = makeActionsForFlow(match,
                         fwdInfo.matchOut, tunPortNum.shortValue());
                 // TODO(pino): should we do any wildcarding here?
@@ -472,8 +473,11 @@ public class NetworkController extends AbstractController {
         return m1;
     }
 
-    public static void setDlHeadersForTunnel(byte[] dlSrc, byte[] dlDst,
+    public static MAC[] getDlHeadersForTunnel(
             int lastInPortId, int lastEgPortId, int gwNwAddr) {
+        byte[] dlSrc = new byte[6];
+        byte[] dlDst = new byte[6];
+        
         // Set the data layer source and destination:
         // The ingress port is used as the high 32 bits of the source mac.
         // The egress port is used as the low 32 bits of the dst mac.
@@ -487,6 +491,8 @@ public class NetworkController extends AbstractController {
         dlDst[1] = (byte) (gwNwAddr);
         for (int i = 2; i < 6; i++)
             dlDst[i] = (byte) (lastEgPortId >> (5 - i) * 8);
+        
+        return new MAC[] {new MAC(dlSrc), new MAC(dlDst)};
     }
 
     public static class DecodedMacAddrs {
@@ -520,7 +526,7 @@ public class NetworkController extends AbstractController {
         return result;
     }
 
-    private class TunneledPktArpCallback implements Callback<byte[]> {
+    private class TunneledPktArpCallback implements Callback<MAC> {
         public TunneledPktArpCallback(int bufferId, int totalLen, short inPort,
                 byte[] data, MidoMatch match, DecodedMacAddrs portsAndGw) {
             super();
@@ -540,7 +546,7 @@ public class NetworkController extends AbstractController {
         DecodedMacAddrs portsAndGw;
 
         @Override
-        public void call(byte[] mac) {
+        public void call(MAC mac) {
             String nwDstStr = IPv4.fromIPv4Address(match
                     .getNetworkDestination());
             if (null != mac) {
@@ -611,7 +617,7 @@ public class NetworkController extends AbstractController {
             controllerStub.sendPacketOut(bufferId, inPort, actions, data);
     }
 
-    private class LocalPktArpCallback implements Callback<byte[]> {
+    private class LocalPktArpCallback implements Callback<MAC> {
         public LocalPktArpCallback(int bufferId, int totalLen,
                 L3DevicePort devPortIn, byte[] data, MidoMatch match,
                 ForwardInfo fwdInfo, Ethernet ethPkt, Set<UUID> traversedRouters) {
@@ -636,7 +642,7 @@ public class NetworkController extends AbstractController {
         Set<UUID> traversedRouters;
 
         @Override
-        public void call(byte[] mac) {
+        public void call(MAC mac) {
             String nwDstStr = IPv4.fromIPv4Address(match
                     .getNetworkDestination());
             if (null != mac) {
@@ -735,8 +741,8 @@ public class NetworkController extends AbstractController {
         eth.setEtherType(IPv4.ETHERTYPE);
         eth.setPayload(ip);
         // Use fictitious mac addresses before routing.
-        eth.setSourceMACAddress("02:a1:b2:c3:d4:e5");
-        eth.setDestinationMACAddress("02:a1:b2:c3:d4:e6");
+        eth.setSourceMACAddress(MAC.fromString("02:a1:b2:c3:d4:e5"));
+        eth.setDestinationMACAddress(MAC.fromString("02:a1:b2:c3:d4:e6"));
         byte[] data = eth.serialize();
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, (short) 0);
@@ -807,9 +813,14 @@ public class NetworkController extends AbstractController {
         // generate ICMPs so in this case it isn't needed. Instead we'll encode
         // a special value so the other end of the tunnel can recognize this
         // as a tunneled ICMP.
-        setDlHeadersForTunnel(eth.getSourceMACAddress(), eth
-                .getDestinationMACAddress(), ICMP_TUNNEL, ShortUUID
-                .UUID32toInt(fwdInfo.outPortId), fwdInfo.nextHopNwAddr);
+        MAC[] dlHeaders = getDlHeadersForTunnel(
+                ICMP_TUNNEL,
+                ShortUUID.UUID32toInt(fwdInfo.outPortId),
+                fwdInfo.nextHopNwAddr);
+        
+        eth.setSourceMACAddress(dlHeaders[0]);
+        eth.setDestinationMACAddress(dlHeaders[1]);
+
         Integer tunNum = super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
         if (null == tunNum) {
             log.warn("Dropping ICMP error message. Can't find tunnel to peer"
@@ -1033,7 +1044,7 @@ public class NetworkController extends AbstractController {
 
         try {
             devPort = new L3DevicePort(portMgr, routeMgr, portId, portNum,
-                    portDesc.getHardwareAddress(), super.controllerStub);
+                    new MAC(portDesc.getHardwareAddress()), super.controllerStub);
         } catch (Exception e) {
             log.warn("devPortOfPortDesc", e);
         }

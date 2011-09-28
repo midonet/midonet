@@ -5,22 +5,20 @@
 package com.midokura.midolman;
 
 import java.net.InetAddress;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionOutput;
-import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
-import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.OFPort;
-import org.openflow.protocol.OFPhysicalPort;
-import org.openflow.protocol.OFPortStatus.OFPortReason;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPort;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +26,11 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.state.ReplicatedMap;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.util.MAC;
 
 
 public class BridgeController extends AbstractController {
@@ -253,12 +251,12 @@ public class BridgeController extends AbstractController {
             }
         }
 
-        boolean srcAddressIsMcast = Ethernet.isMcast(srcDlAddress.address);
+        boolean srcAddressIsMcast = Ethernet.isMcast(srcDlAddress);
         if (srcAddressIsMcast) {
             // If a multicast source MAC, drop the packet.
             actions = new OFAction[] { };
             log.info("multicast src MAC, dropping packet");
-        } else if (Ethernet.isMcast(dstDlAddress.address) ||
+        } else if (Ethernet.isMcast(dstDlAddress) ||
                    outPort == null ||
                    destIP == 0 ||
                    (destIP == publicIp && 
@@ -373,15 +371,15 @@ public class BridgeController extends AbstractController {
 
     private void invalidateFlowsFromMac(MAC mac) {
         log.info("invalidating flows with dl_src {}", mac);
-        OFMatch match = new MidoMatch();
-        match.setDataLayerSource(mac.address);
+        MidoMatch match = new MidoMatch();
+        match.setDataLayerSource(mac);
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     private void invalidateFlowsToMac(MAC mac) {
         log.info("invalidating flows with dl_dst {}", mac);
-        OFMatch match = new MidoMatch();
-        match.setDataLayerDestination(mac.address);
+        MidoMatch match = new MidoMatch();
+        match.setDataLayerDestination(mac);
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 

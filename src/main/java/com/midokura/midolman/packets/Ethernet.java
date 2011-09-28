@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * FIXME(dmd): Record the license this is under here.
  * @author David Erickson (daviderickson@cs.stanford.edu)
@@ -31,47 +32,30 @@ public class Ethernet extends BasePacket {
     /**
      * @return the destinationMACAddress
      */
-    public byte[] getDestinationMACAddress() {
-        return destinationMACAddress;
+    public MAC getDestinationMACAddress() {
+        return new MAC(destinationMACAddress);
     }
 
     /**
      * @param destinationMACAddress the destinationMACAddress to set
      */
-    public Ethernet setDestinationMACAddress(byte[] destinationMACAddress) {
-        this.destinationMACAddress = destinationMACAddress;
-        return this;
-    }
-
-    /**
-     * @param destinationMACAddress the destinationMACAddress to set
-     */
-    public Ethernet setDestinationMACAddress(String destinationMACAddress) {
-        this.destinationMACAddress = Ethernet
-                .toMACAddress(destinationMACAddress);
+    public Ethernet setDestinationMACAddress(MAC destinationMACAddress) {
+        this.destinationMACAddress = destinationMACAddress.address;
         return this;
     }
 
     /**
      * @return the sourceMACAddress
      */
-    public byte[] getSourceMACAddress() {
-        return sourceMACAddress;
+    public MAC getSourceMACAddress() {
+        return new MAC(sourceMACAddress);
     }
 
     /**
      * @param sourceMACAddress the sourceMACAddress to set
      */
-    public Ethernet setSourceMACAddress(byte[] sourceMACAddress) {
-        this.sourceMACAddress = sourceMACAddress;
-        return this;
-    }
-
-    /**
-     * @param sourceMACAddress the sourceMACAddress to set
-     */
-    public Ethernet setSourceMACAddress(String sourceMACAddress) {
-        this.sourceMACAddress = Ethernet.toMACAddress(sourceMACAddress);
+    public Ethernet setSourceMACAddress(MAC sourceMACAddress) {
+        this.sourceMACAddress = sourceMACAddress.address;
         return this;
     }
 
@@ -206,7 +190,7 @@ public class Ethernet extends BasePacket {
      * @param macAddress
      * @return
      */
-    public static byte[] toMACAddress(String macAddress) {
+    static byte[] toMACAddress(String macAddress) {
         byte[] address = new byte[6];
         String[] macBytes = macAddress.split(":");
         if (macBytes.length != 6)
@@ -238,10 +222,14 @@ public class Ethernet extends BasePacket {
     }
 
     public boolean isMcast() {
-        return isMcast(getDestinationMACAddress());
+        return isMcast(destinationMACAddress);
     }
 
-    public static boolean isMcast(byte[] mac) {
+    public static boolean isMcast(MAC mac) {
+        return isMcast(mac.getAddress());
+    }
+    
+    private static boolean isMcast(byte[] mac) {
         return 0 != (mac[0] & 0x01);
     }
 

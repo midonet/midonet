@@ -105,15 +105,15 @@ public class ARP extends BasePacket {
     /**
      * @return the senderHardwareAddress
      */
-    public byte[] getSenderHardwareAddress() {
-        return senderHardwareAddress;
+    public MAC getSenderHardwareAddress() {
+        return new MAC(senderHardwareAddress);
     }
 
     /**
      * @param senderHardwareAddress the senderHardwareAddress to set
      */
-    public ARP setSenderHardwareAddress(byte[] senderHardwareAddress) {
-        this.senderHardwareAddress = senderHardwareAddress;
+    public ARP setSenderHardwareAddress(MAC senderHardwareAddress) {
+        this.senderHardwareAddress = senderHardwareAddress.getAddress();
         return this;
     }
 
@@ -142,8 +142,8 @@ public class ARP extends BasePacket {
     /**
      * @param targetHardwareAddress the targetHardwareAddress to set
      */
-    public ARP setTargetHardwareAddress(byte[] targetHardwareAddress) {
-        this.targetHardwareAddress = targetHardwareAddress;
+    public ARP setTargetHardwareAddress(MAC targetHardwareAddress) {
+        this.targetHardwareAddress = targetHardwareAddress.getAddress();
         return this;
     }
 

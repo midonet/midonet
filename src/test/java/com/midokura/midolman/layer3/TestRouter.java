@@ -36,6 +36,7 @@ import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -47,6 +48,7 @@ import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
@@ -59,7 +61,6 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
@@ -194,9 +195,9 @@ public class TestRouter {
                 if (1 != j) {
                     // Except for the first port, add them locally.
                     L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
-                            portId, (short) portNum, new byte[] { (byte) 0x02,
+                            portId, (short) portNum, new MAC(new byte[] { (byte) 0x02,
                                     (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                    (byte) 0x00, (byte) portNum },
+                                    (byte) 0x00, (byte) portNum }),
                             controllerStub);
                     rtr.addPort(devPort);
                 }
@@ -208,8 +209,8 @@ public class TestRouter {
     public void testDropsIPv6() {
         short IPv6_ETHERTYPE = (short) 0x86DD;
         Ethernet eth = new Ethernet();
-        eth.setSourceMACAddress("02:aa:bb:cc:dd:01");
-        eth.setDestinationMACAddress("02:aa:bb:cc:dd:02");
+        eth.setSourceMACAddress(MAC.fromString("02:aa:bb:cc:dd:01"));
+        eth.setDestinationMACAddress(MAC.fromString("02:aa:bb:cc:dd:02"));
         eth.setEtherType(IPv6_ETHERTYPE);
         eth.setPad(true);
         UUID port12Id = portNumToId.get(12);
@@ -217,7 +218,7 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.NOT_IPV4, null, 0);
     }
 
-    public static Ethernet makeUDP(byte[] dlSrc, byte[] dlDst, int nwSrc,
+    public static Ethernet makeUDP(MAC dlSrc, MAC dlDst, int nwSrc,
             int nwDst, short tpSrc, short tpDst, byte[] data) {
         UDP udp = new UDP();
         udp.setDestinationPort(tpDst);
@@ -266,7 +267,7 @@ public class TestRouter {
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port23Id = portNumToId.get(23);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
-        Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
+        Ethernet eth = makeUDP(MAC.fromString("02:00:11:22:00:01"),
                 devPort23.getMacAddr(), 0x0a00020c, 0x11223344, (short) 1111,
                 (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port23Id, eth);
@@ -282,7 +283,7 @@ public class TestRouter {
         UUID port23Id = portNumToId.get(23);
         UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
-        Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
+        Ethernet eth = makeUDP(MAC.fromString("02:00:11:22:00:01"),
                 devPort23.getMacAddr(), 0x0a00020d, 0x0a000109, (short) 1111,
                 (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port23Id, eth);
@@ -294,8 +295,8 @@ public class TestRouter {
         // Make a packet that comes in on the uplink port from a nw address in
         // 11.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
-                Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0b0000ab,
+        Ethernet eth = makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0b0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
         ForwardInfo fInfo = routePacket(uplinkId, eth);
         checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
@@ -307,8 +308,8 @@ public class TestRouter {
         // 12.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         // UUID port12Id = portNumToId.get(12);
-        Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
-                Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0c0000ab,
+        Ethernet eth = makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0c0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
         ForwardInfo fInfo = routePacket(uplinkId, eth);
         checkForwardInfo(fInfo, Action.REJECT, null, 0);
@@ -323,8 +324,8 @@ public class TestRouter {
         // and is destined for 10.5.0.10.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port3Id = portNumToId.get(3);
-        Ethernet eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
-                Ethernet.toMACAddress("02:00:11:22:00:01"), 0x0a00000f,
+        Ethernet eth = makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0a00000f,
                 0x0a05000a, (short) 1234, (short) 4321, payload);
         ForwardInfo fInfo = routePacket(port3Id, eth);
         checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
@@ -335,7 +336,7 @@ public class TestRouter {
         // (i.e. inside 10.0.1.8/30).
         UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort3 = rtr.devicePorts.get(port3Id);
-        eth = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"), devPort3
+        eth = makeUDP(MAC.fromString("02:00:11:22:00:01"), devPort3
                 .getMacAddr(), 0x0a00000e, 0x0a00010b, (short) 1111,
                 (short) 2222, payload);
         fInfo = routePacket(port3Id, eth);
@@ -347,16 +348,16 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
     }
 
-    static class ArpCompletedCallback implements Callback<byte[]> {
-        List<byte[]> macsReturned = new ArrayList<byte[]>();
+    static class ArpCompletedCallback implements Callback<MAC> {
+        List<MAC> macsReturned = new ArrayList<MAC>();
 
         @Override
-        public void call(byte[] mac) {
+        public void call(MAC mac) {
             macsReturned.add(mac);
         }
     }
 
-    public static Ethernet makeArpRequest(byte[] sha, int spa, int tpa) {
+    public static Ethernet makeArpRequest(MAC sha, int spa, int tpa) {
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -364,19 +365,18 @@ public class TestRouter {
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REQUEST);
         arp.setSenderHardwareAddress(sha);
-        arp.setTargetHardwareAddress(Ethernet.toMACAddress("00:00:00:00:00:00"));
+        arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"));
         arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(spa));
         arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(tpa));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(sha);
-        byte b = (byte) 0xff;
-        pkt.setDestinationMACAddress(new byte[] { b, b, b, b, b, b });
+        pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         pkt.setEtherType(ARP.ETHERTYPE);
         return pkt;
     }
 
-    public static Ethernet makeArpReply(byte[] sha, byte[] tha, int spa, int tpa) {
+    public static Ethernet makeArpReply(MAC sha, MAC tha, int spa, int tpa) {
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -498,14 +498,14 @@ public class TestRouter {
         // Now create the ARP response form 10.0.0.10. Make up its mac address,
         // but use port 2's L2 and L3 addresses for the destination.
         L3DevicePort devPort2 = rtr.devicePorts.get(port2Id);
-        byte[] hostMac = Ethernet.toMACAddress("02:00:11:22:33:44");
+        MAC hostMac = MAC.fromString("02:00:11:22:33:44");
         Ethernet arpReplyPkt = makeArpReply(hostMac, devPort2.getMacAddr(),
                 0x0a00000a, devPort2.getVirtualConfig().portAddr);
         ForwardInfo fInfo = routePacket(port2Id, arpReplyPkt);
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
         // Verify that the callback was triggered with the correct mac.
         Assert.assertEquals(1, cb.macsReturned.size());
-        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(0)));
+        Assert.assertTrue(hostMac.equals(cb.macsReturned.get(0)));
         // The ARP should be stale after 1800 seconds. So any request after
         // that long should trigger another ARP request to refresh the entry.
         // However, the stale Mac can still be returned immediately.
@@ -514,13 +514,13 @@ public class TestRouter {
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(2, cb.macsReturned.size());
-        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(1)));
+        Assert.assertTrue(hostMac.equals(cb.macsReturned.get(1)));
         reactor.incrementTime(1, TimeUnit.SECONDS);
         // At this point a call to getMacForIP should trigger an ARP request.
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(3, cb.macsReturned.size());
-        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(2)));
+        Assert.assertTrue(hostMac.equals(cb.macsReturned.get(2)));
         // Let's send an ARP response that refreshes the ARP cache entry.
         fInfo = routePacket(port2Id, arpReplyPkt);
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
@@ -530,7 +530,7 @@ public class TestRouter {
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
         Assert.assertEquals(3, controllerStub.sentPackets.size());
         Assert.assertEquals(4, cb.macsReturned.size());
-        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(3)));
+        Assert.assertTrue(hostMac.equals(cb.macsReturned.get(3)));
         // Now we increment the time by 1 second and the cached response
         // is expired (completely removed). Therefore getMacForIp will trigger
         // another ARP request and the callback has to wait for the response.
@@ -550,8 +550,8 @@ public class TestRouter {
         fInfo = routePacket(port2Id, arpReplyPkt);
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
         Assert.assertEquals(6, cb.macsReturned.size());
-        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(4)));
-        Assert.assertTrue(Arrays.equals(hostMac, cb.macsReturned.get(5)));
+        Assert.assertTrue(hostMac.equals(cb.macsReturned.get(4)));
+        Assert.assertTrue(hostMac.equals(cb.macsReturned.get(5)));
     }
 
     @Test
@@ -593,7 +593,7 @@ public class TestRouter {
     public void checkPeerArp(UUID portId, int arpSpa, int arpTpa,
             boolean shouldReply) {
         controllerStub.sentPackets.clear();
-        byte[] arpSha = Ethernet.toMACAddress("02:aa:aa:aa:aa:01");
+        MAC arpSha = MAC.fromString("02:aa:aa:aa:aa:01");
         Ethernet eth = makeArpRequest(arpSha, arpSpa, arpTpa);
         ForwardInfo fInfo = routePacket(portId, eth);
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
@@ -765,12 +765,12 @@ public class TestRouter {
         UUID port23Id = portNumToId.get(23);
         UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
-        Ethernet badEthTo12 = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), devPort23.getMacAddr(),
+        Ethernet badEthTo12 = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), devPort23.getMacAddr(),
                 0x0a000202, 0x0a000109, (short) 1111, (short) 2222, payload);
         // This packet has a good source address and is always routed correctly.
-        Ethernet goodEthTo12 = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), devPort23.getMacAddr(),
+        Ethernet goodEthTo12 = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), devPort23.getMacAddr(),
                 0x0a00020f, 0x0a000109, (short) 1111, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port23Id, badEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
@@ -783,12 +783,12 @@ public class TestRouter {
         UUID port2Id = portNumToId.get(2);
         L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
         Ethernet badEthTo2 = makeUDP(
-                Ethernet.toMACAddress("02:00:11:22:00:01"), devPort12
+                MAC.fromString("02:00:11:22:00:01"), devPort12
                         .getMacAddr(), 0x0a000103, 0x0a00000a, (short) 1111,
                 (short) 2222, payload);
         // This packet has a good source address and is always routed correctly.
-        Ethernet goodEthTo2 = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), devPort12.getMacAddr(),
+        Ethernet goodEthTo2 = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), devPort12.getMacAddr(),
                 0x0a000109, 0x0a00000a, (short) 1111, (short) 2222, payload);
         fInfo = routePacket(port12Id, badEthTo2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
@@ -799,14 +799,14 @@ public class TestRouter {
         // the expected range (10.0.1.4/30) and a nwDst that matches the
         // uplink (e.g. 144.0.16.3).
         UUID port11Id = portNumToId.get(11);
-        Ethernet badEthToUplink = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), Ethernet
-                .toMACAddress("02:00:11:22:00:64"), 0x0a0001d2, 0x90001003,
+        Ethernet badEthToUplink = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:64"), 0x0a0001d2, 0x90001003,
                 (short) 1111, (short) 2222, payload);
         // This packet has a good source address and is always routed correctly.
-        Ethernet goodEthToUplink = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), Ethernet
-                .toMACAddress("02:00:11:22:00:64"), 0x0a000104, 0x90001003,
+        Ethernet goodEthToUplink = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:64"), 0x0a000104, 0x90001003,
                 (short) 1111, (short) 2222, payload);
         fInfo = routePacket(port11Id, badEthToUplink);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
@@ -854,16 +854,16 @@ public class TestRouter {
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port11Id = portNumToId.get(11);
         UUID port21Id = portNumToId.get(21);
-        Ethernet ethTo21 = makeUDP(Ethernet.toMACAddress("02:00:11:22:00:01"),
-                Ethernet.toMACAddress("02:00:11:22:00:28"), 0x0a000106,
+        Ethernet ethTo21 = makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:28"), 0x0a000106,
                 0x0a000207, (short) 1111, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port11Id, ethTo21);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, 0x0a000207);
 
         // Send a packet 10.0.2.5 from the uplink.
-        Ethernet ethToQuarantined = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), Ethernet
-                .toMACAddress("02:00:11:22:00:a3"), 0x94001006, 0x0a000205,
+        Ethernet ethToQuarantined = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:a3"), 0x94001006, 0x0a000205,
                 (short) 1111, (short) 2222, payload);
         fInfo = routePacket(port11Id, ethToQuarantined);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, 0x0a000205);
@@ -885,9 +885,9 @@ public class TestRouter {
         int extNwAddr = 0xc00b0b0a;
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port21Id = portNumToId.get(21);
-        Ethernet ethToExtAddr = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), Ethernet
-                .toMACAddress("02:00:11:22:00:85"), 0x0a000206, extNwAddr,
+        Ethernet ethToExtAddr = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:85"), 0x0a000206, extNwAddr,
                 (short) 80, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port21Id, ethToExtAddr);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
@@ -896,9 +896,9 @@ public class TestRouter {
 
         // Now send a packet from 192.11.11.10 to the dnat-ed address
         // (180.0.0.1:80).
-        Ethernet ethToPublicAddr = makeUDP(Ethernet
-                .toMACAddress("02:00:11:22:00:01"), Ethernet
-                .toMACAddress("02:00:11:22:00:cf"), extNwAddr, publicDnatAddr,
+        Ethernet ethToPublicAddr = makeUDP(
+                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:cf"), extNwAddr, publicDnatAddr,
                 (short) 2222, (short) 80, payload);
         fInfo = routePacket(uplinkId, ethToPublicAddr);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, internDnatAddr);

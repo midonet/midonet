@@ -2,7 +2,6 @@ package com.midokura.midolman;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
@@ -40,7 +40,7 @@ public class L3DevicePort {
     private RouteZkManager routeMgr;
     private short portNum;
     private UUID portId;
-    private byte[] mac;
+    private MAC mac;
     private ControllerStub stub;
     private PortWatcher portWatcher;
     private RoutesWatcher routesWatcher;
@@ -50,7 +50,7 @@ public class L3DevicePort {
     private final Logger log;
 
     public L3DevicePort(PortZkManager portMgr, RouteZkManager routeMgr,
-            UUID portId, short portNum, byte[] mac, ControllerStub stub)
+            UUID portId, short portNum, MAC mac, ControllerStub stub)
             throws Exception {
         
         log = LoggerFactory.getLogger(L3DevicePort.class.getCanonicalName() + '.' + portId);
@@ -149,7 +149,7 @@ public class L3DevicePort {
         return portNum;
     }
 
-    public byte[] getMacAddr() {
+    public MAC getMacAddr() {
         return mac;
     }
 
@@ -174,7 +174,7 @@ public class L3DevicePort {
 
     @Override
     public String toString() {
-        return "L3DevicePort [portNum=" + portNum + ", portId=" + portId + ", mac=" + Arrays.toString(mac)
+        return "L3DevicePort [portNum=" + portNum + ", portId=" + portId + ", mac=" + mac
                 + ", portCfg=" + portCfg + "]";
     }
 }
