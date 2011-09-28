@@ -135,8 +135,8 @@ public class ARP extends BasePacket {
     /**
      * @return the targetHardwareAddress
      */
-    public byte[] getTargetHardwareAddress() {
-        return targetHardwareAddress;
+    public MAC getTargetHardwareAddress() {
+        return new MAC(targetHardwareAddress);
     }
 
     /**

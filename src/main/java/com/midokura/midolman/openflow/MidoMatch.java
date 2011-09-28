@@ -10,9 +10,9 @@ import com.midokura.midolman.packets.MAC;
 
 /**
  * MidoMatch extends OFMatch and sets the wildcard bits automatically.
- *
+ * 
  * @author ddumitriu
- *
+ * 
  */
 public class MidoMatch extends OFMatch {
 
@@ -21,13 +21,35 @@ public class MidoMatch extends OFMatch {
     }
 
     public OFMatch setDataLayerDestination(MAC dataLayerDestination) {
+        return setDataLayerDestination(dataLayerDestination.getAddress());
+    }
+
+    @Override
+    public OFMatch setDataLayerDestination(byte[] dataLayerDestination) {
         wildcards &= ~OFPFW_DL_DST;
-        return super.setDataLayerDestination(dataLayerDestination.getAddress());
+        return super.setDataLayerDestination(dataLayerDestination);
+    }
+
+    @Override
+    public OFMatch setDataLayerDestination(String mac) {
+        wildcards &= ~OFPFW_DL_DST;
+        return super.setDataLayerDestination(mac);
     }
 
     public OFMatch setDataLayerSource(MAC dataLayerSource) {
+        return setDataLayerSource(dataLayerSource.getAddress());
+    }
+
+    @Override
+    public OFMatch setDataLayerSource(byte[] dataLayerSource) {
         wildcards &= ~OFPFW_DL_SRC;
-        return super.setDataLayerSource(dataLayerSource.getAddress());
+        return super.setDataLayerSource(dataLayerSource);
+    }
+
+    @Override
+    public OFMatch setDataLayerSource(String mac) {
+        wildcards &= ~OFPFW_DL_SRC;
+        return super.setDataLayerSource(mac);
     }
 
     @Override
@@ -54,8 +76,8 @@ public class MidoMatch extends OFMatch {
         return super.setInputPort(inputPort);
     }
 
-    public OFMatch setNetworkDestination(
-            int networkDestination, int prefixLength) {
+    public OFMatch setNetworkDestination(int networkDestination,
+            int prefixLength) {
         setNetworkDestinationPrefixLength(prefixLength);
         return super.setNetworkDestination(networkDestination);
     }
@@ -100,14 +122,14 @@ public class MidoMatch extends OFMatch {
     }
 
     public OFMatch setNetworkSourcePrefixLength(int prefixLen) {
-        wildcards = (wildcards & ~OFPFW_NW_SRC_MASK) |
-                        ((32-prefixLen) << OFPFW_NW_SRC_SHIFT);
+        wildcards = (wildcards & ~OFPFW_NW_SRC_MASK)
+                | ((32 - prefixLen) << OFPFW_NW_SRC_SHIFT);
         return this;
     }
 
     public OFMatch setNetworkDestinationPrefixLength(int prefixLen) {
-        wildcards = (wildcards & ~OFPFW_NW_DST_MASK) |
-                        ((32-prefixLen) << OFPFW_NW_DST_SHIFT);
+        wildcards = (wildcards & ~OFPFW_NW_DST_MASK)
+                | ((32 - prefixLen) << OFPFW_NW_DST_SHIFT);
         return this;
     }
 

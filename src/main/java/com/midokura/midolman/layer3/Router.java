@@ -503,7 +503,7 @@ public class Router {
         PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
                 .getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
-        byte[] tha = arpPkt.getTargetHardwareAddress();
+        MAC tha = arpPkt.getTargetHardwareAddress();
         if (tpa != portConfig.portAddr
                 || !tha.equals(devPortIn.getMacAddr())) {
             log.debug("{} ignoring ARP reply because its tpa or tha don't "
