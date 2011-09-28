@@ -1,5 +1,6 @@
 package com.midokura.midolman.layer3;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -8,25 +9,43 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ReplicatedSet;
 import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.JSONSerializer;
 
 public class ReplicatedRoutingTable {
+    
+    private static final Logger log = LoggerFactory.getLogger(ReplicatedRoutingTable.class);
 
     private class ReplicatedRouteSet extends ReplicatedSet<Route> {
-
+        
+        JSONSerializer<Route> serializer = new JSONSerializer<Route>();
+        
         public ReplicatedRouteSet(Directory d, CreateMode mode) {
             super(d, mode);
         }
 
         protected String encode(Route rt) {
-            return rt.toString();
+            //TODO(dmd): this is slightly ghetto
+            try {
+                return new String(serializer.objToBytes(rt));
+            } catch (IOException e) {
+                log.warn("ReplicatedRouteSet.encode", e);
+                return null;
+            }
         }
 
         protected Route decode(String str) {
-            return Route.fromString(str);
+            try {
+                return serializer.bytesToObj(str.getBytes(), Route.class);
+            } catch (Exception e) {
+                log.warn("ReplicatedRouteSet.decode", e);
+                return null;
+            }
         }
     };
 
