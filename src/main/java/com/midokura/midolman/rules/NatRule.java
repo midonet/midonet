@@ -52,4 +52,9 @@ public abstract class NatRule extends Rule {
             return false;
         return dnat == ((NatRule) other).dnat;
     }
+
+    @Override
+    public String toString() {
+        return "NatRule [dnat=" + dnat + "]";
+    }
 }

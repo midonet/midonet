@@ -75,9 +75,19 @@ public class Router {
         // These fields are filled by Router.process():
         public Action action;
         public UUID outPortId;
-        public int gatewayNwAddr;
+        public int nextHopNwAddr;
         public MidoMatch matchOut;
         public boolean trackConnection;
+        
+        ForwardInfo() {            
+        }
+
+        @Override
+        public String toString() {
+            return "ForwardInfo [inPortId=" + inPortId + ", pktIn=" + pktIn + ", matchIn=" + matchIn + ", action="
+                    + action + ", outPortId=" + outPortId + ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
+                    + matchOut + ", trackConnection=" + trackConnection + "]";
+        }
     }
 
     private static class ArpCacheEntry {
@@ -93,6 +103,12 @@ public class Router {
             this.expiry = expiry;
             this.stale = stale;
             this.lastArp = lastArp;
+        }
+
+        @Override
+        public String toString() {
+            return "ArpCacheEntry [macAddr=" + java.util.Arrays.toString(macAddr) + ", expiry=" + expiry + ", stale="
+                    + stale + ", lastArp=" + lastArp + "]";
         }
     }
 
@@ -364,7 +380,7 @@ public class Router {
 
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
-        fwdInfo.gatewayNwAddr = (0 == rt.nextHopGateway) ? res.match
+        fwdInfo.nextHopNwAddr = (0 == rt.nextHopGateway) ? res.match
                 .getNetworkDestination() : rt.nextHopGateway;
         fwdInfo.action = Action.FORWARD;
         return;

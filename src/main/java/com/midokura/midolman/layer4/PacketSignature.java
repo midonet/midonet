@@ -30,4 +30,9 @@ public class PacketSignature {
         return nwSrc == p.nwSrc && tpSrc == p.tpSrc && nwDst == p.nwDst
                 && tpDst == p.tpDst;
     }
+
+    @Override
+    public String toString() {
+        return "PacketSignature [nwSrc=" + nwSrc + ", tpSrc=" + tpSrc + ", nwDst=" + nwDst + ", tpDst=" + tpDst + "]";
+    }
 }

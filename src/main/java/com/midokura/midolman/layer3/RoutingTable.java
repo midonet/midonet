@@ -8,7 +8,14 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.util.Net;
+
 public class RoutingTable {
+    
+    private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
 
     private TrieNode dstPrefixTrie;
 
@@ -17,6 +24,10 @@ public class RoutingTable {
     }
 
     public List<Route> lookup(int src, int dst) {
+        log.debug("lookup: src {} dst {}", 
+                Net.convertIntAddressToString(src),
+                Net.convertIntAddressToString(dst));
+        
         List<Route> ret = new Vector<Route>();
         Iterator<Collection<Route>> rtIter = findBestMatch(dst);
         while (rtIter.hasNext()) {
@@ -38,6 +49,13 @@ public class RoutingTable {
             if (ret.size() > 0)
                 break;
         }
+        
+        log.debug("lookup: return {} for src {} dst {}", 
+                new Object[] {
+                ret,
+                Net.convertIntAddressToString(src),
+                Net.convertIntAddressToString(dst)});
+        
         return ret;
     }
 
@@ -54,6 +72,12 @@ public class RoutingTable {
             this.bitlen = bitlen;
             this.addr = addr;
             routes = new HashSet<Route>();
+        }
+
+        @Override
+        public String toString() {
+            return "TrieNode [bitlen=" + bitlen + ", addr=" + addr + ", parent=" + parent + ", left=" + left
+                    + ", right=" + right + ", routes=" + routes + "]";
         }
     }
 
@@ -110,6 +134,8 @@ public class RoutingTable {
     }
 
     public void addRoute(Route rt) {
+        log.debug("addRoute: {}", rt);
+        
         TrieNode parent = null;
         boolean inLeftChild = false;
         TrieNode node = dstPrefixTrie;
@@ -171,6 +197,8 @@ public class RoutingTable {
     }
 
     public void deleteRoute(Route rt) {
+        log.debug("deleteRoute: {}", rt);
+        
         TrieNode parent = null;
         boolean inLeftChild = false;
         TrieNode node = dstPrefixTrie;
@@ -261,5 +289,10 @@ public class RoutingTable {
             node = (goLeft) ? node.left : node.right;
         }
         return new MyRoutesIterator(parent);
+    }
+
+    @Override
+    public String toString() {
+        return "RoutingTable [dstPrefixTrie=" + dstPrefixTrie + "]";
     }
 }

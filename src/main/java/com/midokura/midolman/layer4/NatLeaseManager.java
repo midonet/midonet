@@ -50,6 +50,13 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst, Set<NatTarget> nats) {
+        log.debug("allocateDnat: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {} nats {}", new Object[] {
+                nwSrc,
+                tpSrc,
+                oldNwDst,
+                oldTpDst,
+                nats});
+        
         // This throws IllegalArgumentException if nats.size() is zero.
         int natPos = rand.nextInt(nats.size());
         Iterator<NatTarget> iter = nats.iterator();
@@ -81,6 +88,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     private NwTpPair lookupNwTpPair(String key) {
+        log.debug("lookupNwTpPair: {}", key);
+        
         String value = cache.get(key);
         if (null == value)
             return null;
@@ -249,6 +258,8 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public void updateSnatTargets(Set<NatTarget> targets) {
+        log.warn("updateSnatTargets: {}", targets);
+        
         // TODO Auto-generated method stub
 
     }

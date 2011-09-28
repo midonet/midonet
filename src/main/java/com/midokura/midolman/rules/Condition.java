@@ -1,9 +1,5 @@
 package com.midokura.midolman.rules;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -143,5 +139,14 @@ public class Condition {
                 && tpSrcStart == c.tpSrcStart && tpSrcEnd == c.tpSrcEnd
                 && tpSrcInv == c.tpSrcInv && tpDstStart == c.tpDstStart
                 && tpDstEnd == c.tpDstEnd && tpDstInv == c.tpDstInv;
+    }
+    @Override
+    public String toString() {
+        return "Condition [conjunctionInv=" + conjunctionInv + ", inPortInv=" + inPortInv + ", outPortInv="
+                + outPortInv + ", nwTos=" + nwTos + ", nwTosInv=" + nwTosInv + ", nwProto=" + nwProto + ", nwProtoInv="
+                + nwProtoInv + ", nwSrcIp=" + nwSrcIp + ", nwSrcLength=" + nwSrcLength + ", nwSrcInv=" + nwSrcInv
+                + ", nwDstIp=" + nwDstIp + ", nwDstLength=" + nwDstLength + ", nwDstInv=" + nwDstInv + ", tpSrcStart="
+                + tpSrcStart + ", tpSrcEnd=" + tpSrcEnd + ", tpSrcInv=" + tpSrcInv + ", tpDstStart=" + tpDstStart
+                + ", tpDstEnd=" + tpDstEnd + ", tpDstInv=" + tpDstInv + "]";
     }
 }

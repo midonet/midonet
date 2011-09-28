@@ -35,4 +35,9 @@ public class NatTarget {
         hash = 17 * hash + tpStart;
         return 23 * hash + tpEnd;
     }
+
+    @Override
+    public String toString() {
+        return "NatTarget [nwStart=" + nwStart + ", nwEnd=" + nwEnd + ", tpStart=" + tpStart + ", tpEnd=" + tpEnd + "]";
+    }
 }

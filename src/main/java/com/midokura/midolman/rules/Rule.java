@@ -67,4 +67,10 @@ public abstract class Rule implements Comparable<Rule> {
     public int compareTo(Rule other) {
         return this.position - other.position;
     }
+
+    @Override
+    public String toString() {
+        return "Rule [condition=" + condition + ", action=" + action + ", chainId=" + chainId + ", position="
+                + position + "]";
+    }
 }

@@ -249,10 +249,9 @@ public class NetworkController extends AbstractController {
 
         // Else it's a packet from a materialized port.
         L3DevicePort devPortIn = devPortByNum.get(inPort);
-        String msg = String.format("onPacketIn from local port %d", inPort);
         if (null == devPortIn) {
-            log.warn("{} -- wasn't previously added with addPort or "
-                    + "no virtual port Id found.", msg);
+            log.warn("onPacketIn: from local {} wasn't previously added with addPort or "
+                    + "no virtual port Id found", inPort);
             // drop packets entering on ports that we don't recognize.
             freeBuffer(bufferId);
             return;
@@ -285,7 +284,7 @@ public class NetworkController extends AbstractController {
         if (!Arrays.equals(ethPkt.getDestinationMACAddress(), devPortIn
                 .getMacAddr())
                 && !ethPkt.isMcast()) {
-            log.warn("{} -- dlDst not mcast nor virtual port's addr", msg);
+            log.warn("onPacketIn: dlDst {} not mcast nor virtual port's addr", ethPkt.getDestinationMACAddress());
             installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
             return;
         }
@@ -297,7 +296,7 @@ public class NetworkController extends AbstractController {
         try {
             network.process(fwdInfo, routers);
         } catch (Exception e) {
-            log.warn(msg + " -- Network.process() threw exception {}", e);
+            log.warn("onPacketIn", e);
             return;
         }
         boolean useWildcards = false; // TODO(pino): replace with real config.
@@ -316,37 +315,40 @@ public class NetworkController extends AbstractController {
                 flowMatch = makeWildcarded(match);
             else
                 flowMatch = match;
-            log.debug("{} -- Network.process() returned BLACKHOLE", msg);
+            log.debug("onPacketIn: Network.process() returned BLACKHOLE for {}", fwdInfo);
             installBlackhole(flowMatch, bufferId, OFP_FLOW_PERMANENT);
             notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
                     routers);
             return;
         case CONSUMED:
-            log.debug("{} -- Network.process() returned CONSUMED", msg);
+            log.debug("onPacketIn: Network.process() returned CONSUMED for {}", fwdInfo);
             freeBuffer(bufferId);
             return;
         case FORWARD:
             // If the egress port is local, ARP and forward the packet.
             devPortOut = devPortById.get(fwdInfo.outPortId);
             if (null != devPortOut) {
-                log.debug("{} -- Network.process() returned FORWARD to local"
-                        + "port {}", msg, devPortOut.getNum());
+                log.debug("onPacketIn: Network.process() returned FORWARD to local"
+                        + "port {} for {}", devPortOut, fwdInfo);
                 LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
                 try {
                     network.getMacForIp(fwdInfo.outPortId,
-                            fwdInfo.gatewayNwAddr, cb);
+                            fwdInfo.nextHopNwAddr, cb);
                 } catch (ZkStateSerializationException e) {
                     log.warn("onPacketIn", e);
                 }
             } else { // devPortOut is null; the egress port is remote.
+                log.debug("onPacketIn: Network.process() returned FORWARD to "
+                        + "remote port {} for {}", fwdInfo.outPortId, fwdInfo);
+                
                 Integer tunPortNum = super
                         .portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
-                    log.warn("{} -- Network.process() returned FORWARD to "
-                            + "remote port {} -- No tunnel port found.", msg,
-                            fwdInfo.outPortId.toString());
+                    log.warn("onPacketIn:  No tunnel port found for {}",
+                            fwdInfo.outPortId);
+                    
                     log.debug("onPacketIn: peerIpToTunnelPortNum {}", peerIpToTunnelPortNum);
                     
                     installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
@@ -356,13 +358,14 @@ public class NetworkController extends AbstractController {
                             fwdInfo.pktIn, fwdInfo.outPortId);
                     return;
                 }
-                log.debug("{} -- Network.process() returned FORWARD to remote"
-                        + "port {}", msg, tunPortNum);
+                
+                log.debug("onPacketIn: FORWARDing to remote port {}", tunPortNum);
+
                 byte[] dlSrc = new byte[6];
                 byte[] dlDst = new byte[6];
                 setDlHeadersForTunnel(dlSrc, dlDst, ShortUUID
                         .UUID32toInt(fwdInfo.inPortId), ShortUUID
-                        .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
+                        .UUID32toInt(fwdInfo.outPortId), fwdInfo.nextHopNwAddr);
                 fwdInfo.matchOut.setDataLayerSource(dlSrc);
                 fwdInfo.matchOut.setDataLayerDestination(dlDst);
                 List<OFAction> ofActions = makeActionsForFlow(match,
@@ -374,7 +377,8 @@ public class NetworkController extends AbstractController {
             }
             return;
         case NOT_IPV4:
-            log.debug("{} -- Network.process() returned NOT_IPV4", msg);
+            log.debug("onPacketIn: Network.process() returned NOT_IPV4, ethertype is {}", 
+                    match.getDataLayerType());
             // If wildcards are enabled, wildcard everything but dl_type. One
             // rule per ethernet protocol type catches all non-IPv4 flows.
             if (useWildcards) {
@@ -385,7 +389,7 @@ public class NetworkController extends AbstractController {
             installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
             return;
         case NO_ROUTE:
-            log.debug("{} -- Network.process() returned NO_ROUTE", msg);
+            log.debug("onPacketIn: Network.process() returned NO_ROUTE for {}", fwdInfo);
             // Intentionally use an exact match for this drop rule.
             // TODO(pino): wildcard the L2 fields.
             installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
@@ -396,7 +400,7 @@ public class NetworkController extends AbstractController {
             // This rule is temporary, don't notify the flow checker.
             return;
         case REJECT:
-            log.debug("{} -- Network.process() returned REJECT", msg);
+            log.debug("onPacketIn: Network.process() returned REJECT for {}", fwdInfo);
             // Intentionally use an exact match for this drop rule.
             installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
             // Send an ICMP
@@ -406,9 +410,9 @@ public class NetworkController extends AbstractController {
             // This rule is temporary, don't notify the flow checker.
             return;
         default:
-            log.error("{} -- Network.process() returned unrecognized action.",
-                    msg);
-            throw new RuntimeException("Unrecognized forwarding Action type.");
+            log.error("onPacketIn: Network.process() returned unrecognized action {}",
+                    fwdInfo.action);
+            throw new RuntimeException("Unrecognized forwarding Action type " + fwdInfo.action);
         }
     }
 
@@ -491,7 +495,7 @@ public class NetworkController extends AbstractController {
         int nextHopNwAddr;
         
         public String toString() {
-            return String.format("DecodedMacAddrs: ingress %s egress %s gw %s",
+            return String.format("DecodedMacAddrs: ingress %s egress %s nextHopIp %s",
                     lastIngressPortId,
                     lastEgressPortId,
                     Net.convertIntAddressToString(nextHopNwAddr));
@@ -805,7 +809,7 @@ public class NetworkController extends AbstractController {
         // as a tunneled ICMP.
         setDlHeadersForTunnel(eth.getSourceMACAddress(), eth
                 .getDestinationMACAddress(), ICMP_TUNNEL, ShortUUID
-                .UUID32toInt(fwdInfo.outPortId), fwdInfo.gatewayNwAddr);
+                .UUID32toInt(fwdInfo.outPortId), fwdInfo.nextHopNwAddr);
         Integer tunNum = super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
         if (null == tunNum) {
             log.warn("Dropping ICMP error message. Can't find tunnel to peer"

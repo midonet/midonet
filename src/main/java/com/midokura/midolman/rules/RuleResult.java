@@ -61,4 +61,10 @@ public class RuleResult {
         }
         return trackConnection == res.trackConnection;
     }
+
+    @Override
+    public String toString() {
+        return "RuleResult [action=" + action + ", jumpToChain=" + jumpToChain + ", match=" + match
+                + ", trackConnection=" + trackConnection + "]";
+    }
 }

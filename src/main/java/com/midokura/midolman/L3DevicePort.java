@@ -2,6 +2,7 @@ package com.midokura.midolman;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -169,5 +170,11 @@ public class L3DevicePort {
 
     public void removeListener(Listener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public String toString() {
+        return "L3DevicePort [portNum=" + portNum + ", portId=" + portId + ", mac=" + Arrays.toString(mac)
+                + ", portCfg=" + portCfg + "]";
     }
 }

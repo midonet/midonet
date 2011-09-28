@@ -24,4 +24,9 @@ public class NwTpPair {
         NwTpPair p = (NwTpPair) other;
         return nwAddr == p.nwAddr && tpPort == p.tpPort;
     }
+
+    @Override
+    public String toString() {
+        return "NwTpPair [nwAddr=" + nwAddr + ", tpPort=" + tpPort + "]";
+    }
 }

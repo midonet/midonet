@@ -255,7 +255,7 @@ public class TestRouter {
             Assert.assertNull(fInfo.outPortId);
         else
             Assert.assertEquals(outPortId, fInfo.outPortId);
-        Assert.assertEquals(nextHopNwAddr, fInfo.gatewayNwAddr);
+        Assert.assertEquals(nextHopNwAddr, fInfo.nextHopNwAddr);
     }
 
     @Test
