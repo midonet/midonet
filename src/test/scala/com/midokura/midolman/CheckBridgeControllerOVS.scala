@@ -25,7 +25,7 @@ import java.io.{File, RandomAccessFile}
 import java.lang.Runnable
 import java.net.{InetAddress, InetSocketAddress}
 import java.nio.channels.{FileLock, SelectionKey, ServerSocketChannel}
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{Executors, TimeUnit, ScheduledFuture}
 import java.util.{Date, UUID}
 
 /**
@@ -48,6 +48,7 @@ object CheckBridgeControllerOVS extends SelectListener {
     private final var listenSock: ServerSocketChannel = _
     private final var reactor: SelectLoop = _
     private final val target = "tcp:127.0.0.1"
+    private final var tookTooLong: ScheduledFuture[_] = _
 
     @BeforeClass def initializeTest() {
         // Set up the (mock) ZooKeeper directories.
@@ -63,7 +64,7 @@ object CheckBridgeControllerOVS extends SelectListener {
         val macPortMap = new MacPortMap(midoDir.getSubDirectory(macPortKey))
         reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
-        controller = new BridgeController(
+        controller = new BridgeControllerTester(
             /* datapathId */                bridgeId,
             /* switchUuid */                UUID.fromString(bridgeExtIdValue),
             /* greKey */                    0xe1234,
@@ -86,9 +87,11 @@ object CheckBridgeControllerOVS extends SelectListener {
 
         registerController
 
-        reactor.schedule(new Runnable() { def run = { reactor.shutdown } }, 
-                         2000, TimeUnit.MILLISECONDS)
+        tookTooLong = reactor.schedule(
+                         new Runnable() { def run = { reactor.shutdown } }, 
+                         4000, TimeUnit.MILLISECONDS)
         reactor.doLoop
+        assertFalse(tookTooLong.isDone)
     }
 
     @AfterClass def finalizeTest() {
@@ -163,5 +166,20 @@ class CheckBridgeControllerOVS {
         // TODO: Verify this is a TAP port.
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
+    }
+}
+
+private class BridgeControllerTester(datapath: Long, switchID: UUID, 
+        greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap, 
+        flowExpireMillis: Long, idleFlowExpireMillis: Long, 
+        publicIP: InetAddress, macPortTimeoutMillis: Long, 
+        ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop, 
+        externalIDKey: String) extends BridgeController(datapath, switchID, 
+                greKey, portLocMap, macPortMap, flowExpireMillis, 
+                idleFlowExpireMillis, publicIP, macPortTimeoutMillis, 
+                ovsdb, reactor, externalIDKey) {
+    override def onConnectionMade() = {
+        super.onConnectionMade
+        reactor.shutdown
     }
 }
