@@ -9,7 +9,7 @@ import com.midokura.midolman.mgmt.data.dto.ErrorEntity;
 import com.midokura.midolman.state.InvalidStateOperationException;
 
 @Provider
-public abstract class InvalidStateOperationExceptionMapper implements
+public class InvalidStateOperationExceptionMapper implements
         ExceptionMapper<InvalidStateOperationException> {
 
     @Override
