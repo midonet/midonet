@@ -38,6 +38,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     final var bridgeId: Long = _
     final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
+    final val target = "tcp:127.0.0.1:6634"
     private final val lockfile = new File("/tmp/ovs_tests.lock")
     private final val lockchannel =
         new RandomAccessFile(lockfile, "rw").getChannel
@@ -49,8 +50,8 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge
         bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
-        ovsdb.delAllOpenflowControllers
-        assertFalse(ovsdb.hasController("tcp:127.0.0.1"))
+        ovsdb.delTargetOpenflowControllers(target)
+        assertFalse(ovsdb.hasController(target))
     }
 
     @AfterClass def disconnectFromOVSDB() {

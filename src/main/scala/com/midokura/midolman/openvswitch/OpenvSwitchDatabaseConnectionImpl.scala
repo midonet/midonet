@@ -1307,6 +1307,24 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     /**
+     * Delete all the OpenFlow controller entries of a target.
+     *
+     * @param target The target to delete.
+     */
+    def delTargetOpenflowControllers(target: String) = {
+        val controllerRows = select(
+            TableController, List(List(ColumnTarget, "==", target)),
+            List(ColumnUUID))
+        var tx = new Transaction(database)
+        for { row <- controllerRows } {
+            log.info("delTargetOpenflowControllers: {}", row)
+            tx.delete(TableController, 
+                      Some(row.get(ColumnUUID).get(1).getTextValue))
+        }
+        doJsonRpc(tx)
+    }
+
+    /**
      * Delete all the OpenFlow controller targets for a bridge.
      *
      * @param bridgeName The name of the bridge.
