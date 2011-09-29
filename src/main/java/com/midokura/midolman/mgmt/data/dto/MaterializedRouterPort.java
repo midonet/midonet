@@ -12,6 +12,7 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.util.Net;
 
 /**
@@ -61,7 +62,7 @@ public class MaterializedRouterPort extends RouterPort {
 
     @Override
     public PortConfig toConfig() {
-        return new PortConfig.MaterializedRouterPortConfig(this.getDeviceId(), Net
+        return new PortDirectory.MaterializedRouterPortConfig(this.getDeviceId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPortAddress()), new HashSet<Route>(), Net
@@ -70,7 +71,7 @@ public class MaterializedRouterPort extends RouterPort {
     }
 
     public static Port createPort(UUID id, PortMgmtConfig mgmtConfig,
-            PortConfig.MaterializedRouterPortConfig config) {
+            PortDirectory.MaterializedRouterPortConfig config) {
         MaterializedRouterPort port = new MaterializedRouterPort();
         port.setDeviceId(config.device_id);
         port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));

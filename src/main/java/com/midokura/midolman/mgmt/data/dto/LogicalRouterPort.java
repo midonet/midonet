@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy.PeerRouterConfig;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 
@@ -77,14 +78,14 @@ public class LogicalRouterPort extends RouterPort {
 
     @Override
     public PortConfig toConfig() {
-        return new PortConfig.LogicalRouterPortConfig(this.getDeviceId(), Net
+        return new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPortAddress()), new HashSet<Route>(), null);
     }
 
     public PortConfig toPeerConfig() {
-        return new PortConfig.LogicalRouterPortConfig(this.getPeerRouterId(), Net
+        return new PortDirectory.LogicalRouterPortConfig(this.getPeerRouterId(), Net
                 .convertStringAddressToInt(this.getNetworkAddress()), this
                 .getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPeerPortAddress()), new HashSet<Route>(), null);
@@ -111,7 +112,7 @@ public class LogicalRouterPort extends RouterPort {
                 toPeerConfig());
     }
 
-    public static Port createPort(UUID id, PortConfig.LogicalRouterPortConfig config) {
+    public static Port createPort(UUID id, PortDirectory.LogicalRouterPortConfig config) {
         LogicalRouterPort port = new LogicalRouterPort();
         port.setDeviceId(config.device_id);
         port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
