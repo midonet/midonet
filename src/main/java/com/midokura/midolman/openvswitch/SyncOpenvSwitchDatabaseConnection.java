@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An Synchronous implementation of a connection to an Open vSwitch database.
  */
+@Deprecated
 public class SyncOpenvSwitchDatabaseConnection
         implements OpenvSwitchDatabaseConnection, Runnable {
 
