@@ -23,6 +23,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
@@ -53,7 +54,7 @@ public class Network {
     // This watches all routing and table changes and then notifies the others.
     private Callback<UUID> routerWatcher;
     // TODO(pino): use Guava's CacheBuilder here.
-    private Map<UUID, PortConfig.RouterPortConfig> portIdToConfig;
+    private Map<UUID, PortDirectory.RouterPortConfig> portIdToConfig;
 
     public Network(UUID netId, PortZkManager portMgr,
             RouterZkManager routerMgr, ChainZkManager chainMgr,
@@ -74,7 +75,7 @@ public class Network {
             }
         };
         // TODO(pino): use Guava's CacheBuilder here.
-        portIdToConfig = new HashMap<UUID, PortConfig.RouterPortConfig>();
+        portIdToConfig = new HashMap<UUID, PortDirectory.RouterPortConfig>();
     }
 
     // This maintains consistency of the cached port configs w.r.t ZK.
@@ -98,15 +99,15 @@ public class Network {
         }
     };
 
-    public PortConfig.RouterPortConfig getPortConfig(UUID portId) throws 
+    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws 
             ZkStateSerializationException, StateAccessException {
-        PortConfig.RouterPortConfig rcfg = portIdToConfig.get(portId);
+        PortDirectory.RouterPortConfig rcfg = portIdToConfig.get(portId);
         if (null == rcfg)
             rcfg = refreshPortConfig(portId, null);
         return rcfg;
     }
 
-    private PortConfig.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
+    private PortDirectory.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
             throws ZkStateSerializationException, StateAccessException {
         log.debug("refreshPortConfig for {} watcher", portId.toString(), watcher);
         
@@ -116,9 +117,9 @@ public class Network {
         
         ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId, watcher);
         PortConfig cfg = entry.value;
-        if (!(cfg instanceof PortConfig.RouterPortConfig))
+        if (!(cfg instanceof PortDirectory.RouterPortConfig))
             return null;
-        PortConfig.RouterPortConfig rcfg = PortConfig.RouterPortConfig.class.cast(cfg);
+        PortDirectory.RouterPortConfig rcfg = PortDirectory.RouterPortConfig.class.cast(cfg);
         portIdToConfig.put(portId, rcfg);
         return rcfg;
     }
@@ -162,7 +163,7 @@ public class Network {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
-        PortConfig.RouterPortConfig cfg = getPortConfig(portId);
+        PortDirectory.RouterPortConfig cfg = getPortConfig(portId);
         // TODO(pino): throw an exception if the config isn't found.
         rtr = getRouter(cfg.device_id);
         routersByPortId.put(cfg.device_id, rtr);
@@ -219,7 +220,7 @@ public class Network {
             rtr.process(fwdInfo);
             if (fwdInfo.action.equals(Action.FORWARD)) {
                 // Get the port's configuration to see if it's logical.
-                PortConfig.RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
+                PortDirectory.RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
                 if (null == cfg) {
                     // Either the config wasn't found or it's not a router port.
                     log.error("Packet forwarded to a portId that either "
@@ -228,8 +229,8 @@ public class Network {
                     fwdInfo.action = Action.BLACKHOLE;
                     return;
                 }
-                if (cfg instanceof PortConfig.LogicalRouterPortConfig) {
-                    PortConfig.LogicalRouterPortConfig lcfg = PortConfig.LogicalRouterPortConfig.class
+                if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
+                    PortDirectory.LogicalRouterPortConfig lcfg = PortDirectory.LogicalRouterPortConfig.class
                             .cast(cfg);
                     rtr = getRouterByPort(lcfg.peer_uuid);
                     log.debug("Packet exited router on logical port to "

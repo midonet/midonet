@@ -47,7 +47,7 @@ public class RouteZkManager extends ZkManager {
                     .getBasePath());
             ZkNodeEntry<UUID, PortConfig> port = portZkManager
                     .get(entry.value.nextHopPort);
-            if (!(port.value instanceof PortConfig.RouterPortConfig)) {
+            if (!(port.value instanceof PortDirectory.RouterPortConfig)) {
                 // Cannot add route to bridge ports
                 throw new IllegalArgumentException(
                         "Can only add a route to a router");
@@ -267,7 +267,7 @@ public class RouteZkManager extends ZkManager {
                                 + " to PortConfig", e,
                         PortConfig.class);
             }
-            if (!(port instanceof PortConfig.RouterPortConfig)) {
+            if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;
             }
 

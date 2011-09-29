@@ -21,7 +21,7 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
@@ -120,8 +120,8 @@ public class Router {
     private class PortListener implements L3DevicePort.Listener {
         @Override
         public void configChanged(UUID portId,
-                PortConfig.MaterializedRouterPortConfig old,
-                PortConfig.MaterializedRouterPortConfig current) {
+                PortDirectory.MaterializedRouterPortConfig old,
+                PortDirectory.MaterializedRouterPortConfig current) {
             // Do nothing here. We get the non-routes configuration from the
             // L3DevicePort each time we use it.
         }
@@ -464,7 +464,7 @@ public class Router {
         // are assumed to be already handled by a switch.)
 
         // First get the ingress port's mac address
-        PortConfig.MaterializedRouterPortConfig portConfig = devPortIn
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
                 .getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         if (tpa != devPortIn.getVirtualConfig().portAddr
@@ -511,7 +511,7 @@ public class Router {
         // and tha is the port's mac.
         // TODO(pino): only a suggestion in the Python, I implemented it. OK?
         UUID inPortId = devPortIn.getId();
-        PortConfig.MaterializedRouterPortConfig portConfig = devPortIn
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
                 .getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         MAC tha = arpPkt.getTargetHardwareAddress();
@@ -654,7 +654,7 @@ public class Router {
                     + "{} - was port removed?", this, portId.toString());
             return;
         }
-        PortConfig.MaterializedRouterPortConfig portConfig = devPort
+        PortDirectory.MaterializedRouterPortConfig portConfig = devPort
                 .getVirtualConfig();
         
         ARP arp = new ARP();

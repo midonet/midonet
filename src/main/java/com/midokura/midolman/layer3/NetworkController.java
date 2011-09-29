@@ -49,7 +49,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
@@ -726,7 +726,7 @@ public class NetworkController extends AbstractController {
         icmp.setUnreachable(unreachCode, ipPktAtEgress);
         // The icmp packet will be emitted from the lastIngress port.
         IPv4 ip = new IPv4();
-        PortConfig.RouterPortConfig portConfig;
+        PortDirectory.RouterPortConfig portConfig;
         try {
             portConfig = network.getPortConfig(lastIngress);
         } catch (Exception e) {
@@ -749,7 +749,7 @@ public class NetworkController extends AbstractController {
         ForwardInfo fwdInfo = new ForwardInfo();
         fwdInfo.matchIn = match;
         fwdInfo.pktIn = eth;
-        if (portConfig instanceof PortConfig.MaterializedRouterPortConfig) {
+        if (portConfig instanceof PortDirectory.MaterializedRouterPortConfig) {
             // The lastIngress port is materialized. Invoke the routing logic of
             // its router in order to find the network address of the next hop
             // gateway for the packet. Hopefully, the routing logic will agree
@@ -782,7 +782,7 @@ public class NetworkController extends AbstractController {
             // Set the ICMP messages dl addresses to bogus addresses for
             // routing.
             Set<UUID> routerIds = new HashSet<UUID>();
-            UUID peer_uuid = ((PortConfig.LogicalRouterPortConfig) portConfig).peer_uuid;
+            UUID peer_uuid = ((PortDirectory.LogicalRouterPortConfig) portConfig).peer_uuid;
             fwdInfo.inPortId = peer_uuid;
             try {
                 network.process(fwdInfo, routerIds);
@@ -867,7 +867,7 @@ public class NetworkController extends AbstractController {
         // The following ip packet to route the ICMP to its destination.
         IPv4 ip = new IPv4();
         // The packet's network address is that of the last ingress port.
-        PortConfig.RouterPortConfig portConfig;
+        PortDirectory.RouterPortConfig portConfig;
         try {
             portConfig = network.getPortConfig(lastIngress);
         } catch (Exception e) {
@@ -953,7 +953,7 @@ public class NetworkController extends AbstractController {
         // Ignore packets sent to the local-subnet IP broadcast address of the
         // intended egress port.
         if (null != egressPortId) {
-            PortConfig.RouterPortConfig portConfig;
+            PortDirectory.RouterPortConfig portConfig;
             try {
                 portConfig = network.getPortConfig(egressPortId);
             } catch (Exception e) {

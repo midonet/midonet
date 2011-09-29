@@ -58,7 +58,7 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getPortRoutesPath(portNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        if (portNode.value instanceof PortConfig.MaterializedRouterPortConfig) {
+        if (portNode.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             ops.add(Op.create(pathManager.getPortBgpPath(portNode.key), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
@@ -106,11 +106,11 @@ public class PortZkManager extends ZkManager {
     public List<Op> preparePortCreate(
             ZkNodeEntry<UUID, PortConfig> entry)
             throws ZkStateSerializationException {
-        if (entry.value instanceof PortConfig.BridgePortConfig) {
+        if (entry.value instanceof PortDirectory.BridgePortConfig) {
             return prepareBridgePortCreate(entry);
-        } else if (entry.value instanceof PortConfig.MaterializedRouterPortConfig) {
+        } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             return prepareRouterPortCreate(entry);
-        } else if (entry.value instanceof PortConfig.LogicalRouterPortConfig) {
+        } else if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
             throw new IllegalArgumentException(
                     "A single logical port cannot be created.");
         } else {
@@ -134,7 +134,7 @@ public class PortZkManager extends ZkManager {
             ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        if (entry.value instanceof PortConfig.MaterializedRouterPortConfig) {
+        if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             ops.add(Op.delete(pathManager.getPortBgpPath(entry.key), -1));
         }
         RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
@@ -173,7 +173,7 @@ public class PortZkManager extends ZkManager {
             ZkNodeEntry<UUID, PortConfig> entry)
             throws ZkStateSerializationException, StateAccessException {
         List<Op> ops = prepareRouterPortDelete(entry);
-        UUID peerId = ((PortConfig.LogicalRouterPortConfig) entry.value).peer_uuid;
+        UUID peerId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
         ZkNodeEntry<UUID, PortConfig> peer = get(peerId);
         ops.addAll(prepareRouterPortDelete(peer));
         return ops;
@@ -196,11 +196,11 @@ public class PortZkManager extends ZkManager {
     public List<Op> preparePortDelete(
             ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        if (entry.value instanceof PortConfig.BridgePortConfig) {
+        if (entry.value instanceof PortDirectory.BridgePortConfig) {
             return prepareBridgePortDelete(entry);
-        } else if (entry.value instanceof PortConfig.MaterializedRouterPortConfig) {
+        } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             return prepareRouterPortDelete(entry);
-        } else if (entry.value instanceof PortConfig.LogicalRouterPortConfig) {
+        } else if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
             return prepareLinkDelete(entry);
         } else {
             throw new IllegalArgumentException("Unsupported port type");
@@ -229,8 +229,8 @@ public class PortZkManager extends ZkManager {
     }
 
     public ZkNodeEntry<UUID, UUID> createLink(
-            PortConfig.LogicalRouterPortConfig localPort,
-            PortConfig.LogicalRouterPortConfig peerPort)
+            PortDirectory.LogicalRouterPortConfig localPort,
+            PortDirectory.LogicalRouterPortConfig peerPort)
             throws StateAccessException, ZkStateSerializationException {
         localPort.peer_uuid = ShortUUID.generate32BitUUID();
         peerPort.peer_uuid = ShortUUID.generate32BitUUID();

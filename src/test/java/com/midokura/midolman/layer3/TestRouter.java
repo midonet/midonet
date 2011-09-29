@@ -51,7 +51,7 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -77,7 +77,7 @@ public class TestRouter {
     private ReplicatedRoutingTable rTable;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
-    private Map<Integer, PortConfig.MaterializedRouterPortConfig> portConfigs;
+    private Map<Integer, PortDirectory.MaterializedRouterPortConfig> portConfigs;
     private Map<Integer, UUID> portNumToId;
     private UUID srcFilterChainId;
     private int publicDnatAddr;
@@ -127,7 +127,7 @@ public class TestRouter {
         uplinkGatewayAddr = 0x0a0b0c0d;
         uplinkPortAddr = 0xb4000102; // 180.0.1.2
         int nwAddr = 0x00000000; // 0.0.0.0/0
-        PortConfig.MaterializedRouterPortConfig portConfig = new PortConfig.MaterializedRouterPortConfig(
+        PortDirectory.MaterializedRouterPortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
                 rtrId, nwAddr, 0, uplinkPortAddr, null, nwAddr, 0, null);
         uplinkId = portMgr.create(portConfig);
         uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, uplinkId,
@@ -142,7 +142,7 @@ public class TestRouter {
         // 21, 22, 23 will be in subnet 10.0.2.0/24
         // Each of the ports 'spoofs' a /30 range of its subnet, for example
         // port 21 will route to 10.0.2.4/30, 22 to 10.0.2.8/30, etc.
-        portConfigs = new HashMap<Integer, PortConfig.MaterializedRouterPortConfig>();
+        portConfigs = new HashMap<Integer, PortDirectory.MaterializedRouterPortConfig>();
         portNumToId = new HashMap<Integer, UUID>();
         for (int i = 0; i < 3; i++) {
             // Nw address is 10.0.<i>.0/24
@@ -153,7 +153,7 @@ public class TestRouter {
                 int portNum = i * 10 + j;
                 // The port will route to 10.0.<i>.<j*4>/30
                 int segmentAddr = nwAddr + (j * 4);
-                portConfig = new PortConfig.MaterializedRouterPortConfig(
+                portConfig = new PortDirectory.MaterializedRouterPortConfig(
                         rtrId, nwAddr, 24, portAddr, null, segmentAddr, 30,
                         null);
                 portConfigs.put(portNum, portConfig);
@@ -647,15 +647,15 @@ public class TestRouter {
         // Down-ports can only receive packets from network addresses that are
         // 'local' to them. This chain drops packets that don't conform.
         List<Rule> srcFilterChain = new Vector<Rule>();
-        Iterator<Map.Entry<Integer, PortConfig.MaterializedRouterPortConfig>> iter = portConfigs
+        Iterator<Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig>> iter = portConfigs
                 .entrySet().iterator();
         int i = 1;
         Rule r;
         while (iter.hasNext()) {
-            Map.Entry<Integer, PortConfig.MaterializedRouterPortConfig> entry = iter
+            Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig> entry = iter
                     .next();
             UUID portId = portNumToId.get(entry.getKey());
-            PortConfig.MaterializedRouterPortConfig config = entry
+            PortDirectory.MaterializedRouterPortConfig config = entry
                     .getValue();
             // A down-port can only receive packets from network addresses that
             // are 'local' to the port.

@@ -14,7 +14,7 @@ package com.midokura.midolman.quagga
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection
 import com.midokura.midolman.state.{PortZkManager, RouteZkManager}
-import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig
 import com.midokura.midolman.state.{NoStatePathException,
                                     StatePathExistsException}
 import com.midokura.midolman.layer3.Route

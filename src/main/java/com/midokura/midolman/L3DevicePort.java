@@ -19,6 +19,7 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -29,8 +30,8 @@ public class L3DevicePort {
 
     public interface Listener {
         void configChanged(UUID portId,
-                PortConfig.MaterializedRouterPortConfig old,
-                PortConfig.MaterializedRouterPortConfig current);
+                PortDirectory.MaterializedRouterPortConfig old,
+                PortDirectory.MaterializedRouterPortConfig current);
 
         void routesChanged(UUID portId, Collection<Route> removed,
                 Collection<Route> added);
@@ -44,7 +45,7 @@ public class L3DevicePort {
     private ControllerStub stub;
     private PortWatcher portWatcher;
     private RoutesWatcher routesWatcher;
-    private PortConfig.MaterializedRouterPortConfig portCfg;
+    private PortDirectory.MaterializedRouterPortConfig portCfg;
     private Set<Listener> listeners;
     
     private final Logger log;
@@ -95,11 +96,11 @@ public class L3DevicePort {
         ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId,
                 portWatcher);
         PortConfig cfg = entry.value;
-        if (!(cfg instanceof PortConfig.MaterializedRouterPortConfig))
+        if (!(cfg instanceof PortDirectory.MaterializedRouterPortConfig))
             throw new Exception("L3DevicePort's virtual configuration isn't "
                     + "a MaterializedRouterPortConfig.");
-        PortConfig.MaterializedRouterPortConfig oldCfg = portCfg;
-        portCfg = PortConfig.MaterializedRouterPortConfig.class.cast(cfg);
+        PortDirectory.MaterializedRouterPortConfig oldCfg = portCfg;
+        portCfg = PortDirectory.MaterializedRouterPortConfig.class.cast(cfg);
         // Keep the old routes.
         if (null != oldCfg)
             portCfg.setRoutes(oldCfg.getRoutes());
@@ -160,7 +161,7 @@ public class L3DevicePort {
                 .getValue(), actions, pktData);
     }
 
-    public PortConfig.MaterializedRouterPortConfig getVirtualConfig() {
+    public PortDirectory.MaterializedRouterPortConfig getVirtualConfig() {
         return portCfg;
     }
 

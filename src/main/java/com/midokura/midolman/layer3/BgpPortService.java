@@ -21,7 +21,8 @@ import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfig.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -181,12 +182,12 @@ public class BgpPortService implements PortService {
         
         // Assume that materialized port config is already there.
         PortConfig config = portMgr.get(portId).value;
-        if (!(config instanceof PortConfig.MaterializedRouterPortConfig)) {
+        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
             throw new RuntimeException(
                 "Target port isn't a MaterializedRouterPortConfig.");
         }
-        PortConfig.MaterializedRouterPortConfig portConfig =
-            PortConfig.MaterializedRouterPortConfig.class.cast(config);
+        PortDirectory.MaterializedRouterPortConfig portConfig =
+            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
         // Give the interface the address in vport configuration.
         Process ipAddrCommand = Runtime.getRuntime().exec(
             String.format(
@@ -203,7 +204,7 @@ public class BgpPortService implements PortService {
         IOException {
         UUID remotePortId = remotePort.getId();
         short remotePortNum = remotePort.getNum();
-        PortConfig.MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
+        PortDirectory.MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
         final int localAddr = portConfig.portAddr;
 
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(

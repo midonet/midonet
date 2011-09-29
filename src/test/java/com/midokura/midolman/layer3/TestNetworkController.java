@@ -63,6 +63,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
@@ -154,7 +155,7 @@ public class TestNetworkController {
          * has a single uplink to the global internet.
          */
         Route rt;
-        PortConfig.MaterializedRouterPortConfig portConfig;
+        PortDirectory.MaterializedRouterPortConfig portConfig;
         List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
             phyPorts.add(new ArrayList<OFPhysicalPort>());
@@ -183,7 +184,7 @@ public class TestNetworkController {
                 int portNw = routerNw + (j << 8);
                 int portAddr = portNw + 1;
                 short portNum = (short) (i * 10 + j);
-                portConfig = new PortConfig.MaterializedRouterPortConfig(
+                portConfig = new PortDirectory.MaterializedRouterPortConfig(
                         rtrId, portNw, 24, portAddr, null, portNw, 24, null);
                 UUID portId = portMgr.create(portConfig);
                 portNumToIntId
@@ -237,9 +238,9 @@ public class TestNetworkController {
 
         // Now add the logical links between router 0 and 1.
         // First from 0 to 1
-        PortConfig.LogicalRouterPortConfig logPortConfig1 = new PortConfig.LogicalRouterPortConfig(
+        PortDirectory.LogicalRouterPortConfig logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
                 routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, null, null);
-        PortConfig.LogicalRouterPortConfig logPortConfig2 = new PortConfig.LogicalRouterPortConfig(
+        PortDirectory.LogicalRouterPortConfig logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
                 routerIds.get(1), 0xc0a80100, 30, 0xc0a80102, null, null);
         ZkNodeEntry<UUID, UUID> idPair = portMgr.createLink(logPortConfig1,
                 logPortConfig2);
@@ -257,9 +258,9 @@ public class TestNetworkController {
         // First from 0 to 2
         rtr0to2LogPortNwAddr = 0xc0a80101;
         rtr2LogPortNwAddr = 0xc0a80102;
-        logPortConfig1 = new PortConfig.LogicalRouterPortConfig(routerIds
+        logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(routerIds
                 .get(0), 0xc0a80100, 30, rtr0to2LogPortNwAddr, null, null);
-        logPortConfig2 = new PortConfig.LogicalRouterPortConfig(routerIds
+        logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(routerIds
                 .get(2), 0xc0a80100, 30, rtr2LogPortNwAddr, null, null);
         idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
         portOn0to2 = idPair.key;
@@ -1182,7 +1183,7 @@ public class TestNetworkController {
         uplinkGatewayAddr = p2pUplinkNwAddr + 1;
         uplinkPortAddr = p2pUplinkNwAddr + 2;
 
-        PortConfig portConfig = new PortConfig.MaterializedRouterPortConfig(
+        PortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
                 routerIds.get(0), p2pUplinkNwAddr, 30, uplinkPortAddr, null,
                 0xc0a80004, 30, null);
         uplinkId = portMgr.create(portConfig);
@@ -1611,7 +1612,7 @@ public class TestNetworkController {
         // the rest of the test is oblivious to it.
         controllerStub.addedFlows.remove(0);
 
-        int localAddr = PortConfig.MaterializedRouterPortConfig.class
+        int localAddr = PortDirectory.MaterializedRouterPortConfig.class
                 .cast(portMgr.get(portId).value).portAddr;
         int remoteAddr = Net.convertStringAddressToInt(remoteAddrString);
         MidoMatch match;
