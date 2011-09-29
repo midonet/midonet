@@ -8,10 +8,11 @@ import java.util.UUID;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFFeaturesReply;
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
 
 import org.apache.zookeeper.CreateMode;
@@ -22,9 +23,14 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.LLDP;
+import com.midokura.midolman.packets.LLDPTLV;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.util.Net;
@@ -34,6 +40,8 @@ class AbstractControllerTester extends AbstractController {
     public List<OFPhysicalPort> portsAdded;
     public List<OFPhysicalPort> portsRemoved;
     public int numClearCalls;
+    short flowExpireSeconds;
+    short idleFlowExpireSeconds;
  
     public AbstractControllerTester(
             int datapathId,
@@ -41,21 +49,28 @@ class AbstractControllerTester extends AbstractController {
             int greKey,
             OpenvSwitchDatabaseConnection ovsdb,
             PortToIntNwAddrMap dict,
-            long flowExpireMinMillis,
-            long flowExpireMaxMillis,
+            short flowExpireSeconds,
             long idleFlowExpireMillis,
             InetAddress internalIp) {
-        super(datapathId, switchUuid, greKey, ovsdb, dict, flowExpireMinMillis,
-              flowExpireMaxMillis, idleFlowExpireMillis, internalIp,
+        super(datapathId, switchUuid, greKey, ovsdb, dict, internalIp, 
               "midonet");
         portsAdded = new ArrayList<OFPhysicalPort>();
         portsRemoved = new ArrayList<OFPhysicalPort>();
         numClearCalls = 0;
+        this.flowExpireSeconds = flowExpireSeconds;
+        this.idleFlowExpireSeconds = (short)(idleFlowExpireMillis/1000);
     }
 
     @Override 
     public void onPacketIn(int bufferId, int totalLen, short inPort,
-                           byte[] data) { }
+                           byte[] data) { 
+        Ethernet frame = new Ethernet();
+        frame.deserialize(data, 0, data.length);
+        OFMatch match = createMatchFromPacket(frame, inPort);
+        addFlowAndPacketOut(match, 1040, idleFlowExpireSeconds,
+                            flowExpireSeconds, (short)1000, bufferId, true, 
+                            false, false, new OFAction[]{}, inPort, data);
+    }
 
     @Override
     public void onFlowRemoved(OFMatch match, long cookie,
@@ -113,6 +128,7 @@ public class TestAbstractController {
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private PortToIntNwAddrMap portLocMap;
     private MockDirectory mockDir;
+    private MockControllerStub controllerStub = new MockControllerStub();
 
     public Logger log = LoggerFactory.getLogger(TestAbstractController.class);
 
@@ -130,11 +146,10 @@ public class TestAbstractController {
                              0xe1234 /* greKey */,
                              ovsdb /* ovsdb */,
                              portLocMap /* portLocationMap */,
-                             260 * 1000 /* flowExpireMinMillis */,
-                             320 * 1000 /* flowExpireMaxMillis */,
+                             (short)300 /* flowExpireSeconds */,
                              60 * 1000 /* idleFlowExpireMillis */,
                              null /* internalIp */);
-        controller.setControllerStub(new MockControllerStub());
+        controller.setControllerStub(controllerStub);
 
         port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);
@@ -315,4 +330,48 @@ public class TestAbstractController {
     public void testGetGreKey() {
         assertEquals(0xe1234, controller.getGreKey());
     }
+
+    @Test
+    public void testLLDPFlowMatch() {
+        LLDP packet = new LLDP();
+        LLDPTLV chassis = new LLDPTLV();
+        chassis.setType((byte)0xca);
+        chassis.setLength((short)7);
+        chassis.setValue("chassis".getBytes());
+        LLDPTLV port = new LLDPTLV();
+        port.setType((byte)0);
+        port.setLength((short)4);
+        port.setValue("port".getBytes());
+        LLDPTLV ttl = new LLDPTLV();
+        ttl.setType((byte)40);
+        ttl.setLength((short)3);
+        ttl.setValue("ttl".getBytes());
+        packet.setChassisId(chassis);
+        packet.setPortId(port);
+        packet.setTtl(ttl);
+
+        Ethernet frame = new Ethernet();
+        frame.setPayload(packet);
+        frame.setEtherType(LLDP.ETHERTYPE);
+        MAC dstMac = MAC.fromString("00:11:22:33:44:55");
+        MAC srcMac = MAC.fromString("66:55:44:33:22:11");
+        frame.setDestinationMACAddress(dstMac);
+        frame.setSourceMACAddress(srcMac);
+        byte[] pktData = frame.serialize();
+
+        assertEquals(0, controllerStub.addedFlows.size());
+        controller.onPacketIn(-1, pktData.length, (short)1, pktData);
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerType(LLDP.ETHERTYPE);
+        expectMatch.setDataLayerSource(srcMac);
+        expectMatch.setDataLayerDestination(dstMac);
+        expectMatch.setInputPort((short)1);
+        assertEquals(1, controllerStub.addedFlows.size());
+        assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(1, controllerStub.droppedPktBufIds.size());
+        assertEquals(-1, controllerStub.droppedPktBufIds.get(0).intValue());
+    }
+
+    // FIXME: Test UDP without drop, TCP with drop & bufferId != -1
 }

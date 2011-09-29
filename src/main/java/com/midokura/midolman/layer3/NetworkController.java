@@ -96,8 +96,8 @@ public class NetworkController extends AbstractController {
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
             String externalIdKey, PortService service) {
-        super(datapathId, deviceId, greKey, ovsdb, dict, 0, 0,
-                idleFlowExpireMillis, localNwAddr, externalIdKey);
+        super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr, 
+              externalIdKey);
         // TODO Auto-generated constructor stub
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;

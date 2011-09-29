@@ -82,9 +82,6 @@ public abstract class AbstractController
             int greKey,
             OpenvSwitchDatabaseConnection ovsdb,
             PortToIntNwAddrMap portLocMap,
-            long flowExpireMinMillis,
-            long flowExpireMaxMillis,
-            long idleFlowExpireMillis,
             InetAddress internalIp,
             String externalIdKey) {
         this.datapathId = datapathId;
@@ -378,11 +375,13 @@ public abstract class AbstractController
                 int bufferId, boolean sendFlowRemoval, boolean checkOverlap,
                 boolean emergency, OFAction[] actions, short inPort,
                 byte[] data) {
+        log.debug("addFlowAndPacketOut({} ...)", bufferId);
         List<OFAction> actionList = Arrays.asList(actions);
         controllerStub.sendFlowModAdd(match, cookie, idleTimeout, hardTimeout,
                                       priority, bufferId, sendFlowRemoval,
                                       checkOverlap, emergency, actionList);
         if (bufferId == ControllerStub.UNBUFFERED_ID) {
+            log.debug("addFlowAndPacketOut: sending packet");
             controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
         }
     }
