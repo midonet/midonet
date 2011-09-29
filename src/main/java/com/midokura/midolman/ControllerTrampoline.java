@@ -29,6 +29,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.BgpPortService;
 import com.midokura.midolman.layer3.NetworkController;
 import com.midokura.midolman.layer3.PortService;
+import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -54,6 +55,9 @@ public class ControllerTrampoline implements Controller {
 
     private static final Logger log = LoggerFactory
             .getLogger(ControllerTrampoline.class);
+
+    public static final long CACHE_EXPIRATION_SECONDS = 
+            NatLeaseManager.REFRESH_SECONDS * 2;
 
     private HierarchicalConfiguration config;
     private OpenvSwitchDatabaseConnection ovsdb;
@@ -132,7 +136,7 @@ public class ControllerTrampoline implements Controller {
                 String memcacheHosts = config.configurationAt("memcache")
                                              .getString("memcache_hosts");
                 
-                Cache cache = new MemcacheCache(memcacheHosts, 3);
+                Cache cache = new MemcacheCache(memcacheHosts, 60);
                 
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);

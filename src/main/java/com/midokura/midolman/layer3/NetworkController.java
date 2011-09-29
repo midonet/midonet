@@ -3,6 +3,7 @@ package com.midokura.midolman.layer3;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -302,7 +303,9 @@ public class NetworkController extends AbstractController {
         try {
             network.process(fwdInfo, routers);
         } catch (Exception e) {
-            log.warn("onPacketIn", e);
+            log.warn("onPacketIn dropping packet: ", e);
+            freeBuffer(bufferId);
+            freeFlowResources(match, routers);
             return;
         }
         boolean useWildcards = false; // TODO(pino): replace with real config.
@@ -326,6 +329,7 @@ public class NetworkController extends AbstractController {
                     ICMP_EXPIRY_SECONDS);
             notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
                     routers);
+            freeFlowResources(match, routers);
             return;
         case CONSUMED:
             log.debug("onPacketIn: Network.process() returned CONSUMED for {}", fwdInfo);
@@ -344,7 +348,9 @@ public class NetworkController extends AbstractController {
                     network.getMacForIp(fwdInfo.outPortId,
                             fwdInfo.nextHopNwAddr, cb);
                 } catch (ZkStateSerializationException e) {
-                    log.warn("onPacketIn", e);
+                    log.warn("onPacketIn dropping the packet: ", e);
+                    freeBuffer(bufferId);
+                    freeFlowResources(match, routers);
                 }
             } else { // devPortOut is null; the egress port is remote.
                 log.debug("onPacketIn: Network.process() returned FORWARD to "
@@ -358,6 +364,7 @@ public class NetworkController extends AbstractController {
                     
                     installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                             ICMP_EXPIRY_SECONDS);
+                    freeFlowResources(match, routers);
                     // TODO: check whether this is the right error code (host?).
                     sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
                             devPortIn.getId(), ethPkt, fwdInfo.inPortId,
@@ -379,6 +386,9 @@ public class NetworkController extends AbstractController {
                 List<OFAction> ofActions = makeActionsForFlow(match,
                         fwdInfo.matchOut, tunPortNum.shortValue());
                 // TODO(pino): should we do any wildcarding here?
+                // Track the routers for this flow so we can free resources
+                // when the flow is removed.
+                matchToRouters.put(match, routers);
                 addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
                         NO_HARD_TIMEOUT, true, ofActions, inPort, data);
             }
@@ -402,6 +412,7 @@ public class NetworkController extends AbstractController {
             // TODO(pino): wildcard the L2 fields.
             installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, 
                     ICMP_EXPIRY_SECONDS);
+            freeFlowResources(match, routers);
             // Send an ICMP
             sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
                     .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
@@ -414,6 +425,7 @@ public class NetworkController extends AbstractController {
             // Intentionally use an exact match for this drop rule.
             installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                     ICMP_EXPIRY_SECONDS);
+            freeFlowResources(match, routers);
             // Send an ICMP
             sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
                     devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
@@ -661,6 +673,8 @@ public class NetworkController extends AbstractController {
                 L3DevicePort devPort = devPortById.get(fwdInfo.outPortId);
                 if (null == devPort) {
                     log.warn("LocalPktArpCallback.call: port is no longer local");
+                    freeFlowResources(match, traversedRouters);
+                    freeBuffer(bufferId);
                     // TODO(pino): do we need to do anything for this?
                     // The port was removed while we waited for the ARP.
                     return;
@@ -678,6 +692,9 @@ public class NetworkController extends AbstractController {
                     // inPort, dlType, nwSrc.
                     match = makeWildcarded(match);
                 }
+                // Track the routers for this flow so we can free resources
+                // when the flow is removed.
+                matchToRouters.put(match, traversedRouters);
                 addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
                         NO_HARD_TIMEOUT, true, ofActions, inPort.getNum(),
                         data);
@@ -686,6 +703,7 @@ public class NetworkController extends AbstractController {
                         nwDstStr);
                 installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                         ICMP_EXPIRY_SECONDS);
+                freeFlowResources(match, traversedRouters);
                 // Send an ICMP !H
                 sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_HOST, inPort
                         .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
@@ -1039,13 +1057,16 @@ public class NetworkController extends AbstractController {
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
         // TODO(pino): do we care why the flow was removed?
-        Set<UUID> routers = matchToRouters.get(match);
+        freeFlowResources(match, matchToRouters.get(match));
+    }
+
+    public void freeFlowResources(OFMatch match, Collection<UUID> routers) {
         if (null == routers)
             return;
         for (UUID rtrId : routers) {
             try {
                 Router rtr = network.getRouter(rtrId);
-                rtr.onFlowRemoved(match);
+                rtr.freeFlowResources(match);
             } catch (Exception e) {
                 log.warn("onFlowRemoved failed to inform router {} about " +
                          "expiration of match {}", rtrId, match);

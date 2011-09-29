@@ -100,7 +100,7 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public void onFlowRemoved(OFMatch match) {
+    public void freeFlowResources(OFMatch match) {
         // TODO Auto-generated method stub
     }
 }

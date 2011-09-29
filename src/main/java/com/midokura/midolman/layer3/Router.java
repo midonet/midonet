@@ -687,7 +687,7 @@ public class Router {
             entry.lastArp = now;
     }
 
-    public void onFlowRemoved(OFMatch match) {
-        ruleEngine.onFlowRemoved(match);
+    public void freeFlowResources(OFMatch match) {
+        ruleEngine.freeFlowResources(match);
     }
 }

@@ -290,7 +290,7 @@ public class RuleEngine {
         return res;
     }
 
-    public void onFlowRemoved(OFMatch match) {
-        natMap.onFlowRemoved(match);
+    public void freeFlowResources(OFMatch match) {
+        natMap.freeFlowResources(match);
     }
 }

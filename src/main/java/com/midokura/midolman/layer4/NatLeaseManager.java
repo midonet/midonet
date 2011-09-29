@@ -3,7 +3,6 @@ package com.midokura.midolman.layer4;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Random;
@@ -29,7 +28,11 @@ public class NatLeaseManager implements NatMapping {
     private static final Logger log = LoggerFactory
             .getLogger(NatLeaseManager.class);
 
-    private static final long REFRESH_INTERVAL = 30;
+    public static final int REFRESH_SECONDS = 30;
+    public static final String FWD_DNAT_PREFIX = "dnatfwd";
+    public static final String REV_DNAT_PREFIX = "dnatrev";
+    public static final String FWD_SNAT_PREFIX = "snatfwd";
+    public static final String REV_SNAT_PREFIX = "snatrev";
 
     // The following maps IP addresses to ordered lists of free ports.
     // These structures are meant to be shared by all rules/nat targets.
@@ -47,6 +50,7 @@ public class NatLeaseManager implements NatMapping {
     private Cache cache;
     private Reactor reactor;
     private Map<MidoMatch, Set<String>> matchToNatKeys;
+    private Map<MidoMatch, ScheduledFuture> matchToFuture;
     private Random rand;
 
     public NatLeaseManager(RouterZkManager routerMgr, UUID routerId,
@@ -59,6 +63,7 @@ public class NatLeaseManager implements NatMapping {
         this.reactor = reactor;
         this.rand = new Random();
         this.matchToNatKeys = new HashMap<MidoMatch, Set<String>>();
+        this.matchToFuture = new HashMap<MidoMatch, ScheduledFuture>();
     }
 
     private class RefreshNatMappings implements Runnable {
@@ -76,8 +81,11 @@ public class NatLeaseManager implements NatMapping {
                 return;
             }
             // Refresh all the nat keys associated with this match.
-            for (String key : refreshKeys)
+            for (String key : refreshKeys) {
                 cache.getAndTouch(key);
+            }
+            // Re-schedule this runnable if it's the 
+            reactor.schedule(this, REFRESH_SECONDS, TimeUnit.SECONDS);
         }
         
     }
@@ -110,25 +118,27 @@ public class NatLeaseManager implements NatMapping {
         if (null == refreshKeys) {
             refreshKeys = new HashSet<String>();
             matchToNatKeys.put(origMatch, refreshKeys);
-            reactor.schedule(new RefreshNatMappings(origMatch),
-                    REFRESH_INTERVAL, TimeUnit.SECONDS);
+            ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
+                    origMatch), REFRESH_SECONDS, TimeUnit.SECONDS);
+            matchToFuture.put(origMatch, future);
         }
-        String key = makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst, oldTpDst);
+        String key = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
+                oldTpDst);
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(newNwDst, newTpDst));
-        key = makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst, newTpDst);
+        key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst, newTpDst);
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(oldNwDst, oldTpDst));
         return new NwTpPair(newNwDst, newTpDst);
     }
 
-    private String makeCacheKey(String prefix, int nwSrc, short tpSrc,
+    public static String makeCacheKey(String prefix, int nwSrc, short tpSrc,
             int nwDst, short tpDst) {
         return String.format("%s%08x%d%08x%d", prefix, nwSrc, tpSrc, nwDst,
                 tpDst);
     }
 
-    private String makeCacheValue(int nwAddr, short tpPort) {
+    public static String makeCacheValue(int nwAddr, short tpPort) {
         return String.format("%08x/%d", nwAddr, tpPort);
     }
 
@@ -146,21 +156,21 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst) {
-        return lookupNwTpPair(makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst,
-                oldTpDst));
+        return lookupNwTpPair(makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
+                oldNwDst, oldTpDst));
     }
 
     @Override
     public NwTpPair lookupDnatRev(int nwSrc, short tpSrc, int newNwDst,
             short newTpDst) {
-        return lookupNwTpPair(makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst,
-                newTpDst));
+        return lookupNwTpPair(makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
+                newNwDst, newTpDst));
     }
 
     private boolean makeSnatReservation(int oldNwSrc, short oldTpSrc,
             int newNwSrc, short newTpSrc, int nwDst, short tpDst,
             MidoMatch match) {
-        String reverseKey = makeCacheKey("snatrev", newNwSrc, newTpSrc, nwDst,
+        String reverseKey = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc, nwDst,
                 tpDst);
         if (null != cache.get(reverseKey)) {
             log.warn("{} Snat encountered a collision reserving SRC {}:{}",
@@ -178,10 +188,11 @@ public class NatLeaseManager implements NatMapping {
         if (null == refreshKeys) {
             refreshKeys = new HashSet<String>();
             matchToNatKeys.put(match, refreshKeys);
-            reactor.schedule(new RefreshNatMappings(match), REFRESH_INTERVAL,
-                    TimeUnit.SECONDS);
+            ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
+                    match), REFRESH_SECONDS, TimeUnit.SECONDS);
+            matchToFuture.put(match, future);
         }
-        String key = makeCacheKey("snatfwd", oldNwSrc, oldTpSrc, nwDst, tpDst);
+        String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst, tpDst);
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
         refreshKeys.add(reverseKey);
@@ -300,14 +311,14 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
             short tpDst) {
-        return lookupNwTpPair(makeCacheKey("snatfwd", oldNwSrc, oldTpSrc,
+        return lookupNwTpPair(makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
                 nwDst, tpDst));
     }
 
     @Override
     public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
             short tpDst) {
-        return lookupNwTpPair(makeCacheKey("snatrev", newNwSrc, newTpSrc,
+        return lookupNwTpPair(makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
                 nwDst, tpDst));
     }
 
@@ -320,9 +331,11 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public void onFlowRemoved(OFMatch match) {
+    public void freeFlowResources(OFMatch match) {
         // Cancel refreshing of any keys associated with this match.
         matchToNatKeys.remove(match);
+        ScheduledFuture future = matchToFuture.remove(match);
+        future.cancel(false);
     }
 
 }
