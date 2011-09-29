@@ -45,6 +45,7 @@
                         <configuration>
                             <args>
                                 <arg>-make:transitive</arg>
+                                <arg>-deprecation</arg>
                                 <arg>-dependencyfile</arg>
                                 <arg>${project.build.directory}/.scala_dependencies</arg>
                             </args>
@@ -222,12 +223,12 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>cobertura-maven-plugin</artifactId>
             <version>2.5.1</version>
-	    <configuration>
+            <configuration>
               <formats>
                 <format>html</format>
                 <format>xml</format>
               </formats>
-	    </configuration>
+            </configuration>
           </plugin>
         </plugins>
     </reporting>
@@ -255,19 +256,19 @@
     </distributionManagement>
 
     <repositories>
-	      <repository>
-	        <id>mido-maven</id>
-	        <name>mido-maven</name>
-	        <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
-	      </repository>
+              <repository>
+                <id>mido-maven</id>
+                <name>mido-maven</name>
+                <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+              </repository>
     </repositories>
 
     <dependencies>
-		<dependency>
-			<groupId>spy</groupId>
-			<artifactId>spymemcached</artifactId>
-			<version>2.7</version>
-		</dependency>
+                <dependency>
+                        <groupId>spy</groupId>
+                        <artifactId>spymemcached</artifactId>
+                        <version>2.7</version>
+                </dependency>
 
         <dependency>
             <groupId>org.newsclub</groupId>
@@ -329,11 +330,11 @@
             </exclusions>
         </dependency>
 
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.6</version>
-		</dependency>
+                <dependency>
+                        <groupId>commons-configuration</groupId>
+                        <artifactId>commons-configuration</artifactId>
+                        <version>1.6</version>
+                </dependency>
         
         <dependency>
             <groupId>commons-cli</groupId>
