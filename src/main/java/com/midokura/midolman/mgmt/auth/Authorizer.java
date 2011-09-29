@@ -8,11 +8,6 @@ public class Authorizer implements SecurityContext {
 
     private Principal principal = null;
     private String token = null;
-        
-    @Override
-    public String ContainerResponseFilter() {
-        return "Keystone";
-    }
 
     @Override
     public Principal getUserPrincipal() {
@@ -41,8 +36,7 @@ public class Authorizer implements SecurityContext {
 
     @Override
     public String getAuthenticationScheme() {
-        // TODO Auto-generated method stub
-        return null;
+        return "Keystone";
     }
 
     
