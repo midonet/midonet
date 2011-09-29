@@ -55,7 +55,14 @@ public class Midolman implements SelectListener, Watcher {
     
     private void run(String[] args) throws Exception {
         log.info("main start");
-        
+        log.info("Adding shutdownHook");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                log.warn("Exiting. BYE!");
+            }
+        });
+
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
         CommandLineParser parser = new GnuParser();
