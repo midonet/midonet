@@ -350,13 +350,11 @@ public class NetworkController extends AbstractController {
                 log.debug("onPacketIn: Network.process() returned FORWARD to "
                         + "remote port {} for {}", fwdInfo.outPortId, fwdInfo);
                 
-                Integer tunPortNum = super
-                        .portUuidToTunnelPortNumber(fwdInfo.outPortId);
+                Integer tunPortNum = 
+                        super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
                     log.warn("onPacketIn:  No tunnel port found for {}",
                             fwdInfo.outPortId);
-                    
-                    log.debug("onPacketIn: peerIpToTunnelPortNum {}", peerIpToTunnelPortNum);
                     
                     installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                             ICMP_EXPIRY_SECONDS);
@@ -367,7 +365,8 @@ public class NetworkController extends AbstractController {
                     return;
                 }
                 
-                log.debug("onPacketIn: FORWARDing to remote port {}", tunPortNum);
+                log.debug("onPacketIn: FORWARDing to remote port {}", 
+                          tunPortNum);
 
                 MAC[] dlHeaders = getDlHeadersForTunnel(
                         ShortUUID.UUID32toInt(fwdInfo.inPortId),
@@ -386,8 +385,7 @@ public class NetworkController extends AbstractController {
             return;
         case NOT_IPV4:
             log.debug("onPacketIn: Network.process() returned NOT_IPV4, " +
-            		"ethertype is {}", 
-                    match.getDataLayerType());
+                      "ethertype is {}", match.getDataLayerType());
             // If wildcards are enabled, wildcard everything but dl_type. One
             // rule per ethernet protocol type catches all non-IPv4 flows.
             if (useWildcards) {
@@ -1050,7 +1048,7 @@ public class NetworkController extends AbstractController {
                 rtr.onFlowRemoved(match);
             } catch (Exception e) {
                 log.warn("onFlowRemoved failed to inform router {} about " +
-                		"expiration of match {}", rtrId, match);
+                         "expiration of match {}", rtrId, match);
             }
         }
     }

@@ -1,10 +1,12 @@
+// Copyright 2011 Midokura Inc.
+
 package com.midokura.midolman;
 
-import java.util.Map;
+import java.lang.Integer;
 
 public interface AbstractControllerMXBean {
     
     int getGreKey();
-    Map<Integer, Integer> getTunnelPortNumToPeerIp();
-
+    Integer peerOfTunnelPortNum(int tunnelPortNum);
+    Integer tunnelPortNumOfPeer(Integer peerIP);
 }

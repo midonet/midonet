@@ -1132,7 +1132,9 @@ public class TestBridgeController {
 
         // Add a flow with the same MAC, different port.
         controller.onPacketIn(12, 13, (short)2, packet23.serialize());
-        assertEquals(2, controller.flowCount.size());
+        // Add a flow with a different MAC, same port.
+        controller.onPacketIn(12, 13, (short)1, packet15.serialize());
+        assertEquals(3, controller.flowCount.size());
 
         // To reach the (null == rhs) or (!(rhs instanceof MacPort)) branches
         // of MacPort.equals() from HashMap would require a hashCode collision.
@@ -1143,6 +1145,11 @@ public class TestBridgeController {
         assertThat(key, not(equalTo((Object)mac2)));
         assertFalse(key.equals(null));
         assertFalse(key.equals(mac2));
+
+        Object[] macports = controller.flowCount.keySet().toArray();
+        assertThat(macports[0], not(equalTo(macports[1])));
+        assertThat(macports[0], not(equalTo(macports[2])));
+        assertThat(macports[1], not(equalTo(macports[2])));
     }
 
     @Test

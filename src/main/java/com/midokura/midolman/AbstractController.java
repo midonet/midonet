@@ -51,8 +51,8 @@ public abstract class AbstractController
     protected PortToIntNwAddrMap portLocMap;
 
     // Tunnel management data structures
-    protected HashMap<Integer, Integer> tunnelPortNumToPeerIp;
-    protected HashMap<Integer, Integer> peerIpToTunnelPortNum;
+    private HashMap<Integer, Integer> tunnelPortNumToPeerIp;
+    private HashMap<Integer, Integer> peerIpToTunnelPortNum;
 
     protected PortToIntNwAddrMap.Watcher<UUID, Integer> listener;
 
@@ -196,7 +196,7 @@ public abstract class AbstractController
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
             Integer peerIp = tunnelPortNumToPeerIp.remove(portNum);
             
-            log.debug("onPortStatus: removing {}", portNum);
+            log.debug("onPortStatus: removing port# {}", portNum);
             peerIpToTunnelPortNum.remove(peerIp);
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
             //modifyPort(portDesc);
@@ -222,7 +222,8 @@ public abstract class AbstractController
             log.error("Unknown OFPortReason update: {}", reason);
         }
         
-        log.debug("onPortStatus: peerIpToTunnelPortNum {}", peerIpToTunnelPortNum);
+        log.debug("onPortStatus: peerIpToTunnelPortNum {}", 
+                  peerIpToTunnelPortNum);
     }
 
     protected abstract void addPort(OFPhysicalPort portDesc, short portNum);
@@ -254,7 +255,7 @@ public abstract class AbstractController
         return peerIpToTunnelPortNum.get(intAddress);
     }
 
-    protected Integer peerOfTunnelPortNum(int portNum) {
+    public Integer peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
 
@@ -390,8 +391,7 @@ public abstract class AbstractController
         return greKey;
     }
     
-    public Map<Integer, Integer> getTunnelPortNumToPeerIp() {
-        return tunnelPortNumToPeerIp;
+    public Integer tunnelPortNumOfPeer(Integer peerIP) {
+        return peerIpToTunnelPortNum.get(peerIP);
     }
-
 }

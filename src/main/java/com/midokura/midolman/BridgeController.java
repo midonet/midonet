@@ -298,7 +298,7 @@ public class BridgeController extends AbstractController {
             } else {
                 short output;
                 try {
-                    output = peerIpToTunnelPortNum.get(destIP).shortValue();
+                    output = tunnelPortNumOfPeer(destIP).shortValue();
                 } catch (NullPointerException e) {
                     // Tunnel is down.  Flood until the tunnel port comes up.
                     log.info("tunnel down:  Flooding");
