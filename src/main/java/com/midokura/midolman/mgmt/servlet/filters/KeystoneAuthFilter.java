@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.KeystoneClient;
+import com.midokura.midolman.mgmt.auth.TenantUser;
 
 /**
  * Servlet filter for Keystone authentication.
@@ -139,10 +140,11 @@ public final class KeystoneAuthFilter implements Filter {
                     "No token was passed in.");
             return;
         }
-
-        boolean isValid = false;
+        TenantUser tu = null;
         try {
-            isValid = this.client.validateToken(token);
+            tu = this.client.getTenantUser(token);
+            log.debug("----> token == " + tu.getToken());
+
         } catch (Exception ex) {
             // Unknown error occurred.
             setErrorResponse((HttpServletResponse) response,
@@ -151,7 +153,8 @@ public final class KeystoneAuthFilter implements Filter {
             return;
         }
 
-        if (isValid) {
+        if (tu != null) {
+            req.setAttribute("com.midokura.midolman.mgmt.auth.TenantUser", tu);
             chain.doFilter(request, response); // Keep the chain going.
         } else {
             setErrorResponse((HttpServletResponse) response,

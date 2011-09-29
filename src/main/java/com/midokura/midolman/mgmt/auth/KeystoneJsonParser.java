@@ -12,6 +12,8 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JSON parser for Keystone response.
@@ -24,7 +26,8 @@ public final class KeystoneJsonParser {
      * Wrapper for Jackson JSON Parser to parse the response from Keystone.
      */
 
-    private JsonNode node = null;
+    private final static Logger log = LoggerFactory
+            .getLogger(KeystoneJsonParser.class);
 
     /**
      * Default constructor.
@@ -40,85 +43,30 @@ public final class KeystoneJsonParser {
      * @throws IOException
      *             JSON parsing IO error.
      */
-    public void parse(String src) throws IOException {
-        System.err.println("----->" + src);
+    public static TenantUser parse(String src) throws IOException {
+        log.debug("Keystone replied: " + src);
         // Parse with Jackson library.
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory factory = mapper.getJsonFactory();
         JsonParser jp = factory.createJsonParser(src);
-        this.node = mapper.readTree(jp).get("access");
-    }
+        JsonNode node = mapper.readTree(jp).get("access");
 
-    /**
-     * Get token from JSON.
-     * 
-     * @return Token string.
-     */
-    public String getToken() {
-        return this.node.get("token").get("id").getTextValue();
-    }
+        TenantUser tu = new TenantUser();
+        tu.setUserId(node.get("user").get("username").getTextValue());
+        String tenantId = node.get("token").get("tenant").get("id")
+                .getTextValue();
+        tu.setTenantId(tenantId);
+        tu.setTenantName(node.get("token").get("tenant").get("name")
+                .getTextValue());
+        tu.setToken(node.get("token").get("id").getTextValue());
 
-    /**
-     * Get token expiration from JSON.
-     * 
-     * @return Token expiration string.
-     */
-    public String getTokenExpiration() {
-        return this.node.get("token").get("expires").getTextValue();
-    }
-
-    /**
-     * Get token tenant from JSON.
-     * 
-     * @return Token tenant string.
-     */
-    public String getTokenTenantId() {
-        return this.node.get("token").get("tenant").get("id").getTextValue();
-    }
-
-    /**
-     * Get token tenant name from JSON.
-     * 
-     * @return Token tenant string.
-     */
-    public String getTokenTenantName() {
-        return this.node.get("token").get("tenant").get("name").getTextValue();
-    }
-
-    /**
-     * Get user from JSON.
-     * 
-     * @return User string.
-     */
-    public String getUser() {
-        return this.node.get("user").get("username").getTextValue();
-    }
-
-    /**
-     * Get user tenant from JSON.
-     * 
-     * @return Tenant string.
-     */
-    public String getUserTenant() {
-        return this.node.get("user").get("tenantId").getTextValue();
-    }
-
-    /**
-     * Get user roles from JSON.
-     * 
-     * @return A string array of roles.
-     */
-    public String[] getUserRoles() {
-        // Parse out roles from the JSON string and return as an array.
-        JsonNode roleNode = this.node.get("user").get("roles");
-        String[] roles = new String[roleNode.size()];
+        JsonNode roleNode = node.get("user").get("roles");
         Iterator<JsonNode> roleNodeItr = roleNode.getElements();
-        int ii = 0;
         while (roleNodeItr.hasNext()) {
             roleNode = roleNodeItr.next();
-            roles[ii] = roleNode.get("name").getTextValue();
-            ii++;
+            tu.addRole(roleNode.get("name").getTextValue());
         }
-        return roles;
+
+        return tu;
     }
 }

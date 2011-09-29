@@ -79,14 +79,13 @@ public final class KeystoneClient {
      * @throws IOException
      *             IO error while getting Keystone response.
      */
-    public boolean validateToken(String token) throws IOException {
+    public TenantUser getTenantUser(String token) throws IOException {
         // Validate by sending an HTTP request to Keystone server.
         log.debug("Validating token " + token);
         if (token == null) {
             throw new NullPointerException(token);
         }
 
-        KeystoneJsonParser parser = new KeystoneJsonParser();
         String url = new StringBuilder(this.serviceUrl).append("/tokens/")
                 .append(token).toString();
         Client client = Client.create();
@@ -97,20 +96,9 @@ public final class KeystoneClient {
                     this.adminToken).get(String.class);
         } catch (UniformInterfaceException e) {
             // Invalid token.
-            return false;
+            return null;
         }
 
-        parser.parse(response);
-        log.debug("Token = " + parser.getToken());
-        log.debug("TokenExp = " + parser.getTokenExpiration());
-        log.debug("TokenTenantName = " + parser.getTokenTenantName());
-        log.debug("TokenTenantId = " + parser.getTokenTenantId());
-        log.debug("User = " + parser.getUser());
-        log.debug("UserTenant = " + parser.getUserTenant());
-        String[] roles = parser.getUserRoles();
-        for (int i = 0; i < roles.length; i++)
-            log.debug("UserRole = " + roles[i]);
-
-        return true;
+        return KeystoneJsonParser.parse(response);
     }
 }

@@ -1,17 +1,21 @@
 package com.midokura.midolman.mgmt.auth;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
+
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 
 public class KeystoneAuthFilter implements ContainerRequestFilter {
 
+    @Context
+    HttpServletRequest hsr;
+
     @Override
     public ContainerRequest filter(ContainerRequest req) {
-        Authorizer context = new Authorizer();
-        String token = req.getHeaderValue("HTTP_X_AUTH_TOKEN"); // Get token
-        context.setToken(token);
-        req.setSecurityContext(context);
+        TenantUser tu = (TenantUser) hsr
+                .getAttribute("com.midokura.midolman.mgmt.auth.TenantUser");
+        req.setSecurityContext(new Authorizer(tu));
         return req;
     }
-
 }
