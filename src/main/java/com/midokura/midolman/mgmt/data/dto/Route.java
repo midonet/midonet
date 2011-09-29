@@ -205,7 +205,7 @@ public class Route {
     public com.midokura.midolman.layer3.Route toZkRoute() {
         NextHop nextHop = null;
         String type = this.getType();
-        int gateway = -1;
+        int gateway = com.midokura.midolman.layer3.Route.NO_GATEWAY;
         if (type.equals(Route.Reject)) {
             nextHop = NextHop.REJECT;
         } else if (type.equals(Route.BlackHole)) {
