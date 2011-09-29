@@ -41,14 +41,14 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     final var bridgeId: Long = _
     final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
     final val target = "tcp:127.0.0.1:6634"
-    private final val lockfile = new File("/tmp/ovs_tests.lock")
-    private final val lockchannel =
-        new RandomAccessFile(lockfile, "rw").getChannel
+    private final var lockfile = new File("/tmp/ovsdbconnection.lock")
     private var lock: FileLock = _
     final var mutex = new Semaphore(1)
 
     @BeforeClass def connectToOVSDB() {
-        lock = lockchannel.lock
+        lockfile.setReadable(true, false)
+        lockfile.setWritable(true, false)
+        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
         Console.err.println("Entering testOVSConn at " + new Date)
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge
