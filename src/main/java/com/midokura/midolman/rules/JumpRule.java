@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class JumpRule extends Rule {
@@ -30,7 +31,8 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChain;
         log.debug("Rule evaluation jumping to chain {}.", jumpToChain);

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NwTpPair;
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.RuleResult.Action;
 
@@ -29,7 +30,8 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         if (dnat)
             applyReverseDnat(inPortId, outPortId, res);
         else

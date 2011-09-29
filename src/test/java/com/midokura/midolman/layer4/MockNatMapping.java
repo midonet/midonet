@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.openflow.protocol.OFMatch;
+
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.NatTarget;
 
 public class MockNatMapping implements NatMapping {
@@ -29,7 +32,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Set<NatTarget> nats) {
+            short oldTpDst, Set<NatTarget> nats, MidoMatch origMatch) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
@@ -58,7 +61,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats) {
+            short tpDst, Set<NatTarget> nats, MidoMatch origMatch) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
@@ -94,5 +97,10 @@ public class MockNatMapping implements NatMapping {
         if (null != recentlyFreedSnatTargets)
             recentlyFreedSnatTargets.removeAll(targets);
         snatTargets = targets;
+    }
+
+    @Override
+    public void onFlowRemoved(OFMatch match) {
+        // TODO Auto-generated method stub
     }
 }

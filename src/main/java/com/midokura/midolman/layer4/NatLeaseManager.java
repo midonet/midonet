@@ -1,17 +1,24 @@
 package com.midokura.midolman.layer4;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
+import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.RouterZkManager;
@@ -21,6 +28,8 @@ public class NatLeaseManager implements NatMapping {
 
     private static final Logger log = LoggerFactory
             .getLogger(NatLeaseManager.class);
+
+    private static final long REFRESH_INTERVAL = 30;
 
     // The following maps IP addresses to ordered lists of free ports.
     // These structures are meant to be shared by all rules/nat targets.
@@ -36,20 +45,46 @@ public class NatLeaseManager implements NatMapping {
     private UUID routerId;
     private String rtrIdStr;
     private Cache cache;
+    private Reactor reactor;
+    private Map<MidoMatch, Set<String>> matchToNatKeys;
     private Random rand;
 
-    public NatLeaseManager(RouterZkManager routerMgr, UUID routerId, Cache cache) {
+    public NatLeaseManager(RouterZkManager routerMgr, UUID routerId,
+            Cache cache, Reactor reactor) {
         this.routerMgr = routerMgr;
         this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Short>>();
         this.routerId = routerId;
         rtrIdStr = routerId.toString();
         this.cache = cache;
+        this.reactor = reactor;
         this.rand = new Random();
+        this.matchToNatKeys = new HashMap<MidoMatch, Set<String>>();
+    }
+
+    private class RefreshNatMappings implements Runnable {
+        MidoMatch match;
+
+        private RefreshNatMappings(MidoMatch match) {
+            this.match = match;
+        }
+
+        @Override
+        public void run() {
+            Set<String> refreshKeys = matchToNatKeys.get(match);
+            if (null == refreshKeys) {
+                // The match's flow must have expired, stop refreshing.
+                return;
+            }
+            // Refresh all the nat keys associated with this match.
+            for (String key : refreshKeys)
+                cache.getAndTouch(key);
+        }
+        
     }
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Set<NatTarget> nats) {
+            short oldTpDst, Set<NatTarget> nats, MidoMatch origMatch) {
         log.debug("allocateDnat: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {} nats {}", new Object[] {
                 nwSrc,
                 tpSrc,
@@ -70,10 +105,20 @@ public class NatLeaseManager implements NatMapping {
                 IPv4.fromIPv4Address(newNwDst), newTpDst,
                 IPv4.fromIPv4Address(nwSrc), tpSrc,
                 IPv4.fromIPv4Address(oldNwDst), oldTpDst });
-        cache.set(makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst, oldTpDst),
-                makeCacheValue(newNwDst, newTpDst));
-        cache.set(makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst, newTpDst),
-                makeCacheValue(oldNwDst, oldTpDst));
+
+        Set<String> refreshKeys = matchToNatKeys.get(origMatch);
+        if (null == refreshKeys) {
+            refreshKeys = new HashSet<String>();
+            matchToNatKeys.put(origMatch, refreshKeys);
+            reactor.schedule(new RefreshNatMappings(origMatch),
+                    REFRESH_INTERVAL, TimeUnit.SECONDS);
+        }
+        String key = makeCacheKey("dnatfwd", nwSrc, tpSrc, oldNwDst, oldTpDst);
+        refreshKeys.add(key);
+        cache.set(key, makeCacheValue(newNwDst, newTpDst));
+        key = makeCacheKey("dnatrev", nwSrc, tpSrc, newNwDst, newTpDst);
+        refreshKeys.add(key);
+        cache.set(key, makeCacheValue(oldNwDst, oldTpDst));
         return new NwTpPair(newNwDst, newTpDst);
     }
 
@@ -113,7 +158,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     private boolean makeSnatReservation(int oldNwSrc, short oldTpSrc,
-            int newNwSrc, short newTpSrc, int nwDst, short tpDst) {
+            int newNwSrc, short newTpSrc, int nwDst, short tpDst,
+            MidoMatch match) {
         String reverseKey = makeCacheKey("snatrev", newNwSrc, newTpSrc, nwDst,
                 tpDst);
         if (null != cache.get(reverseKey)) {
@@ -128,15 +174,24 @@ public class NatLeaseManager implements NatMapping {
                 IPv4.fromIPv4Address(newNwSrc), newTpSrc,
                 IPv4.fromIPv4Address(oldNwSrc), oldTpSrc,
                 IPv4.fromIPv4Address(nwDst), tpDst });
-        cache.set(makeCacheKey("snatfwd", oldNwSrc, oldTpSrc, nwDst, tpDst),
-                makeCacheValue(newNwSrc, newTpSrc));
+        Set<String> refreshKeys = matchToNatKeys.get(match);
+        if (null == refreshKeys) {
+            refreshKeys = new HashSet<String>();
+            matchToNatKeys.put(match, refreshKeys);
+            reactor.schedule(new RefreshNatMappings(match), REFRESH_INTERVAL,
+                    TimeUnit.SECONDS);
+        }
+        String key = makeCacheKey("snatfwd", oldNwSrc, oldTpSrc, nwDst, tpDst);
+        refreshKeys.add(key);
+        cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
+        refreshKeys.add(reverseKey);
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
         return true;
     }
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats) {
+            short tpDst, Set<NatTarget> nats, MidoMatch origMatch) {
         // First try to find a port in a block we've already leased.
         for (NatTarget tg : nats) {
             for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
@@ -149,7 +204,7 @@ public class NatLeaseManager implements NatMapping {
                         freePorts.remove(port);
                         // Check memcached to make sure the port's really free.
                         if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
-                                nwDst, tpDst))
+                                nwDst, tpDst, origMatch))
                             return new NwTpPair(ip, port);
                     }
                     // Else - no free ports for this ip and port range
@@ -231,7 +286,7 @@ public class NatLeaseManager implements NatMapping {
                 while (true) {
                     freePorts.remove(freePort);
                     if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,
-                            nwDst, tpDst))
+                            nwDst, tpDst, origMatch))
                         return new NwTpPair(ip, freePort);
                     freePort++;
                     if (0 == freePort % block_size || freePort > tg.tpEnd)
@@ -262,6 +317,12 @@ public class NatLeaseManager implements NatMapping {
         
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public void onFlowRemoved(OFMatch match) {
+        // Cancel refreshing of any keys associated with this match.
+        matchToNatKeys.remove(match);
     }
 
 }

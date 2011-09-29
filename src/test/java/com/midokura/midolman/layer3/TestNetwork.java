@@ -167,6 +167,7 @@ public class TestNetwork {
         match.loadFromPacket(pktData, (short) 0);
         ForwardInfo fInfo = new ForwardInfo();
         fInfo.inPortId = inPortId;
+        fInfo.flowMatch = match;
         fInfo.matchIn = match;
         fInfo.pktIn = ethPkt;
         return fInfo;

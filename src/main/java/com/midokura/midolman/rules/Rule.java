@@ -2,6 +2,7 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public abstract class Rule implements Comparable<Rule> {
@@ -26,9 +27,10 @@ public abstract class Rule implements Comparable<Rule> {
         super();
     }
 
-    public void process(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         if (condition.matches(inPortId, outPortId, res.match)) {
-            apply(inPortId, outPortId, res);
+            apply(flowMatch, inPortId, outPortId, res);
         }
     }
 
@@ -37,7 +39,8 @@ public abstract class Rule implements Comparable<Rule> {
     }
 
     // Call process instead - it calls 'apply' if appropriate.
-    public abstract void apply(UUID inPortId, UUID outPortId, RuleResult res);
+    public abstract void apply(MidoMatch flowMatch, UUID inPortId,
+            UUID outPortId, RuleResult res);
 
     @Override
     public int hashCode() {

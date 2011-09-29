@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NwTpPair;
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.RuleResult.Action;
 
@@ -39,16 +40,18 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         if (null == natMap)
             return;
         if (dnat)
-            applyDnat(inPortId, outPortId, res);
+            applyDnat(flowMatch, inPortId, outPortId, res);
         else
-            applySnat(inPortId, outPortId, res);
+            applySnat(flowMatch, inPortId, outPortId, res);
     }
 
-    public void applyDnat(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void applyDnat(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         NwTpPair conn = natMap.lookupDnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
@@ -56,7 +59,7 @@ public class ForwardNatRule extends NatRule {
         if (null == conn)
             conn = natMap.allocateDnat(res.match.getNetworkSource(), res.match
                     .getTransportSource(), res.match.getNetworkDestination(),
-                    res.match.getTransportDestination(), targets);
+                    res.match.getTransportDestination(), targets, flowMatch);
         else
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
@@ -72,7 +75,8 @@ public class ForwardNatRule extends NatRule {
         res.trackConnection = true;
     }
 
-    public void applySnat(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void applySnat(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         NwTpPair conn = natMap.lookupSnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
@@ -80,7 +84,7 @@ public class ForwardNatRule extends NatRule {
         if (null == conn)
             conn = natMap.allocateSnat(res.match.getNetworkSource(), res.match
                     .getTransportSource(), res.match.getNetworkDestination(),
-                    res.match.getTransportDestination(), targets);
+                    res.match.getTransportDestination(), targets, flowMatch);
         else 
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {

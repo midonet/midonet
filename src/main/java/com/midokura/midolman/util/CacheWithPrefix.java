@@ -20,4 +20,9 @@ public class CacheWithPrefix implements Cache {
         return cache.get(prefix+key);
     }
 
+    @Override
+    public String getAndTouch(String key) {
+        return cache.getAndTouch(prefix+key);
+    }
+
 }

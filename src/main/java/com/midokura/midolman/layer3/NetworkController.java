@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -85,6 +86,8 @@ public class NetworkController extends AbstractController {
 
     private PortService service;
     private Map<UUID, List<Runnable>> portServicesById;
+    // Track which routers processed an installed flow.
+    private Map<MidoMatch, Set<UUID>> matchToRouters;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, long idleFlowExpireMillis,
@@ -106,6 +109,7 @@ public class NetworkController extends AbstractController {
         this.service = service;
         this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
+        this.matchToRouters = new HashMap<MidoMatch, Set<UUID>>();
     }
     
     /*
@@ -291,6 +295,7 @@ public class NetworkController extends AbstractController {
         }
         ForwardInfo fwdInfo = new ForwardInfo();
         fwdInfo.inPortId = devPortIn.getId();
+        fwdInfo.flowMatch = match;
         fwdInfo.matchIn = match.clone();
         fwdInfo.pktIn = ethPkt;
         Set<UUID> routers = new HashSet<UUID>();
@@ -755,7 +760,8 @@ public class NetworkController extends AbstractController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, (short) 0);
         ForwardInfo fwdInfo = new ForwardInfo();
-        fwdInfo.matchIn = match;
+        fwdInfo.flowMatch = match;
+        fwdInfo.matchIn = match.clone();
         fwdInfo.pktIn = eth;
         if (portConfig instanceof PortDirectory.MaterializedRouterPortConfig) {
             // The lastIngress port is materialized. Invoke the routing logic of
@@ -1034,8 +1040,19 @@ public class NetworkController extends AbstractController {
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
-        // TODO Auto-generated method stub
-
+        // TODO(pino): do we care why the flow was removed?
+        Set<UUID> routers = matchToRouters.get(match);
+        if (null == routers)
+            return;
+        for (UUID rtrId : routers) {
+            try {
+                Router rtr = network.getRouter(rtrId);
+                rtr.onFlowRemoved(match);
+            } catch (Exception e) {
+                log.warn("onFlowRemoved failed to inform router {} about " +
+                		"expiration of match {}", rtrId, match);
+            }
+        }
     }
 
     private L3DevicePort devPortOfPortDesc(OFPhysicalPort portDesc) {

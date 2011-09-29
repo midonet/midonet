@@ -67,9 +67,10 @@ public class TestRuleEngine {
         }
 
         @Override
-        public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+                RuleResult res) {
             timesApplied++;
-            super.apply(inPortId, outPortId, res);
+            super.apply(flowMatch, inPortId, outPortId, res);
         }
     }
 
@@ -89,9 +90,10 @@ public class TestRuleEngine {
         }
 
         @Override
-        public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+        public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+                RuleResult res) {
             timesApplied++;
-            super.apply(inPortId, outPortId, res);
+            super.apply(flowMatch, inPortId, outPortId, res);
         }
     }
 
@@ -219,7 +221,8 @@ public class TestRuleEngine {
         List<Rule> c2 = engine.ruleChains.get(c2Id);
         List<Rule> c3 = engine.ruleChains.get(c3Id);
         MidoMatch emptyPacket = new MidoMatch();
-        RuleResult res = engine.applyChain("Chain1", emptyPacket, null, null);
+        RuleResult res = engine.applyChain("Chain1",
+                new MidoMatch(), emptyPacket, null, null);
         Assert.assertTrue(Action.ACCEPT.equals(res.action));
         Assert.assertNull(res.jumpToChain);
         Assert.assertEquals(emptyPacket, res.match);
@@ -298,17 +301,16 @@ public class TestRuleEngine {
         Assert.assertEquals(4, engine.ruleChains.size());
         Assert.assertTrue(engine.ruleChains.containsKey(c4Id));
         Assert.assertTrue(chain4.equals(engine.ruleChains.get(c4Id)));
-        MidoMatch pkt = pktMatch.clone();
-        RuleResult res = engine.applyChain("Chain4", pkt, inPort, null);
+        RuleResult res = engine.applyChain("Chain4", pktMatch, pktMatch,
+                inPort, null);
         Assert.assertTrue(Action.ACCEPT.equals(res.action));
         Assert.assertNull(res.jumpToChain);
         Assert.assertTrue(res.trackConnection);
-        Assert.assertEquals(pkt, res.match);
-        Assert.assertFalse(pkt.equals(pktMatch));
-        int ip = pkt.getNetworkDestination();
+        Assert.assertFalse(res.match.equals(pktMatch));
+        int ip = res.match.getNetworkDestination();
         Assert.assertTrue(0x0c000102 <= ip);
         Assert.assertTrue(ip <= 0x0c00010a);
-        short port = pkt.getTransportDestination();
+        short port = res.match.getTransportDestination();
         Assert.assertTrue(1030 <= port);
         Assert.assertTrue(port <= 1050);
         // Now build a response packet as it would be emitted by the receiver.
@@ -317,20 +319,18 @@ public class TestRuleEngine {
         respPkt.setTransportSource(port);
         respPkt.setNetworkDestination(pktMatch.getNetworkSource());
         respPkt.setTransportDestination(pktMatch.getTransportSource());
-        pkt = respPkt.clone();
-        res = engine.applyChain("Chain4", pkt, null, null);
+        res = engine.applyChain("Chain4", respPkt, respPkt, null, null);
         // Pkt is the response as seen by the original sender.
         Assert.assertTrue(Action.ACCEPT.equals(res.action));
         Assert.assertNull(res.jumpToChain);
         Assert.assertFalse(res.trackConnection);
-        Assert.assertEquals(pkt, res.match);
-        Assert.assertFalse(pkt.equals(respPkt));
-        Assert.assertEquals(0x0a000b22, pkt.getNetworkSource());
-        Assert.assertEquals(1234, pkt.getTransportSource());
+        Assert.assertFalse(res.match.equals(respPkt));
+        Assert.assertEquals(0x0a000b22, res.match.getNetworkSource());
+        Assert.assertEquals(1234, res.match.getTransportSource());
         // Verify that only the source ip/port were changed in the response.
         respPkt.setNetworkSource(0x0a000b22);
         respPkt.setTransportSource((short) 1234);
-        Assert.assertTrue(pkt.equals(respPkt));
+        Assert.assertEquals(respPkt, res.match);
     }
 
     @Test
@@ -353,17 +353,16 @@ public class TestRuleEngine {
         Assert.assertEquals(4, engine.ruleChains.size());
         Assert.assertTrue(engine.ruleChains.containsKey(c4Id));
         Assert.assertTrue(chain4.equals(engine.ruleChains.get(c4Id)));
-        MidoMatch pkt = pktMatch.clone();
-        RuleResult res = engine.applyChain("Chain4", pkt, inPort, null);
-        Assert.assertTrue(Action.ACCEPT.equals(res.action));
+        RuleResult res = engine.applyChain("Chain4", pktMatch, pktMatch,
+                inPort, null);
+        Assert.assertEquals(Action.ACCEPT, res.action);
         Assert.assertNull(res.jumpToChain);
         Assert.assertTrue(res.trackConnection);
-        Assert.assertEquals(pkt, res.match);
-        Assert.assertFalse(pkt.equals(pktMatch));
-        int ip = pkt.getNetworkSource();
+        Assert.assertFalse(res.match.equals(pktMatch));
+        int ip = res.match.getNetworkSource();
         Assert.assertTrue(0x0c000102 <= ip);
         Assert.assertTrue(ip <= 0x0c00010a);
-        short port = pkt.getTransportSource();
+        short port = res.match.getTransportSource();
         Assert.assertTrue(1030 <= port);
         Assert.assertTrue(port <= 1050);
         // Now build a response packet as it would be emitted by the receiver.
@@ -372,19 +371,17 @@ public class TestRuleEngine {
         respPkt.setTransportSource(pktMatch.getTransportDestination());
         respPkt.setNetworkDestination(ip);
         respPkt.setTransportDestination(port);
-        pkt = respPkt.clone();
-        res = engine.applyChain("Chain4", pkt, null, null);
+        res = engine.applyChain("Chain4", respPkt, respPkt, null, null);
         // Pkt is the response as seen by the original sender.
         Assert.assertTrue(Action.ACCEPT.equals(res.action));
         Assert.assertNull(res.jumpToChain);
         Assert.assertFalse(res.trackConnection);
-        Assert.assertEquals(pkt, res.match);
-        Assert.assertFalse(pkt.equals(respPkt));
-        Assert.assertEquals(0x0a001406, pkt.getNetworkDestination());
-        Assert.assertEquals(4321, pkt.getTransportDestination());
+        Assert.assertFalse(res.match.equals(respPkt));
+        Assert.assertEquals(0x0a001406, res.match.getNetworkDestination());
+        Assert.assertEquals(4321, res.match.getTransportDestination());
         // Verify that only destination ip/port were changed in the response.
         respPkt.setNetworkDestination(0x0a001406);
         respPkt.setTransportDestination((short) 4321);
-        Assert.assertTrue(pkt.equals(respPkt));
+        Assert.assertEquals(respPkt, res.match);
     }
 }

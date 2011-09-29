@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class LiteralRule extends Rule {
@@ -35,7 +36,8 @@ public class LiteralRule extends Rule {
     }
 
     @Override
-    public void apply(UUID inPortId, UUID outPortId, RuleResult res) {
+    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
+            RuleResult res) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);
     }

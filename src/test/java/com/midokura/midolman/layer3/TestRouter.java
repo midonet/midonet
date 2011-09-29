@@ -107,12 +107,13 @@ public class TestRouter {
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new MockCache();
         cache = new CacheWithPrefix(cache, rtrId.toString());
-        NatMapping natMap = new NatLeaseManager(routerMgr, rtrId, cache);
+        reactor = new MockReactor();
+        NatMapping natMap = new NatLeaseManager(routerMgr, rtrId, cache,
+                reactor);
         ruleEngine = new RuleEngine(new ChainZkManager(dir, basePath),
                 new RuleZkManager(dir, basePath), rtrId, natMap);
         rTable = new ReplicatedRoutingTable(rtrId, routerMgr
                 .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
-        reactor = new MockReactor();
         rtr = new Router(rtrId, ruleEngine, rTable, reactor);
         controllerStub = new MockControllerStub();
 
@@ -243,6 +244,7 @@ public class TestRouter {
         match.loadFromPacket(pktData, (short) 0);
         ForwardInfo fInfo = new ForwardInfo();
         fInfo.inPortId = inPortId;
+        fInfo.flowMatch = match;
         fInfo.matchIn = match;
         fInfo.pktIn = ethPkt;
         rtr.process(fInfo);
@@ -891,7 +893,7 @@ public class TestRouter {
                 (short) 80, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port21Id, ethToExtAddr);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
-        // No translation has occurred - the int/out OFMatch's are the same.
+        // No translation has occurred - the in/out OFMatch's are the same.
         Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
 
         // Now send a packet from 192.11.11.10 to the dnat-ed address

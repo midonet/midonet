@@ -145,7 +145,8 @@ public class Network {
             return rtr;
         log.debug("Creating new router instance for {}", routerId.toString());
         Cache cache = new CacheWithPrefix(this.cache, routerId.toString());
-        NatMapping natMap = new NatLeaseManager(routerMgr, routerId, cache);
+        NatMapping natMap = new NatLeaseManager(routerMgr, routerId, cache,
+                reactor);
         RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, routerId,
                 natMap);
         ruleEngine.addWatcher(routerWatcher);
@@ -241,7 +242,11 @@ public class Network {
                         return;
                     }
                     fwdInfo.matchIn = fwdInfo.matchOut;
+                    fwdInfo.matchOut = null;
                     fwdInfo.inPortId = lcfg.peer_uuid;
+                    fwdInfo.outPortId = null;
+                    fwdInfo.action = null;
+                    fwdInfo.nextHopNwAddr = Route.NO_GATEWAY;
                     continue;
                 }
             }

@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,16 +70,17 @@ public class Router {
         // These fields are filled by the caller of Router.process():
         public UUID inPortId;
         public Ethernet pktIn;
-        public MidoMatch matchIn;
+        public MidoMatch flowMatch; // (original) match of any eventual flows 
+        public MidoMatch matchIn; // the match as it enters the router
 
         // These fields are filled by Router.process():
         public Action action;
         public UUID outPortId;
         public int nextHopNwAddr;
-        public MidoMatch matchOut;
+        public MidoMatch matchOut; // the match as it exits the router
         public boolean trackConnection;
-        
-        ForwardInfo() {            
+
+        ForwardInfo() {
         }
 
         @Override
@@ -324,8 +326,8 @@ public class Router {
                                 .getNetworkDestination()) });
         // Apply pre-routing rules. Clone the original match in order to avoid
         // changing it.
-        RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.matchIn
-                .clone(), fwdInfo.inPortId, null);
+        RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.flowMatch,
+                fwdInfo.matchIn, fwdInfo.inPortId, null);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
@@ -372,8 +374,8 @@ public class Router {
                 IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort.toString() });
         // Apply post-routing rules.
-        res = ruleEngine.applyChain(POST_ROUTING, res.match, fwdInfo.inPortId,
-                rt.nextHopPort);
+        res = ruleEngine.applyChain(POST_ROUTING, fwdInfo.flowMatch, res.match,
+                fwdInfo.inPortId, rt.nextHopPort);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.BLACKHOLE;
             return;
@@ -683,5 +685,9 @@ public class Router {
         long now = reactor.currentTimeMillis();
         if (null != entry)
             entry.lastArp = now;
+    }
+
+    public void onFlowRemoved(OFMatch match) {
+        ruleEngine.onFlowRemoved(match);
     }
 }

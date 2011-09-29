@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
+import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 
 public class MemcacheCache implements Cache {
@@ -29,4 +30,9 @@ public class MemcacheCache implements Cache {
         return (String) client.get(key);
     }
 
+    @Override
+    public String getAndTouch(String key) {
+        CASValue<Object> val = client.getAndTouch(key, expirationSecs);
+        return null == val ? null : (String) val.getValue();
+    }
 }

@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
+import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,8 +203,21 @@ public class RuleEngine {
         }
     }
 
-    public RuleResult applyChain(String chainName, MidoMatch pktMatch,
-            UUID inPortId, UUID outPortId) {
+    /**
+     * 
+     * @param chainName
+     * @param flowMatch
+     *            matches the packet that originally entered the datapath. It
+     *            will NOT be modified by the rule chain.
+     * @param pktMatch
+     *            matches the packet that would be seen in thir router/chain. It
+     *            will NOT be modified by the rule chain.
+     * @param inPortId
+     * @param outPortId
+     * @return
+     */
+    public RuleResult applyChain(String chainName, MidoMatch flowMatch,
+            MidoMatch pktMatch, UUID inPortId, UUID outPortId) {
         List<Rule> chain = null;
         UUID chainId = chainNameToUUID.get(chainName);
         if (null != chainId)
@@ -218,7 +232,8 @@ public class RuleEngine {
         Set<String> traversedChains = new HashSet<String>();
         traversedChains.add(chainName);
 
-        RuleResult res = new RuleResult(Action.CONTINUE, null, pktMatch, false);
+        RuleResult res = new RuleResult(Action.CONTINUE, null,
+                pktMatch.clone(), false);
         while (!chainStack.empty()) {
             ChainPosition cp = chainStack.pop();
             while (cp.position < cp.rules.size()) {
@@ -226,7 +241,8 @@ public class RuleEngine {
                 // transformed match and trackConnection.
                 res.action = Action.CONTINUE;
                 res.jumpToChain = null;
-                cp.rules.get(cp.position).process(inPortId, outPortId, res);
+                cp.rules.get(cp.position).process(flowMatch, inPortId,
+                        outPortId, res);
                 cp.position++;
                 if (res.action.equals(Action.ACCEPT)
                         || res.action.equals(Action.DROP)
@@ -272,5 +288,9 @@ public class RuleEngine {
         }
         res.action = Action.ACCEPT;
         return res;
+    }
+
+    public void onFlowRemoved(OFMatch match) {
+        natMap.onFlowRemoved(match);
     }
 }

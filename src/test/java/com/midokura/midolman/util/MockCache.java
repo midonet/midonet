@@ -17,4 +17,9 @@ public class MockCache implements Cache {
         return map.get(key);
     }
 
+    @Override
+    public String getAndTouch(String key) {
+        return map.get(key);
+    }
+
 }
