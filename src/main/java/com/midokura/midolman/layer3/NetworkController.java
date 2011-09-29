@@ -68,10 +68,11 @@ public class NetworkController extends AbstractController {
             .getLogger(NetworkController.class);
 
     // TODO(pino): This constant should be declared in openflow...
-    private static final short OFP_FLOW_PERMANENT = 0;
-    private static final short TUNNEL_EXPIRY_SECONDS = 5;
-    private static final short ICMP_EXPIRY_SECONDS = 5;
-    public static final short IDLE_TIMEOUT_SECS = 0;
+    public static final short NO_HARD_TIMEOUT = 0;
+    public static final short NO_IDLE_TIMEOUT = 0;
+    // TODO(pino)
+    public static final short IDLE_TIMEOUT = 20;
+    public static final short ICMP_EXPIRY_SECONDS = 5;
     private static final short FLOW_PRIORITY = 0;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
     public static final int ICMP_TUNNEL = 0x05;
@@ -125,8 +126,8 @@ public class NetworkController extends AbstractController {
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
                 (short) 128));
 
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
     
@@ -285,7 +286,7 @@ public class NetworkController extends AbstractController {
         if (!ethPkt.getDestinationMACAddress().equals(devPortIn.getMacAddr())
                 && !ethPkt.isMcast()) {
             log.warn("onPacketIn: dlDst {} not mcast nor virtual port's addr", ethPkt.getDestinationMACAddress());
-            installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
+            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, ICMP_EXPIRY_SECONDS);
             return;
         }
         ForwardInfo fwdInfo = new ForwardInfo();
@@ -316,7 +317,8 @@ public class NetworkController extends AbstractController {
             else
                 flowMatch = match;
             log.debug("onPacketIn: Network.process() returned BLACKHOLE for {}", fwdInfo);
-            installBlackhole(flowMatch, bufferId, OFP_FLOW_PERMANENT);
+            installBlackhole(flowMatch, bufferId, NO_IDLE_TIMEOUT,
+                    ICMP_EXPIRY_SECONDS);
             notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
                     routers);
             return;
@@ -351,7 +353,8 @@ public class NetworkController extends AbstractController {
                     
                     log.debug("onPacketIn: peerIpToTunnelPortNum {}", peerIpToTunnelPortNum);
                     
-                    installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+                    installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
+                            ICMP_EXPIRY_SECONDS);
                     // TODO: check whether this is the right error code (host?).
                     sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
                             devPortIn.getId(), ethPkt, fwdInfo.inPortId,
@@ -372,13 +375,13 @@ public class NetworkController extends AbstractController {
                 List<OFAction> ofActions = makeActionsForFlow(match,
                         fwdInfo.matchOut, tunPortNum.shortValue());
                 // TODO(pino): should we do any wildcarding here?
-                // TODO(pino): choose the correct hard and idle timeouts.
-                addFlowAndSendPacket(bufferId, match, OFP_FLOW_PERMANENT,
-                        IDLE_TIMEOUT_SECS, true, ofActions, inPort, data);
+                addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
+                        NO_HARD_TIMEOUT, true, ofActions, inPort, data);
             }
             return;
         case NOT_IPV4:
-            log.debug("onPacketIn: Network.process() returned NOT_IPV4, ethertype is {}", 
+            log.debug("onPacketIn: Network.process() returned NOT_IPV4, " +
+            		"ethertype is {}", 
                     match.getDataLayerType());
             // If wildcards are enabled, wildcard everything but dl_type. One
             // rule per ethernet protocol type catches all non-IPv4 flows.
@@ -387,13 +390,15 @@ public class NetworkController extends AbstractController {
                 match = new MidoMatch();
                 match.setDataLayerType(dlType);
             }
-            installBlackhole(match, bufferId, OFP_FLOW_PERMANENT);
+            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT ,NO_HARD_TIMEOUT);
             return;
         case NO_ROUTE:
-            log.debug("onPacketIn: Network.process() returned NO_ROUTE for {}", fwdInfo);
+            log.debug("onPacketIn: Network.process() returned NO_ROUTE for {}",
+                    fwdInfo);
             // Intentionally use an exact match for this drop rule.
             // TODO(pino): wildcard the L2 fields.
-            installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, 
+                    ICMP_EXPIRY_SECONDS);
             // Send an ICMP
             sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
                     .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
@@ -401,9 +406,11 @@ public class NetworkController extends AbstractController {
             // This rule is temporary, don't notify the flow checker.
             return;
         case REJECT:
-            log.debug("onPacketIn: Network.process() returned REJECT for {}", fwdInfo);
+            log.debug("onPacketIn: Network.process() returned REJECT for {}",
+                    fwdInfo);
             // Intentionally use an exact match for this drop rule.
-            installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
+                    ICMP_EXPIRY_SECONDS);
             // Send an ICMP
             sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
                     devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
@@ -583,14 +590,14 @@ public class NetworkController extends AbstractController {
                             bufferId, inPort, ofActions, data);
                 } else {
                     log.debug("TunneledPktArpCallback.call: forward and install flow {}", match);
-                    addFlowAndSendPacket(bufferId, match,
-                            TUNNEL_EXPIRY_SECONDS, IDLE_TIMEOUT_SECS, true,
-                            ofActions, inPort, data);
+                    addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
+                            NO_HARD_TIMEOUT, true, ofActions, inPort, data);
                 }
             } else {
                 log.debug("TunneledPktArpCallback.call: ARP timed out for tunneled packet to {}, send ICMP",
                         nwDstStr);
-                installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+                installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
+                        ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
                 // The packet came over a tunnel so its mac addresses were used
                 // to encode Midonet port ids. Set the mac addresses to make
@@ -605,7 +612,7 @@ public class NetworkController extends AbstractController {
     }
 
     private void addFlowAndSendPacket(int bufferId, OFMatch match,
-            short hardTimeoutSecs, short idleTimeoutSecs,
+            short idleTimeoutSecs, short hardTimeoutSecs,
             boolean sendFlowRemove, List<OFAction> actions, short inPort,
             byte[] data) {
         controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs,
@@ -668,13 +675,14 @@ public class NetworkController extends AbstractController {
                     // inPort, dlType, nwSrc.
                     match = makeWildcarded(match);
                 }
-                addFlowAndSendPacket(bufferId, match, OFP_FLOW_PERMANENT,
-                        IDLE_TIMEOUT_SECS, true, ofActions, inPort.getNum(),
+                addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
+                        NO_HARD_TIMEOUT, true, ofActions, inPort.getNum(),
                         data);
             } else {
                 log.debug("ARP timed out for local packet to {} - send ICMP",
                         nwDstStr);
-                installBlackhole(match, bufferId, ICMP_EXPIRY_SECONDS);
+                installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
+                        ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
                 sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_HOST, inPort
                         .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
@@ -909,6 +917,7 @@ public class NetworkController extends AbstractController {
         OFActionOutput action = new OFActionOutput(portNum, (short) 0);
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(action);
+        log.debug("sendUnbufferedPacketFromPort {}", ethPkt);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
                 OFPort.OFPP_CONTROLLER.getValue(), actions, ethPkt.serialize());
     }
@@ -1004,11 +1013,11 @@ public class NetworkController extends AbstractController {
     }
 
     private void installBlackhole(MidoMatch flowMatch, int bufferId,
-            int hardTimeout) {
+            short idleTimeout, short hardTimeout) {
         // TODO(pino): can we just send a null list instead of an empty list?
         List<OFAction> actions = new ArrayList<OFAction>();
-        controllerStub.sendFlowModAdd(flowMatch, (long) 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, (short) 0, bufferId, true, false, false,
+        controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
+                hardTimeout, (short) 0, bufferId, true, false, false,
                 actions);
         // Note that if the packet was buffered, then the datapath will apply
         // the flow and drop it. If the packet was unbuffered, we don't need
@@ -1068,8 +1077,8 @@ public class NetworkController extends AbstractController {
         actions.add(new OFActionOutput(remotePortNum, (short) 0));
         // OFPP_NONE is placed since outPort should be ignored. cf. OpenFlow
         // specification 1.0 p.15.
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         match = new MidoMatch();
@@ -1081,8 +1090,8 @@ public class NetworkController extends AbstractController {
         match.setTransportSource(localTport);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(remotePortNum, (short) 0));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         // remote to local.
@@ -1095,8 +1104,8 @@ public class NetworkController extends AbstractController {
         match.setTransportDestination(localTport);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         match = new MidoMatch();
@@ -1108,8 +1117,8 @@ public class NetworkController extends AbstractController {
         match.setTransportSource(remoteTport);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         // ARP flows.
@@ -1118,8 +1127,8 @@ public class NetworkController extends AbstractController {
         match.setDataLayerType(ARP.ETHERTYPE);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(remotePortNum, (short) 0));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         match = new MidoMatch();
@@ -1132,8 +1141,8 @@ public class NetworkController extends AbstractController {
         actions.add(new OFActionOutput(localPortNum, (short) 0));
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
                 (short) 128));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         // ICMP flows.
@@ -1145,8 +1154,8 @@ public class NetworkController extends AbstractController {
         match.setNetworkSource(localAddr);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(remotePortNum, (short) 0));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
 
         match = new MidoMatch();
@@ -1156,8 +1165,8 @@ public class NetworkController extends AbstractController {
         match.setNetworkDestination(localAddr);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
-        controllerStub.sendFlowModAdd(match, 0, IDLE_TIMEOUT_SECS,
-                OFP_FLOW_PERMANENT, SERVICE_FLOW_PRIORITY,
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
 

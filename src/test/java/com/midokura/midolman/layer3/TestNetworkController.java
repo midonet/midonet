@@ -285,10 +285,11 @@ public class TestNetworkController {
     }
 
     public static void checkInstalledFlow(MockControllerStub.Flow flow,
-            OFMatch match, short idleTimeoutSecs, int bufferId,
-            boolean sendFlowRemove, List<OFAction> actions) {
+            OFMatch match, short idleTimeoutSecs, short hardTimeoutSecs,
+            int bufferId, boolean sendFlowRemove, List<OFAction> actions) {
         Assert.assertTrue(match.equals(flow.match));
         Assert.assertEquals(idleTimeoutSecs, flow.idleTimeoutSecs);
+        Assert.assertEquals(hardTimeoutSecs, flow.hardTimeoutSecs);
         Assert.assertEquals(bufferId, flow.bufferId);
         Assert.assertEquals(sendFlowRemove, flow.sendFlowRemove);
         Assert.assertEquals(actions.size(), flow.actions.size());
@@ -316,7 +317,8 @@ public class TestNetworkController {
         match.loadFromPacket(data, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 55, true, actions);
+                NetworkController.NO_IDLE_TIMEOUT,
+                NetworkController.ICMP_EXPIRY_SECONDS, 55, true, actions);
     }
 
     @Test
@@ -363,7 +365,8 @@ public class TestNetworkController {
         match.loadFromPacket(data, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 123456, true, actions);
+                NetworkController.NO_IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 123456, true, actions);
     }
 
     @Test
@@ -401,7 +404,8 @@ public class TestNetworkController {
         match.loadFromPacket(data, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 565656, true, actions);
+                NetworkController.NO_IDLE_TIMEOUT,
+                NetworkController.ICMP_EXPIRY_SECONDS, 565656, true, actions);
     }
 
     @Test
@@ -437,7 +441,7 @@ public class TestNetworkController {
         match.loadFromPacket(data, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 11111, true, actions);
+                NetworkController.NO_IDLE_TIMEOUT, NetworkController.ICMP_EXPIRY_SECONDS, 11111, true, actions);
     }
 
     @Test
@@ -496,7 +500,7 @@ public class TestNetworkController {
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS,
+                NetworkController.IDLE_TIMEOUT, NetworkController.NO_HARD_TIMEOUT,
                 ControllerStub.UNBUFFERED_ID, true, actions);
 
         Assert.assertEquals(2, controllerStub.sentPackets.size());
@@ -525,7 +529,8 @@ public class TestNetworkController {
         match = new MidoMatch();
         match.loadFromPacket(data, phyPortIn.getPortNumber());
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 9896, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 9896, true, actions);
     }
 
     @Test
@@ -566,7 +571,8 @@ public class TestNetworkController {
         ofAction = new OFActionOutput((short) 21, (short) 0);
         actions.add(ofAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 999, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 999, true, actions);
     }
 
     @Test
@@ -609,7 +615,8 @@ public class TestNetworkController {
         ofAction = new OFActionOutput((short) 21, (short) 0);
         actions.add(ofAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 37654, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 37654, true, actions);
     }
 
     @Test
@@ -657,7 +664,8 @@ public class TestNetworkController {
         ofAction = new OFActionOutput(phyPortOut.getPortNumber(), (short) 0);
         actions.add(ofAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 22333, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 22333, true, actions);
 
         // Now bring the tunnel down.
         networkCtrl.onPortStatus(phyPortOut,
@@ -673,7 +681,7 @@ public class TestNetworkController {
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // Now check the Drop Flow.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 22111, true,
+                NetworkController.NO_IDLE_TIMEOUT, NetworkController.ICMP_EXPIRY_SECONDS, 22111, true,
                 new ArrayList<OFAction>());
         // ICMP !N sent not through a buffer.
         MockControllerStub.Packet pkt = controllerStub.sentPackets.get(1);
@@ -900,7 +908,8 @@ public class TestNetworkController {
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 32331, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 32331, true, actions);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(1);
         Assert.assertEquals(actions, pkt.actions);
@@ -920,7 +929,8 @@ public class TestNetworkController {
         match = new MidoMatch();
         match.loadFromPacket(data, inPortNum);
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 4444, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 4444, true, actions);
         Assert.assertEquals(3, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(2);
         Assert.assertEquals(actions, pkt.actions);
@@ -1021,7 +1031,7 @@ public class TestNetworkController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPortNum);
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 32331, true,
+                NetworkController.NO_IDLE_TIMEOUT, NetworkController.ICMP_EXPIRY_SECONDS, 32331, true,
                 new ArrayList<OFAction>());
     }
 
@@ -1092,7 +1102,7 @@ public class TestNetworkController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, tunnelPort);
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 32331, true,
+                NetworkController.NO_IDLE_TIMEOUT, NetworkController.ICMP_EXPIRY_SECONDS, 32331, true,
                 new ArrayList<OFAction>());
     }
 
@@ -1154,7 +1164,7 @@ public class TestNetworkController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, phyPortIn.getPortNumber());
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 123456, true,
+                NetworkController.NO_IDLE_TIMEOUT, NetworkController.ICMP_EXPIRY_SECONDS, 123456, true,
                 new ArrayList<OFAction>());
 
     }
@@ -1303,7 +1313,8 @@ public class TestNetworkController {
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 12121, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 12121, true, actions);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(1);
         Assert.assertEquals(actions, pkt.actions);
@@ -1362,7 +1373,8 @@ public class TestNetworkController {
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 13131, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 13131, true, actions);
         Assert.assertEquals(4, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
@@ -1445,7 +1457,7 @@ public class TestNetworkController {
         match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 12121, true, actions);
+                NetworkController.NO_IDLE_TIMEOUT, NetworkController.ICMP_EXPIRY_SECONDS, 12121, true, actions);
 
         // Send a packet into router2's port directed to the external addr/port.
         MAC localMac = MAC.fromString("02:89:67:45:23:01");
@@ -1508,8 +1520,8 @@ public class TestNetworkController {
         // Add this into the list of expected actions.
         actions.add(tpSrcAction);
         actions.add(tmp); // the Output action goes at the end.
-        checkInstalledFlow(flow, match, NetworkController.IDLE_TIMEOUT_SECS,
-                13131, true, actions);
+        checkInstalledFlow(flow, match, NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 13131, true, actions);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(1);
         Assert.assertEquals(actions, pkt.actions);
@@ -1565,7 +1577,8 @@ public class TestNetworkController {
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(2), match,
-                NetworkController.IDLE_TIMEOUT_SECS, 14141, true, actions);
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 14141, true, actions);
         Assert.assertEquals(4, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
@@ -1628,7 +1641,7 @@ public class TestNetworkController {
         match.setTransportDestination(MockPortService.BGP_TCP_PORT);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(0), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check BGP flows from local to remote with local TCP port specified.
@@ -1641,7 +1654,7 @@ public class TestNetworkController {
         match.setTransportSource(MockPortService.BGP_TCP_PORT);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(1), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check BGP flows from remote to local with local TCP port specified.
@@ -1654,7 +1667,7 @@ public class TestNetworkController {
         match.setTransportDestination(MockPortService.BGP_TCP_PORT);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(2), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(2), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check BGP flows from remote to local with remote TCP port specified.
@@ -1667,7 +1680,7 @@ public class TestNetworkController {
         match.setTransportSource(MockPortService.BGP_TCP_PORT);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(localPortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(3), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(3), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ARP request to the peer.
@@ -1676,7 +1689,7 @@ public class TestNetworkController {
         match.setDataLayerType(ARP.ETHERTYPE);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(4), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(4), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ARP request from the peer.
@@ -1688,7 +1701,7 @@ public class TestNetworkController {
         actions.add(new OFActionOutput((short) localPortNum, (short) 0));
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
                 (short) 128));
-        checkInstalledFlow(controllerStub.addedFlows.get(5), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(5), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ICMP flows from local with local address specified.
@@ -1699,7 +1712,7 @@ public class TestNetworkController {
         match.setNetworkSource(localAddr);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) remotePortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(6), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(6), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
 
         // Check ICMP flows to local with local address specified.
@@ -1710,7 +1723,7 @@ public class TestNetworkController {
         match.setNetworkDestination(localAddr);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput((short) localPortNum, (short) 0));
-        checkInstalledFlow(controllerStub.addedFlows.get(7), match, (short) 0,
+        checkInstalledFlow(controllerStub.addedFlows.get(7), match, (short) 0, (short) 0,
                 ControllerStub.UNBUFFERED_ID, false, actions);
     }
 }
