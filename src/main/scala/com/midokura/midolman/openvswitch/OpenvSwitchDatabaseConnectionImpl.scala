@@ -179,7 +179,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     { val me = new Thread(this); me.setDaemon(true); me.start }
 
     timer.scheduleAtFixedRate(new TimerTask() {
-        override def run = synchronized {
+        override def run =
+            OpenvSwitchDatabaseConnectionImpl.this.synchronized {
             val transact = Map(
                 "method" -> "echo",
                 "params" -> objectMapper.createArrayNode, "id" -> "echo")
@@ -202,7 +203,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return The Java representation of the JSON object.
      */
     private def doJsonRpc(tx: Transaction,
-                          async: Boolean = false): JsonNode = synchronized {
+                          async: Boolean = false): JsonNode
+    = this.synchronized {
         val requestId = nextRequestid
         val request = tx.createJsonRpcRequest(requestId)
         val queue = new ArrayBlockingQueue[JsonNode](1)
