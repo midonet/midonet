@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 import static org.junit.Assert.*;
 
 import com.midokura.midolman.openflow.MockControllerStub;
@@ -251,14 +250,23 @@ public class TestAbstractController {
                 controller.peerIpOfGrePortName("tne1234ff0011aa").intValue());
     }
 
-    @Test @Ignore
+    @Test
     public void testPeerIpToTunnelPortNum() {
         int peerIpInt = Net.convertStringAddressToInt("192.168.1.53");
-        Integer peerIp = controller.peerIpOfGrePortName(
-                                controller.makeGREPortName(peerIpInt));
-        //controller.peerIpToTunnelPortNum.put(peerIp, new Integer(54));
-        assertEquals(controller.peerOfTunnelPortNum(peerIpInt),
-                     new Integer(54));
+        String grePortName = controller.makeGREPortName(peerIpInt);
+        Integer peerIp = controller.peerIpOfGrePortName(grePortName);
+        assertEquals(new Integer(peerIpInt), peerIp);
+
+        OFPhysicalPort port = new OFPhysicalPort();
+        port.setPortNumber((short) 54);
+        port.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 54 });
+        port.setName(grePortName);
+        ovsdb.setPortExternalId(dp_id, 54, "midonet", 
+                                UUID.randomUUID().toString());
+        controller.onPortStatus(port, OFPortReason.OFPPR_ADD);
+        log.debug("peerIpInt: {}", peerIpInt);
+        assertEquals(new Integer(54), 
+                     controller.tunnelPortNumOfPeer(peerIpInt));
     }
 
     @Test
