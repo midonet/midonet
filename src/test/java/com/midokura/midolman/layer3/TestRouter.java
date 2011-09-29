@@ -161,8 +161,8 @@ public class TestRouter {
                 // Map the port number to the portId for later use.
                 portNumToId.put(portNum, portId);
                 // Default route to port based on destination only. Weight 2.
-                rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId, 0,
-                        2, null, rtrId);
+                rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId,
+                        Route.NO_GATEWAY, 2, null, rtrId);
                 routeMgr.create(rt);
                 if (1 == j) {
                     // The first port's routes are added manually because the
@@ -171,7 +171,7 @@ public class TestRouter {
                 }
                 // Anything from 10.0.0.0/16 is allowed through. Weight 1.
                 rt = new Route(0x0a000000, 16, segmentAddr, 30, NextHop.PORT,
-                        portId, 0, 1, null, rtrId);
+                        portId, Route.NO_GATEWAY, 1, null, rtrId);
                 routeMgr.create(rt);
                 if (1 == j) {
                     // The first port's routes are added manually because the

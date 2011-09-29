@@ -6,6 +6,7 @@ import java.util.UUID;
 public class Route implements Serializable {
 
     private static final long serialVersionUID = -5913569441176193396L;
+    public static final int NO_GATEWAY = 0xffffffff;
 
     public enum NextHop {
         BLACKHOLE, REJECT, PORT;

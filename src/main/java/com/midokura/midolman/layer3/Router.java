@@ -390,7 +390,7 @@ public class Router {
 
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
-        fwdInfo.nextHopNwAddr = (0 == rt.nextHopGateway) ? res.match
+        fwdInfo.nextHopNwAddr = (Route.NO_GATEWAY == rt.nextHopGateway) ? res.match
                 .getNetworkDestination() : rt.nextHopGateway;
         fwdInfo.action = Action.FORWARD;
         return;

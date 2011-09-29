@@ -189,8 +189,8 @@ public class TestNetworkController {
                 UUID portId = portMgr.create(portConfig);
                 portNumToIntId
                         .put((int) portNum, ShortUUID.UUID32toInt(portId));
-                rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 2,
-                        null, rtrId);
+                rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId,
+                        Route.NO_GATEWAY, 2, null, rtrId);
                 routeMgr.create(rt);
 
                 OFPhysicalPort phyPort = new OFPhysicalPort();
@@ -246,12 +246,12 @@ public class TestNetworkController {
                 logPortConfig2);
         UUID portOn0to1 = idPair.key;
         UUID portOn1to0 = idPair.value;
-        rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1, 0, 2,
-                null, routerIds.get(0));
+        rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1,
+                0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
         rTables.get(0).addRoute(rt);
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0, 10, null,
-                routerIds.get(1));
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0xc0a80101, 10,
+                null, routerIds.get(1));
         routeMgr.create(rt);
         rTables.get(1).addRoute(rt);
         // Now add the logical links between router 0 and 2.
@@ -265,13 +265,13 @@ public class TestNetworkController {
         idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
         portOn0to2 = idPair.key;
         portOn2to0 = idPair.value;
-        rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 0, 2,
-                null, routerIds.get(0));
+        rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 
+                0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
         rTables.get(0).addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
-        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0, 10, null,
-                routerIds.get(2));
+        rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0xc0a80101, 10,
+                null, routerIds.get(2));
         routeMgr.create(rt);
         rTables.get(2).addRoute(rt);
 
