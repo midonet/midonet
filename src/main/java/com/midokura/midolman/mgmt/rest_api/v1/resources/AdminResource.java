@@ -3,12 +3,16 @@ package com.midokura.midolman.mgmt.rest_api.v1.resources;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.dao.AdminZkManager;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -21,9 +25,15 @@ public class AdminResource extends RestResource {
     @POST
     @Path("/init")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response init() throws StateAccessException {
+    public Response init(@Context SecurityContext context)
+            throws StateAccessException, UnauthorizedException {
         AdminZkManager dao = new AdminZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
+
+        if (!AuthManager.canInitZooKeeper(context)) {
+            throw new UnauthorizedException("Must be admin to initialized ZK.");
+        }
+
         try {
             dao.initialize();
         } catch (StateAccessException e) {

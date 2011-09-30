@@ -88,4 +88,11 @@ public class RouteZkManagerProxy extends ZkMgmtManager {
         // TODO: catch NoNodeException if does not exist.
         zkManager.delete(id);
     }
+
+    public UUID getTenant(UUID id) throws Exception {
+        Route route = get(id);
+        RouterZkManagerProxy manager = new RouterZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        return manager.getTenant(route.getRouterId());
+    }
 }

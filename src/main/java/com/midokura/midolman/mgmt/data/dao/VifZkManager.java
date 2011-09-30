@@ -137,4 +137,11 @@ public class VifZkManager extends ZkMgmtManager {
         }
         return Vif.createVif(id, config);
     }
+
+    public UUID getTenant(UUID id) throws Exception {
+        Vif vif = get(id);
+        PortZkManagerProxy manager = new PortZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        return manager.getTenant(vif.getPortId());
+    }
 }

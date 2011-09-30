@@ -431,4 +431,12 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
             ZkStateSerializationException {
         multi(prepareDelete(id));
     }
+
+    public UUID getTenant(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        Chain chain = get(id);
+        RouterZkManagerProxy manager = new RouterZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        return manager.getTenant(chain.getRouterId());
+    }
 }

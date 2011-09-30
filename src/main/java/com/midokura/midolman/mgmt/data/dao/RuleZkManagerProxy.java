@@ -84,4 +84,10 @@ public class RuleZkManagerProxy extends ZkMgmtManager {
         return rules;
     }
 
+    public UUID getTenant(UUID id) throws Exception {
+        Rule rule = get(id);
+        ChainZkManagerProxy manager = new ChainZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        return manager.getTenant(rule.getChainId());
+    }
 }
