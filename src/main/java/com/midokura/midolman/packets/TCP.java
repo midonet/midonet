@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.packets;
 
+import org.apache.commons.lang.NotImplementedException;
 import java.nio.ByteBuffer;
 
 public class TCP extends BasePacket implements Transport {
@@ -31,8 +32,8 @@ public class TCP extends BasePacket implements Transport {
 
     @Override
     public byte[] serialize() {
-        // TODO Auto-generated method stub
-        return null;
+        // FIXME
+        throw new NotImplementedException();
     }
 
     @Override

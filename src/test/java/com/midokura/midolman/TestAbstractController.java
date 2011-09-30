@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFMatch;
@@ -27,10 +28,14 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.LLDP;
 import com.midokura.midolman.packets.LLDPTLV;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.util.Net;
@@ -42,6 +47,7 @@ class AbstractControllerTester extends AbstractController {
     public int numClearCalls;
     short flowExpireSeconds;
     short idleFlowExpireSeconds;
+    OFAction[] flowActions = {};
  
     public AbstractControllerTester(
             int datapathId,
@@ -69,7 +75,7 @@ class AbstractControllerTester extends AbstractController {
         OFMatch match = createMatchFromPacket(frame, inPort);
         addFlowAndPacketOut(match, 1040, idleFlowExpireSeconds,
                             flowExpireSeconds, (short)1000, bufferId, true, 
-                            false, false, new OFAction[]{}, inPort, data);
+                            false, false, flowActions, inPort, data);
     }
 
     @Override
@@ -360,6 +366,8 @@ public class TestAbstractController {
         byte[] pktData = frame.serialize();
 
         assertEquals(0, controllerStub.addedFlows.size());
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
         controller.onPacketIn(-1, pktData.length, (short)1, pktData);
         MidoMatch expectMatch = new MidoMatch();
         expectMatch.setDataLayerType(LLDP.ETHERTYPE);
@@ -373,5 +381,114 @@ public class TestAbstractController {
         assertEquals(-1, controllerStub.droppedPktBufIds.get(0).intValue());
     }
 
-    // FIXME: Test UDP without drop, TCP with drop & bufferId != -1
+    // FIXME: IP but not ICMP/TCP/UDP; actual #s in the UDP fields, not 0.
+    @Test 
+    public void testTCPDropAndNotDrop() {
+        //TCP xport = new TCP();
+        // Can't construct a TCP packet with the packets package because
+        // TCP.serialize() is unimplemented.
+        MAC srcMac = MAC.fromString("00:18:e7:dd:1c:b4");
+        MAC dstMac = MAC.fromString("10:9a:dd:4c:6f:49");
+        int srcIP = Net.convertStringAddressToInt("204.152.18.196");
+        int dstIP = Net.convertStringAddressToInt("192.168.1.143");
+        short srcPort = 443;
+        short dstPort = (short)36911;
+
+        /* Real Ethernet [IP/TCP] frame sniffed off the net. */
+        String frameHexDump = 
+                "109add4c6f490018e7dd1cb408004500015f2f8d4000f106b777cc9812" +
+                "c4c0a8018f01bb902f5385670e2c5417cb50189ffeb183000017030101" +
+                "320c06e1c9e3d422b90c91caf2a4f773c1a8996b1f435586f21c8b03f3" +
+                "24ba5c94335d89849c9552180f94826c82860cbcd7cc42990e5c9442b7" +
+                "f815f46d17512e47125d295a7cc62106e058a41d944f5f43a10ef37f02" +
+                "9ba63fdeffe60b63c02ec129509d37852a6f378fb9ec3d64cd186c458b" +
+                "d5e9a32778c879bc1595c604b252b00f02f8baf82c17664e91ee65e093" +
+                "04c5f603ac41953234e71a304790f597261f3bd593a9b1bddf085b642d" +
+                "f7ffe43a554fcd09f1deff0f7ffe519a1959e695909d4db805a0b1aed5" +
+                "1a06bef1b6f98106985e227f2a9ca3469553aa99a53e46a64517eb219f" +
+                "c68454ae123e2868a19e209d429e60cc72e5815df1526c3e0de0e036ce" +
+                "d7996e5a3d7137618ef311fcb0f8d73f6437695fee3b7f720a3db4e31b" +
+                "927d5a0ff58ad57a319d2e6fae4545d3a9";
+        assertEquals(365*2, frameHexDump.length());
+        byte[] pktData = new byte[365];
+        for (int i = 0; i < 365; i++) {
+            pktData[i] = (byte)(
+                (Character.digit(frameHexDump.charAt(2*i), 16) << 4) |
+                (Character.digit(frameHexDump.charAt(2*i+1), 16)));
+        }
+
+        assertEquals(0, controllerStub.addedFlows.size());
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        controller.onPacketIn(76, pktData.length, (short)-1, pktData);
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerType(IPv4.ETHERTYPE);
+        expectMatch.setDataLayerSource(srcMac);
+        expectMatch.setDataLayerDestination(dstMac);
+        expectMatch.setNetworkTypeOfService((byte)0);
+        expectMatch.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+        expectMatch.setNetworkSource(srcIP);
+        expectMatch.setNetworkDestination(dstIP);
+        expectMatch.setTransportSource(srcPort);
+        expectMatch.setTransportDestination(dstPort);
+
+        assertEquals(1, controllerStub.addedFlows.size());
+        assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
+        assertArrayEquals(new OFAction[]{}, 
+                          controllerStub.addedFlows.get(0).actions.toArray());
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        // TODO: Is it possible to "drop" a packet with a bufferID != -1 ?
+        //assertEquals(76, controllerStub.droppedPktBufIds.get(0).intValue());
+
+        OFAction[] flowActions = { new OFActionOutput((short)1, (short)2) };
+        controller.flowActions = flowActions;
+        controller.onPacketIn(-1, pktData.length, (short)-1, pktData);
+        assertEquals(2, controllerStub.addedFlows.size());
+        assertEquals(expectMatch, controllerStub.addedFlows.get(1).match);
+        assertArrayEquals(flowActions,
+                          controllerStub.addedFlows.get(1).actions.toArray());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        assertEquals(1, controllerStub.sentPackets.size());
+        assertArrayEquals(pktData, controllerStub.sentPackets.get(0).data);
+    }
+
+    @Test
+    public void testUDPNoDrop() {
+        IPv4 packet = new IPv4();
+        packet.setPayload(new UDP());
+        packet.setProtocol(UDP.PROTOCOL_NUMBER);
+        Ethernet frame = new Ethernet();
+        frame.setPayload(packet);
+        frame.setEtherType(IPv4.ETHERTYPE);
+        MAC dstMac = MAC.fromString("00:11:22:33:44:55");
+        MAC srcMac = MAC.fromString("66:55:44:33:22:11");
+        frame.setDestinationMACAddress(dstMac);
+        frame.setSourceMACAddress(srcMac);
+        byte[] pktData = frame.serialize();
+
+        OFAction[] flowActions = { new OFActionOutput((short)1, (short)2) };
+        controller.flowActions = flowActions;
+        assertEquals(0, controllerStub.addedFlows.size());
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        controller.onPacketIn(-1, pktData.length, (short)-1, pktData);
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerType(IPv4.ETHERTYPE);
+        expectMatch.setDataLayerSource(srcMac);
+        expectMatch.setDataLayerDestination(dstMac);
+        expectMatch.setNetworkTypeOfService((byte)0);
+        expectMatch.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
+        expectMatch.setNetworkSource(0);
+        expectMatch.setNetworkDestination(0);
+        expectMatch.setTransportSource((short)0);
+        expectMatch.setTransportDestination((short)0);
+        assertEquals(1, controllerStub.addedFlows.size());
+        assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
+        assertArrayEquals(flowActions, 
+                          controllerStub.addedFlows.get(0).actions.toArray());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        assertEquals(1, controllerStub.sentPackets.size());
+        assertArrayEquals(pktData, controllerStub.sentPackets.get(0).data);
+    }
 }
