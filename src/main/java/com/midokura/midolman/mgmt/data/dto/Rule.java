@@ -629,8 +629,8 @@ public class Rule {
             r = new LiteralRule(cond, action);
         } else if (Arrays.asList(Rule.NatRuleTypes).contains(type)) {
             Set<NatTarget> targets = makeNatTargets(this.getNatTargets());
-            r = new ForwardNatRule(cond, targets, getAction(this
-                    .getFlowAction()), type.equals(Rule.DNAT));
+            r = new ForwardNatRule(cond, getAction(this.getFlowAction()),
+                    chainId, position, type.equals(Rule.DNAT), targets);
         } else if (Arrays.asList(Rule.RevNatRuleTypes).contains(type)) {
             r = new ReverseNatRule(cond, getAction(this.getFlowAction()), type
                     .equals(Rule.DNAT));
