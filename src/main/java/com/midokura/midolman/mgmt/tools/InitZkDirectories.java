@@ -21,13 +21,11 @@ public class InitZkDirectories {
         }
         String url = args[0];
         String token = args[1];
-        System.out.println("URL ==" + url);
-        System.out.println("Token ==" + token);
 
         Client client = Client.create();
-        WebResource webResource = client.resource(url + "/admin");
+        WebResource webResource = client.resource(url + "/admin/init");
         ClientResponse response = webResource.type(MediaType.APPLICATION_JSON)
-                .header(tokenHeader, token).post(ClientResponse.class, "{}");
+                .header(tokenHeader, token).post(ClientResponse.class, null);
         if (response.getStatus() != 200) {
             System.out.println("Error occurred:"
                     + response.getEntity(String.class));

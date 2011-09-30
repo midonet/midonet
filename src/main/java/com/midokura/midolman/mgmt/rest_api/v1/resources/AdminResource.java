@@ -19,6 +19,7 @@ public class AdminResource extends RestResource {
             .getLogger(AdminResource.class);
 
     @POST
+    @Path("/init")
     @Produces(MediaType.APPLICATION_JSON)
     public Response init() throws StateAccessException {
         AdminZkManager dao = new AdminZkManager(zooKeeper, zookeeperRoot,
