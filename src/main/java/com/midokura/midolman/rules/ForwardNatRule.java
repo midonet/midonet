@@ -13,6 +13,8 @@ import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
+    private transient boolean floatingIp;
+    private transient int floatingIpAddr;
     private final static Logger log = LoggerFactory
             .getLogger(ForwardNatRule.class);
 
@@ -23,6 +25,14 @@ public class ForwardNatRule extends NatRule {
         if (null == targets || targets.size() == 0)
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
+        floatingIp = false;
+        if (targets.size() == 1) {
+            NatTarget tg = targets.iterator().next();
+            if (tg.nwStart == tg.nwEnd && 0 == tg.tpStart && 0 == tg.tpStart) {
+                floatingIp = true;
+                floatingIpAddr = tg.nwStart;
+            }
+        }
     }
 
     // Default constructor for the Jackson deserialization.
@@ -45,13 +55,19 @@ public class ForwardNatRule extends NatRule {
         if (null == natMap)
             return;
         if (dnat)
-            applyDnat(flowMatch, inPortId, outPortId, res);
+            applyDnat(flowMatch, res);
         else
-            applySnat(flowMatch, inPortId, outPortId, res);
+            applySnat(flowMatch, res);
     }
 
-    public void applyDnat(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res) {
+    public void applyDnat(MidoMatch flowMatch, RuleResult res) {
+        if (floatingIp) {
+            log.debug("DNAT mapping floating ip {} to internal ip {}",
+                    res.match.getNetworkDestination(), floatingIpAddr);
+            res.match.setNetworkDestination(floatingIpAddr);
+            res.action = action;
+            return;
+        }
         NwTpPair conn = natMap.lookupDnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
@@ -75,8 +91,14 @@ public class ForwardNatRule extends NatRule {
         res.trackConnection = true;
     }
 
-    public void applySnat(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res) {
+    public void applySnat(MidoMatch flowMatch, RuleResult res) {
+        if (floatingIp) {
+            log.debug("SNAT mapping internal ip {} to floating ip {}",
+                    res.match.getNetworkSource(), floatingIpAddr);
+            res.match.setNetworkSource(floatingIpAddr);
+            res.action = action;
+            return;
+        }
         NwTpPair conn = natMap.lookupSnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
