@@ -455,9 +455,13 @@ public class TestAbstractController {
 
     @Test
     public void testUDPNoDrop() {
+        UDP xport = new UDP();
+        xport.setSourcePort((short)17234);
+        xport.setDestinationPort((short)52956);
         IPv4 packet = new IPv4();
-        packet.setPayload(new UDP());
+        packet.setPayload(xport);
         packet.setProtocol(UDP.PROTOCOL_NUMBER);
+        packet.setDiffServ((byte)0x14);
         Ethernet frame = new Ethernet();
         frame.setPayload(packet);
         frame.setEtherType(IPv4.ETHERTYPE);
@@ -477,12 +481,12 @@ public class TestAbstractController {
         expectMatch.setDataLayerType(IPv4.ETHERTYPE);
         expectMatch.setDataLayerSource(srcMac);
         expectMatch.setDataLayerDestination(dstMac);
-        expectMatch.setNetworkTypeOfService((byte)0);
+        expectMatch.setNetworkTypeOfService((byte)0x14);
         expectMatch.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
         expectMatch.setNetworkSource(0);
         expectMatch.setNetworkDestination(0);
-        expectMatch.setTransportSource((short)0);
-        expectMatch.setTransportDestination((short)0);
+        expectMatch.setTransportSource((short)17234);
+        expectMatch.setTransportDestination((short)52956);
         assertEquals(1, controllerStub.addedFlows.size());
         assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
         assertArrayEquals(flowActions, 
