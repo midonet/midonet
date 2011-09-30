@@ -1274,6 +1274,8 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(12121, data.length, uplinkPhyPort
                 .getPortNumber(), data);
+        // Two nat mappings should be in the cache (fwd and rev).
+        Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no flows installed yet, but one
         // unbuffered packet should have been emitted.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
@@ -1334,6 +1336,8 @@ public class TestNetworkController {
         data = eth.serialize();
         networkCtrl.onPacketIn(13131, data.length, phyPortOut.getPortNumber(),
                 data);
+        // Two nat mappings should still be in the cache (fwd and rev).
+        Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
         Assert.assertEquals(3, controllerStub.sentPackets.size());
@@ -1387,6 +1391,9 @@ public class TestNetworkController {
         Assert.assertEquals(actions, pkt.actions);
         Assert.assertEquals(13131, pkt.bufferId);
 
+        // Two nat mappings should still be in the cache (fwd and rev).
+        Assert.assertEquals(2, cache.map.size());
+
         // Now the Dnat's mappings should keep getting refreshed in the cache
         // until the controller gets a flowRemoved callback for the orginal
         // forward flow match.
@@ -1433,6 +1440,209 @@ public class TestNetworkController {
         // The expiration times in the cache are the same. Refresh stopped.
         for (String key : keys)
             Assert.assertEquals(expectExpire, cache.getExpireTimeMillis(key));
+    }
+
+    @Test
+    public void testFloatingIp() throws StateAccessException,
+            ZkStateSerializationException, RuleIndexOutOfBoundsException {
+        // First add the uplink to router0.
+        addUplink();
+        // Add 2 rules:
+        // 1) forward snat rule 0x0a010009 to floating ip 0x808e0005
+        // 2) forward dnat rule 0x808e0005 to internal 0x0a010009
+        UUID chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
+                routerIds.get(0)));
+        int floatingIp = 0x808e0005;
+        int internalIp = 0x0a010009;
+        Set<NatTarget> nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(floatingIp, floatingIp, (short) 0, (short) 0));
+        Condition cond = new Condition();
+        cond.outPortIds = new HashSet<UUID>();
+        cond.outPortIds.add(uplinkId);
+        cond.nwProto = UDP.PROTOCOL_NUMBER;
+        cond.nwSrcIp = internalIp;
+        cond.nwSrcLength = 32;
+        Rule r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 1,
+                false /* snat */, nats);
+        ruleMgr.create(r);
+        // dnat rule:
+        nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(internalIp, internalIp, (short) 0, (short) 0));
+        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING, routerIds
+                .get(0)));
+        cond = new Condition();
+        cond.inPortIds = new HashSet<UUID>();
+        cond.inPortIds.add(uplinkId);
+        cond.nwProto = UDP.PROTOCOL_NUMBER;
+        cond.nwDstIp = floatingIp;
+        cond.nwDstLength = 32;
+        r = new ForwardNatRule(cond, Action.ACCEPT, chainId, 1,
+                true /* dnat */, nats);
+        ruleMgr.create(r);
+
+        // Now send a packet into the uplink directed to the floating IP.
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        OFPhysicalPort phyPortOut = phyPorts.get(1).get(0);
+        int extNwAddr = 0xd2000004; // addr of original sender.
+        short extTpPort = 3427; // port of original sender.
+        short internalTpPort = 8642; // floatingIp's port, won't change.
+        MAC extDlAddr = MAC.fromString("02:aa:bb:cc:dd:01");
+        Ethernet eth = TestRouter.makeUDP(extDlAddr,
+                new MAC(uplinkPhyPort.getHardwareAddress()), extNwAddr,
+                floatingIp, extTpPort, internalTpPort, payload);
+        byte[] data = eth.serialize();
+        networkCtrl.onPacketIn(12121, data.length,
+                uplinkPhyPort.getPortNumber(), data);
+        // No nat mappings have been added to the cache
+        Assert.assertEquals(0, cache.map.size());
+        // The router will have to ARP, so no flows installed yet, but one
+        // unbuffered packet should have been emitted.
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pkt.actions.size());
+        OFAction ofAction = new OFActionOutput(phyPortOut.getPortNumber(),
+                (short) 0);
+        Assert.assertEquals(ofAction, pkt.actions.get(0));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        byte[] arpData = TestRouter.makeArpRequest(
+                new MAC(phyPortOut.getHardwareAddress()), 0x0a010001,
+                internalIp).serialize();
+        Assert.assertArrayEquals(arpData, pkt.data);
+
+        // Now send an ARP reply. A flow is installed and a packet is
+        // emitted from the switch.
+        MAC mac = MAC.fromString("02:dd:33:33:dd:01");
+        arpData = TestRouter.makeArpReply(mac,
+                new MAC(phyPortOut.getHardwareAddress()), internalIp,
+                0x0a010001).serialize();
+        networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
+                phyPortOut.getPortNumber(), arpData);
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch match = new MidoMatch();
+        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
+        List<OFAction> actions = new ArrayList<OFAction>();
+        OFAction tmp = ofAction;
+        ofAction = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortOut
+                .getHardwareAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac
+                .getAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionNetworkLayerDestination();
+        ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(internalIp);
+        actions.add(ofAction);
+        actions.add(tmp); // the Output action goes at the end.
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 12121, true, actions);
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(12121, pkt.bufferId);
+
+        // Now create a reply packet from the natted private addr/port.
+        eth = TestRouter.makeUDP(mac, new MAC(phyPortOut.getHardwareAddress()),
+                internalIp, extNwAddr, internalTpPort, extTpPort, payload);
+        data = eth.serialize();
+        networkCtrl.onPacketIn(13131, data.length, phyPortOut.getPortNumber(),
+                data);
+        // No nat mappings have been added to the cache
+        Assert.assertEquals(0, cache.map.size());
+        // The router will have to ARP, so no additional flows installed yet,
+        // but another unbuffered packet should have been emitted.
+        Assert.assertEquals(3, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        pkt = controllerStub.sentPackets.get(2);
+        ofAction = new OFActionOutput(uplinkPhyPort.getPortNumber(), (short) 0);
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+        arpData = TestRouter.makeArpRequest(
+                new MAC(uplinkPhyPort.getHardwareAddress()), uplinkPortAddr,
+                uplinkGatewayAddr).serialize();
+        Assert.assertArrayEquals(arpData, pkt.data);
+
+        // Now send an ARP reply. A flow is installed and a packet is
+        // emitted from the switch.
+        MAC uplinkGatewayMac = MAC.fromString("02:dd:55:66:dd:01");
+        arpData = TestRouter.makeArpReply(uplinkGatewayMac,
+                new MAC(uplinkPhyPort.getHardwareAddress()), uplinkGatewayAddr,
+                uplinkPortAddr).serialize();
+        networkCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
+                uplinkPhyPort.getPortNumber(), arpData);
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(2, controllerStub.addedFlows.size());
+        match = new MidoMatch();
+        // The return packet's ingress is router1's first port.
+        match.loadFromPacket(data, phyPortOut.getPortNumber());
+        actions.clear();
+        tmp = ofAction;
+        ofAction = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
+                .getHardwareAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination) ofAction)
+                .setDataLayerAddress(uplinkGatewayMac.getAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionNetworkLayerSource();
+        ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(floatingIp);
+        actions.add(ofAction);
+        actions.add(tmp); // the Output action goes at the end.
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match,
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 13131, true, actions);
+        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(3);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(13131, pkt.bufferId);
+
+        // Now create another packet from the internal IP (and port) to a
+        // different destination. This shows that conversations can be initiated
+        // from inside or outside the network.
+        extNwAddr = extNwAddr+1;
+        extTpPort = (short)(extTpPort+1);
+        internalTpPort = (short)(internalTpPort+1);
+        eth = TestRouter.makeUDP(mac, new MAC(phyPortOut.getHardwareAddress()),
+                internalIp, extNwAddr, internalTpPort, extTpPort, payload);
+        data = eth.serialize();
+        networkCtrl.onPacketIn(222, data.length, phyPortOut.getPortNumber(),
+                data);
+        // No nat mappings have been added to the cache
+        Assert.assertEquals(0, cache.map.size());
+        // We already know the external gateway's mac, so no ARP needed. A new
+        // flow is installed and this packet is emitted from the uplink.
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(3, controllerStub.addedFlows.size());
+        match = new MidoMatch();
+        // The return packet's ingress is router1's first port.
+        match.loadFromPacket(data, phyPortOut.getPortNumber());
+        actions.clear();
+        ofAction = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
+                .getHardwareAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination) ofAction)
+                .setDataLayerAddress(uplinkGatewayMac.getAddress());
+        actions.add(ofAction);
+        ofAction = new OFActionNetworkLayerSource();
+        ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(floatingIp);
+        actions.add(ofAction);
+        ofAction = new OFActionOutput(uplinkPhyPort.getPortNumber(), (short) 0);
+        actions.add(ofAction);
+        checkInstalledFlow(controllerStub.addedFlows.get(2), match,
+                NetworkController.IDLE_TIMEOUT,
+                NetworkController.NO_HARD_TIMEOUT, 222, true, actions);
+        Assert.assertEquals(5, controllerStub.sentPackets.size());
+        pkt = controllerStub.sentPackets.get(4);
+        Assert.assertEquals(actions, pkt.actions);
+        Assert.assertEquals(222, pkt.bufferId);
     }
 
     @Test
@@ -1503,6 +1713,8 @@ public class TestNetworkController {
         byte[] data = eth.serialize();
         networkCtrl.onPacketIn(12121, data.length, uplinkPhyPort
                 .getPortNumber(), data);
+        // No nat mappings have been added to the cache
+        Assert.assertEquals(0, cache.map.size());
         // Look for the drop flow.
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -1523,6 +1735,8 @@ public class TestNetworkController {
         data = eth.serialize();
         networkCtrl.onPacketIn(13131, data.length, phyPortRtr2.getPortNumber(),
                 data);
+        // Two nat mappings should be in the cache (fwd and rev).
+        Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no new flows installed yet, but one
         // unbuffered packet should have been emitted.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
@@ -1589,6 +1803,8 @@ public class TestNetworkController {
         data = eth.serialize();
         networkCtrl.onPacketIn(14141, data.length, uplinkPhyPort
                 .getPortNumber(), data);
+        // Two nat mappings should still be in the cache (fwd and rev).
+        Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
         Assert.assertEquals(3, controllerStub.sentPackets.size());

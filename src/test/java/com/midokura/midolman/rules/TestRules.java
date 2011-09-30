@@ -23,6 +23,7 @@ public class TestRules {
     static Random rand;
     static UUID inPort;
     static Condition cond;
+    static Set<NatTarget> nats;
     RuleResult expRes, argRes;
 
     @BeforeClass
@@ -62,6 +63,10 @@ public class TestRules {
         cond.tpSrcInv = true;
         cond.tpDstStart = 1000;
         cond.tpDstEnd = 2000;
+
+        nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(0x0a090807, 0x0a090810, (short) 21333,
+                (short) 32999));
     }
 
     @Before
@@ -139,17 +144,17 @@ public class TestRules {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionDrop() {
-        new ForwardNatRule(cond, null, Action.DROP, false);
+        new ForwardNatRule(cond, Action.DROP, null, 0, false, nats);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionJump() {
-        new ForwardNatRule(cond, null, Action.JUMP, false);
+        new ForwardNatRule(cond, Action.JUMP, null, 0, false, nats);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionReject() {
-        new ForwardNatRule(cond, null, Action.REJECT, false);
+        new ForwardNatRule(cond, Action.REJECT, null, 0, false, nats);
     }
 
     @Test
@@ -157,7 +162,8 @@ public class TestRules {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0b000102, 0x0b00010a, (short) 3366,
                 (short) 3399));
-        Rule rule = new ForwardNatRule(cond, nats, Action.ACCEPT, false);
+        Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, 0, false,
+                nats);
         NatMapping natMap = new MockNatMapping();
         ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
@@ -208,7 +214,8 @@ public class TestRules {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
-        Rule rule = new ForwardNatRule(cond, nats, Action.CONTINUE, true);
+        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
+                nats);
         NatMapping natMap = new MockNatMapping();
         ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.

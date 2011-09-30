@@ -12,7 +12,7 @@ public class MockCache implements Cache {
         long timeExpiredMillis;
     }
 
-    private Map<String, CacheEntry> map = new HashMap<String, CacheEntry>();
+    public Map<String, CacheEntry> map = new HashMap<String, CacheEntry>();
     private Reactor reactor;
     private int expirationMillis;
 

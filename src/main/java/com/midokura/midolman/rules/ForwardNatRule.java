@@ -13,27 +13,10 @@ import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
-    private transient boolean floatingIp;
-    private transient int floatingIpAddr;
+    private boolean floatingIp;
+    private int floatingIpAddr;
     private final static Logger log = LoggerFactory
             .getLogger(ForwardNatRule.class);
-
-    public ForwardNatRule(Condition condition, Set<NatTarget> targets,
-            Action action, boolean dnat) {
-        super(condition, action, dnat);
-        this.targets = targets;
-        if (null == targets || targets.size() == 0)
-            throw new IllegalArgumentException(
-                    "A forward nat rule must have targets.");
-        floatingIp = false;
-        if (targets.size() == 1) {
-            NatTarget tg = targets.iterator().next();
-            if (tg.nwStart == tg.nwEnd && 0 == tg.tpStart && 0 == tg.tpStart) {
-                floatingIp = true;
-                floatingIpAddr = tg.nwStart;
-            }
-        }
-    }
 
     // Default constructor for the Jackson deserialization.
     public ForwardNatRule() {
@@ -47,6 +30,14 @@ public class ForwardNatRule extends NatRule {
         if (null == targets || targets.size() == 0)
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
+        floatingIp = false;
+        if (targets.size() == 1) {
+            NatTarget tg = targets.iterator().next();
+            if (tg.nwStart == tg.nwEnd && 0 == tg.tpStart && 0 == tg.tpStart) {
+                floatingIp = true;
+                floatingIpAddr = tg.nwStart;
+            }
+        }
     }
 
     @Override
