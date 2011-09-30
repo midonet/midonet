@@ -381,7 +381,58 @@ public class TestAbstractController {
         assertEquals(-1, controllerStub.droppedPktBufIds.get(0).intValue());
     }
 
-    // FIXME: IP but not ICMP/TCP/UDP; actual #s in the UDP fields, not 0.
+    @Test
+    public void testIGMPFlowMatch() {
+        // Real IGMP packet sniffed off the net.
+        String frameHexDump = "01005e0000fb001b21722f2b080046c0002000004000" +
+                              "01027233708c205de00000fb9404000016000904e000" +
+                              "00fb0000000000000000000000000000";
+        MAC srcMac = MAC.fromString("00:1b:21:72:2f:2b");
+        MAC dstMac = MAC.fromString("01:00:5e:00:00:fb");
+        int srcIP = Net.convertStringAddressToInt("112.140.32.93");
+        int dstIP = Net.convertStringAddressToInt("224.0.0.251");
+        byte diffServ = (byte)0xC0;
+
+        assertEquals(60*2, frameHexDump.length());
+        byte[] pktData = new byte[60];
+        for (int i = 0; i < 60; i++) {
+            pktData[i] = (byte)(
+                (Character.digit(frameHexDump.charAt(2*i), 16) << 4) |
+                (Character.digit(frameHexDump.charAt(2*i+1), 16)));
+        }
+
+        assertEquals(0, controllerStub.addedFlows.size());
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        controller.onPacketIn(76, pktData.length, (short)-1, pktData);
+        MidoMatch expectMatch = new MidoMatch();
+        expectMatch.setDataLayerType(IPv4.ETHERTYPE);
+        expectMatch.setDataLayerSource(srcMac);
+        expectMatch.setDataLayerDestination(dstMac);
+        expectMatch.setNetworkTypeOfService(diffServ);
+        expectMatch.setNetworkProtocol((byte)2 /* IGMP */);
+        expectMatch.setNetworkSource(srcIP);
+        expectMatch.setNetworkDestination(dstIP);
+
+        assertEquals(1, controllerStub.addedFlows.size());
+        assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
+        assertArrayEquals(new OFAction[]{}, 
+                          controllerStub.addedFlows.get(0).actions.toArray());
+        assertEquals(0, controllerStub.sentPackets.size());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+
+        OFAction[] flowActions = { new OFActionOutput((short)1, (short)2) };
+        controller.flowActions = flowActions;
+        controller.onPacketIn(-1, pktData.length, (short)-1, pktData);
+        assertEquals(2, controllerStub.addedFlows.size());
+        assertEquals(expectMatch, controllerStub.addedFlows.get(1).match);
+        assertArrayEquals(flowActions,
+                          controllerStub.addedFlows.get(1).actions.toArray());
+        assertEquals(0, controllerStub.droppedPktBufIds.size());
+        assertEquals(1, controllerStub.sentPackets.size());
+        assertArrayEquals(pktData, controllerStub.sentPackets.get(0).data);
+    }
+
     @Test 
     public void testTCPDropAndNotDrop() {
         //TCP xport = new TCP();
