@@ -32,5 +32,5 @@ public interface NatMapping {
     // The implementation of this method should reserve and clean up resources.
     void updateSnatTargets(Set<NatTarget> targets);
 
-    void onFlowRemoved(OFMatch match);
+    void freeFlowResources(OFMatch match);
 }

@@ -3,6 +3,7 @@ package com.midokura.midolman.layer3;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
@@ -36,6 +38,7 @@ import com.midokura.midolman.Setup;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.NetworkController.DecodedMacAddrs;
 import com.midokura.midolman.layer3.Route.NextHop;
+import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
@@ -92,6 +95,7 @@ public class TestNetworkController {
     private RouteZkManager routeMgr;
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
+    private MockCache cache;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private MockPortService service;
     private long datapathId;
@@ -140,10 +144,12 @@ public class TestNetworkController {
         InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); // 0xc0a80104;
         int localNwAddrInt = Net.convertInetAddressToInt(localNwAddr);
         datapathId = 43;
+        // The mock cache has expiration 2 x NatLeaseManager's refresh interval.
+        cache = new MockCache(reactor, 2 * NatLeaseManager.REFRESH_SECONDS);
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, (long) (60 * 1000), localNwAddr,
                 portMgr, routerMgr, routeMgr, chainMgr, ruleMgr, ovsdb,
-                reactor, new MockCache(), "midonet", service);
+                reactor, cache, "midonet", service);
         networkCtrl.setControllerStub(controllerStub);
 
         /*
@@ -1295,6 +1301,7 @@ public class TestNetworkController {
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
+        MidoMatch fwdMatch = match; // use this later to call onFlowRemoved()
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -1379,6 +1386,53 @@ public class TestNetworkController {
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
         Assert.assertEquals(13131, pkt.bufferId);
+
+        // Now the Dnat's mappings should keep getting refreshed in the cache
+        // until the controller gets a flowRemoved callback for the orginal
+        // forward flow match.
+        Set<String> natKeys = new HashSet<String>();
+        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0)
+                .toString() + NatLeaseManager.FWD_DNAT_PREFIX, extNwAddr,
+                extTpPort, natPublicNwAddr, natPublicTpPort));
+        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0)
+                .toString() + NatLeaseManager.REV_DNAT_PREFIX, extNwAddr,
+                extTpPort, natPrivateNwAddr, natPrivateTpPort));
+        checkNatRefresh(natKeys, fwdMatch);
+    }
+
+    private void checkNatRefresh(Collection<String> keys, OFMatch fwdMatch) {
+        Long expectExpire = reactor.currentTimeMillis() + 2
+                * NatLeaseManager.REFRESH_SECONDS * 1000;
+        for (String key : keys)
+            Assert.assertEquals(expectExpire, cache.getExpireTimeMillis(key));
+        // Do the following in a loop to make sure it's working correctly.
+        for (int i = 0; i < 10; i++) {
+            // Now advance time by one second less than REFRESH_SECONDS
+            reactor.incrementTime(NatLeaseManager.REFRESH_SECONDS - 1,
+                    TimeUnit.SECONDS);
+            // The expiration times in the cache have not changed.
+            for (String key : keys)
+                Assert.assertEquals(expectExpire,
+                        cache.getExpireTimeMillis(key));
+            // Now advance the time by one second.
+            reactor.incrementTime(1, TimeUnit.SECONDS);
+            // The expiration times in the cache are now+2xREFRESH_SECONDS
+            expectExpire = reactor.currentTimeMillis() + 2
+                    * NatLeaseManager.REFRESH_SECONDS * 1000;
+            for (String key : keys)
+                Assert.assertEquals(expectExpire,
+                        cache.getExpireTimeMillis(key));
+        }
+        // Now pretend the forward flow idled out.
+        networkCtrl.onFlowRemoved(fwdMatch, (long) 0, (short) 0,
+                OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 1000, 0, (short) 30,
+                (long) 2271, (long) 122345);
+        // Now advance time by one second MORE than REFRESH_SECONDS
+        reactor.incrementTime(NatLeaseManager.REFRESH_SECONDS + 1,
+                TimeUnit.SECONDS);
+        // The expiration times in the cache are the same. Refresh stopped.
+        for (String key : keys)
+            Assert.assertEquals(expectExpire, cache.getExpireTimeMillis(key));
     }
 
     @Test
@@ -1495,6 +1549,7 @@ public class TestNetworkController {
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         match = new MidoMatch();
+        MidoMatch fwdMatch = match; // Use this later for onFlowRemoved()
         match.loadFromPacket(data, phyPortRtr2.getPortNumber());
         actions.clear();
         OFAction tmp = ofAction;
@@ -1583,6 +1638,15 @@ public class TestNetworkController {
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
         Assert.assertEquals(14141, pkt.bufferId);
+
+        Set<String> natKeys = new HashSet<String>();
+        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0)
+                .toString() + NatLeaseManager.FWD_SNAT_PREFIX, localNwAddr,
+                localTpPort, extNwAddr, extTpPort));
+        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0)
+                .toString() + NatLeaseManager.REV_SNAT_PREFIX, natPublicNwAddr,
+                natPublicTpPort, extNwAddr, extTpPort));
+        checkNatRefresh(natKeys, fwdMatch);
     }
 
     @Test
