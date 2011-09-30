@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -250,5 +251,19 @@ public class PortZkManagerProxy extends ZkMgmtManager {
     public void delete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         multi(prepareDelete(id));
+    }
+
+    public UUID getTenant(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        Port port = get(id);
+        if (port instanceof RouterPort) {
+            RouterZkManagerProxy dao = new RouterZkManagerProxy(zk, pathManager
+                    .getBasePath(), mgmtPathManager.getBasePath());
+            return dao.getTenant(id);
+        } else {
+            BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zk, pathManager
+                    .getBasePath(), mgmtPathManager.getBasePath());
+            return dao.getTenant(id);
+        }
     }
 }

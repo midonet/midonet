@@ -80,4 +80,11 @@ public class BgpZkManagerProxy extends ZkMgmtManager {
         // TODO: catch NoNodeException if does not exist.
         zkManager.delete(id);
     }
+
+    public UUID getTenant(UUID id) throws Exception {
+        Bgp bgp = get(id);
+        PortZkManagerProxy manager = new PortZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        return manager.getTenant(bgp.getPortId());
+    }
 }

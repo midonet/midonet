@@ -321,4 +321,9 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         multi(prepareRouterDelete(id));
     }
 
+    public UUID getTenant(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        return get(id).getTenantId();
+    }
+
 }

@@ -205,4 +205,9 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
             ZkStateSerializationException {
         multi(prepareDelete(id));
     }
+
+    public UUID getTenant(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        return get(id).getTenantId();
+    }
 }

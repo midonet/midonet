@@ -81,4 +81,11 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager {
         // TODO: catch NoNodeException if does not exist.
         zkManager.delete(id);
     }
+
+    public UUID getTenant(UUID id) throws Exception {
+        AdRoute route = get(id);
+        BgpZkManagerProxy manager = new BgpZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        return manager.getTenant(route.getBgpId());
+    }
 }
