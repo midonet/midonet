@@ -57,8 +57,8 @@ public class RouteResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Route get(@PathParam("id") UUID id) throws StateAccessException {
         // Get a route for the given ID.
-        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -73,8 +73,8 @@ public class RouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id) throws StateAccessException {
-        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
+                zookeeperRoot, zookeeperMgmtRoot);
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -101,7 +101,8 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public RouterRouteResource(Directory zkConn, UUID routerId) {
+        public RouterRouteResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID routerId) {
             this.zooKeeper = zkConn;
             this.routerId = routerId;
         }
@@ -176,8 +177,11 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public PortRouteResource(Directory zkConn, UUID portId) {
+        public PortRouteResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID portId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.portId = portId;
         }
 

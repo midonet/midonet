@@ -47,7 +47,8 @@ public class TenantResource extends RestResource {
      */
     @Path("/{id}/routers")
     public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
-        return new TenantRouterResource(zooKeeper, id);
+        return new TenantRouterResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -55,7 +56,8 @@ public class TenantResource extends RestResource {
      */
     @Path("/{id}/bridges")
     public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
-        return new TenantBridgeResource(zooKeeper, id);
+        return new TenantBridgeResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**

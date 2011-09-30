@@ -51,7 +51,8 @@ public class BgpResource extends RestResource {
      */
     @Path("/{id}/ad_routes")
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
-        return new BgpAdRouteResource(zooKeeper, id);
+        return new BgpAdRouteResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -132,9 +133,12 @@ public class BgpResource extends RestResource {
          * @param portId
          *            UUID of a port.
          */
-        public PortBgpResource(Directory zkConn, UUID portId) {
+        public PortBgpResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID portId) {
             this.zooKeeper = zkConn;
             this.portId = portId;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
         /**

@@ -56,7 +56,8 @@ public class RouterResource extends RestResource {
      */
     @Path("/{id}/ports")
     public RouterPortResource getPortResource(@PathParam("id") UUID id) {
-        return new RouterPortResource(zooKeeper, id);
+        return new RouterPortResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -64,7 +65,8 @@ public class RouterResource extends RestResource {
      */
     @Path("/{id}/routes")
     public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
-        return new RouterRouteResource(zooKeeper, id);
+        return new RouterRouteResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -72,7 +74,8 @@ public class RouterResource extends RestResource {
      */
     @Path("/{id}/chains")
     public RouterChainResource getChainResource(@PathParam("id") UUID id) {
-        return new RouterChainResource(zooKeeper, id);
+        return new RouterChainResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -80,7 +83,8 @@ public class RouterResource extends RestResource {
      */
     @Path("/{id}/tables")
     public RouterTableResource getTableResource(@PathParam("id") UUID id) {
-        return new RouterTableResource(zooKeeper, id);
+        return new RouterTableResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -88,7 +92,8 @@ public class RouterResource extends RestResource {
      */
     @Path("/{id}/routers")
     public RouterRouterResource getRouterResource(@PathParam("id") UUID id) {
-        return new RouterRouterResource(zooKeeper, id);
+        return new RouterRouterResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -172,9 +177,12 @@ public class RouterResource extends RestResource {
          * @param tenantId
          *            UUID of a tenant.
          */
-        public TenantRouterResource(Directory zkConn, UUID tenantId) {
+        public TenantRouterResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID tenantId) {
             this.zooKeeper = zkConn;
             this.tenantId = tenantId;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
         /**
@@ -245,8 +253,11 @@ public class RouterResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public RouterRouterResource(Directory zkConn, UUID routerId) {
+        public RouterRouterResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID routerId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.routerId = routerId;
         }
 

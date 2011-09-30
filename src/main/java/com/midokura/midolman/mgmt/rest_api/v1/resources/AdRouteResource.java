@@ -123,9 +123,12 @@ public class AdRouteResource extends RestResource {
          * @param bgpId
          *            UUID of a bgp.
          */
-        public BgpAdRouteResource(Directory zkConn, UUID bgpId) {
+        public BgpAdRouteResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID bgpId) {
             this.zooKeeper = zkConn;
             this.bgpId = bgpId;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
         /**

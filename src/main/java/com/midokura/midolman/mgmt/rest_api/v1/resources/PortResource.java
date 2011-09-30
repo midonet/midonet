@@ -52,7 +52,8 @@ public class PortResource extends RestResource {
      */
     @Path("/{id}/bgps")
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
-        return new PortBgpResource(zooKeeper, id);
+        return new PortBgpResource(zooKeeper, zookeeperRoot, zookeeperMgmtRoot,
+                id);
     }
 
     /**
@@ -60,7 +61,8 @@ public class PortResource extends RestResource {
      */
     @Path("/{id}/routes")
     public PortRouteResource getRouteResource(@PathParam("id") UUID id) {
-        return new PortRouteResource(zooKeeper, id);
+        return new PortRouteResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -111,8 +113,11 @@ public class PortResource extends RestResource {
 
         private UUID bridgeId = null;
 
-        public BridgePortResource(Directory zkConn, UUID bridgeId) {
+        public BridgePortResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID bridgeId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.bridgeId = bridgeId;
         }
 
@@ -163,8 +168,11 @@ public class PortResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterPortResource(Directory zkConn, UUID routerId) {
+        public RouterPortResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID routerId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.routerId = routerId;
         }
 

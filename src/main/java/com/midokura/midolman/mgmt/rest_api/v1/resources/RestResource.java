@@ -28,8 +28,8 @@ public abstract class RestResource {
     /** Zookeeper connection string **/
     private String zookeeperConn = null;
     private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
-    protected String zookeeperRoot = "/midolman";
-    protected String zookeeperMgmtRoot = "/midolman-mgmt";
+    protected String zookeeperRoot = null;
+    protected String zookeeperMgmtRoot = null;
     protected Directory zooKeeper = null;
 
     /**
@@ -48,14 +48,8 @@ public abstract class RestResource {
             zookeeperTimeout = Integer.parseInt(zkTo);
         }
 
-        String rootPath = context.getInitParameter("zookeeper-root");
-        if (rootPath != null) {
-            zookeeperRoot = rootPath;
-        }
-        rootPath = context.getInitParameter("zookeeper-mgmt-root");
-        if (rootPath != null) {
-            zookeeperMgmtRoot = rootPath;
-        }
+        zookeeperRoot = context.getInitParameter("zookeeper-root");
+        zookeeperMgmtRoot = context.getInitParameter("zookeeper-mgmt-root");
 
         zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
                 zookeeperTimeout);

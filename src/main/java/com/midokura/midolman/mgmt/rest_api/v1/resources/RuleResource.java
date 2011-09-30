@@ -81,8 +81,11 @@ public class RuleResource extends RestResource {
 
         private UUID chainId = null;
 
-        public ChainRuleResource(Directory zkConn, UUID chainId) {
+        public ChainRuleResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID chainId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.chainId = chainId;
         }
 

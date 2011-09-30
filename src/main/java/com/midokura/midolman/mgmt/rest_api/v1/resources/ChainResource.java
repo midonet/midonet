@@ -47,7 +47,8 @@ public class ChainResource extends RestResource {
      */
     @Path("/{id}/rules")
     public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
-        return new ChainRuleResource(zooKeeper, id);
+        return new ChainRuleResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     @GET
@@ -90,8 +91,11 @@ public class ChainResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterTableResource(Directory zkConn, UUID routerId) {
+        public RouterTableResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID routerId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.routerId = routerId;
         }
 
@@ -101,7 +105,8 @@ public class ChainResource extends RestResource {
         @Path("/{name}/chains")
         public RouterTableChainResource getChainTableResource(
                 @PathParam("name") String name) {
-            return new RouterTableChainResource(zooKeeper, routerId, name);
+            return new RouterTableChainResource(zooKeeper, zookeeperRoot,
+                    zookeeperMgmtRoot, routerId, name);
         }
     }
 
@@ -113,9 +118,11 @@ public class ChainResource extends RestResource {
         private UUID routerId = null;
         private String table = null;
 
-        public RouterTableChainResource(Directory zkConn, UUID routerId,
-                String table) {
+        public RouterTableChainResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID routerId, String table) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.routerId = routerId;
             this.table = table;
         }
@@ -162,8 +169,11 @@ public class ChainResource extends RestResource {
 
         private UUID routerId = null;
 
-        public RouterChainResource(Directory zkConn, UUID routerId) {
+        public RouterChainResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID routerId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.routerId = routerId;
         }
 

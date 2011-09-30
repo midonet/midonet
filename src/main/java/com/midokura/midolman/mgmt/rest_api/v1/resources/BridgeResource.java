@@ -51,7 +51,8 @@ public class BridgeResource extends RestResource {
      */
     @Path("/{id}/ports")
     public BridgePortResource getPortResource(@PathParam("id") UUID id) {
-        return new BridgePortResource(zooKeeper, id);
+        return new BridgePortResource(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot, id);
     }
 
     /**
@@ -131,8 +132,11 @@ public class BridgeResource extends RestResource {
          * @param tenantId
          *            UUID of a tenant.
          */
-        public TenantBridgeResource(Directory zkConn, UUID tenantId) {
+        public TenantBridgeResource(Directory zkConn, String zkRootDir,
+                String zkMgmtRootDir, UUID tenantId) {
             this.zooKeeper = zkConn;
+            this.zookeeperRoot = zkRootDir;
+            this.zookeeperMgmtRoot = zkMgmtRootDir;
             this.tenantId = tenantId;
         }
 
