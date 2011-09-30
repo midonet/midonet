@@ -22,6 +22,7 @@ public class Authorizer implements SecurityContext {
                 }
             };
         }
+        this.tenantUser = tenantUser;
     }
 
     @Override

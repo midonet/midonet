@@ -9,10 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Data access class for routes.
@@ -20,7 +23,8 @@ import com.midokura.midolman.state.ZkNodeEntry;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-public class RouteZkManagerProxy extends ZkMgmtManager {
+public class RouteZkManagerProxy extends ZkMgmtManager implements
+        OwnerQueryable {
 
     private RouteZkManager zkManager = null;
 
@@ -35,10 +39,11 @@ public class RouteZkManagerProxy extends ZkMgmtManager {
      * 
      * @param route
      *            Route object to add.
-     * @throws Exception
-     *             Error adding data to Zookeeper.
+     * @throws StateAccessException
+     * @throws ZkStateSerializationException
      */
-    public UUID create(Route route) throws Exception {
+    public UUID create(Route route) throws ZkStateSerializationException,
+            StateAccessException {
         return zkManager.create(route.toZkRoute());
     }
 
@@ -48,10 +53,11 @@ public class RouteZkManagerProxy extends ZkMgmtManager {
      * @param id
      *            Route ID to search.
      * @return Route object with the given ID.
-     * @throws Exception
-     *             Error getting data to Zookeeper.
+     * @throws StateAccessException
+     * @throws ZkStateSerializationException
      */
-    public Route get(UUID id) throws Exception {
+    public Route get(UUID id) throws ZkStateSerializationException,
+            StateAccessException {
         // TODO: Throw NotFound exception here.
         return Route.createRoute(id, zkManager.get(id).value);
     }
@@ -73,26 +79,31 @@ public class RouteZkManagerProxy extends ZkMgmtManager {
      * @param routerId
      *            UUID of router.
      * @return A list of router.
-     * @throws Exception
-     *             Zookeeper(or any) error.
+     * @throws StateAccessException
+     * @throws ZkStateSerializationException
      */
-    public List<Route> list(UUID routerId) throws Exception {
+    public List<Route> list(UUID routerId)
+            throws ZkStateSerializationException, StateAccessException {
         return generateRouteList(zkManager.list(routerId));
     }
 
-    public List<Route> listByPort(UUID portId) throws Exception {
+    public List<Route> listByPort(UUID portId)
+            throws ZkStateSerializationException, StateAccessException {
         return generateRouteList(zkManager.listPortRoutes(portId));
     }
 
-    public void delete(UUID id) throws Exception {
+    public void delete(UUID id) throws ZkStateSerializationException,
+            StateAccessException {
         // TODO: catch NoNodeException if does not exist.
         zkManager.delete(id);
     }
 
-    public UUID getTenant(UUID id) throws Exception {
+    @Override
+    public UUID getOwner(UUID id) throws ZkStateSerializationException,
+            StateAccessException {
         Route route = get(id);
-        RouterZkManagerProxy manager = new RouterZkManagerProxy(zk, pathManager
+        OwnerQueryable manager = new RouterZkManagerProxy(zk, pathManager
                 .getBasePath(), mgmtPathManager.getBasePath());
-        return manager.getTenant(route.getRouterId());
+        return manager.getOwner(route.getRouterId());
     }
 }

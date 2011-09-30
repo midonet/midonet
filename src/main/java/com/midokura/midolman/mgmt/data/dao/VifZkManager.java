@@ -16,6 +16,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.state.Directory;
@@ -28,7 +29,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
-public class VifZkManager extends ZkMgmtManager {
+public class VifZkManager extends ZkMgmtManager implements OwnerQueryable {
 
     public static class VifConfig {
 
@@ -138,10 +139,11 @@ public class VifZkManager extends ZkMgmtManager {
         return Vif.createVif(id, config);
     }
 
-    public UUID getTenant(UUID id) throws Exception {
+    public UUID getOwner(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
         Vif vif = get(id);
-        PortZkManagerProxy manager = new PortZkManagerProxy(zk, pathManager
+        OwnerQueryable manager = new PortZkManagerProxy(zk, pathManager
                 .getBasePath(), mgmtPathManager.getBasePath());
-        return manager.getTenant(vif.getPortId());
+        return manager.getOwner(vif.getPortId());
     }
 }

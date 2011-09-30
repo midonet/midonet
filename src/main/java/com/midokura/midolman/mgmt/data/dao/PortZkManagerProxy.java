@@ -16,6 +16,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -35,7 +36,7 @@ import com.midokura.midolman.util.ShortUUID;
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
-public class PortZkManagerProxy extends ZkMgmtManager {
+public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
 
     public static class PortMgmtConfig {
 
@@ -253,17 +254,18 @@ public class PortZkManagerProxy extends ZkMgmtManager {
         multi(prepareDelete(id));
     }
 
-    public UUID getTenant(UUID id) throws StateAccessException,
+    @Override
+    public UUID getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         Port port = get(id);
         if (port instanceof RouterPort) {
-            RouterZkManagerProxy dao = new RouterZkManagerProxy(zk, pathManager
+            OwnerQueryable dao = new RouterZkManagerProxy(zk, pathManager
                     .getBasePath(), mgmtPathManager.getBasePath());
-            return dao.getTenant(id);
+            return dao.getOwner(id);
         } else {
-            BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zk, pathManager
+            OwnerQueryable dao = new BridgeZkManagerProxy(zk, pathManager
                     .getBasePath(), mgmtPathManager.getBasePath());
-            return dao.getTenant(id);
+            return dao.getOwner(id);
         }
     }
 }

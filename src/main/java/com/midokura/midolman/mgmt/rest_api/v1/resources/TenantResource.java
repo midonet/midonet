@@ -21,6 +21,8 @@ import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.dao.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
@@ -66,6 +68,7 @@ public class TenantResource extends RestResource {
      * @param tenant
      *            Tenant object.
      * @throws StateAccessException
+     * @throws UnauthorizedException
      * @throws Exception
      * @returns Response object with 201 status code set if successful.
      */
@@ -73,7 +76,12 @@ public class TenantResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(Tenant tenant, @Context SecurityContext context)
-            throws StateAccessException {
+            throws StateAccessException, UnauthorizedException {
+
+        if (!AuthManager.isAdmin(context)) {
+            throw new UnauthorizedException("Must be admin to create tenant.");
+        }
+
         TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         UUID id = null;

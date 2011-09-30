@@ -20,11 +20,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
@@ -35,6 +38,7 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortR
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for Virtual Router.
@@ -102,16 +106,23 @@ public class RouterResource extends RestResource {
      * @param id
      *            Router UUID.
      * @return Router object.
-     * @throws StateAccessException
+     * @throws Exception
+     * @throws UnauthorizedException
      * @throws Exception
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Router get(@PathParam("id") UUID id) throws StateAccessException {
+    public Router get(@PathParam("id") UUID id, @Context SecurityContext context)
+            throws UnauthorizedException, Exception {
         // Get a router for the given ID.
         RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only see your own router.");
+        }
+
         Router router = null;
         try {
             router = dao.get(id);
@@ -128,11 +139,17 @@ public class RouterResource extends RestResource {
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Router router)
-            throws StateAccessException {
-        router.setId(id);
+    public Response update(@PathParam("id") UUID id, Router router,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
         RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+        router.setId(id);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only update your own router.");
+        }
+
         try {
             dao.update(router);
         } catch (StateAccessException e) {
@@ -148,9 +165,16 @@ public class RouterResource extends RestResource {
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+    public void delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            UnauthorizedException, ZkStateSerializationException {
         RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only update your own router.");
+        }
+
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -190,10 +214,18 @@ public class RouterResource extends RestResource {
          * 
          * @return A list of Router objects.
          * @throws StateAccessException
+         * @throws UnauthorizedException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Router> list() throws StateAccessException {
+        public List<Router> list(@Context SecurityContext context)
+                throws StateAccessException, UnauthorizedException {
+
+            if (!AuthManager.isSelf(context, tenantId)) {
+                throw new UnauthorizedException(
+                        "Can only see your own routers.");
+            }
+
             RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -213,15 +245,23 @@ public class RouterResource extends RestResource {
          * @param router
          *            Router object mapped to the request input.
          * @throws StateAccessException
+         * @throws UnauthorizedException
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Router router, @Context UriInfo uriInfo)
-                throws StateAccessException {
-            router.setTenantId(tenantId);
+        public Response create(Router router, @Context UriInfo uriInfo,
+                @Context SecurityContext context) throws StateAccessException,
+                UnauthorizedException {
+
+            if (!AuthManager.isSelf(context, tenantId)) {
+                throw new UnauthorizedException(
+                        "Can only create your own router.");
+            }
+
             RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            router.setTenantId(tenantId);
             UUID id = null;
             try {
                 id = dao.create(router);
@@ -264,11 +304,18 @@ public class RouterResource extends RestResource {
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(LogicalRouterPort port, @Context UriInfo uriInfo)
-                throws StateAccessException {
-            port.setDeviceId(routerId);
+        public Response create(LogicalRouterPort port,
+                @Context UriInfo uriInfo, @Context SecurityContext context)
+                throws StateAccessException, UnauthorizedException {
+
+            if (!AuthManager.isServiceProvider(context)) {
+                throw new UnauthorizedException(
+                        "Must be a service provider to link routers.");
+            }
+
             RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            port.setDeviceId(routerId);
 
             PeerRouterLink peerRouter = null;
             try {
@@ -288,8 +335,15 @@ public class RouterResource extends RestResource {
         @GET
         @Path("{id}")
         @Produces(MediaType.APPLICATION_JSON)
-        public PeerRouterLink get(@PathParam("id") UUID id)
-                throws StateAccessException {
+        public PeerRouterLink get(@PathParam("id") UUID id,
+                @Context SecurityContext context) throws StateAccessException,
+                UnauthorizedException {
+
+            if (!AuthManager.isServiceProvider(context)) {
+                throw new UnauthorizedException(
+                        "Must be a service provider to see the linked routers.");
+            }
+
             RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             PeerRouterLink link = null;

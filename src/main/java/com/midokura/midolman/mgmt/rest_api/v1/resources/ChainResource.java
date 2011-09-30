@@ -19,16 +19,22 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy;
+import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for chains.
@@ -54,9 +60,16 @@ public class ChainResource extends RestResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Chain get(@PathParam("id") UUID id) throws StateAccessException {
+    public Chain get(@PathParam("id") UUID id, @Context SecurityContext context)
+            throws StateAccessException, UnauthorizedException,
+            ZkStateSerializationException {
         ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only see your own chain.");
+        }
+
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -70,9 +83,17 @@ public class ChainResource extends RestResource {
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+    public void delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
         ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException(
+                    "Can only delete your own advertised route.");
+        }
+
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -127,9 +148,22 @@ public class ChainResource extends RestResource {
             this.table = table;
         }
 
+        private boolean isRouterOwner(SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException {
+            OwnerQueryable q = new RouterZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            return AuthManager.isOwner(context, q, routerId);
+        }
+
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Chain> list() throws StateAccessException {
+        public List<Chain> list(@Context SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException,
+                UnauthorizedException {
+            if (!isRouterOwner(context)) {
+                throw new UnauthorizedException("Can only see your own chains.");
+            }
+
             ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -146,8 +180,13 @@ public class ChainResource extends RestResource {
         @GET
         @Path("{name}")
         @Produces(MediaType.APPLICATION_JSON)
-        public Chain get(@PathParam("name") String name)
-                throws StateAccessException {
+        public Chain get(@PathParam("name") String name,
+                @Context SecurityContext context) throws StateAccessException,
+                UnauthorizedException, ZkStateSerializationException {
+            if (!isRouterOwner(context)) {
+                throw new UnauthorizedException("Can only see your own chains.");
+            }
+
             ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -177,13 +216,26 @@ public class ChainResource extends RestResource {
             this.routerId = routerId;
         }
 
+        private boolean isRouterOwner(SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException {
+            OwnerQueryable q = new RouterZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            return AuthManager.isOwner(context, q, routerId);
+        }
+
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Chain chain, @Context UriInfo uriInfo)
-                throws StateAccessException {
-            chain.setRouterId(routerId);
+        public Response create(Chain chain, @Context UriInfo uriInfo,
+                @Context SecurityContext context) throws StateAccessException,
+                ZkStateSerializationException, UnauthorizedException {
+            if (!isRouterOwner(context)) {
+                throw new UnauthorizedException("Can only see your own chains.");
+            }
+
             ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            chain.setRouterId(routerId);
+
             UUID id = null;
             try {
                 id = dao.create(chain);
@@ -201,7 +253,13 @@ public class ChainResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Chain> list() throws StateAccessException {
+        public List<Chain> list(@Context SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException,
+                UnauthorizedException {
+            if (!isRouterOwner(context)) {
+                throw new UnauthorizedException("Can only see your own chains.");
+            }
+
             ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {

@@ -17,6 +17,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
@@ -29,7 +30,8 @@ import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.ShortUUID;
 
-public class RouterZkManagerProxy extends ZkMgmtManager {
+public class RouterZkManagerProxy extends ZkMgmtManager implements
+        OwnerQueryable {
 
     public static class RouterMgmtConfig {
 
@@ -305,13 +307,15 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
     public void update(Router router) throws StateAccessException,
             ZkStateSerializationException {
         // Update any version for now.
-        String path = mgmtPathManager.getRouterPath(router.getId());
+        Router r = get(router.getId());
+        r.setName(router.getName());
+        String path = mgmtPathManager.getRouterPath(r.getId());
 
         try {
-            update(path, serialize(router.toMgmtConfig()));
+            update(path, serialize(r.toMgmtConfig()));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize router mgmt " + router.getId()
+                    "Could not serialize router mgmt " + r.getId()
                             + " to RouterMgmtConfig", e, RouterMgmtConfig.class);
         }
     }
@@ -321,7 +325,8 @@ public class RouterZkManagerProxy extends ZkMgmtManager {
         multi(prepareRouterDelete(id));
     }
 
-    public UUID getTenant(UUID id) throws StateAccessException,
+    @Override
+    public UUID getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         return get(id).getTenantId();
     }

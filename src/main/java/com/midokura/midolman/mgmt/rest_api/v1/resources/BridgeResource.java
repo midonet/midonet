@@ -20,16 +20,20 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.BridgePortResource;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for Virtual bridges.
@@ -62,14 +66,23 @@ public class BridgeResource extends RestResource {
      *            Bridge UUID.
      * @return Bridge object.
      * @throws StateAccessException
+     * @throws UnauthorizedException
+     * @throws ZkStateSerializationException
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Bridge get(@PathParam("id") UUID id) throws StateAccessException {
+    public Bridge get(@PathParam("id") UUID id, @Context SecurityContext context)
+            throws StateAccessException, ZkStateSerializationException,
+            UnauthorizedException {
         // Get a bridge for the given ID.
         BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only see your own bridge.");
+        }
+
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -84,11 +97,17 @@ public class BridgeResource extends RestResource {
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Bridge bridge)
-            throws StateAccessException {
+    public Response update(@PathParam("id") UUID id, Bridge bridge,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
         bridge.setId(id);
         BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only update your own bridge.");
+        }
+
         try {
             dao.update(bridge);
         } catch (StateAccessException e) {
@@ -103,9 +122,16 @@ public class BridgeResource extends RestResource {
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+    public void delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
         BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only update your own bridge.");
+        }
+
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -145,10 +171,18 @@ public class BridgeResource extends RestResource {
          * 
          * @return A list of bridges.
          * @throws StateAccessException
+         * @throws UnauthorizedException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Bridge> list() throws StateAccessException {
+        public List<Bridge> list(@Context SecurityContext context)
+                throws StateAccessException, UnauthorizedException {
+
+            if (!AuthManager.isSelf(context, tenantId)) {
+                throw new UnauthorizedException(
+                        "Can only see your own bridges.");
+            }
+
             BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -168,15 +202,23 @@ public class BridgeResource extends RestResource {
          * @param bridge
          *            Bridge object mapped to the request input.
          * @throws StateAccessException
+         * @throws UnauthorizedException
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Bridge bridge, @Context UriInfo uriInfo)
-                throws StateAccessException {
-            bridge.setTenantId(tenantId);
+        public Response create(Bridge bridge, @Context UriInfo uriInfo,
+                @Context SecurityContext context) throws StateAccessException, UnauthorizedException {
+
+            if (!AuthManager.isSelf(context, tenantId)) {
+                throw new UnauthorizedException(
+                        "Can only see your own bridges.");
+            }
+
             BridgeZkManagerProxy dao = new BridgeZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            bridge.setTenantId(tenantId);
+
             UUID id = null;
             try {
                 id = dao.create(bridge);

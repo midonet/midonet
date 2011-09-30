@@ -27,13 +27,13 @@ public class AdminResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response init(@Context SecurityContext context)
             throws StateAccessException, UnauthorizedException {
-        AdminZkManager dao = new AdminZkManager(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
 
-        if (!AuthManager.canInitZooKeeper(context)) {
+        if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be admin to initialized ZK.");
         }
 
+        AdminZkManager dao = new AdminZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
         try {
             dao.initialize();
         } catch (StateAccessException e) {

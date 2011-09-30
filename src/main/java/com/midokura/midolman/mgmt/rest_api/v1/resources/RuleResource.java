@@ -19,16 +19,22 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for rules.
@@ -44,9 +50,16 @@ public class RuleResource extends RestResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Rule get(@PathParam("id") UUID id) throws StateAccessException {
+    public Rule get(@PathParam("id") UUID id, @Context SecurityContext context)
+            throws StateAccessException, UnauthorizedException,
+            ZkStateSerializationException {
         RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only see your own rule.");
+        }
+
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -60,9 +73,16 @@ public class RuleResource extends RestResource {
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+    public void delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
         RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only delete your own rule.");
+        }
+
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -89,11 +109,24 @@ public class RuleResource extends RestResource {
             this.chainId = chainId;
         }
 
+        private boolean isChainOwner(SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException {
+            OwnerQueryable q = new ChainZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            return AuthManager.isOwner(context, q, chainId);
+        }
+
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Rule> list() throws StateAccessException {
+        public List<Rule> list(@Context SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException,
+                UnauthorizedException {
             RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            if (!isChainOwner(context)) {
+                throw new UnauthorizedException("Can only see your own rule.");
+            }
+
             try {
                 return dao.list(chainId);
             } catch (StateAccessException e) {
@@ -107,8 +140,15 @@ public class RuleResource extends RestResource {
 
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Rule rule, @Context UriInfo uriInfo)
-                throws StateAccessException, RuleIndexOutOfBoundsException {
+        public Response create(Rule rule, @Context UriInfo uriInfo,
+                @Context SecurityContext context) throws StateAccessException,
+                RuleIndexOutOfBoundsException, UnauthorizedException,
+                ZkStateSerializationException {
+            if (!isChainOwner(context)) {
+                throw new UnauthorizedException(
+                        "Can only create your own rule.");
+            }
+
             RuleZkManagerProxy dao = new RuleZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             rule.setChainId(chainId);

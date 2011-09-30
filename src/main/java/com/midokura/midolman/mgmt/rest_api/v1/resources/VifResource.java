@@ -18,14 +18,20 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.VifZkManager;
 import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for VIFs.
@@ -42,10 +48,34 @@ public class VifResource extends RestResource {
     private final static Logger log = LoggerFactory
             .getLogger(VifResource.class);
 
+    private boolean isPortOwner(SecurityContext context, UUID portId)
+            throws StateAccessException, ZkStateSerializationException {
+        OwnerQueryable q = new PortZkManagerProxy(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
+        return AuthManager.isOwner(context, q, portId);
+    }
+
+    private boolean isPluggedToOwnPort(SecurityContext context, UUID vifId)
+            throws StateAccessException, ZkStateSerializationException {
+        VifZkManager q = new VifZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
+        Vif v = q.get(vifId);
+        return AuthManager.isOwner(context, q, v.getPortId());
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(Vif vif, @Context UriInfo uriInfo)
-            throws StateAccessException {
+    public Response create(Vif vif, @Context UriInfo uriInfo,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
+        if (vif.getPortId() == null) {
+            throw new IllegalArgumentException("Port ID is missing");
+        }
+
+        if (!isPortOwner(context, vif.getPortId())) {
+            throw new UnauthorizedException("Can only plug into your port.");
+        }
+
         VifZkManager dao = new VifZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         UUID id = null;
@@ -65,7 +95,14 @@ public class VifResource extends RestResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Vif get(@PathParam("id") UUID id) throws StateAccessException {
+    public Vif get(@PathParam("id") UUID id, @Context SecurityContext context)
+            throws StateAccessException, ZkStateSerializationException,
+            UnauthorizedException {
+        if (!isPluggedToOwnPort(context, id)) {
+            throw new UnauthorizedException(
+                    "Can only see VIFs plugged into your port.");
+        }
+
         VifZkManager dao = new VifZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         try {
@@ -82,8 +119,14 @@ public class VifResource extends RestResource {
     @DELETE
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response delete(@PathParam("id") UUID id)
-            throws StateAccessException {
+    public Response delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
+        if (!isPluggedToOwnPort(context, id)) {
+            throw new UnauthorizedException(
+                    "Can only delete VIFs plugged into your port.");
+        }
+
         VifZkManager dao = new VifZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
         try {

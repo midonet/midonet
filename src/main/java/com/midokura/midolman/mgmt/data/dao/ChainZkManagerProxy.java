@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Router;
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
@@ -27,7 +28,8 @@ import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
-public class ChainZkManagerProxy extends ZkMgmtManager {
+public class ChainZkManagerProxy extends ZkMgmtManager implements
+        OwnerQueryable {
 
     public static class ChainMgmtConfig {
 
@@ -432,11 +434,12 @@ public class ChainZkManagerProxy extends ZkMgmtManager {
         multi(prepareDelete(id));
     }
 
-    public UUID getTenant(UUID id) throws StateAccessException,
+    @Override
+    public UUID getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         Chain chain = get(id);
-        RouterZkManagerProxy manager = new RouterZkManagerProxy(zk, pathManager
+        OwnerQueryable manager = new RouterZkManagerProxy(zk, pathManager
                 .getBasePath(), mgmtPathManager.getBasePath());
-        return manager.getTenant(chain.getRouterId());
+        return manager.getOwner(chain.getRouterId());
     }
 }

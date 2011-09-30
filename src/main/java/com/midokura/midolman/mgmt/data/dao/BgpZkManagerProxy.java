@@ -6,14 +6,18 @@
 
 package com.midokura.midolman.mgmt.data.dao;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
@@ -22,7 +26,7 @@ import com.midokura.midolman.state.BgpZkManager.BgpConfig;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-public class BgpZkManagerProxy extends ZkMgmtManager {
+public class BgpZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
 
     private BgpZkManager zkManager = null;
 
@@ -42,10 +46,14 @@ public class BgpZkManagerProxy extends ZkMgmtManager {
      * 
      * @param bgp
      *            Bgp object to add.
+     * @throws ZkStateSerializationException
+     * @throws StateAccessException
+     * @throws UnknownHostException
      * @throws Exception
      *             Error connecting to Zookeeper.
      */
-    public UUID create(Bgp bgp) throws Exception {
+    public UUID create(Bgp bgp) throws UnknownHostException,
+            StateAccessException, ZkStateSerializationException {
         return zkManager.create(bgp.toConfig());
     }
 
@@ -54,15 +62,19 @@ public class BgpZkManagerProxy extends ZkMgmtManager {
      * 
      * @param id
      *            Bgp UUID to fetch..
+     * @throws ZkStateSerializationException
+     * @throws StateAccessException
      * @throws Exception
      *             Error connecting to Zookeeper.
      */
-    public Bgp get(UUID id) throws Exception {
+    public Bgp get(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
         // TODO: Throw NotFound exception here.
         return Bgp.createBgp(id, zkManager.get(id).value);
     }
 
-    public List<Bgp> list(UUID portId) throws Exception {
+    public List<Bgp> list(UUID portId) throws StateAccessException,
+            ZkStateSerializationException {
         List<Bgp> bgps = new ArrayList<Bgp>();
         List<ZkNodeEntry<UUID, BgpConfig>> entries = zkManager.list(portId);
         for (ZkNodeEntry<UUID, BgpConfig> entry : entries) {
@@ -71,20 +83,23 @@ public class BgpZkManagerProxy extends ZkMgmtManager {
         return bgps;
     }
 
-    public void update(UUID id, Bgp bgp) throws Exception {
+    public void update(UUID id, Bgp bgp) throws UnsupportedOperationException {
         throw new UnsupportedOperationException(
                 "BGP update is not currently supported.");
     }
 
-    public void delete(UUID id) throws Exception {
+    public void delete(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
         // TODO: catch NoNodeException if does not exist.
         zkManager.delete(id);
     }
 
-    public UUID getTenant(UUID id) throws Exception {
+    @Override
+    public UUID getOwner(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
         Bgp bgp = get(id);
-        PortZkManagerProxy manager = new PortZkManagerProxy(zk, pathManager
+        OwnerQueryable manager = new PortZkManagerProxy(zk, pathManager
                 .getBasePath(), mgmtPathManager.getBasePath());
-        return manager.getTenant(bgp.getPortId());
+        return manager.getOwner(bgp.getPortId());
     }
 }

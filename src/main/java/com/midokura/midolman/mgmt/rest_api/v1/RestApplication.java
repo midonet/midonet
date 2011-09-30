@@ -12,6 +12,7 @@ import javax.ws.rs.core.Application;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
+import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.AdminResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource;
@@ -64,6 +65,7 @@ public class RestApplication extends Application {
         set.add(AdminResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
+        set.add(UnauthorizedExceptionMapper.class);
         return set;
     }
 

@@ -17,6 +17,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.Directory;
@@ -31,7 +32,8 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */
-public class BridgeZkManagerProxy extends ZkMgmtManager {
+public class BridgeZkManagerProxy extends ZkMgmtManager implements
+        OwnerQueryable {
 
     public static class BridgeMgmtConfig {
 
@@ -189,15 +191,17 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
 
     public void update(Bridge bridge) throws StateAccessException,
             ZkStateSerializationException {
+        Bridge b = get(bridge.getId());
+        b.setName(bridge.getName());
 
-        String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
+        String bridgePath = mgmtPathManager.getBridgePath(b.getId());
         log.debug("Updating path: " + bridgePath);
         try {
-            update(bridgePath, serialize(bridge.toMgmtConfig()));
+            update(bridgePath, serialize(b.toMgmtConfig()));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Serialization error occurred while updating the bridge with UUID "
-                            + bridge.getId(), e, BridgeMgmtConfig.class);
+                            + b.getId(), e, BridgeMgmtConfig.class);
         }
     }
 
@@ -206,7 +210,8 @@ public class BridgeZkManagerProxy extends ZkMgmtManager {
         multi(prepareDelete(id));
     }
 
-    public UUID getTenant(UUID id) throws StateAccessException,
+    @Override
+    public UUID getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         return get(id).getTenantId();
     }

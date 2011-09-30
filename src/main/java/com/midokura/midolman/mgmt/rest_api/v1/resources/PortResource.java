@@ -19,18 +19,25 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
+import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
+import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for ports.
@@ -72,16 +79,25 @@ public class PortResource extends RestResource {
      *            Port UUID.
      * @return Port object.
      * @throws StateAccessException
+     * @throws UnauthorizedException
+     * @throws ZkStateSerializationException
      * @throws Exception
      * @throws Exception
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Port get(@PathParam("id") UUID id) throws StateAccessException {
+    public Port get(@PathParam("id") UUID id, @Context SecurityContext context)
+            throws StateAccessException, ZkStateSerializationException,
+            UnauthorizedException {
         // Get a port for the given ID.
         PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only see your own port.");
+        }
+
         try {
             return dao.get(id);
         } catch (StateAccessException e) {
@@ -95,9 +111,16 @@ public class PortResource extends RestResource {
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id) throws StateAccessException {
+    public void delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            ZkStateSerializationException, UnauthorizedException {
         PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
                 zookeeperRoot, zookeeperMgmtRoot);
+
+        if (!AuthManager.isOwner(context, dao, id)) {
+            throw new UnauthorizedException("Can only delete your own port.");
+        }
+
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -121,13 +144,26 @@ public class PortResource extends RestResource {
             this.bridgeId = bridgeId;
         }
 
+        private boolean isBridgeOwner(SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException {
+            OwnerQueryable q = new BridgeZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            return AuthManager.isOwner(context, q, bridgeId);
+        }
+
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Port port, @Context UriInfo uriInfo)
-                throws StateAccessException {
-            port.setDeviceId(bridgeId);
+        public Response create(Port port, @Context UriInfo uriInfo,
+                @Context SecurityContext context) throws StateAccessException,
+                ZkStateSerializationException, UnauthorizedException {
+
+            if (!isBridgeOwner(context)) {
+                throw new UnauthorizedException("Can only see your own ports.");
+            }
+
             PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            port.setDeviceId(bridgeId);
 
             UUID id = null;
             try {
@@ -146,7 +182,14 @@ public class PortResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list(@Context SecurityContext context)
+                throws StateAccessException, UnauthorizedException,
+                ZkStateSerializationException {
+
+            if (!isBridgeOwner(context)) {
+                throw new UnauthorizedException("Can only see your own ports.");
+            }
+
             PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {
@@ -176,13 +219,26 @@ public class PortResource extends RestResource {
             this.routerId = routerId;
         }
 
+        private boolean isRouterOwner(SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException {
+            OwnerQueryable q = new RouterZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            return AuthManager.isOwner(context, q, routerId);
+        }
+
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(MaterializedRouterPort port,
-                @Context UriInfo uriInfo) throws StateAccessException {
-            port.setDeviceId(routerId);
+                @Context UriInfo uriInfo, @Context SecurityContext context)
+                throws StateAccessException, UnauthorizedException,
+                ZkStateSerializationException {
+            if (!isRouterOwner(context)) {
+                throw new UnauthorizedException("Can only see your own ports.");
+            }
+
             PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
+            port.setDeviceId(routerId);
 
             UUID id = null;
             try {
@@ -201,7 +257,13 @@ public class PortResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list(@Context SecurityContext context)
+                throws StateAccessException, ZkStateSerializationException,
+                UnauthorizedException {
+            if (!isRouterOwner(context)) {
+                throw new UnauthorizedException("Can only see your own ports.");
+            }
+
             PortZkManagerProxy dao = new PortZkManagerProxy(zooKeeper,
                     zookeeperRoot, zookeeperMgmtRoot);
             try {

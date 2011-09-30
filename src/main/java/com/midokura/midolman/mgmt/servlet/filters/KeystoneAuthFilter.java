@@ -143,8 +143,6 @@ public final class KeystoneAuthFilter implements Filter {
         TenantUser tu = null;
         try {
             tu = this.client.getTenantUser(token);
-            log.debug("gpt user");
-
         } catch (Exception ex) {
             // Unknown error occurred.
             setErrorResponse((HttpServletResponse) response,
