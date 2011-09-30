@@ -291,6 +291,8 @@ public class RuleEngine {
     }
 
     public void freeFlowResources(OFMatch match) {
+        log.debug("freeFlowResources: match {}", match);
+        
         natMap.freeFlowResources(match);
     }
 }

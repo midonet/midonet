@@ -1056,13 +1056,17 @@ public class NetworkController extends AbstractController {
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
+        log.debug("onFlowRemoved: match {} reason {}", match, reason);
+        
         // TODO(pino): do we care why the flow was removed?
-        freeFlowResources(match, matchToRouters.get(match));
+        Collection<UUID> routers = matchToRouters.get(match);
+        if (null != routers) {
+            log.debug("onFlowRemoved: found routers {} for match {}", routers, match);
+            freeFlowResources(match, routers);
+        }
     }
 
     public void freeFlowResources(OFMatch match, Collection<UUID> routers) {
-        if (null == routers)
-            return;
         for (UUID rtrId : routers) {
             try {
                 Router rtr = network.getRouter(rtrId);

@@ -688,6 +688,8 @@ public class Router {
     }
 
     public void freeFlowResources(OFMatch match) {
+        log.debug("freeFlowResources: match {}", match);
+        
         ruleEngine.freeFlowResources(match);
     }
 }

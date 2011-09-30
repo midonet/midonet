@@ -156,6 +156,9 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst) {
+        log.debug("lookupDnatFwd: nwSrt {} tpSrc {} oldNwDst {} oldTpDst {}",
+                new Object[] {nwSrc, tpSrc, oldNwDst, oldTpDst});
+
         return lookupNwTpPair(makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
                 oldNwDst, oldTpDst));
     }
@@ -163,6 +166,9 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupDnatRev(int nwSrc, short tpSrc, int newNwDst,
             short newTpDst) {
+        log.debug("lookupDnatFwd: nwSrc {} tpSrc {} newNwDst {} newTpDst {}",
+                new Object[] {nwSrc, tpSrc, newNwDst, newTpDst});
+        
         return lookupNwTpPair(makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 newNwDst, newTpDst));
     }
@@ -170,6 +176,9 @@ public class NatLeaseManager implements NatMapping {
     private boolean makeSnatReservation(int oldNwSrc, short oldTpSrc,
             int newNwSrc, short newTpSrc, int nwDst, short tpDst,
             MidoMatch match) {
+        log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} newTpSrc {} tpDst",
+                new Object[] {oldNwSrc, oldTpSrc, newNwSrc, newTpSrc, tpDst});
+        
         String reverseKey = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc, nwDst,
                 tpDst);
         if (null != cache.get(reverseKey)) {
@@ -311,6 +320,9 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
             short tpDst) {
+        log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst",
+                new Object[] {oldNwSrc, oldTpSrc, nwDst, tpDst});
+        
         return lookupNwTpPair(makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
                 nwDst, tpDst));
     }
@@ -318,6 +330,9 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
             short tpDst) {
+        log.debug("lookupSnatRev: newNwSrc {} newTpSrc {} nwDst {} tpDst",
+                new Object[] {newNwSrc, newTpSrc, nwDst, tpDst});
+        
         return lookupNwTpPair(makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
                 nwDst, tpDst));
     }
@@ -332,6 +347,8 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public void freeFlowResources(OFMatch match) {
+        log.debug("freeFlowResources: match {}", match);
+        
         // Cancel refreshing of any keys associated with this match.
         matchToNatKeys.remove(match);
         ScheduledFuture future = matchToFuture.remove(match);
