@@ -68,15 +68,19 @@ class CheckOpenvSwitchDatabaseConnection {
     // Share a common OVSDB connection because using two breaks.
     import TestShareOneOpenvSwitchDatabaseConnection._
 
-    @Test @Ignore def testAddSystemPortNoLeftoverIface() = {
+    @Test def testAddSystemPortNoLeftoverIface() = {
+        log.debug("Entering testAddSystemPortNoLeftoverIface")
         assertFalse(ovsdb.hasInterface(portName))
         var pb = ovsdb.addSystemPort(bridgeName, portName)
         pb.build
         assertTrue(ovsdb.hasPort(portName))
         assertTrue(ovsdb.hasInterface(portName))
+        log.debug("Calling ovsdb.delPort({})", portName)
         ovsdb.delPort(portName)
+        log.debug("Back from ovsdb.delPort()")
         assertFalse(ovsdb.hasPort(portName))
         assertFalse(ovsdb.hasInterface(portName))
+        log.debug("Leaving testAddSystemPortNoLeftoverIface")
     }
 
     /**

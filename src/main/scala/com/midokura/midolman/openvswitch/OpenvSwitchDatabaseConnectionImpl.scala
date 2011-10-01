@@ -1156,15 +1156,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             assume(ifs != null, "Invalid JSON object.")
             // ifs could be a single array, ["uuid", "1234"], or
             // a set of array, ["set" [["uuid", "1234"], ["uuid", "5678"]]].
+            log.debug("delPort: ifs = {}", ifs)
             val ifUUIDs: List[JsonNode] =
-                if (ifs.get(0) == "uuid") {
+                if (ifs.get(0).getTextValue == "uuid") {
                     List(ifs)
-                } else if (ifs.get(0) == "set") {
+                } else if (ifs.get(0).getTextValue == "set") {
                     assume(ifs.get(1) != null, "Invalid JSON object.")
                     ifs.get(1).getElements.toList
                 } else {
+                    assume(ifs.get(0) == null, "Invalid JSON object.")
                     List()
-                }
+                } 
+            log.debug("delPort: ifUUIDs = {}", ifUUIDs)
             for {
                 uuidArray <- ifUUIDs
                 uuidArrayVal = uuidArray.get(1) if uuidArrayVal != null
