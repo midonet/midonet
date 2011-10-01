@@ -185,8 +185,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 "method" -> "echo",
                 "params" -> objectMapper.createArrayNode, "id" -> "echo")
             try {
-                objectMapper.writeValue(jsonGenerator, transact)
-                jsonGenerator.flush
+                jsonGenerator.synchronized {
+                    objectMapper.writeValue(jsonGenerator, transact)
+                    jsonGenerator.flush
+                }
             } catch {
                 case e: IOException =>
                     { log.warn("echo", e); throw new RuntimeException(e) }
@@ -220,8 +222,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             // Serialize the JSON-RPC 1.0 request into JSON text in the output
             // channel.
             try {
-                objectMapper.writeValue(jsonGenerator, request)
-                jsonGenerator.flush
+              jsonGenerator.synchronized {
+                  objectMapper.writeValue(jsonGenerator, request)
+                  jsonGenerator.flush
+              }
             } catch {
                 case e: IOException =>
                     { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
