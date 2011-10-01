@@ -14,6 +14,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
 
@@ -24,6 +26,9 @@ import com.midokura.midolman.layer3.Route;
  * @author Ryu Ishimoto
  */
 public class RouteZkManager extends ZkManager {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(RouteZkManager.class);
 
     /**
      * Initializes a RouteZkManager object with a ZooKeeper client and the root
@@ -110,13 +115,19 @@ public class RouteZkManager extends ZkManager {
     public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getRoutePath(entry.key), -1));
+        String routePath = pathManager.getRoutePath(entry.key);
+        log.debug("Preparing to delete: " + routePath);
+        ops.add(Op.delete(routePath, -1));
         if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
-            ops.add(Op.delete(pathManager.getPortRoutePath(
-                    entry.value.nextHopPort, entry.key), -1));
+            String path = pathManager.getPortRoutePath(entry.value.nextHopPort,
+                    entry.key);
+            log.debug("Preparing to delete: " + path);
+            ops.add(Op.delete(path, -1));
         } else {
-            ops.add(Op.delete(pathManager.getRouterRoutePath(
-                    entry.value.routerId, entry.key), -1));
+            String path = pathManager.getRouterRoutePath(entry.value.routerId,
+                    entry.key);
+            log.debug("Preparing to delete: " + path);
+            ops.add(Op.delete(path, -1));
         }
         return ops;
     }
@@ -264,8 +275,7 @@ public class RouteZkManager extends ZkManager {
             } catch (IOException e) {
                 throw new ZkStateSerializationException(
                         "Could not deserialize port " + portUUID
-                                + " to PortConfig", e,
-                        PortConfig.class);
+                                + " to PortConfig", e, PortConfig.class);
             }
             if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;
