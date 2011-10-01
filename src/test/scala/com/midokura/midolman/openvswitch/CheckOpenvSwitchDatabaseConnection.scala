@@ -24,10 +24,13 @@ import scala.collection.JavaConversions._
 object CheckOpenvSwitchDatabaseConnection {
     import TestShareOneOpenvSwitchDatabaseConnection._
 
-    final val log = LoggerFactory.getLogger(classOf[CheckOpenvSwitchDatabaseConnection])
+    final val log = LoggerFactory.getLogger(
+                                classOf[CheckOpenvSwitchDatabaseConnection])
 
     private final val portName = "testovsport"
     private final val bridgeOfPortNum = 65534
+    private final val oldQosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
+    private final val newQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
 
     @BeforeClass def before() = { 
         mutex.acquire 
@@ -46,8 +49,8 @@ object CheckOpenvSwitchDatabaseConnection {
             log.debug("QoS table row: {}", row)
             for { extId <- extIds 
                 if extId.get(0).getTextValue == "midolman-vnet" && (
-                   extId.get(1).getTextValue == "002bcb5f-0000-8000-1000-foobarbuzqux" ||
-                   extId.get(1).getTextValue == "002bcb5f-0000-8000-1000-bafbafbafbaf")
+                       extId.get(1).getTextValue == oldQosExtIdValue ||
+                       extId.get(1).getTextValue == newQosExtIdValue)
             } {
                 log.debug("extId: {}", extId)
                 log.info("Deleting preexisting test QoS {} => {}",
@@ -239,21 +242,19 @@ class CheckOpenvSwitchDatabaseConnection {
         log.debug("Entering testUpdateQos")
         val qosType = "linux-htb"
         val qosExtIdKey = bridgeExtIdKey
-        val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
-        val updatedQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
         var qb = ovsdb.addQos(qosType)
-        qb.externalId(qosExtIdKey, qosExtIdValue)
+        qb.externalId(qosExtIdKey, oldQosExtIdValue)
         val uuid = qb.build
         assertTrue(ovsdb.hasQos(uuid))
         assertFalse(ovsdb.getQosUUIDsByExternalId(
-                                qosExtIdKey, qosExtIdValue).isEmpty)
+                                qosExtIdKey, oldQosExtIdValue).isEmpty)
         qb = ovsdb.updateQos(uuid,
-            externalIds=Some(Map(qosExtIdKey -> updatedQosExtIdValue)))
+            externalIds=Some(Map(qosExtIdKey -> newQosExtIdValue)))
         qb.update(uuid)
         assertTrue(ovsdb.getQosUUIDsByExternalId(
-            qosExtIdKey, qosExtIdValue).isEmpty)
+            qosExtIdKey, oldQosExtIdValue).isEmpty)
         assertFalse(ovsdb.getQosUUIDsByExternalId(
-            qosExtIdKey, updatedQosExtIdValue).isEmpty)
+            qosExtIdKey, newQosExtIdValue).isEmpty)
         ovsdb.delQos(uuid)
         assertFalse(ovsdb.hasQos(uuid))
         log.debug("Leaving testUpdateQos")
