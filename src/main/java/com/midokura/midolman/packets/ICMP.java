@@ -111,7 +111,8 @@ public class ICMP extends BasePacket {
     @Override
     public byte[] serialize() {
         int length = 8 + ((data == null) ? 0 : data.length);
-        ByteBuffer bb = ByteBuffer.allocate(length);
+        byte[] bytes = new byte[length];
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
         bb.put((byte)type);
         bb.put((byte)code);
         bb.putShort(checksum);
@@ -125,7 +126,7 @@ public class ICMP extends BasePacket {
             checksum = IPv4.computeChecksum(bb, bb.position(), 2);
             bb.putShort(2, this.checksum);
         }
-        return bb.array();
+        return bytes;
     }
 
     @Override
