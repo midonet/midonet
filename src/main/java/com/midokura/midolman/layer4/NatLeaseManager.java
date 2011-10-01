@@ -352,7 +352,8 @@ public class NatLeaseManager implements NatMapping {
         // Cancel refreshing of any keys associated with this match.
         matchToNatKeys.remove(match);
         ScheduledFuture future = matchToFuture.remove(match);
-        future.cancel(false);
+        if (null != future)
+            future.cancel(false);
     }
 
 }
