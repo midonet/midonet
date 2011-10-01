@@ -258,7 +258,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 if (results.isNull)
                     return response.get("result")
                 for {
-                    result <- results if result != null && results.has("error")
+                    result <- results if result != null && result.has("error")
                     val error = result.get("error").getTextValue if error != null
                     val details =
                         result.get("details").getTextValue if details != null
