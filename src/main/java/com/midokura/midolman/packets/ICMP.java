@@ -39,8 +39,8 @@ public class ICMP extends BasePacket {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("ICMP [type=").append(type);
-        sb.append(", code=").append(code);
+        sb.append("ICMP [type=").append((int)type);
+        sb.append(", code=").append((int)code);
         sb.append(", cksum=").append(checksum);
         sb.append(", quench=").append(quench);
         sb.append("]");
