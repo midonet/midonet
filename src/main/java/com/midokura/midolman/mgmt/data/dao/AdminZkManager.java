@@ -44,6 +44,7 @@ public class AdminZkManager extends ZkMgmtManager {
         paths.add(pathManager.getRoutesPath());
         paths.add(pathManager.getBgpPath());
         paths.add(pathManager.getAdRoutesPath());
+        paths.add(pathManager.getVRNPortLocationsPath());
         multi(preparePathsCreate(paths));
     }
 }
