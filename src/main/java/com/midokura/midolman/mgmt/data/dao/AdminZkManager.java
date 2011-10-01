@@ -42,6 +42,8 @@ public class AdminZkManager extends ZkMgmtManager {
         paths.add(pathManager.getGrePath());
         paths.add(pathManager.getRulesPath());
         paths.add(pathManager.getRoutesPath());
+        paths.add(pathManager.getBgpPath());
+        paths.add(pathManager.getAdRoutesPath());
         multi(preparePathsCreate(paths));
     }
 }
