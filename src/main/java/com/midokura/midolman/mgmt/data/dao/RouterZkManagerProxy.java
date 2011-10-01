@@ -23,6 +23,7 @@ import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -182,12 +183,41 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
     }
 
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         return prepareRouterDelete(get(id));
     }
 
+    public List<Op> prepareRouterLinkDelete(UUID routerId, UUID peerRouterId,
+            boolean cascade) throws StateAccessException,
+            ZkStateSerializationException, UnsupportedOperationException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get the peer info
+        PeerRouterLink link = getPeerRouterLink(routerId, peerRouterId);
+        String path = mgmtPathManager.getRouterRouterPath(routerId,
+                peerRouterId);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+        path = mgmtPathManager.getRouterRouterPath(peerRouterId, routerId);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+
+        // Delete logical ports
+        PortZkManagerProxy proxy = new PortZkManagerProxy(zk, pathManager
+                .getBasePath(), mgmtPathManager.getBasePath());
+        ops.addAll(proxy.prepareDelete(link.getPortId(), false, true));
+        ops.addAll(proxy.prepareDelete(link.getPeerPortId(), false, true));
+        if (cascade) {
+            PortZkManager manager = new PortZkManager(zk, pathManager
+                    .getBasePath());
+            ops.addAll(manager.preparePortDelete(link.getPortId()));
+        }
+        return ops;
+    }
+
     public List<Op> prepareRouterDelete(Router router)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException,
+            UnsupportedOperationException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -197,7 +227,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
         // Delete the chains
         ChainZkManagerProxy chainManager = new ChainZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
-        chainManager.prepareRouterDelete(router.getId(), false);
+        ops.addAll(chainManager.prepareRouterDelete(router.getId(), false));
 
         // Delete the tenant router entry
         String tenantRouterNamePath = mgmtPathManager.getTenantRouterNamePath(
@@ -211,6 +241,19 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
         log.debug("Preparing to delete: " + tenantRouterPath);
         ops.add(Op.delete(tenantRouterPath, -1));
 
+        // Remove the router-router mappings - do this before deleting ports
+        // to remove logical ports first.
+        Set<String> peers = getChildren(mgmtPathManager
+                .getRouterRoutersPath(router.getId()), null);
+        for (String peer : peers) {
+            ops.addAll(prepareRouterLinkDelete(router.getId(), UUID
+                    .fromString(peer), false));
+        }
+        String routerRouterPath = mgmtPathManager.getRouterRoutersPath(router
+                .getId());
+        log.debug("Preparing to delete: " + routerRouterPath);
+        ops.add(Op.delete(routerRouterPath, -1));
+
         // Remove all the ports in mgmt directory but don't cascade here.
         PortZkManagerProxy portMgr = new PortZkManagerProxy(zk, pathManager
                 .getBasePath(), mgmtPathManager.getBasePath());
@@ -219,24 +262,14 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
         List<ZkNodeEntry<UUID, PortConfig>> portNodes = portZkManager
                 .listRouterPorts(router.getId());
         for (ZkNodeEntry<UUID, PortConfig> portNode : portNodes) {
-            ops.addAll(portMgr.prepareDelete(portNode.key, false));
-            // TODO: Remove VIF if plugged, and remove peer port for logical
+            if (portNode.value instanceof PortDirectory.MaterializedRouterPortConfig) {
+                ops.addAll(portMgr.prepareDelete(portNode.key, false));
+            }
         }
 
-        // Remove the router-router mappings
-        Set<String> peers = getChildren(mgmtPathManager
-                .getRouterRoutersPath(router.getId()), null);
-        for (String peer : peers) {
-            UUID peerId = UUID.fromString(peer);
-            ops.add(Op.delete(mgmtPathManager.getRouterRouterPath(router
-                    .getId(), peerId), -1));
-            ops.add(Op.delete(mgmtPathManager.getRouterRouterPath(peerId,
-                    router.getId()), -1));
-        }
-        ops.add(Op.delete(mgmtPathManager.getRouterRoutersPath(router.getId()),
-                -1));
-
-        ops.add(Op.delete(mgmtPathManager.getRouterPath(router.getId()), -1));
+        String routerPath = mgmtPathManager.getRouterPath(router.getId());
+        log.debug("Preparing to delete: " + routerPath);
+        ops.add(Op.delete(routerPath, -1));
         return ops;
     }
 
@@ -262,6 +295,17 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
         port.setPeerId(peerPortId);
         multi(preparePortCreateLink(port));
         return port.toPeerRouterLink();
+    }
+
+    public void deleteLink(UUID routerId, UUID peerRouterId)
+            throws StateAccessException, ZkStateSerializationException,
+            UnsupportedOperationException {
+        if (!exists(mgmtPathManager.getRouterRouterPath(routerId, peerRouterId))) {
+            throw new IllegalArgumentException(
+                    "Invalid operation.  The router ports are not connected.");
+        }
+
+        multi(prepareRouterLinkDelete(routerId, peerRouterId, true));
     }
 
     public Router get(UUID id) throws StateAccessException,
@@ -321,7 +365,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
     }
 
     public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         multi(prepareRouterDelete(id));
     }
 

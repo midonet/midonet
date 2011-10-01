@@ -118,12 +118,12 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements
     }
 
     public List<Op> prepareDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         return prepareDelete(get(id));
     }
 
     public List<Op> prepareDelete(Bridge bridge) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the Midolman side.
@@ -206,7 +206,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements
     }
 
     public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         multi(prepareDelete(id));
     }
 

@@ -78,17 +78,19 @@ public class LogicalRouterPort extends RouterPort {
 
     @Override
     public PortConfig toConfig() {
-        return new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(), Net
-                .convertStringAddressToInt(this.getNetworkAddress()), this
-                .getNetworkLength(), Net.convertStringAddressToInt(this
-                .getPortAddress()), new HashSet<Route>(), null);
+        return new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
+                Net.convertStringAddressToInt(this.getNetworkAddress()), this
+                        .getNetworkLength(), Net.convertStringAddressToInt(this
+                        .getPortAddress()), new HashSet<Route>(), this
+                        .getPeerId());
     }
 
     public PortConfig toPeerConfig() {
-        return new PortDirectory.LogicalRouterPortConfig(this.getPeerRouterId(), Net
-                .convertStringAddressToInt(this.getNetworkAddress()), this
-                .getNetworkLength(), Net.convertStringAddressToInt(this
-                .getPeerPortAddress()), new HashSet<Route>(), null);
+        return new PortDirectory.LogicalRouterPortConfig(
+                this.getPeerRouterId(), Net.convertStringAddressToInt(this
+                        .getNetworkAddress()), this.getNetworkLength(), Net
+                        .convertStringAddressToInt(this.getPeerPortAddress()),
+                new HashSet<Route>(), this.getId());
     }
 
     public PeerRouterConfig toPeerRouterConfig() {
@@ -107,12 +109,17 @@ public class LogicalRouterPort extends RouterPort {
         return link;
     }
 
+    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
+        return new ZkNodeEntry<UUID, PortConfig>(this.getId(), toConfig());
+    }
+
     public ZkNodeEntry<UUID, PortConfig> toPeerZkNode() {
         return new ZkNodeEntry<UUID, PortConfig>(this.getPeerId(),
                 toPeerConfig());
     }
 
-    public static Port createPort(UUID id, PortDirectory.LogicalRouterPortConfig config) {
+    public static Port createPort(UUID id,
+            PortDirectory.LogicalRouterPortConfig config) {
         LogicalRouterPort port = new LogicalRouterPort();
         port.setDeviceId(config.device_id);
         port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));

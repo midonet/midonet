@@ -209,12 +209,13 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
-        // Get all the chains and delete. NAT-only for now.
-        String natChainsPath = mgmtPathManager.getRouterTableChainsPath(
-                routerId, NAT_TABLE);
-        Set<String> chainIds = getChildren(natChainsPath);
+        // Remove the chain UUIDs
+        String chainsPath = mgmtPathManager.getRouterTableChainsPath(routerId,
+                NAT_TABLE);
+        Set<String> chainIds = getChildren(chainsPath);
         for (String chainId : chainIds) {
-            ops.addAll(prepareDelete(UUID.fromString(chainId), cascade, true));
+            Chain c = get(UUID.fromString(chainId));
+            ops.addAll(prepareDelete(c, cascade, true));
         }
 
         // Remove the chain-names directory
@@ -224,8 +225,6 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         ops.add(Op.delete(namesPath, -1));
 
         // Remove the chains directory
-        String chainsPath = mgmtPathManager.getRouterTableChainsPath(routerId,
-                NAT_TABLE);
         log.debug("Preparing to delete: " + chainsPath);
         ops.add(Op.delete(chainsPath, -1));
 
@@ -312,6 +311,11 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         return prepareDelete(id, true, false);
     }
 
+    public List<Op> prepareDelete(UUID id, boolean cascade)
+            throws ZkStateSerializationException, StateAccessException {
+        return prepareDelete(id, cascade, false);
+    }
+
     public List<Op> prepareDelete(UUID id, boolean cascade, boolean force)
             throws ZkStateSerializationException, StateAccessException {
         return prepareDelete(get(id), cascade, force);
@@ -331,7 +335,7 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
                         "Cannot delete a bulit-in chain name "
                                 + chain.getName());
             }
-    
+
             if (!isBuiltInTableName(chain.getTable())) {
                 throw new IllegalArgumentException("Unknown table name: "
                         + chain.getTable());

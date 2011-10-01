@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.data.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -17,6 +18,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Abstract base class for TenantZkManager.
@@ -26,7 +28,7 @@ import com.midokura.midolman.state.ZkManager;
  */
 public class TenantZkManager extends ZkManager {
 
-    private ZkMgmtPathManager ZkMgmtPathManager = null;
+    private ZkMgmtPathManager zkMgmtPathManager = null;
 
     /**
      * TenantZkManager constructor.
@@ -38,7 +40,7 @@ public class TenantZkManager extends ZkManager {
      */
     public TenantZkManager(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath);
-        ZkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
+        zkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
     }
 
     /**
@@ -54,6 +56,20 @@ public class TenantZkManager extends ZkManager {
      */
     public UUID create() throws StateAccessException {
         return create(null);
+    }
+
+    public void delete(UUID id) throws StateAccessException,
+            ZkStateSerializationException, UnsupportedOperationException {
+        List<Op> ops = new ArrayList<Op>();
+        Set<String> routers = getChildren(zkMgmtPathManager
+                .getTenantRoutersPath(id), null);
+        RouterZkManagerProxy routerManager = new RouterZkManagerProxy(zk,
+                pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
+        for (String router : routers) {
+            ops.addAll(routerManager.prepareRouterDelete(UUID
+                    .fromString(router)));
+        }
+        multi(ops);
     }
 
     /**
@@ -73,15 +89,15 @@ public class TenantZkManager extends ZkManager {
             id = UUID.randomUUID();
         }
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(ZkMgmtPathManager.getTenantPath(id), null,
+        ops.add(Op.create(zkMgmtPathManager.getTenantPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(ZkMgmtPathManager.getTenantRoutersPath(id), null,
+        ops.add(Op.create(zkMgmtPathManager.getTenantRoutersPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(ZkMgmtPathManager.getTenantBridgesPath(id), null,
+        ops.add(Op.create(zkMgmtPathManager.getTenantBridgesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(ZkMgmtPathManager.getTenantRouterNamesPath(id), null,
+        ops.add(Op.create(zkMgmtPathManager.getTenantRouterNamesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(ZkMgmtPathManager.getTenantBridgeNamesPath(id), null,
+        ops.add(Op.create(zkMgmtPathManager.getTenantBridgeNamesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         multi(ops);
         return id;

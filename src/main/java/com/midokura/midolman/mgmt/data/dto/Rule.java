@@ -79,7 +79,7 @@ public class Rule {
     private String jumpChainName = null;
     private String flowAction = null;
     private String[][][] natTargets = new String[2][2][];
-    private int position;
+    private int position = 1;
 
     /**
      * @return the id

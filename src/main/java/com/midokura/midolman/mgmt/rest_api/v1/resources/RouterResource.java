@@ -332,6 +332,30 @@ public class RouterResource extends RestResource {
             return Response.created(uri).entity(peerRouter).build();
         }
 
+        @DELETE
+        @Path("{id}")
+        public void delete(@PathParam("id") UUID peerId,
+                @Context SecurityContext context) throws StateAccessException,
+                UnauthorizedException {
+
+            if (!AuthManager.isServiceProvider(context)) {
+                throw new UnauthorizedException(
+                        "Must be a service provider to delete router link.");
+            }
+
+            RouterZkManagerProxy dao = new RouterZkManagerProxy(zooKeeper,
+                    zookeeperRoot, zookeeperMgmtRoot);
+            try {
+                dao.deleteLink(routerId, peerId);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
+        }
+
         @GET
         @Path("{id}")
         @Produces(MediaType.APPLICATION_JSON)

@@ -88,7 +88,7 @@ public class VifResource extends RestResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        URI uri = uriInfo.getBaseUriBuilder().path("vifs" + id).build();
+        URI uri = uriInfo.getBaseUriBuilder().path("vifs/" + id).build();
         return Response.created(uri).build();
     }
 

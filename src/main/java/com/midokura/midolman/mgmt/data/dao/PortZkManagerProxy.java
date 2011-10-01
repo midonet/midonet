@@ -89,13 +89,14 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
     }
 
     public List<Op> prepareBridgeDelete(UUID bridgeId)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException,
+            UnsupportedOperationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Get all the bridge ports to delete.
         List<Port> ports = listBridgePorts(bridgeId);
         for (Port port : ports) {
-            ops.addAll(prepareDelete(port, false));
+            ops.addAll(prepareDelete(port, false, false));
         }
 
         return ops;
@@ -140,22 +141,42 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
     }
 
     public List<Op> prepareDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         return prepareDelete(id, true);
     }
 
     public List<Op> prepareDelete(UUID id, boolean cascade)
-            throws StateAccessException, ZkStateSerializationException {
-        return prepareDelete(get(id), cascade);
+            throws StateAccessException, ZkStateSerializationException,
+            UnsupportedOperationException {
+        return prepareDelete(id, cascade, false);
+    }
+
+    public List<Op> prepareDelete(UUID id, boolean cascade, boolean force)
+            throws StateAccessException, ZkStateSerializationException,
+            UnsupportedOperationException {
+        return prepareDelete(get(id), cascade, force);
     }
 
     public List<Op> prepareDelete(Port port) throws StateAccessException,
-            ZkStateSerializationException {
-        return prepareDelete(port, true);
+            ZkStateSerializationException, UnsupportedOperationException {
+        return prepareDelete(port, true, false);
     }
 
-    public List<Op> prepareDelete(Port port, boolean cascade)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<Op> prepareDelete(Port port, boolean cascade, boolean force)
+            throws StateAccessException, ZkStateSerializationException,
+            UnsupportedOperationException {
+        // Don't let a port that has a vif plugged in get deleted.
+        if (port.getVifId() != null) {
+            throw new IllegalArgumentException(
+                    "Cannot delete a port with VIF plugged in.");
+        }
+
+        if (!force) {
+            if (port instanceof LogicalRouterPort) {
+                throw new UnsupportedOperationException(
+                        "Cannot delete a logical port without deleting the link.");
+            }
+        }
         List<Op> ops = new ArrayList<Op>();
 
         // Prepare the midolman port deletion.
@@ -163,13 +184,6 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
             ZkNodeEntry<UUID, PortConfig> portNode = zkManager
                     .get(port.getId());
             ops.addAll(zkManager.preparePortDelete(portNode));
-        }
-
-        // Delete the VIF attache
-        if (port.getVifId() != null) {
-            VifZkManager vifManager = new VifZkManager(zk, pathManager
-                    .getBasePath(), mgmtPathManager.getBasePath());
-            ops.addAll(vifManager.prepareDelete(port.getVifId()));
         }
 
         // Delete management port
@@ -250,7 +264,7 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
     }
 
     public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            ZkStateSerializationException, UnsupportedOperationException {
         multi(prepareDelete(id));
     }
 

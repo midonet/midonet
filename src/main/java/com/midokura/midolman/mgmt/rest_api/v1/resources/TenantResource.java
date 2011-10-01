@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -60,6 +61,30 @@ public class TenantResource extends RestResource {
     public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
         return new TenantBridgeResource(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot, id);
+    }
+
+    @DELETE
+    @Path("{id}")
+    public void delete(@PathParam("id") UUID id,
+            @Context SecurityContext context) throws StateAccessException,
+            UnauthorizedException {
+
+        if (!AuthManager.isAdmin(context)) {
+            throw new UnauthorizedException(
+                    "Must be an admin to delete a tenant.");
+        }
+
+        TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
+                zookeeperMgmtRoot);
+        try {
+            dao.delete(id);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
     }
 
     /**
