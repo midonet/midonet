@@ -174,12 +174,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private val jsonGenerator = jsonFactory.createJsonGenerator(
         new OutputStreamWriter(socket.getOutputStream))
     private val timer = new Timer()
-    private var continue = true
+    @volatile private var continue = true
 
     { val me = new Thread(this); me.setDaemon(true); me.start }
 
     timer.scheduleAtFixedRate(new TimerTask() {
-        override def run =
+        override def run(): Unit =
             OpenvSwitchDatabaseConnectionImpl.this.synchronized {
             val transact = Map(
                 "method" -> "echo",
@@ -194,7 +194,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }, 0, echo_interval)
 
-    def stop = { continue = false }
+    def stop: Unit = { continue = false }
 
     /**
      * Apply a operation to the database.
@@ -272,7 +272,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }
 
-    override def run() = {
+    override def run(): Unit = {
         while (continue) {
             try {
                 val json = jsonParser.readValueAsTree
@@ -298,16 +298,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 //TODO: handle "notification" type
             } catch {
                 case e: InterruptedException =>
-                    { continue = false; log.warn("run", e) }
+                    { stop; log.warn("run", e) }
                 case e: SocketException =>
-                    { continue = false
+                    { stop;
                       // TODO: Ignore this when the parent thread close the 
                       //       socket.
                     }
                 case e: EOFException =>
-                    { continue = false; log.info("run", "EOF: the socket closed.") }
+                    { stop; log.info("run", "EOF: the socket closed.") }
                 case e: IOException =>
-                    { continue = false; log.warn("run", e) }
+                    { stop; log.warn("run", e) }
             }
         }
     }
