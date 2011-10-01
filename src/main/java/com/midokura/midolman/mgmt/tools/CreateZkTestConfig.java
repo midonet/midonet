@@ -96,7 +96,7 @@ public class CreateZkTestConfig {
         resource = client.resource(url);
         AdRoute adRt = new AdRoute();
         adRt.setNwPrefix("14.128.23.0");
-        adRt.setPrefixLength((byte)27);
+        adRt.setPrefixLength((byte) 27);
         response = resource.type(MediaType.APPLICATION_JSON)
                 .header("HTTP_X_AUTH_TOKEN", "999888777666")
                 .post(ClientResponse.class, adRt);
@@ -170,59 +170,68 @@ public class CreateZkTestConfig {
         url = new StringBuilder(router).append("/chains").toString();
         resource = client.resource(url);
         Chain[] chains = resource.type(MediaType.APPLICATION_JSON)
-                .header("HTTP_X_AUTH_TOKEN", "999888777666")
-                .get(Chain[].class);
+                .header("HTTP_X_AUTH_TOKEN", "999888777666").get(Chain[].class);
         System.out.println("Listing chains in router:");
         for (int i = 0; i < chains.length; i++)
-            System.out.println("Chain named " + chains[i].getName() +
-                    " has id " + chains[i].getId().toString());
+            System.out.println("Chain named " + chains[i].getName()
+                    + " has id " + chains[i].getId().toString());
 
-        url = new StringBuilder(router).append("/tables/nat/chains/pre_routing")
-                .toString();
+        url = new StringBuilder(router)
+                .append("/tables/nat/chains/pre_routing").toString();
         resource = client.resource(url);
         Chain chain = resource.type(MediaType.APPLICATION_JSON)
-                .header("HTTP_X_AUTH_TOKEN", "999888777666")
-                .get(Chain.class);
+                .header("HTTP_X_AUTH_TOKEN", "999888777666").get(Chain.class);
         String pre_chain = chain.getId().toString();
         System.out.println("Pre-routing chain id: " + pre_chain);
 
-        url = new StringBuilder(router).append("/tables/nat/chains/post_routing")
-                .toString();
+        url = new StringBuilder(router).append(
+                "/tables/nat/chains/post_routing").toString();
         resource = client.resource(url);
         chain = resource.type(MediaType.APPLICATION_JSON)
-                .header("HTTP_X_AUTH_TOKEN", "999888777666")
-                .get(Chain.class);
+                .header("HTTP_X_AUTH_TOKEN", "999888777666").get(Chain.class);
         String post_chain = chain.getId().toString();
         System.out.println("Post-routing chain id: " + pre_chain);
 
-        /*
-        url = new StringBuilder(basePath).append("/chains/")
-                .append(pre_chain)
+        // Add rules to assign 14.128.23.17 as a floating ip to 10.0.4.135.
+        // First the DNAT
+        url = new StringBuilder(basePath).append("/chains/").append(pre_chain)
                 .append("/rules").toString();
         resource = client.resource(url);
         Rule rule = new Rule();
-        rule.setInPorts(new UUID [] {UUID.fromString(bgpPortId)});
+        rule.setInPorts(new UUID[] { UUID.fromString(bgpPortId) });
         rule.setNwProto(17);
         rule.setNwDstAddress("14.128.23.17");
         rule.setNwDstLength(32);
         rule.setType("dnat");
         rule.setFlowAction("accept");
-        String[][][] targets = new String [2][2][1];
-        targets[0] = new String[2][2];
-        
-        
-        rule.setNatTargets(new String[] {new String[] {new String [] {
-                "10.0.4.135", "10.0.4.135"},
-                new String [] {"0", "0"}}});
-
-        String answer = resource.type(MediaType.APPLICATION_JSON)
+        String[][][] target = new String[1][2][];
+        target[0][0] = new String[] { "10.0.4.135", "10.0.4.135" };
+        target[0][1] = new String[] { "0", "0" };
+        rule.setNatTargets(target);
+        rule.setPosition(1);
+        response = resource.type(MediaType.APPLICATION_JSON)
                 .header("HTTP_X_AUTH_TOKEN", "999888777666")
-                .get(String.class);
-        System.out.println(answer);
-
-       "flowAction": "accept", "natTargets": [[["14.128.23.2", "14.128.23.2"], [80, 80]]], "position": 1}
-
-        //*/
+                .post(ClientResponse.class, rule);
+        System.out.println(response.getLocation().toString());
+        // Now the SNAT
+        url = new StringBuilder(basePath).append("/chains/").append(post_chain)
+                .append("/rules").toString();
+        resource = client.resource(url);
+        rule = new Rule();
+        rule.setOutPorts(new UUID[] { UUID.fromString(bgpPortId) });
+        rule.setNwProto(17);
+        rule.setNwSrcAddress("10.0.4.135");
+        rule.setNwSrcLength(32);
+        rule.setType("snat");
+        rule.setFlowAction("accept");
+        target[0][0] = new String[] { "14.128.23.17", "14.128.23.17" };
+        target[0][1] = new String[] { "0", "0" };
+        rule.setNatTargets(target);
+        rule.setPosition(1);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, rule);
+        System.out.println(response.getLocation().toString());
     }
 
 }
