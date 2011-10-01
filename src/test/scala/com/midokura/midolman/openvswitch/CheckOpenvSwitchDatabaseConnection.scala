@@ -7,12 +7,15 @@
 package com.midokura.midolman.openvswitch
 
 
-import org.junit.{AfterClass, BeforeClass, Test}
+import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
+import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
+
+import scala.collection.JavaConversions._
 
 
 /**
@@ -21,10 +24,39 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 object CheckOpenvSwitchDatabaseConnection {
     import TestShareOneOpenvSwitchDatabaseConnection._
 
+    final val log = LoggerFactory.getLogger(classOf[CheckOpenvSwitchDatabaseConnection])
+
     private final val portName = "testovsport"
     private final val bridgeOfPortNum = 65534
 
-    @BeforeClass def before() = { mutex.acquire }
+    @BeforeClass def before() = { 
+        mutex.acquire 
+        val interfaceTable = ovsdb.dumpInterfaceTable
+        log.debug("Interface table: {}", interfaceTable)
+        for { row <- interfaceTable 
+            if row._1.contains("test")
+        } { log.info("Deleting preexisting test Interface {} => {}",
+                     row._2, row._1)
+            ovsdb.delInterface(row._2)
+        }
+        val qosTable = ovsdb.dumpQosTable
+        for { row <- qosTable
+            extIds = row._3.get(1).getElements
+        } { 
+            log.debug("QoS table row: {}", row)
+            for { extId <- extIds 
+                if extId.get(0).getTextValue == "midolman-vnet" && (
+                   extId.get(1).getTextValue == "002bcb5f-0000-8000-1000-foobarbuzqux" ||
+                   extId.get(1).getTextValue == "002bcb5f-0000-8000-1000-bafbafbafbaf")
+            } {
+                log.debug("extId: {}", extId)
+                log.info("Deleting preexisting test QoS {} => {}",
+                         row._1, extId.get(1).getTextValue)
+                ovsdb.delQos(row._1)
+            }
+        }
+    }
+
     @AfterClass def after() = { mutex.release }
 }
 
@@ -32,6 +64,17 @@ class CheckOpenvSwitchDatabaseConnection {
     import CheckOpenvSwitchDatabaseConnection._
     // Share a common OVSDB connection because using two breaks.
     import TestShareOneOpenvSwitchDatabaseConnection._
+
+    @Test @Ignore def testAddSystemPortNoLeftoverIface() = {
+        assertFalse(ovsdb.hasInterface(portName))
+        var pb = ovsdb.addSystemPort(bridgeName, portName)
+        pb.build
+        assertTrue(ovsdb.hasPort(portName))
+        assertTrue(ovsdb.hasInterface(portName))
+        ovsdb.delPort(portName)
+        assertFalse(ovsdb.hasPort(portName))
+        assertFalse(ovsdb.hasInterface(portName))
+    }
 
     /**
      * Test addSystemPort().
@@ -193,6 +236,7 @@ class CheckOpenvSwitchDatabaseConnection {
      * Test addQos and delQos.
      */
     @Test def testUpdateQos() = {
+        log.debug("Entering testUpdateQos")
         val qosType = "linux-htb"
         val qosExtIdKey = bridgeExtIdKey
         val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
@@ -201,17 +245,18 @@ class CheckOpenvSwitchDatabaseConnection {
         qb.externalId(qosExtIdKey, qosExtIdValue)
         val uuid = qb.build
         assertTrue(ovsdb.hasQos(uuid))
-        assertTrue(!ovsdb.getQosUUIDsByExternalId(
-            qosExtIdKey, qosExtIdValue).isEmpty)
+        assertFalse(ovsdb.getQosUUIDsByExternalId(
+                                qosExtIdKey, qosExtIdValue).isEmpty)
         qb = ovsdb.updateQos(uuid,
             externalIds=Some(Map(qosExtIdKey -> updatedQosExtIdValue)))
         qb.update(uuid)
-        assertFalse(!ovsdb.getQosUUIDsByExternalId(
+        assertTrue(ovsdb.getQosUUIDsByExternalId(
             qosExtIdKey, qosExtIdValue).isEmpty)
-        assertTrue(!ovsdb.getQosUUIDsByExternalId(
+        assertFalse(ovsdb.getQosUUIDsByExternalId(
             qosExtIdKey, updatedQosExtIdValue).isEmpty)
         ovsdb.delQos(uuid)
         assertFalse(ovsdb.hasQos(uuid))
+        log.debug("Leaving testUpdateQos")
     }
 
     /**

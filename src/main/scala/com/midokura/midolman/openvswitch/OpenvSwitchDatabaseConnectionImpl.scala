@@ -999,6 +999,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                         portRow: Map[String, _],
                         ifOptions: Option[Map[String, _]],
                         portExternalIds: Option[Map[String, _]]) = {
+        log.debug("addPort({}, {}, {}, {}, {})", Array[Object](bridgeUUID,
+                  ifRow, portRow, ifOptions, portExternalIds));
         val tx = new Transaction(database)
         val ifUUID: String = generateUUID
         var portRowUpdated: Map[String, Any] = portRow
@@ -1366,12 +1368,48 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * Determine whether a port with a given name exists.
      *
      * @param portName The name of the port.
-     * @return Whether a bridge with the given name exists.
+     * @return Whether a port with the given name exists.
      */
     def hasPort(portName: String) = {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                                 List(ColumnUUID))
         !portRows.getElements.isEmpty
+    }
+
+    /**
+     * Determine whether an interface with a given name exists.
+     *
+     * @param interfaceName The name of the interface.
+     * @return Whether an interface with the given name exists.
+     */
+    def hasInterface(interfaceName: String) = {
+        val interfaceRows = select(TableInterface, List(List(ColumnName, "==", interfaceName)),
+                                List(ColumnUUID))
+        !interfaceRows.getElements.isEmpty
+    }
+
+    def dumpInterfaceTable(): Iterable[(String, String)] = {
+        val interfaceRows = select(TableInterface, List(), List(ColumnUUID, ColumnName));
+        return for {
+            row <- interfaceRows
+            jsonName = row.get(ColumnName)
+        } yield (if (jsonName == null) "<null>" else jsonName.getTextValue,
+                 row.get(ColumnUUID).get(1).getTextValue)
+    }
+
+    def delInterface(interfaceUuid: String) {
+        var tx = new Transaction(database)
+        tx.delete(TableInterface, Some(interfaceUuid))
+        doJsonRpc(tx)
+    }
+
+    def dumpQosTable(): Iterable[(String, String, JsonNode)] = {
+        val interfaceRows = select(TableQos, List(), List(ColumnUUID, ColumnType, ColumnExternalIds));
+        return for {
+            row <- interfaceRows
+        } yield (row.get(ColumnUUID).get(1).getTextValue,
+                 row.get(ColumnType).getTextValue,
+                 row.get(ColumnExternalIds))
     }
 
     /**

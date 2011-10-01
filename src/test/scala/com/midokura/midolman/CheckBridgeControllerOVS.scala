@@ -165,7 +165,9 @@ object CheckBridgeControllerOVS extends SelectListener {
     }
 
     def addSystemPort(portName : String) = {
-        ovsdb.addSystemPort(bridgeName, portName).build
+        var pb = ovsdb.addSystemPort(bridgeName, portName)
+        pb.ifMac("00:01:02:03:04:05");
+        pb.build
     }
 
     def addInternalPort(portName : String) = {
@@ -194,7 +196,9 @@ class CheckBridgeControllerOVS {
         serializeTestsSemaphore.release
     }
 
-    @Test @Ignore def testNewSystemPort() = {
+    @Test 
+    @Ignore
+    def testNewSystemPort() = {
         log.info("testNewSystemPort called")
         serializeTestsSemaphore.acquire
         try {
