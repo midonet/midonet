@@ -984,10 +984,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param name The name of the bridge to add.
      * @return A builder to set optional parameters of the bridge and add it.
      */
-    override def addBridge(name: String): BridgeBuilder = {
-        val bb = new BridgeBuilderImpl(name)
-        return bb
-    }
+    override def addBridge(name: String): BridgeBuilder =
+        new BridgeBuilderImpl(name)
 
     /**
     * Add a port.
