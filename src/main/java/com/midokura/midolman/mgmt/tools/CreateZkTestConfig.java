@@ -232,6 +232,81 @@ public class CreateZkTestConfig {
                 .header("HTTP_X_AUTH_TOKEN", "999888777666")
                 .post(ClientResponse.class, rule);
         System.out.println(response.getLocation().toString());
-    }
 
+        // Now set up SNAT for all hosts in 10.0.5.0/24 to 14.128.23.18
+        url = new StringBuilder(basePath).append("/chains/").append(post_chain)
+                .append("/rules").toString();
+        resource = client.resource(url);
+        rule = new Rule();
+        rule.setOutPorts(new UUID[] { UUID.fromString(bgpPortId) });
+        rule.setNwProto(17);
+        rule.setNwSrcAddress("10.0.5.0");
+        rule.setNwDstLength(24);
+        rule.setType("snat");
+        rule.setFlowAction("accept");
+        target = new String[1][2][];
+        target[0][0] = new String[] { "14.128.23.18", "14.128.23.18" };
+        target[0][1] = new String[] { "40000", "50000" };
+        rule.setNatTargets(target);
+        rule.setPosition(2);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, rule);
+        System.out.println(response.getLocation().toString());
+        // Now the ReverseSNAT
+        url = new StringBuilder(basePath).append("/chains/").append(pre_chain)
+                .append("/rules").toString();
+        resource = client.resource(url);
+        rule = new Rule();
+        rule.setInPorts(new UUID[] { UUID.fromString(bgpPortId) });
+        rule.setNwProto(17);
+        rule.setNwDstAddress("14.128.23.18");
+        rule.setNwSrcLength(32);
+        rule.setTpDstStart((short)40000);
+        rule.setTpDstEnd((short)50000);
+        rule.setType("rev_snat");
+        rule.setFlowAction("accept");
+        rule.setPosition(2);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, rule);
+        System.out.println(response.getLocation().toString());
+
+        // Now set up a DNAT: 14.128.23.19:80 to 10.0.4.20 and 10.0.4.21.
+        url = new StringBuilder(basePath).append("/chains/").append(pre_chain)
+                .append("/rules").toString();
+        resource = client.resource(url);
+        rule = new Rule();
+        rule.setInPorts(new UUID[] { UUID.fromString(bgpPortId) });
+        rule.setNwProto(17);
+        rule.setNwDstAddress("14.128.23.19");
+        rule.setNwDstLength(32);
+        rule.setType("dnat");
+        rule.setFlowAction("accept");
+        target = new String[2][2][];
+        target[0][0] = new String[] { "10.0.4.20", "10.0.4.21" };
+        target[0][1] = new String[] { "80", "80" };
+        rule.setNatTargets(target);
+        rule.setPosition(3);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, rule);
+        System.out.println(response.getLocation().toString());
+        // Now the ReverseDNAT
+        url = new StringBuilder(basePath).append("/chains/").append(post_chain)
+                .append("/rules").toString();
+        resource = client.resource(url);
+        rule = new Rule();
+        rule.setOutPorts(new UUID[] { UUID.fromString(bgpPortId) });
+        rule.setNwProto(17);
+        rule.setNwSrcAddress("10.0.4.20");
+        rule.setNwSrcLength(31);
+        rule.setType("rev_dnat");
+        rule.setFlowAction("accept");
+        rule.setPosition(3);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, rule);
+        System.out.println(response.getLocation().toString());
+    }
 }
