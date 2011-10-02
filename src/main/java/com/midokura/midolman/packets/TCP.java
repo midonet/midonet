@@ -32,8 +32,17 @@ public class TCP extends BasePacket implements Transport {
 
     @Override
     public byte[] serialize() {
-        // FIXME
-        throw new NotImplementedException();
+        byte[] data = new byte[20];
+        ByteBuffer bb = ByteBuffer.wrap(data);
+        bb.putShort(sourcePort);
+        bb.putShort(destinationPort);
+        bb.putInt(seqNo);
+        bb.putInt(ackNo);
+        bb.putShort((short)0); // flags
+        bb.putShort(windowSize);
+        bb.putShort(checksum);
+        bb.putShort(urgent);
+        return data;
     }
 
     @Override
