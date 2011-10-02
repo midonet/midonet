@@ -19,6 +19,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 
 public class CreateZkTestConfig {
 
@@ -32,14 +33,13 @@ public class CreateZkTestConfig {
         ClientConfig cc = new DefaultClientConfig();
         cc.getSingletons().add(new JacksonJaxbJsonProvider());
         Client client = Client.create(cc);
+        //client.addFilter(new LoggingFilter());
 
-        /*
-         * url = new StringBuilder(basePath).append("/admin/init").toString();
-         * resource = client.resource(url); response =
-         * resource.type(MediaType.APPLICATION_JSON)
-         * .header("HTTP_X_AUTH_TOKEN", "999888777666")
-         * .post(ClientResponse.class);
-         */
+//        url = new StringBuilder(basePath).append("/admin/init").toString();
+//        resource = client.resource(url);
+//        response = resource.type(MediaType.APPLICATION_JSON)
+//                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+//                .post(ClientResponse.class);
 
         // Add the tenant
         url = new StringBuilder(basePath).append("/tenants").toString();
@@ -244,7 +244,6 @@ public class CreateZkTestConfig {
         rule.setNwDstLength(24);
         rule.setType("snat");
         rule.setFlowAction("accept");
-        target = new String[1][2][];
         target[0][0] = new String[] { "14.128.23.18", "14.128.23.18" };
         target[0][1] = new String[] { "40000", "50000" };
         rule.setNatTargets(target);
@@ -262,8 +261,8 @@ public class CreateZkTestConfig {
         rule.setNwProto(17);
         rule.setNwDstAddress("14.128.23.18");
         rule.setNwSrcLength(32);
-        rule.setTpDstStart((short)40000);
-        rule.setTpDstEnd((short)50000);
+        rule.setTpDstStart((short) 40000);
+        rule.setTpDstEnd((short) 50000);
         rule.setType("rev_snat");
         rule.setFlowAction("accept");
         rule.setPosition(2);
@@ -283,7 +282,6 @@ public class CreateZkTestConfig {
         rule.setNwDstLength(32);
         rule.setType("dnat");
         rule.setFlowAction("accept");
-        target = new String[2][2][];
         target[0][0] = new String[] { "10.0.4.20", "10.0.4.21" };
         target[0][1] = new String[] { "80", "80" };
         rule.setNatTargets(target);
