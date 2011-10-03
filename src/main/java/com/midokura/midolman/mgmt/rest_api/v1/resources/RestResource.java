@@ -10,6 +10,7 @@ import javax.ws.rs.core.Context;
 
 import com.midokura.midolman.mgmt.data.ZooKeeperService;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
 
 /**
  * Base abstract class for all the resources.
@@ -51,7 +52,10 @@ public abstract class RestResource {
         zookeeperRoot = context.getInitParameter("zookeeper-root");
         zookeeperMgmtRoot = context.getInitParameter("zookeeper-mgmt-root");
 
-        zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
-                zookeeperTimeout);
+        if (null == zookeeperConn)
+            zooKeeper = new MockDirectory();
+        else
+            zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
+                    zookeeperTimeout);
     }
 }

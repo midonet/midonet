@@ -1,38 +1,39 @@
 package com.midokura.midolman.mgmt.rest_api.v1;
 
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.junit.Test;
 
-import com.sun.jersey.test.framework.AppDescriptor;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
-import com.sun.jersey.test.framework.spi.container.inmemory.InMemoryTestContainerFactory;
 
 public class MainTest extends JerseyTest {
 
-    protected AppDescriptor configure() {
-        this.setTestContainerFactory(new InMemoryTestContainerFactory());
-        return new WebAppDescriptor.Builder("mido-iida-2.midokura.jp")
-                .contextPath("/").build();
+    static ClientConfig cc;
+    static {
+        cc = new DefaultClientConfig();
+        cc.getSingletons().add(new JacksonJaxbJsonProvider());
+    }
+
+    public MainTest() {
+        super(new WebAppDescriptor.Builder(
+                "com.midokura.midolman.mgmt.rest_api.v1.resources")
+                .contextPath("context").clientConfig(cc).build());
     }
 
     @Test
     public void test() {
-        // WebResource resource;
-        // String url;
-        // ClientResponse response;
-        //
-        // ClientConfig cc = new DefaultClientConfig();
-        // cc.getSingletons().add(new JacksonJaxbJsonProvider());
-        // Client client = Client.create(cc);
-        // //client.addFilter(new LoggingFilter());
-        //
-        // url = new StringBuilder(basePath).append("/admin/init").toString();
-        // resource = client.resource(url);
-        // response = resource.type(MediaType.APPLICATION_JSON)
-        // .header("HTTP_X_AUTH_TOKEN", "999888777666")
-        // .post(ClientResponse.class);
+        WebResource resource;
+        ClientResponse response;
 
-        System.out.println("hi");
+        // Add the tenant
+        resource = resource().path("/tenants");
+        response = resource.post(ClientResponse.class);
+        System.out.println(response.getLocation());
+
     }
 
 }

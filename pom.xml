@@ -208,7 +208,7 @@
     </dependency>
     <dependency>
       <groupId>com.sun.jersey.jersey-test-framework</groupId>
-      <artifactId>jersey-test-framework-inmemory</artifactId>
+      <artifactId>jersey-test-framework-grizzly2</artifactId>
       <version>1.8</version>
       <scope>test</scope>
     </dependency>
