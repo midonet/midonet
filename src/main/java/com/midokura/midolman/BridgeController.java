@@ -44,8 +44,14 @@ public class BridgeController extends AbstractController {
     short flowExpireSeconds, idleFlowExpireSeconds;
     static final short flowPriority = 1000;    // TODO: Make configurable.
 
+    static private class PortFuture {
+        // Pair<Port, Future>
+        public UUID port;
+        public Future future;
+        public PortFuture(UUID p, Future f) { port = p; future = f; }
+    }
     // The delayed deletes for macPortMap.
-    HashMap<MAC, Future> delayedDeletes;
+    HashMap<MAC, PortFuture> delayedDeletes;
 
     HashMap<MacPort, Integer> flowCount;
 
@@ -117,7 +123,7 @@ public class BridgeController extends AbstractController {
         macPortMap = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
-        delayedDeletes = new HashMap<MAC, Future>();
+        delayedDeletes = new HashMap<MAC, PortFuture>();
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
         macPortMap.addWatcher(macToPortWatcher);
@@ -179,8 +185,10 @@ public class BridgeController extends AbstractController {
             if (delete) {
                 log.info("expireMacPortEntry: deleting the mapping from " +
                           "MAC {} to port {}", mac, port);
-                // TODO: Do we need to cancel this Future?
-                delayedDeletes.remove(mac);
+                // Remove & cancel any delayedDeletes invalidated.
+                PortFuture delayedDelete = delayedDeletes.remove(mac);
+                if (delayedDelete != null)
+                    delayedDelete.future.cancel(false);
                 // The macPortMap watcher will invalidate flows associated
                 // with this MAC, so we don't need to do it here.
                 try {
@@ -200,6 +208,8 @@ public class BridgeController extends AbstractController {
                     new Runnable() {
                         public void run() { 
                             try {
+                                // TODO: Should we check that 
+                                // macPortMap.get(mac) still points to the port?
                                 macPortMap.remove(mac); 
                             } catch (KeeperException e) {
                                 log.error("Delayed delete of MAC {} from " +
@@ -214,7 +224,7 @@ public class BridgeController extends AbstractController {
                             }
                         }
                     }, mac_port_timeout, TimeUnit.MILLISECONDS);
-                delayedDeletes.put(mac, future);
+                delayedDeletes.put(mac, new PortFuture(port, future));
             } 
         } else {
             log.debug("expireMacPortEntry: MAC {} is now mapped to port {} " +
@@ -344,9 +354,9 @@ public class BridgeController extends AbstractController {
         if (count == null) {
             count = 1;
             // Remove any delayed delete.
-            Future delayedDelete = delayedDeletes.remove(macAddr);
+            PortFuture delayedDelete = delayedDeletes.remove(macAddr);
             if (delayedDelete != null)
-                delayedDelete.cancel(false);
+                delayedDelete.future.cancel(false);
             flowCount.put(flowcountKey, count);
         } else {
             flowCount.put(flowcountKey, new Integer(count+1));
