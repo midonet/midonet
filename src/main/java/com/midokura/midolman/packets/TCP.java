@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.packets;
 
-import org.apache.commons.lang.NotImplementedException;
 import java.nio.ByteBuffer;
 
 public class TCP extends BasePacket implements Transport {
@@ -14,6 +13,7 @@ public class TCP extends BasePacket implements Transport {
     protected short destinationPort;
     protected int seqNo;
     protected int ackNo;
+    protected short flags;
     protected short windowSize;
     protected short checksum;
     protected short urgent;
@@ -38,7 +38,7 @@ public class TCP extends BasePacket implements Transport {
         bb.putShort(destinationPort);
         bb.putInt(seqNo);
         bb.putInt(ackNo);
-        bb.putShort((short)0); // flags
+        bb.putShort(flags);
         bb.putShort(windowSize);
         bb.putShort(checksum);
         bb.putShort(urgent);
@@ -52,7 +52,7 @@ public class TCP extends BasePacket implements Transport {
         destinationPort = bb.getShort();
         seqNo = bb.getInt();
         ackNo = bb.getInt();
-        bb.getShort(); //TODO: parse flags
+        flags = bb.getShort(); //TODO: parse flags
         windowSize = bb.getShort();
         checksum = bb.getShort();
         urgent = bb.getShort();
