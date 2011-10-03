@@ -20,24 +20,24 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Dirt simple SelectLoop for simple java controller
- * 
+ *
  * Originally from org.openflowj.examples
- * 
+ *
  */
 public class SelectLoop implements Reactor {
     private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
-    
+
     protected boolean dontStop;
     protected Object registrationLock;
     protected int registrationRequests = 0;
     protected Selector selector;
     protected long timeout;
-    
+
     protected ScheduledExecutorService executor;
 
     public SelectLoop(ScheduledExecutorService executor) throws IOException {
         this(0);
-        
+
         this.executor = executor;
     }
 
@@ -53,7 +53,7 @@ public class SelectLoop implements Reactor {
         selector = SelectorProvider.provider().openSelector();
         this.timeout = timeout;
     }
-    
+
     @Override
     public Future submit(final Runnable runnable) {
         return executor.submit(new Runnable() {
@@ -67,7 +67,7 @@ public class SelectLoop implements Reactor {
     }
 
     @Override
-    public ScheduledFuture schedule(final Runnable runnable, long delay, 
+    public ScheduledFuture schedule(final Runnable runnable, long delay,
                                     TimeUnit unit) {
         return executor.schedule(new Runnable() {
             @Override
@@ -87,7 +87,7 @@ public class SelectLoop implements Reactor {
      * @return SelectionKey
      * @throws ClosedChannelException if channel was already closed
      */
-    public SelectionKey register(SelectableChannel ch, int ops, 
+    public SelectionKey register(SelectableChannel ch, int ops,
                                  SelectListener arg)
             throws ClosedChannelException {
         SelectionKey key = ch.register(selector, ops, arg);
@@ -101,12 +101,12 @@ public class SelectLoop implements Reactor {
      **/
     public void doLoop() throws IOException {
         log.debug("doLoop");
-        
+
         int nEvents;
 
         while (dontStop) {
             log.debug("looping");
-          
+
             nEvents = selector.select(timeout);
             if (nEvents > 0) {
                 for (SelectionKey sk : selector.selectedKeys()) {
@@ -147,5 +147,4 @@ public class SelectLoop implements Reactor {
     public long currentTimeMillis() {
         return System.currentTimeMillis();
     }
-    
 }

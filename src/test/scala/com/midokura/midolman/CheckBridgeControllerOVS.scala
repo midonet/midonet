@@ -156,7 +156,7 @@ object CheckBridgeControllerOVS extends SelectListener {
                      key.isAcceptable)
             return
         }
-        log.info("accepted connection from {}", 
+        log.info("accepted connection from {}",
                  sock.socket.getRemoteSocketAddress)
         sock.socket.setTcpNoDelay(true)
         sock.configureBlocking(false)

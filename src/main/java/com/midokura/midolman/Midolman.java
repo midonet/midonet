@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman;
@@ -38,21 +38,21 @@ public class Midolman implements SelectListener, Watcher {
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
 
     private HierarchicalConfiguration config;
-    
+
     private int disconnected_ttl_seconds;
     private ScheduledFuture<?> disconnected_kill_timer = null;
-    
+
     private ScheduledExecutorService executor;
     private OpenvSwitchDatabaseConnection ovsdb;
     private ZkConnection zkConnection;
     private ServerSocketChannel listenSock;
-    
+
     private SelectLoop loop;
-    
+
     private Directory midonetDirectory;
-    
+
     private Midolman() {}
-    
+
     private void run(String[] args) throws Exception {
         log.info("main start");
         log.info("Adding shutdownHook");
@@ -67,7 +67,7 @@ public class Midolman implements SelectListener, Watcher {
         options.addOption("c", "configFile", true, "config file path");
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
-        
+
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
 
         config = new HierarchicalINIConfiguration(configFilePath);
@@ -81,15 +81,15 @@ public class Midolman implements SelectListener, Watcher {
 
         // open the OVSDB connection
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-                "Open_vSwitch", 
+                "Open_vSwitch",
                 config.configurationAt("openvswitch")
-                      .getString("openvswitchdb_ip_addr", "127.0.0.1"), 
+                      .getString("openvswitchdb_ip_addr", "127.0.0.1"),
                 config.configurationAt("openvswitch")
                       .getInt("openvswitchdb_tcp_port", 6634));
 
         zkConnection = new ZkConnection(
                 config.configurationAt("zookeeper")
-                      .getString("zookeeper_hosts", "127.0.0.1:2181"), 
+                      .getString("zookeeper_hosts", "127.0.0.1:2181"),
                 config.configurationAt("zookeeper")
                       .getInt("session_timeout", 30000), this, loop);
 
@@ -107,14 +107,14 @@ public class Midolman implements SelectListener, Watcher {
                               .getInt("controller_port", 6633)));
 
         loop.register(listenSock, SelectionKey.OP_ACCEPT, this);
-        
+
         log.debug("before doLoop which will block");
         loop.doLoop();
         log.debug("after doLoop is done");
-        
+
         log.info("main finish");
     }
-    
+
     @Override
     public void handleEvent(SelectionKey key) throws IOException {
         log.info("handleEvent " + key);
@@ -131,19 +131,19 @@ public class Midolman implements SelectListener, Watcher {
                 new ControllerTrampoline(config, ovsdb, midonetDirectory, loop);
             ControllerStubImpl controllerStubImpl =
                 new ControllerStubImpl(sock, loop, trampoline);
-            
-            SelectionKey switchKey = 
+
+            SelectionKey switchKey =
                 loop.register(sock, SelectionKey.OP_READ, controllerStubImpl);
-            
+
             switchKey.interestOps(SelectionKey.OP_READ);
             loop.wakeup();
-            
+
             controllerStubImpl.start();
         } catch (Exception e) {
             log.warn("handleEvent", e);
         }
     }
-    
+
     @Override
     public synchronized void process(WatchedEvent event) {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
