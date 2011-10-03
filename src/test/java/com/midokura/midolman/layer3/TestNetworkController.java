@@ -180,9 +180,6 @@ public class TestNetworkController {
             rt = new Route(0, 0, routerNw, 16, NextHop.REJECT, null, 0, 100,
                     null, rtrId);
             routeMgr.create(rt);
-            // Manually add this route to the replicated routing table since
-            // it's not associated with any port.
-            rTable.addRoute(rt);
 
             // Add two ports to the router. Port-j should route to subnet
             // 10.<i>.<j>.0/24.
@@ -225,7 +222,8 @@ public class TestNetworkController {
                             .convertIntAddressToString(underlayIp));
                     Assert.assertEquals(expectGrePort, ovsdb.addedGrePorts
                             .get(ovsdb.addedGrePorts.size() - 1));
-                    // Manually add the remote port's route
+                    // Manually add the remote port's route since we're only
+                    // pretending there are remote controllers.
                     rTable.addRoute(rt);
                 }
                 networkCtrl.onPortStatus(phyPort,
@@ -255,11 +253,9 @@ public class TestNetworkController {
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1,
                 0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
-        rTables.get(0).addRoute(rt);
         rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn1to0, 0xc0a80101, 10,
                 null, routerIds.get(1));
         routeMgr.create(rt);
-        rTables.get(1).addRoute(rt);
         // Now add the logical links between router 0 and 2.
         // First from 0 to 2
         rtr0to2LogPortNwAddr = 0xc0a80101;
@@ -274,20 +270,16 @@ public class TestNetworkController {
         rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2, 
                 0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
-        rTables.get(0).addRoute(rt);
         // Now from 2 to 0. Note that this is router2's uplink.
         rt = new Route(0, 0, 0, 0, NextHop.PORT, portOn2to0, 0xc0a80101, 10,
                 null, routerIds.get(2));
         routeMgr.create(rt);
-        rTables.get(2).addRoute(rt);
 
         // For now, don't add an uplink. Instead add a route that drops anything
         // in 10.0.0.0/8 that isn't going to router0's local or logical ports.
         rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2,
                 null, routerIds.get(0));
         routeMgr.create(rt);
-        // Manually add this route since it no local controller owns it.
-        rTables.get(0).addRoute(rt);
     }
 
     public static void checkInstalledFlow(MockControllerStub.Flow flow,

@@ -1072,8 +1072,8 @@ public class NetworkController extends AbstractController {
                 Router rtr = network.getRouter(rtrId);
                 rtr.freeFlowResources(match);
             } catch (Exception e) {
-                log.warn("onFlowRemoved failed to inform router {} about " +
-                         "expiration of match {}", rtrId, match);
+                log.warn("freeFlowResources failed for match {} in router {} -"
+                        + " {}", new Object[] { match, rtrId, e });
             }
         }
     }

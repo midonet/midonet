@@ -40,6 +40,10 @@ object CheckOpenvSwitchDatabaseConnection {
             if row._1.contains("test")
         } { log.info("Deleting preexisting test Interface {} => {}",
                      row._2, row._1)
+            // A port can have the interface, therefor the port should be
+            // deleted at the first.
+            if (ovsdb.hasPort(row._1))
+                ovsdb.delPort(row._1)
             ovsdb.delInterface(row._2)
         }
         val qosTable = ovsdb.dumpQosTable

@@ -117,12 +117,6 @@ public class TestRouter {
         rtr = new Router(rtrId, ruleEngine, rTable, reactor);
         controllerStub = new MockControllerStub();
 
-        // Add a route directly to the router.
-        Route rt = new Route(0x0a000000, 24, 0x0a000100, 24, NextHop.BLACKHOLE,
-                null, 0, 1, null, rtrId);
-        routeMgr.create(rt);
-        // rTable.addRoute(rt);
-
         // Create ports in ZK.
         // Create one port that works as an uplink for the router.
         uplinkGatewayAddr = 0x0a0b0c0d;
@@ -162,7 +156,7 @@ public class TestRouter {
                 // Map the port number to the portId for later use.
                 portNumToId.put(portNum, portId);
                 // Default route to port based on destination only. Weight 2.
-                rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId,
+                Route rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId,
                         Route.NO_GATEWAY, 2, null, rtrId);
                 routeMgr.create(rt);
                 if (1 == j) {
@@ -183,15 +177,11 @@ public class TestRouter {
                 rt = new Route(0x0b000000, 24, segmentAddr, 30,
                         NextHop.BLACKHOLE, null, 0, 1, null, rtrId);
                 routeMgr.create(rt);
-                // Manually add this route since it doesn't belong to the port.
-                rTable.addRoute(rt);
                 // Anything from 12.0.0.0/24 is rejected (ICMP filter
                 // prohibited).
                 rt = new Route(0x0c000000, 24, segmentAddr, 30, NextHop.REJECT,
                         null, 0, 1, null, rtrId);
                 routeMgr.create(rt);
-                // Manually add this route since it doesn't belong to the port.
-                rTable.addRoute(rt);
 
                 if (1 != j) {
                     // Except for the first port, add them locally.

@@ -164,9 +164,13 @@ public class RuleZkManager extends ZkManager {
      */
     public List<Op> prepareRuleDelete(ZkNodeEntry<UUID, Rule> entry) {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getChainRulePath(entry.value.chainId,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getRulePath(entry.key), -1));
+        String chainRulePath = pathManager.getChainRulePath(
+                entry.value.chainId, entry.key);
+        log.debug("Preparing to delete: " + chainRulePath);
+        ops.add(Op.delete(chainRulePath, -1));
+        String rulePath = pathManager.getRulePath(entry.key);
+        log.debug("Preparing to delete: " + rulePath);
+        ops.add(Op.delete(rulePath, -1));
         return ops;
     }
 

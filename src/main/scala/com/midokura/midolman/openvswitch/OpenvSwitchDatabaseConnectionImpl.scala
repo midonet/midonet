@@ -175,19 +175,21 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private val jsonGenerator = jsonFactory.createJsonGenerator(
         new OutputStreamWriter(socket.getOutputStream))
     private val timer = new Timer()
-    private var continue = true
+    @volatile private var continue = true
 
     { val me = new Thread(this); me.setDaemon(true); me.start }
 
     timer.scheduleAtFixedRate(new TimerTask() {
-        override def run =
+        override def run(): Unit =
             OpenvSwitchDatabaseConnectionImpl.this.synchronized {
             val transact = Map(
                 "method" -> "echo",
                 "params" -> objectMapper.createArrayNode, "id" -> "echo")
             try {
-                objectMapper.writeValue(jsonGenerator, transact)
-                jsonGenerator.flush
+                jsonGenerator.synchronized {
+                    objectMapper.writeValue(jsonGenerator, transact)
+                    jsonGenerator.flush
+                }
             } catch {
                 case e: IOException =>
                     { log.warn("echo", e); throw new RuntimeException(e) }
@@ -195,7 +197,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }, 0, echo_interval)
 
-    def stop = { continue = false }
+    def stop: Unit = { continue = false }
 
     /**
      * Apply a operation to the database.
@@ -221,8 +223,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             // Serialize the JSON-RPC 1.0 request into JSON text in the output
             // channel.
             try {
-                objectMapper.writeValue(jsonGenerator, request)
-                jsonGenerator.flush
+              jsonGenerator.synchronized {
+                  objectMapper.writeValue(jsonGenerator, request)
+                  jsonGenerator.flush
+              }
             } catch {
                 case e: IOException =>
                     { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
@@ -255,7 +259,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 if (results.isNull)
                     return response.get("result")
                 for {
-                    result <- results if result != null && results.has("error")
+                    result <- results if result != null && result.has("error")
                     val error = result.get("error").getTextValue if error != null
                     val details =
                         result.get("details").getTextValue if details != null
@@ -273,7 +277,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }
 
-    override def run() = {
+    override def run(): Unit = {
         while (continue) {
             try {
                 val json = jsonParser.readValueAsTree
@@ -299,16 +303,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 //TODO: handle "notification" type
             } catch {
                 case e: InterruptedException =>
-                    { continue = false; log.warn("run", e) }
+                    { stop; log.warn("run", e) }
                 case e: SocketException =>
-                    { continue = false
-                      // TODO: Ignore this when the parent thread close the
+                    { stop;
+                      // TODO: Ignore this when the parent thread close the 
                       //       socket.
                     }
                 case e: EOFException =>
-                    { continue = false; log.info("run", "EOF: the socket closed.") }
+                    { stop; log.info("run", "EOF: the socket closed.") }
                 case e: IOException =>
-                    { continue = false; log.warn("run", e) }
+                    { stop; log.warn("run", e) }
             }
         }
     }
@@ -981,10 +985,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param name The name of the bridge to add.
      * @return A builder to set optional parameters of the bridge and add it.
      */
-    override def addBridge(name: String): BridgeBuilder = {
-        val bb = new BridgeBuilderImpl(name)
-        return bb
-    }
+    override def addBridge(name: String): BridgeBuilder =
+        new BridgeBuilderImpl(name)
 
     /**
     * Add a port.

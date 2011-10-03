@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.packets;
 
-import org.apache.commons.lang.NotImplementedException;
 import java.nio.ByteBuffer;
 
 public class TCP extends BasePacket implements Transport {
@@ -14,6 +13,7 @@ public class TCP extends BasePacket implements Transport {
     protected short destinationPort;
     protected int seqNo;
     protected int ackNo;
+    protected short flags;
     protected short windowSize;
     protected short checksum;
     protected short urgent;
@@ -32,8 +32,17 @@ public class TCP extends BasePacket implements Transport {
 
     @Override
     public byte[] serialize() {
-        // FIXME
-        throw new NotImplementedException();
+        byte[] data = new byte[20];
+        ByteBuffer bb = ByteBuffer.wrap(data);
+        bb.putShort(sourcePort);
+        bb.putShort(destinationPort);
+        bb.putInt(seqNo);
+        bb.putInt(ackNo);
+        bb.putShort(flags);
+        bb.putShort(windowSize);
+        bb.putShort(checksum);
+        bb.putShort(urgent);
+        return data;
     }
 
     @Override
@@ -43,7 +52,7 @@ public class TCP extends BasePacket implements Transport {
         destinationPort = bb.getShort();
         seqNo = bb.getInt();
         ackNo = bb.getInt();
-        bb.getShort(); //TODO: parse flags
+        flags = bb.getShort(); //TODO: parse flags
         windowSize = bb.getShort();
         checksum = bb.getShort();
         urgent = bb.getShort();
