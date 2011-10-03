@@ -409,7 +409,7 @@ public class TestAbstractController {
         expectMatch.setDataLayerType(IPv4.ETHERTYPE);
         expectMatch.setDataLayerSource(srcMac);
         expectMatch.setDataLayerDestination(dstMac);
-        expectMatch.setNetworkTypeOfService(diffServ);
+        // expectMatch.setNetworkTypeOfService(diffServ);
         expectMatch.setNetworkProtocol((byte)2 /* IGMP */);
         expectMatch.setNetworkSource(srcIP);
         expectMatch.setNetworkDestination(dstIP);
@@ -476,7 +476,7 @@ public class TestAbstractController {
         expectMatch.setDataLayerType(IPv4.ETHERTYPE);
         expectMatch.setDataLayerSource(srcMac);
         expectMatch.setDataLayerDestination(dstMac);
-        expectMatch.setNetworkTypeOfService((byte)0);
+        // expectMatch.setNetworkTypeOfService((byte)0);
         expectMatch.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
         expectMatch.setNetworkSource(srcIP);
         expectMatch.setNetworkDestination(dstIP);
@@ -532,7 +532,7 @@ public class TestAbstractController {
         expectMatch.setDataLayerType(IPv4.ETHERTYPE);
         expectMatch.setDataLayerSource(srcMac);
         expectMatch.setDataLayerDestination(dstMac);
-        expectMatch.setNetworkTypeOfService((byte)0x14);
+        // expectMatch.setNetworkTypeOfService((byte)0x14);
         expectMatch.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
         expectMatch.setNetworkSource(0);
         expectMatch.setNetworkDestination(0);
