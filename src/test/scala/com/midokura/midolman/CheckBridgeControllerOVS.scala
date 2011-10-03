@@ -164,7 +164,6 @@ object CheckBridgeControllerOVS extends SelectListener {
         var controllerStub = new ControllerStubImpl(sock, reactor, controller)
         var switchKey = reactor.register(sock, SelectionKey.OP_READ,
                                          controllerStub)
-        switchKey.interestOps(SelectionKey.OP_READ)
         reactor.wakeup
         controllerStub.start
     }

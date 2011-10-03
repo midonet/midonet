@@ -91,7 +91,6 @@ public class SelectLoop implements Reactor {
                                  SelectListener arg)
             throws ClosedChannelException {
         SelectionKey key = ch.register(selector, ops, arg);
-        selector.wakeup();
         return key;
     }
 

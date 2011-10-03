@@ -135,7 +135,6 @@ public class Midolman implements SelectListener, Watcher {
             SelectionKey switchKey =
                 loop.register(sock, SelectionKey.OP_READ, controllerStubImpl);
 
-            switchKey.interestOps(SelectionKey.OP_READ);
             loop.wakeup();
 
             controllerStubImpl.start();
