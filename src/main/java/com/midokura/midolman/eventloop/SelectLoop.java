@@ -28,30 +28,19 @@ public class SelectLoop implements Reactor {
     private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
 
     protected boolean dontStop;
-    protected Object registrationLock;
-    protected int registrationRequests = 0;
     protected Selector selector;
+    // The timeout value in milliseconds that select will be called with
+    // (currently zero, may be settable in the future).
     protected long timeout;
 
     protected ScheduledExecutorService executor;
 
     public SelectLoop(ScheduledExecutorService executor) throws IOException {
-        this(0);
-
-        this.executor = executor;
-    }
-
-    /**
-     * Initializes this SelectLoop
-     * @param cb the callback to call when select returns
-     * @param timeout the timeout value in milliseconds that select will be
-     *        called with
-     * @throws IOException
-     */
-    public SelectLoop(long timeout) throws IOException {
         dontStop = true;
         selector = SelectorProvider.provider().openSelector();
-        this.timeout = timeout;
+        this.timeout = 0;
+
+        this.executor = executor;
     }
 
     @Override
