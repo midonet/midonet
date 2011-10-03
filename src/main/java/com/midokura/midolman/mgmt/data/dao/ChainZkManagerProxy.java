@@ -214,7 +214,7 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
                 routerId, NAT_TABLE);
         Set<String> chainIds = getChildren(natChainsPath);
         for (String chainId : chainIds) {
-            ops.addAll(prepareDelete(UUID.fromString(chainId), cascade));
+            ops.addAll(prepareDelete(UUID.fromString(chainId), cascade, true));
         }
 
         // Remove the chain-names directory
@@ -309,30 +309,33 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
 
     public List<Op> prepareDelete(UUID id)
             throws ZkStateSerializationException, StateAccessException {
-        return prepareDelete(id, true);
+        return prepareDelete(id, true, false);
     }
 
-    public List<Op> prepareDelete(UUID id, boolean cascade)
+    public List<Op> prepareDelete(UUID id, boolean cascade, boolean force)
             throws ZkStateSerializationException, StateAccessException {
-        return prepareDelete(get(id), cascade);
+        return prepareDelete(get(id), cascade, force);
     }
 
     public List<Op> prepareDelete(Chain chain)
             throws ZkStateSerializationException, StateAccessException {
-        return prepareDelete(chain, true);
+        return prepareDelete(chain, true, false);
     }
 
-    public List<Op> prepareDelete(Chain chain, boolean cascade)
+    public List<Op> prepareDelete(Chain chain, boolean cascade, boolean force)
             throws ZkStateSerializationException, StateAccessException {
-        // Cannot delete built-in chains
-        if (isBuiltInChainName(chain.getName())) {
-            throw new IllegalArgumentException(
-                    "Cannot delete a bulit-in chain name " + chain.getName());
-        }
-
-        if (!isBuiltInTableName(chain.getTable())) {
-            throw new IllegalArgumentException("Unknown table name: "
-                    + chain.getTable());
+        if (!force) {
+            // Cannot delete built-in chains
+            if (isBuiltInChainName(chain.getName())) {
+                throw new IllegalArgumentException(
+                        "Cannot delete a bulit-in chain name "
+                                + chain.getName());
+            }
+    
+            if (!isBuiltInTableName(chain.getTable())) {
+                throw new IllegalArgumentException("Unknown table name: "
+                        + chain.getTable());
+            }
         }
 
         List<Op> ops = new ArrayList<Op>();
