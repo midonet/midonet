@@ -1,5 +1,6 @@
 /**
- * OpenvSwitchDatabaaseConnectionImpl.scala - OVSDB connection management classes.
+ * OpenvSwitchDatabaaseConnectionImpl.scala - OVSDB connection management
+ *                                            classes.
  *
  * A pure Scala implementation of the Open vSwitch database protocol used to
  * configure bridges, ports, etc.
@@ -301,7 +302,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     { continue = false; log.warn("run", e) }
                 case e: SocketException =>
                     { continue = false
-                      // TODO: Ignore this when the parent thread close the 
+                      // TODO: Ignore this when the parent thread close the
                       //       socket.
                     }
                 case e: EOFException =>
@@ -829,7 +830,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             qosOtherConfig = Some(qosOtherConfig.get + (ColumnMaxRate -> maxRate));
             this
         }
-        override def queues(queueUUIDs: 
+        override def queues(queueUUIDs:
             java.util.Map[java.lang.Long, java.lang.String]): QosBuilder =
                 queues((for ((k, v) <- queueUUIDs)
                         yield ((k: Long) -> (v: String))).toMap[Long, String])
@@ -862,7 +863,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         def update(qosUUID: String): QosBuilder = {
             val tx = new Transaction(database)
             val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
-                                 List(ColumnUUID, ColumnQueues, 
+                                 List(ColumnUUID, ColumnQueues,
                                       ColumnOtherConfig, ColumnExternalIds))
             if (qosRows.isEmpty)
                 throw new NotFoundException("no QoS with uuid " + qosUUID)
@@ -973,7 +974,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             this
         }
     }
-    
+
     /**
      * Add a new bridge with the given name.
      *
@@ -1166,7 +1167,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 } else {
                     assume(ifs.get(0) == null, "Invalid JSON object.")
                     List()
-                } 
+                }
             log.debug("delPort: ifUUIDs = {}", ifUUIDs)
             for {
                 uuidArray <- ifUUIDs
@@ -1307,7 +1308,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         var tx = new Transaction(database)
         for { row <- controllerRows } {
             log.info("delAllOpenflowControllers: {}", row)
-            tx.delete(TableController, 
+            tx.delete(TableController,
                       Some(row.get(ColumnUUID).get(1).getTextValue))
         }
         doJsonRpc(tx)
@@ -1325,7 +1326,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         var tx = new Transaction(database)
         for { row <- controllerRows } {
             log.info("delTargetOpenflowControllers: {}", row)
-            tx.delete(TableController, 
+            tx.delete(TableController,
                       Some(row.get(ColumnUUID).get(1).getTextValue))
         }
         doJsonRpc(tx)
@@ -1476,7 +1477,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     if (a.getElements.isEmpty)
                         true
                     else
-                        if (a.get(0).getTextValue == "map" || 
+                        if (a.get(0).getTextValue == "map" ||
                             a.get(0).getTextValue == "set")
                             if (a.get(1).getElements.isEmpty)
                                 true
@@ -1774,7 +1775,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param qosType The type of the QoS such as 'linux-htb' or 'linux-hfcs'.
      *                Defaults to 'linux-htb'.bridgeName The name of the bridge
      *                to add the port to.
-     *                
+     *
      * @return A builder to set optional parameters of the QoS and add it.
      */
     override def addQos(qosType: String): QosBuilder =
@@ -1866,7 +1867,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     val queueUUID = queueUUIDNode.get(1).getTextValue
                 } tx.delete(TableQueue, Some(queueUUID))
             }
-            val portRows = select(TablePort, 
+            val portRows = select(TablePort,
                 List(List(ColumnQos, "includes", List("uuid", qosUUID))),
                 List(ColumnUUID, ColumnQos))
             for (portRow <- portRows) {
@@ -1904,7 +1905,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         tx.increment(TableOpenvSwitch, None, List(ColumnNextConfig))
         doJsonRpc(tx)
     }
-    
+
     /**
      * Unset the QoS from the port.
      *
@@ -1912,7 +1913,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     override def unsetPortQos(portName: String) = clearQos(portName, false)
 
-    
+
     /**
      * Clear and unset the QoS from the port.
      *
@@ -1993,7 +1994,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         queueBuilder
     }
 
-    
+
     /**
      * Delete the queue associated with with the UUID.
      *
