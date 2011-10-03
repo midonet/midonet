@@ -43,9 +43,12 @@ public class RouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    private String getSubDirectoryRoutePath(ZkNodeEntry<UUID, Route> entry)
+    private List<String> getSubDirectoryRoutePaths(ZkNodeEntry<UUID, Route> entry)
             throws ZkStateSerializationException, StateAccessException {
         // Determine whether to add the Route data under routers or ports.
+        // Router routes and logical port routes should also be added to the
+        // routing table.
+        List<String> ret = new ArrayList<String>();
         if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
             // Check what kind of port this is.
             PortZkManager portZkManager = new PortZkManager(zk, pathManager
@@ -57,12 +60,32 @@ public class RouteZkManager extends ZkManager {
                 throw new IllegalArgumentException(
                         "Can only add a route to a router");
             }
-            return pathManager.getPortRoutePath(entry.value.nextHopPort,
-                    entry.key);
+            ret.add(pathManager.getPortRoutePath(entry.value.nextHopPort,
+                    entry.key));
+            // If it's a logical port, add the route to the routing table.
+            if (port.value instanceof PortDirectory.LogicalRouterPortConfig)
+                ret.add(getRouteInRoutingTable(entry.value));
         } else {
-            return pathManager.getRouterRoutePath(entry.value.routerId,
-                    entry.key);
+            ret.add(pathManager.getRouterRoutePath(entry.value.routerId,
+                    entry.key));
+            // Add the route to the routing table.
+            ret.add(getRouteInRoutingTable(entry.value));
         }
+        return ret;
+    }
+
+    private String getRouteInRoutingTable(Route rt)
+            throws ZkStateSerializationException {
+        String rtStr;
+        try {
+            rtStr = new String(serialize(rt));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize Route data", e, Route.class);
+        }
+        String rtable = pathManager.getRouterRoutingTablePath(rt.routerId);
+        StringBuilder sb = new StringBuilder(rtable).append("/").append(rtStr);
+        return sb.toString();
     }
 
     /**
@@ -92,9 +115,12 @@ public class RouteZkManager extends ZkManager {
                     "Could not serialize Route data", e, Route.class);
         }
 
-        // Add under port or router
-        ops.add(Op.create(getSubDirectoryRoutePath(entry), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        // Add under port or router. Router routes and logical port routes
+        // should also be added to the routing table.
+        for (String path : getSubDirectoryRoutePaths(entry)) {
+            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        }
         return ops;
     }
 
@@ -111,21 +137,15 @@ public class RouteZkManager extends ZkManager {
      * @return A list of Op objects representing the operations to perform.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
+     * @throws StateAccessException 
      */
     public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
-            throws ZkStateSerializationException {
+            throws ZkStateSerializationException, StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         String routePath = pathManager.getRoutePath(entry.key);
         log.debug("Preparing to delete: " + routePath);
         ops.add(Op.delete(routePath, -1));
-        if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
-            String path = pathManager.getPortRoutePath(entry.value.nextHopPort,
-                    entry.key);
-            log.debug("Preparing to delete: " + path);
-            ops.add(Op.delete(path, -1));
-        } else {
-            String path = pathManager.getRouterRoutePath(entry.value.routerId,
-                    entry.key);
+        for (String path : getSubDirectoryRoutePaths(entry)) {
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
         }
