@@ -246,7 +246,9 @@ class CheckBridgeControllerOVS {
         }
     }
 
-    @Test @Ignore def testNewTapPort() = {
+    @Test 
+    @Ignore 
+    def testNewTapPort() = {
         log.info("testNewTapPort")
         serializeTestsSemaphore.acquire
         log.info("testNewTapPort has semaphore")
