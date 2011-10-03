@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -496,18 +497,21 @@ public class BridgeController extends AbstractController {
     public void clear() {
         log.info("clear");
 
-        // Using flowCount for the entries to delete from macPortMap prior
-        // to macPortMap.stop() means that entries which aren't in the 
-        // flowCount map because they're in the process of expiring 
-        // (delayedDelete) won't be removed.  
-        // TODO: Is this proper?
+        // Entries in macPortMap we own are either live with flows, in which
+        // case they're in flowCount; or are expiring, in which case they're
+        // in delayedDeletes.
         for (MacPort macPort : flowCount.keySet()) {
             log.info("clear: Deleting MAC-Port entry {} :: {}", macPort.mac,
                      macPort.port);
             expireMacPortEntry(macPort.mac, macPort.port, true);
         }
         flowCount.clear();
-        // TODO: Should we .cancel() all these Futures?
+        for (Map.Entry<MAC, PortFuture> entry : delayedDeletes.entrySet()) {
+            log.info("clear: Deleting MAC-Port entry {} :: {}", entry.getKey(),
+                     entry.getValue().port);
+            expireMacPortEntry(entry.getKey(), entry.getValue().port, true);
+            entry.getValue().future.cancel(false);
+        }
         delayedDeletes.clear();
 
         macPortMap.removeWatcher(macToPortWatcher);
