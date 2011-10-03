@@ -133,7 +133,9 @@ public class SelectLoop implements Reactor {
                         continue;
 
                     SelectListener callback = (SelectListener) sk.attachment();
-                    callback.handleEvent(sk);
+                    synchronized (this) {
+                        callback.handleEvent(sk);
+                    }
                 }
             }
 
