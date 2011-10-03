@@ -30,7 +30,6 @@ public class SelectLoop implements Reactor {
     protected boolean dontStop;
     protected Object registrationLock;
     protected int registrationRequests = 0;
-    protected Queue<Object[]> registrationQueue;
     protected Selector selector;
     protected long timeout;
     
@@ -52,8 +51,6 @@ public class SelectLoop implements Reactor {
     public SelectLoop(long timeout) throws IOException {
         dontStop = true;
         selector = SelectorProvider.provider().openSelector();
-        registrationLock = new Object();
-        registrationQueue = new ConcurrentLinkedQueue<Object[]>();
         this.timeout = timeout;
     }
     
@@ -70,7 +67,8 @@ public class SelectLoop implements Reactor {
     }
 
     @Override
-    public ScheduledFuture schedule(final Runnable runnable, long delay, TimeUnit unit) {
+    public ScheduledFuture schedule(final Runnable runnable, long delay, 
+                                    TimeUnit unit) {
         return executor.schedule(new Runnable() {
             @Override
             public void run() {
@@ -81,32 +79,19 @@ public class SelectLoop implements Reactor {
         }, delay, unit);
     }
 
-    public void register(SelectableChannel ch, int ops, Object arg)
-            throws ClosedChannelException {
-        registrationQueue.add(new Object[] {ch, ops, arg});
-    }
-
     /**
-     * Registers the supplied SelectableChannel with this SelectLoop. Note this
-     * method blocks until registration proceeds.  It is advised that
-     * SelectLoop is intialized with a timeout value when using this method.
+     * Registers the supplied SelectableChannel with this SelectLoop.
      * @param ch the channel
      * @param ops interest ops
      * @param arg argument that will be returned with the SelectListener
      * @return SelectionKey
      * @throws ClosedChannelException if channel was already closed
      */
-    public synchronized SelectionKey registerBlocking(SelectableChannel ch, int ops, SelectListener arg)
+    public SelectionKey register(SelectableChannel ch, int ops, 
+                                 SelectListener arg)
             throws ClosedChannelException {
-        synchronized (registrationLock) {
-            registrationRequests++;
-        }
-        selector.wakeup();
         SelectionKey key = ch.register(selector, ops, arg);
-        synchronized (registrationLock) {
-            registrationRequests--;
-            registrationLock.notifyAll();
-        }
+        selector.wakeup();
         return key;
     }
 
@@ -118,17 +103,13 @@ public class SelectLoop implements Reactor {
         log.debug("doLoop");
         
         int nEvents;
-        processRegistrationQueue();
 
         while (dontStop) {
             log.debug("looping");
           
             nEvents = selector.select(timeout);
             if (nEvents > 0) {
-                for (Iterator<SelectionKey> i = selector.selectedKeys().iterator(); i.hasNext();) {
-                    SelectionKey sk = i.next();
-                    i.remove();
-
+                for (SelectionKey sk : selector.selectedKeys()) {
                     if (!sk.isValid())
                         continue;
 
@@ -137,36 +118,9 @@ public class SelectLoop implements Reactor {
                         callback.handleEvent(sk);
                     }
                 }
+                selector.selectedKeys().clear();
             }
 
-            if (this.registrationQueue.size() > 0)
-                processRegistrationQueue();
-
-            if (registrationRequests > 0) {
-                synchronized (registrationLock) {
-                    while (registrationRequests > 0) {
-                        try {
-                            registrationLock.wait();
-                        } catch (InterruptedException e) {
-                            log.warn("doLoop", e);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    protected void processRegistrationQueue() {
-        // add any elements in queue
-        for (Iterator<Object[]> it = registrationQueue.iterator(); it.hasNext();) {
-            Object[] args = it.next();
-            SelectableChannel ch = (SelectableChannel) args[0];
-            try {
-                ch.register(selector, (Integer) args[1], args[2]);
-            } catch (ClosedChannelException e) {
-                log.warn("processRegistrationQueue", e);
-            }
-            it.remove();
         }
     }
 
