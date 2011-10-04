@@ -15,9 +15,9 @@ import org.junit.Test;
 public class TestSelectLoop implements SelectListener {
 
     @Test
-    public void testRegisterDuringSelect() 
+    public void testRegisterDuringSelect()
                 throws IOException, InterruptedException {
-        final SelectLoop reactor = 
+        final SelectLoop reactor =
                     new SelectLoop(Executors.newScheduledThreadPool(1));
         final Semaphore sem = new Semaphore(0);
         Thread registerThread = new Thread(
@@ -28,7 +28,7 @@ public class TestSelectLoop implements SelectListener {
                         Thread.sleep(100);
                         SelectableChannel socket = ServerSocketChannel.open();
                         socket.configureBlocking(false);
-                        reactor.register(socket, SelectionKey.OP_ACCEPT, 
+                        reactor.register(socket, SelectionKey.OP_ACCEPT,
                                          TestSelectLoop.this);
                         fail("register should have thrown");
                     } catch (Exception e) {}
@@ -40,7 +40,7 @@ public class TestSelectLoop implements SelectListener {
 
         registerThread.join();
     }
-                
+
     @Override
     public void handleEvent(SelectionKey key) { }
 }
