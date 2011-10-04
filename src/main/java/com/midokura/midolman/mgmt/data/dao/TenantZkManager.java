@@ -14,6 +14,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
@@ -29,6 +31,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 public class TenantZkManager extends ZkManager {
 
     private ZkMgmtPathManager zkMgmtPathManager = null;
+    private final static Logger log = LoggerFactory
+            .getLogger(TenantZkManager.class);
 
     /**
      * TenantZkManager constructor.
@@ -43,6 +47,44 @@ public class TenantZkManager extends ZkManager {
         zkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
     }
 
+    public void delete(UUID id) throws StateAccessException,
+            ZkStateSerializationException, UnsupportedOperationException {
+        List<Op> ops = new ArrayList<Op>();
+        Set<String> routers = getChildren(
+                zkMgmtPathManager.getTenantRoutersPath(id), null);
+        RouterZkManagerProxy routerManager = new RouterZkManagerProxy(zk,
+                pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
+        for (String router : routers) {
+            ops.addAll(routerManager.prepareRouterDelete(UUID
+                    .fromString(router)));
+        }
+
+        Set<String> bridges = getChildren(
+                zkMgmtPathManager.getTenantBridgesPath(id), null);
+        BridgeZkManagerProxy bridgeManager = new BridgeZkManagerProxy(zk,
+                pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
+        for (String bridge : bridges) {
+            ops.addAll(bridgeManager.prepareDelete(UUID.fromString(bridge)));
+        }
+
+        String path = zkMgmtPathManager.getTenantBridgeNamesPath(id);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+        path = zkMgmtPathManager.getTenantRouterNamesPath(id);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+        path = zkMgmtPathManager.getTenantBridgesPath(id);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+        path = zkMgmtPathManager.getTenantRoutersPath(id);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+        path = zkMgmtPathManager.getTenantPath(id);
+        log.debug("Preparing to delete: " + path);
+        ops.add(Op.delete(path, -1));
+        multi(ops);
+    }
+    
     /**
      * Add a new tenant entry in the ZooKeeper directory.
      * 
@@ -56,20 +98,6 @@ public class TenantZkManager extends ZkManager {
      */
     public UUID create() throws StateAccessException {
         return create(null);
-    }
-
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
-        List<Op> ops = new ArrayList<Op>();
-        Set<String> routers = getChildren(zkMgmtPathManager
-                .getTenantRoutersPath(id), null);
-        RouterZkManagerProxy routerManager = new RouterZkManagerProxy(zk,
-                pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
-        for (String router : routers) {
-            ops.addAll(routerManager.prepareRouterDelete(UUID
-                    .fromString(router)));
-        }
-        multi(ops);
     }
 
     /**
