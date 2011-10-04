@@ -50,9 +50,11 @@ public class Condition {
          * then return the value of 'conjunctionInv'. If the conjunction
          * evaluates to true, then we return 'NOT conjunctionInv'.
          */
-        if (null != inPortIds && inPortIds.contains(inPortId) == inPortInv)
+        if (null != inPortIds && inPortIds.size() > 0
+                && inPortIds.contains(inPortId) == inPortInv)
             return conjunctionInv;
-        if (null != outPortIds && outPortIds.contains(outPortId) == outPortInv)
+        if (null != outPortIds && outPortIds.size() > 0
+                && outPortIds.contains(outPortId) == outPortInv)
             return conjunctionInv;
         if (nwTos != 0
                 && (nwTos == pktMatch.getNetworkTypeOfService()) == nwTosInv)

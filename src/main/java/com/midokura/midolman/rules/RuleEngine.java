@@ -159,6 +159,7 @@ public class RuleEngine {
 
         // Initialize rules that need it.
         for (Rule r : curRules) {
+            log.debug("Added rule: {}", r);
             if (r instanceof NatRule)
                 ((NatRule) r).setNatMapping(natMap);
         }
