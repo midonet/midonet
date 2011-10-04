@@ -9,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
+import static org.junit.Assert.fail;
 import org.junit.Test;
 
 public class TestSelectLoop implements SelectListener {
@@ -19,26 +20,25 @@ public class TestSelectLoop implements SelectListener {
         final SelectLoop reactor = 
                     new SelectLoop(Executors.newScheduledThreadPool(1));
         final Semaphore sem = new Semaphore(0);
-        Thread reactorThread = new Thread(
+        Thread registerThread = new Thread(
             new Runnable() {
                 public void run() {
-                    sem.release();
                     try {
-                        reactor.doLoop();
-                    } catch (IOException e) {}
+                        // Make sure we've entered the select() call.
+                        Thread.sleep(100);
+                        SelectableChannel socket = ServerSocketChannel.open();
+                        socket.configureBlocking(false);
+                        reactor.register(socket, SelectionKey.OP_ACCEPT, 
+                                         TestSelectLoop.this);
+                        fail("register should have thrown");
+                    } catch (Exception e) {}
+                    reactor.shutdown();
                 }
             });
-        reactorThread.start();
-        sem.acquire();
-        // Make sure we've entered the select() call.
-        Thread.sleep(100);
-        SelectableChannel socket = ServerSocketChannel.open();
-        socket.configureBlocking(false);
-        System.err.println("Calling register");
-        reactor.register(socket, SelectionKey.OP_ACCEPT, this);
-        System.err.println("Back from register");
-        reactor.shutdown();
-        reactorThread.join();
+        registerThread.start();
+        reactor.doLoop();
+
+        registerThread.join();
     }
                 
     @Override

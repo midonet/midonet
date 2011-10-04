@@ -32,6 +32,7 @@ public class SelectLoop implements Reactor {
     // The timeout value in milliseconds that select will be called with
     // (currently zero, may be settable in the future).
     protected long timeout;
+    protected Thread reactorThread;
 
     protected ScheduledExecutorService executor;
 
@@ -41,6 +42,7 @@ public class SelectLoop implements Reactor {
         this.timeout = 0;
 
         this.executor = executor;
+        reactorThread = Thread.currentThread();
     }
 
     @Override
@@ -79,8 +81,15 @@ public class SelectLoop implements Reactor {
     public SelectionKey register(SelectableChannel ch, int ops,
                                  SelectListener arg)
             throws ClosedChannelException {
-        SelectionKey key = ch.register(selector, ops, arg);
-        return key;
+        if (Thread.currentThread() != reactorThread) {
+            throw new RuntimeException("SelectLoop.register() must be called " +
+                                       "from reactor thread");
+            // This is because nio.channel.register contends with select for
+            // a lock, though this is not documented, causing register to block.
+            // To call register from another thread, use SelectLoop.submit
+            // to move the call to the reactor thread.
+        }
+        return ch.register(selector, ops, arg);
     }
 
     /**
@@ -89,6 +98,10 @@ public class SelectLoop implements Reactor {
      **/
     public void doLoop() throws IOException {
         log.debug("doLoop");
+        if (Thread.currentThread() != reactorThread) {
+            throw new RuntimeException("SelectLoop.doLoop() must be called " +
+                                       "from reactor thread");
+        }
 
         int nEvents;
 
