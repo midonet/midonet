@@ -164,7 +164,7 @@ public class TestBridgeController {
         // for no VLAN in use.
         // TODO:  Which is really proper, 0 or 0xFFFF ?
         //match.setDataLayerVirtualLanPriorityCodePoint((byte)0);
-        match.setNetworkTypeOfService((byte)0);
+        // match.setNetworkTypeOfService((byte)0);
         return match;
     }
 

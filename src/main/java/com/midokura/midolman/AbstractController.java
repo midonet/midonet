@@ -347,7 +347,10 @@ public abstract class AbstractController
         // match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
         if (data.getEtherType() == IPv4.ETHERTYPE) {
             IPv4 packet = (IPv4) data.getPayload();
-            match.setNetworkTypeOfService(packet.getDiffServ());
+            // Should we wildcard TOS, so that packets differing in TOS
+            // are considered part of the same flow?  Going with "yes"
+            // for now.
+            // match.setNetworkTypeOfService(packet.getDiffServ());
             match.setNetworkProtocol(packet.getProtocol());
             match.setNetworkSource(packet.getSourceAddress());
             match.setNetworkDestination(packet.getDestinationAddress());
