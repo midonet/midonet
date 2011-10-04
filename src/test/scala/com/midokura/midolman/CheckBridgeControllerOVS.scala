@@ -147,19 +147,23 @@ object CheckBridgeControllerOVS extends SelectListener {
         assertTrue(ovsdb.hasController(target))
     }
 
-    def handleEvent(key: SelectionKey) = {
+    def handleEvent(key: SelectionKey): Unit = {
         log.info("handleEvent {}", key)
 
         var sock = listenSock.accept
-        log.info("accepted connection from {}", 
+        if (sock == null) {
+            log.info("Couldn't accept connection -- isAcceptable() = {}",
+                     key.isAcceptable)
+            return
+        }
+        log.info("accepted connection from {}",
                  sock.socket.getRemoteSocketAddress)
         sock.socket.setTcpNoDelay(true)
         sock.configureBlocking(false)
-        
+
         var controllerStub = new ControllerStubImpl(sock, reactor, controller)
-        var switchKey = reactor.registerBlocking(sock, SelectionKey.OP_READ,
-                                                 controllerStub)
-        switchKey.interestOps(SelectionKey.OP_READ)
+        var switchKey = reactor.register(sock, SelectionKey.OP_READ,
+                                         controllerStub)
         reactor.wakeup
         controllerStub.start
     }
