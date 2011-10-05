@@ -105,7 +105,6 @@ public class LogicalRouterPort extends RouterPort {
         PeerRouterLink link = new PeerRouterLink();
         link.setPortId(this.getId());
         link.setPeerPortId(peerId);
-        link.setPeerRouterId(peerRouterId);
         return link;
     }
 

@@ -328,7 +328,7 @@ public class RouterResource extends RestResource {
                 throw new UnknownRestApiException(e);
             }
             URI uri = uriInfo.getBaseUriBuilder().path(
-                    "routers/" + peerRouter.getPeerRouterId()).build();
+                    "routers/" + port.getPeerRouterId()).build();
             return Response.created(uri).entity(peerRouter).build();
         }
 

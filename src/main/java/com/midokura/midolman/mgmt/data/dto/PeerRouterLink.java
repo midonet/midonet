@@ -22,7 +22,6 @@ public class PeerRouterLink {
 
     private UUID portId = null;
     private UUID peerPortId = null;
-    private UUID peerRouterId = null;
 
     /**
      * @return the portId
@@ -52,21 +51,6 @@ public class PeerRouterLink {
      */
     public void setPeerPortId(UUID peerPortId) {
         this.peerPortId = peerPortId;
-    }
-
-    /**
-     * @return the peerRouterId
-     */
-    public UUID getPeerRouterId() {
-        return peerRouterId;
-    }
-
-    /**
-     * @param peerRouterId
-     *            the peerRouterId to set
-     */
-    public void setPeerRouterId(UUID peerRouterId) {
-        this.peerRouterId = peerRouterId;
     }
 
     public PeerRouterConfig toConfig() {
