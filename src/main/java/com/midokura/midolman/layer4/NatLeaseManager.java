@@ -126,9 +126,11 @@ public class NatLeaseManager implements NatMapping {
                 oldTpDst);
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(newNwDst, newTpDst));
+        log.debug("allocateDnat forward cache key {}", key);
         key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst, newTpDst);
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(oldNwDst, oldTpDst));
+        log.debug("allocateDnat reverse cache key {}", key);
         return new NwTpPair(newNwDst, newTpDst);
     }
 
@@ -214,6 +216,7 @@ public class NatLeaseManager implements NatMapping {
         cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
         refreshKeys.add(reverseKey);
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
+        log.debug("allocateSnat fwd key {} and rev key {}", key, reverseKey);
         return true;
     }
 
