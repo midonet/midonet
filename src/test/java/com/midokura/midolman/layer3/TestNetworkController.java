@@ -416,6 +416,8 @@ public class TestNetworkController {
         Ethernet eth = TestRouter.makeUDP(mac, new MAC(phyPort.getHardwareAddress()),
                 0x0a010005, 0x0a010305, (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
+        // Test de-serialization by padding the data array with extra bytes.
+        data = Arrays.copyOf(data, data.length + 3);
         networkCtrl.onPacketIn(11111, data.length, phyPort.getPortNumber(),
                 data);
         // Along with the 'drop' flow, we expect an ICMP X.
