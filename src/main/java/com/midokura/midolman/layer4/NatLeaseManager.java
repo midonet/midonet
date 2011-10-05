@@ -27,6 +27,7 @@ public class NatLeaseManager implements NatMapping {
 
     private static final Logger log = LoggerFactory
             .getLogger(NatLeaseManager.class);
+    private static final int USHORT = 0xffff;
 
     public static final int REFRESH_SECONDS = 30;
     public static final String FWD_DNAT_PREFIX = "dnatfwd";
@@ -84,22 +85,20 @@ public class NatLeaseManager implements NatMapping {
             for (String key : refreshKeys) {
                 cache.getAndTouch(key);
             }
-            // Re-schedule this runnable if it's the 
+            // Re-schedule this runnable.
             reactor.schedule(this, REFRESH_SECONDS, TimeUnit.SECONDS);
         }
-        
+
     }
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst, Set<NatTarget> nats, MidoMatch origMatch) {
-        log.debug("allocateDnat: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {} nats {}", new Object[] {
-                nwSrc,
-                tpSrc,
-                oldNwDst,
-                oldTpDst,
-                nats});
-        
+        log.debug("allocateDnat: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {} "
+                + "nats {}", new Object[] { IPv4.fromIPv4Address(nwSrc),
+                tpSrc & USHORT, IPv4.fromIPv4Address(oldNwDst),
+                oldTpDst & USHORT, nats });
+
         // This throws IllegalArgumentException if nats.size() is zero.
         int natPos = rand.nextInt(nats.size());
         Iterator<NatTarget> iter = nats.iterator();
@@ -109,10 +108,11 @@ public class NatLeaseManager implements NatMapping {
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
         short newTpDst = (short) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
         log.debug("{} DNAT allocated new DST {}:{} to flow from {}:{} to "
-                + "{}:{}", new Object[] { rtrIdStr,
-                IPv4.fromIPv4Address(newNwDst), newTpDst,
-                IPv4.fromIPv4Address(nwSrc), tpSrc,
-                IPv4.fromIPv4Address(oldNwDst), oldTpDst });
+                + "{}:{}",
+                new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwDst),
+                        newTpDst & USHORT, IPv4.fromIPv4Address(nwSrc),
+                        tpSrc & USHORT, IPv4.fromIPv4Address(oldNwDst),
+                        oldTpDst & USHORT });
 
         Set<String> refreshKeys = matchToNatKeys.get(origMatch);
         if (null == refreshKeys) {
@@ -134,8 +134,8 @@ public class NatLeaseManager implements NatMapping {
 
     public static String makeCacheKey(String prefix, int nwSrc, short tpSrc,
             int nwDst, short tpDst) {
-        return String.format("%s%08x%d%08x%d", prefix, nwSrc, tpSrc, nwDst,
-                tpDst);
+        return String.format("%s%08x:%d:%08x:%d", prefix, nwSrc,
+                tpSrc & USHORT, nwDst, tpDst & USHORT);
     }
 
     public static String makeCacheValue(int nwAddr, short tpPort) {
@@ -144,20 +144,21 @@ public class NatLeaseManager implements NatMapping {
 
     private NwTpPair lookupNwTpPair(String key) {
         log.debug("lookupNwTpPair: {}", key);
-        
+
         String value = cache.get(key);
         if (null == value)
             return null;
         String[] parts = value.split("/");
-        return new NwTpPair((int) Long.parseLong(parts[0], 16), (short) Integer
-                .parseInt(parts[1]));
+        return new NwTpPair((int) Long.parseLong(parts[0], 16),
+                (short) Integer.parseInt(parts[1]));
     }
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst) {
         log.debug("lookupDnatFwd: nwSrt {} tpSrc {} oldNwDst {} oldTpDst {}",
-                new Object[] {nwSrc, tpSrc, oldNwDst, oldTpDst});
+                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc & USHORT,
+                        IPv4.fromIPv4Address(oldNwDst), oldTpDst & USHORT });
 
         return lookupNwTpPair(makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
                 oldNwDst, oldTpDst));
@@ -167,8 +168,9 @@ public class NatLeaseManager implements NatMapping {
     public NwTpPair lookupDnatRev(int nwSrc, short tpSrc, int newNwDst,
             short newTpDst) {
         log.debug("lookupDnatFwd: nwSrc {} tpSrc {} newNwDst {} newTpDst {}",
-                new Object[] {nwSrc, tpSrc, newNwDst, newTpDst});
-        
+                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc & USHORT,
+                        IPv4.fromIPv4Address(newNwDst), newTpDst & USHORT });
+
         return lookupNwTpPair(makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 newNwDst, newTpDst));
     }
@@ -176,23 +178,28 @@ public class NatLeaseManager implements NatMapping {
     private boolean makeSnatReservation(int oldNwSrc, short oldTpSrc,
             int newNwSrc, short newTpSrc, int nwDst, short tpDst,
             MidoMatch match) {
-        log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} newTpSrc {} tpDst",
-                new Object[] {oldNwSrc, oldTpSrc, newNwSrc, newTpSrc, tpDst});
-        
-        String reverseKey = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc, nwDst,
-                tpDst);
+        log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
+                + "newTpSrc {} nw Dst {} tpDst {}",
+                new Object[] { IPv4.fromIPv4Address(oldNwSrc),
+                        oldTpSrc & USHORT, IPv4.fromIPv4Address(newNwSrc),
+                        newTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
+                        tpDst & USHORT });
+
+        String reverseKey = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
+                nwDst, tpDst);
         if (null != cache.get(reverseKey)) {
             log.warn("{} Snat encountered a collision reserving SRC {}:{}",
                     new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
-                            newTpSrc });
+                            newTpSrc & USHORT });
             return false;
         }
         // If we got here, we can use this port.
         log.debug("{} SNAT reserved new SRC {}:{} for flow from {}:{} to "
-                + "{}:{}", new Object[] { rtrIdStr,
-                IPv4.fromIPv4Address(newNwSrc), newTpSrc,
-                IPv4.fromIPv4Address(oldNwSrc), oldTpSrc,
-                IPv4.fromIPv4Address(nwDst), tpDst });
+                + "{}:{}",
+                new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
+                        newTpSrc & USHORT, IPv4.fromIPv4Address(oldNwSrc),
+                        oldTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
+                        tpDst & USHORT });
         Set<String> refreshKeys = matchToNatKeys.get(match);
         if (null == refreshKeys) {
             refreshKeys = new HashSet<String>();
@@ -201,7 +208,8 @@ public class NatLeaseManager implements NatMapping {
                     match), REFRESH_SECONDS, TimeUnit.SECONDS);
             matchToFuture.put(match, future);
         }
-        String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst, tpDst);
+        String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
+                tpDst);
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
         refreshKeys.add(reverseKey);
@@ -321,8 +329,10 @@ public class NatLeaseManager implements NatMapping {
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
             short tpDst) {
         log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst",
-                new Object[] {oldNwSrc, oldTpSrc, nwDst, tpDst});
-        
+                new Object[] { IPv4.fromIPv4Address(oldNwSrc),
+                        oldTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
+                        tpDst & USHORT });
+
         return lookupNwTpPair(makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
                 nwDst, tpDst));
     }
@@ -331,8 +341,10 @@ public class NatLeaseManager implements NatMapping {
     public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
             short tpDst) {
         log.debug("lookupSnatRev: newNwSrc {} newTpSrc {} nwDst {} tpDst",
-                new Object[] {newNwSrc, newTpSrc, nwDst, tpDst});
-        
+                new Object[] { IPv4.fromIPv4Address(newNwSrc),
+                        newTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
+                        tpDst & USHORT });
+
         return lookupNwTpPair(makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
                 nwDst, tpDst));
     }
@@ -340,7 +352,7 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public void updateSnatTargets(Set<NatTarget> targets) {
         log.warn("updateSnatTargets: {}", targets);
-        
+
         // TODO Auto-generated method stub
 
     }
@@ -348,7 +360,7 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public void freeFlowResources(OFMatch match) {
         log.debug("freeFlowResources: match {}", match);
-        
+
         // Cancel refreshing of any keys associated with this match.
         matchToNatKeys.remove(match);
         ScheduledFuture future = matchToFuture.remove(match);
