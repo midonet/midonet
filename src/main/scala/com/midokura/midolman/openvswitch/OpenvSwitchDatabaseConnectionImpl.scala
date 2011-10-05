@@ -597,6 +597,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         private var bridgeRow = Map[String, Any](ColumnName -> name,
                                                  ColumnDatapathType -> "")
         private var bridgeExternalIds = Map[String, String]()
+        private var bridgeOtherConfigs = Map[String, String]()
 
         /**
          * Add an external id.
@@ -607,6 +608,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          */
         override def externalId(key: String, value: String) = {
             bridgeExternalIds += (key -> value)
+            this
+        }
+        
+        /**
+         * Add an other config.
+         *
+         * @param key The key of the other config entry.
+         * @param key The value of the other config entry.
+         * @return This SBridgeBuilder instance.
+         */
+        override def otherConfig(key: String, value: String) = {
+            bridgeOtherConfigs += (key -> value)
             this
         }
 
@@ -634,14 +647,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             val bridgeUUID = generateUUID
             bridgeRow += (ColumnPorts -> getNewRowOvsUUID(portUUID))
             bridgeRow += (ColumnExternalIds -> mapToOvsMap(bridgeExternalIds))
+            bridgeRow += (ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfigs))
             tx.insert(TableBridge, bridgeUUID, bridgeRow)
             tx.setInsert(TableOpenvSwitch, None, ColumnBridges,
                          getNewRowOvsUUID(bridgeUUID))
             val extIds: Iterable[String] =
                 for ((k, v) <- bridgeExternalIds) yield "%s=%s".format(k, v)
             val extIdsStr: String = extIds.mkString(", ")
-            tx.addComment("added bridge %s with external ids %s.".format(
-                bridgeUUID, extIdsStr))
+            val otherConf: Iterable[String] =
+                for ((k, v) <- bridgeOtherConfigs) yield "%s=%s".format(k, v)
+            val otherConfStr: String = otherConf.mkString(", ")
+            tx.addComment("added bridge %s with external ids %s and other config %s.".format(
+                bridgeUUID, extIdsStr, otherConfStr))
             tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
             doJsonRpc(tx)
         }
