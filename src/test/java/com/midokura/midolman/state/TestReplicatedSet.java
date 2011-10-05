@@ -142,15 +142,13 @@ public class TestReplicatedSet {
         Assert.assertEquals(testStrings, stringSet.getStrings());
     }
 
-    @Test(expected = KeeperException.NodeExistsException.class)
     public void testAddStringExists() throws KeeperException,
             InterruptedException {
+        // Since the stringSet's CreateMode is EPHEMERAL, it does not throw
+        // NodeExists exceptions - it overwrites the existing node to claim
+        // ownership.
         stringSet.start();
-        try {
-            stringSet.add("foo");
-        } catch (KeeperException.NodeExistsException e) {
-            Assert.fail();
-        }
+        stringSet.add("foo");
         stringSet.add("foo");
     }
 

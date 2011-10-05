@@ -59,7 +59,7 @@ object CheckBridgeControllerOVS extends SelectListener {
     private final var controller: BridgeControllerTester = _
     private var zkDir = new MockDirectory
     private final val zkRoot = "/zk_root"
-    private final val of_port = 6634
+    private final val of_port = 6635
     private final var listenSock: ServerSocketChannel = _
     private final var reactor: SelectLoop = _
     private final var tookTooLong: ScheduledFuture[_] = _

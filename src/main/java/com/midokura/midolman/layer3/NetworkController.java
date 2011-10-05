@@ -371,10 +371,9 @@ public class NetworkController extends AbstractController {
                             fwdInfo.pktIn, fwdInfo.outPortId);
                     return;
                 }
-                
-                log.debug("onPacketIn: FORWARDing to remote port {}", 
-                          tunPortNum);
 
+                log.debug("onPacketIn: FORWARDing to tunnel port {}",
+                        tunPortNum);
                 MAC[] dlHeaders = getDlHeadersForTunnel(
                         ShortUUID.UUID32toInt(fwdInfo.inPortId),
                         ShortUUID.UUID32toInt(fwdInfo.outPortId),

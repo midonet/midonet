@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +94,15 @@ public abstract class ReplicatedSet<T> {
     public void add(T item) throws KeeperException, InterruptedException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
-        dir.add("/" + encode(item), null, createMode);
+        String path = "/" + encode(item);
+        try {
+            dir.add(path, null, createMode);
+        } catch (NodeExistsException e) {
+            // If the route already exists, we overwrite it to make sure it
+            // belongs to us. Otherwise it may disappear later.
+            if (createMode.equals(CreateMode.EPHEMERAL))
+                dir.update(path, null);
+        }
     }
 
     public void remove(T item) throws KeeperException, InterruptedException {
