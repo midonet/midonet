@@ -656,14 +656,10 @@ public class Rule {
         this.setInvOutPorts(c.outPortInv);
         this.setInvTpDst(c.tpDstInv);
         this.setInvTpSrc(c.tpSrcInv);
-        if (c.nwDstIp > 0) {
-            this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
-        }
+        this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
         this.setNwDstLength(c.nwDstLength);
         this.setNwProto(c.nwProto);
-        if (c.nwSrcIp > 0) {
-            this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
-        }
+        this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
         this.setNwSrcLength(c.nwSrcLength);
         this.setNwTos(c.nwTos);
         if (c.outPortIds != null) {
