@@ -42,6 +42,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
+@Path("/rules")
 public class RuleResource extends RestResource {
 
     private final static Logger log = LoggerFactory
