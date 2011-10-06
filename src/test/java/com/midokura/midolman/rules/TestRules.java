@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.midokura.midolman.layer4.MockNatMapping;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class TestRules {
@@ -34,7 +35,7 @@ public class TestRules {
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setNetworkSource(0x0a001406, 32);
         pktMatch.setNetworkDestination(0x0a000b22, 32);
-        pktMatch.setNetworkProtocol((byte) 8);
+        pktMatch.setNetworkProtocol((byte) 6); // TCP
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource((short) 4321);
         pktMatch.setTransportDestination((short) 1234);
@@ -44,7 +45,7 @@ public class TestRules {
         pktResponseMatch.setDataLayerSource("02:11:aa:ee:22:05");
         pktResponseMatch.setNetworkDestination(0x0a001406, 32);
         pktResponseMatch.setNetworkSource(0x0a000b22, 32);
-        pktResponseMatch.setNetworkProtocol((byte) 8);
+        pktResponseMatch.setNetworkProtocol((byte) 6); // TCP
         pktResponseMatch.setNetworkTypeOfService((byte) 34);
         pktResponseMatch.setTransportDestination((short) 4321);
         pktResponseMatch.setTransportSource((short) 1234);

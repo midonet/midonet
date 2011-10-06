@@ -211,7 +211,7 @@ public class RuleEngine {
      *            matches the packet that originally entered the datapath. It
      *            will NOT be modified by the rule chain.
      * @param pktMatch
-     *            matches the packet that would be seen in thir router/chain. It
+     *            matches the packet that would be seen in this router/chain. It
      *            will NOT be modified by the rule chain.
      * @param inPortId
      * @param outPortId
