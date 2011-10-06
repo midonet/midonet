@@ -14,7 +14,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +43,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
@@ -62,7 +62,7 @@ public class TestBridgeController {
     private PortToIntNwAddrMap portLocMap;
     private MacPortMap macPortMap;
     private MockOpenvSwitchDatabaseConnection ovsdb;
-    private InetAddress publicIp;
+    private IntIPv4 publicIp;
     int dp_id = 43;
     MockControllerStub controllerStub;
     UUID portUuids[];
@@ -171,8 +171,7 @@ public class TestBridgeController {
     @Before
     public void setUp() throws java.lang.Exception {
         ovsdb = new MockOpenvSwitchDatabaseConnection();
-        publicIp = InetAddress.getByAddress(
-                       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
+        publicIp = IntIPv4.fromString("192.168.1.50");
 
         // 'util_setup_controller_test':
         // Create portUuids:
@@ -294,8 +293,7 @@ public class TestBridgeController {
             // First three ports are local.  The rest are tunneled.
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(
-                                            Net.convertStringAddressToInt(
-                                                    peerStrList[i])));
+                                           IntIPv4.fromString(peerStrList[i])));
             controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
         }
     }
@@ -580,7 +578,7 @@ public class TestBridgeController {
         MAC dstMac = MAC.fromString("00:AA:AA:AA:AA:01");
         UUID dstUuid = UUID.fromString("251cbfb6-9ca1-4685-9320-c7203c4ffff2");
         macPortMap.put(dstMac, dstUuid);
-        portLocMap.put(dstUuid, Net.convertInetAddressToInt(publicIp));
+        portLocMap.put(dstUuid, new Integer(publicIp.address));
         Ethernet packet = makePacket(srcMac, dstMac);
         MidoMatch flowmatch = makeFlowMatch(srcMac, dstMac);
         
