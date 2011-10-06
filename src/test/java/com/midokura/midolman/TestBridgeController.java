@@ -44,6 +44,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
@@ -294,8 +295,7 @@ public class TestBridgeController {
             // First three ports are local.  The rest are tunneled.
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(
-                                            Net.convertStringAddressToInt(
-                                                    peerStrList[i])));
+                                           IntIPv4.fromString(peerStrList[i])));
             controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
         }
     }

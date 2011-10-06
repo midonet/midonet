@@ -33,6 +33,7 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.LLDP;
 import com.midokura.midolman.packets.LLDPTLV;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
@@ -111,12 +112,12 @@ class AbstractControllerTester extends AbstractController {
     }
 
     @Override
-    public String makeGREPortName(int a) {
+    public String makeGREPortName(IntIPv4 a) {
         return super.makeGREPortName(a);
     }
 
     @Override
-    public Integer peerIpOfGrePortName(String s) {
+    public IntIPv4 peerIpOfGrePortName(String s) {
         return super.peerIpOfGrePortName(s);
     }
 }
@@ -139,13 +140,15 @@ public class TestAbstractController {
     public Logger log = LoggerFactory.getLogger(TestAbstractController.class);
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnknownHostException {
         dp_id = 43;
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
         mockDir = new MockDirectory();
         portLocMap = new PortToIntNwAddrMap(mockDir);
 
+        InetAddress publicIp = InetAddress.getByAddress(
+                       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
         controller = new AbstractControllerTester(
                              dp_id /* datapathId */,
                              UUID.randomUUID() /* switchUuid */,
@@ -154,7 +157,7 @@ public class TestAbstractController {
                              portLocMap /* portLocationMap */,
                              (short)300 /* flowExpireSeconds */,
                              60 * 1000 /* idleFlowExpireMillis */,
-                             null /* internalIp */);
+                             publicIp /* internalIp */);
         controller.setControllerStub(controllerStub);
 
         port1 = new OFPhysicalPort();
@@ -181,7 +184,7 @@ public class TestAbstractController {
         assertFalse(controller.isTunnelPortNum(37));
         assertTrue(controller.isTunnelPortNum(47));
         assertEquals(null, controller.peerOfTunnelPortNum(37));
-        assertEquals(0x0a001122, controller.peerOfTunnelPortNum(47).intValue());
+        assertEquals(0x0a001122, controller.peerOfTunnelPortNum(47).address);
     }
 
     @Test
@@ -226,8 +229,8 @@ public class TestAbstractController {
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
         assertEquals(port2uuid, controller.portNumToUuid.get(47));
         assertNull(controller.peerOfTunnelPortNum(37));
-        assertEquals(Net.convertStringAddressToInt("10.0.17.34"),
-                     controller.peerOfTunnelPortNum(47).intValue());
+        assertEquals("10.0.17.34",
+                     controller.peerOfTunnelPortNum(47).toString());
     }
 
     @Test
@@ -237,8 +240,8 @@ public class TestAbstractController {
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
         controller.onPortStatus(port2, OFPortReason.OFPPR_MODIFY);
         assertEquals(port2newUuid, controller.portNumToUuid.get(47));
-        assertEquals(Net.convertStringAddressToInt("10.0.17.35"),
-                     controller.peerOfTunnelPortNum(47).intValue());
+        assertEquals("10.0.17.35",
+                     controller.peerOfTunnelPortNum(47).toString());
     }
 
     @Test
@@ -262,21 +265,21 @@ public class TestAbstractController {
 
     @Test
     public void testMakeGREPortName() {
-        assertEquals("tne1234ff0011aa", controller.makeGREPortName(0xff0011aa));
+        assertEquals("tne1234ff0011aa", 
+                     controller.makeGREPortName(new IntIPv4(0xff0011aa)));
     }
 
     @Test
     public void testPeerIpOfGrePortName() {
         assertEquals(0xff0011aa,
-                controller.peerIpOfGrePortName("tne1234ff0011aa").intValue());
+                controller.peerIpOfGrePortName("tne1234ff0011aa").address);
     }
 
     @Test
     public void testPeerIpToTunnelPortNum() {
-        int peerIpInt = Net.convertStringAddressToInt("192.168.1.53");
-        String grePortName = controller.makeGREPortName(peerIpInt);
-        Integer peerIp = controller.peerIpOfGrePortName(grePortName);
-        assertEquals(new Integer(peerIpInt), peerIp);
+        IntIPv4 peerIP = IntIPv4.fromString("192.168.1.53");
+        String grePortName = controller.makeGREPortName(peerIP);
+        assertEquals(peerIP, controller.peerIpOfGrePortName(grePortName));
 
         OFPhysicalPort port = new OFPhysicalPort();
         port.setPortNumber((short) 54);
@@ -285,13 +288,14 @@ public class TestAbstractController {
         ovsdb.setPortExternalId(dp_id, 54, "midonet", 
                                 UUID.randomUUID().toString());
         controller.onPortStatus(port, OFPortReason.OFPPR_ADD);
-        log.debug("peerIpInt: {}", peerIpInt);
+        log.debug("peerIP: {}", peerIP);
         assertEquals(new Integer(54), 
-                     controller.tunnelPortNumOfPeer(peerIpInt));
+                     controller.tunnelPortNumOfPeer(peerIP));
     }
 
     @Test
     public void testPortLocMapListener() throws KeeperException {
+        ovsdb.addedGrePorts.clear();
         UUID portUuid = UUID.randomUUID();
         String path1 = "/"+portUuid.toString()+",255.0.17.170,";
         String path2 = "/"+portUuid.toString()+",255.0.17.172,";

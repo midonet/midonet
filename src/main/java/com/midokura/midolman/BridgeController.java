@@ -27,6 +27,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -248,14 +249,13 @@ public class BridgeController extends AbstractController {
         UUID outPort = macPortMap.get(dstDlAddress);
         log.info(outPort == null ? "no port found for MAC"
                                  : "MAC is on port " + outPort.toString());
-        int destIP = 0;
+        IntIPv4 destIP = null;
         OFAction[] actions;
 
         if (outPort != null) {
             try {
-                destIP = portLocMap.get(outPort).intValue();
-                log.debug("Destination port maps to host {}",
-                          Net.convertIntAddressToString(destIP));
+                destIP = new IntIPv4(portLocMap.get(outPort).intValue());
+                log.debug("Destination port maps to host {}", destIP);
             } catch (NullPointerException e) {
                 log.warn("No host found for port {}", outPort);
             }
@@ -268,8 +268,8 @@ public class BridgeController extends AbstractController {
             log.info("multicast src MAC, dropping packet");
         } else if (Ethernet.isMcast(dstDlAddress) ||
                    outPort == null ||
-                   destIP == 0 ||
-                   (destIP == publicIp &&
+                   destIP == null ||
+                   (destIP.equals(publicIp) &&
                         !portUuidToNumberMap.containsKey(outPort))) {
             // Flood if any of:
             //  * multicast destination MAC
@@ -296,8 +296,7 @@ public class BridgeController extends AbstractController {
         } else {
             // The virtual port is part of a remote datapath.  Tunnel the
             // packet to it.
-            log.info("send flow to peer at {}",
-                     Net.convertIntAddressToString(destIP));
+            log.info("send flow to peer at {}", destIP);
             if (isTunnelPortNum(inPort)) {
                 // The packet came in on a tunnel.  Don't send it out the
                 // tunnel to avoid loops.  Just drop.  The flow match will
@@ -415,11 +414,9 @@ public class BridgeController extends AbstractController {
     protected void deletePort(OFPhysicalPort portDesc) {
         short inPortNum = portDesc.getPortNumber();
         UUID inPortUuid = portNumToUuid.get(new Integer(inPortNum));
-        Integer peerIP = peerOfTunnelPortNum(inPortNum);
+        IntIPv4 peerIP = peerOfTunnelPortNum(inPortNum);
         log.info("Delete callback for port #{} ({}) => {}",
-                 new Object[] { inPortNum, inPortUuid,
-                                peerIP == null ? "null"
-                                    : Net.convertIntAddressToString(peerIP) });
+                 new Object[] { inPortNum, inPortUuid, peerIP });
         if (peerIP != null)
             invalidateFlowsToPeer(peerIP);
         if (inPortUuid == null)
@@ -478,8 +475,8 @@ public class BridgeController extends AbstractController {
             invalidateFlowsToMac(mac);
     }
 
-    private void invalidateFlowsToPeer(Integer peer_ip) {
-        List<UUID> remotePorts = port_locs.getByValue(peer_ip);
+    private void invalidateFlowsToPeer(IntIPv4 peer_ip) {
+        List<UUID> remotePorts = port_locs.getByValue(new Integer(peer_ip.address));
         for (UUID port : remotePorts) {
             log.info("Invalidating flows for port {}", port);
             invalidateFlowsToPortUuid(port);

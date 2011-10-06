@@ -49,6 +49,7 @@ import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
@@ -220,7 +221,8 @@ public class TestNetworkController {
                     portLocMap.put(portId, underlayIp);
                     // The new port id in portLocMap should have resulted
                     // in a call to to the mock ovsdb to open a gre port.
-                    phyPort.setName(networkCtrl.makeGREPortName(underlayIp));
+                    phyPort.setName(networkCtrl.makeGREPortName(
+                                        new IntIPv4(underlayIp)));
                     GrePort expectGrePort = new GrePort(
                             Long.toString(datapathId), phyPort.getName(),
                             Net.convertIntAddressToString(underlayIp));
