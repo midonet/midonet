@@ -379,11 +379,12 @@ public class TestBridgeController {
         short outPortNum = 3;
         MidoMatch expectMatch = flowmatch13.clone();
         expectMatch.setInputPort(inPortNum);
-        OFAction[] expectAction = { OUTPUT_ALL_ACTION };
+        // Drop if there's no tunnel.
+        OFAction[] expectAction = { };
         controller.onPortStatus(phyPorts[3], OFPortReason.OFPPR_DELETE);
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
         checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
-        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        assertEquals(0, controllerStub.sentPackets.size());
     }
 
     @Test
@@ -1077,15 +1078,15 @@ public class TestBridgeController {
         assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
                                           expectMatch));
 
-        // Send more packets.  They should make flood rules.
+        // Send more packets.  They should make drop rules.
         controllerStub.addedFlows.clear();
         controller.onPacketIn(14, 13, (short)2, packet26.serialize());
         controller.onPacketIn(14, 13, (short)2, packet27.serialize());
         
         assertEquals(2, controllerStub.addedFlows.size());
-        assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
+        assertArrayEquals(new OFAction[] { },
                           controllerStub.addedFlows.get(0).actions.toArray());
-        assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
+        assertArrayEquals(new OFAction[] { },
                           controllerStub.addedFlows.get(1).actions.toArray());
 
         // Bringing up port 7 again should invalidate MACs 6 & 7 (only).
