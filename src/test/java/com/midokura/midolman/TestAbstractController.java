@@ -5,8 +5,6 @@ package com.midokura.midolman;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
@@ -58,7 +56,7 @@ class AbstractControllerTester extends AbstractController {
             PortToIntNwAddrMap dict,
             short flowExpireSeconds,
             long idleFlowExpireMillis,
-            InetAddress internalIp) {
+            IntIPv4 internalIp) {
         super(datapathId, switchUuid, greKey, ovsdb, dict, internalIp, 
               "midonet");
         portsAdded = new ArrayList<OFPhysicalPort>();
@@ -140,15 +138,14 @@ public class TestAbstractController {
     public Logger log = LoggerFactory.getLogger(TestAbstractController.class);
 
     @Before
-    public void setUp() throws UnknownHostException {
+    public void setUp() {
         dp_id = 43;
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
         mockDir = new MockDirectory();
         portLocMap = new PortToIntNwAddrMap(mockDir);
 
-        InetAddress publicIp = InetAddress.getByAddress(
-                       new byte[] { (byte)192, (byte)168, (byte)1, (byte)50 });
+        IntIPv4 publicIp = IntIPv4.fromString("192.168.1.50");
         controller = new AbstractControllerTester(
                              dp_id /* datapathId */,
                              UUID.randomUUID() /* switchUuid */,
@@ -178,7 +175,7 @@ public class TestAbstractController {
     }
 
     @Test
-    public void testPortMap() throws UnknownHostException {
+    public void testPortMap() {
         assertEquals(37, controller.portUuidToNumber(port1uuid));
         assertEquals(47, controller.portUuidToNumber(port2uuid));
         assertFalse(controller.isTunnelPortNum(37));

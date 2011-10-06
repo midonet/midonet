@@ -144,8 +144,7 @@ public class TestNetworkController {
         service = new MockPortService(bgpMgr);
 
         // Now we can create the NetworkController itself.
-        InetAddress localNwAddr = InetAddress.getByName("192.168.1.4"); // 0xc0a80104;
-        int localNwAddrInt = Net.convertInetAddressToInt(localNwAddr);
+        IntIPv4 localNwIP = IntIPv4.fromString("192.168.1.4"); // 0xc0a80104
         datapathId = 43;
         // The mock cache has a 60 second expiration.
         cacheExpireSecs = 60; // Use an even number.
@@ -153,7 +152,7 @@ public class TestNetworkController {
         cache = new MockCache(reactor, cacheExpireSecs);
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, idleFlowTimeoutSeconds,
-                localNwAddr, portMgr, routerMgr, routeMgr, chainMgr, ruleMgr,
+                localNwIP, portMgr, routerMgr, routeMgr, chainMgr, ruleMgr,
                 ovsdb, reactor, cache, "midonet", service);
         networkCtrl.setControllerStub(controllerStub);
 
@@ -207,27 +206,27 @@ public class TestNetworkController {
                 phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
                         (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
                         (byte) portNum });
-                int underlayIp;
+                IntIPv4 underlayIp;
                 if (0 == portNum % 2) {
                     // Even-numbered ports will be local to the controller.
                     ovsdb.setPortExternalId(datapathId, portNum, "midonet",
                             portId.toString());
                     phyPort.setName("port" + Integer.toString(portNum));
-                    underlayIp = localNwAddrInt;
+                    underlayIp = localNwIP;
                 } else {
                     // Odd-numbered ports are remote. Place port num x at
                     // 192.168.1.x.
-                    underlayIp = 0xc0a80100 + portNum;
-                    portLocMap.put(portId, underlayIp);
+                    underlayIp = new IntIPv4(0xc0a80100 + portNum);
+                    portLocMap.put(portId, new Integer(underlayIp.address));
                     // The new port id in portLocMap should have resulted
                     // in a call to to the mock ovsdb to open a gre port.
-                    phyPort.setName(networkCtrl.makeGREPortName(
-                                        new IntIPv4(underlayIp)));
+                    phyPort.setName(networkCtrl.makeGREPortName(underlayIp));
                     GrePort expectGrePort = new GrePort(
                             Long.toString(datapathId), phyPort.getName(),
-                            Net.convertIntAddressToString(underlayIp));
-                    Assert.assertEquals(expectGrePort, ovsdb.addedGrePorts
-                            .get(ovsdb.addedGrePorts.size() - 1));
+                            underlayIp.toString());
+                    Assert.assertEquals(expectGrePort, 
+                            ovsdb.addedGrePorts.get(
+                                        ovsdb.addedGrePorts.size() - 1));
                     // Manually add the remote port's route since we're only
                     // pretending there are remote controllers.
                     rTable.addRoute(rt);
@@ -235,8 +234,8 @@ public class TestNetworkController {
                 networkCtrl.onPortStatus(phyPort,
                         OFPortStatus.OFPortReason.OFPPR_ADD);
                 // Verify that the port location map is correctly initialized.
-                Assert.assertEquals(new Integer(underlayIp),
-                        portLocMap.get(portId));
+                Assert.assertEquals(new Integer(underlayIp.address), 
+                                    portLocMap.get(portId));
             }
         }
 

@@ -5,7 +5,6 @@
 package com.midokura.midolman;
 
 import java.math.BigInteger;
-import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
@@ -83,15 +82,14 @@ public abstract class AbstractController
             int greKey,
             OpenvSwitchDatabaseConnection ovsdb,
             PortToIntNwAddrMap portLocMap,
-            InetAddress internalIp,
+            IntIPv4 internalIp,
             String externalIdKey) {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
         this.greKey = greKey;
         this.portLocMap = portLocMap;
         this.externalIdKey = externalIdKey;
-        publicIp = internalIp == null ? null :
-                        new IntIPv4(Net.convertInetAddressToInt(internalIp));
+        publicIp = internalIp;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();

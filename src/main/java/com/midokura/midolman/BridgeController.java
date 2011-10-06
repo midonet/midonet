@@ -4,7 +4,6 @@
 
 package com.midokura.midolman;
 
-import java.net.InetAddress;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -117,7 +116,7 @@ public class BridgeController extends AbstractController {
     public BridgeController(long datapathId, UUID switchUuid, int greKey,
             PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
             long flowExpireMillis, long idleFlowExpireMillis,
-            InetAddress publicIp, long macPortTimeoutMillis,
+            IntIPv4 publicIp, long macPortTimeoutMillis,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             String externalIdKey) {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,

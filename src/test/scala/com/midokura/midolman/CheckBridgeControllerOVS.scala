@@ -13,6 +13,7 @@ import com.midokura.midolman.openvswitch.{
                 BridgeBuilder, 
                 OpenvSwitchDatabaseConnectionImpl, 
                 TestShareOneOpenvSwitchDatabaseConnection}
+import com.midokura.midolman.packets.IntIPv4
 import com.midokura.midolman.state.{MacPortMap, MockDirectory, 
                                     PortToIntNwAddrMap}
 
@@ -24,7 +25,7 @@ import org.slf4j.LoggerFactory
 
 import java.io.{File, RandomAccessFile}
 import java.lang.Runnable
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.InetSocketAddress
 import java.nio.channels.{FileLock, SelectionKey, ServerSocketChannel}
 import java.util.concurrent.{Executors, TimeUnit, ScheduledFuture, Semaphore}
 import java.util.{Date, UUID}
@@ -53,9 +54,7 @@ object CheckBridgeControllerOVS extends SelectListener {
     // All the "static" variables and methods.
     final val log = LoggerFactory.getLogger(classOf[CheckBridgeControllerOVS])
     private final val testportName = "testbrport"
-    private final val publicIP = /* 192.168.1.50 */
-        InetAddress.getByAddress(
-            Array(192.toByte, 168.toByte, 1.toByte, 50.toByte))
+    private final val publicIP = IntIPv4.fromString("192.168.1.50")
     private final var controller: BridgeControllerTester = _
     private var zkDir = new MockDirectory
     private final val zkRoot = "/zk_root"
@@ -277,7 +276,7 @@ class CheckBridgeControllerOVS {
 private class BridgeControllerTester(datapath: Long, switchID: UUID, 
         greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap, 
         flowExpireMillis: Long, idleFlowExpireMillis: Long, 
-        publicIP: InetAddress, macPortTimeoutMillis: Long, 
+        publicIP: IntIPv4, macPortTimeoutMillis: Long, 
         ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop, 
         externalIDKey: String, portSemaphore: Semaphore, 
         connectionSemaphore: Semaphore) extends 

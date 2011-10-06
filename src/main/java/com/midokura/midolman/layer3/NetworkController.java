@@ -1,7 +1,6 @@
 package com.midokura.midolman.layer3;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,6 +45,7 @@ import com.midokura.midolman.packets.DHCP;
 import com.midokura.midolman.packets.DHCPOption;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
@@ -92,7 +92,7 @@ public class NetworkController extends AbstractController {
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
-            InetAddress localNwAddr, PortZkManager portMgr,
+            IntIPv4 localNwAddr, PortZkManager portMgr,
             RouterZkManager routerMgr, RouteZkManager routeMgr,
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,

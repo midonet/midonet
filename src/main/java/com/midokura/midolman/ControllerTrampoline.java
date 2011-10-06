@@ -7,7 +7,6 @@ package com.midokura.midolman;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
 import java.util.UUID;
 
 import javax.management.JMException;
@@ -32,6 +31,7 @@ import com.midokura.midolman.layer3.PortService;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
@@ -127,7 +127,7 @@ public class ControllerTrampoline implements Controller {
                 long idleFlowExpireMillis = 
                          config.configurationAt("openflow")
                                .getLong("flow_idle_expire_millis");
-                InetAddress localNwAddr = InetAddress.getByName(
+                IntIPv4 localNwAddr = IntIPv4.fromString(
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
 
@@ -213,7 +213,7 @@ public class ControllerTrampoline implements Controller {
                 long macPortTimeoutMillis = 
                          config.configurationAt("bridge")
                                .getLong("mac_port_mapping_expire_millis");                
-                InetAddress localNwAddr = InetAddress.getByName(
+                IntIPv4 localNwAddr = IntIPv4.fromString(
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
 
