@@ -22,6 +22,7 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.Net;
 
 public class NatLeaseManager implements NatMapping {
 
@@ -90,6 +91,7 @@ public class NatLeaseManager implements NatMapping {
                 log.debug("RefreshNatMappings refresh key {} found value {}",
                         key, val);
             }
+            log.debug("RefreshNatMappings completed. Rescheduling.");
             // Re-schedule this runnable.
             reactor.schedule(this, refreshSeconds, TimeUnit.SECONDS);
         }
@@ -231,25 +233,34 @@ public class NatLeaseManager implements NatMapping {
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
             short tpDst, Set<NatTarget> nats, MidoMatch origMatch) {
         // First try to find a port in a block we've already leased.
+        int numTries = 0;
         for (NatTarget tg : nats) {
             for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
                 NavigableSet<Short> freePorts = ipToFreePortsMap.get(ip);
-                if (null != freePorts) {
+                if (null == freePorts)
+                    continue;
+                while (true) {
                     // Look for a port in the desired range
                     Short port = freePorts.ceiling(tg.tpStart);
-                    if (null != port && port <= tg.tpEnd) {
-                        // We've found a free port.
-                        freePorts.remove(port);
-                        // Check memcached to make sure the port's really free.
-                        if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
-                                nwDst, tpDst, origMatch))
-                            return new NwTpPair(ip, port);
+                    if (null == port || port > tg.tpEnd)
+                        break;
+                    // We've found a free port.
+                    freePorts.remove(port);
+                    // Check memcached to make sure the port's really free.
+                    if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
+                            nwDst, tpDst, origMatch))
+                        return new NwTpPair(ip, port);
+                    // Give up after 20 attempts.
+                    numTries++;
+                    if (numTries > 20) {
+                        log.warn("allocateSnat failed to reserve 20 free "
+                                + "ports. Giving up.");
+                        return null;
                     }
-                    // Else - no free ports for this ip and port range
-                }
-            }
-            // No free ports for this NatTarget
-        }
+                } // No free ports for this ip and port range
+            } // No free ports for this NatTarget
+        } // No free ports for any of the given NatTargets
+
         // None of our leased blocks were suitable. Try leasing another block.
         // TODO: Do something smarter. See:
         // https://sites.google.com/a/midokura.jp/wiki/midonet/srcnat-block-reservations
@@ -295,11 +306,19 @@ public class NatLeaseManager implements NatMapping {
                     // No free blocks for this ip. Try the next ip.
                     break;
                 try {
+                    log.debug("allocateSnat trying to reserve snat block {} "
+                            + "in ip {}", block,
+                            Net.convertIntAddressToString(ip));
                     routerMgr.addSnatReservation(routerId, ip, block);
                 } catch (Exception e) {
+                    log.debug("allocateSnat block reservation failed.");
                     numExceptions++;
-                    if (numExceptions > 1)
+                    if (numExceptions > 1){
+                        log.warn("allocateSnat failed twice to reserve a port "
+                                + "block in ip {}. Giving up.",
+                                Net.convertIntAddressToString(ip));
                         return null;
+                    }
                     continue;
                 }
                 // Expand the port block.
@@ -327,8 +346,11 @@ public class NatLeaseManager implements NatMapping {
                             nwDst, tpDst, origMatch))
                         return new NwTpPair(ip, freePort);
                     freePort++;
-                    if (0 == freePort % block_size || freePort > tg.tpEnd)
+                    if (0 == freePort % block_size || freePort > tg.tpEnd) {
+                        log.warn("allocateSnat unable to reserve any port "
+                                + "in the newly reserved block. Giving up.");
                         return null;
+                    }
                 }
             } // End for loop over ip addresses in a nat target.
         } // End for loop over nat targets.
@@ -373,8 +395,10 @@ public class NatLeaseManager implements NatMapping {
 
         // Cancel refreshing of any keys associated with this match.
         Set<String> keys = matchToNatKeys.remove(match);
-        for (String k : keys)
-            log.debug("freeFlowResources canceling refresh of key {}", k);
+        if (null != keys) {
+            for (String k : keys)
+                log.debug("freeFlowResources canceling refresh of key {}", k);
+        }
         ScheduledFuture future = matchToFuture.remove(match);
         if (null != future) {
             log.debug("freeFlowResources found future to cancel.");

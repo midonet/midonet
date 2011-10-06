@@ -1070,9 +1070,14 @@ public class NetworkController extends AbstractController {
             try {
                 Router rtr = network.getRouter(rtrId);
                 rtr.freeFlowResources(match);
-            } catch (Exception e) {
+            } catch (ZkStateSerializationException e) {
                 log.warn("freeFlowResources failed for match {} in router {} -"
-                        + " {}", new Object[] { match, rtrId, e });
+                        + " caught: \n{}",
+                        new Object[] { match, rtrId, e.getStackTrace() });
+            } catch (StateAccessException e) {
+                log.warn("freeFlowResources failed for match {} in router {} -"
+                        + " caught: \n{}",
+                        new Object[] { match, rtrId, e.getStackTrace() });
             }
         }
     }
