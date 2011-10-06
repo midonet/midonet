@@ -25,4 +25,9 @@ public class CacheWithPrefix implements Cache {
         return cache.getAndTouch(prefix+key);
     }
 
+    @Override
+    public int getExpirationSeconds() {
+        return cache.getExpirationSeconds();
+    }
+
 }

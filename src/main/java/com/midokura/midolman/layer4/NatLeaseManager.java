@@ -29,7 +29,6 @@ public class NatLeaseManager implements NatMapping {
             .getLogger(NatLeaseManager.class);
     private static final int USHORT = 0xffff;
 
-    public static final int REFRESH_SECONDS = 30;
     public static final String FWD_DNAT_PREFIX = "dnatfwd";
     public static final String REV_DNAT_PREFIX = "dnatrev";
     public static final String FWD_SNAT_PREFIX = "snatfwd";
@@ -53,6 +52,7 @@ public class NatLeaseManager implements NatMapping {
     private Map<MidoMatch, Set<String>> matchToNatKeys;
     private Map<MidoMatch, ScheduledFuture> matchToFuture;
     private Random rand;
+    private int refreshSeconds;
 
     public NatLeaseManager(RouterZkManager routerMgr, UUID routerId,
             Cache cache, Reactor reactor) {
@@ -61,6 +61,7 @@ public class NatLeaseManager implements NatMapping {
         this.routerId = routerId;
         rtrIdStr = routerId.toString();
         this.cache = cache;
+        this.refreshSeconds = cache.getExpirationSeconds() / 2;
         this.reactor = reactor;
         this.rand = new Random();
         this.matchToNatKeys = new HashMap<MidoMatch, Set<String>>();
@@ -76,17 +77,20 @@ public class NatLeaseManager implements NatMapping {
 
         @Override
         public void run() {
+            log.debug("RefreshNatMappings for match {}", match);
             Set<String> refreshKeys = matchToNatKeys.get(match);
             if (null == refreshKeys) {
                 // The match's flow must have expired, stop refreshing.
+                log.debug("RefreshNatMappings stop refresh, got null keyset.");
                 return;
             }
             // Refresh all the nat keys associated with this match.
             for (String key : refreshKeys) {
+                log.debug("RefreshNatMappings refresh {}.", key);
                 cache.getAndTouch(key);
             }
             // Re-schedule this runnable.
-            reactor.schedule(this, REFRESH_SECONDS, TimeUnit.SECONDS);
+            reactor.schedule(this, refreshSeconds, TimeUnit.SECONDS);
         }
 
     }
@@ -119,8 +123,9 @@ public class NatLeaseManager implements NatMapping {
             refreshKeys = new HashSet<String>();
             matchToNatKeys.put(origMatch, refreshKeys);
             ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
-                    origMatch), REFRESH_SECONDS, TimeUnit.SECONDS);
+                    origMatch), refreshSeconds, TimeUnit.SECONDS);
             matchToFuture.put(origMatch, future);
+            log.debug("allocateDnat scheduled refresh for dnat mappings.");
         }
         String key = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
                 oldTpDst);
@@ -158,7 +163,7 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
             short oldTpDst) {
-        log.debug("lookupDnatFwd: nwSrt {} tpSrc {} oldNwDst {} oldTpDst {}",
+        log.debug("lookupDnatFwd: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {}",
                 new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc & USHORT,
                         IPv4.fromIPv4Address(oldNwDst), oldTpDst & USHORT });
 
@@ -207,8 +212,9 @@ public class NatLeaseManager implements NatMapping {
             refreshKeys = new HashSet<String>();
             matchToNatKeys.put(match, refreshKeys);
             ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
-                    match), REFRESH_SECONDS, TimeUnit.SECONDS);
+                    match), refreshSeconds, TimeUnit.SECONDS);
             matchToFuture.put(match, future);
+            log.debug("makeSnatReservation scheduled refresh for snat mappings.");
         }
         String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
                 tpDst);
@@ -365,10 +371,14 @@ public class NatLeaseManager implements NatMapping {
         log.debug("freeFlowResources: match {}", match);
 
         // Cancel refreshing of any keys associated with this match.
-        matchToNatKeys.remove(match);
+        Set<String> keys = matchToNatKeys.remove(match);
+        for (String k : keys)
+            log.debug("freeFlowResources canceling refresh of key {}", k);
         ScheduledFuture future = matchToFuture.remove(match);
-        if (null != future)
+        if (null != future) {
+            log.debug("freeFlowResources found future to cancel.");
             future.cancel(false);
+        }
     }
 
 }

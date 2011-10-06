@@ -73,7 +73,6 @@ public class NetworkController extends AbstractController {
     public static final short NO_HARD_TIMEOUT = 0;
     public static final short NO_IDLE_TIMEOUT = 0;
     // TODO(pino)
-    public static final short IDLE_TIMEOUT = 20;
     public static final short ICMP_EXPIRY_SECONDS = 5;
     private static final short FLOW_PRIORITY = 0;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
@@ -84,6 +83,7 @@ public class NetworkController extends AbstractController {
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Short, L3DevicePort> devPortByNum;
+    short idleFlowExpireSeconds; //package private to allow test access.
 
     private PortService service;
     private Map<UUID, List<Runnable>> portServicesById;
@@ -91,7 +91,7 @@ public class NetworkController extends AbstractController {
     private Map<MidoMatch, Set<UUID>> matchToRouters;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
-            PortToIntNwAddrMap dict, long idleFlowExpireMillis,
+            PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
             InetAddress localNwAddr, PortZkManager portMgr,
             RouterZkManager routerMgr, RouteZkManager routeMgr,
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
@@ -99,7 +99,7 @@ public class NetworkController extends AbstractController {
             String externalIdKey, PortService service) {
         super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr, 
               externalIdKey);
-        // TODO Auto-generated constructor stub
+        this.idleFlowExpireSeconds = idleFlowExpireSeconds;
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
         this.network = new Network(deviceId, portMgr, routerMgr, chainMgr,
@@ -388,7 +388,7 @@ public class NetworkController extends AbstractController {
                 // Track the routers for this flow so we can free resources
                 // when the flow is removed.
                 matchToRouters.put(match, routers);
-                addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
+                addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
                         NO_HARD_TIMEOUT, true, ofActions, inPort, data);
             }
             return;
@@ -604,7 +604,7 @@ public class NetworkController extends AbstractController {
                             bufferId, inPort, ofActions, data);
                 } else {
                     log.debug("TunneledPktArpCallback.call: forward and install flow {}", match);
-                    addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
+                    addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
                             NO_HARD_TIMEOUT, true, ofActions, inPort, data);
                 }
             } else {
@@ -694,7 +694,7 @@ public class NetworkController extends AbstractController {
                 // Track the routers for this flow so we can free resources
                 // when the flow is removed.
                 matchToRouters.put(match, traversedRouters);
-                addFlowAndSendPacket(bufferId, match, IDLE_TIMEOUT,
+                addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
                         NO_HARD_TIMEOUT, true, ofActions, inPort.getNum(),
                         data);
             } else {
