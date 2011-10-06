@@ -44,7 +44,7 @@ public class NatLeaseManager implements NatMapping {
     // Also note that we don't care about ip ranges - nat targets with more than
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
-    Map<Integer, NavigableSet<Short>> ipToFreePortsMap;
+    Map<Integer, NavigableSet<Integer>> ipToFreePortsMap;
     private RouterZkManager routerMgr;
     private UUID routerId;
     private String rtrIdStr;
@@ -58,7 +58,7 @@ public class NatLeaseManager implements NatMapping {
     public NatLeaseManager(RouterZkManager routerMgr, UUID routerId,
             Cache cache, Reactor reactor) {
         this.routerMgr = routerMgr;
-        this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Short>>();
+        this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Integer>>();
         this.routerId = routerId;
         rtrIdStr = routerId.toString();
         this.cache = cache;
@@ -99,12 +99,14 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Set<NatTarget> nats, MidoMatch origMatch) {
+    public NwTpPair allocateDnat(int nwSrc, short tpSrc_, int oldNwDst,
+            short oldTpDst_, Set<NatTarget> nats, MidoMatch origMatch) {
+        // TODO(pino) get rid of these after converting ports to int.
+        int tpSrc = tpSrc_ & USHORT;
+        int oldTpDst = oldTpDst_ & USHORT;
         log.debug("allocateDnat: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {} "
                 + "nats {}", new Object[] { IPv4.fromIPv4Address(nwSrc),
-                tpSrc & USHORT, IPv4.fromIPv4Address(oldNwDst),
-                oldTpDst & USHORT, nats });
+                tpSrc, IPv4.fromIPv4Address(oldNwDst), oldTpDst, nats });
 
         // This throws IllegalArgumentException if nats.size() is zero.
         int natPos = rand.nextInt(nats.size());
@@ -112,14 +114,16 @@ public class NatLeaseManager implements NatMapping {
         NatTarget nat = null;
         for (int i = 0; i <= natPos; i++)
             nat = iter.next();
+        int tpStart = nat.tpStart & USHORT;
+        int tpEnd = nat.tpEnd & USHORT;
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        short newTpDst = (short) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
+        int newTpDst = rand.nextInt(tpEnd - tpStart + 1) + tpStart;
         log.debug("{} DNAT allocated new DST {}:{} to flow from {}:{} to "
                 + "{}:{}",
                 new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwDst),
-                        newTpDst & USHORT, IPv4.fromIPv4Address(nwSrc),
-                        tpSrc & USHORT, IPv4.fromIPv4Address(oldNwDst),
-                        oldTpDst & USHORT });
+                        newTpDst, IPv4.fromIPv4Address(nwSrc),
+                        tpSrc, IPv4.fromIPv4Address(oldNwDst),
+                        oldTpDst });
 
         Set<String> refreshKeys = matchToNatKeys.get(origMatch);
         if (null == refreshKeys) {
@@ -139,17 +143,17 @@ public class NatLeaseManager implements NatMapping {
         refreshKeys.add(key);
         cache.set(key, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat reverse cache key {}", key);
-        return new NwTpPair(newNwDst, newTpDst);
+        return new NwTpPair(newNwDst, (short)newTpDst);
     }
 
-    public static String makeCacheKey(String prefix, int nwSrc, short tpSrc,
-            int nwDst, short tpDst) {
+    public static String makeCacheKey(String prefix, int nwSrc, int tpSrc,
+            int nwDst, int tpDst) {
         return String.format("%s%08x:%d:%08x:%d", prefix, nwSrc,
                 tpSrc & USHORT, nwDst, tpDst & USHORT);
     }
 
-    public static String makeCacheValue(int nwAddr, short tpPort) {
-        return String.format("%08x/%d", nwAddr, tpPort);
+    public static String makeCacheValue(int nwAddr, int tpPort) {
+        return String.format("%08x/%d", nwAddr, tpPort & USHORT);
     }
 
     private NwTpPair lookupNwTpPair(String key) {
@@ -164,52 +168,56 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst) {
+    public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_, int oldNwDst,
+            short oldTpDst_) {
+        int tpSrc = tpSrc_ & USHORT;
+        int oldTpDst = oldTpDst_ & USHORT;
         log.debug("lookupDnatFwd: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {}",
-                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc & USHORT,
-                        IPv4.fromIPv4Address(oldNwDst), oldTpDst & USHORT });
+                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc,
+                        IPv4.fromIPv4Address(oldNwDst), oldTpDst });
 
         return lookupNwTpPair(makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
                 oldNwDst, oldTpDst));
     }
 
     @Override
-    public NwTpPair lookupDnatRev(int nwSrc, short tpSrc, int newNwDst,
-            short newTpDst) {
+    public NwTpPair lookupDnatRev(int nwSrc, short tpSrc_, int newNwDst,
+            short newTpDst_) {
+        int tpSrc = tpSrc_ & USHORT;
+        int newTpDst = newTpDst_ & USHORT;
         log.debug("lookupDnatFwd: nwSrc {} tpSrc {} newNwDst {} newTpDst {}",
-                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc & USHORT,
-                        IPv4.fromIPv4Address(newNwDst), newTpDst & USHORT });
+                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc,
+                        IPv4.fromIPv4Address(newNwDst), newTpDst });
 
         return lookupNwTpPair(makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 newNwDst, newTpDst));
     }
 
-    private boolean makeSnatReservation(int oldNwSrc, short oldTpSrc,
-            int newNwSrc, short newTpSrc, int nwDst, short tpDst,
+    private boolean makeSnatReservation(int oldNwSrc, int oldTpSrc,
+            int newNwSrc, int newTpSrc, int nwDst, int tpDst,
             MidoMatch match) {
         log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
                 + "newTpSrc {} nw Dst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
-                        oldTpSrc & USHORT, IPv4.fromIPv4Address(newNwSrc),
-                        newTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
-                        tpDst & USHORT });
+                        oldTpSrc, IPv4.fromIPv4Address(newNwSrc),
+                        newTpSrc, IPv4.fromIPv4Address(nwDst),
+                        tpDst });
 
         String reverseKey = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
                 nwDst, tpDst);
         if (null != cache.get(reverseKey)) {
             log.warn("{} Snat encountered a collision reserving SRC {}:{}",
                     new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
-                            newTpSrc & USHORT });
+                            newTpSrc });
             return false;
         }
         // If we got here, we can use this port.
         log.debug("{} SNAT reserved new SRC {}:{} for flow from {}:{} to "
                 + "{}:{}",
                 new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
-                        newTpSrc & USHORT, IPv4.fromIPv4Address(oldNwSrc),
-                        oldTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
-                        tpDst & USHORT });
+                        newTpSrc, IPv4.fromIPv4Address(oldNwSrc),
+                        oldTpSrc, IPv4.fromIPv4Address(nwDst),
+                        tpDst });
         Set<String> refreshKeys = matchToNatKeys.get(match);
         if (null == refreshKeys) {
             refreshKeys = new HashSet<String>();
@@ -230,26 +238,30 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats, MidoMatch origMatch) {
+    public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc_, int nwDst,
+            short tpDst_, Set<NatTarget> nats, MidoMatch origMatch) {
+        int oldTpSrc = oldTpSrc_ & USHORT;
+        int tpDst = tpDst_ & USHORT;
         // First try to find a port in a block we've already leased.
         int numTries = 0;
         for (NatTarget tg : nats) {
+            int tpStart = tg.tpStart & USHORT;
+            int tpEnd = tg.tpEnd & USHORT;
             for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
-                NavigableSet<Short> freePorts = ipToFreePortsMap.get(ip);
+                NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts)
                     continue;
                 while (true) {
                     // Look for a port in the desired range
-                    Short port = freePorts.ceiling(tg.tpStart);
-                    if (null == port || port > tg.tpEnd)
+                    Integer port = freePorts.ceiling(tpStart);
+                    if (null == port || port > tpEnd)
                         break;
                     // We've found a free port.
                     freePorts.remove(port);
                     // Check memcached to make sure the port's really free.
                     if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
                             nwDst, tpDst, origMatch))
-                        return new NwTpPair(ip, port);
+                        return new NwTpPair(ip, port.shortValue());
                     // Give up after 20 attempts.
                     numTries++;
                     if (numTries > 20) {
@@ -267,11 +279,15 @@ public class NatLeaseManager implements NatMapping {
         int block_size = 100; // TODO: make this configurable?
         int numExceptions = 0;
         for (NatTarget tg : nats) {
+            int tpStart = tg.tpStart & USHORT;
+            int tpEnd = tg.tpEnd & USHORT;
             for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
-                NavigableSet<Short> reservedBlocks;
+                NavigableSet<Integer> reservedBlocks;
                 try {
                     reservedBlocks = routerMgr.getSnatBlocks(routerId, ip);
                 } catch (Exception e) {
+                    log.error("allocateSnat got an exception listing reserved "
+                            + "blocks:", e);
                     return null;
                 }
                 // Note that Shorts in this sorted set should only be
@@ -279,13 +295,14 @@ public class NatLeaseManager implements NatMapping {
                 // collisions/re-leasing. A Short s represents a lease on
                 // the port range [s, s+99] inclusive.
                 // Round down tpStart to the nearest 100.
-                short block = (short) ((tg.tpStart / block_size) * block_size);
-                Iterator<Short> iter = reservedBlocks.tailSet(block, true)
+                int block = (tpStart / block_size) * block_size;
+                Iterator<Integer> iter = reservedBlocks.tailSet(block, true)
                         .iterator();
                 // Find the first lowPort + 100*x that isn't in the tail-set
-                // and is less than tg.tpEnd
+                // and is less than tpEnd
                 while (iter.hasNext()) {
-                    Short lease = iter.next();
+                    // Find the next reserved block.
+                    Integer lease = iter.next();
                     if (lease > block) {
                         // No one reserved the current value of startBlock.
                         // Let's lease it ourselves.
@@ -299,10 +316,10 @@ public class NatLeaseManager implements NatMapping {
                     // The normal case. The block is already leased, try
                     // the next one.
                     block += block_size;
-                    if (block > tg.tpEnd)
+                    if (block > tpEnd)
                         break;
                 }
-                if (block > tg.tpEnd)
+                if (block > tpEnd)
                     // No free blocks for this ip. Try the next ip.
                     break;
                 try {
@@ -322,14 +339,16 @@ public class NatLeaseManager implements NatMapping {
                     continue;
                 }
                 // Expand the port block.
-                NavigableSet<Short> freePorts = ipToFreePortsMap.get(ip);
+                NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts) {
-                    freePorts = new TreeSet<Short>();
+                    freePorts = new TreeSet<Integer>();
                     ipToFreePortsMap.put(ip, freePorts);
                 }
+                log.debug("allocateSnat adding range {} to {} to list of "
+                        + "free ports.", block, block+block_size-1);
                 for (int i = 0; i < block_size; i++)
-                    freePorts.add((short) (block + i));
-                // Now, starting with the smaller of 'block' and tg.tpStart
+                    freePorts.add(block + i);
+                // Now, starting with the smaller of 'block' and tpStart
                 // see if the mapping really is free in Memcached by making sure
                 // that the reverse mapping isn't already taken. Note that the
                 // common case for snat requires 4 calls to Memcached (one to
@@ -337,16 +356,16 @@ public class NatLeaseManager implements NatMapping {
                 // make sure the newIp, newPort haven't already been used with
                 // the nwDst and tpDst, and 2 to actually store the forward
                 // and reverse mappings).
-                short freePort = block;
-                if (freePort < tg.tpStart)
-                    freePort = tg.tpStart;
+                int freePort = block;
+                if (freePort < tpStart)
+                    freePort = tpStart;
                 while (true) {
                     freePorts.remove(freePort);
                     if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,
                             nwDst, tpDst, origMatch))
-                        return new NwTpPair(ip, freePort);
+                        return new NwTpPair(ip, (short)freePort);
                     freePort++;
-                    if (0 == freePort % block_size || freePort > tg.tpEnd) {
+                    if (0 == freePort % block_size || freePort > tpEnd) {
                         log.warn("allocateSnat unable to reserve any port "
                                 + "in the newly reserved block. Giving up.");
                         return null;
@@ -358,24 +377,28 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst) {
+    public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_, int nwDst,
+            short tpDst_) {
+        int oldTpSrc = oldTpSrc_ & USHORT;
+        int tpDst = tpDst_ & USHORT;
         log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
-                        oldTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
-                        tpDst & USHORT });
+                        oldTpSrc, IPv4.fromIPv4Address(nwDst),
+                        tpDst });
 
         return lookupNwTpPair(makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
                 nwDst, tpDst));
     }
 
     @Override
-    public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
-            short tpDst) {
+    public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc_, int nwDst,
+            short tpDst_) {
+        int newTpSrc = newTpSrc_ & USHORT;
+        int tpDst = tpDst_ & USHORT;
         log.debug("lookupSnatRev: newNwSrc {} newTpSrc {} nwDst {} tpDst",
                 new Object[] { IPv4.fromIPv4Address(newNwSrc),
-                        newTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
-                        tpDst & USHORT });
+                        newTpSrc, IPv4.fromIPv4Address(nwDst),
+                        tpDst });
 
         return lookupNwTpPair(makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
                 nwDst, tpDst));

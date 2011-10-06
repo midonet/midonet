@@ -185,12 +185,12 @@ public class RouterZkManager extends ZkManager {
         multi(prepareRouterDelete(id));
     }
 
-    public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
+    public NavigableSet<Integer> getSnatBlocks(UUID routerId, int ip)
             throws KeeperException, InterruptedException {
         StringBuilder sb = new StringBuilder(pathManager
                 .getRouterSnatBlocksPath(routerId));
         sb.append("/").append(Integer.toHexString(ip));
-        TreeSet<Short> ports = new TreeSet<Short>();
+        TreeSet<Integer> ports = new TreeSet<Integer>();
         Set<String> blocks = null;
         try {
             blocks = zk.getChildren(sb.toString(), null);
@@ -198,11 +198,11 @@ public class RouterZkManager extends ZkManager {
             return ports;
         }
         for (String str : blocks)
-            ports.add((short) Integer.parseInt(str));
+            ports.add(Integer.parseInt(str));
         return ports;
     }
 
-    public void addSnatReservation(UUID routerId, int ip, short startPort)
+    public void addSnatReservation(UUID routerId, int ip, int startPort)
             throws StateAccessException {
         StringBuilder sb = new StringBuilder(pathManager
                 .getRouterSnatBlocksPath(routerId));
