@@ -37,18 +37,18 @@ object TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
         Console.err.println("Entering testRapidOVSConns")
     }
 
-    @AfterClass def finalizeTest() = {
+    @AfterClass def finalizeTest() {
         lock.release
     }
 
-    def testAddBridge(conn: OpenvSwitchDatabaseConnection) = {
+    def testAddBridge(conn: OpenvSwitchDatabaseConnection) {
         val bb = conn.addBridge(bridgeName)
         bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
         bb.build
         assertTrue(conn.hasBridge(bridgeName))
     }
 
-    def testDelBridge(conn: OpenvSwitchDatabaseConnection) = {
+    def testDelBridge(conn: OpenvSwitchDatabaseConnection) {
         conn.delBridge(bridgeName)
         assertFalse(conn.hasBridge(bridgeName))
     }
@@ -57,7 +57,7 @@ object TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
 class TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
     import TestRapidOpenvSwitchDatabaseConnections._
 
-    @Test @Ignore def testRapidConnections() = {
+    @Test @Ignore def testRapidConnections() {
         var conn1 = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge(conn1)
         var bridgeId = Long.parseLong(conn1.getDatapathId(bridgeName), 16)

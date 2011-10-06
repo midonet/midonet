@@ -83,7 +83,7 @@ object CheckBridgeControllerOVS extends SelectListener {
             midoDir.getSubDirectory(portLocKey))
         val macPortMap = new MacPortMap(midoDir.getSubDirectory(macPortKey))
 
-        reactorThread = new Thread() { override def run() = {
+        reactorThread = new Thread() { override def run() {
             log.info("reactorThread starting")
             reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
@@ -115,7 +115,7 @@ object CheckBridgeControllerOVS extends SelectListener {
 
             tookTooLong = reactor.schedule(
                               new Runnable() { 
-                                  def run = { 
+                                  def run { 
                                       log.info("Took too long!")
                                       tooLongFlag = true
                                       reactor.shutdown
@@ -141,13 +141,13 @@ object CheckBridgeControllerOVS extends SelectListener {
         } finally { mutex.release }
     }
 
-    def registerController() = {
+    def registerController() {
         var cb = ovsdb.addBridgeOpenflowController(bridgeName, target)
         cb.build
         assertTrue(ovsdb.hasController(target))
     }
 
-    def handleEvent(key: SelectionKey): Unit = {
+    def handleEvent(key: SelectionKey) {
         log.info("handleEvent {}", key)
 
         var sock = listenSock.accept
@@ -168,17 +168,17 @@ object CheckBridgeControllerOVS extends SelectListener {
         controllerStub.start
     }
 
-    def addSystemPort(portName : String) = {
+    def addSystemPort(portName : String) {
         var pb = ovsdb.addSystemPort(bridgeName, portName)
         pb.ifMac("00:01:02:03:04:05");
         pb.build
     }
 
-    def addInternalPort(portName : String) = {
+    def addInternalPort(portName : String) {
         ovsdb.addInternalPort(bridgeName, portName).build
     }
 
-    def addTapPort(portName : String) = {
+    def addTapPort(portName : String) {
         ovsdb.addTapPort(bridgeName, portName).build
     }
 }
@@ -189,7 +189,7 @@ class CheckBridgeControllerOVS {
     // import all the statics.
     import CheckBridgeControllerOVS._
 
-    @Test def testConnectionMade() = {
+    @Test def testConnectionMade() {
         // Ensure that this runs first, by having the other tests block on
         // serializeTestsSemaphore, which this routine .releases.
         log.info("testConnectionMade")
@@ -202,7 +202,7 @@ class CheckBridgeControllerOVS {
 
     @Test 
     @Ignore
-    def testNewSystemPort() = {
+    def testNewSystemPort() {
         log.info("testNewSystemPort called")
         serializeTestsSemaphore.acquire
         try {
@@ -227,7 +227,7 @@ class CheckBridgeControllerOVS {
         }
     }
 
-    @Test def testNewInternalPort() = {
+    @Test def testNewInternalPort() {
         log.info("testNewInternalPort")
         serializeTestsSemaphore.acquire
         log.info("testNewInternalPort has semaphore")
@@ -250,7 +250,7 @@ class CheckBridgeControllerOVS {
         }
     }
 
-    @Test @Ignore def testNewTapPort() = {
+    @Test @Ignore def testNewTapPort() {
         log.info("testNewTapPort")
         serializeTestsSemaphore.acquire
         log.info("testNewTapPort has semaphore")
@@ -287,13 +287,13 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
                         externalIDKey) {
     var addedPorts = List[OFPhysicalPort]()
 
-    override def onConnectionMade() = {
+    override def onConnectionMade() {
         log.info("BridgeControllerTester: onConnectionMade")
         super.onConnectionMade
         connectionSemaphore.release
     }
 
-    override def addPort(portDesc: OFPhysicalPort, portNum: Short) = {
+    override def addPort(portDesc: OFPhysicalPort, portNum: Short) {
         log.info("BridgeControllerTester: addPort")
         super.addPort(portDesc, portNum)
         addedPorts ::= portDesc
