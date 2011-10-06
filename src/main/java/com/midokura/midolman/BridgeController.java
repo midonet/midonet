@@ -309,13 +309,14 @@ public class BridgeController extends AbstractController {
                 short output;
                 try {
                     output = tunnelPortNumOfPeer(destIP).shortValue();
+                    actions = new OFAction[] { new OFActionOutput(output,
+                                                                  (short)0) };
                 } catch (NullPointerException e) {
-                    // Tunnel is down.  Flood until the tunnel port comes up.
-                    log.info("tunnel down:  Flooding");
-                    output = OFPort.OFPP_ALL.getValue();
+                    // Tunnel is down.  Drop.  Don't flood, to avoid the 
+                    // packet looping and storming.
+                    log.info("tunnel down:  Dropping");
+                    actions = new OFAction[] { };
                 }
-                actions = new OFAction[] { new OFActionOutput(output,
-                                                              (short)0) };
             }
         }
 
