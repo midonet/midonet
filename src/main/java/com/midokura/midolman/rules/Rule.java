@@ -27,6 +27,19 @@ public abstract class Rule implements Comparable<Rule> {
         super();
     }
 
+    /**
+     * If the packet specified by res.match matches this rule's condition,
+     * apply the rule.
+     * 
+     * @param flowMatch
+     *            matches the packet that originally entered the datapath. It
+     *            will NOT be modified by the rule chain.
+     * @param inPortId
+     * @param outPortId
+     * @param res
+     *            contains a match of the packet after all transformations
+     *            preceding this rule. This may be modified.
+     */
     public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
             RuleResult res) {
         if (condition.matches(inPortId, outPortId, res.match)) {
@@ -38,8 +51,19 @@ public abstract class Rule implements Comparable<Rule> {
         return condition;
     }
 
-    // Call process instead - it calls 'apply' if appropriate.
-    public abstract void apply(MidoMatch flowMatch, UUID inPortId,
+    /**
+     * Apply this rule to the packet specified by res.match.
+     * 
+     * @param flowMatch
+     *            matches the packet that originally entered the datapath. It
+     *            will NOT be modified by the rule chain.
+     * @param inPortId
+     * @param outPortId
+     * @param res
+     *            contains a match of the packet after all transformations
+     *            preceding this rule. This may be modified.
+     */
+    protected abstract void apply(MidoMatch flowMatch, UUID inPortId,
             UUID outPortId, RuleResult res);
 
     @Override

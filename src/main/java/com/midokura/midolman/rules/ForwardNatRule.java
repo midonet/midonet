@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ForwardNatRule extends NatRule {
@@ -51,6 +53,16 @@ public class ForwardNatRule extends NatRule {
             applySnat(flowMatch, res);
     }
 
+    /**
+     * Translate the destination network address (and possibly L4 port).
+     * 
+     * @param flowMatch
+     *            the original match of the packet that entered the datapath. Do
+     *            NOT modify.
+     * @param res
+     *            contains the match of the packet as seen by this rule,
+     *            possibly modified by preceding routers and chains.
+     */
     public void applyDnat(MidoMatch flowMatch, RuleResult res) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
@@ -59,6 +71,11 @@ public class ForwardNatRule extends NatRule {
             res.action = action;
             return;
         }
+        // Don't attempt to do port translation on anything but udp/tcp
+        byte nwProto = res.match.getNetworkProtocol();
+        if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
+            return;
+
         NwTpPair conn = natMap.lookupDnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
@@ -82,6 +99,16 @@ public class ForwardNatRule extends NatRule {
         res.trackConnection = true;
     }
 
+    /**
+     * Translate the destination network address (and possibly L4 port).
+     * 
+     * @param flowMatch
+     *            the original match of the packet that entered the datapath. Do
+     *            NOT modify.
+     * @param res
+     *            contains the match of the packet as seen by this rule,
+     *            possibly modified by preceding routers and chains.
+     */
     public void applySnat(MidoMatch flowMatch, RuleResult res) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
@@ -90,6 +117,11 @@ public class ForwardNatRule extends NatRule {
             res.action = action;
             return;
         }
+        // Don't attempt to do port translation on anything but udp/tcp
+        byte nwProto = res.match.getNetworkProtocol();
+        if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
+            return;
+
         NwTpPair conn = natMap.lookupSnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match

@@ -68,7 +68,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     /**
      * Test addBridge().
      */
-    def testAddBridge() = {
+    def testAddBridge() {
         val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
         bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
         bb.build
@@ -78,7 +78,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     /**
      * Test delBridge().
      */
-    def testDelBridge() = {
+    def testDelBridge() {
         ovsdb.delBridge(bridgeName)
         assertFalse(ovsdb.hasBridge(bridgeName))
     }
