@@ -86,8 +86,9 @@ public class NatLeaseManager implements NatMapping {
             }
             // Refresh all the nat keys associated with this match.
             for (String key : refreshKeys) {
-                log.debug("RefreshNatMappings refresh {}.", key);
-                cache.getAndTouch(key);
+                String val = cache.getAndTouch(key);
+                log.debug("RefreshNatMappings refresh key {} found value {}",
+                        key, val);
             }
             // Re-schedule this runnable.
             reactor.schedule(this, refreshSeconds, TimeUnit.SECONDS);
@@ -337,7 +338,7 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
             short tpDst) {
-        log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst",
+        log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
                         oldTpSrc & USHORT, IPv4.fromIPv4Address(nwDst),
                         tpDst & USHORT });
