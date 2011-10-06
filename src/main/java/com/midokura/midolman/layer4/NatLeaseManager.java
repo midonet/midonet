@@ -87,9 +87,14 @@ public class NatLeaseManager implements NatMapping {
             }
             // Refresh all the nat keys associated with this match.
             for (String key : refreshKeys) {
-                String val = cache.getAndTouch(key);
-                log.debug("RefreshNatMappings refresh key {} found value {}",
-                        key, val);
+                log.debug("RefreshNatMappings refresh key {}", key);
+                try {
+                    String val = cache.getAndTouch(key);
+                    log.debug("RefreshNatMappings found value {}", val);
+                }
+                catch (Exception e) {
+                    log.error("RefreshNatMappings caught: {}", e);
+                }
             }
             log.debug("RefreshNatMappings completed. Rescheduling.");
             // Re-schedule this runnable.
