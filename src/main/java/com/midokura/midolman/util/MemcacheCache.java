@@ -40,7 +40,7 @@ public class MemcacheCache implements Cache {
          */
         String val = (String) client.get(key);
         if (null != val)
-            client.touch(key, expirationSecs);
+            client.set(key, expirationSecs, val);
         return val;
     }
 
