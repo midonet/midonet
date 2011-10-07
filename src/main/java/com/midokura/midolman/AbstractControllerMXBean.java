@@ -2,15 +2,12 @@
 
 package com.midokura.midolman;
 
-import java.util.Map;
+import com.midokura.midolman.packets.IntIPv4;
 
 public interface AbstractControllerMXBean {
     
     int getGreKey();
 
-    String getPeerOfTunnelPortNum(int tunnelPortNum);
-    Integer getTunnelPortNumOfPeer(String peerIP);
-    
-    Map<Integer, String> getTunnelPortToAddressMap();
-    
+    IntIPv4 peerOfTunnelPortNum(int tunnelPortNum);
+    Integer tunnelPortNumOfPeer(IntIPv4 peerIP);
 }

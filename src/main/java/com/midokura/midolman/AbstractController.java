@@ -51,6 +51,8 @@ public abstract class AbstractController
     protected PortToIntNwAddrMap portLocMap;
 
     // Tunnel management data structures
+    // private to AbstractController, but publically queriable through
+    // tunnelPortNumOfPeer() and peerOfTunnelPortNum().
     private HashMap<Integer, IntIPv4> tunnelPortNumToPeerIp;
     private HashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
 
@@ -252,7 +254,7 @@ public abstract class AbstractController
         return peerIpToTunnelPortNum.get(new IntIPv4(intAddress));
     }
 
-    protected IntIPv4 peerOfTunnelPortNum(int portNum) {
+    public IntIPv4 peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
 
@@ -396,25 +398,7 @@ public abstract class AbstractController
         return greKey;
     }
     
-    protected Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
+    public Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
         return peerIpToTunnelPortNum.get(peerIP);
-    }
-    
-    public String getPeerOfTunnelPortNum(int tunnelPortNum) {
-        return tunnelPortNumToPeerIp.get(tunnelPortNum).toString();
-    }
-    
-    public Integer getTunnelPortNumOfPeer(String peerIP) {
-        return peerIpToTunnelPortNum.get(IntIPv4.fromString(peerIP));
-    }
-    
-    public Map<Integer, String> getTunnelPortToAddressMap() {
-        Map<Integer, String> ret = new HashMap<Integer, String>();
-        
-        for (Map.Entry<Integer, IntIPv4> e : tunnelPortNumToPeerIp.entrySet()) {
-            ret.put(e.getKey(), e.getValue().toString());
-        }
-
-        return ret;
     }
 }
