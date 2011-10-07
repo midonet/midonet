@@ -81,10 +81,10 @@ object CheckBridgeControllerOVS extends SelectListener {
         val portLocMap = new PortToIntNwAddrMap(
             midoDir.getSubDirectory(portLocKey))
         val macPortMap = new MacPortMap(midoDir.getSubDirectory(macPortKey))
+        reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
         reactorThread = new Thread() { override def run() {
             log.info("reactorThread starting")
-            reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
 
             controller = new BridgeControllerTester(
                 /* datapathId */              bridgeId,

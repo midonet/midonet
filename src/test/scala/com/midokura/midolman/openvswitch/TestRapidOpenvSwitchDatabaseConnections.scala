@@ -57,7 +57,7 @@ object TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
 class TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
     import TestRapidOpenvSwitchDatabaseConnections._
 
-    @Test @Ignore def testRapidConnections() {
+    @Test def testRapidConnections() {
         var conn1 = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge(conn1)
         var bridgeId = Long.parseLong(conn1.getDatapathId(bridgeName), 16)
