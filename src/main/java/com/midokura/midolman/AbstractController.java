@@ -6,19 +6,19 @@ package com.midokura.midolman;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
-import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.action.OFAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,9 +27,9 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -252,7 +252,7 @@ public abstract class AbstractController
         return peerIpToTunnelPortNum.get(new IntIPv4(intAddress));
     }
 
-    public IntIPv4 peerOfTunnelPortNum(int portNum) {
+    protected IntIPv4 peerOfTunnelPortNum(int portNum) {
         return tunnelPortNumToPeerIp.get(portNum);
     }
 
@@ -396,7 +396,25 @@ public abstract class AbstractController
         return greKey;
     }
     
-    public Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
+    protected Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
         return peerIpToTunnelPortNum.get(peerIP);
+    }
+    
+    public String getPeerOfTunnelPortNum(int tunnelPortNum) {
+        return tunnelPortNumToPeerIp.get(tunnelPortNum).toString();
+    }
+    
+    public Integer getTunnelPortNumOfPeer(String peerIP) {
+        return peerIpToTunnelPortNum.get(IntIPv4.fromString(peerIP));
+    }
+    
+    public Map<Integer, String> getTunnelPortToAddressMap() {
+        Map<Integer, String> ret = new HashMap<Integer, String>();
+        
+        for (Map.Entry<Integer, IntIPv4> e : tunnelPortNumToPeerIp.entrySet()) {
+            ret.put(e.getKey(), e.getValue().toString());
+        }
+
+        return ret;
     }
 }
