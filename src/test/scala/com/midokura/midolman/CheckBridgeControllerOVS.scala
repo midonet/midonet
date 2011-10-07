@@ -137,7 +137,10 @@ object CheckBridgeControllerOVS extends SelectListener {
             assertTrue(ovsdb.hasController(target))
             ovsdb.delBridgeOpenflowControllers(bridgeId)
             assertFalse(ovsdb.hasController(target))
-        } finally { mutex.release }
+        } finally { 
+            mutex.release 
+            finishedSemaphore.release
+        }
     }
 
     def registerController() {

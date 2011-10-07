@@ -43,7 +43,8 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     final val target = "tcp:127.0.0.1:6635"
     private final var lockfile = new File("/tmp/ovsdbconnection.lock")
     private var lock: FileLock = _
-    final var mutex = new Semaphore(1)
+    final val mutex = new Semaphore(0)
+    final val finishedSemaphore = new Semaphore(0)
 
     @BeforeClass def connectToOVSDB() {
         lockfile.setReadable(true, false)
@@ -55,9 +56,11 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
         ovsdb.delTargetOpenflowControllers(target)
         assertFalse(ovsdb.hasController(target))
+        mutex.release
     }
 
     @AfterClass def disconnectFromOVSDB() {
+        finishedSemaphore.acquire(2)
         testDelBridge
         assertFalse(ovsdb.hasBridge(bridgeName))
         ovsdb.close

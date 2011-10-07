@@ -64,7 +64,10 @@ object CheckOpenvSwitchDatabaseConnection {
         }
     }
 
-    @AfterClass def after() { mutex.release }
+    @AfterClass def after() { 
+        mutex.release 
+        finishedSemaphore.release
+    }
 }
 
 class CheckOpenvSwitchDatabaseConnection {
