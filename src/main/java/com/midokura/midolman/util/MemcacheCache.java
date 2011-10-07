@@ -32,8 +32,16 @@ public class MemcacheCache implements Cache {
 
     @Override
     public String getAndTouch(String key) {
-        CASValue<Object> val = client.getAndTouch(key, expirationSecs);
-        return null == val ? null : (String) val.getValue();
+        /* TODO(pino): revert to using getAndTouch single operation after
+         * packaging latest Memcached daemon (1.4.8) for debian. Our servers
+         * run 1.4.5, which doesn't recognize this operation.
+         *CASValue<Object> val = client.getAndTouch(key, expirationSecs);
+         *return null == val ? null : (String) val.getValue();
+         */
+        String val = (String) client.get(key);
+        if (null != val)
+            client.touch(key, expirationSecs);
+        return val;
     }
 
     @Override
