@@ -17,6 +17,7 @@ package com.midokura.midolman.openvswitch
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 import java.net.{Socket, SocketException}
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
@@ -589,6 +590,22 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     /**
+     * Generate the datapath id for the record of OVSDB.
+     *
+     * @return The hex string of datapath id which is long value.
+     */
+    private def generateDatapathId(): String = {
+        var datapathId: Long = 0
+        var existingBridges: JsonNode = null
+        do {
+            datapathId = new Random(23).nextLong & Long.MaxValue
+            existingBridges = select(TableBridge,
+                bridgeWhereClause(datapathId), List(ColumnUUID))
+        } while (!existingBridges.isEmpty)
+       datapathId.toHexString
+    }
+
+    /**
      * A BridgeBuilder that uses a synchronous OVSDB connection.
      */
     private class BridgeBuilderImpl(val name: String) extends BridgeBuilder {
@@ -647,8 +664,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             tx.insert(TablePort, portUUID, portRow)
             val bridgeUUID = generateUUID
             bridgeRow += (ColumnPorts -> getNewRowOvsUUID(portUUID))
-            bridgeRow += (ColumnExternalIds -> mapToOvsMap(bridgeExternalIds))
-            bridgeRow += (ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfigs))
+            var datapathId: String = generateDatapathId
+            bridgeRow += (ColumnDatapathId -> datapathId,
+                ColumnExternalIds -> mapToOvsMap(bridgeExternalIds),
+                ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfig))
             tx.insert(TableBridge, bridgeUUID, bridgeRow)
             tx.setInsert(TableOpenvSwitch, None, ColumnBridges,
                          getNewRowOvsUUID(bridgeUUID))
