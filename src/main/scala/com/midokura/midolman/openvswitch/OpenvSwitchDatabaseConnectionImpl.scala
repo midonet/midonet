@@ -602,7 +602,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             existingBridges = select(TableBridge,
                 bridgeWhereClause(datapathId), List(ColumnUUID))
         } while (!existingBridges.isEmpty)
-       datapathId.toHexString
+        datapathId.toHexString
     }
 
     /**
@@ -667,7 +667,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             var datapathId: String = generateDatapathId
             bridgeRow += (ColumnDatapathId -> datapathId,
                 ColumnExternalIds -> mapToOvsMap(bridgeExternalIds),
-                ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfig))
+                ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfigs))
             tx.insert(TableBridge, bridgeUUID, bridgeRow)
             tx.setInsert(TableOpenvSwitch, None, ColumnBridges,
                          getNewRowOvsUUID(bridgeUUID))
