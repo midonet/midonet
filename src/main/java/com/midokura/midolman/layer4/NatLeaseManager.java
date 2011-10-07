@@ -149,7 +149,7 @@ public class NatLeaseManager implements NatMapping {
             ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
                     origMatch), refreshSeconds, TimeUnit.SECONDS);
             matchToFuture.put(origMatch, future);
-            log.debug("allocateDnat scheduled refresh for dnat mappings.");
+            log.debug("scheduleRefresh");
         }
         refreshKeys.add(fwdKey);
         refreshKeys.add(revKey);
