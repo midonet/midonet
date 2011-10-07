@@ -19,7 +19,7 @@ MIDO_HOME=/usr/share/midolman
 MIDO_ETC=/etc/midolman
 MIDO_MAIN=com.midokura.midolman.Midolman
 # FIXME(tfukushima): Remove hard coded version number.
-MIDO_JAR=$MIDO_HOME/midolmanj-0.1.0-SNAPSHOT.jar
+MIDO_JAR=$MIDO_HOME/midolmanj.jar
 MIDO_CFG=$MIDO_ETC/midolman.conf
 MIDO_LOG_DIR=/var/log/midolman/
 

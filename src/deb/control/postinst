@@ -6,6 +6,7 @@ USER="midolman"
 DATADIR=/var/lib/midolman
 REMOTE_OPTION='--remote ptcp:12344'
 OPTIONS_FILE=/etc/default/openvswitch-switch
+POST_DIR=/var/lib/dpkg/info
 
 # shamelessly copied from debian mysql-server package...
 if ! getent group $GROUP >/dev/null ; then
@@ -36,3 +37,8 @@ chmod g+w /var/run/quagga
 if ! grep -F -- "$REMOTE_OPTION" $OPTIONS_FILE > /dev/null; then
     echo 'OVSDB_SERVER_OPTS="$OVSDB_SERVER_OPTS' $REMOTE_OPTION\" >> $OPTIONS_FILE
 fi
+
+# make a symlink for the package
+# make a symlink of the package
+ln -sf `cat $POST_DIR/midolmanj.list | grep midolmanj.*\.jar` `cat $POST_DIR/midolmanj.list  | grep midolmanj.*\.jar | awk -F'/' '{if (NF <= 1) printf "."; else {OFS="/"; $NF=""; printf "%s", substr($0, 1, length($0) - 1);}}'`/midolmanj.jar
+
