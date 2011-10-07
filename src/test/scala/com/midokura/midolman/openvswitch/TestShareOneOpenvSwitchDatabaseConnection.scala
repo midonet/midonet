@@ -15,12 +15,11 @@
  
 package com.midokura.midolman.openvswitch
 
-import org.junit.{AfterClass, BeforeClass, Test}
+import org.junit.{AfterClass, BeforeClass}
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-import com.midokura.midolman.CheckBridgeControllerOVS
 import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
@@ -60,7 +59,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     }
 
     @AfterClass def disconnectFromOVSDB() {
-        finishedSemaphore.acquire(2)
+        finishedSemaphore.acquire(1)
         testDelBridge
         assertFalse(ovsdb.hasBridge(bridgeName))
         ovsdb.close
@@ -88,8 +87,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
 }
 
 @RunWith(classOf[Suite])
-@Suite.SuiteClasses(Array(classOf[CheckOpenvSwitchDatabaseConnection],
-                          classOf[CheckBridgeControllerOVS]))
+@Suite.SuiteClasses(Array(classOf[CheckOpenvSwitchDatabaseConnection]))
 class TestShareOneOpenvSwitchDatabaseConnection {
     import TestShareOneOpenvSwitchDatabaseConnection._
 }
