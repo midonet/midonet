@@ -70,4 +70,9 @@ public class MockCache implements Cache {
             return null;
         return entry.timeExpiredMillis;
     }
+
+    @Override
+    public int getExpirationSeconds() {
+        return expirationMillis / 1000;
+    }
 }

@@ -13,8 +13,8 @@ public interface NatMapping {
     NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst, short oldTpDst,
             Set<NatTarget> nats, MidoMatch origMatch);
 
-    NwTpPair lookupDnatFwd(
-            int nwSrc, short tpSrc, int oldNwDst, short oldTpDst);
+    NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
+            short oldTpDst, MidoMatch origMatch);
 
     NwTpPair lookupDnatRev(
             int nwSrc, short tpSrc, int newNwDst, short newTpDst);
@@ -23,8 +23,8 @@ public interface NatMapping {
     NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst, short tpDst,
             Set<NatTarget> nats, MidoMatch origMatch);
 
-    NwTpPair lookupSnatFwd(
-            int oldNwSrc, short oldTpSrc, int nwDst, short tpDst);
+    NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
+            short tpDst, MidoMatch origMatch);
 
     NwTpPair lookupSnatRev(
             int newNwSrc, short newTpSrc, int nwDst, short tpDst);

@@ -107,7 +107,7 @@ public class TestRuleEngine {
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setNetworkSource(0x0a001406, 32);
         pktMatch.setNetworkDestination(0x0a000b22, 32);
-        pktMatch.setNetworkProtocol((byte) 8);
+        pktMatch.setNetworkProtocol((byte) 6); // TCP
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource((short) 4321);
         pktMatch.setTransportDestination((short) 1234);

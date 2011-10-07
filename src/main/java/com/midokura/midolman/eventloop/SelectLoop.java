@@ -20,43 +20,30 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Dirt simple SelectLoop for simple java controller
- * 
+ *
  * Originally from org.openflowj.examples
- * 
+ *
  */
 public class SelectLoop implements Reactor {
     private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
-    
+
     protected boolean dontStop;
-    protected Object registrationLock;
-    protected int registrationRequests = 0;
-    protected Queue<Object[]> registrationQueue;
     protected Selector selector;
+    // The timeout value in milliseconds that select will be called with
+    // (currently zero, may be settable in the future).
     protected long timeout;
-    
+    protected Object registerLock = new Object();
+
     protected ScheduledExecutorService executor;
 
     public SelectLoop(ScheduledExecutorService executor) throws IOException {
-        this(0);
-        
+        dontStop = true;
+        selector = SelectorProvider.provider().openSelector();
+        this.timeout = 0;
+
         this.executor = executor;
     }
 
-    /**
-     * Initializes this SelectLoop
-     * @param cb the callback to call when select returns
-     * @param timeout the timeout value in milliseconds that select will be
-     *        called with
-     * @throws IOException
-     */
-    public SelectLoop(long timeout) throws IOException {
-        dontStop = true;
-        selector = SelectorProvider.provider().openSelector();
-        registrationLock = new Object();
-        registrationQueue = new ConcurrentLinkedQueue<Object[]>();
-        this.timeout = timeout;
-    }
-    
     @Override
     public Future submit(final Runnable runnable) {
         return executor.submit(new Runnable() {
@@ -70,7 +57,8 @@ public class SelectLoop implements Reactor {
     }
 
     @Override
-    public ScheduledFuture schedule(final Runnable runnable, long delay, TimeUnit unit) {
+    public ScheduledFuture schedule(final Runnable runnable, long delay,
+                                    TimeUnit unit) {
         return executor.schedule(new Runnable() {
             @Override
             public void run() {
@@ -81,33 +69,30 @@ public class SelectLoop implements Reactor {
         }, delay, unit);
     }
 
-    public void register(SelectableChannel ch, int ops, Object arg)
-            throws ClosedChannelException {
-        registrationQueue.add(new Object[] {ch, ops, arg});
-    }
-
     /**
-     * Registers the supplied SelectableChannel with this SelectLoop. Note this
-     * method blocks until registration proceeds.  It is advised that
-     * SelectLoop is intialized with a timeout value when using this method.
+     * Registers the supplied SelectableChannel with this SelectLoop.
      * @param ch the channel
      * @param ops interest ops
      * @param arg argument that will be returned with the SelectListener
      * @return SelectionKey
      * @throws ClosedChannelException if channel was already closed
      */
-    public synchronized SelectionKey registerBlocking(SelectableChannel ch, int ops, SelectListener arg)
-            throws ClosedChannelException {
-        synchronized (registrationLock) {
-            registrationRequests++;
+    public SelectionKey register(SelectableChannel ch, int ops,
+                                 SelectListener arg)
+                throws ClosedChannelException {
+        synchronized(registerLock) {
+            selector.wakeup();
+            // The doLoop won't re-enter select() because we hold the
+            // registerLock.  This is necessary because
+            // SelectableChannel.register() contends with select() for
+            // a lock, so it could block if we didn't prevent doLoop
+            // from calling select() until after we call ch.register.
+            // We won't block if wakeup() is called between the doLoop's
+            // synchronizing on registerLock and its calling select(),
+            // because select() returns immediately if a wakeup() was
+            // called while the selector didn't have a select in progress.
+            return ch.register(selector, ops, arg);
         }
-        selector.wakeup();
-        SelectionKey key = ch.register(selector, ops, arg);
-        synchronized (registrationLock) {
-            registrationRequests--;
-            registrationLock.notifyAll();
-        }
-        return key;
     }
 
     /**
@@ -116,55 +101,28 @@ public class SelectLoop implements Reactor {
      **/
     public void doLoop() throws IOException {
         log.debug("doLoop");
-        
+
         int nEvents;
-        processRegistrationQueue();
 
         while (dontStop) {
             log.debug("looping");
-          
-            nEvents = selector.select(timeout);
-            if (nEvents > 0) {
-                for (Iterator<SelectionKey> i = selector.selectedKeys().iterator(); i.hasNext();) {
-                    SelectionKey sk = i.next();
-                    i.remove();
 
+            synchronized(registerLock) {}
+            nEvents = selector.select(timeout);
+            log.debug("got {} events", nEvents);
+            if (nEvents > 0) {
+                for (SelectionKey sk : selector.selectedKeys()) {
                     if (!sk.isValid())
                         continue;
 
                     SelectListener callback = (SelectListener) sk.attachment();
-                    callback.handleEvent(sk);
-                }
-            }
-
-            if (this.registrationQueue.size() > 0)
-                processRegistrationQueue();
-
-            if (registrationRequests > 0) {
-                synchronized (registrationLock) {
-                    while (registrationRequests > 0) {
-                        try {
-                            registrationLock.wait();
-                        } catch (InterruptedException e) {
-                            log.warn("doLoop", e);
-                        }
+                    synchronized (this) {
+                        callback.handleEvent(sk);
                     }
                 }
+                selector.selectedKeys().clear();
             }
-        }
-    }
 
-    protected void processRegistrationQueue() {
-        // add any elements in queue
-        for (Iterator<Object[]> it = registrationQueue.iterator(); it.hasNext();) {
-            Object[] args = it.next();
-            SelectableChannel ch = (SelectableChannel) args[0];
-            try {
-                ch.register(selector, (Integer) args[1], args[2]);
-            } catch (ClosedChannelException e) {
-                log.warn("processRegistrationQueue", e);
-            }
-            it.remove();
         }
     }
 
@@ -191,5 +149,4 @@ public class SelectLoop implements Reactor {
     public long currentTimeMillis() {
         return System.currentTimeMillis();
     }
-    
 }

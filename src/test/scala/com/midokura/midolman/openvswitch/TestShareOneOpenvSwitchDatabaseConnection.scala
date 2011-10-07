@@ -40,10 +40,11 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     final var bridgeId: Long = _
     final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
-    final val target = "tcp:127.0.0.1:6634"
+    final val target = "tcp:127.0.0.1:6635"
     private final var lockfile = new File("/tmp/ovsdbconnection.lock")
     private var lock: FileLock = _
-    final var mutex = new Semaphore(1)
+    final val mutex = new Semaphore(0)
+    final val finishedSemaphore = new Semaphore(0)
 
     @BeforeClass def connectToOVSDB() {
         lockfile.setReadable(true, false)
@@ -55,9 +56,11 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
         ovsdb.delTargetOpenflowControllers(target)
         assertFalse(ovsdb.hasController(target))
+        mutex.release
     }
 
     @AfterClass def disconnectFromOVSDB() {
+        finishedSemaphore.acquire(2)
         testDelBridge
         assertFalse(ovsdb.hasBridge(bridgeName))
         ovsdb.close
@@ -68,7 +71,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     /**
      * Test addBridge().
      */
-    def testAddBridge() = {
+    def testAddBridge() {
         val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
         bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
         bb.build
@@ -78,7 +81,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     /**
      * Test delBridge().
      */
-    def testDelBridge() = {
+    def testDelBridge() {
         ovsdb.delBridge(bridgeName)
         assertFalse(ovsdb.hasBridge(bridgeName))
     }

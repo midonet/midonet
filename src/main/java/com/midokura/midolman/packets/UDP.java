@@ -203,6 +203,9 @@ public class UDP extends BasePacket implements Transport {
         this.length = bb.getShort();
         this.checksum = bb.getShort();
 
+        // Calculate offset and length for next packet.
+        offset = bb.position();
+        length = bb.limit() - offset;
         if (UDP.decodeMap.containsKey(this.destinationPort)) {
             try {
                 this.payload = UDP.decodeMap.get(this.destinationPort).getConstructor().newInstance();
@@ -217,8 +220,11 @@ public class UDP extends BasePacket implements Transport {
             }
         } else {
             this.payload = new Data();
+            // Adjust length (the remaining bytes in data) if it is larger than
+            // the expected payload length (this.length - 8).
+            length = Math.min(length, this.length - 8);
         }
-        this.payload = payload.deserialize(data, bb.position(), bb.limit()-bb.position());
+        this.payload = payload.deserialize(data, offset, length);
         this.payload.setParent(this);
         return this;
     }
