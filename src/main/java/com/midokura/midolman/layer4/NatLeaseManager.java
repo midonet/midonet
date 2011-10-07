@@ -130,6 +130,18 @@ public class NatLeaseManager implements NatMapping {
                         tpSrc, IPv4.fromIPv4Address(oldNwDst),
                         oldTpDst });
 
+        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
+                oldTpDst);
+        cache.set(fwdKey, makeCacheValue(newNwDst, newTpDst));
+        String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst, newTpDst);
+        cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
+        log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
+        scheduleRefresh(origMatch, fwdKey, revKey);
+        return new NwTpPair(newNwDst, (short)newTpDst);
+    }
+
+    private void scheduleRefresh(MidoMatch origMatch, String fwdKey,
+            String revKey) {
         Set<String> refreshKeys = matchToNatKeys.get(origMatch);
         if (null == refreshKeys) {
             refreshKeys = new HashSet<String>();
@@ -139,16 +151,8 @@ public class NatLeaseManager implements NatMapping {
             matchToFuture.put(origMatch, future);
             log.debug("allocateDnat scheduled refresh for dnat mappings.");
         }
-        String key = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
-                oldTpDst);
-        refreshKeys.add(key);
-        cache.set(key, makeCacheValue(newNwDst, newTpDst));
-        log.debug("allocateDnat forward cache key {}", key);
-        key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst, newTpDst);
-        refreshKeys.add(key);
-        cache.set(key, makeCacheValue(oldNwDst, oldTpDst));
-        log.debug("allocateDnat reverse cache key {}", key);
-        return new NwTpPair(newNwDst, (short)newTpDst);
+        refreshKeys.add(fwdKey);
+        refreshKeys.add(revKey);
     }
 
     public static String makeCacheKey(String prefix, int nwSrc, int tpSrc,
@@ -164,7 +168,7 @@ public class NatLeaseManager implements NatMapping {
     private NwTpPair lookupNwTpPair(String key) {
         log.debug("lookupNwTpPair: {}", key);
 
-        String value = cache.get(key);
+        String value = cache.getAndTouch(key);
         if (null == value)
             return null;
         String[] parts = value.split("/");
@@ -174,15 +178,24 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_) {
+            short oldTpDst_, MidoMatch origMatch) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
         log.debug("lookupDnatFwd: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {}",
                 new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc,
                         IPv4.fromIPv4Address(oldNwDst), oldTpDst });
-
-        return lookupNwTpPair(makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
-                oldNwDst, oldTpDst));
+        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
+                oldNwDst, oldTpDst);
+        NwTpPair pair = lookupNwTpPair(fwdKey);
+        // If the forward mapping was found, touch the reverse mapping too,
+        // then schedule a refresh.
+        if (null != pair) {
+            String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
+                    pair.nwAddr, pair.tpPort);
+            cache.getAndTouch(revKey);
+            scheduleRefresh(origMatch, fwdKey, revKey);
+        }
+        return pair;
     }
 
     @Override
@@ -200,7 +213,7 @@ public class NatLeaseManager implements NatMapping {
 
     private boolean makeSnatReservation(int oldNwSrc, int oldTpSrc,
             int newNwSrc, int newTpSrc, int nwDst, int tpDst,
-            MidoMatch match) {
+            MidoMatch origMatch) {
         log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
                 + "newTpSrc {} nw Dst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
@@ -223,22 +236,12 @@ public class NatLeaseManager implements NatMapping {
                         newTpSrc, IPv4.fromIPv4Address(oldNwSrc),
                         oldTpSrc, IPv4.fromIPv4Address(nwDst),
                         tpDst });
-        Set<String> refreshKeys = matchToNatKeys.get(match);
-        if (null == refreshKeys) {
-            refreshKeys = new HashSet<String>();
-            matchToNatKeys.put(match, refreshKeys);
-            ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
-                    match), refreshSeconds, TimeUnit.SECONDS);
-            matchToFuture.put(match, future);
-            log.debug("makeSnatReservation scheduled refresh for snat mappings.");
-        }
         String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
                 tpDst);
-        refreshKeys.add(key);
         cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
-        refreshKeys.add(reverseKey);
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
         log.debug("allocateSnat fwd key {} and rev key {}", key, reverseKey);
+        scheduleRefresh(origMatch, key, reverseKey);
         return true;
     }
 
@@ -383,16 +386,25 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_) {
+            short tpDst_, MidoMatch origMatch) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
                         oldTpSrc, IPv4.fromIPv4Address(nwDst),
                         tpDst });
-
-        return lookupNwTpPair(makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
-                nwDst, tpDst));
+        String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
+                nwDst, tpDst);
+        NwTpPair pair = lookupNwTpPair(fwdKey);
+        // If the forward mapping was found, touch the reverse mapping too,
+        // then schedule a refresh.
+        if (null != pair) {
+            String revKey = makeCacheKey(REV_SNAT_PREFIX, pair.nwAddr,
+                    pair.tpPort, nwDst, tpDst);
+            cache.getAndTouch(revKey);
+            scheduleRefresh(origMatch, fwdKey, revKey);
+        }
+        return pair;
     }
 
     @Override

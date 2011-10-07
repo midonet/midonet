@@ -16,6 +16,7 @@ public class ReverseNatRule extends NatRule {
 
     private final static Logger log = LoggerFactory
             .getLogger(ReverseNatRule.class);
+    private static final int USHORT = 0xffff;
 
     public ReverseNatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action, dnat);
@@ -55,11 +56,11 @@ public class ReverseNatRule extends NatRule {
             return;
         log.debug("Found reverse DNAT. Use SRC {}:{} for flow from {}:{} to "
                 + "{}:{}", new Object[] {
-                IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort,
+                IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort & USHORT,
                 IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                res.match.getTransportSource(),
+                res.match.getTransportSource() & USHORT,
                 IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                res.match.getTransportDestination() });
+                res.match.getTransportDestination() & USHORT });
         res.match.setNetworkSource(origConn.nwAddr);
         res.match.setTransportSource(origConn.tpPort);
         res.action = action;
@@ -75,11 +76,11 @@ public class ReverseNatRule extends NatRule {
             return;
         log.debug("Found reverse SNAT. Use DST {}:{} for flow from {}:{} to "
                 + "{}:{}", new Object[] {
-                IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort,
+                IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort & USHORT,
                 IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                res.match.getTransportSource(),
+                res.match.getTransportSource() & USHORT,
                 IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                res.match.getTransportDestination() });
+                res.match.getTransportDestination() & USHORT });
         res.match.setNetworkDestination(origConn.nwAddr);
         res.match.setTransportDestination(origConn.tpPort);
         res.action = action;

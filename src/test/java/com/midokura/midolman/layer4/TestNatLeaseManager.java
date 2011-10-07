@@ -62,13 +62,13 @@ public class TestNatLeaseManager {
                 int oldNwSrc = 0x0a000002 + (j % 8);
                 short oldTpSrc = (short) (1000 * i + j);
                 Assert.assertNull(natManager.lookupSnatFwd(oldNwSrc, oldTpSrc,
-                        nwDst, tpDst));
+                        nwDst, tpDst, null));
                 NwTpPair pair = natManager.allocateSnat(oldNwSrc, oldTpSrc,
                         nwDst, tpDst, natSet, new MidoMatch());
                 Assert.assertEquals(nat.nwStart, pair.nwAddr);
                 Assert.assertEquals(nat.tpStart + j, pair.tpPort);
                 Assert.assertEquals(pair, natManager.lookupSnatFwd(
-                        oldNwSrc, oldTpSrc, nwDst, tpDst));
+                        oldNwSrc, oldTpSrc, nwDst, tpDst, null));
                 pair = new NwTpPair(oldNwSrc, oldTpSrc);
                 Assert.assertEquals(pair, natManager.lookupSnatRev(
                         nat.nwStart, (short)(nat.tpStart + j), nwDst, tpDst));
@@ -107,14 +107,14 @@ public class TestNatLeaseManager {
                 int nwSrc = 0x8c000001 + j;
                 short tpSrc = (short) (10000 * i + j);
                 Assert.assertNull(natManager.lookupDnatFwd(nwSrc, tpSrc,
-                        nwDst, tpDst));
+                        nwDst, tpDst, null));
                 NwTpPair pairF = natManager.allocateDnat(nwSrc, tpSrc,
                         nwDst, tpDst, natSet, new MidoMatch());
                 Assert.assertTrue(nat.nwStart <= pairF.nwAddr);
                 Assert.assertTrue(pairF.nwAddr <= nat.nwEnd);
                 Assert.assertEquals(nat.tpStart, pairF.tpPort);
                 Assert.assertEquals(pairF, natManager.lookupDnatFwd(
-                        nwSrc, tpSrc, nwDst, tpDst));
+                        nwSrc, tpSrc, nwDst, tpDst, null));
                 NwTpPair pairR = new NwTpPair(nwDst, tpDst);
                 Assert.assertEquals(pairR, natManager.lookupDnatRev(
                         nwSrc, tpSrc, pairF.nwAddr, pairF.tpPort));
@@ -137,7 +137,7 @@ public class TestNatLeaseManager {
             int nwSrc = 0x8c000001 + j;
             short tpSrc = 12345;
             Assert.assertNull(natManager.lookupDnatFwd(nwSrc, tpSrc,
-                    nwDst, tpDst));
+                    nwDst, tpDst, null));
             NwTpPair pairF = natManager.allocateDnat(nwSrc, tpSrc,
                     nwDst, tpDst, natSet, new MidoMatch());
             Assert.assertTrue(nat1.nwStart == pairF.nwAddr ||
@@ -145,7 +145,7 @@ public class TestNatLeaseManager {
             Assert.assertTrue(nat1.tpStart == pairF.tpPort ||
                     nat2.tpStart == pairF.tpPort);
             Assert.assertEquals(pairF, natManager.lookupDnatFwd(
-                    nwSrc, tpSrc, nwDst, tpDst));
+                    nwSrc, tpSrc, nwDst, tpDst, null));
             NwTpPair pairR = new NwTpPair(nwDst, tpDst);
             Assert.assertEquals(pairR, natManager.lookupDnatRev(
                     nwSrc, tpSrc, pairF.nwAddr, pairF.tpPort));

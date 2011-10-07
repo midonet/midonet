@@ -19,6 +19,7 @@ public class ForwardNatRule extends NatRule {
     private int floatingIpAddr;
     private final static Logger log = LoggerFactory
             .getLogger(ForwardNatRule.class);
+    private static final int USHORT = 0xffff;
 
     // Default constructor for the Jackson deserialization.
     public ForwardNatRule() {
@@ -66,7 +67,8 @@ public class ForwardNatRule extends NatRule {
     public void applyDnat(MidoMatch flowMatch, RuleResult res) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                    res.match.getNetworkDestination(), floatingIpAddr);
+                    IPv4.fromIPv4Address(res.match.getNetworkDestination()),
+                    IPv4.fromIPv4Address(floatingIpAddr));
             res.match.setNetworkDestination(floatingIpAddr);
             res.action = action;
             return;
@@ -79,7 +81,7 @@ public class ForwardNatRule extends NatRule {
         NwTpPair conn = natMap.lookupDnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
-                        .getTransportDestination());
+                        .getTransportDestination(), flowMatch);
         if (null == conn)
             conn = natMap.allocateDnat(res.match.getNetworkSource(), res.match
                     .getTransportSource(), res.match.getNetworkDestination(),
@@ -87,11 +89,11 @@ public class ForwardNatRule extends NatRule {
         else
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
-                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort,
+                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
                     IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                    res.match.getTransportSource(),
+                    res.match.getTransportSource() & USHORT,
                     IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                    res.match.getTransportDestination() });
+                    res.match.getTransportDestination() & USHORT });
         // TODO(pino): deal with case that conn couldn't be allocated.
         res.match.setNetworkDestination(conn.nwAddr);
         res.match.setTransportDestination(conn.tpPort);
@@ -112,7 +114,8 @@ public class ForwardNatRule extends NatRule {
     public void applySnat(MidoMatch flowMatch, RuleResult res) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
-                    res.match.getNetworkSource(), floatingIpAddr);
+                    IPv4.fromIPv4Address(res.match.getNetworkSource()), 
+                    IPv4.fromIPv4Address(floatingIpAddr));
             res.match.setNetworkSource(floatingIpAddr);
             res.action = action;
             return;
@@ -125,7 +128,7 @@ public class ForwardNatRule extends NatRule {
         NwTpPair conn = natMap.lookupSnatFwd(res.match.getNetworkSource(),
                 res.match.getTransportSource(), res.match
                         .getNetworkDestination(), res.match
-                        .getTransportDestination());
+                        .getTransportDestination(), flowMatch);
         if (null == conn)
             conn = natMap.allocateSnat(res.match.getNetworkSource(), res.match
                     .getTransportSource(), res.match.getNetworkDestination(),
@@ -133,11 +136,11 @@ public class ForwardNatRule extends NatRule {
         else 
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
-                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort,
+                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
                     IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                    res.match.getTransportSource(),
+                    res.match.getTransportSource() & USHORT,
                     IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                    res.match.getTransportDestination() });
+                    res.match.getTransportDestination() & USHORT});
         // TODO(pino): deal with case that conn couldn't be allocated.
         res.match.setNetworkSource(conn.nwAddr);
         res.match.setTransportSource(conn.tpPort);

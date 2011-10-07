@@ -47,7 +47,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst) {
+            short oldTpDst, MidoMatch origMatch) {
         return dnatFwdMap.get(new PacketSignature(nwSrc, tpSrc, oldNwDst,
                 oldTpDst));
     }
@@ -76,7 +76,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst) {
+            short tpDst, MidoMatch origMatch) {
         return snatFwdMap.get(new PacketSignature(oldNwSrc, oldTpSrc, nwDst,
                 tpDst));
     }
