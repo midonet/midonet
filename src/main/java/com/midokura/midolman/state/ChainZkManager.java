@@ -14,6 +14,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.rules.Rule;
 
@@ -38,6 +40,9 @@ public class ChainZkManager extends ZkManager {
             this.routerId = routerId;
         }
     }
+
+    private final static Logger log = LoggerFactory
+            .getLogger(ChainZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.
@@ -104,10 +109,18 @@ public class ChainZkManager extends ZkManager {
         for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
         }
-        ops.add(Op.delete(pathManager.getRouterChainPath(entry.value.routerId,
-                entry.key), -1));
-        ops.add(Op.delete(pathManager.getChainRulesPath(entry.key), -1));
-        ops.add(Op.delete(pathManager.getChainPath(entry.key), -1));
+        String routerChainPath = pathManager.getRouterChainPath(
+                entry.value.routerId, entry.key);
+        log.debug("Preparing to delete: " + routerChainPath);
+        ops.add(Op.delete(routerChainPath, -1));
+
+        String chainRulePath = pathManager.getChainRulesPath(entry.key);
+        log.debug("Preparing to delete: " + chainRulePath);
+        ops.add(Op.delete(chainRulePath, -1));
+
+        String chainPath = pathManager.getChainPath(entry.key);
+        log.debug("Preparing to delete: " + chainPath);
+        ops.add(Op.delete(chainPath, -1));
         return ops;
     }
 

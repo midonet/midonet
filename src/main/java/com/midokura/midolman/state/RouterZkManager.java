@@ -17,6 +17,8 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
@@ -28,6 +30,9 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
  * @author Ryu Ishimoto
  */
 public class RouterZkManager extends ZkManager {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(RouterZkManager.class);
 
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
@@ -92,42 +97,59 @@ public class RouterZkManager extends ZkManager {
         Set<String> snatBlocks = getChildren(pathManager
                 .getRouterSnatBlocksPath(id), null);
         for (String snatBlock : snatBlocks) {
-            ops.add(Op.delete(pathManager.getRouterSnatBlocksPath(id) + "/"
-                    + snatBlock, -1));
+            String path = pathManager.getRouterSnatBlocksPath(id) + "/"
+                    + snatBlock;
+            log.debug("Preparing to delete: " + path);
+            ops.add(Op.delete(path, -1));
         }
-        ops.add(Op.delete(pathManager.getRouterSnatBlocksPath(id), -1));
+        String snatBlockPath = pathManager.getRouterSnatBlocksPath(id);
+        log.debug("Preparing to delete: " + snatBlockPath);
+        ops.add(Op.delete(snatBlockPath, -1));
 
         // Delete routing table
-        Set<String> tableEntries = getChildren(pathManager
-                .getRouterRoutingTablePath(id), null);
+        String routingTablePath = pathManager.getRouterRoutingTablePath(id);
+        Set<String> tableEntries = getChildren(routingTablePath, null);
         for (String tableEntry : tableEntries) {
-            ops.add(Op.delete(pathManager.getRouterRoutingTablePath(id) + "/"
-                    + tableEntry, -1));
+            String path = pathManager.getRouterRoutingTablePath(id) + "/"
+                    + tableEntry;
+            log.debug("Preparing to delete: " + path);
+            ops.add(Op.delete(path, -1));
         }
-        ops.add(Op.delete(pathManager.getRouterRoutingTablePath(id), -1));
+        log.debug("Preparing to delete: " + routingTablePath);
+        ops.add(Op.delete(routingTablePath, -1));
 
         // Get chains delete ops.
         List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager.list(id);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
             ops.addAll(chainZkManager.prepareChainDelete(entry));
         }
-        ops.add(Op.delete(pathManager.getRouterChainsPath(id), -1));
+        String chainsPath = pathManager.getRouterChainsPath(id);
+        log.debug("Preparing to delete: " + chainsPath);
+        ops.add(Op.delete(chainsPath, -1));
+
         // Get routes delete ops.
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
                 .listRouterRoutes(id, null);
         for (ZkNodeEntry<UUID, Route> entry : routes) {
             ops.addAll(routeZkManager.prepareRouteDelete(entry));
         }
-        ops.add(Op.delete(pathManager.getRouterRoutesPath(id), -1));
+        String routesPath = pathManager.getRouterRoutesPath(id);
+        log.debug("Preparing to delete: " + routesPath);
+        ops.add(Op.delete(routesPath, -1));
+
         // Get ports delete ops
         List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
                 .listRouterPorts(id);
         for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
             ops.addAll(portZkManager.preparePortDelete(entry));
         }
-        ops.add(Op.delete(pathManager.getRouterPortsPath(id), -1));
+        String portsPath = pathManager.getRouterPortsPath(id);
+        log.debug("Preparing to delete: " + portsPath);
+        ops.add(Op.delete(portsPath, -1));
 
-        ops.add(Op.delete(pathManager.getRouterPath(id), -1));
+        String routerPath = pathManager.getRouterPath(id);
+        log.debug("Preparing to delete: " + routerPath);
+        ops.add(Op.delete(routerPath, -1));
         return ops;
     }
 
@@ -163,12 +185,12 @@ public class RouterZkManager extends ZkManager {
         multi(prepareRouterDelete(id));
     }
 
-    public NavigableSet<Short> getSnatBlocks(UUID routerId, int ip)
+    public NavigableSet<Integer> getSnatBlocks(UUID routerId, int ip)
             throws KeeperException, InterruptedException {
         StringBuilder sb = new StringBuilder(pathManager
                 .getRouterSnatBlocksPath(routerId));
         sb.append("/").append(Integer.toHexString(ip));
-        TreeSet<Short> ports = new TreeSet<Short>();
+        TreeSet<Integer> ports = new TreeSet<Integer>();
         Set<String> blocks = null;
         try {
             blocks = zk.getChildren(sb.toString(), null);
@@ -176,11 +198,11 @@ public class RouterZkManager extends ZkManager {
             return ports;
         }
         for (String str : blocks)
-            ports.add((short) Integer.parseInt(str));
+            ports.add(Integer.parseInt(str));
         return ports;
     }
 
-    public void addSnatReservation(UUID routerId, int ip, short startPort)
+    public void addSnatReservation(UUID routerId, int ip, int startPort)
             throws StateAccessException {
         StringBuilder sb = new StringBuilder(pathManager
                 .getRouterSnatBlocksPath(routerId));

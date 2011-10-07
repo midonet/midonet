@@ -421,12 +421,14 @@ public class Router {
         }
         if (arpPkt.getOpCode() == ARP.OP_REQUEST) {
             // ARP requests should broadcast or multicast. Ignore otherwise.
-            if (!etherPkt.isMcast()) {
+            // TODO(pino): ok to accept if it's addressed to us?
+            if (etherPkt.isMcast()
+                    || devPort.getMacAddr().equals(
+                            etherPkt.getDestinationMACAddress()))
+                processArpRequest(arpPkt, devPort);
+            else
                 log.warn("{} ignoring an ARP with a non-bcast/mcast dlDst {}",
                         this, etherPkt.getDestinationMACAddress());
-                return;
-            }
-            processArpRequest(arpPkt, devPort);
         } else if (arpPkt.getOpCode() == ARP.OP_REPLY)
             processArpReply(arpPkt, devPort);
 

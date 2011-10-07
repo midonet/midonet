@@ -4,10 +4,10 @@
 
 package com.midokura.midolman;
 
-import java.net.InetAddress;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +26,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -44,8 +45,14 @@ public class BridgeController extends AbstractController {
     short flowExpireSeconds, idleFlowExpireSeconds;
     static final short flowPriority = 1000;    // TODO: Make configurable.
 
+    static private class PortFuture {
+        // Pair<Port, Future>
+        public UUID port;
+        public Future future;
+        public PortFuture(UUID p, Future f) { port = p; future = f; }
+    }
     // The delayed deletes for macPortMap.
-    HashMap<MAC, Future> delayedDeletes;
+    HashMap<MAC, PortFuture> delayedDeletes;
 
     HashMap<MacPort, Integer> flowCount;
 
@@ -108,8 +115,8 @@ public class BridgeController extends AbstractController {
 
     public BridgeController(long datapathId, UUID switchUuid, int greKey,
             PortToIntNwAddrMap port_loc_map, MacPortMap mac_port_map,
-            long flowExpireMillis, long idleFlowExpireMillis, 
-            InetAddress publicIp, long macPortTimeoutMillis, 
+            long flowExpireMillis, long idleFlowExpireMillis,
+            IntIPv4 publicIp, long macPortTimeoutMillis,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor,
             String externalIdKey) {
         super(datapathId, switchUuid, greKey, ovsdb, port_loc_map,
@@ -117,7 +124,7 @@ public class BridgeController extends AbstractController {
         macPortMap = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
         port_locs = port_loc_map;
-        delayedDeletes = new HashMap<MAC, Future>();
+        delayedDeletes = new HashMap<MAC, PortFuture>();
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
         macPortMap.addWatcher(macToPortWatcher);
@@ -131,7 +138,7 @@ public class BridgeController extends AbstractController {
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
-        log.debug("onFlowRemoved: {} {} {} {}", 
+        log.debug("onFlowRemoved: {} {} {} {}",
                 new Object[] {match, reason, durationSeconds, packetCount});
         if ((match.getWildcards() & OFMatch.OFPFW_IN_PORT) != 0) {
             log.error("onFlowRemoved flow IN_PORT wildcarded");
@@ -141,7 +148,7 @@ public class BridgeController extends AbstractController {
             log.error("onFlowRemoved flow DL_SRC wildcarded");
             return;
         }
-        
+
         UUID inPortUuid = portNumToUuid.get(new Integer(match.getInputPort()));
         if (inPortUuid == null) {
             log.info("onFlowRemoved port has no UUID");
@@ -179,8 +186,10 @@ public class BridgeController extends AbstractController {
             if (delete) {
                 log.info("expireMacPortEntry: deleting the mapping from " +
                           "MAC {} to port {}", mac, port);
-                // TODO: Do we need to cancel this Future?
-                delayedDeletes.remove(mac);
+                // Remove & cancel any delayedDeletes invalidated.
+                PortFuture delayedDelete = delayedDeletes.remove(mac);
+                if (delayedDelete != null)
+                    delayedDelete.future.cancel(false);
                 // The macPortMap watcher will invalidate flows associated
                 // with this MAC, so we don't need to do it here.
                 try {
@@ -198,9 +207,11 @@ public class BridgeController extends AbstractController {
                          "MAC {} to port {} to expire", mac, port);
                 Future future = reactor.schedule(
                     new Runnable() {
-                        public void run() { 
+                        public void run() {
                             try {
-                                macPortMap.remove(mac); 
+                                // TODO: Should we check that
+                                // macPortMap.get(mac) still points to the port?
+                                macPortMap.remove(mac);
                             } catch (KeeperException e) {
                                 log.error("Delayed delete of MAC {} from " +
                                           "expireMacPortEntry threw ZooKeeper "+
@@ -214,8 +225,8 @@ public class BridgeController extends AbstractController {
                             }
                         }
                     }, mac_port_timeout, TimeUnit.MILLISECONDS);
-                delayedDeletes.put(mac, future);
-            } 
+                delayedDeletes.put(mac, new PortFuture(port, future));
+            }
         } else {
             log.debug("expireMacPortEntry: MAC {} is now mapped to port {} " +
                       "not {}", new Object[] { mac, currentPort, port });
@@ -237,14 +248,13 @@ public class BridgeController extends AbstractController {
         UUID outPort = macPortMap.get(dstDlAddress);
         log.info(outPort == null ? "no port found for MAC"
                                  : "MAC is on port " + outPort.toString());
-        int destIP = 0;
+        IntIPv4 destIP = null;
         OFAction[] actions;
 
         if (outPort != null) {
             try {
-                destIP = portLocMap.get(outPort).intValue();
-                log.debug("Destination port maps to host {}",
-                          Net.convertIntAddressToString(destIP));
+                destIP = new IntIPv4(portLocMap.get(outPort).intValue());
+                log.debug("Destination port maps to host {}", destIP);
             } catch (NullPointerException e) {
                 log.warn("No host found for port {}", outPort);
             }
@@ -257,8 +267,8 @@ public class BridgeController extends AbstractController {
             log.info("multicast src MAC, dropping packet");
         } else if (Ethernet.isMcast(dstDlAddress) ||
                    outPort == null ||
-                   destIP == 0 ||
-                   (destIP == publicIp && 
+                   destIP == null ||
+                   (destIP.equals(publicIp) &&
                         !portUuidToNumberMap.containsKey(outPort))) {
             // Flood if any of:
             //  * multicast destination MAC
@@ -272,25 +282,24 @@ public class BridgeController extends AbstractController {
             log.info("outPort {}, destIP {}", outPort, destIP);
             OFPort output = isTunnelPortNum(inPort) ? OFPort.OFPP_FLOOD
                                                     : OFPort.OFPP_ALL;
-            actions = new OFAction[] { new OFActionOutput(output.getValue(), 
+            actions = new OFAction[] { new OFActionOutput(output.getValue(),
                                                           (short)0) };
         } else if (portUuidToNumberMap.containsKey(outPort)) {
             log.debug("onPacketIn: outputting to local port {}", outPort);
 
-            // The port is on this local datapath, so send the flow to it 
+            // The port is on this local datapath, so send the flow to it
             // directly.
             short localPortNum = portUuidToNumberMap.get(outPort).shortValue();
             actions = new OFAction[] { new OFActionOutput(localPortNum,
                                                           (short)0) };
         } else {
-            // The virtual port is part of a remote datapath.  Tunnel the 
+            // The virtual port is part of a remote datapath.  Tunnel the
             // packet to it.
-            log.info("send flow to peer at {}", 
-                     Net.convertIntAddressToString(destIP));
+            log.info("send flow to peer at {}", destIP);
             if (isTunnelPortNum(inPort)) {
-                // The packet came in on a tunnel.  Don't send it out the 
-                // tunnel to avoid loops.  Just drop.  The flow match will 
-                // be invalidated when the destination mac changes port_uuid 
+                // The packet came in on a tunnel.  Don't send it out the
+                // tunnel to avoid loops.  Just drop.  The flow match will
+                // be invalidated when the destination mac changes port_uuid
                 // or the port_uuid changes location.
                 actions = new OFAction[] { };
                 log.info("tunnel looping, drop");
@@ -298,31 +307,32 @@ public class BridgeController extends AbstractController {
                 short output;
                 try {
                     output = tunnelPortNumOfPeer(destIP).shortValue();
+                    actions = new OFAction[] { new OFActionOutput(output,
+                                                                  (short)0) };
                 } catch (NullPointerException e) {
-                    // Tunnel is down.  Flood until the tunnel port comes up.
-                    log.info("tunnel down:  Flooding");
-                    output = OFPort.OFPP_ALL.getValue();
+                    // Tunnel is down.  Drop.  Don't flood, to avoid the 
+                    // packet looping and storming.
+                    log.info("tunnel down:  Dropping");
+                    actions = new OFAction[] { };
                 }
-                actions = new OFAction[] { new OFActionOutput(output,
-                                                              (short)0) };
             }
         }
 
         UUID inPortUuid = portNumToUuid.get(new Integer(inPort));
         UUID mappedPortUuid = macPortMap.get(srcDlAddress);
-        
+
         if (!srcAddressIsMcast && inPortUuid != null &&
                 !inPortUuid.equals(mappedPortUuid)) {
-            // The MAC changed port:  invalidate old flows before installing 
+            // The MAC changed port:  invalidate old flows before installing
             // a new flowmod for this MAC.
             invalidateFlowsFromMac(srcDlAddress);
             invalidateFlowsToMac(srcDlAddress);
         }
 
-        // Set up a forwarding rule for packets in this flow, and forward 
+        // Set up a forwarding rule for packets in this flow, and forward
         // this packet.
         OFMatch match = createMatchFromPacket(capturedPacket, inPort);
-        addFlowAndPacketOut(match, 0L, idleFlowExpireSeconds, 
+        addFlowAndPacketOut(match, 0L, idleFlowExpireSeconds,
                             flowExpireSeconds, flowPriority,
                             bufferId, true, false, false, actions,
                             inPort, data);
@@ -330,9 +340,9 @@ public class BridgeController extends AbstractController {
                  "packet from port#{} id:{}", new Object[] { new Date(),
                  actions, inPort, inPortUuid });
 
-        // If the message didn't come from the tunnel port, learn the MAC 
-        // source address.  We wait to learn a MAC-port mapping until 
-        // there's a flow from the MAC because flows are used to 
+        // If the message didn't come from the tunnel port, learn the MAC
+        // source address.  We wait to learn a MAC-port mapping until
+        // there's a flow from the MAC because flows are used to
         // reference-count the mapping.
         if (inPortUuid != null && !srcAddressIsMcast)
             increaseMacPortFlowCount(srcDlAddress, inPortUuid);
@@ -344,9 +354,9 @@ public class BridgeController extends AbstractController {
         if (count == null) {
             count = 1;
             // Remove any delayed delete.
-            Future delayedDelete = delayedDeletes.remove(macAddr);
+            PortFuture delayedDelete = delayedDeletes.remove(macAddr);
             if (delayedDelete != null)
-                delayedDelete.cancel(false);
+                delayedDelete.future.cancel(false);
             flowCount.put(flowcountKey, count);
         } else {
             flowCount.put(flowcountKey, new Integer(count+1));
@@ -403,11 +413,9 @@ public class BridgeController extends AbstractController {
     protected void deletePort(OFPhysicalPort portDesc) {
         short inPortNum = portDesc.getPortNumber();
         UUID inPortUuid = portNumToUuid.get(new Integer(inPortNum));
-        Integer peerIP = peerOfTunnelPortNum(inPortNum);
+        IntIPv4 peerIP = peerOfTunnelPortNum(inPortNum);
         log.info("Delete callback for port #{} ({}) => {}",
-                 new Object[] { inPortNum, inPortUuid, 
-                                peerIP == null ? "null" 
-                                    : Net.convertIntAddressToString(peerIP) });
+                 new Object[] { inPortNum, inPortUuid, peerIP });
         if (peerIP != null)
             invalidateFlowsToPeer(peerIP);
         if (inPortUuid == null)
@@ -427,19 +435,19 @@ public class BridgeController extends AbstractController {
                 // TODO: What should we do?
             } catch (InterruptedException e) {
                 log.error("ZooKeeper operation interrupted: {}", e);
-                // TODO: Is ignoring this OK, because we'll resynch with ZK 
+                // TODO: Is ignoring this OK, because we'll resynch with ZK
                 // at the next ZK operation?
             }
-        } 
+        }
     }
 
     @Override
     protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
-        // Here we don't care whether oldAddr is local, because we would 
+        // Here we don't care whether oldAddr is local, because we would
         // get the OVS notification first.
         log.info("portMoved: ID {} from {} to {}", new Object[] {
-                    portUuid, 
-                    oldAddr == null ? "null" 
+                    portUuid,
+                    oldAddr == null ? "null"
                                     : Net.convertIntAddressToString(oldAddr),
                     newAddr == null ? "null"
                                     : Net.convertIntAddressToString(newAddr) });
@@ -447,7 +455,7 @@ public class BridgeController extends AbstractController {
         if (port_is_local(portUuid)) {
             log.info("portMoved: port ID {} is local", portUuid);
             if (!newAddr.equals(publicIp)) {
-                // TODO(pino): trigger a more useful action like removing 
+                // TODO(pino): trigger a more useful action like removing
                 // the port from OVSDB and raising an alarm.
                 log.error("portMoved: peer at {} claims to own my port {}",
                           Net.convertIntAddressToString(newAddr), portUuid);
@@ -466,38 +474,41 @@ public class BridgeController extends AbstractController {
             invalidateFlowsToMac(mac);
     }
 
-    private void invalidateFlowsToPeer(Integer peer_ip) {
-        List<UUID> remotePorts = port_locs.getByValue(peer_ip);
+    private void invalidateFlowsToPeer(IntIPv4 peer_ip) {
+        List<UUID> remotePorts = port_locs.getByValue(new Integer(peer_ip.address));
         for (UUID port : remotePorts) {
             log.info("Invalidating flows for port {}", port);
             invalidateFlowsToPortUuid(port);
         }
     }
-    
+
     @Override
     public void onConnectionMade() {
         log.info("onConnectionMade");
-        
+
         macPortMap.start();
-        
+
         super.onConnectionMade();
     }
 
     public void clear() {
         log.info("clear");
 
-        // Using flowCount for the entries to delete from macPortMap prior
-        // to macPortMap.stop() means that entries which aren't in the 
-        // flowCount map because they're in the process of expiring 
-        // (delayedDelete) won't be removed.  
-        // TODO: Is this proper?
+        // Entries in macPortMap we own are either live with flows, in which
+        // case they're in flowCount; or are expiring, in which case they're
+        // in delayedDeletes.
         for (MacPort macPort : flowCount.keySet()) {
             log.info("clear: Deleting MAC-Port entry {} :: {}", macPort.mac,
                      macPort.port);
             expireMacPortEntry(macPort.mac, macPort.port, true);
         }
         flowCount.clear();
-        // TODO: Should we .cancel() all these Futures?
+        for (Map.Entry<MAC, PortFuture> entry : delayedDeletes.entrySet()) {
+            log.info("clear: Deleting MAC-Port entry {} :: {}", entry.getKey(),
+                     entry.getValue().port);
+            expireMacPortEntry(entry.getKey(), entry.getValue().port, true);
+            entry.getValue().future.cancel(false);
+        }
         delayedDeletes.clear();
 
         macPortMap.removeWatcher(macToPortWatcher);

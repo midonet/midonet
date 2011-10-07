@@ -2,7 +2,7 @@ package com.midokura.midolman.packets;
 
 import com.midokura.midolman.util.Net;
 
-public class IntIPv4 implements Cloneable{
+public class IntIPv4 implements Cloneable {
     public final int address;
 
     public IntIPv4(int addr) {

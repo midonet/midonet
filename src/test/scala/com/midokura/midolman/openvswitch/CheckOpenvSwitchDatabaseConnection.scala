@@ -32,7 +32,7 @@ object CheckOpenvSwitchDatabaseConnection {
     private final val oldQosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
     private final val newQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
 
-    @BeforeClass def before() = { 
+    @BeforeClass def before() { 
         mutex.acquire 
         val interfaceTable = ovsdb.dumpInterfaceTable
         log.debug("Interface table: {}", interfaceTable)
@@ -40,6 +40,10 @@ object CheckOpenvSwitchDatabaseConnection {
             if row._1.contains("test")
         } { log.info("Deleting preexisting test Interface {} => {}",
                      row._2, row._1)
+            // A port can have the interface, therefor the port should be
+            // deleted at the first.
+            if (ovsdb.hasPort(row._1))
+                ovsdb.delPort(row._1)
             ovsdb.delInterface(row._2)
         }
         val qosTable = ovsdb.dumpQosTable
@@ -60,7 +64,7 @@ object CheckOpenvSwitchDatabaseConnection {
         }
     }
 
-    @AfterClass def after() = { mutex.release }
+    @AfterClass def after() { mutex.release }
 }
 
 class CheckOpenvSwitchDatabaseConnection {
@@ -68,7 +72,7 @@ class CheckOpenvSwitchDatabaseConnection {
     // Share a common OVSDB connection because using two breaks.
     import TestShareOneOpenvSwitchDatabaseConnection._
 
-    @Test def testAddSystemPortNoLeftoverIface() = {
+    @Test def testAddSystemPortNoLeftoverIface() {
         log.debug("Entering testAddSystemPortNoLeftoverIface")
         assertFalse(ovsdb.hasInterface(portName))
         var pb = ovsdb.addSystemPort(bridgeName, portName)
@@ -86,7 +90,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addSystemPort().
      */
-    @Test def testAddSystemPort() = {
+    @Test def testAddSystemPort() {
         var pb = ovsdb.addSystemPort(bridgeName, portName)
         pb.build
         assertTrue(ovsdb.hasPort(portName))
@@ -103,7 +107,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addInternalPort().
      */
-    @Test def testAddInternalPort() = {
+    @Test def testAddInternalPort() {
         var pb = ovsdb.addInternalPort(bridgeName, portName)
         pb.build
         assertTrue(ovsdb.hasPort(portName))
@@ -120,7 +124,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addTapPort().
      */
-    @Test def testAddTapPort() = {
+    @Test def testAddTapPort() {
         var pb = ovsdb.addTapPort(bridgeName, portName)
         pb.build
         assertTrue(ovsdb.hasPort(portName))
@@ -137,7 +141,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addGrePort().
      */
-    @Test def testAddGrePort() = {
+    @Test def testAddGrePort() {
         var pb = ovsdb.addGrePort(bridgeName, portName, "127.0.0.1")
         pb.build
         assertTrue(ovsdb.hasPort(portName))
@@ -154,7 +158,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addOpenflowController().
      */
-    @Test def testAddOpenflowController() = {
+    @Test def testAddOpenflowController() {
         var cb = ovsdb.addBridgeOpenflowController(bridgeName, target)
         cb.build
         assertTrue(ovsdb.hasController(target))
@@ -171,7 +175,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test getDatapathExternalId().
      */
-    @Test def testGetDatapathExternalId() = {
+    @Test def testGetDatapathExternalId() {
         assertTrue(ovsdb.hasBridge(bridgeName))
         assertEquals(ovsdb.getDatapathExternalId(bridgeName, bridgeExtIdKey),
                      bridgeExtIdValue)
@@ -182,7 +186,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test getPortExternalId().
      */
-    @Test def testGetPortExternalId() = {
+    @Test def testGetPortExternalId() {
         assertEquals(ovsdb.getPortExternalId(bridgeName, bridgeOfPortNum,
                                              bridgeExtIdKey), null)
         assertEquals(ovsdb.getPortExternalId(bridgeId, bridgeOfPortNum,
@@ -203,7 +207,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test getBridgeNamesByExternalId().
      */
-    @Test def testGetBridgeNamesByExternalId() = {
+    @Test def testGetBridgeNamesByExternalId() {
         assertTrue(ovsdb.hasBridge(bridgeName))
         assertTrue(ovsdb.getBridgeNamesByExternalId(
             bridgeExtIdKey, bridgeExtIdValue).contains(bridgeName))
@@ -212,7 +216,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test getPortNamesByExternalId().
      */
-    @Test def testGetPortNamesByExternalId() = {
+    @Test def testGetPortNamesByExternalId() {
         val portExtIdKey = bridgeExtIdKey
         val portExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
         var pb = ovsdb.addSystemPort(bridgeName, portName)
@@ -227,7 +231,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addQos and delQos.
      */
-    @Test def testAddQos() = {
+    @Test def testAddQos() {
         val qosType = "linux-htb"
         val qosExtIdKey = bridgeExtIdKey
         val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
@@ -242,7 +246,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addQos and delQos.
      */
-    @Test def testUpdateQos() = {
+    @Test def testUpdateQos() {
         log.debug("Entering testUpdateQos")
         val qosType = "linux-htb"
         val qosExtIdKey = bridgeExtIdKey
@@ -267,7 +271,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addQueue and delQueue.
      */
-    @Test def testAddQueue() = {
+    @Test def testAddQueue() {
         val queueMinRate: Long = 100000000
         val queueExtIdKey = bridgeExtIdKey
         val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
@@ -283,7 +287,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test setPortQos and unsetPortQos.
      */
-    @Test def testSetPortQos() = {
+    @Test def testSetPortQos() {
         val qosType = "linux-htb"
         val qosExtIdKey = bridgeExtIdKey
         val qosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
@@ -307,7 +311,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test updateQueue
      */
-    @Test def testUpdateQueue() = {
+    @Test def testUpdateQueue() {
         val queueMinRate: Long = 100000000
         val queueExtIdKey = bridgeExtIdKey
         val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
@@ -334,7 +338,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test cleaQosQueues
      */
-    @Test def testClearQosQueeus() = {
+    @Test def testClearQosQueeus() {
         val qosType = "linux-htb"
         var qosBuilder = ovsdb.addQos(qosType)
         val qosUUID = qosBuilder.build
@@ -361,7 +365,7 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test getQueueUUIDByQueueNum
      */
-    @Test def testGetQueueUUIDByQueueNum() = {
+    @Test def testGetQueueUUIDByQueueNum() {
         val qosType = "linux-htb"
         var qosBuilder = ovsdb.addQos(qosType)
         val qosUUID = qosBuilder.build
@@ -389,7 +393,7 @@ class CheckOpenvSwitchDatabaseConnection {
       /**
        * Test getQueueExternalIdByQueueNum
      */
-    @Test def testGetQueueExternalIdByQueueNum() = {
+    @Test def testGetQueueExternalIdByQueueNum() {
         val qosType = "linux-htb"
         val queueExtIdKey = bridgeExtIdKey
         val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"

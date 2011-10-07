@@ -222,7 +222,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
     implicit def outputStreamWrapper(out: OutputStream) =
         new DataOutputStream(out)
 
-    def sendHeader(out: DataOutputStream, message: Byte, length: Int) = {
+    def sendHeader(out: DataOutputStream, message: Byte, length: Int) {
         assert(ZebraHeaderSize + length <= ZebraMaxPayloadSize)
 
         out.writeShort(ZebraHeaderSize + length)
@@ -231,7 +231,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         out.writeShort(message)
     }
 
-    def interfaceAdd(out: DataOutputStream) = {
+    def interfaceAdd(out: DataOutputStream) {
         val protocols = Array(BgpExtIdValue, OspfExtIdValue, RipfExtIdValue)
         var ifIndex = 0
 
@@ -325,7 +325,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         }
     }
 
-    def routerIdUpdate(out: DataOutputStream) = {
+    def routerIdUpdate(out: DataOutputStream) {
         val ia = InetAddress.getLocalHost
         sendHeader(out, ZebraRouterIdUpdate, ZebraRouterIdUpdateSize)
         out.writeByte(AF_INET)
@@ -335,7 +335,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         log.info("ZebraRouterIdUpdate: %s".format(ia.getHostAddress))
     }
 
-    def ipv4RouteAdd(in: DataInputStream, out: DataOutputStream) = {
+    def ipv4RouteAdd(in: DataInputStream, out: DataOutputStream) {
         val ribType = in.readByte
         val flags = in.readByte
         val message = in.readByte
@@ -402,7 +402,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         }
     }
 
-    def ipv4RouteDelete(in: DataInputStream, out: DataOutputStream) = {
+    def ipv4RouteDelete(in: DataInputStream, out: DataOutputStream) {
         val ribType = in.readByte
         val flags = in.readByte
         val message = in.readByte
@@ -458,7 +458,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         }
     }
 
-    def handleRequest(in: DataInputStream, out: DataOutputStream, id: Int) = {
+    def handleRequest(in: DataInputStream, out: DataOutputStream, id: Int) {
         while (true) {
             val us = in.readUnsignedShort
             val header_marker = in.readByte
@@ -571,7 +571,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         }
     }
 
-    def act() = {
+    def act() {
         loop {
             react {
                 case Request(conn, requestId) => {
@@ -611,7 +611,7 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
 
     val dispatcher = actor {
 
-        def addZebraConn(dispatcher: Actor) = {
+        def addZebraConn(dispatcher: Actor) {
             val zebraConn = new ZebraConnection(dispatcher, portMgr, routeMgr,
                                                 ovsdb)
             zebraConnPool += zebraConn
@@ -642,7 +642,7 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
     server.bind(address)
 
 
-    def start() = {
+    def start() {
         run = true
         log.info("start")
 
@@ -665,7 +665,7 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
         }
     }
 
-    def stop() = {
+    def stop() {
         log.info("stop")
         run = false
         server.close

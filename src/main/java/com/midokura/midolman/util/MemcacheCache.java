@@ -34,5 +34,15 @@ public class MemcacheCache implements Cache {
     public String getAndTouch(String key) {
         CASValue<Object> val = client.getAndTouch(key, expirationSecs);
         return null == val ? null : (String) val.getValue();
+        /*String val = (String) client.get(key);
+        if (null != val)
+            client.set(key, expirationSecs, val);
+        return val;
+        */
+    }
+
+    @Override
+    public int getExpirationSeconds() {
+        return expirationSecs;
     }
 }

@@ -175,19 +175,21 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private val jsonGenerator = jsonFactory.createJsonGenerator(
         new OutputStreamWriter(socket.getOutputStream))
     private val timer = new Timer()
-    private var continue = true
+    @volatile private var continue = true
 
     { val me = new Thread(this); me.setDaemon(true); me.start }
 
     timer.scheduleAtFixedRate(new TimerTask() {
-        override def run =
+        override def run(): Unit =
             OpenvSwitchDatabaseConnectionImpl.this.synchronized {
             val transact = Map(
                 "method" -> "echo",
                 "params" -> objectMapper.createArrayNode, "id" -> "echo")
             try {
-                objectMapper.writeValue(jsonGenerator, transact)
-                jsonGenerator.flush
+                jsonGenerator.synchronized {
+                    objectMapper.writeValue(jsonGenerator, transact)
+                    jsonGenerator.flush
+                }
             } catch {
                 case e: IOException =>
                     { log.warn("echo", e); throw new RuntimeException(e) }
@@ -195,7 +197,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }, 0, echo_interval)
 
-    def stop = { continue = false }
+    def stop { continue = false }
 
     /**
      * Apply a operation to the database.
@@ -221,8 +223,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             // Serialize the JSON-RPC 1.0 request into JSON text in the output
             // channel.
             try {
-                objectMapper.writeValue(jsonGenerator, request)
-                jsonGenerator.flush
+              jsonGenerator.synchronized {
+                  objectMapper.writeValue(jsonGenerator, request)
+                  jsonGenerator.flush
+              }
             } catch {
                 case e: IOException =>
                     { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
@@ -255,7 +259,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 if (results.isNull)
                     return response.get("result")
                 for {
-                    result <- results if result != null && results.has("error")
+                    result <- results if result != null && result.has("error")
                     val error = result.get("error").getTextValue if error != null
                     val details =
                         result.get("details").getTextValue if details != null
@@ -273,7 +277,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         }
     }
 
-    override def run() = {
+    override def run() {
         while (continue) {
             try {
                 val json = jsonParser.readValueAsTree
@@ -299,16 +303,16 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 //TODO: handle "notification" type
             } catch {
                 case e: InterruptedException =>
-                    { continue = false; log.warn("run", e) }
+                    { stop; log.warn("run", e) }
                 case e: SocketException =>
-                    { continue = false
-                      // TODO: Ignore this when the parent thread close the
+                    { stop;
+                      // TODO: Ignore this when the parent thread close the 
                       //       socket.
                     }
                 case e: EOFException =>
-                    { continue = false; log.info("run", "EOF: the socket closed.") }
+                    { stop; log.info("run", "EOF: the socket closed.") }
                 case e: IOException =>
-                    { continue = false; log.warn("run", e) }
+                    { stop; log.warn("run", e) }
             }
         }
     }
@@ -331,7 +335,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param dryRun If true, the transaction's changes are unconditionally
          *               aborted at the end of the transaction.
          */
-        def setDryRun(dryRun: Boolean) = {
+        def setDryRun(dryRun: Boolean) {
             this.dryRun = dryRun
         }
 
@@ -341,7 +345,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          *
          * @param comment The comment to log.
          */
-        def addComment(comment: String) = {
+        def addComment(comment: String) {
             comments += comment
         }
 
@@ -389,7 +393,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param table The name of the table containing the row to delete.
          * @param rowUuid The UUID string of the row to delete.
          */
-        def delete(table: String, rowUUID: Option[String]) = {
+        def delete(table: String, rowUUID: Option[String]) {
             val where: List[List[_]] = rowUUID match {
                 case Some(s) => whereUUIDEquals(s)
                 case None => List()
@@ -405,7 +409,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param rowUUID The UUID string of the row to insert.
          * @param row A Map of the column / values of the inserted row.
          */
-        def insert(table: String, rowUUID: String, row: Map[String, _]) = {
+        def insert(table: String, rowUUID: String, row: Map[String, _]) {
             rowInsertions += Map("op" -> "insert", "table" -> table,
                                  "uuid-name" -> getUUIDNameFromUUID(rowUUID),
                                  "row" -> row)
@@ -419,7 +423,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param row     A Map of the column / values updated.
          */
         def update(table: String, rowUUID: Option[String],
-                   row: Map[String, _]) = {
+                   row: Map[String, _]) {
             val where: List[List[_]] = rowUUID match {
                 case Some(s) => whereUUIDEquals(s)
                 case None => List()
@@ -436,7 +440,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param columns The List of column names of the columns to increment.
          */
         def increment(table: String, rowUUID: Option[String],
-                      columns: List[String]) = {
+                      columns: List[String]) {
             val where: List[List[_]] = rowUUID match {
                 case Some(s) => whereUUIDEquals(s)
                 case None => List()
@@ -459,7 +463,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @see           #increment(String, Option[String], List[String]): Unit
          */
         def increment(table: String, rowUUID: Option[String],
-                      columns: String): Unit = {
+                      columns: String) {
             increment(table, rowUUID, List(columns))
         }
 
@@ -472,7 +476,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param value   The value to insert into the set.
          */
         def setInsert(table: String, rowUUID: Option[String],
-                      column: String , value: Any) = {
+                      column: String , value: Any) {
             val where: List[List[_]] = rowUUID match {
                 case Some(s) => whereUUIDEquals(s)
                 case None => List()
@@ -492,7 +496,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @param value   The value to delete from the set
          */
         def setDelete(table: String, rowUUID: Option[String],
-                      column: String, value: Any) = {
+                      column: String, value: Any) {
             val where: List[List[_]] = rowUUID match {
                 case Some(s) => whereUUIDEquals(s)
                 case None => List()
@@ -594,6 +598,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         private var bridgeRow = Map[String, Any](ColumnName -> name,
                                                  ColumnDatapathType -> "")
         private var bridgeExternalIds = Map[String, String]()
+        private var bridgeOtherConfigs = Map[String, String]()
 
         /**
          * Add an external id.
@@ -604,6 +609,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          */
         override def externalId(key: String, value: String) = {
             bridgeExternalIds += (key -> value)
+            this
+        }
+        
+        /**
+         * Add an other config.
+         *
+         * @param key The key of the other config entry.
+         * @param key The value of the other config entry.
+         * @return This SBridgeBuilder instance.
+         */
+        override def otherConfig(key: String, value: String) = {
+            bridgeOtherConfigs += (key -> value)
             this
         }
 
@@ -621,7 +638,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         /**
          * Build the bridge base on this BridgeBuilderImpl instance.
          */
-        override def build() = {
+        override def build() {
             val tx = new Transaction(database)
             val ifUUID: String = generateUUID
             tx.insert(TableInterface, ifUUID, ifRow)
@@ -631,14 +648,18 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             val bridgeUUID = generateUUID
             bridgeRow += (ColumnPorts -> getNewRowOvsUUID(portUUID))
             bridgeRow += (ColumnExternalIds -> mapToOvsMap(bridgeExternalIds))
+            bridgeRow += (ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfigs))
             tx.insert(TableBridge, bridgeUUID, bridgeRow)
             tx.setInsert(TableOpenvSwitch, None, ColumnBridges,
                          getNewRowOvsUUID(bridgeUUID))
             val extIds: Iterable[String] =
                 for ((k, v) <- bridgeExternalIds) yield "%s=%s".format(k, v)
             val extIdsStr: String = extIds.mkString(", ")
-            tx.addComment("added bridge %s with external ids %s.".format(
-                bridgeUUID, extIdsStr))
+            val otherConf: Iterable[String] =
+                for ((k, v) <- bridgeOtherConfigs) yield "%s=%s".format(k, v)
+            val otherConfStr: String = otherConf.mkString(", ")
+            tx.addComment("added bridge %s with external ids %s and other config %s.".format(
+                bridgeUUID, extIdsStr, otherConfStr))
             tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
             doJsonRpc(tx)
         }
@@ -682,7 +703,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         /**
          * Build the port base on this PortBuilder instance.
          */
-        override def build() = {
+        override def build() {
             val bridgeUUID = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
             } else {
@@ -738,7 +759,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             { ifOptions += (ColumnPmtud -> false); this }
         override def disableHeaderCache() =
             { ifOptions += (ColumnHeaderCache -> false); this }
-        override def build() = {
+        override def build() {
             val bridgeUUID = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
             } else {
@@ -981,10 +1002,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param name The name of the bridge to add.
      * @return A builder to set optional parameters of the bridge and add it.
      */
-    override def addBridge(name: String): BridgeBuilder = {
-        val bb = new BridgeBuilderImpl(name)
-        return bb
-    }
+    override def addBridge(name: String): BridgeBuilder =
+        new BridgeBuilderImpl(name)
 
     /**
     * Add a port.
@@ -1825,7 +1844,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param qosUUID The UUID of the QoS to clear its queues.
      */
-    override def clearQosQueues(qosUUID: String) = {
+    override def clearQosQueues(qosUUID: String) {
         val qosBuilder = updateQos(qosUUID, queueUUIDs = Some(Map()))
         qosBuilder.update(qosUUID)
     }
@@ -1955,8 +1974,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param queueUUID The UUID of the queue to update
      * @return A builder to reset optional parameters of the queue and update it
      */
-    override def updateQueue(queueUUID: String) =
-        updateQueue(queueUUID)
+    override def updateQueue(queueUUID: String) = updateQueue(queueUUID)
 
     /**
      * Update a queue's parameters.
@@ -2162,7 +2180,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Close the connection.
      */
-    override def close() = {
+    override def close() {
         timer.cancel
         this.stop
         try {

@@ -118,6 +118,18 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> preparePortDelete(UUID portId) throws StateAccessException,
+            ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+
+        List<ZkNodeEntry<UUID, BgpConfig>> bgpList = list(portId);
+        for (ZkNodeEntry<UUID, BgpConfig> bgp : bgpList) {
+            ops.addAll(prepareBgpDelete(bgp));
+        }
+
+        return ops;
+    }
+
     public UUID create(BgpConfig bgp) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
