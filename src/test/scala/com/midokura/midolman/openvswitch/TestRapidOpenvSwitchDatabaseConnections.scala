@@ -27,13 +27,13 @@ object TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
     private final val portName = "testrapidport"
     private final val bridgeExtIdKey = "midolman-vnet"
     private final val bridgeExtIdValue = "f5451278-fddd-8b9c-d658-b167aa6c00cc"
-    private final val lockfile = new File("/tmp/ovs_tests.lock")
-    private final val lockchannel =
-        new RandomAccessFile(lockfile, "rw").getChannel
+    private final val lockfile = new File("/tmp/ovsdbconnection.lock")
     private var lock: FileLock = _
 
     @BeforeClass def initializeTest() {
-        lock = lockchannel.lock
+        lockfile.setReadable(true, false)
+        lockfile.setWritable(true, false)
+        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
         Console.err.println("Entering testRapidOVSConns")
     }
 
