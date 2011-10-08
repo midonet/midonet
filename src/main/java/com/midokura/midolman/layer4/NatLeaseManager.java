@@ -165,15 +165,18 @@ public class NatLeaseManager implements NatMapping {
         return String.format("%08x/%d", nwAddr, tpPort & USHORT);
     }
 
-    private NwTpPair lookupNwTpPair(String key) {
-        log.debug("lookupNwTpPair: {}", key);
-
-        String value = cache.getAndTouch(key);
-        if (null == value)
+    public static NwTpPair makePairFromString(String value) {
+        if (null == value || value.equals(""))
             return null;
         String[] parts = value.split("/");
-        return new NwTpPair((int) Long.parseLong(parts[0], 16),
-                (short) Integer.parseInt(parts[1]));
+        try {
+            return new NwTpPair((int) Long.parseLong(parts[0], 16),
+                    (short) Integer.parseInt(parts[1]));
+        }
+        catch (Exception e) {
+            log.warn("makePairFromString bad value {}", value);
+            return null;
+        }
     }
 
     @Override
@@ -181,20 +184,21 @@ public class NatLeaseManager implements NatMapping {
             short oldTpDst_, MidoMatch origMatch) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
-        log.debug("lookupDnatFwd: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {}",
-                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc,
-                        IPv4.fromIPv4Address(oldNwDst), oldTpDst });
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
                 oldNwDst, oldTpDst);
-        NwTpPair pair = lookupNwTpPair(fwdKey);
+        String value = cache.getAndTouch(fwdKey);
+        log.debug("lookupDnatFwd: key {} value {}", fwdKey, value);
         // If the forward mapping was found, touch the reverse mapping too,
         // then schedule a refresh.
-        if (null != pair) {
-            String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
-                    pair.nwAddr, pair.tpPort);
-            cache.getAndTouch(revKey);
-            scheduleRefresh(origMatch, fwdKey, revKey);
-        }
+        if (null == value) 
+            return null;
+        NwTpPair pair = makePairFromString(value);
+        if (null == pair)
+            return null;
+        String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
+                pair.nwAddr, pair.tpPort);
+        cache.getAndTouch(revKey);
+        scheduleRefresh(origMatch, fwdKey, revKey);
         return pair;
     }
 
@@ -203,12 +207,13 @@ public class NatLeaseManager implements NatMapping {
             short newTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int newTpDst = newTpDst_ & USHORT;
-        log.debug("lookupDnatFwd: nwSrc {} tpSrc {} newNwDst {} newTpDst {}",
-                new Object[] { IPv4.fromIPv4Address(nwSrc), tpSrc,
-                        IPv4.fromIPv4Address(newNwDst), newTpDst });
-
-        return lookupNwTpPair(makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
-                newNwDst, newTpDst));
+        String key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
+                newNwDst, newTpDst);
+        String value = cache.get(key);
+        log.debug("lookupDnatFwd key {} value {}", key, value);
+        if (null == value)
+            return null;
+        return makePairFromString(value);
     }
 
     private boolean makeSnatReservation(int oldNwSrc, int oldTpSrc,
@@ -389,21 +394,21 @@ public class NatLeaseManager implements NatMapping {
             short tpDst_, MidoMatch origMatch) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
-        log.debug("lookupSnatFwd: oldNwSrc {} oldTpSrc {} nwDst {} tpDst {}",
-                new Object[] { IPv4.fromIPv4Address(oldNwSrc),
-                        oldTpSrc, IPv4.fromIPv4Address(nwDst),
-                        tpDst });
         String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
                 nwDst, tpDst);
-        NwTpPair pair = lookupNwTpPair(fwdKey);
+        String value = cache.getAndTouch(fwdKey);
+        log.debug("lookupSnatFwd: key {} value {}", fwdKey, value);
+        if (null == value)
+            return null;
+        NwTpPair pair = makePairFromString(value);
+        if (null == pair)
+            return null;
         // If the forward mapping was found, touch the reverse mapping too,
         // then schedule a refresh.
-        if (null != pair) {
-            String revKey = makeCacheKey(REV_SNAT_PREFIX, pair.nwAddr,
-                    pair.tpPort, nwDst, tpDst);
-            cache.getAndTouch(revKey);
-            scheduleRefresh(origMatch, fwdKey, revKey);
-        }
+        String revKey = makeCacheKey(REV_SNAT_PREFIX, pair.nwAddr,
+                pair.tpPort, nwDst, tpDst);
+        cache.getAndTouch(revKey);
+        scheduleRefresh(origMatch, fwdKey, revKey);
         return pair;
     }
 
@@ -412,13 +417,13 @@ public class NatLeaseManager implements NatMapping {
             short tpDst_) {
         int newTpSrc = newTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
-        log.debug("lookupSnatRev: newNwSrc {} newTpSrc {} nwDst {} tpDst",
-                new Object[] { IPv4.fromIPv4Address(newNwSrc),
-                        newTpSrc, IPv4.fromIPv4Address(nwDst),
-                        tpDst });
-
-        return lookupNwTpPair(makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
-                nwDst, tpDst));
+        String key = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
+                nwDst, tpDst);
+        String value = cache.get(key);
+        log.debug("lookupSnatRev: key {} value {}", key, value);
+        if (null == value)
+            return null;
+        return makePairFromString(value);
     }
 
     @Override
