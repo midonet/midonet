@@ -20,6 +20,13 @@ public interface BridgeBuilder {
      * @return this builder
      */
     BridgeBuilder externalId(String key, String value);
+
+    /**
+     * Associate the bridge with the datapath ID.
+     * @param datapathId the datapath ID
+     * @return this builder
+     */
+    BridgeBuilder datapathId(long datapathId);
     
     /**
      * Add an arbitrary pair of key-value strings to associate with the bridge.

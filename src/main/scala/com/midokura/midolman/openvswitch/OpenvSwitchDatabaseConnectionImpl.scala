@@ -37,6 +37,7 @@ import java.io._
  * Static methods and constants for OpenvSwitchDatabaseConnection.
  */
 object OpenvSwitchDatabaseConnectionImpl {
+    import OpenvSwitchDatabaseConnectionImpl._
     private final val echo_interval = 1000
     private final val log = LoggerFactory.getLogger(this.getClass)
 
@@ -154,167 +155,59 @@ object OpenvSwitchDatabaseConnectionImpl {
     implicit def objectNodeToMap(objectNode: ObjectNode): Map[String, JsonNode] =
         (for (entry <- objectNode.getFields)
          yield (entry.getKey -> entry.getValue)).toMap[String, JsonNode]
-}
 
-/**
- * An implementation of a connection to an Open vSwitch database server.
- */
-class OpenvSwitchDatabaseConnectionImpl(val database: String, val addr: String,
-                                        val port: Int)
-extends OpenvSwitchDatabaseConnection with Runnable {
-    import OpenvSwitchDatabaseConnectionImpl._
-
-    private var nextRequestid = 0
-    private val pendingJsonRpcRequests =
-        new mutable.HashMap[Long, BlockingQueue[JsonNode]]()
-    private val objectMapper = new ObjectMapper().withModule(new ScalaModule())
-    private val jsonFactory = new JsonFactory(objectMapper)
-    private val factory = JsonNodeFactory.instance
-    private val socket = new Socket(addr, port)
-    private val jsonParser = jsonFactory.createJsonParser(
-        new InputStreamReader(socket.getInputStream))
-    private val jsonGenerator = jsonFactory.createJsonGenerator(
-        new OutputStreamWriter(socket.getOutputStream))
-    private val timer = new Timer()
-    @volatile private var continue = true
-
-    { val me = new Thread(this); me.setDaemon(true); me.start }
-
-    timer.scheduleAtFixedRate(new TimerTask() {
-        override def run(): Unit =
-            OpenvSwitchDatabaseConnectionImpl.this.synchronized {
-            val transact = Map(
-                "method" -> "echo",
-                "params" -> objectMapper.createArrayNode, "id" -> "echo")
-            try {
-                jsonGenerator.synchronized {
-                    objectMapper.writeValue(jsonGenerator, transact)
-                    jsonGenerator.flush
-                }
-            } catch {
-                case e: IOException =>
-                    { log.warn("echo", e); throw new RuntimeException(e) }
-            }
-        }
-    }, 0, echo_interval)
-
-    def stop { continue = false }
-
-    /**
-     * Apply a operation to the database.
-     *
-     * @param tx The instance of the transaction.
-     * @return The Java representation of the JSON object.
-     */
-    private def doJsonRpc(tx: Transaction,
-                          async: Boolean = false): JsonNode
-    = this.synchronized {
-        val requestId = nextRequestid
-        val request = tx.createJsonRpcRequest(requestId)
-        val queue = new ArrayBlockingQueue[JsonNode](1)
-
-        nextRequestid += 1
-        pendingJsonRpcRequests.synchronized {
-            // TODO: Check that no queue is already registered with that
-            // requestId.
-            pendingJsonRpcRequests.put(requestId, queue)
-        }
-        log.debug("doJsonRpc request: %s".format(request))
-        try {
-            // Serialize the JSON-RPC 1.0 request into JSON text in the output
-            // channel.
-            try {
-              jsonGenerator.synchronized {
-                  objectMapper.writeValue(jsonGenerator, request)
-                  jsonGenerator.flush
-              }
-            } catch {
-                case e: IOException =>
-                    { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
-            }
-            // Block until the response is received and parsed.
-            // TODO: Set a timeout for the response, using poll() instead of
-            // take().
-            var response: JsonNode = null
-            try {
-                response = queue.take
-            } catch {
-                case e: InterruptedException =>
-                    { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
-            }
-            val responseId: Long = response.get("id").getValueAsLong
-            if (responseId != requestId)
-                throw new OVSDBException(
-                    "wrong id in JSON-RPC result: %s".format(responseId))
-            val errorValue = response.get("error")
-            if (!errorValue.isNull) {
-                log.warn("doJsonRpc: error from server: ", errorValue)
-                throw new OVSDBException(
-                    "OVSDB request error: " + errorValue.toString,
-                    response.get("details").getTextValue)
-            }
-            // Error may appears in the result field of the response.
-            if (response.has("result")) {
-                val results = response.get("result").asInstanceOf[ArrayNode]
-                log.debug("results: " + results.toString)
-                if (results.isNull)
-                    return response.get("result")
-                for {
-                    result <- results if result != null && result.has("error")
-                    val error = result.get("error").getTextValue if error != null
-                    val details =
-                        result.get("details").getTextValue if details != null
-                } {
-                    log.warn("doJsonRpc: %s : %s".format(error, details))
-                    throw new OVSDBException(
-                        "OVSDB response error: %s".format(error), details)
-                }
-            }
-            return response.get("result")
-        } finally {
-            pendingJsonRpcRequests.synchronized {
-                pendingJsonRpcRequests.remove(requestId)
-            }
-        }
+    private def delBridgeTransaction(bridgeUUID: String, ports: JsonNode,
+                                     tx: Transaction, 
+                                     select: (String, List[List[_]],
+                                              List[String]) => JsonNode) {
+        dbt(bridgeUUID, ports, tx, select);
     }
+                                     
+    // Short name to avoid "File name too long" error for .class of nested
+    // anonymous function when named "delBridgeTransaction".
+    private def dbt(bridgeUUID: String, ports: JsonNode,
+                    tx: Transaction, 
+                    select: (String, List[List[_]], List[String]) => JsonNode) {
+        tx.delete(TableBridge, Some(bridgeUUID))
+        // The 'Open_vSwitch' table should contain only one row, so pass
+        // None as the UUID to update all the rows in there.  Delete the
+        // bridge UUID from the set of activated bridges:
+        tx.setDelete(TableOpenvSwitch, None, ColumnBridges,
+                     List("uuid", bridgeUUID))
 
-    override def run() {
-        while (continue) {
-            try {
-                val json = jsonParser.readValueAsTree
-                log.debug("OVSDB response: %s".format(json))
-
-                if (json.get("result") != null) {
-                    val id = json.get("id")
-                    assume(id != null, "Invalid JSON object.")
-                    // Ignore echo response.
-                    if (id.getTextValue != "echo") {
-                        val requestId = json.get("id").getValueAsLong
-                        pendingJsonRpcRequests.synchronized {
-                            pendingJsonRpcRequests.get(requestId) match {
-                                // Pass the JSON object to the caller, and
-                                // notify it.
-                                case Some(queue) => queue.add(json)
-                                case None => throw new OVSDBException(
-                                    "Invalid requestId %d".format(requestId))
-                            }
-                        }
-                    }
-                }
-                //TODO: handle "notification" type
-            } catch {
-                case e: InterruptedException =>
-                    { stop; log.warn("run", e) }
-                case e: SocketException =>
-                    { stop;
-                      // TODO: Ignore this when the parent thread close the 
-                      //       socket.
-                    }
-                case e: EOFException =>
-                    { stop; log.info("run", "EOF: the socket closed.") }
-                case e: IOException =>
-                    { stop; log.warn("run", e) }
+        require(ports != null, "Invalid JSON object.")
+        require(ports.get(0) != null, "Invalid JSON object.")
+        val portUUIDs: List[JsonNode] =
+            if (ports.get(0).getTextValue == "uuid") {
+                List(ports)
+            } else if (ports.get(0).getTextValue == "set") {
+                assume(ports.get(1) != null, "Invalid JSON object.")
+                ports.get(1).getElements.toList
+            } else {
+                List()
             }
+        for {
+            portUUID <- portUUIDs
+            portUUIDVal = portUUID.get(1) if portUUIDVal != null
+        } {
+            tx.delete(TablePort, Some(portUUIDVal.getTextValue))
+            val portRow = select(
+                TablePort,
+                whereUUIDEquals(portUUIDVal.getTextValue),
+                List(ColumnUUID, ColumnInterfaces)).get(0)
+            val ifs = portRow.get(ColumnInterfaces)
+            assume(ifs != null, "Invalid JSON object.")
+            assume(ifs.get(0) != null, "Invalid JSON object.")
+            val ifUUIDs: List[JsonNode] =
+                if (ifs.get(0).getTextValue == "uuid") {
+                    List(ifs)
+                } else {
+                    ifs.getElements.toList
+                }
+            for {
+                ifUUID <- ifUUIDs
+                ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
+            } tx.delete(TableInterface, Some(ifUUIDVal.getTextValue))
         }
     }
 
@@ -508,6 +401,169 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                     List(column, "delete", value)))
         }
     }
+}
+
+/**
+ * An implementation of a connection to an Open vSwitch database server.
+ */
+class OpenvSwitchDatabaseConnectionImpl(val database: String, val addr: String,
+                                        val port: Int)
+extends OpenvSwitchDatabaseConnection with Runnable {
+    import OpenvSwitchDatabaseConnectionImpl._
+
+    private var nextRequestid = 0
+    private val pendingJsonRpcRequests =
+        new mutable.HashMap[Long, BlockingQueue[JsonNode]]()
+    private val objectMapper = new ObjectMapper().withModule(new ScalaModule())
+    private val jsonFactory = new JsonFactory(objectMapper)
+    private val factory = JsonNodeFactory.instance
+    private val socket = new Socket(addr, port)
+    private val jsonParser = jsonFactory.createJsonParser(
+        new InputStreamReader(socket.getInputStream))
+    private val jsonGenerator = jsonFactory.createJsonGenerator(
+        new OutputStreamWriter(socket.getOutputStream))
+    private val timer = new Timer()
+    @volatile private var continue = true
+
+    { val me = new Thread(this); me.setDaemon(true); me.start }
+
+    timer.scheduleAtFixedRate(new TimerTask() {
+        override def run(): Unit =
+            OpenvSwitchDatabaseConnectionImpl.this.synchronized {
+            val transact = Map(
+                "method" -> "echo",
+                "params" -> objectMapper.createArrayNode, "id" -> "echo")
+            try {
+                jsonGenerator.synchronized {
+                    objectMapper.writeValue(jsonGenerator, transact)
+                    jsonGenerator.flush
+                }
+            } catch {
+                case e: IOException =>
+                    { log.warn("echo", e); throw new RuntimeException(e) }
+            }
+        }
+    }, 0, echo_interval)
+
+    def stop { continue = false }
+
+    /**
+     * Apply a operation to the database.
+     *
+     * @param tx The instance of the transaction.
+     * @return The Java representation of the JSON object.
+     */
+    private def doJsonRpc(tx: Transaction,
+                          async: Boolean = false): JsonNode
+    = this.synchronized {
+        val requestId = nextRequestid
+        val request = tx.createJsonRpcRequest(requestId)
+        val queue = new ArrayBlockingQueue[JsonNode](1)
+
+        nextRequestid += 1
+        pendingJsonRpcRequests.synchronized {
+            // TODO: Check that no queue is already registered with that
+            // requestId.
+            pendingJsonRpcRequests.put(requestId, queue)
+        }
+        log.debug("doJsonRpc request: %s".format(request))
+        try {
+            // Serialize the JSON-RPC 1.0 request into JSON text in the output
+            // channel.
+            try {
+              jsonGenerator.synchronized {
+                  objectMapper.writeValue(jsonGenerator, request)
+                  jsonGenerator.flush
+              }
+            } catch {
+                case e: IOException =>
+                    { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
+            }
+            // Block until the response is received and parsed.
+            // TODO: Set a timeout for the response, using poll() instead of
+            // take().
+            var response: JsonNode = null
+            try {
+                response = queue.take
+            } catch {
+                case e: InterruptedException =>
+                    { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
+            }
+            val responseId: Long = response.get("id").getValueAsLong
+            if (responseId != requestId)
+                throw new OVSDBException(
+                    "wrong id in JSON-RPC result: %s".format(responseId))
+            val errorValue = response.get("error")
+            if (!errorValue.isNull) {
+                log.warn("doJsonRpc: error from server: ", errorValue)
+                throw new OVSDBException(
+                    "OVSDB request error: " + errorValue.toString,
+                    response.get("details").getTextValue)
+            }
+            // Error may appears in the result field of the response.
+            if (response.has("result")) {
+                val results = response.get("result").asInstanceOf[ArrayNode]
+                log.debug("results: " + results.toString)
+                if (results.isNull)
+                    return response.get("result")
+                for {
+                    result <- results if result != null && result.has("error")
+                    val error = result.get("error").getTextValue if error != null
+                    val details =
+                        result.get("details").getTextValue if details != null
+                } {
+                    log.warn("doJsonRpc: %s : %s".format(error, details))
+                    throw new OVSDBException(
+                        "OVSDB response error: %s".format(error), details)
+                }
+            }
+            return response.get("result")
+        } finally {
+            pendingJsonRpcRequests.synchronized {
+                pendingJsonRpcRequests.remove(requestId)
+            }
+        }
+    }
+
+    override def run() {
+        while (continue) {
+            try {
+                val json = jsonParser.readValueAsTree
+                log.debug("OVSDB response: %s".format(json))
+
+                if (json.get("result") != null) {
+                    val id = json.get("id")
+                    assume(id != null, "Invalid JSON object.")
+                    // Ignore echo response.
+                    if (id.getTextValue != "echo") {
+                        val requestId = json.get("id").getValueAsLong
+                        pendingJsonRpcRequests.synchronized {
+                            pendingJsonRpcRequests.get(requestId) match {
+                                // Pass the JSON object to the caller, and
+                                // notify it.
+                                case Some(queue) => queue.add(json)
+                                case None => throw new OVSDBException(
+                                    "Invalid requestId %d".format(requestId))
+                            }
+                        }
+                    }
+                }
+                //TODO: handle "notification" type
+            } catch {
+                case e: InterruptedException =>
+                    { stop; log.warn("run", e) }
+                case e: SocketException =>
+                    { stop;
+                      // TODO: Ignore this when the parent thread close the 
+                      //       socket.
+                    }
+                case e: EOFException =>
+                    { stop; log.info("run", "EOF: the socket closed.") }
+                case e: IOException =>
+                    { stop; log.warn("run", e) }
+            }
+        }
+    }
 
     /**
      * Select data from the database.
@@ -616,16 +672,28 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                                  ColumnDatapathType -> "")
         private var bridgeExternalIds = Map[String, String]()
         private var bridgeOtherConfigs = Map[String, String]()
+        private var datapathId: String = ""
 
         /**
-         * Add an external id.
+         * Add an external ID.
          *
-         * @param key The key of the external id entry.
-         * @param key The value of the external id entry.
-         * @return This SBridgeBuilder instance.
+         * @param key The key of the external ID entry.
+         * @param key The value of the external ID entry.
+         * @return This BridgeBuilder instance.
          */
         override def externalId(key: String, value: String) = {
             bridgeExternalIds += (key -> value)
+            this
+        }
+
+        /**
+         * Add a datapath ID.
+         *
+         * @param datapathId The datapath ID.
+         * @return this
+         */
+        override def datapathId(datapathId: Long) = {
+            this.datapathId = datapathId.toHexString
             this
         }
         
@@ -634,7 +702,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          *
          * @param key The key of the other config entry.
          * @param key The value of the other config entry.
-         * @return This SBridgeBuilder instance.
+         * @return This BridgeBuilder instance.
          */
         override def otherConfig(key: String, value: String) = {
             bridgeOtherConfigs += (key -> value)
@@ -664,7 +732,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             tx.insert(TablePort, portUUID, portRow)
             val bridgeUUID = generateUUID
             bridgeRow += (ColumnPorts -> getNewRowOvsUUID(portUUID))
-            var datapathId: String = generateDatapathId
+            if (datapathId == "")
+                datapathId = generateDatapathId
             bridgeRow += (ColumnDatapathId -> datapathId,
                 ColumnExternalIds -> mapToOvsMap(bridgeExternalIds),
                 ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfigs))
@@ -1439,6 +1508,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                  row.get(ColumnUUID).get(1).getTextValue)
     }
 
+    def dumpBridgeTable(): Iterable[(String, String, JsonNode)] = {
+        val bridgeRows = select(TableBridge, List(), 
+                                List(ColumnUUID, ColumnName, ColumnPorts));
+        return for {
+            row <- bridgeRows
+            jsonName = row.get(ColumnName)
+        } yield (if (jsonName == null) "<null>" else jsonName.getTextValue,
+                 row.get(ColumnUUID).get(1).getTextValue,
+                 row.get(ColumnPorts))
+    }
+
     def delInterface(interfaceUuid: String) {
         var tx = new Transaction(database)
         tx.delete(TableInterface, Some(interfaceUuid))
@@ -1537,48 +1617,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } {
-            tx.delete(TableBridge, Some(bridgeUUID.getTextValue))
-            // The 'Open_vSwitch' table should contain only one row, so pass
-            // None as the UUID to update all the rows in there.  Delete the
-            // bridge UUID from the set of activated bridges:
-            tx.setDelete(TableOpenvSwitch, None, ColumnBridges,
-                         List("uuid", bridgeUUID.getTextValue))
-
-            val ports = bridgeRow.get(ColumnPorts)
-            assume(ports != null, "Invalid JSON object.")
-            assume(ports.get(0) != null, "Invalid JSON object.")
-            val portUUIDs: List[JsonNode] =
-                if (ports.get(0).getTextValue == "uuid") {
-                    List(ports)
-                } else if (ports.get(0).getTextValue == "set") {
-                    assume(ports.get(1) != null, "Invalid JSON object.")
-                    ports.get(1).getElements.toList
-                } else {
-                    List()
-                }
-            for {
-                portUUID <- portUUIDs
-                portUUIDVal = portUUID.get(1) if portUUIDVal != null
-            } {
-                tx.delete(TablePort, Some(portUUIDVal.getTextValue))
-                val portRow = select(
-                    TablePort,
-                    whereUUIDEquals(portUUIDVal.getTextValue),
-                    List(ColumnUUID, ColumnInterfaces)).get(0)
-                val ifs = portRow.get(ColumnInterfaces)
-                assume(ifs != null, "Invalid JSON object.")
-                assume(ifs.get(0) != null, "Invalid JSON object.")
-                val ifUUIDs: List[JsonNode] =
-                    if (ifs.get(0).getTextValue == "uuid") {
-                        List(ifs)
-                    } else {
-                        ifs.getElements.toList
-                    }
-                for {
-                    ifUUID <- ifUUIDs
-                    ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
-                } tx.delete(TableInterface, Some(ifUUIDVal.getTextValue))
-            }
+            delBridgeTransaction(bridgeUUID.getTextValue, 
+                                 bridgeRow.get(ColumnPorts), tx, this.select)
         }
 
         // Trigger ovswitchd to reload the configuration.
@@ -1586,6 +1626,15 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
         tx.addComment("deleted bridge with %s".format(bridge))
 
+        doJsonRpc(tx)
+    }
+
+    def delBridgeUUID(bridgeUUID: String, ports: JsonNode) = {
+        val tx = new Transaction(database)
+        delBridgeTransaction(bridgeUUID, ports, tx, this.select)
+        // Trigger ovswitchd to reload the configuration.
+        tx.increment(TableOpenvSwitch, None, ColumnNextConfig)
+        tx.addComment("deleted bridge with UUID %s".format(bridgeUUID))
         doJsonRpc(tx)
     }
 
