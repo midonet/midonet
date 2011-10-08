@@ -13,10 +13,12 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
 import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
+import org.junit.Assume._
 import org.scalatest.junit.JUnitSuite
 
 import java.io.{File, RandomAccessFile}
 import java.lang.Long
+import java.net.ConnectException
 import java.nio.channels.FileLock
 
 object TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
@@ -58,7 +60,13 @@ class TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
     import TestRapidOpenvSwitchDatabaseConnections._
 
     @Test def testRapidConnections() {
-        var conn1 = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        var conn1:OpenvSwitchDatabaseConnectionImpl = null
+        try {
+            conn1 = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        } catch {
+            case e: ConnectException =>
+                assumeNoException(e)
+        }
         testAddBridge(conn1)
         var bridgeId = Long.parseLong(conn1.getDatapathId(bridgeName), 16)
         testDelBridge(conn1)
