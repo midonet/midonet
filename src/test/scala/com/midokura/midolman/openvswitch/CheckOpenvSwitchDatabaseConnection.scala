@@ -22,7 +22,9 @@ import scala.collection.JavaConversions._
  * Test for the Open vSwitch database connection.
  */
 object CheckOpenvSwitchDatabaseConnection {
-    import TestShareOneOpenvSwitchDatabaseConnection._
+    import TestShareOneOpenvSwitchDatabaseConnection.{bridgeName,
+                bridgeExtIdKey, bridgeExtIdValue, ovsdb, target, mutex,
+                finishedSemaphore}
 
     final val log = LoggerFactory.getLogger(
                                 classOf[CheckOpenvSwitchDatabaseConnection])
@@ -73,7 +75,8 @@ object CheckOpenvSwitchDatabaseConnection {
 class CheckOpenvSwitchDatabaseConnection {
     import CheckOpenvSwitchDatabaseConnection._
     // Share a common OVSDB connection because using two breaks.
-    import TestShareOneOpenvSwitchDatabaseConnection._
+    import TestShareOneOpenvSwitchDatabaseConnection.{ovsdb,
+                bridgeName, bridgeExtIdKey, bridgeExtIdValue, target}
 
     @Test def testAddSystemPortNoLeftoverIface() {
         log.debug("Entering testAddSystemPortNoLeftoverIface")

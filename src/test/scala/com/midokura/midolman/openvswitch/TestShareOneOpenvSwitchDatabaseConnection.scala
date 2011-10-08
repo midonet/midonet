@@ -19,6 +19,7 @@ import org.junit.{AfterClass, BeforeClass}
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
+import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
@@ -31,6 +32,8 @@ import java.util.Date
 import java.util.concurrent.Semaphore
 
 object TestShareOneOpenvSwitchDatabaseConnection {
+    private final val log = LoggerFactory.getLogger(
+                        classOf[TestShareOneOpenvSwitchDatabaseConnection])
     private final val database = "Open_vSwitch"
     private final val host = "localhost"
     private final val port = 12344
@@ -51,6 +54,13 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
         Console.err.println("Entering testOVSConn at " + new Date)
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        val bridgeTable = ovsdb.dumpBridgeTable
+        for { row <- bridgeTable
+            if row._1.startsWith("test")
+        } { log.info("Deleting preexisting test Bridge {} => {}",
+                     row._2, row._1)
+            ovsdb.delBridgeUUID(row._2, row._3)
+        }
         testAddBridge
         bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
         ovsdb.delTargetOpenflowControllers(target)
