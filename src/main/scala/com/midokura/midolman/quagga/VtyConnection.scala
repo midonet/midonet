@@ -55,7 +55,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
     var in: BufferedReader = _
     var connected = false
 
-    private def sendMessage(command: String) {
+    private def sendMessage(command: String) = {
         out.println(command)
     }
 
@@ -69,12 +69,12 @@ abstract class VtyConnection(val addr: String, val port: Int,
         return lines.iterator
     }
 
-    def dropMessage() {
+    def dropMessage() = {
         // TODO(yoshi): handle exceptions
         in.readLine
     }
 
-    def openConnection() {
+    def openConnection()  {
         socket = new Socket(addr, port)
         out = new PrintWriter(socket.getOutputStream(), true)
         in = new BufferedReader(new InputStreamReader(socket.getInputStream),
@@ -92,7 +92,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
         connected = true
     }
 
-    def closeConnection() {
+    def closeConnection() = {
         connected = false
         out.close
         in.close
@@ -123,26 +123,26 @@ abstract class VtyConnection(val addr: String, val port: Int,
 
     def isConnected(): Boolean = { return connected }
 
-    def enable() {
+    def enable() = {
         sendMessage(Enable)
         dropMessage
     }
 
-    def disable() {
+    def disable() = {
         sendMessage(Disable)
         dropMessage
     }
 
-    protected def configureTerminal() {
+    protected def configureTerminal() = {
         sendMessage(ConfigureTerminal)
         dropMessage
     }
 
-    protected def exit() {
+    protected def exit() = {
         sendMessage(Exit)
     }
 
-    protected def end() {
+    protected def end() = {
         sendMessage(End)
     }
 }
@@ -192,7 +192,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                                  val oldConfig: AdRouteConfig,
                                  val adRouteZk: AdRouteZkManager)
             extends Runnable {
-                override def run() {
+                override def run() = {
                     // Whether this event is update or delete, we have to
                     // delete the old config first.
                     deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
@@ -216,7 +216,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                              val bgpZk: BgpZkManager,
                              val adRouteZk: AdRouteZkManager)
             extends Runnable {
-                override def run() {
+                override def run() = {
                     // Compare the length of adRoutes and only handle
                     // adRoute events when routes are added.
                     try {
@@ -278,7 +278,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         return 0
     }
 
-    override def setAs(as: Int) {
+    override def setAs(as: Int) = {
         val request = new ListBuffer[String]()
         request += SetAs.format(as)
 
@@ -291,7 +291,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         }
     }
 
-    override def deleteAs(as: Int) {
+    override def deleteAs(as: Int) = {
         val request = new ListBuffer[String]()
         request += DeleteAs.format(as)
 
@@ -304,7 +304,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         }
     }    
 
-    override def setLocalNw(as: Int, localAddr: InetAddress) {
+    override def setLocalNw(as: Int, localAddr: InetAddress) = {
         val request = ListBuffer[String]()
         request += SetAs.format(as)
         request += SetLocalNw.format(localAddr.getHostAddress)
@@ -318,7 +318,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         }
     }
 
-    override def setPeer(as: Int, peerAddr: InetAddress, peerAs: Int) {
+    override def setPeer(as: Int, peerAddr: InetAddress, peerAs: Int) = {
         val request = ListBuffer[String]()
         request += SetAs.format(as)
         request += SetPeer.format(peerAddr.getHostAddress, peerAs)
@@ -363,7 +363,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         }
     }
 
-    override def setNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
+    override def setNetwork(as: Int, nwPrefix: String, prefixLength: Int) = {
         val request = new ListBuffer[String]()
         request += SetAs.format(as)
         request += SetNetwork.format(nwPrefix, prefixLength)
@@ -393,7 +393,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
     }
 
     override def create(localAddr: InetAddress, bgpUUID: UUID,
-                        bgp: BgpConfig) {
+                        bgp: BgpConfig) = {
         setAs(bgp.localAS)
         setLocalNw(bgp.localAS, localAddr)
         setPeer(bgp.localAS, bgp.peerAddr, bgp.peerAS)
