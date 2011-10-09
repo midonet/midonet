@@ -17,6 +17,7 @@ package com.midokura.midolman.openvswitch
 
 import org.junit.{AfterClass, BeforeClass}
 import org.junit.Assert._
+import org.junit.Assume._
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 import org.slf4j.LoggerFactory
@@ -27,6 +28,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
 import java.io.{File, RandomAccessFile}
 import java.lang.Long.parseLong
+import java.net.ConnectException
 import java.nio.channels.FileLock
 import java.util.Date
 import java.util.concurrent.Semaphore
@@ -53,7 +55,12 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         lockfile.setWritable(true, false)
         lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
         Console.err.println("Entering testOVSConn at " + new Date)
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        try {
+            ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        } catch {
+            case e: ConnectException =>
+                assumeNoException(e)
+        }
         val bridgeTable = ovsdb.dumpBridgeTable
         for { row <- bridgeTable
             if row._1.startsWith("test")
@@ -69,10 +76,12 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     }
 
     @AfterClass def disconnectFromOVSDB() {
-        finishedSemaphore.acquire(1)
-        testDelBridge
-        assertFalse(ovsdb.hasBridge(bridgeName))
-        ovsdb.close
+        if (null != ovsdb) {
+            finishedSemaphore.acquire(1)
+            testDelBridge
+            assertFalse(ovsdb.hasBridge(bridgeName))
+            ovsdb.close
+        }
         Console.err.println("Closing testOVSConn at " + new Date)
         lock.release
     }

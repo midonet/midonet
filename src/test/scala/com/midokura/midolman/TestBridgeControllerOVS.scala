@@ -20,11 +20,13 @@ import com.midokura.midolman.state.{MacPortMap, MockDirectory,
 import org.apache.zookeeper.CreateMode
 import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
+import org.junit.Assume._
 import org.openflow.protocol.OFPhysicalPort
 import org.slf4j.LoggerFactory
 
 import java.io.{File, RandomAccessFile}
 import java.lang.Long.parseLong
+import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.nio.channels.{FileLock, SelectionKey, ServerSocketChannel}
 import java.util.concurrent.{Executors, TimeUnit, ScheduledFuture, Semaphore}
@@ -95,7 +97,12 @@ object TestBridgeControllerOVS extends SelectListener {
         lockfile.setReadable(true, false)
         lockfile.setWritable(true, false)
         lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        try {
+            ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+        } catch {
+            case e: ConnectException =>
+                assumeNoException(e)
+        }
         val bridgeTable = ovsdb.dumpBridgeTable
         for { row <- bridgeTable
             if row._1.startsWith("test")
@@ -175,6 +182,10 @@ object TestBridgeControllerOVS extends SelectListener {
     }
 
     @AfterClass def finalizeTest() {
+        if (null == ovsdb) {
+            lock.release
+            return
+        }
         try {
             reactor.shutdown
             assertFalse(tooLongFlag)
