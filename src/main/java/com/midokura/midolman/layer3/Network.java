@@ -236,7 +236,7 @@ public class Network {
                     rtr = getRouterByPort(lcfg.peer_uuid);
                     log.debug("Packet exited router on logical port to "
                             + "router {}", rtr.routerId.toString());
-                    if (traversedRouters.contains(rtr)) {
+                    if (traversedRouters.contains(rtr.routerId)) {
                         log.warn("Detected a routing loop.");
                         fwdInfo.action = Action.BLACKHOLE;
                         return;
