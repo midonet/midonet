@@ -1,4 +1,5 @@
 Cmnd_Alias MIDOCMDS = /sbin/ip, \
+                      /usr/bin/killall, \
                       /usr/lib/quagga/bgpd, \
                       /usr/lib/quagga/ospfd, \
                       /usr/lib/quagga/ospf6d, \
