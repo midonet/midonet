@@ -11,6 +11,9 @@
 
 package com.midokura.midolman.state;
 
+import java.util.List;
+import java.util.concurrent.Semaphore;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -21,19 +24,13 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.Integer;
-import java.util.List;
-import java.util.concurrent.Semaphore;
 
 public class ZkDumper {
 
     static ZooKeeper zk;
     static final Semaphore available = new Semaphore(0);
 
-    public static int main(String args[]) {
+    public static void main(String args[]) {
         Options options = new Options();
         options.addOption("h", "host", true, "ZooKeeper server hostname");
         options.addOption("p", "port", true, "ZooKeeper server port");
@@ -84,7 +81,6 @@ public class ZkDumper {
             System.exit(-1);
         }
 
-        return 0;
     }
 
     private static void setupZKConnection(final String host, final int port) 
