@@ -75,7 +75,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeId: Long): List[List[String]] = {
-        List(List(ColumnDatapathId, "==", "%016x".format(bridgeId)))
+        List(List(ColumnDatapathId, "==", longToDatapthId(bridgeId)))
     }
 
     /**
@@ -710,7 +710,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @return this
          */
         override def datapathId(datapathId: Long) = {
-            this.datapathId = datapathId.toHexString
+            this.datapathId = longToDatapthId(datapathId)
             this
         }
         
