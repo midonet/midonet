@@ -669,13 +669,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     private def generateDatapathId(): String = {
         var datapathId: Long = 0
-        var existingBridges: JsonNode = null
         do {
             datapathId = new Random(23).nextLong & Long.MaxValue
-            existingBridges = select(TableBridge,
-                bridgeWhereClause(datapathId), List(ColumnUUID))
-        } while (!existingBridges.isEmpty)
-        datapathId.toHexString
+        } while (hasBridge(datapathId))
+        longToDatapthId(datapathId)
     }
 
     /**
@@ -751,6 +748,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             bridgeRow += (ColumnPorts -> getNewRowOvsUUID(portUUID))
             if (datapathId == "")
                 datapathId = generateDatapathId
+            bridgeOtherConfigs += ("datapath-id" -> datapathId)
             bridgeRow += (ColumnDatapathId -> datapathId,
                 ColumnExternalIds -> mapToOvsMap(bridgeExternalIds),
                 ColumnOtherConfig -> mapToOvsMap(bridgeOtherConfigs))
