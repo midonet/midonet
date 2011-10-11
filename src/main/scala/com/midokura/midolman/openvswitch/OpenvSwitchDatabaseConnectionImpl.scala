@@ -117,6 +117,23 @@ object OpenvSwitchDatabaseConnectionImpl {
     implicit def longToString(i: Long): String = i.toString
 
     /**
+     * Conversion from Long to the Datapath Id string which is 16 hex digits.
+     *
+     * @param datapathId The datapath Id value to convert in Long.
+     * @return The datapath Id string which is 16 hex digits.
+     */
+    def longToDatapthId(datapathId: Long): String =
+        "%016x".format(datapathId & Long.MaxValue)
+
+    /**
+     * Conversion from the Datapath Id string to Long value.
+     * @param datapathId The datapath Id string to convert.
+     * @return The Long value of the datapath Id.
+     */
+    def datapathIdToLong(datapathId: String): Long =
+        java.lang.Long.parseLong(datapathId, 16) & Long.MaxValue
+
+    /**
      * Converts an Open vSwitch DB map into a Map.
      *
      * @param table   The name of the table containing the row to select.
