@@ -245,7 +245,7 @@ public class NetworkController extends AbstractController {
             TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
                     totalLen, inPort, data, match, portsAndGw);
             try {
-                log.warn("onPacketIn: need mac for ip", portsAndGw.lastEgressPortId);
+                log.warn("onPacketIn: need mac for ip {}", portsAndGw.lastEgressPortId);
                 
                 network.getMacForIp(portsAndGw.lastEgressPortId,
                         portsAndGw.nextHopNwAddr, cb);
