@@ -9,24 +9,19 @@ package com.midokura.midolman.openvswitch
 
 import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
-import org.junit.Assume.assumeNoException
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
 import scala.collection.JavaConversions._
-import java.io.{File, RandomAccessFile}
-import java.lang.Long.parseLong
-import java.net.ConnectException
-import java.nio.channels.FileLock
-import java.util.Date
 
 
 /**
  * Test for the Open vSwitch database connection.
  */
-object TestOpenvSwitchDatabaseConnection {
+object TestOpenvSwitchDatabaseConnection 
+        extends OpenvSwitchDatabaseConnectionBridgeConnector {
     final val log = LoggerFactory.getLogger(
                                 classOf[TestOpenvSwitchDatabaseConnection])
 
@@ -35,65 +30,23 @@ object TestOpenvSwitchDatabaseConnection {
     private final val oldQosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
     private final val newQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
 
-    private final val database = "Open_vSwitch"
-    private final val host = "localhost"
-    private final val port = 12344
-    final val bridgeName = "testovsbr"
-    final val bridgeExtIdKey = "midolman-vnet"
-    final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
+    override final val bridgeName = "testovsbr"
+    override final val bridgeExtIdKey = "midolman-vnet"
+    override final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
     //XXX final val bridgeId: Long = 0xa5b138e7fa339bbcL
-    final val bridgeId: Long = 0x15b138e7fa339bbcL
-    final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
-    final val target = "tcp:127.0.0.1:6635"
-    private final var lockfile = new File("/tmp/ovsdbconnection.lock")
-    private var lock: FileLock = _
+    override final val bridgeId: Long = 0x15b138e7fa339bbcL
 
-    @BeforeClass def before() { 
-        lockfile.setReadable(true, false)
-        lockfile.setWritable(true, false)
-        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
-        log.debug("Entering testOVSConn at {}", new Date)
-        try {
-            ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
-        } catch {
-            case e: ConnectException => assumeNoException(e)
-        }
-        val bridgeTable = ovsdb.dumpBridgeTable
-        for { row <- bridgeTable
-            if row._1.startsWith("test")
-        } { log.info("Deleting preexisting test Bridge {} => {}",
-                     row._2, row._1)
-            ovsdb.delBridgeUUID(row._2, row._3)
-        }
-        testAddBridge
-        val datapathId = ovsdb.getDatapathId(bridgeName)
-        log.debug("ovsdb has datapathId = {} (expected {})",
-                  datapathId, bridgeId formatted "%x")
-        assertEquals(bridgeId, parseLong(datapathId, 16))
-        log.debug("Deleting controllers for target {}", target)
-        ovsdb.delTargetOpenflowControllers(target)
-        assertFalse(ovsdb.hasController(target))
-        log.info("Successfully connected to OVSDB.")
+    @BeforeClass override def connectToOVSDB() { 
+        super.connectToOVSDB()
+        log.debug("Successfully connected to OVSDB.")
 
-        val interfaceTable = ovsdb.dumpInterfaceTable
-        log.debug("Interface table: {}", interfaceTable)
-        for { row <- interfaceTable 
-            if row._1.contains("test")
-        } { log.info("Deleting preexisting test Interface {} => {}",
-                     row._2, row._1)
-            // A port can have the interface, therefore the port should be
-            // deleted first.
-            if (ovsdb.hasPort(row._1))
-                ovsdb.delPort(row._1)
-            ovsdb.delInterface(row._2)
-        }
         val qosTable = ovsdb.dumpQosTable
         for { row <- qosTable
             extIds = row._3.get(1).getElements
         } { 
             log.debug("QoS table row: {}", row)
             for { extId <- extIds 
-                if extId.get(0).getTextValue == "midolman-vnet" && (
+                if extId.get(0).getTextValue == bridgeExtIdKey && (
                        extId.get(1).getTextValue == oldQosExtIdValue ||
                        extId.get(1).getTextValue == newQosExtIdValue)
             } {
@@ -103,40 +56,6 @@ object TestOpenvSwitchDatabaseConnection {
                 ovsdb.delQos(row._1)
             }
         }
-    }
-
-    @AfterClass def disconnectFromOVSDB() {
-        try {
-            if (null != ovsdb) {
-                testDelBridge
-                assertFalse(ovsdb.hasBridge(bridgeName))
-                ovsdb.close
-            }
-            log.debug("Closing testOVSConn at {}", new Date)
-        } finally {
-            lock.release
-        }
-    }
-
-    /**
-     * Test addBridge().
-     */
-    def testAddBridge() {
-        log.info("Adding bridge {}", bridgeName)
-        val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
-        bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
-        bb.datapathId(bridgeId)
-        bb.build
-        assertTrue(ovsdb.hasBridge(bridgeName))
-        log.info("Addition of bridge {} successful", bridgeName)
-    }
-
-    /**
-     * Test delBridge().
-     */
-    def testDelBridge() {
-        ovsdb.delBridge(bridgeName)
-        assertFalse(ovsdb.hasBridge(bridgeName))
     }
 
 }
