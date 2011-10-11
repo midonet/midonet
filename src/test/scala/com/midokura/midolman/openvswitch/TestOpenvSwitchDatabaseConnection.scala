@@ -15,7 +15,6 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
 import scala.collection.JavaConversions._
-import java.util.concurrent.Semaphore
 
 
 /**
@@ -27,7 +26,6 @@ object TestOpenvSwitchDatabaseConnection
                                 classOf[TestOpenvSwitchDatabaseConnection])
 
     private final val portName = "testovsport"
-    private final val portSem = new Semaphore(1)
     private final val bridgeOfPortNum = 65534
     private final val oldQosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
     private final val newQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
@@ -68,8 +66,7 @@ class TestOpenvSwitchDatabaseConnection {
 
     @Test def testAddSystemPortNoLeftoverIface() {
         log.debug("Entering testAddSystemPortNoLeftoverIface")
-        portSem.acquire
-        try {
+        portName.synchronized {
             assertFalse(ovsdb.hasInterface(portName))
             var pb = ovsdb.addSystemPort(bridgeName, portName)
             pb.build
@@ -81,8 +78,6 @@ class TestOpenvSwitchDatabaseConnection {
             assertFalse(ovsdb.hasPort(portName))
             assertFalse(ovsdb.hasInterface(portName))
             log.debug("Leaving testAddSystemPortNoLeftoverIface")
-        } finally {
-            portSem.release
         }
     }
 
@@ -90,28 +85,22 @@ class TestOpenvSwitchDatabaseConnection {
      * Test addSystemPort().
      */
     @Test def testAddSystemPortBridgeName() {
-        portSem.acquire
-        try {
+        portName.synchronized {
             var pb = ovsdb.addSystemPort(bridgeName, portName)
             pb.build
             assertTrue(ovsdb.hasPort(portName))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
-        } finally {
-            portSem.release
         }
     }
 
     @Test def testAddSystemPortBridgeId() {
-        portSem.acquire
-        try {
+        portName.synchronized {
             val pb = ovsdb.addSystemPort(bridgeId, portName)
             pb.build
             assertTrue(ovsdb.hasPort(portName))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
-        } finally {
-            portSem.release
         }
     }
 
@@ -119,8 +108,7 @@ class TestOpenvSwitchDatabaseConnection {
      * Test addInternalPort().
      */
     @Test def testAddInternalPort() {
-        portSem.acquire
-        try {
+        portName.synchronized {
             var pb = ovsdb.addInternalPort(bridgeName, portName)
             pb.build
             assertTrue(ovsdb.hasPort(portName))
@@ -132,8 +120,6 @@ class TestOpenvSwitchDatabaseConnection {
             assertTrue(ovsdb.hasPort(portName))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
-        } finally {
-            portSem.release
         }
     }
 
@@ -141,8 +127,7 @@ class TestOpenvSwitchDatabaseConnection {
      * Test addTapPort().
      */
     @Test def testAddTapPort() {
-        portSem.acquire
-        try {
+        portName.synchronized {
             var pb = ovsdb.addTapPort(bridgeName, portName)
             pb.build
             assertTrue(ovsdb.hasPort(portName))
@@ -154,8 +139,6 @@ class TestOpenvSwitchDatabaseConnection {
             assertTrue(ovsdb.hasPort(portName))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
-        } finally {
-            portSem.release
         }
     }
 
@@ -163,8 +146,7 @@ class TestOpenvSwitchDatabaseConnection {
      * Test addGrePort().
      */
     @Test def testAddGrePort() {
-        portSem.acquire
-        try {
+        portName.synchronized {
             var pb = ovsdb.addGrePort(bridgeName, portName, "127.0.0.1")
             pb.build
             assertTrue(ovsdb.hasPort(portName))
@@ -176,8 +158,6 @@ class TestOpenvSwitchDatabaseConnection {
             assertTrue(ovsdb.hasPort(portName))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
-        } finally {
-            portSem.release
         }
     }
 
