@@ -111,9 +111,7 @@ object TestBridgeControllerOVS extends SelectListener {
             ovsdb.delBridgeUUID(row._2, row._3)
         }
         testAddBridge
-        // FIXME(jlm, tfukushima): This isn't returning what we set
-        // with bb.datapathId
-        //assertEquals(bridgeId, parseLong(ovsdb.getDatapathId(bridgeName), 16))
+        assertEquals(bridgeId, parseLong(ovsdb.getDatapathId(bridgeName), 16))
         ovsdb.delTargetOpenflowControllers(target)
         assertFalse(ovsdb.hasController(target))
     }
@@ -190,11 +188,11 @@ object TestBridgeControllerOVS extends SelectListener {
             reactor.shutdown
             assertFalse(tooLongFlag)
             assertTrue(ovsdb.hasController(target))
-            // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-            //ovsdb.delBridgeOpenflowControllers(bridgeId)
-            //assertFalse(ovsdb.hasController(target))
+            assertTrue(ovsdb.hasBridge(bridgeId))
+            ovsdb.delBridgeOpenflowControllers(bridgeId)
+            assertFalse(ovsdb.hasController(target))
             testDelBridge
-            assertFalse(ovsdb.hasBridge(bridgeName))
+            assertFalse(ovsdb.hasBridge(bridgeId))
         } finally {
             try {
                 ovsdb.close
