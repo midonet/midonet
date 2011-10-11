@@ -11,7 +11,8 @@ import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
 import com.midokura.midolman.openflow.ControllerStubImpl
 import com.midokura.midolman.openvswitch.{
                 BridgeBuilder,
-                OpenvSwitchDatabaseConnectionImpl}
+                OpenvSwitchDatabaseConnectionImpl,
+                OpenvSwitchDatabaseConnectionBridgeConnector}
 import com.midokura.midolman.packets.IntIPv4
 import com.midokura.midolman.state.{MacPortMap, MockDirectory,
                                     PortToIntNwAddrMap}
@@ -48,7 +49,9 @@ class ChattySemaphore(capacity: Int) extends Semaphore(capacity) {
 /**
  * Test the BridgeController's interaction with Open vSwitch.
  */
-object TestBridgeControllerOVS extends SelectListener {
+object TestBridgeControllerOVS 
+        extends OpenvSwitchDatabaseConnectionBridgeConnector 
+        with SelectListener {
     // All the "static" variables and methods.
     final val log = LoggerFactory.getLogger(classOf[TestBridgeControllerOVS])
     private final val testportName = "testbrport"
@@ -66,54 +69,10 @@ object TestBridgeControllerOVS extends SelectListener {
     private final var connectionSemaphore = new ChattySemaphore(0)
     @volatile private var tooLongFlag = false
 
-    private final val database = "Open_vSwitch"
-    private final val host = "localhost"
-    private final val port = 12344
-    final val bridgeName = "testbr"
-    final val bridgeExtIdKey = "midolman-vnet"
-    final val bridgeExtIdValue = "ebbf1184-4dc2-11e0-b2c3-a4b17460e319"
-    final var bridgeId: Long = 0x74a027d6e9288adbL
-    // final var bridgeId: Long = 0x74a027d6L
-    final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
-    final val target = "tcp:127.0.0.1:6635"
-    private final var lockfile = new File("/tmp/ovsdbconnection.lock")
-    private var lock: FileLock = _
-
-    def testAddBridge() {
-        val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
-        bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
-        bb.datapathId(bridgeId)
-        bb.build
-        assertTrue(ovsdb.hasBridge(bridgeName))
-    }
-
-    def testDelBridge() {
-        ovsdb.delBridge(bridgeName)
-        assertFalse(ovsdb.hasBridge(bridgeName))
-    }
-
-    def connectToOVSDB() {
-        lockfile.setReadable(true, false)
-        lockfile.setWritable(true, false)
-        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
-        try {
-            ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
-        } catch {
-            case e: ConnectException =>
-                assumeNoException(e)
-        }
-        val bridgeTable = ovsdb.dumpBridgeTable
-        for { row <- bridgeTable
-            if row._1.startsWith("test")
-        } { log.info("Deleting preexisting test Bridge {} => {}",
-                     row._2, row._1)
-            ovsdb.delBridgeUUID(row._2, row._3)
-        }
-        testAddBridge
-        assertEquals(bridgeId, parseLong(ovsdb.getDatapathId(bridgeName), 16))
-        ovsdb.delTargetOpenflowControllers(target)
-        assertFalse(ovsdb.hasController(target))
-    }
+    override final val bridgeName = "testbr"
+    override final val bridgeExtIdKey = "midolman-vnet"
+    override final val bridgeExtIdValue = "ebbf1184-4dc2-11e0-b2c3-a4b17460e319"
+    override final val bridgeId: Long = 0x74a027d6e9288adbL
 
     @BeforeClass def initializeTest() {
         connectToOVSDB
@@ -179,25 +138,17 @@ object TestBridgeControllerOVS extends SelectListener {
     }
 
     @AfterClass def finalizeTest() {
-        if (null == ovsdb) {
-            lock.release
-            return
-        }
         try {
-            reactor.shutdown
-            assertFalse(tooLongFlag)
-            assertTrue(ovsdb.hasController(target))
-            assertTrue(ovsdb.hasBridge(bridgeId))
-            ovsdb.delBridgeOpenflowControllers(bridgeId)
-            assertFalse(ovsdb.hasController(target))
-            testDelBridge
-            assertFalse(ovsdb.hasBridge(bridgeId))
-        } finally {
-            try {
-                ovsdb.close
-            } finally {
-                lock.release
+            if (null != ovsdb) {
+                reactor.shutdown
+                assertFalse(tooLongFlag)
+                assertTrue(ovsdb.hasController(target))
+                assertTrue(ovsdb.hasBridge(bridgeId))
+                ovsdb.delBridgeOpenflowControllers(bridgeId)
+                assertFalse(ovsdb.hasController(target))
             }
+        } finally {
+            disconnectFromOVSDB
         }
     }
 

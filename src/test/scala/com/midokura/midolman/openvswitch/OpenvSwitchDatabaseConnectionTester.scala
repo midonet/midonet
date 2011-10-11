@@ -47,7 +47,8 @@ trait OpenvSwitchDatabaseConnectionBridgeConnector
     var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
     final val target = "tcp:127.0.0.1:6635"
 
-    @BeforeClass def connectToOVSDB() {
+    // Invoke from subclass's @BeforeClass
+    def connectToOVSDB() {
         takeLock
         try {
             ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
@@ -84,7 +85,8 @@ trait OpenvSwitchDatabaseConnectionBridgeConnector
         }
     }
 
-    @AfterClass def disconnectFromOVSDB() {
+    // Call from subclass's @AfterClass
+    def disconnectFromOVSDB() {
         try {
             if (null != ovsdb) {
                 testDelBridge

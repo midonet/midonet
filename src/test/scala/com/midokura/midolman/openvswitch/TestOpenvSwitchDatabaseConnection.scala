@@ -36,8 +36,10 @@ object TestOpenvSwitchDatabaseConnection
     //XXX final val bridgeId: Long = 0xa5b138e7fa339bbcL
     override final val bridgeId: Long = 0x15b138e7fa339bbcL
 
-    @BeforeClass override def connectToOVSDB() { 
-        super.connectToOVSDB()
+    @AfterClass def finalizeTest() { disconnectFromOVSDB }
+
+    @BeforeClass def initializeTest() { 
+        connectToOVSDB
         log.debug("Successfully connected to OVSDB.")
 
         val qosTable = ovsdb.dumpQosTable
