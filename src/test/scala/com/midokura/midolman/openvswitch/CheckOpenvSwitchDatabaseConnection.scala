@@ -76,7 +76,7 @@ class CheckOpenvSwitchDatabaseConnection {
     import CheckOpenvSwitchDatabaseConnection._
     // Share a common OVSDB connection because using two breaks.
     import TestShareOneOpenvSwitchDatabaseConnection.{ovsdb,
-                bridgeName, bridgeExtIdKey, bridgeExtIdValue, target}
+                bridgeId, bridgeName, bridgeExtIdKey, bridgeExtIdValue, target}
 
     @Test def testAddSystemPortNoLeftoverIface() {
         log.debug("Entering testAddSystemPortNoLeftoverIface")
@@ -96,15 +96,17 @@ class CheckOpenvSwitchDatabaseConnection {
     /**
      * Test addSystemPort().
      */
-    @Test def testAddSystemPort() {
+    @Test def testAddSystemPortBridgeName() {
         var pb = ovsdb.addSystemPort(bridgeName, portName)
         pb.build
         assertTrue(ovsdb.hasPort(portName))
         ovsdb.delPort(portName)
         assertFalse(ovsdb.hasPort(portName))
+    }
 
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        pb = ovsdb.addSystemPort(bridgeName, portName)
+    @Ignore // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
+    @Test def testAddSystemPortBridgeId() {
+        val pb = ovsdb.addSystemPort(bridgeId, portName)
         pb.build
         assertTrue(ovsdb.hasPort(portName))
         ovsdb.delPort(portName)

@@ -73,8 +73,8 @@ object TestBridgeControllerOVS extends SelectListener {
     final val bridgeName = "testbr"
     final val bridgeExtIdKey = "midolman-vnet"
     final val bridgeExtIdValue = "ebbf1184-4dc2-11e0-b2c3-a4b17460e319"
-    // final var bridgeId: Long = 0x74a027d6e9288adbL;
-    final var bridgeId: Long = 0x74a027d6L;
+    final var bridgeId: Long = 0x74a027d6e9288adbL
+    // final var bridgeId: Long = 0x74a027d6L
     final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
     final val target = "tcp:127.0.0.1:6635"
     private final var lockfile = new File("/tmp/ovsdbconnection.lock")

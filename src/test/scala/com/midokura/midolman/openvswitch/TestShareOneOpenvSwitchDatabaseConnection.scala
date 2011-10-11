@@ -42,7 +42,7 @@ object TestShareOneOpenvSwitchDatabaseConnection {
     final val bridgeName = "testovsbr"
     final val bridgeExtIdKey = "midolman-vnet"
     final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
-    final var bridgeId: Long = _
+    final val bridgeId: Long = 0xa5b138e7fa339bbdL
     final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
     final val target = "tcp:127.0.0.1:6635"
     private final var lockfile = new File("/tmp/ovsdbconnection.lock")
@@ -56,44 +56,58 @@ object TestShareOneOpenvSwitchDatabaseConnection {
         lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
         Console.err.println("Entering testOVSConn at " + new Date)
         try {
-            ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
-        } catch {
-            case e: ConnectException =>
-                assumeNoException(e)
+            try {
+                ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
+            } catch {
+                case e: ConnectException => assumeNoException(e)
+            }
+            val bridgeTable = ovsdb.dumpBridgeTable
+            for { row <- bridgeTable
+                if row._1.startsWith("test")
+            } { log.info("Deleting preexisting test Bridge {} => {}",
+                         row._2, row._1)
+                ovsdb.delBridgeUUID(row._2, row._3)
+            }
+            testAddBridge
+            val datapathId = ovsdb.getDatapathId(bridgeName)
+            log.debug("ovsdb has datapathId = {} (expected {})",
+                      datapathId, bridgeId formatted "%x")
+            assertEquals(bridgeId, parseLong(datapathId, 16))
+            log.debug("Deleting controllers for target {}", target)
+            ovsdb.delTargetOpenflowControllers(target)
+            assertFalse(ovsdb.hasController(target))
+            log.debug("Deletion of target={} controllers successful.")
+        } finally {
+            mutex.release
         }
-        val bridgeTable = ovsdb.dumpBridgeTable
-        for { row <- bridgeTable
-            if row._1.startsWith("test")
-        } { log.info("Deleting preexisting test Bridge {} => {}",
-                     row._2, row._1)
-            ovsdb.delBridgeUUID(row._2, row._3)
-        }
-        testAddBridge
-        bridgeId = parseLong(ovsdb.getDatapathId(bridgeName), 16)
-        ovsdb.delTargetOpenflowControllers(target)
-        assertFalse(ovsdb.hasController(target))
-        mutex.release
+        log.info("Successfully connected to OVSDB.")
     }
 
     @AfterClass def disconnectFromOVSDB() {
-        if (null != ovsdb) {
-            finishedSemaphore.acquire(1)
-            testDelBridge
-            assertFalse(ovsdb.hasBridge(bridgeName))
-            ovsdb.close
+        try {
+            if (null != ovsdb) {
+                finishedSemaphore.acquire(1)
+                testDelBridge
+                assertFalse(ovsdb.hasBridge(bridgeName))
+                ovsdb.close
+            }
+            Console.err.println("Closing testOVSConn at " + new Date)
+        } finally {
+            lock.release
         }
-        Console.err.println("Closing testOVSConn at " + new Date)
-        lock.release
     }
 
     /**
      * Test addBridge().
      */
     def testAddBridge() {
+        log.info("Adding bridge {}", bridgeName)
         val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
         bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
+        bb.datapathId(bridgeId)
         bb.build
         assertTrue(ovsdb.hasBridge(bridgeName))
+        log.info("Addition of bridge {} successful", bridgeName)
     }
 
     /**
