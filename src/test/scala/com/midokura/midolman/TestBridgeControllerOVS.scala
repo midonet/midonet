@@ -10,11 +10,10 @@ package com.midokura.midolman
 import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
 import com.midokura.midolman.openflow.ControllerStubImpl
 import com.midokura.midolman.openvswitch.{
-                BridgeBuilder, 
-                OpenvSwitchDatabaseConnectionImpl, 
-                TestShareOneOpenvSwitchDatabaseConnection}
+                BridgeBuilder,
+                OpenvSwitchDatabaseConnectionImpl}
 import com.midokura.midolman.packets.IntIPv4
-import com.midokura.midolman.state.{MacPortMap, MockDirectory, 
+import com.midokura.midolman.state.{MacPortMap, MockDirectory,
                                     PortToIntNwAddrMap}
 
 import org.apache.zookeeper.CreateMode
@@ -45,7 +44,7 @@ class ChattySemaphore(capacity: Int) extends Semaphore(capacity) {
         log.info("acquire: {}", this)
     }
 }
-    
+
 /**
  * Test the BridgeController's interaction with Open vSwitch.
  */
@@ -156,19 +155,19 @@ object TestBridgeControllerOVS extends SelectListener {
             listenSock.configureBlocking(false)
             listenSock.socket.bind(new InetSocketAddress(of_port))
 
-            reactor.register(listenSock, SelectionKey.OP_ACCEPT, 
+            reactor.register(listenSock, SelectionKey.OP_ACCEPT,
                              TestBridgeControllerOVS.this)
 
             registerController
 
             tookTooLong = reactor.schedule(
-                              new Runnable() { 
-                                  def run { 
+                              new Runnable() {
+                                  def run {
                                       log.info("Took too long!")
                                       tooLongFlag = true
                                       reactor.shutdown
                                       portModSemaphore.release(10)
-                                  } }, 
+                                  } },
                               4000, TimeUnit.MILLISECONDS)
             reactor.doLoop
             log.info("reactor thread exiting")
@@ -259,7 +258,7 @@ class TestBridgeControllerOVS {
         serializeTestsSemaphore.release
     }
 
-    @Test 
+    @Test
     @Ignore
     def testNewSystemPort() {
         log.info("testNewSystemPort called")
@@ -309,7 +308,7 @@ class TestBridgeControllerOVS {
         }
     }
 
-    @Ignore 
+    @Ignore
     @Test def testNewTapPort() = {
         log.info("testNewTapPort")
         serializeTestsSemaphore.acquire
@@ -334,16 +333,16 @@ class TestBridgeControllerOVS {
     }
 }
 
-private class BridgeControllerTester(datapath: Long, switchID: UUID, 
-        greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap, 
-        flowExpireMillis: Long, idleFlowExpireMillis: Long, 
-        publicIP: IntIPv4, macPortTimeoutMillis: Long, 
-        ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop, 
-        externalIDKey: String, portSemaphore: Semaphore, 
-        connectionSemaphore: Semaphore) extends 
-                BridgeController(datapath, switchID, greKey, portLocMap, 
-                        macPortMap, flowExpireMillis, idleFlowExpireMillis, 
-                        publicIP, macPortTimeoutMillis, ovsdb, reactor, 
+private class BridgeControllerTester(datapath: Long, switchID: UUID,
+        greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap,
+        flowExpireMillis: Long, idleFlowExpireMillis: Long,
+        publicIP: IntIPv4, macPortTimeoutMillis: Long,
+        ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop,
+        externalIDKey: String, portSemaphore: Semaphore,
+        connectionSemaphore: Semaphore) extends
+                BridgeController(datapath, switchID, greKey, portLocMap,
+                        macPortMap, flowExpireMillis, idleFlowExpireMillis,
+                        publicIP, macPortTimeoutMillis, ovsdb, reactor,
                         externalIDKey) {
     var addedPorts = List[OFPhysicalPort]()
 
