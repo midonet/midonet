@@ -670,7 +670,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def generateDatapathId(): String = {
         var datapathId: Long = 0
         do {
-            datapathId = new Random(23).nextLong
+            datapathId = new Random().nextLong
         } while (hasBridge(datapathId))
         longToDatapathId(datapathId)
     }
