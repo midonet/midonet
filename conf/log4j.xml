@@ -9,8 +9,10 @@
     </layout> 
   </appender>
   
-  <appender name="file" class="org.apache.log4j.FileAppender">
+  <appender name="file" class="org.apache.log4j.RollingFileAppender">
     <param name="file" value="${midolman.log.dir}midolman.log" />
+    <param name="MaxFileSize" value="100MB"/>
+    <param name="MaxBackupIndex" value="10"/>
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{yyyy.MM.dd HH:mm:ss,SSS} %-5p %c{1} - %m%n"/> 
     </layout>
@@ -21,5 +23,13 @@
     <appender-ref ref="console" />
     <appender-ref ref="file" />
   </root>
+  
+  <logger name="com.midokura.midolman.AbstractController">
+    <level value="debug"/> 
+  </logger>
+  
+  <logger name="com.midokura.midolman.BridgeController">
+    <level value="debug"/> 
+  </logger>
 
 </log4j:configuration>
