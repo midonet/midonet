@@ -13,6 +13,7 @@ import java.net.ConnectException
 import java.nio.channels.FileLock
 import java.util.Date
 
+import OpenvSwitchDatabaseConnectionImpl._
 
 // Mutex the OVSDB Connection, using a mode 666 lockfile in /tmp
 object OpenvSwitchDatabaseConnectionMutexer {
@@ -66,7 +67,7 @@ trait OpenvSwitchDatabaseConnectionBridgeConnector
         val datapathId = ovsdb.getDatapathId(bridgeName)
         log.debug("ovsdb has datapathId = {} (expected {})",
                   datapathId, bridgeId formatted "%x")
-        assertEquals(bridgeId, parseLong(datapathId, 16))
+        assertEquals(bridgeId, datapathIdToLong(datapathId))
         log.debug("Deleting controllers for target {}", target)
         ovsdb.delTargetOpenflowControllers(target)
         assertFalse(ovsdb.hasController(target))

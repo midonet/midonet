@@ -64,13 +64,13 @@ class TestRapidOpenvSwitchDatabaseConnections extends JUnitSuite {
                 assumeNoException(e)
         }
         testAddBridge(conn1)
-        var bridgeId = parseLong(conn1.getDatapathId(bridgeName), 16)
+        var bridgeId = datapathIdToLong(conn1.getDatapathId(bridgeName))
         testDelBridge(conn1)
         assertFalse(conn1.hasBridge(bridgeName))
         conn1.close
         var conn2 = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
         testAddBridge(conn2)
-        bridgeId = parseLong(conn2.getDatapathId(bridgeName), 16)
+        bridgeId = datapathIdToLong(conn2.getDatapathId(bridgeName))
         testDelBridge(conn2)
         assertFalse(conn2.hasBridge(bridgeName))
         conn2.close
