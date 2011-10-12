@@ -38,10 +38,11 @@ object TestNegativeBridgeId
     }
 
     @AfterClass def finalizeTest() {
-        testDelBridge(conn)
         try {
-            if (conn != null)
+            if (conn != null) {
+                testDelBridge(conn)
                 conn.close
+            }
         } finally {
             releaseLock
         }
