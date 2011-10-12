@@ -100,8 +100,16 @@ public class ICMP extends BasePacket {
         code = CODE_NONE;
         checksum = 0;
         // TODO: check on the byte order for quench.
-        quench = id << 16 | seq & 0xffff;
+        quench = (id << 16) | (seq & 0xffff);
         this.data = data;
+    }
+
+    public short getIdentifier() {
+        return (short)(quench >> 16);
+    }
+
+    public short getSequenceNum() {
+        return (short)quench;
     }
 
     /**

@@ -17,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 
@@ -35,6 +36,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
@@ -65,6 +67,7 @@ import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.MockCache;
+import com.midokura.midolman.util.Net;
 
 public class TestRouter {
 
@@ -338,6 +341,58 @@ public class TestRouter {
         rtr.removePort(devPort12);
         fInfo = routePacket(port3Id, eth);
         checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
+    }
+
+    @Test
+    public void testICMP() {
+        // Make an ICMP echo request packet and send it to port 23.
+        UUID port23Id = portNumToId.get(23);
+        L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
+        ICMP icmpReq = new ICMP();
+        short id = -12345;
+        short seq = -20202;
+        byte[] data = new byte[] { (byte) 0xaa, (byte) 0xbb, (byte) 0xcc,
+                (byte) 0xdd, (byte) 0xee, (byte) 0xff };
+        icmpReq.setEchoRequest(id, seq, data);
+        IPv4 ipReq = new IPv4();
+        ipReq.setPayload(icmpReq);
+        ipReq.setProtocol(ICMP.PROTOCOL_NUMBER);
+        // The ping can come from anywhere if one of the next hops is a
+        int senderIP = Net.convertStringAddressToInt("10.0.2.13");
+        ipReq.setSourceAddress(senderIP);
+        ipReq.setDestinationAddress(Net.convertStringAddressToInt("10.0.2.1"));
+        Ethernet ethReq = new Ethernet();
+        ethReq.setPayload(ipReq);
+        ethReq.setEtherType(IPv4.ETHERTYPE);
+        ethReq.setDestinationMACAddress(devPort23.getMacAddr());
+        MAC senderMac = MAC.fromString("ab:cd:ef:01:23:45");
+        ethReq.setSourceMACAddress(senderMac);
+        ForwardInfo fInfo = routePacket(port23Id, ethReq);
+        Assert.assertEquals(Action.CONSUMED, fInfo.action);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet pktRecord = controllerStub.sentPackets.get(0);
+        Assert.assertEquals(1, pktRecord.actions.size());
+        OFAction ofAction = new OFActionOutput(devPort23.getNum(), (short) 0);
+        Assert.assertTrue(ofAction.equals(pktRecord.actions.get(0)));
+        Assert.assertEquals(controllerStub.UNBUFFERED_ID, pktRecord.bufferId);
+        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pktRecord.inPort);
+        Ethernet ethReply = new Ethernet();
+        ethReply.deserialize(pktRecord.data, 0, pktRecord.data.length);
+        Assert.assertEquals(IPv4.ETHERTYPE, ethReply.getEtherType());
+        Assert.assertEquals(devPort23.getMacAddr(),
+                ethReply.getSourceMACAddress());
+        Assert.assertEquals(senderMac, ethReply.getDestinationMACAddress());
+        IPv4 ipReply = (IPv4) ethReply.getPayload();
+        Assert.assertEquals(ICMP.PROTOCOL_NUMBER, ipReply.getProtocol());
+        Assert.assertEquals(devPort23.getVirtualConfig().portAddr,
+                ipReply.getSourceAddress());
+        Assert.assertEquals(senderIP, ipReply.getDestinationAddress());
+        ICMP icmpReply = (ICMP) ipReply.getPayload();
+        Assert.assertEquals(ICMP.CODE_NONE, icmpReply.getCode());
+        Assert.assertEquals(ICMP.TYPE_ECHO_REPLY, icmpReply.getType());
+        Assert.assertEquals(id, icmpReply.getIdentifier());
+        Assert.assertEquals(seq, icmpReply.getSequenceNum());
+        Assert.assertArrayEquals(data, icmpReply.getData());
     }
 
     static class ArpCompletedCallback implements Callback<MAC> {

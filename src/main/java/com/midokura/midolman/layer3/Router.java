@@ -18,6 +18,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
@@ -302,8 +303,7 @@ public class Router {
     public void process(ForwardInfo fwdInfo) {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
         
-        // Check if it's addressed to us (ARP, SNMP, ICMP Echo, ...)
-        // Only handle ARP so far.
+        // Handle ARP first.
         if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
             processArp(fwdInfo.pktIn, fwdInfo.inPortId);
             fwdInfo.action = Action.CONSUMED;
@@ -311,6 +311,17 @@ public class Router {
         }
         if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE) {
             fwdInfo.action = Action.NOT_IPV4;
+            return;
+        }
+        // Check if it's addressed to the port itself.
+        L3DevicePort devPort = devicePorts.get(fwdInfo.inPortId);
+        if (null != devPort && devPort.getVirtualConfig().portAddr ==
+                fwdInfo.matchIn.getNetworkDestination()) {
+            // Handle ICMP only for now.
+            if (fwdInfo.matchIn.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER)
+                processICMPtoLocal(fwdInfo.pktIn, devPort);
+            // Packets addressed to the port should not be routed. Consume them.
+            fwdInfo.action = Action.CONSUMED;
             return;
         }
 
@@ -396,6 +407,34 @@ public class Router {
                 .getNetworkDestination() : rt.nextHopGateway;
         fwdInfo.action = Action.FORWARD;
         return;
+    }
+
+    private void processICMPtoLocal(Ethernet ethPkt, L3DevicePort port) {
+        IPv4 ipPkt = (IPv4)ethPkt.getPayload();
+        if (ipPkt.getProtocol() != ICMP.PROTOCOL_NUMBER)
+            return;
+        ICMP icmpPkt = (ICMP)ipPkt.getPayload();
+        // Only handle ICMP echo requests: type 8, code 0
+        if (icmpPkt.getType() != ICMP.TYPE_ECHO_REQUEST ||
+                icmpPkt.getCode() != ICMP.CODE_NONE)
+            return;
+        // Generate the echo reply.
+        ICMP icmpReply = new ICMP();
+        icmpReply.setEchoReply(icmpPkt.getIdentifier(),
+                icmpPkt.getSequenceNum(), icmpPkt.getData());
+        IPv4 ipReply = new IPv4();
+        ipReply.setPayload(icmpReply);
+        ipReply.setProtocol(ICMP.PROTOCOL_NUMBER);
+        // TODO(pino): should we verify that this IP address would be
+        // routed to this port? And drop the packet if that's not the case?
+        ipReply.setDestinationAddress(ipPkt.getSourceAddress());
+        ipReply.setSourceAddress(port.getVirtualConfig().portAddr);
+        Ethernet ethReply = new Ethernet();
+        ethReply.setPayload(ipReply);
+        ethReply.setDestinationMACAddress(ethPkt.getSourceMACAddress());
+        ethReply.setSourceMACAddress(port.getMacAddr());
+        ethReply.setEtherType(IPv4.ETHERTYPE);
+        port.send(ethReply.serialize());
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
