@@ -10,11 +10,11 @@ package com.midokura.midolman
 import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
 import com.midokura.midolman.openflow.ControllerStubImpl
 import com.midokura.midolman.openvswitch.{
-                BridgeBuilder, 
-                OpenvSwitchDatabaseConnectionImpl, 
-                TestShareOneOpenvSwitchDatabaseConnection}
+                BridgeBuilder,
+                OpenvSwitchDatabaseConnectionImpl,
+                OpenvSwitchDatabaseConnectionBridgeConnector}
 import com.midokura.midolman.packets.IntIPv4
-import com.midokura.midolman.state.{MacPortMap, MockDirectory, 
+import com.midokura.midolman.state.{MacPortMap, MockDirectory,
                                     PortToIntNwAddrMap}
 
 import org.apache.zookeeper.CreateMode
@@ -45,11 +45,13 @@ class ChattySemaphore(capacity: Int) extends Semaphore(capacity) {
         log.info("acquire: {}", this)
     }
 }
-    
+
 /**
  * Test the BridgeController's interaction with Open vSwitch.
  */
-object TestBridgeControllerOVS extends SelectListener {
+object TestBridgeControllerOVS 
+        extends OpenvSwitchDatabaseConnectionBridgeConnector 
+        with SelectListener {
     // All the "static" variables and methods.
     final val log = LoggerFactory.getLogger(classOf[TestBridgeControllerOVS])
     private final val testportName = "testbrport"
@@ -67,54 +69,10 @@ object TestBridgeControllerOVS extends SelectListener {
     private final var connectionSemaphore = new ChattySemaphore(0)
     @volatile private var tooLongFlag = false
 
-    private final val database = "Open_vSwitch"
-    private final val host = "localhost"
-    private final val port = 12344
-    final val bridgeName = "testbr"
-    final val bridgeExtIdKey = "midolman-vnet"
-    final val bridgeExtIdValue = "ebbf1184-4dc2-11e0-b2c3-a4b17460e319"
-    // final var bridgeId: Long = 0x74a027d6e9288adbL;
-    final var bridgeId: Long = 0x74a027d6L;
-    final var ovsdb: OpenvSwitchDatabaseConnectionImpl = _
-    final val target = "tcp:127.0.0.1:6635"
-    private final var lockfile = new File("/tmp/ovsdbconnection.lock")
-    private var lock: FileLock = _
-
-    def testAddBridge() {
-        val bb: BridgeBuilder = ovsdb.addBridge(bridgeName)
-        bb.externalId(bridgeExtIdKey, bridgeExtIdValue)
-        bb.datapathId(bridgeId)
-        bb.build
-        assertTrue(ovsdb.hasBridge(bridgeName))
-    }
-
-    def testDelBridge() {
-        ovsdb.delBridge(bridgeName)
-        assertFalse(ovsdb.hasBridge(bridgeName))
-    }
-
-    def connectToOVSDB() {
-        lockfile.setReadable(true, false)
-        lockfile.setWritable(true, false)
-        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
-        try {
-            ovsdb = new OpenvSwitchDatabaseConnectionImpl(database, host, port)
-        } catch {
-            case e: ConnectException =>
-                assumeNoException(e)
-        }
-        val bridgeTable = ovsdb.dumpBridgeTable
-        for { row <- bridgeTable
-            if row._1.startsWith("test")
-        } { log.info("Deleting preexisting test Bridge {} => {}",
-                     row._2, row._1)
-            ovsdb.delBridgeUUID(row._2, row._3)
-        }
-        testAddBridge
-        assertEquals(bridgeId, parseLong(ovsdb.getDatapathId(bridgeName), 16))
-        ovsdb.delTargetOpenflowControllers(target)
-        assertFalse(ovsdb.hasController(target))
-    }
+    override final val bridgeName = "testbr"
+    override final val bridgeExtIdKey = "midolman-vnet"
+    override final val bridgeExtIdValue = "ebbf1184-4dc2-11e0-b2c3-a4b17460e319"
+    override final val bridgeId: Long = 0x74a027d6e9288adbL
 
     @BeforeClass def initializeTest() {
         connectToOVSDB
@@ -156,19 +114,19 @@ object TestBridgeControllerOVS extends SelectListener {
             listenSock.configureBlocking(false)
             listenSock.socket.bind(new InetSocketAddress(of_port))
 
-            reactor.register(listenSock, SelectionKey.OP_ACCEPT, 
+            reactor.register(listenSock, SelectionKey.OP_ACCEPT,
                              TestBridgeControllerOVS.this)
 
             registerController
 
             tookTooLong = reactor.schedule(
-                              new Runnable() { 
-                                  def run { 
+                              new Runnable() {
+                                  def run {
                                       log.info("Took too long!")
                                       tooLongFlag = true
                                       reactor.shutdown
                                       portModSemaphore.release(10)
-                                  } }, 
+                                  } },
                               4000, TimeUnit.MILLISECONDS)
             reactor.doLoop
             log.info("reactor thread exiting")
@@ -180,25 +138,17 @@ object TestBridgeControllerOVS extends SelectListener {
     }
 
     @AfterClass def finalizeTest() {
-        if (null == ovsdb) {
-            lock.release
-            return
-        }
         try {
-            reactor.shutdown
-            assertFalse(tooLongFlag)
-            assertTrue(ovsdb.hasController(target))
-            assertTrue(ovsdb.hasBridge(bridgeId))
-            ovsdb.delBridgeOpenflowControllers(bridgeId)
-            assertFalse(ovsdb.hasController(target))
-            testDelBridge
-            assertFalse(ovsdb.hasBridge(bridgeId))
-        } finally {
-            try {
-                ovsdb.close
-            } finally {
-                lock.release
+            if (null != ovsdb) {
+                reactor.shutdown
+                assertFalse(tooLongFlag)
+                assertTrue(ovsdb.hasController(target))
+                assertTrue(ovsdb.hasBridge(bridgeId))
+                ovsdb.delBridgeOpenflowControllers(bridgeId)
+                assertFalse(ovsdb.hasController(target))
             }
+        } finally {
+            disconnectFromOVSDB
         }
     }
 
@@ -259,7 +209,7 @@ class TestBridgeControllerOVS {
         serializeTestsSemaphore.release
     }
 
-    @Test 
+    @Test
     @Ignore
     def testNewSystemPort() {
         log.info("testNewSystemPort called")
@@ -309,7 +259,7 @@ class TestBridgeControllerOVS {
         }
     }
 
-    @Ignore 
+    @Ignore
     @Test def testNewTapPort() = {
         log.info("testNewTapPort")
         serializeTestsSemaphore.acquire
@@ -334,16 +284,16 @@ class TestBridgeControllerOVS {
     }
 }
 
-private class BridgeControllerTester(datapath: Long, switchID: UUID, 
-        greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap, 
-        flowExpireMillis: Long, idleFlowExpireMillis: Long, 
-        publicIP: IntIPv4, macPortTimeoutMillis: Long, 
-        ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop, 
-        externalIDKey: String, portSemaphore: Semaphore, 
-        connectionSemaphore: Semaphore) extends 
-                BridgeController(datapath, switchID, greKey, portLocMap, 
-                        macPortMap, flowExpireMillis, idleFlowExpireMillis, 
-                        publicIP, macPortTimeoutMillis, ovsdb, reactor, 
+private class BridgeControllerTester(datapath: Long, switchID: UUID,
+        greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap,
+        flowExpireMillis: Long, idleFlowExpireMillis: Long,
+        publicIP: IntIPv4, macPortTimeoutMillis: Long,
+        ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop,
+        externalIDKey: String, portSemaphore: Semaphore,
+        connectionSemaphore: Semaphore) extends
+                BridgeController(datapath, switchID, greKey, portLocMap,
+                        macPortMap, flowExpireMillis, idleFlowExpireMillis,
+                        publicIP, macPortTimeoutMillis, ovsdb, reactor,
                         externalIDKey) {
     var addedPorts = List[OFPhysicalPort]()
 

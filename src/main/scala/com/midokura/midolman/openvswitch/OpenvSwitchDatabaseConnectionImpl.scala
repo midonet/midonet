@@ -19,6 +19,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+import java.math.BigInteger
 import java.net.{Socket, SocketException}
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import java.util.{UUID, Timer, TimerTask}
@@ -75,7 +76,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeId: Long): List[List[String]] = {
-        List(List(ColumnDatapathId, "==", longToDatapthId(bridgeId)))
+        List(List(ColumnDatapathId, "==", longToDatapathId(bridgeId)))
     }
 
     /**
@@ -122,8 +123,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      * @param datapathId The datapath Id value to convert in Long.
      * @return The datapath Id string which is 16 hex digits.
      */
-    def longToDatapthId(datapathId: Long): String =
-        "%016x".format(datapathId & Long.MaxValue)
+    def longToDatapathId(datapathId: Long): String = "%016x".format(datapathId)
 
     /**
      * Conversion from the Datapath Id string to Long value.
@@ -131,7 +131,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      * @return The Long value of the datapath Id.
      */
     def datapathIdToLong(datapathId: String): Long =
-        java.lang.Long.parseLong(datapathId, 16) & Long.MaxValue
+        new BigInteger(datapathId, 16).longValue
 
     /**
      * Converts an Open vSwitch DB map into a Map.
@@ -670,9 +670,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private def generateDatapathId(): String = {
         var datapathId: Long = 0
         do {
-            datapathId = new Random(23).nextLong & Long.MaxValue
+            datapathId = new Random(23).nextLong
         } while (hasBridge(datapathId))
-        longToDatapthId(datapathId)
+        longToDatapathId(datapathId)
     }
 
     /**
@@ -707,7 +707,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @return this
          */
         override def datapathId(datapathId: Long) = {
-            this.datapathId = longToDatapthId(datapathId)
+            this.datapathId = longToDatapathId(datapathId)
             this
         }
         

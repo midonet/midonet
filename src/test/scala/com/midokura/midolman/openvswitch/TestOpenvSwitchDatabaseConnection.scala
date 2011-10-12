@@ -1,5 +1,5 @@
 /**
- * CheckOpenvSwitchDatabaaseConnection.scala - OVSDB connection Test.
+ * TestOpenvSwitchDatabaaseConnection.scala - OVSDB connection Test.
  *
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
@@ -11,7 +11,6 @@ import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
-import com.midokura.midolman.openvswitch._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 
@@ -21,40 +20,34 @@ import scala.collection.JavaConversions._
 /**
  * Test for the Open vSwitch database connection.
  */
-object CheckOpenvSwitchDatabaseConnection {
-    import TestShareOneOpenvSwitchDatabaseConnection.{bridgeName,
-                bridgeExtIdKey, bridgeExtIdValue, ovsdb, target, mutex,
-                finishedSemaphore}
-
+object TestOpenvSwitchDatabaseConnection 
+        extends OpenvSwitchDatabaseConnectionBridgeConnector {
     final val log = LoggerFactory.getLogger(
-                                classOf[CheckOpenvSwitchDatabaseConnection])
+                                classOf[TestOpenvSwitchDatabaseConnection])
 
     private final val portName = "testovsport"
     private final val bridgeOfPortNum = 65534
     private final val oldQosExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
     private final val newQosExtIdValue = "002bcb5f-0000-8000-1000-foobarbuzqux"
 
-    @BeforeClass def before() { 
-        mutex.acquire 
-        val interfaceTable = ovsdb.dumpInterfaceTable
-        log.debug("Interface table: {}", interfaceTable)
-        for { row <- interfaceTable 
-            if row._1.contains("test")
-        } { log.info("Deleting preexisting test Interface {} => {}",
-                     row._2, row._1)
-            // A port can have the interface, therefore the port should be
-            // deleted first.
-            if (ovsdb.hasPort(row._1))
-                ovsdb.delPort(row._1)
-            ovsdb.delInterface(row._2)
-        }
+    override final val bridgeName = "testovsbr"
+    override final val bridgeExtIdKey = "midolman-vnet"
+    override final val bridgeExtIdValue = "efbf1194-9e25-11e0-b3b3-ba417460eb69"
+    override final val bridgeId: Long = 0x15b138e7fa339bbcL
+
+    @AfterClass def finalizeTest() { disconnectFromOVSDB }
+
+    @BeforeClass def initializeTest() { 
+        connectToOVSDB
+        log.debug("Successfully connected to OVSDB.")
+
         val qosTable = ovsdb.dumpQosTable
         for { row <- qosTable
             extIds = row._3.get(1).getElements
         } { 
             log.debug("QoS table row: {}", row)
             for { extId <- extIds 
-                if extId.get(0).getTextValue == "midolman-vnet" && (
+                if extId.get(0).getTextValue == bridgeExtIdKey && (
                        extId.get(1).getTextValue == oldQosExtIdValue ||
                        extId.get(1).getTextValue == newQosExtIdValue)
             } {
@@ -66,103 +59,106 @@ object CheckOpenvSwitchDatabaseConnection {
         }
     }
 
-    @AfterClass def after() { 
-        mutex.release 
-        finishedSemaphore.release
-    }
 }
 
-class CheckOpenvSwitchDatabaseConnection {
-    import CheckOpenvSwitchDatabaseConnection._
-    // Share a common OVSDB connection because using two breaks.
-    import TestShareOneOpenvSwitchDatabaseConnection.{ovsdb,
-                bridgeName, bridgeExtIdKey, bridgeExtIdValue, target}
+class TestOpenvSwitchDatabaseConnection {
+    import TestOpenvSwitchDatabaseConnection._
 
     @Test def testAddSystemPortNoLeftoverIface() {
         log.debug("Entering testAddSystemPortNoLeftoverIface")
-        assertFalse(ovsdb.hasInterface(portName))
-        var pb = ovsdb.addSystemPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        assertTrue(ovsdb.hasInterface(portName))
-        log.debug("Calling ovsdb.delPort({})", portName)
-        ovsdb.delPort(portName)
-        log.debug("Back from ovsdb.delPort()")
-        assertFalse(ovsdb.hasPort(portName))
-        assertFalse(ovsdb.hasInterface(portName))
-        log.debug("Leaving testAddSystemPortNoLeftoverIface")
+        portName.synchronized {
+            assertFalse(ovsdb.hasInterface(portName))
+            var pb = ovsdb.addSystemPort(bridgeName, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            assertTrue(ovsdb.hasInterface(portName))
+            log.debug("Calling ovsdb.delPort({})", portName)
+            ovsdb.delPort(portName)
+            log.debug("Back from ovsdb.delPort()")
+            assertFalse(ovsdb.hasPort(portName))
+            assertFalse(ovsdb.hasInterface(portName))
+            log.debug("Leaving testAddSystemPortNoLeftoverIface")
+        }
     }
 
     /**
      * Test addSystemPort().
      */
-    @Test def testAddSystemPort() {
-        var pb = ovsdb.addSystemPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+    @Test def testAddSystemPortBridgeName() {
+        portName.synchronized {
+            var pb = ovsdb.addSystemPort(bridgeName, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
+    }
 
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        pb = ovsdb.addSystemPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+    @Test def testAddSystemPortBridgeId() {
+        portName.synchronized {
+            val pb = ovsdb.addSystemPort(bridgeId, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
     }
 
     /**
      * Test addInternalPort().
      */
     @Test def testAddInternalPort() {
-        var pb = ovsdb.addInternalPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+        portName.synchronized {
+            var pb = ovsdb.addInternalPort(bridgeName, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
 
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        pb = ovsdb.addInternalPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+            pb = ovsdb.addInternalPort(bridgeId, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
     }
 
     /**
      * Test addTapPort().
      */
     @Test def testAddTapPort() {
-        var pb = ovsdb.addTapPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+        portName.synchronized {
+            var pb = ovsdb.addTapPort(bridgeName, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
 
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        pb = ovsdb.addTapPort(bridgeName, portName)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+            pb = ovsdb.addTapPort(bridgeId, portName)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
     }
 
     /**
      * Test addGrePort().
      */
     @Test def testAddGrePort() {
-        var pb = ovsdb.addGrePort(bridgeName, portName, "127.0.0.1")
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+        portName.synchronized {
+            var pb = ovsdb.addGrePort(bridgeName, portName, "127.0.0.1")
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
 
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        pb = ovsdb.addGrePort(bridgeName, portName, "127.0.0.1")
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
-        ovsdb.delPort(portName)
-        assertFalse(ovsdb.hasPort(portName))
+            pb = ovsdb.addGrePort(bridgeId, portName, "127.0.0.1")
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
     }
 
     /**
@@ -175,12 +171,10 @@ class CheckOpenvSwitchDatabaseConnection {
         ovsdb.delBridgeOpenflowControllers(bridgeName)
         assertFalse(ovsdb.hasController(target))
 
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        cb = ovsdb.addBridgeOpenflowController(bridgeName, target)
+        cb = ovsdb.addBridgeOpenflowController(bridgeId, target)
         cb.build
         assertTrue(ovsdb.hasController(target))
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        ovsdb.delBridgeOpenflowControllers(bridgeName)
+        ovsdb.delBridgeOpenflowControllers(bridgeId)
         assertFalse(ovsdb.hasController(target))
     }
 
@@ -191,9 +185,8 @@ class CheckOpenvSwitchDatabaseConnection {
         assertTrue(ovsdb.hasBridge(bridgeName))
         assertEquals(ovsdb.getDatapathExternalId(bridgeName, bridgeExtIdKey),
                      bridgeExtIdValue)
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        //assertEquals(ovsdb.getDatapathExternalId(bridgeId, bridgeExtIdKey),
-        //             bridgeExtIdValue)
+        assertEquals(ovsdb.getDatapathExternalId(bridgeId, bridgeExtIdKey),
+                     bridgeExtIdValue)
     }
 
     /**
@@ -202,9 +195,8 @@ class CheckOpenvSwitchDatabaseConnection {
     @Test def testGetPortExternalId() {
         assertEquals(ovsdb.getPortExternalId(bridgeName, bridgeOfPortNum,
                                              bridgeExtIdKey), null)
-        // TODO(jlm, tfukushima): Test using bridgeId once that's reliable.
-        //assertEquals(ovsdb.getPortExternalId(bridgeId, bridgeOfPortNum,
-        //                                     bridgeExtIdKey), null)
+        assertEquals(ovsdb.getPortExternalId(bridgeId, bridgeOfPortNum,
+                                             bridgeExtIdKey), null)
 
         val portExtIdKey = bridgeExtIdKey
         val portExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
@@ -404,8 +396,8 @@ class CheckOpenvSwitchDatabaseConnection {
         assertFalse(ovsdb.hasQos(qosUUID))
     }
 
-      /**
-       * Test getQueueExternalIdByQueueNum
+    /**
+     * Test getQueueExternalIdByQueueNum
      */
     @Test def testGetQueueExternalIdByQueueNum() {
         val qosType = "linux-htb"
