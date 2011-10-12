@@ -75,7 +75,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeId: Long): List[List[String]] = {
-        List(List(ColumnDatapathId, "==", longToDatapthId(bridgeId)))
+        List(List(ColumnDatapathId, "==", longToDatapathId(bridgeId)))
     }
 
     /**
@@ -122,8 +122,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      * @param datapathId The datapath Id value to convert in Long.
      * @return The datapath Id string which is 16 hex digits.
      */
-    def longToDatapthId(datapathId: Long): String =
-        "%016x".format(datapathId & Long.MaxValue)
+    def longToDatapathId(datapathId: Long): String = "%016x".format(datapathId)
 
     /**
      * Conversion from the Datapath Id string to Long value.
@@ -672,7 +671,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         do {
             datapathId = new Random(23).nextLong & Long.MaxValue
         } while (hasBridge(datapathId))
-        longToDatapthId(datapathId)
+        longToDatapathId(datapathId)
     }
 
     /**
@@ -707,7 +706,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * @return this
          */
         override def datapathId(datapathId: Long) = {
-            this.datapathId = longToDatapthId(datapathId)
+            this.datapathId = longToDatapathId(datapathId)
             this
         }
         
