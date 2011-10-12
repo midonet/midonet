@@ -38,6 +38,7 @@ object TestNegativeBridgeId
     }
 
     @AfterClass def finalizeTest() {
+        testDelBridge(conn)
         try {
             if (conn != null)
                 conn.close
@@ -51,6 +52,11 @@ object TestNegativeBridgeId
         bb.datapathId(bridgeId)
         bb.build
         assertTrue(conn.hasBridge(bridgeName))
+    }
+
+    def testDelBridge(conn: OpenvSwitchDatabaseConnection) {
+        conn.delBridge(bridgeName)
+        assertFalse(conn.hasBridge(bridgeName))
     }
 }
 
