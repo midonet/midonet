@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import java.lang.Long.parseLong
 import java.net.ConnectException
 
+import OpenvSwitchDatabaseConnectionImpl._
 
 object TestNegativeBridgeId
         extends OpenvSwitchDatabaseConnectionMutexer with JUnitSuite {
@@ -58,12 +59,9 @@ class TestNegativeBridgeId extends JUnitSuite {
 
     @Test def testNegativeBridgeId() {
         val datapathId = conn.getDatapathId(bridgeName)
-        // TODO(tfukushima): Is this supposed to clear the sign bit?
         log.info("bridgeId = {} :: datapathId = {}",
                  bridgeId formatted "%x", datapathId)
-        //assertEquals(bridgeId, parseLong(datapathId, 16))
-
-        assertFalse(bridgeId == parseLong(datapathId, 16))
-        assertEquals(bridgeId & (~0L >>> 1), parseLong(datapathId, 16))
+        assertTrue(bridgeId == datapathIdToLong(datapathId))
+        assertEquals(longToDatapathId(bridgeId), datapathId)
     }
 }

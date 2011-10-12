@@ -19,6 +19,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+import java.math.BigInteger
 import java.net.{Socket, SocketException}
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import java.util.{UUID, Timer, TimerTask}
@@ -130,7 +131,7 @@ object OpenvSwitchDatabaseConnectionImpl {
      * @return The Long value of the datapath Id.
      */
     def datapathIdToLong(datapathId: String): Long =
-        java.lang.Long.parseLong(datapathId, 16) & Long.MaxValue
+        new BigInteger(datapathId, 16).longValue
 
     /**
      * Converts an Open vSwitch DB map into a Map.
