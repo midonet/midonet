@@ -40,13 +40,13 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
             super();
         }
 
-        public RouterMgmtConfig(UUID tenantId, String name) {
+        public RouterMgmtConfig(String tenantId, String name) {
             super();
             this.tenantId = tenantId;
             this.name = name;
         }
 
-        public UUID tenantId;
+        public String tenantId;
         public String name;
     }
 
@@ -336,7 +336,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
         }
     }
 
-    public List<Router> list(UUID tenantId) throws StateAccessException,
+    public List<Router> list(String tenantId) throws StateAccessException,
             ZkStateSerializationException {
         List<Router> result = new ArrayList<Router>();
         Set<String> routerIds = getChildren(mgmtPathManager
@@ -370,7 +370,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
     }
 
     @Override
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         return get(id).getTenantId();
     }

@@ -63,7 +63,6 @@ public class CreateZkTestConfig {
         String providerRouterUrl = response.getLocation().toString();
         System.out.println(providerRouterUrl);
         String[] parts = providerRouterUrl.split("/");
-        UUID providerRouterId = UUID.fromString(parts[parts.length-1]);
 
         // Add the BGP port.
         url = new StringBuilder(providerRouterUrl).append("/ports").toString();

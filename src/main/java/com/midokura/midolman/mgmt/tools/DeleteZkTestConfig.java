@@ -1,25 +1,13 @@
 package com.midokura.midolman.mgmt.tools;
 
-import java.util.UUID;
-
 import javax.ws.rs.core.MediaType;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
-import com.midokura.midolman.mgmt.data.dto.AdRoute;
-import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Rule;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
 
 public class DeleteZkTestConfig {
 

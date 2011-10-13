@@ -6,7 +6,6 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
-import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -49,7 +48,7 @@ public class TenantResource extends RestResource {
      * Router resource locator for tenants
      */
     @Path("/{id}/routers")
-    public TenantRouterResource getRouterResource(@PathParam("id") UUID id) {
+    public TenantRouterResource getRouterResource(@PathParam("id") String id) {
         return new TenantRouterResource(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot, id);
     }
@@ -58,14 +57,14 @@ public class TenantResource extends RestResource {
      * Bridge resource locator for tenants
      */
     @Path("/{id}/bridges")
-    public TenantBridgeResource getBridgeResource(@PathParam("id") UUID id) {
+    public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
         return new TenantBridgeResource(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot, id);
     }
 
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
+    public void delete(@PathParam("id") String id,
             @Context SecurityContext context) throws StateAccessException,
             UnauthorizedException {
 
@@ -109,7 +108,7 @@ public class TenantResource extends RestResource {
 
         TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
                 zookeeperMgmtRoot);
-        UUID id = null;
+        String id = null;
         try {
             id = dao.create(tenant.getId());
         } catch (StateAccessException e) {

@@ -47,11 +47,11 @@ public class TenantZkManager extends ZkManager {
         zkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
     }
 
-    public void delete(UUID id) throws StateAccessException,
+    public void delete(String id) throws StateAccessException,
             ZkStateSerializationException, UnsupportedOperationException {
         List<Op> ops = new ArrayList<Op>();
-        Set<String> routers = getChildren(
-                zkMgmtPathManager.getTenantRoutersPath(id), null);
+        Set<String> routers = getChildren(zkMgmtPathManager
+                .getTenantRoutersPath(id), null);
         RouterZkManagerProxy routerManager = new RouterZkManagerProxy(zk,
                 pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
         for (String router : routers) {
@@ -59,8 +59,8 @@ public class TenantZkManager extends ZkManager {
                     .fromString(router)));
         }
 
-        Set<String> bridges = getChildren(
-                zkMgmtPathManager.getTenantBridgesPath(id), null);
+        Set<String> bridges = getChildren(zkMgmtPathManager
+                .getTenantBridgesPath(id), null);
         BridgeZkManagerProxy bridgeManager = new BridgeZkManagerProxy(zk,
                 pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
         for (String bridge : bridges) {
@@ -84,7 +84,7 @@ public class TenantZkManager extends ZkManager {
         ops.add(Op.delete(path, -1));
         multi(ops);
     }
-    
+
     /**
      * Add a new tenant entry in the ZooKeeper directory.
      * 
@@ -96,7 +96,7 @@ public class TenantZkManager extends ZkManager {
      * @throws InterruptedException
      *             Unresponsive thread getting interrupted by another thread.
      */
-    public UUID create() throws StateAccessException {
+    public String create() throws StateAccessException {
         return create(null);
     }
 
@@ -112,9 +112,9 @@ public class TenantZkManager extends ZkManager {
      * @throws InterruptedException
      *             Unresponsive thread getting interrupted by another thread.
      */
-    public UUID create(UUID id) throws StateAccessException {
+    public String create(String id) throws StateAccessException {
         if (null == id) {
-            id = UUID.randomUUID();
+            id = UUID.randomUUID().toString();
         }
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(zkMgmtPathManager.getTenantPath(id), null,

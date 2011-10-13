@@ -23,7 +23,7 @@ public class Bridge {
 
     private UUID id = null;
     private String name = null;
-    private UUID tenantId = null;
+    private String tenantId = null;
 
     /**
      * Get bridge ID.
@@ -68,7 +68,7 @@ public class Bridge {
      * 
      * @return Tenant ID.
      */
-    public UUID getTenantId() {
+    public String getTenantId() {
         return tenantId;
     }
 
@@ -78,7 +78,7 @@ public class Bridge {
      * @param tenantId
      *            Tenant ID of the bridge.
      */
-    public void setTenantId(UUID tenantId) {
+    public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
     }
 

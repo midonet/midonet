@@ -25,8 +25,12 @@ public class AuthManager {
     }
 
     public static boolean isSelf(SecurityContext context, UUID id) {
+        return isSelf(context, id.toString());
+    }
+
+    public static boolean isSelf(SecurityContext context, String id) {
         return (isAdmin(context))
-                || context.getUserPrincipal().getName().equals(id.toString());
+                || context.getUserPrincipal().getName().equals(id);
     }
 
     public static boolean isOwner(SecurityContext context, OwnerQueryable dao,
@@ -34,10 +38,9 @@ public class AuthManager {
         if (isAdmin(context)) {
             return true;
         }
-        UUID ownerId = dao.getOwner(id);
+        String ownerId = dao.getOwner(id);
         if (ownerId != null) {
-            return (context.getUserPrincipal().getName().equals(ownerId
-                    .toString()));
+            return (context.getUserPrincipal().getName().equals(ownerId));
         } else {
             return false;
         }

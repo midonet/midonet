@@ -23,7 +23,7 @@ public class Router {
 
     private UUID id = null;
     private String name = null;
-    private UUID tenantId = null;
+    private String tenantId = null;
 
     /**
      * Get router ID.
@@ -68,7 +68,7 @@ public class Router {
      * 
      * @return Tenant ID.
      */
-    public UUID getTenantId() {
+    public String getTenantId() {
         return tenantId;
     }
 
@@ -78,7 +78,7 @@ public class Router {
      * @param tenantId
      *            Tenant ID of the router.
      */
-    public void setTenantId(UUID tenantId) {
+    public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
     }
 

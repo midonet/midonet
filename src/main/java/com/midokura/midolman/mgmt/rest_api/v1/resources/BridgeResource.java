@@ -148,7 +148,7 @@ public class BridgeResource extends RestResource {
      */
     public static class TenantBridgeResource extends RestResource {
 
-        private UUID tenantId = null;
+        private String tenantId = null;
 
         /**
          * Constructor.
@@ -159,7 +159,7 @@ public class BridgeResource extends RestResource {
          *            UUID of a tenant.
          */
         public TenantBridgeResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID tenantId) {
+                String zkMgmtRootDir, String tenantId) {
             this.zooKeeper = zkConn;
             this.zookeeperRoot = zkRootDir;
             this.zookeeperMgmtRoot = zkMgmtRootDir;
@@ -208,7 +208,8 @@ public class BridgeResource extends RestResource {
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Bridge bridge, @Context UriInfo uriInfo,
-                @Context SecurityContext context) throws StateAccessException, UnauthorizedException {
+                @Context SecurityContext context) throws StateAccessException,
+                UnauthorizedException {
 
             if (!AuthManager.isSelf(context, tenantId)) {
                 throw new UnauthorizedException(

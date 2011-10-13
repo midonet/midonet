@@ -95,7 +95,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
     }
 
     @Override
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         Bgp bgp = get(id);
         OwnerQueryable manager = new PortZkManagerProxy(zk, pathManager

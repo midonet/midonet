@@ -5,21 +5,19 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class Tenant {
 
-    private UUID id = null;
+    private String id = null;
 
     /**
      * Get tenant ID.
      * 
      * @return Tenant ID.
      */
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
@@ -29,7 +27,7 @@ public class Tenant {
      * @param id
      *            ID of the tenant.
      */
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

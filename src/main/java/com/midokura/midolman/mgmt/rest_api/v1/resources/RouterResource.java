@@ -191,7 +191,7 @@ public class RouterResource extends RestResource {
      */
     public static class TenantRouterResource extends RestResource {
 
-        private UUID tenantId = null;
+        private String tenantId = null;
 
         /**
          * Default constructor.
@@ -202,7 +202,7 @@ public class RouterResource extends RestResource {
          *            UUID of a tenant.
          */
         public TenantRouterResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID tenantId) {
+                String zkMgmtRootDir, String tenantId) {
             this.zooKeeper = zkConn;
             this.tenantId = tenantId;
             this.zookeeperRoot = zkRootDir;

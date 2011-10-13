@@ -99,7 +99,7 @@ public class RouteZkManagerProxy extends ZkMgmtManager implements
     }
 
     @Override
-    public UUID getOwner(UUID id) throws ZkStateSerializationException,
+    public String getOwner(UUID id) throws ZkStateSerializationException,
             StateAccessException {
         Route route = get(id);
         OwnerQueryable manager = new RouterZkManagerProxy(zk, pathManager

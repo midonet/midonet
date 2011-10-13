@@ -41,13 +41,13 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements
             super();
         }
 
-        public BridgeMgmtConfig(UUID tenantId, String name) {
+        public BridgeMgmtConfig(String tenantId, String name) {
             super();
             this.tenantId = tenantId;
             this.name = name;
         }
 
-        public UUID tenantId;
+        public String tenantId;
         public String name;
     }
 
@@ -177,7 +177,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements
         return Bridge.createBridge(id, config);
     }
 
-    public List<Bridge> list(UUID tenantId) throws StateAccessException,
+    public List<Bridge> list(String tenantId) throws StateAccessException,
             ZkStateSerializationException {
         List<Bridge> result = new ArrayList<Bridge>();
         String path = mgmtPathManager.getTenantBridgesPath(tenantId);
@@ -211,7 +211,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements
     }
 
     @Override
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         return get(id).getTenantId();
     }

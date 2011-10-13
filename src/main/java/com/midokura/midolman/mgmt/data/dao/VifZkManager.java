@@ -139,7 +139,7 @@ public class VifZkManager extends ZkMgmtManager implements OwnerQueryable {
         return Vif.createVif(id, config);
     }
 
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         Vif vif = get(id);
         OwnerQueryable manager = new PortZkManagerProxy(zk, pathManager

@@ -100,7 +100,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
     }
 
     @Override
-    public UUID getOwner(UUID id) throws ZkStateSerializationException,
+    public String getOwner(UUID id) throws ZkStateSerializationException,
             StateAccessException {
         Rule rule = get(id);
         OwnerQueryable manager = new ChainZkManagerProxy(zk, pathManager

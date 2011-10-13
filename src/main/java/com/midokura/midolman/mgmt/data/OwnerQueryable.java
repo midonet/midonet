@@ -7,6 +7,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 public interface OwnerQueryable {
 
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException;
 }

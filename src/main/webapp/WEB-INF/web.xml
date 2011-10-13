@@ -64,7 +64,7 @@
     </init-param>
     <init-param>
       <param-name>service_port</param-name>
-      <param-value>5001</param-value>
+      <param-value>35357</param-value>
     </init-param>
     <init-param>
       <param-name>admin_token</param-name>

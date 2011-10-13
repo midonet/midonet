@@ -98,7 +98,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager implements
     }
 
     @Override
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         AdRoute route = get(id);
         OwnerQueryable manager = new BgpZkManagerProxy(zk, pathManager

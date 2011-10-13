@@ -269,7 +269,7 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
     }
 
     @Override
-    public UUID getOwner(UUID id) throws StateAccessException,
+    public String getOwner(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         Port port = get(id);
         if (port instanceof RouterPort) {

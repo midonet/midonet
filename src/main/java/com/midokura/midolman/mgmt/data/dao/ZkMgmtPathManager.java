@@ -60,10 +60,10 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      * Get ZK tenant path.
      * 
      * @param id
-     *            Tenant UUID
+     *            Tenant ID
      * @return /tenants/tenantId
      */
-    public String getTenantPath(UUID id) {
+    public String getTenantPath(String id) {
         return new StringBuilder(getTenantsPath()).append("/").append(id)
                 .toString();
     }
@@ -72,10 +72,10 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      * Get ZK tenant router path.
      * 
      * @param tenantId
-     *            Tenant UUID
+     *            Tenant ID
      * @return /tenants/tenantId/routers
      */
-    public String getTenantRoutersPath(UUID tenantId) {
+    public String getTenantRoutersPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId)).append("/routers")
                 .toString();
     }
@@ -89,7 +89,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      *            Router UUID
      * @return /tenants/tenantId/routers/routerId
      */
-    public String getTenantRouterPath(UUID tenantId, UUID routerId) {
+    public String getTenantRouterPath(String tenantId, UUID routerId) {
         return new StringBuilder(getTenantRoutersPath(tenantId)).append("/")
                 .append(routerId).toString();
     }
@@ -101,7 +101,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      *            Tenant UUID
      * @return /tenants/tenantId/bridges
      */
-    public String getTenantBridgesPath(UUID tenantId) {
+    public String getTenantBridgesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId)).append("/bridges")
                 .toString();
     }
@@ -115,7 +115,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      *            Bridge UUID
      * @return /tenants/tenantId/bridges/bridgeId
      */
-    public String getTenantBridgePath(UUID tenantId, UUID bridgeId) {
+    public String getTenantBridgePath(String tenantId, UUID bridgeId) {
         return new StringBuilder(getTenantBridgesPath(tenantId)).append("/")
                 .append(bridgeId).toString();
     }
@@ -125,7 +125,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      * 
      * @return /tenants/tenantId/bridge-names
      */
-    public String getTenantBridgeNamesPath(UUID tenantId) {
+    public String getTenantBridgeNamesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId)).append(
                 "/bridge-names").toString();
     }
@@ -135,7 +135,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      * 
      * @return /tenants/tenantId/bridge-names/name
      */
-    public String getTenantBridgeNamePath(UUID tenantId, String name) {
+    public String getTenantBridgeNamePath(String tenantId, String name) {
         return new StringBuilder(getTenantBridgeNamesPath(tenantId))
                 .append("/").append(name).toString();
     }
@@ -145,7 +145,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      * 
      * @return /tenants/tenantId/router-names
      */
-    public String getTenantRouterNamesPath(UUID tenantId) {
+    public String getTenantRouterNamesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId)).append(
                 "/router-names").toString();
     }
@@ -155,7 +155,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
      * 
      * @return /tenants/tenantId/router-names/name
      */
-    public String getTenantRouterNamePath(UUID tenantId, String name) {
+    public String getTenantRouterNamePath(String tenantId, String name) {
         return new StringBuilder(getTenantRouterNamesPath(tenantId))
                 .append("/").append(name).toString();
     }
