@@ -17,7 +17,7 @@ import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 
 
-class TestZebraServer {
+public class TestZebraServer {
     private ZebraServer zebra;
  
     @Before
