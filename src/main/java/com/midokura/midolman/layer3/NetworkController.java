@@ -129,7 +129,7 @@ public class NetworkController extends AbstractController {
         
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
-                (short) 128));
+                (short) 1024));
 
         controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
                 NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
