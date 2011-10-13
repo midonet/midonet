@@ -297,8 +297,10 @@ public class DHCP extends BasePacket {
         bb.put((byte) 0x63);
         for (DHCPOption option : this.options) {
             bb.put(option.getCode());
-            bb.put(option.getLength());
-            bb.put(option.getData());
+            if (option.getCode() != 0 && option.getCode() != 255) {
+                bb.put(option.getLength());
+                bb.put(option.getData());
+            }
         }
         // assume the rest is padded out with zeroes
         return data;
