@@ -2,6 +2,8 @@
 
 package com.midokura.midolman.quagga;
 
+import java.io.File;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +20,7 @@ class TestZebraServer {
     private ZebraServer zebra;
  
     @Before
-    public static void makeZebraServer() {
+    public void makeZebraServer() {
         MockOpenvSwitchDatabaseConnection ovsdb = 
                                 new MockOpenvSwitchDatabaseConnection();
         MockDirectory directory = new MockDirectory();
@@ -33,7 +35,7 @@ class TestZebraServer {
     }
 
     @Test
-    public static void testZebraStart() {
+    public void testZebraStart() {
         try {
             zebra.start();
         } catch (Exception e) {
