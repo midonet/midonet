@@ -186,7 +186,7 @@ public class NetworkController extends AbstractController {
         
         UDP udp = new UDP();
         udp.setSourcePort((short) 67);
-        udp.setDestinationPort((short) 78);
+        udp.setDestinationPort((short) 68);
         udp.setPayload(reply);
         
         IPv4 ip = new IPv4();
