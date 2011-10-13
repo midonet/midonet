@@ -7,9 +7,45 @@ import java.util.Arrays;
  * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class DHCPOption {
+    public enum Code {
+        END((byte) 255, (byte) 0),
+        MASK((byte) 1, (byte) 4),
+        ROUTER((byte) 3, (byte) 4),
+        DNS((byte) 6, (byte) 4),
+        DHCP_TYPE((byte) 53, (byte) 1);
+
+        private final byte code;
+        private final byte length;
+
+        Code(byte code, byte length) {
+            this.code = code;
+            this.length = length;
+        }
+
+        public byte value() {
+            return code;
+        }
+
+        public byte length() {
+            return length;
+        }
+    }
+
+    public static final byte DISCOVER = 1;
+    public static final byte OFFER = 2;
+    public static final byte REQUEST = 3;
+
     protected byte code;
     protected byte length;
     protected byte[] data;
+
+    public DHCPOption() {}
+
+    public DHCPOption(byte code, byte length, byte[] data) {
+        this.code = code;
+        this.length = length;
+        this.data = data;
+    }
 
     /**
      * @return the code

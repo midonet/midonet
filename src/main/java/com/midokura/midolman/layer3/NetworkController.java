@@ -161,23 +161,22 @@ public class NetworkController extends AbstractController {
          * set options for offer (53) router (3) and netmask (1) and dns (6)
          */
         List<DHCPOption> options = new ArrayList<DHCPOption>();
-        
-        DHCPOption netmaskOption = new DHCPOption();
-        netmaskOption.setCode((byte) 1);
-        netmaskOption.setLength((byte) 4);
-        netmaskOption.setData(IPv4.toIPv4AddressBytes((~0 << (32 - devPortIn.getVirtualConfig().nwLength))));
-        options.add(netmaskOption);
 
-        DHCPOption routerOption = new DHCPOption();
-        routerOption.setCode((byte) 3);
-        routerOption.setLength((byte) 4);
-        routerOption.setData(IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
-        options.add(routerOption);
-        
-        DHCPOption offerOption = new DHCPOption();
-        offerOption.setCode((byte) 53);
-        offerOption.setLength((byte) 1);
-        options.add(offerOption);
+        DHCPOption opt = new DHCPOption(DHCPOption.Code.MASK.value(),
+                DHCPOption.Code.MASK.length(),
+                IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
+                        .getVirtualConfig().nwLength)));
+        options.add(opt);
+
+        opt = new DHCPOption(DHCPOption.Code.ROUTER.value(),
+                DHCPOption.Code.ROUTER.length(),
+                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+        options.add(opt);
+
+        opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
+                DHCPOption.Code.DHCP_TYPE.length(),
+                new byte[] { DHCPOption.OFFER });
+        options.add(opt);
         
         reply.setOptions(options);
         
