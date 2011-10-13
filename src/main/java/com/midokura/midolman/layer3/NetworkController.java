@@ -87,6 +87,8 @@ public class NetworkController extends AbstractController {
 
     private PortService service;
     private Map<UUID, List<Runnable>> portServicesById;
+    // Store port num of a port that has a service port.
+    private short serviceTargetPort;
     // Track which routers processed an installed flow.
     private Map<MidoMatch, Set<UUID>> matchToRouters;
 
@@ -206,6 +208,16 @@ public class NetworkController extends AbstractController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPort);
         L3DevicePort devPortOut;
+
+        // Rewrite inPort with the service's target port assuming that
+        // service flows sent this packet to the OFPP_CONTROLLER.
+        // TODO(yoshi): replace this with better mechanism such as ARP proxy
+        // for service ports.
+        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
+            log.debug("onPacketIn: rewrite port {} to {}", inPort,
+                      serviceTargetPort);
+            inPort = serviceTargetPort;
+        }
 
         Ethernet ethPkt = new Ethernet();
         ethPkt.deserialize(data, 0, data.length);
@@ -1109,6 +1121,12 @@ public class NetworkController extends AbstractController {
 
     public void setServicePortFlows(short localPortNum, short remotePortNum,
             int localAddr, int remoteAddr, short localTport, short remoteTport) {
+        // Remember service's target port assuming that service flows sent
+        // this packet to the OFPP_CONTROLLER.
+        // TODO(yoshi): replace this with better mechanism such as ARP proxy
+        // for service ports.
+        serviceTargetPort = remotePortNum;
+
         // local to remote.
         MidoMatch match = new MidoMatch();
         match.setInputPort(localPortNum);
