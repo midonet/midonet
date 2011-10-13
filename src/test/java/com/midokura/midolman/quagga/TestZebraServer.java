@@ -18,7 +18,7 @@ class TestZebraServer {
     private ZebraServer zebra;
  
     @Before
-    public static makeZebraServer {
+    public static makeZebraServer() {
         MockOpenvSwitchDatabaseConnection ovsdb = 
                                 new MockOpenvSwitchDatabaseConnection();
         MockDirectory directory = new MockDirectory();
