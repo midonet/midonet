@@ -263,7 +263,8 @@ public class DHCP extends BasePacket {
         // minimum size 240 including magic cookie, options generally padded to 300
         int optionsLength = 0;
         for (DHCPOption option : this.options) {
-            if (option.getCode() == 0 || option.getCode() == 255) {
+            if (option.getCode() == 0 || 
+                    option.getCode() == DHCPOption.Code.END.value()) {
                 optionsLength += 1;
             } else {
                 optionsLength += 2 + (int)(0xff & option.getLength());
@@ -303,7 +304,7 @@ public class DHCP extends BasePacket {
             byte code = option.getCode();
             bb.put(code);
             log.debug("serialize writing option with code {}", code);
-            if (code != 0 && code != 255) {
+            if (code != 0 && code != DHCPOption.Code.END.value()) {
                 bb.put(option.getLength());
                 bb.put(option.getData());
             }
@@ -365,20 +366,20 @@ public class DHCP extends BasePacket {
         // read options
         while (bb.hasRemaining()) {
             DHCPOption option = new DHCPOption();
-            int code = 0xff & bb.get(); // convert signed byte to int in range [0,255]
-            option.setCode((byte) code);
+            byte code = bb.get();
+            option.setCode(code);
             if (code == 0) {
                 // skip these
                 continue;
-            } else if (code != 255) {
-                int l = 0xff & bb.get(); // convert signed byte to int in range [0,255]
-                option.setLength((byte) l);
-                byte[] optionData = new byte[l];
+            } else if (code != DHCPOption.Code.END.value()) {
+                byte l = bb.get();
+                option.setLength(l);
+                byte[] optionData = new byte[l & 0xff]; // needs length as positive int
                 bb.get(optionData);
                 option.setData(optionData);
             }
             this.options.add(option);
-            if (code == 255) {
+            if (code == DHCPOption.Code.END.value()) {
                 // remaining bytes are supposed to be 0, but ignore them just in case
                 break;
             }
