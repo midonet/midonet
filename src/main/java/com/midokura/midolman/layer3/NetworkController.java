@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
-import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -177,7 +176,12 @@ public class NetworkController extends AbstractController {
                 DHCPOption.Code.DHCP_TYPE.length(),
                 new byte[] { DHCPOption.OFFER });
         options.add(opt);
-        
+
+        // And finally add the END option.
+        opt = new DHCPOption(DHCPOption.Code.END.value(),
+                DHCPOption.Code.END.length(), null);
+        options.add(opt);
+
         reply.setOptions(options);
         
         UDP udp = new UDP();
