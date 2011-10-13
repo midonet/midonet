@@ -7,28 +7,11 @@ import org.junit.Assert._
 import org.junit.Assume.assumeNoException
 import org.slf4j.LoggerFactory
 
-import java.io.{File, RandomAccessFile}
 import java.lang.Long.parseLong
 import java.net.ConnectException
-import java.nio.channels.FileLock
 import java.util.Date
 
 import OpenvSwitchDatabaseConnectionImpl._
-
-// Mutex the OVSDB Connection, using a mode 666 lockfile in /tmp
-object OpenvSwitchDatabaseConnectionMutexer {
-    private final var lockfile = new File("/tmp/ovsdbconnection.lock")
-    private var lock: FileLock = _
-
-    def takeLock() = {
-        lockfile.setReadable(true, false)
-        lockfile.setWritable(true, false)
-        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
-    }
-
-    def releaseLock() { lock.release }
-}
-class OpenvSwitchDatabaseConnectionMutexer {}
 
 
 // Connect to OVSDB; delete any pre-existing test bridges, test controllers,
