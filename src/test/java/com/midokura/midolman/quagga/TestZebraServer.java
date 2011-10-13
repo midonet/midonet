@@ -18,7 +18,7 @@ class TestZebraServer {
     private ZebraServer zebra;
  
     @Before
-    public static makeZebraServer() {
+    public static void makeZebraServer() {
         MockOpenvSwitchDatabaseConnection ovsdb = 
                                 new MockOpenvSwitchDatabaseConnection();
         MockDirectory directory = new MockDirectory();
@@ -33,7 +33,7 @@ class TestZebraServer {
     }
 
     @Test
-    public static testZebraStart() {
+    public static void testZebraStart() {
         try {
             zebra.start();
         } catch (Exception e) {
