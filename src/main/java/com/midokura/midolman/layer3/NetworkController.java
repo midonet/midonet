@@ -87,6 +87,8 @@ public class NetworkController extends AbstractController {
 
     private PortService service;
     private Map<UUID, List<Runnable>> portServicesById;
+    // Store port num of a port that has a service port.
+    private short serviceTargetPort;
     // Track which routers processed an installed flow.
     private Map<MidoMatch, Set<UUID>> matchToRouters;
 
@@ -159,23 +161,22 @@ public class NetworkController extends AbstractController {
          * set options for offer (53) router (3) and netmask (1) and dns (6)
          */
         List<DHCPOption> options = new ArrayList<DHCPOption>();
-        
-        DHCPOption netmaskOption = new DHCPOption();
-        netmaskOption.setCode((byte) 1);
-        netmaskOption.setLength((byte) 4);
-        netmaskOption.setData(IPv4.toIPv4AddressBytes((~0 << (32 - devPortIn.getVirtualConfig().nwLength))));
-        options.add(netmaskOption);
 
-        DHCPOption routerOption = new DHCPOption();
-        routerOption.setCode((byte) 3);
-        routerOption.setLength((byte) 4);
-        routerOption.setData(IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
-        options.add(routerOption);
-        
-        DHCPOption offerOption = new DHCPOption();
-        offerOption.setCode((byte) 53);
-        offerOption.setLength((byte) 1);
-        options.add(offerOption);
+        DHCPOption opt = new DHCPOption(DHCPOption.Code.MASK.value(),
+                DHCPOption.Code.MASK.length(),
+                IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
+                        .getVirtualConfig().nwLength)));
+        options.add(opt);
+
+        opt = new DHCPOption(DHCPOption.Code.ROUTER.value(),
+                DHCPOption.Code.ROUTER.length(),
+                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+        options.add(opt);
+
+        opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
+                DHCPOption.Code.DHCP_TYPE.length(),
+                new byte[] { DHCPOption.OFFER });
+        options.add(opt);
         
         reply.setOptions(options);
         
@@ -206,6 +207,16 @@ public class NetworkController extends AbstractController {
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, inPort);
         L3DevicePort devPortOut;
+
+        // Rewrite inPort with the service's target port assuming that
+        // service flows sent this packet to the OFPP_CONTROLLER.
+        // TODO(yoshi): replace this with better mechanism such as ARP proxy
+        // for service ports.
+        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
+            log.debug("onPacketIn: rewrite port {} to {}", inPort,
+                      serviceTargetPort);
+            inPort = serviceTargetPort;
+        }
 
         Ethernet ethPkt = new Ethernet();
         ethPkt.deserialize(data, 0, data.length);
@@ -1109,6 +1120,12 @@ public class NetworkController extends AbstractController {
 
     public void setServicePortFlows(short localPortNum, short remotePortNum,
             int localAddr, int remoteAddr, short localTport, short remoteTport) {
+        // Remember service's target port assuming that service flows sent
+        // this packet to the OFPP_CONTROLLER.
+        // TODO(yoshi): replace this with better mechanism such as ARP proxy
+        // for service ports.
+        serviceTargetPort = remotePortNum;
+
         // local to remote.
         MidoMatch match = new MidoMatch();
         match.setInputPort(localPortNum);
