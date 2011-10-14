@@ -198,7 +198,7 @@ public abstract class AbstractController
         portUuidToNumberMap.remove(
                 getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
         IntIPv4 peerIp = tunnelPortNumToPeerIp.remove(portNum);
-            
+
         log.debug("handlePortGoingDown: removing port# {}", portNum);
         peerIpToTunnelPortNum.remove(peerIp);
     }
