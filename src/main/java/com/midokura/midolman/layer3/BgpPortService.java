@@ -231,7 +231,12 @@ public class BgpPortService implements PortService {
                                            localAddr, remoteAddr,
                                            BGP_TCP_PORT, BGP_TCP_PORT);
             if (!this.run) {
-                Runtime.getRuntime().exec("sudo killall bgpd");
+                Process kill = Runtime.getRuntime().exec("sudo killall bgpd");
+                try {
+                    kill.waitFor();
+                } catch (InterruptedException e) {
+                    log.warn("start", e);
+                }
                 zebra.start();
                 
                 log.debug("start: launching bgpd");
