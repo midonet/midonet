@@ -125,6 +125,7 @@ object TestBridgeControllerOVS
                                       log.info("Took too long!")
                                       tooLongFlag = true
                                       reactor.shutdown
+                                      ovsdb.close
                                       portModSemaphore.release(10)
                                   } },
                               4000, TimeUnit.MILLISECONDS)
@@ -181,7 +182,7 @@ object TestBridgeControllerOVS
 
     def addSystemPort(portName : String) {
         var pb = ovsdb.addSystemPort(bridgeName, portName)
-        pb.ifMac("00:01:02:03:04:05");
+        pb.ifMac("00:01:02:03:04:05")
         pb.build
     }
 
@@ -241,16 +242,20 @@ class TestBridgeControllerOVS {
         serializeTestsSemaphore.acquire
         log.info("testNewInternalPort has semaphore")
         try {
+            val oldNumDownPorts = controller.getDownPorts.size
             val portName = "int" + testportName
             // Clear the list of added ports, and make a new port which should
-            // trigger an addPort callback.
+            // go into the downPorts list.
             controller.addedPorts = List()
             addInternalPort(portName)
             assertTrue(ovsdb.hasPort(portName))
-            portModSemaphore.acquire
-            assertEquals(1, controller.addedPorts.size)
-            assertEquals(portName, controller.addedPorts(0).getName)
+            // Don't synch on portModSemaphore because port is down, so addPort
+            // callback not invoked.
+            //portModSemaphore.acquire
+            assertEquals(oldNumDownPorts+1, controller.getDownPorts.size)
+            //assertEquals(portName, controller.addedPorts(0).getName)
             // TODO: Verify this is an internal port.
+            // TODO: Try this with a port which is up.
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
         } finally {
@@ -296,6 +301,8 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
                         publicIP, macPortTimeoutMillis, ovsdb, reactor,
                         externalIDKey) {
     var addedPorts = List[OFPhysicalPort]()
+
+    def getDownPorts() = { downPorts }
 
     override def onConnectionMade() {
         log.info("BridgeControllerTester: onConnectionMade")

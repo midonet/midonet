@@ -7,8 +7,10 @@ package com.midokura.midolman;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
@@ -16,6 +18,7 @@ import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPhysicalPort.OFPortConfig;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.action.OFAction;
@@ -65,6 +68,9 @@ public abstract class AbstractController
     protected String externalIdKey;
 
     public final short nonePort = OFPort.OFPP_NONE.getValue();
+    public final int portDownFlag = OFPortConfig.OFPPC_PORT_DOWN.getValue();
+
+    protected Set<Integer> downPorts;
 
     class PortLocMapListener implements Watcher<UUID, Integer> {
         public AbstractController controller;
@@ -96,6 +102,7 @@ public abstract class AbstractController
         portNumToUuid = new HashMap<Integer, UUID>();
         tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();
         peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
+        downPorts = new HashSet<Integer>();
         listener = new PortLocMapListener(this);
         if (portLocMap != null)
             portLocMap.addWatcher(listener);
@@ -124,8 +131,12 @@ public abstract class AbstractController
                                                      .getPorts()) {
             if (isGREPortOfKey(portDesc.getName()))
                 ovsdb.delPort(portDesc.getName());
-            else
-                callAddPort(portDesc, portDesc.getPortNumber());
+            else {
+                if ((portDesc.getConfig() & portDownFlag) == 0)
+                    callAddPort(portDesc, portDesc.getPortNumber());
+                else
+                    downPorts.add(new Integer(portDesc.getPortNumber()));
+            }
         }
                 
         portLocMap.start();
@@ -143,6 +154,7 @@ public abstract class AbstractController
         portUuidToNumberMap.clear();
         tunnelPortNumToPeerIp.clear();
         peerIpToTunnelPortNum.clear();
+        downPorts.clear();
     }
 
     public abstract void clear();
@@ -179,6 +191,17 @@ public abstract class AbstractController
         addPort(portDesc, portNum);
     }
 
+    private void handlePortGoingDown(OFPhysicalPort portDesc, Integer portNum) {
+        deletePort(portDesc);
+        portNumToUuid.remove(portNum);
+        portUuidToNumberMap.remove(
+                getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
+        IntIPv4 peerIp = tunnelPortNumToPeerIp.remove(portNum);
+            
+        log.debug("handlePortGoingDown: removing port# {}", portNum);
+        peerIpToTunnelPortNum.remove(peerIp);
+    }
+
     @Override
     public final void onPortStatus(OFPhysicalPort portDesc,
                                    OFPortReason reason) {
@@ -186,23 +209,37 @@ public abstract class AbstractController
 
         if (reason.equals(OFPortReason.OFPPR_ADD)) {
             short portNum = portDesc.getPortNumber();
-            callAddPort(portDesc, portNum);
+            if ((portDesc.getConfig() & portDownFlag) == 0)
+                callAddPort(portDesc, portNum);
+            else
+                downPorts.add(new Integer(portNum));
         } else if (reason.equals(OFPortReason.OFPPR_DELETE)) {
-            deletePort(portDesc);
             Integer portNum = new Integer(portDesc.getPortNumber());
-            portNumToUuid.remove(portNum);
-            portUuidToNumberMap.remove(
-                getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
-            IntIPv4 peerIp = tunnelPortNumToPeerIp.remove(portNum);
-            
-            log.debug("onPortStatus: removing port# {}", portNum);
-            peerIpToTunnelPortNum.remove(peerIp);
+            if (downPorts.contains(portNum))
+                downPorts.remove(portNum);
+            else
+                handlePortGoingDown(portDesc, portNum);
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
-            //modifyPort(portDesc);
-            // FIXME(dmd): modifyPort no longer used.
-            UUID uuid = getPortUuidFromOvsdb(datapathId, 
-                                             portDesc.getPortNumber());
             Integer portNum = new Integer(portDesc.getPortNumber());
+            // Logic for the four up/down states:
+            //  * Was down, remains down:  Do nothing.
+            //  * Was up, went down:  Treat as delete.
+            //  * Was down, came up:  Treat as add.
+            //  * Was up, remains up:  Update maps with new data.
+            if ((portDesc.getConfig() & portDownFlag) != 0) {
+                if (!downPorts.contains(portNum)) {
+                    downPorts.add(portNum);
+                    handlePortGoingDown(portDesc, portNum);
+                }
+                return;
+            }
+            if (downPorts.contains(portNum)) {
+                downPorts.remove(portNum);
+                callAddPort(portDesc, portNum.shortValue());
+                return;
+            }
+            // Wasn't down, and is still up, so update the state maps.
+            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum.shortValue());
             if (uuid != null) {
                 portNumToUuid.put(portNum, uuid);
                 portUuidToNumberMap.put(uuid, portNum);
