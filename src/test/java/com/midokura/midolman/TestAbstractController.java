@@ -242,6 +242,16 @@ public class TestAbstractController {
     }
 
     @Test
+    public void testBringPortUp() {
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+                          controller.portsAdded.toArray());
+        port3.setConfig(0);
+        controller.onPortStatus(port3, OFPortReason.OFPPR_MODIFY);
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2, port3 },
+                          controller.portsAdded.toArray());
+    }
+
+    @Test
     public void testModifyPort() {
         port2.setName("tne12340a001123");
         UUID port2newUuid = UUID.randomUUID();
@@ -250,6 +260,24 @@ public class TestAbstractController {
         assertEquals(port2newUuid, controller.portNumToUuid.get(47));
         assertEquals("10.0.17.35",
                      controller.peerOfTunnelPortNum(47).toString());
+    }
+
+    @Test
+    public void testModifyDownPort() {
+        assertArrayEquals(new OFPhysicalPort[] { },
+                          controller.portsRemoved.toArray());
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+                          controller.portsAdded.toArray());
+        port3.setName("tne12340a001123");
+        UUID port3newUuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 57, "midonet", port3newUuid.toString());
+        controller.onPortStatus(port3, OFPortReason.OFPPR_MODIFY);
+        assertNull(controller.portNumToUuid.get(57));
+        assertNull(controller.peerOfTunnelPortNum(57));
+        assertArrayEquals(new OFPhysicalPort[] { },
+                          controller.portsRemoved.toArray());
+        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
+                          controller.portsAdded.toArray());
     }
 
     @Test
@@ -269,6 +297,29 @@ public class TestAbstractController {
                           controller.portsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(47));
         assertNull(controller.peerOfTunnelPortNum(47));
+    }
+
+    @Test
+    public void testBringPortDown() {
+        assertArrayEquals(new OFPhysicalPort[] { },
+                          controller.portsRemoved.toArray());
+        assertTrue(controller.portNumToUuid.containsKey(37));
+        port1.setConfig(AbstractController.portDownFlag);
+        controller.onPortStatus(port1, OFPortReason.OFPPR_MODIFY);
+                assertArrayEquals(new OFPhysicalPort[] { port1 },
+                          controller.portsRemoved.toArray());
+        assertFalse(controller.portNumToUuid.containsKey(37));
+        assertTrue(controller.portNumToUuid.containsKey(47));
+        assertNotNull(controller.peerOfTunnelPortNum(47));
+    }
+
+    @Test
+    public void testDeleteDownPort() {
+        assertArrayEquals(new OFPhysicalPort[] { },
+                          controller.portsRemoved.toArray());
+        controller.onPortStatus(port3, OFPortReason.OFPPR_DELETE);
+        assertArrayEquals(new OFPhysicalPort[] { },
+                          controller.portsRemoved.toArray());
     }
 
     @Test
