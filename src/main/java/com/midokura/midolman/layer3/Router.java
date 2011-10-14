@@ -317,6 +317,7 @@ public class Router {
         L3DevicePort devPort = devicePorts.get(fwdInfo.inPortId);
         if (null != devPort && devPort.getVirtualConfig().portAddr ==
                 fwdInfo.matchIn.getNetworkDestination()) {
+            log.debug("process: received pkt addressed to the ingress port.");
             // Handle ICMP only for now.
             if (fwdInfo.matchIn.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER)
                 processICMPtoLocal(fwdInfo.pktIn, devPort);
@@ -411,13 +412,17 @@ public class Router {
 
     private void processICMPtoLocal(Ethernet ethPkt, L3DevicePort port) {
         IPv4 ipPkt = (IPv4)ethPkt.getPayload();
-        if (ipPkt.getProtocol() != ICMP.PROTOCOL_NUMBER)
+        if (ipPkt.getProtocol() != ICMP.PROTOCOL_NUMBER) {
+            log.debug("processICMPtoLocal drop pkt with nwProto != ICMP");
             return;
+        }
         ICMP icmpPkt = (ICMP)ipPkt.getPayload();
         // Only handle ICMP echo requests: type 8, code 0
         if (icmpPkt.getType() != ICMP.TYPE_ECHO_REQUEST ||
-                icmpPkt.getCode() != ICMP.CODE_NONE)
+                icmpPkt.getCode() != ICMP.CODE_NONE) {
+            log.debug("processICMPtoLocal drop pkt; only handle echo request.");
             return;
+        }
         // Generate the echo reply.
         ICMP icmpReply = new ICMP();
         icmpReply.setEchoReply(icmpPkt.getIdentifier(),
@@ -434,6 +439,9 @@ public class Router {
         ethReply.setDestinationMACAddress(ethPkt.getSourceMACAddress());
         ethReply.setSourceMACAddress(port.getMacAddr());
         ethReply.setEtherType(IPv4.ETHERTYPE);
+        log.debug("processICMPtoLocal sending echo reply from {} to {}",
+                IPv4.fromIPv4Address(ipPkt.getSourceAddress()),
+                IPv4.fromIPv4Address(port.getVirtualConfig().portAddr));
         port.send(ethReply.serialize());
     }
 
