@@ -31,6 +31,8 @@ public class UDP extends BasePacket implements Transport {
         sb.append(", dport=").append(destinationPort);
         sb.append(", length=").append(length);
         sb.append(", cksum=").append(checksum);
+        sb.append(", payload=").append(
+                null == payload ? "null" : payload.toString());
         sb.append("]");
         return sb.toString();
     }

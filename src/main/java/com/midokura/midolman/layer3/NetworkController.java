@@ -170,7 +170,7 @@ public class NetworkController extends AbstractController {
                 }
                 log.debug("handleDhcpRequest dhcp msg type {}:{}",
                         opt.getData()[0],
-                        DHCPOption.msgTypeToName.get(opt.getData()[1]));
+                        DHCPOption.msgTypeToName.get(opt.getData()[0]));
             }
             if (code == DHCPOption.Code.PRM_REQ_LIST.value()) {
                 if (opt.getLength() <= 0) {
@@ -211,23 +211,29 @@ public class NetworkController extends AbstractController {
                     DHCPOption.Code.DHCP_TYPE.length(),
                     new byte[] { DHCPOption.MsgType.ACK.value() });
             options.add(opt);
-
-            // The request must contain the server identifier option.
+            // http://tools.ietf.org/html/rfc2131 Section 3.1, Step 3:
+            // "The client broadcasts a DHCPREQUEST message that MUST include
+            // the 'server identifier' option to indicate which server is has
+            // selected."
+            // TODO(pino): figure out why Linux doesn't send us the server id
+            // and try re-enabling this code.
             opt = reqOptions.get(DHCPOption.Code.SERVER_ID
                     .value());
             if (null == opt) {
                 log.warn("handleDhcpRequest dropping dhcp REQUEST - no " +
                 		"server id option found.");
-                return;
-            }
-            // The server id should correspond to this port's address.
-            int ourServId = devPortIn.getVirtualConfig().portAddr;
-            int theirServId = IPv4.toIPv4Address(opt.getData());
-            if (ourServId != theirServId) {
-                log.warn("handleDhcpRequest dropping dhcp REQUEST - client "
-                        + "chose server {} not us {}",
-                        IPv4.fromIPv4Address(theirServId),
-                        IPv4.fromIPv4Address(ourServId));
+                // TODO(pino): re-enable this.
+                //return;
+            } else {
+                // The server id should correspond to this port's address.
+                int ourServId = devPortIn.getVirtualConfig().portAddr;
+                int theirServId = IPv4.toIPv4Address(opt.getData());
+                if (ourServId != theirServId) {
+                    log.warn("handleDhcpRequest dropping dhcp REQUEST - client "
+                            + "chose server {} not us {}",
+                            IPv4.fromIPv4Address(theirServId),
+                            IPv4.fromIPv4Address(ourServId));
+                }
             }
             // The request must contain a requested IP address option.
             opt = reqOptions.get(DHCPOption.Code.REQUESTED_IP.value());

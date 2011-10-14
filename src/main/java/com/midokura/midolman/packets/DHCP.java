@@ -33,6 +33,24 @@ public class DHCP extends BasePacket {
     protected String bootFileName;
     protected List<DHCPOption> options = new ArrayList<DHCPOption>();
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DHCP [opCode=").append(opCode);
+        sb.append(", hwType=").append(hardwareType);
+        sb.append(", hwLength=").append(hardwareAddressLength);
+        sb.append(", hops=").append(hops);
+        sb.append(", xid=").append(transactionId);
+        sb.append(", seconds=").append(seconds);
+        sb.append(", flags=").append(flags);
+        sb.append(", ciaddr=").append(IPv4.fromIPv4Address(clientIPAddress));
+        sb.append(", yiaddr=").append(IPv4.fromIPv4Address(yourIPAddress));
+        sb.append(", siaddr=").append(IPv4.fromIPv4Address(serverIPAddress));
+        sb.append(", giaddr=").append(IPv4.fromIPv4Address(gatewayIPAddress));
+        sb.append("]");
+        return sb.toString();
+    }
+
     /**
      * @return the opCode
      */
