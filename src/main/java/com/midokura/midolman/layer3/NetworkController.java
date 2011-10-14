@@ -277,6 +277,12 @@ public class NetworkController extends AbstractController {
                         .getVirtualConfig().nwLength)));
         options.add(opt);
         opt = new DHCPOption(
+                DHCPOption.Code.IP_LEASE_TIME.value(),
+                DHCPOption.Code.IP_LEASE_TIME.length(),
+                // This is in seconds... is 1 day enough?
+                IPv4.toIPv4AddressBytes(86400);
+        options.add(opt);
+        opt = new DHCPOption(
                 DHCPOption.Code.ROUTER.value(),
                 DHCPOption.Code.ROUTER.length(),
                 IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
