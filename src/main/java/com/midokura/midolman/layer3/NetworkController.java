@@ -276,6 +276,15 @@ public class NetworkController extends AbstractController {
                 IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
                         .getVirtualConfig().nwLength)));
         options.add(opt);
+        // Generate the broadcast address... this is nwAddr with 1's in the 
+        // last 32-nwAddrLength bits.
+        int mask = (2^(32-devPortIn.getVirtualConfig().nwLength))-1;
+        int bcast = mask | devPortIn.getVirtualConfig().nwAddr;
+        opt = new DHCPOption(
+                DHCPOption.Code.BCAST_ADDR.value(),
+                DHCPOption.Code.BCAST_ADDR.length(),
+                IPv4.toIPv4AddressBytes(bcast));
+        options.add(opt);
         opt = new DHCPOption(
                 DHCPOption.Code.IP_LEASE_TIME.value(),
                 DHCPOption.Code.IP_LEASE_TIME.length(),
