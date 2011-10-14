@@ -13,6 +13,7 @@ import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPhysicalPort.OFPortConfig;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -127,8 +128,10 @@ public class TestAbstractController {
 
     private OFPhysicalPort port1;
     private OFPhysicalPort port2;
+    private OFPhysicalPort port3;
     private UUID port1uuid;
     private UUID port2uuid;
+    private UUID port3uuid;
     private int dp_id;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private PortToIntNwAddrMap portLocMap;
@@ -170,8 +173,16 @@ public class TestAbstractController {
         port2uuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 47, "midonet", port2uuid.toString());
 
+        port3 = new OFPhysicalPort();
+        port3.setPortNumber((short) 57);
+        port3.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 57 });
+        port3.setConfig(AbstractController.portDownFlag);
+        port3uuid = UUID.randomUUID();
+        ovsdb.setPortExternalId(dp_id, 57, "midonet", port3uuid.toString());
+
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
+        controller.onPortStatus(port3, OFPortReason.OFPPR_ADD);
     }
 
     @Test

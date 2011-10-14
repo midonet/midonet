@@ -67,8 +67,9 @@ public abstract class AbstractController
     protected IntIPv4 publicIp;
     protected String externalIdKey;
 
-    public final short nonePort = OFPort.OFPP_NONE.getValue();
-    public final int portDownFlag = OFPortConfig.OFPPC_PORT_DOWN.getValue();
+    public static final short nonePort = OFPort.OFPP_NONE.getValue();
+    public static final int portDownFlag =
+                                OFPortConfig.OFPPC_PORT_DOWN.getValue();
 
     protected Set<Integer> downPorts;
 
