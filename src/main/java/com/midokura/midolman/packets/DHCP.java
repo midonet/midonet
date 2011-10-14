@@ -377,6 +377,7 @@ public class DHCP extends BasePacket {
                 byte[] optionData = new byte[l & 0xff]; // needs length as positive int
                 bb.get(optionData);
                 option.setData(optionData);
+                log.debug("deserialize: found option with code {}", code & 0xff);
             }
             this.options.add(option);
             if (code == DHCPOption.Code.END.value()) {

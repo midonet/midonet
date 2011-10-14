@@ -137,11 +137,124 @@ public class NetworkController extends AbstractController {
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
     
-    private void onDhcpRequest(L3DevicePort devPortIn, DHCP request, MAC sourceMac) {
-        log.debug("onDhcpRequest: {}", devPortIn);
-        
-        log.debug("onDhcpRequest: requestling client has IP {}", IPv4.fromIPv4Address(request.getClientIPAddress()));
-        
+    private void handleDhcpRequest(L3DevicePort devPortIn, DHCP request,
+            MAC sourceMac) {
+        byte[] chaddr = request.getClientHardwareAddress();
+        if (null == chaddr) {
+            log.warn("handleDhcpRequest dropping bootrequest with null chaddr");
+            return;
+        }
+        if (chaddr.length != 6) {
+            log.warn("handleDhcpRequest dropping bootrequest with chaddr "
+                    + "with length {} greater than 6.", chaddr.length);
+            return;
+        }
+        log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
+                + "and ciaddr {}",
+                new Object[] { devPortIn, Net.convertByteMacToString(chaddr),
+                        IPv4.fromIPv4Address(request.getClientIPAddress()) });
+
+        // Extract all the options and put them in a map
+        Map<Byte, DHCPOption> reqOptions = new HashMap<Byte, DHCPOption>();
+        Set<Byte> requestedCodes = new HashSet<Byte>();
+        for (DHCPOption opt : request.getOptions()) {
+            byte code = opt.getCode();
+            reqOptions.put(code, opt);
+            log.debug("handleDhcpRequest found option {}:{}", code,
+                    DHCPOption.codeToName.get(code));
+            if (code == DHCPOption.Code.DHCP_TYPE.value()) {
+                if (opt.getLength() != 1) {
+                    log.warn("handleDhcpRequest dropping bootrequest - "
+                            + "dhcp msg type option has bad length or data.");
+                    return;
+                }
+                log.debug("handleDhcpRequest dhcp msg type {}:{}",
+                        opt.getData()[0],
+                        DHCPOption.msgTypeToName.get(opt.getData()[1]));
+            }
+            if (code == DHCPOption.Code.PRM_REQ_LIST.value()) {
+                if (opt.getLength() <= 0) {
+                    log.warn("handleDhcpRequest dropping bootrequest - "
+                            + "param request list has bad length");
+                    return;
+                }
+                for (int i = 0; i < opt.getLength(); i++) {
+                    byte c = opt.getData()[i];
+                    requestedCodes.add(c);
+                    log.debug("handleDhcpRequest client requested option "
+                            + "{}:{}", c, DHCPOption.codeToName.get(c));
+                }
+            }
+        }
+        DHCPOption typeOpt = reqOptions.get(DHCPOption.Code.DHCP_TYPE.value());
+        if (null == typeOpt) {
+            log.warn("handleDhcpRequest dropping bootrequest - no dhcp msg "
+                    + "type found.");
+            return;
+        }
+        byte msgType = typeOpt.getData()[0];
+        boolean drop = true;
+        List<DHCPOption> options = new ArrayList<DHCPOption>();
+        DHCPOption opt;
+        if (DHCPOption.MsgType.DISCOVER.value() == msgType) {
+            drop = false;
+            // Reply with a dchp OFFER.
+            opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
+                    DHCPOption.Code.DHCP_TYPE.length(),
+                    new byte[] { DHCPOption.MsgType.OFFER.value() });
+            options.add(opt);
+
+        } else if (DHCPOption.MsgType.REQUEST.value() == msgType) {
+            drop = false;
+            // Reply with a dchp ACK.
+            opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
+                    DHCPOption.Code.DHCP_TYPE.length(),
+                    new byte[] { DHCPOption.MsgType.ACK.value() });
+            options.add(opt);
+
+            // The request must contain the server identifier option.
+            opt = reqOptions.get(DHCPOption.Code.SERVER_ID
+                    .value());
+            if (null == opt) {
+                log.warn("handleDhcpRequest dropping dhcp REQUEST - no " +
+                		"server id option found.");
+                return;
+            }
+            // The server id should correspond to this port's address.
+            int ourServId = devPortIn.getVirtualConfig().portAddr;
+            int theirServId = IPv4.toIPv4Address(opt.getData());
+            if (ourServId != theirServId) {
+                log.warn("handleDhcpRequest dropping dhcp REQUEST - client "
+                        + "chose server {} not us {}",
+                        IPv4.fromIPv4Address(theirServId),
+                        IPv4.fromIPv4Address(ourServId));
+            }
+            // The request must contain a requested IP address option.
+            opt = reqOptions.get(DHCPOption.Code.REQUESTED_IP.value());
+            if (null == opt) {
+                log.warn("handleDhcpRequest dropping dhcp REQUEST - no "
+                        + "requested ip option found.");
+                return;
+            }
+            // The requested ip must correspond to the yiaddr in our offer.
+            int reqIp = IPv4.toIPv4Address(opt.getData());
+            int offeredIp = devPortIn.getVirtualConfig().localNwAddr;
+            // TODO(pino): must keep state and remember the offered ip based
+            // on the chaddr or the client id option.
+            if (reqIp != offeredIp) {
+                log.warn("handleDhcpRequest dropping dhcp REQUEST - the " +
+                        "requested ip {} is not the offered yiaddr {}",
+                        IPv4.fromIPv4Address(reqIp), IPv4.fromIPv4Address(offeredIp));
+                // TODO(pino): send a dhcp NAK reply.
+                return;
+            }
+        }
+        if (drop) {
+            log.warn("handleDhcpRequest dropping bootrequest - we don't "
+                    + "handle msg type {}:{}", msgType,
+                    DHCPOption.msgTypeToName.get(msgType));
+            return;
+        }
         DHCP reply = new DHCP();
         reply.setOpCode(DHCP.OPCODE_REPLY);
         reply.setTransactionId(request.getTransactionId());
@@ -149,41 +262,25 @@ public class NetworkController extends AbstractController {
         reply.setHardwareType((byte) ARP.HW_TYPE_ETHERNET);
         reply.setClientHardwareAddress(sourceMac);
         reply.setServerIPAddress(devPortIn.getVirtualConfig().portAddr);
-        
-        /*
-         * TODO: fix big hack - don't return localNwAddr, 
-         * but rather IP addr explicitly assigned for the requesters
-         */
+        // TODO(pino): use explicitly assigned address not localNwAddr!!
         reply.setYourIPAddress(devPortIn.getVirtualConfig().localNwAddr);
-        
-        /*
-         * set options for offer (53) router (3) and netmask (1) and dns (6)
-         */
-        List<DHCPOption> options = new ArrayList<DHCPOption>();
-
-        DHCPOption opt = new DHCPOption(DHCPOption.Code.MASK.value(),
+        // TODO(pino): do we need to include the DNS option?
+        opt = new DHCPOption(DHCPOption.Code.MASK.value(),
                 DHCPOption.Code.MASK.length(),
                 IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
                         .getVirtualConfig().nwLength)));
         options.add(opt);
-
-        opt = new DHCPOption(DHCPOption.Code.ROUTER.value(),
+        opt = new DHCPOption(
+                DHCPOption.Code.ROUTER.value(),
                 DHCPOption.Code.ROUTER.length(),
                 IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
         options.add(opt);
-
-        opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
-                DHCPOption.Code.DHCP_TYPE.length(),
-                new byte[] { DHCPOption.OFFER });
-        options.add(opt);
-
         // And finally add the END option.
         opt = new DHCPOption(DHCPOption.Code.END.value(),
                 DHCPOption.Code.END.length(), null);
         options.add(opt);
-
         reply.setOptions(options);
-        
+
         UDP udp = new UDP();
         udp.setSourcePort((short) 67);
         udp.setDestinationPort((short) 68);
@@ -202,7 +299,8 @@ public class NetworkController extends AbstractController {
         eth.setSourceMACAddress(devPortIn.getMacAddr());
         eth.setDestinationMACAddress(sourceMac);
         
-        log.debug("onDhcpRequest: sending DHCP reply {} to port {}", eth, devPortIn);
+        log.debug("handleDhcpRequest: sending DHCP reply {} to port {}", eth,
+                devPortIn);
         sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
     }
 
@@ -289,10 +387,9 @@ public class NetworkController extends AbstractController {
                 if (udp.getSourcePort() == 68 && udp.getDestinationPort() == 67) {
                     DHCP dhcp = (DHCP) udp.getPayload();
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
-                        log.debug("onPacketIn: got a DHCP request");
-                        
-                        onDhcpRequest(devPortIn, dhcp, ethPkt.getSourceMACAddress());
-                        
+                        log.debug("onPacketIn: got a DHCP bootrequest");
+                        handleDhcpRequest(devPortIn, dhcp,
+                                ethPkt.getSourceMACAddress());
                         freeBuffer(bufferId);
                         return;
                     }
