@@ -278,8 +278,10 @@ public class NetworkController extends AbstractController {
         options.add(opt);
         // Generate the broadcast address... this is nwAddr with 1's in the 
         // last 32-nwAddrLength bits.
-        int mask = (2^(32-devPortIn.getVirtualConfig().nwLength))-1;
+        int mask = ~0 >>> devPortIn.getVirtualConfig().nwLength;
         int bcast = mask | devPortIn.getVirtualConfig().nwAddr;
+        log.debug("handleDhcpRequest setting bcast addr option to {}",
+                IPv4.fromIPv4Address(bcast));
         opt = new DHCPOption(
                 DHCPOption.Code.BCAST_ADDR.value(),
                 DHCPOption.Code.BCAST_ADDR.length(),
