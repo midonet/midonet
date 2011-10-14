@@ -15,8 +15,15 @@ import static org.junit.Assert.assertFalse;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class TestSelectLoop {
     static class BooleanBox { volatile boolean value; }
+
+    private final static Logger log =
+                        LoggerFactory.getLogger(TestSelectLoop.class);
 
     SelectLoop reactor;
     Pipe pipe1, pipe2;
@@ -34,6 +41,7 @@ public class TestSelectLoop {
         channel2.configureBlocking(false);
         message = ByteBuffer.allocate(8);
         message.putLong(0x0F00BA44DEADBEEFL);
+        message.rewind();
     }
 
     @Test
@@ -76,6 +84,7 @@ public class TestSelectLoop {
     @Test
     public void testSubmitDuringEvent() 
             throws IOException, InterruptedException, ClosedChannelException {
+        log.debug("Entering testSubmitDuringEvent");
         final BooleanBox submitHasRun = new BooleanBox();
         final BooleanBox somethingBroke = new BooleanBox();
         submitHasRun.value = false;
@@ -84,6 +93,8 @@ public class TestSelectLoop {
                 new SelectListener() {
                     @Override
                     public void handleEvent(SelectionKey key) {
+                        log.debug("testSubmitDuringEvent: " +
+                                  "entering handleEvent()");
                         try {
                             reactor.submit(
                                 new Runnable() {
@@ -91,7 +102,10 @@ public class TestSelectLoop {
                                         submitHasRun.value = true; 
                                     }
                                 });
-                            Thread.sleep(10);
+                            ByteBuffer recvbuf = ByteBuffer.allocate(8);
+                            pipe1.source().read(recvbuf);
+                            Thread.sleep(15);
+                            log.debug("Reactor thread waking up");
                             if (submitHasRun.value)
                                 somethingBroke.value = true;
                         } catch (Exception e) {
@@ -99,9 +113,21 @@ public class TestSelectLoop {
                         }
                     }
                 };
+        new Thread(new Runnable() { 
+                       public void run() { 
+                           log.debug("Entering reactor thread");
+                           try { reactor.doLoop(); }
+                           catch (Exception e) { 
+                               somethingBroke.value = true; 
+                           }
+                       }
+                   }).start();
         reactor.register(channel1, SelectionKey.OP_READ, listener);
+        log.debug("About to write {}", message);
         pipe1.sink().write(message);
-        Thread.sleep(10);
+        log.debug("Just wrote {}", message);
+        Thread.sleep(30);   // Let the sleep() in handleEvent() finish.
+        log.debug("Main thread waking up");
         assertTrue(submitHasRun.value);
         assertFalse(somethingBroke.value);
     }
