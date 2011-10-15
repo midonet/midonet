@@ -253,7 +253,7 @@ public class TestSelectLoop {
     }
 
     @Test
-    public void testCheckSubmitDuringSubmit() throws InterruptedException {
+    public void testSubmitDuringSubmit() throws InterruptedException {
         final BooleanBox submit1HasRun = new BooleanBox();
         final BooleanBox submit2HasRun = new BooleanBox();
         final BooleanBox somethingBroke = new BooleanBox();
