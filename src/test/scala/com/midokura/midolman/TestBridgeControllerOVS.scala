@@ -249,9 +249,7 @@ class TestBridgeControllerOVS {
             controller.addedPorts = List()
             addInternalPort(portName)
             assertTrue(ovsdb.hasPort(portName))
-            // Don't synch on portModSemaphore because port is down, so addPort
-            // callback not invoked.
-            //portModSemaphore.acquire
+            portModSemaphore.acquire
             assertEquals(oldNumDownPorts+1, controller.getDownPorts.size)
             //assertEquals(portName, controller.addedPorts(0).getName)
             // TODO: Verify this is an internal port.
@@ -289,31 +287,49 @@ class TestBridgeControllerOVS {
     }
 }
 
+
+// Used for the downPorts set, so that adding a port will release a semaphore,
+// whether the port is up (in addPort) or down (here).
+private class NotifyingSet(val portSemaphore: Semaphore) 
+        extends java.util.HashSet[java.lang.Integer]() {
+    override def add(i: java.lang.Integer) = {
+        try { super.add(i); }
+        finally { portSemaphore.release }
+    }
+}
+
 private class BridgeControllerTester(datapath: Long, switchID: UUID,
         greKey: Int, portLocMap: PortToIntNwAddrMap, macPortMap: MacPortMap,
         flowExpireMillis: Long, idleFlowExpireMillis: Long,
         publicIP: IntIPv4, macPortTimeoutMillis: Long,
         ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop,
-        externalIDKey: String, portSemaphore: Semaphore,
+        externalIDKey: String, val portSemaphore: Semaphore,
         connectionSemaphore: Semaphore) extends
                 BridgeController(datapath, switchID, greKey, portLocMap,
                         macPortMap, flowExpireMillis, idleFlowExpireMillis,
                         publicIP, macPortTimeoutMillis, ovsdb, reactor,
                         externalIDKey) {
+    downPorts = new NotifyingSet(portSemaphore)
     var addedPorts = List[OFPhysicalPort]()
 
     def getDownPorts() = { downPorts }
 
     override def onConnectionMade() {
-        log.info("BridgeControllerTester: onConnectionMade")
-        super.onConnectionMade
-        connectionSemaphore.release
+        try {
+            log.info("BridgeControllerTester: onConnectionMade")
+            super.onConnectionMade
+        } finally {
+            connectionSemaphore.release
+        }
     }
 
     override def addPort(portDesc: OFPhysicalPort, portNum: Short) {
-        log.info("BridgeControllerTester: addPort")
-        super.addPort(portDesc, portNum)
-        addedPorts ::= portDesc
-        portSemaphore.release
+        try {
+            log.info("BridgeControllerTester: addPort")
+            super.addPort(portDesc, portNum)
+            addedPorts ::= portDesc
+        } finally {
+           portSemaphore.release
+        }
     }
 }
