@@ -251,4 +251,45 @@ public class TestSelectLoop {
         assertFalse(somethingBroke.value);
         assertFalse(reactorThrew.value);
     }
+
+    @Test
+    public void testCheckSubmitDuringSubmit() throws InterruptedException {
+        final BooleanBox submit1HasRun = new BooleanBox();
+        final BooleanBox submit2HasRun = new BooleanBox();
+        final BooleanBox somethingBroke = new BooleanBox();
+        submit1HasRun.value = false;
+        submit2HasRun.value = false;
+        somethingBroke.value = false;
+
+        class Submission implements Runnable {
+            BooleanBox hasRun;
+            public Submission(BooleanBox hasRun) {
+                this.hasRun = hasRun;
+            }
+
+            public void run() {
+                try {
+                    hasRun.value = true;
+                    Thread.sleep(30);
+                } catch (Exception e) {
+                    somethingBroke.value = true;
+                }
+            }
+        }
+        Submission submission1 = new Submission(submit1HasRun);
+        Submission submission2 = new Submission(submit2HasRun);
+        reactor.submit(submission1);
+        reactor.submit(submission2);
+
+        // TODO(dmd): Are these supposed to have already run, though the
+        // Reactor loop wasn't started?
+        //Thread.sleep(15);
+        //assertFalse(submit1HasRun.value);
+        //assertFalse(submit2HasRun.value);
+
+        Thread.sleep(15);
+        assertTrue(submit1HasRun.value ^ submit2HasRun.value);
+        Thread.sleep(30);
+        assertTrue(submit1HasRun.value && submit2HasRun.value);
+    }
 }
