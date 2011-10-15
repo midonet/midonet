@@ -107,7 +107,7 @@ object TestBridgeControllerOVS
                 /* reactor */                 reactor,
                 /* externalIdKey */           bridgeExtIdKey,
                 /* portSemaphore */           portModSemaphore,
-                /* connectionSemaphore */     connectionSemaphore);
+                /* connectionSemaphore */     connectionSemaphore)
 
             // Get a connection to the OF switch.
             listenSock = ServerSocketChannel.open
@@ -293,7 +293,7 @@ class TestBridgeControllerOVS {
 private class NotifyingSet(val portSemaphore: Semaphore) 
         extends java.util.HashSet[java.lang.Integer]() {
     override def add(i: java.lang.Integer) = {
-        try { super.add(i); }
+        try { super.add(i) }
         finally { portSemaphore.release }
     }
 }
@@ -304,7 +304,7 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
         publicIP: IntIPv4, macPortTimeoutMillis: Long,
         ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop,
         externalIDKey: String, val portSemaphore: Semaphore,
-        connectionSemaphore: Semaphore) extends
+        val connectionSemaphore: Semaphore) extends
                 BridgeController(datapath, switchID, greKey, portLocMap,
                         macPortMap, flowExpireMillis, idleFlowExpireMillis,
                         publicIP, macPortTimeoutMillis, ovsdb, reactor,
