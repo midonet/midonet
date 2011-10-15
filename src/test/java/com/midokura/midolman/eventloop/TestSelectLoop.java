@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.Pipe;
+import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.Executors;
@@ -198,5 +199,56 @@ public class TestSelectLoop {
         assertFalse(somethingBroke.value);
         assertFalse(reactorThrew.value);
         assertFalse(reactorFinished.value);
+    }
+
+    @Test
+    public void testEventDuringEvent()
+                throws IOException, InterruptedException {
+        final BooleanBox event1HasRun = new BooleanBox();
+        final BooleanBox event2HasRun = new BooleanBox();
+        final BooleanBox somethingBroke = new BooleanBox();
+        event1HasRun.value = false;
+        event2HasRun.value = false;
+        somethingBroke.value = false;
+
+        class SelectResponder implements SelectListener {
+            BooleanBox hasRun;
+            public SelectResponder(BooleanBox hasRun) {
+                this.hasRun = hasRun;
+            }
+
+            public void handleEvent(SelectionKey key) {
+                try {
+                    hasRun.value = true;
+                    ScatteringByteChannel channel = 
+                                (ScatteringByteChannel) key.channel();
+                    channel.read(ByteBuffer.allocate(8));
+                    Thread.sleep(20);
+                } catch (Exception e) {
+                    somethingBroke.value = true;
+                }
+            }
+        }
+
+        SelectListener listener1 = new SelectResponder(event1HasRun);
+        SelectListener listener2 = new SelectResponder(event2HasRun);
+
+        pipe1.sink().write(message);
+        message.rewind();
+        pipe2.sink().write(message);
+        reactor.register(channel1, SelectionKey.OP_READ, listener1);
+        reactor.register(channel2, SelectionKey.OP_READ, listener2);
+        
+        startReactorThread();
+        Thread.sleep(10);
+        assertTrue(event1HasRun.value ^ event2HasRun.value);
+        Thread.sleep(20);
+        assertTrue(event1HasRun.value && event2HasRun.value);
+        assertFalse(reactorFinished.value);
+        reactor.shutdown();
+        Thread.sleep(15);
+        assertTrue(reactorFinished.value);
+        assertFalse(somethingBroke.value);
+        assertFalse(reactorThrew.value);
     }
 }
