@@ -295,26 +295,35 @@ public class IPv4 extends BasePacket {
     }
 
     /**
-     * Compute the IPv4-style checksum of the first lengthBytes of a ByteBuffer.
+     * Compute the IPv4 checksum of length bytes of an array starting at offset.
      * From RFC 1071: "The checksum field is the 16-bit one's complement of the
      * one's complement sum of all 16-bit words in the header. For purposes of
      * computing the checksum, the value of the checksum field is zero."
-     * @param bb The ByteBuffer
-     * @param lengthBytes An even number of bytes on which to compute the cksum.
-     * @param cksumPos The even starting index of the 2-byte checksum within
-     * the stream of bytes. For example, in IPv4 header the cksum starts at 
-     * the 11th byte, so cksumPos=10 (zero-indexed). If the header includes a
-     * non-zero checksum it is skipped (treated as zero).
+     * @param data The data array.
+     * @param offset The index of the first byte to include in the checksum.
+     * @param length The number of bytes on which to compute the checksum.
+     * @param cksumPos The absolute index of the 2-byte checksum field. For
+     * example, the checksum field is at bytes 10 and 11 in the IPv4 header.
+     * These bytes are ignored in the checksum computation.
      * @return The computed checksum as a short.
      */
-    public static short computeChecksum(ByteBuffer bb, int lengthBytes,
+    public static short computeChecksum(byte[] data, int offset, int length,
             int cksumPos) {
-        bb.rewind();
         int accumulation = 0;
-        for (int i = 0; i < lengthBytes / 2; ++i) {
-            if (i != cksumPos / 2)
-                accumulation += 0xffff & bb.getShort();
+        for (int i = offset; i < offset+length; i++) {
+            int leftByte = 0xff & data[i];
+            if (i == cksumPos || i == cksumPos+1)
+                leftByte = 0;
+            i++;
+            // If length is odd, then eventually i == offset+length. In that
+            // case, set the right byte to zero.
+            int rightByte = i == offset+length ? 0 : 0xff & data[i];
+            if (i == cksumPos || i == cksumPos+1)
+                rightByte = 0;
+            accumulation += (leftByte << 8) | rightByte;
         }
+        // Now add all the carry bits. This implementation will work as long
+        // as length < 2^16.
         accumulation = ((accumulation >> 16) & 0xffff)
                 + (accumulation & 0xffff);
         return (short) (~accumulation & 0xffff);
@@ -377,7 +386,7 @@ public class IPv4 extends BasePacket {
 
         // compute checksum if needed
         if (this.checksum == 0) {
-            this.checksum = computeChecksum(bb, this.headerLength * 4, 10);
+            this.checksum = computeChecksum(data, 0, this.headerLength * 4, 10);
             bb.putShort(10, this.checksum);
         }
         return data;

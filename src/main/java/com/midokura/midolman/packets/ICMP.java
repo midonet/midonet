@@ -131,7 +131,7 @@ public class ICMP extends BasePacket {
 
         // ICMP checksum is calculated on header+data, with checksum=0.
         if (checksum == 0) {
-            checksum = IPv4.computeChecksum(bb, bb.position(), 2);
+            checksum = IPv4.computeChecksum(bytes, 0, bb.position(), 2);
             bb.putShort(2, this.checksum);
         }
         return bytes;
