@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public class TestIPv4 {
@@ -280,5 +279,55 @@ public class TestIPv4 {
         byte[] expected = ipPkt.serialize();
         expected = Arrays.copyOf(expected, data.length);
         Assert.assertArrayEquals(data, expected);
+    }
+
+    @Test
+    public void testSerializationSSH() {
+        // SSH packet (starting with IPv4 headers) captured with tcpdump.
+        byte[] data = new byte[] {
+                (byte)0x45, (byte)0x10, (byte)0x00, (byte)0x64,
+                (byte)0xec, (byte)0xbc, (byte)0x40, (byte)0x00,
+                (byte)0x40, (byte)0x06, (byte)0x60, (byte)0xcf,
+                (byte)0xc0, (byte)0xa8, (byte)0x01, (byte)0x85,
+                (byte)0x0e, (byte)0x80, (byte)0x1c, (byte)0x4b,
+                (byte)0xe5, (byte)0x0e, (byte)0x00, (byte)0x16,
+                (byte)0x8d, (byte)0x3a, (byte)0x5d, (byte)0x09,
+                (byte)0x0f, (byte)0x95, (byte)0xc4, (byte)0xe3,
+                (byte)0x80, (byte)0x18, (byte)0xff, (byte)0xff,
+                (byte)0x0a, (byte)0x46, (byte)0x00, (byte)0x00,
+                (byte)0x01, (byte)0x01, (byte)0x08, (byte)0x0a,
+                (byte)0x2f, (byte)0x1c, (byte)0x20, (byte)0x06,
+                (byte)0x0e, (byte)0x20, (byte)0x8d, (byte)0x38,
+                (byte)0xbd, (byte)0xfc, (byte)0xd7, (byte)0xa6,
+                (byte)0x8d, (byte)0xc3, (byte)0x06, (byte)0x93,
+                (byte)0x5f, (byte)0xdf, (byte)0x0e, (byte)0x11,
+                (byte)0x49, (byte)0x4a, (byte)0x68, (byte)0xdc,
+                (byte)0x30, (byte)0x8a, (byte)0x2b, (byte)0xdc,
+                (byte)0xb2, (byte)0xb2, (byte)0xd4, (byte)0x0e,
+                (byte)0xea, (byte)0xb5, (byte)0x1e, (byte)0xf9,
+                (byte)0xd0, (byte)0xdf, (byte)0x26, (byte)0xbf,
+                (byte)0x56, (byte)0xa6, (byte)0x65, (byte)0x36,
+                (byte)0x07, (byte)0x9c, (byte)0x95, (byte)0x23,
+                (byte)0x9d, (byte)0xd3, (byte)0xeb, (byte)0xa7,
+                (byte)0x3c, (byte)0x68, (byte)0xa3, (byte)0xe3 };
+        IPv4 ipPkt = new IPv4();
+        // Deserialize the whole packet.
+        ipPkt.deserialize(data, 0, data.length);
+        // Basic sanity check: IPv4 contains a TCP packet to port 22 (ssh).
+        Assert.assertEquals(TCP.PROTOCOL_NUMBER, ipPkt.getProtocol());
+        TCP udpPkt = (TCP)ipPkt.getPayload();
+        Assert.assertEquals(22, udpPkt.getDestinationPort());
+        // Now re-serialize and verify we get the same bytes back. The
+        // serialized array is longer than the original because the original
+        // is truncated.
+        byte[] expected = ipPkt.serialize();
+        expected = Arrays.copyOf(expected, data.length);
+        Assert.assertArrayEquals(data, expected);
+
+        // Now try deserializaing/serializing the truncated packet.
+        Arrays.fill(data, data.length-30, data.length, (byte)0);
+        ipPkt = new IPv4();
+        ipPkt.deserialize(data, 0, data.length-30);
+        Assert.assertArrayEquals(data, ipPkt.serialize());
     }
 }
