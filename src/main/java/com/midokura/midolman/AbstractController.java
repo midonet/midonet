@@ -340,8 +340,8 @@ public abstract class AbstractController
         return UUID.fromString(extId);
     }
 
-    private void portLocationUpdate(UUID portUuid, Integer oldAddr,
-                                    Integer newAddr) {
+    private synchronized void portLocationUpdate(UUID portUuid, Integer oldAddr,
+                                                 Integer newAddr) {
         /* oldAddr: Former address of the port as an 
          *          integer (32-bit, big-endian); or null if a new port mapping.
          * newAddr: Current address of the port as an
@@ -356,8 +356,6 @@ public abstract class AbstractController
         log.info("PortLocationUpdate: {} moved from {} to {}",
             new Object[] { portUuid, oldAddrInt, newAddrInt });
         if (newAddrInt != null && !newAddrInt.equals(publicIp)) {
-            // Try opening the tunnel even if we already have one in order to
-            // cancel any in-progress tunnel deletion requests.
             String grePortName = makeGREPortName(newAddrInt);
             log.info("Requesting tunnel from {} to {} with name {}",
                      new Object[] { publicIp, newAddrInt, grePortName });
@@ -365,10 +363,16 @@ public abstract class AbstractController
             if (publicIp == null) {
                 log.error("Trying to make tunnel without a public IP.");
             } else {
-                ovsdb.addGrePort(datapathId, grePortName, newAddrInt.toString())
-                     .key(greKey)
-                     .localIp(publicIp.toString())
-                     .build();
+                // Only create tunnel if it doesn't already exist.  
+                // This won't race with tearing down a tunnel because this
+                // method is synchronized.
+                if (!ovsdb.hasPort(grePortName)) {
+                    ovsdb.addGrePort(datapathId, grePortName,
+                                     newAddrInt.toString())
+                         .key(greKey)
+                         .localIp(publicIp.toString())
+                         .build();
+                }
             }
         }    
 
