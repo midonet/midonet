@@ -17,6 +17,7 @@ public class TCP extends BasePacket implements Transport {
     protected short windowSize;
     protected short checksum;
     protected short urgent;
+    byte[] options;
 
     @Override
     public String toString() {
@@ -32,16 +33,33 @@ public class TCP extends BasePacket implements Transport {
 
     @Override
     public byte[] serialize() {
-        byte[] data = new byte[20];
+        byte[] payloadData = null;
+        if (payload != null) {
+            payload.setParent(this);
+            payloadData = payload.serialize();
+        }
+        int dataOffsetBytes = 20 + (null == options ? 0 : options.length);
+        int length = dataOffsetBytes
+                + (null == payloadData ? 0 : payloadData.length);
+        byte[] data = new byte[length];
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.putShort(sourcePort);
         bb.putShort(destinationPort);
         bb.putInt(seqNo);
         bb.putInt(ackNo);
+        // Set dataOffset in flags if it hasn't already been set.
+        if (0 == ((flags >> 12) & 0xf)) {
+            int dataOffsetWords = dataOffsetBytes / 4;
+            flags |= (dataOffsetWords & 0xf) << 12;
+        }
         bb.putShort(flags);
         bb.putShort(windowSize);
         bb.putShort(checksum);
         bb.putShort(urgent);
+        if (this.options != null)
+            bb.put(this.options);
+        if (payloadData != null)
+            bb.put(payloadData);
         return data;
     }
 
@@ -57,6 +75,14 @@ public class TCP extends BasePacket implements Transport {
         checksum = bb.getShort();
         urgent = bb.getShort();
         //TODO: verify checksum
+        int dataOffset = (flags >> 12) & 0xf;
+        if (dataOffset > 5) {
+            options = new byte[(dataOffset-5)*4];
+            bb.get(options);
+        }
+        payload = new Data();
+        payload.deserialize(data, bb.position(), bb.limit() - bb.position());
+        payload.setParent(this);
         return this;
     }
 
