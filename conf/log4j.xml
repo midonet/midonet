@@ -23,6 +23,18 @@
     <appender-ref ref="console" />
     <appender-ref ref="file" />
   </root>
+
+  <logger name="com.midokura.midolman.packets">
+    <level value="debug"/> 
+  </logger>
+  
+  <logger name="com.midokura.midolman.layer3.Router">
+    <level value="debug"/> 
+  </logger>
+  
+  <logger name="com.midokura.midolman.layer3.NetworkController">
+    <level value="debug"/> 
+  </logger>
   
   <logger name="com.midokura.midolman.AbstractController">
     <level value="debug"/> 
