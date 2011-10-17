@@ -273,8 +273,7 @@ public class TestBridgeController {
 
         // Insert ports 3..8 into portLocMap and macPortMap.
         for (int i = 3; i < 8; i++) {
-            portLocMap.put(portUuids[i], 
-                           Net.convertStringAddressToInt(peerStrList[i]));
+            portLocMap.put(portUuids[i], IntIPv4.fromString(peerStrList[i]));
             macPortMap.put(macList[i], portUuids[i]);
             log.info("Adding map MAC {} -> port {} -> loc {}",
                      new Object[] { macList[i], portUuids[i],
@@ -477,7 +476,7 @@ public class TestBridgeController {
         oldDelCount += 2;
 
         // Move the port, check that the controller removed the flow.
-        portLocMap.put(portUuids[3], Net.convertStringAddressToInt("1.2.3.4"));
+        portLocMap.put(portUuids[3], IntIPv4.fromString("1.2.3.4"));
         assertTrue(oldDelCount < controllerStub.deletedFlows.size());
         MidoMatch expectedMatch = new MidoMatch();
         expectedMatch.setDataLayerDestination(macList[3]);
@@ -562,8 +561,8 @@ public class TestBridgeController {
         controllerStub.deletedFlows.clear();
         MidoMatch removeMatchDst = new MidoMatch();
         removeMatchDst.setDataLayerDestination(macList[outPortNum]);
-        portLocMap.put(portUuids[outPortNum], 
-                       Net.convertStringAddressToInt(peerStrList[outPortNum]));
+        portLocMap.put(portUuids[outPortNum],
+                       IntIPv4.fromString(peerStrList[outPortNum]));
         assertTrue(controllerStub.deletedFlows.size() > 0);
         for (int i = 0; i < controllerStub.deletedFlows.size(); i++) {
             assertEquals(removeMatchDst, 
@@ -578,7 +577,7 @@ public class TestBridgeController {
         MAC dstMac = MAC.fromString("00:AA:AA:AA:AA:01");
         UUID dstUuid = UUID.fromString("251cbfb6-9ca1-4685-9320-c7203c4ffff2");
         macPortMap.put(dstMac, dstUuid);
-        portLocMap.put(dstUuid, new Integer(publicIp.address));
+        portLocMap.put(dstUuid, publicIp);
         Ethernet packet = makePacket(srcMac, dstMac);
         MidoMatch flowmatch = makeFlowMatch(srcMac, dstMac);
         
@@ -925,8 +924,7 @@ public class TestBridgeController {
 
         // Move portUuid 5 to peer 3.
         controllerStub.deletedFlows.clear();
-        portLocMap.put(portUuids[5], 
-                       Net.convertStringAddressToInt(peerStrList[3]));
+        portLocMap.put(portUuids[5], IntIPv4.fromString(peerStrList[3]));
         // Flows to MAC 5 should have been invalidated.
         MidoMatch expectMatch = new MidoMatch();
         expectMatch.setDataLayerDestination(macList[5]);
@@ -963,8 +961,7 @@ public class TestBridgeController {
 
         // Re-add portUuid 5 at peer 5.
         controllerStub.deletedFlows.clear();
-        portLocMap.put(portUuids[5],         
-                       Net.convertStringAddressToInt(peerStrList[5]));
+        portLocMap.put(portUuids[5], IntIPv4.fromString(peerStrList[5]));
         // Flows to MAC 5 should have been invalidated.
         expectMatch = new MidoMatch();
         expectMatch.setDataLayerDestination(macList[5]);

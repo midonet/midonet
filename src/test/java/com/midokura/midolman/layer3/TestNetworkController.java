@@ -133,8 +133,8 @@ public class TestNetworkController {
 
         // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);
-        Directory portLocSubdir = dir.getSubDirectory(pathMgr
-                .getVRNPortLocationsPath());
+        Directory portLocSubdir = 
+                dir.getSubDirectory(pathMgr.getVRNPortLocationsPath());
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
 
         // Now create the Open vSwitch database connection
@@ -217,7 +217,7 @@ public class TestNetworkController {
                     // Odd-numbered ports are remote. Place port num x at
                     // 192.168.1.x.
                     underlayIp = new IntIPv4(0xc0a80100 + portNum);
-                    portLocMap.put(portId, new Integer(underlayIp.address));
+                    portLocMap.put(portId, underlayIp);
                     // The new port id in portLocMap should have resulted
                     // in a call to to the mock ovsdb to open a gre port.
                     phyPort.setName(networkCtrl.makeGREPortName(underlayIp));
@@ -234,8 +234,7 @@ public class TestNetworkController {
                 networkCtrl.onPortStatus(phyPort,
                         OFPortStatus.OFPortReason.OFPPR_ADD);
                 // Verify that the port location map is correctly initialized.
-                Assert.assertEquals(new Integer(underlayIp.address), 
-                                    portLocMap.get(portId));
+                Assert.assertEquals(underlayIp, portLocMap.get(portId));
             }
         }
 

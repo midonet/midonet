@@ -6,9 +6,9 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.midolman.packets.IntIPv4;
 
-public class PortToIntNwAddrMap extends ReplicatedMap<UUID, Integer> {
+public class PortToIntNwAddrMap extends ReplicatedMap<UUID, IntIPv4> {
 
     public PortToIntNwAddrMap(Directory dir) {
         super(dir);
@@ -25,12 +25,12 @@ public class PortToIntNwAddrMap extends ReplicatedMap<UUID, Integer> {
     }
 
     @Override
-    protected String encodeValue(Integer value) {
-        return Net.convertIntAddressToString(value);
+    protected String encodeValue(IntIPv4 value) {
+        return value.toString();
     }
 
     @Override
-    protected Integer decodeValue(String str) {
-        return Net.convertStringAddressToInt(str);
+    protected IntIPv4 decodeValue(String str) {
+        return IntIPv4.fromString(str);
     }
 }

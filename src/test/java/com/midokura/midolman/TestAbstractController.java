@@ -367,7 +367,7 @@ public class TestAbstractController {
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
                             "43", "tne1234ff0011aa", "255.0.17.170")).equals(
                    ovsdb.addedGrePorts.get(0)));
-        assertEquals(0xff0011aa, portLocMap.get(portUuid).intValue());
+        assertEquals(0xff0011aa, portLocMap.get(portUuid).address);
         assertEquals(0, ovsdb.deletedPorts.size());
 
         // Port moves.  Verify old tunnel rm'd, new tunnel made.
@@ -378,7 +378,7 @@ public class TestAbstractController {
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
                             "43", "tne1234ff0011ac", "255.0.17.172")).equals(
                    ovsdb.addedGrePorts.get(1)));
-        assertEquals(0xff0011ac, portLocMap.get(portUuid).intValue());
+        assertEquals(0xff0011ac, portLocMap.get(portUuid).address);
         assertEquals(1, ovsdb.deletedPorts.size());
         assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
 

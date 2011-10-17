@@ -59,7 +59,7 @@ public abstract class AbstractController
     private HashMap<Integer, IntIPv4> tunnelPortNumToPeerIp;
     private HashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
 
-    protected PortToIntNwAddrMap.Watcher<UUID, Integer> listener;
+    protected PortToIntNwAddrMap.Watcher<UUID, IntIPv4> listener;
 
     private OpenvSwitchDatabaseConnection ovsdb;
 
@@ -73,14 +73,14 @@ public abstract class AbstractController
 
     protected Set<Integer> downPorts;
 
-    class PortLocMapListener implements Watcher<UUID, Integer> {
+    class PortLocMapListener implements Watcher<UUID, IntIPv4> {
         public AbstractController controller;
 
         PortLocMapListener(AbstractController controller) {
             this.controller = controller;
         }
 
-        public void processChange(UUID key, Integer oldAddr, Integer newAddr) {
+        public void processChange(UUID key, IntIPv4 oldAddr, IntIPv4 newAddr) {
             controller.portLocationUpdate(key, oldAddr, newAddr);
         }
     }
@@ -184,7 +184,7 @@ public abstract class AbstractController
             portUuidToNumberMap.put(uuid, new Integer(portNum));
             if (publicIp != null) {
                 try {
-                    portLocMap.put(uuid, new Integer(publicIp.address));
+                    portLocMap.put(uuid, publicIp);
                 } catch (KeeperException e) {
                     log.warn("callAddPort", e);
                 } catch (InterruptedException e) {
@@ -298,10 +298,10 @@ public abstract class AbstractController
     /* Maps a remote port UUID to the number of the tunnel port where it
      * can be reached, if any. */
     public Integer portUuidToTunnelPortNumber(UUID port_uuid) {
-        Integer intAddress = portLocMap.get(port_uuid);
+        IntIPv4 intAddress = portLocMap.get(port_uuid);
         if (intAddress == null)
             return null;
-        return peerIpToTunnelPortNum.get(new IntIPv4(intAddress));
+        return peerIpToTunnelPortNum.get(intAddress);
     }
 
     public IntIPv4 peerOfTunnelPortNum(int portNum) {
@@ -328,7 +328,7 @@ public abstract class AbstractController
         return String.format("tn%05x%08x", greKey, address.address);
     }
 
-    private boolean portLocMapContainsPeer(int peerAddress) {
+    private boolean portLocMapContainsPeer(IntIPv4 peerAddress) {
         return portLocMap.containsValue(peerAddress);
     }
 
@@ -340,25 +340,20 @@ public abstract class AbstractController
         return UUID.fromString(extId);
     }
 
-    private synchronized void portLocationUpdate(UUID portUuid, Integer oldAddr,
-                                                 Integer newAddr) {
-        /* oldAddr: Former address of the port as an 
-         *          integer (32-bit, big-endian); or null if a new port mapping.
-         * newAddr: Current address of the port as an
-         *          integer (32-bit, big-endian); or null if port mapping 
-         *          was deleted.
+    private synchronized void portLocationUpdate(UUID portUuid, IntIPv4 oldAddr,
+                                                 IntIPv4 newAddr) {
+        /* oldAddr: Former address of the port as an IntIPv4;
+         *          or null if a new port mapping.
+         * newAddr: Current address of the port as an IntIPv4;
+         *          or null if port mapping was deleted.
          */
 
-        IntIPv4 newAddrInt = (newAddr == null) ? null 
-                                               : new IntIPv4(newAddr.intValue());
-        IntIPv4 oldAddrInt = (oldAddr == null) ? null
-                                               : new IntIPv4(oldAddr.intValue());
         log.info("PortLocationUpdate: {} moved from {} to {}",
-            new Object[] { portUuid, oldAddrInt, newAddrInt });
-        if (newAddrInt != null && !newAddrInt.equals(publicIp)) {
-            String grePortName = makeGREPortName(newAddrInt);
+            new Object[] { portUuid, oldAddr, newAddr });
+        if (newAddr != null && !newAddr.equals(publicIp)) {
+            String grePortName = makeGREPortName(newAddr);
             log.info("Requesting tunnel from {} to {} with name {}",
-                     new Object[] { publicIp, newAddrInt, grePortName });
+                     new Object[] { publicIp, newAddr, grePortName });
 
             if (publicIp == null) {
                 log.error("Trying to make tunnel without a public IP.");
@@ -368,7 +363,7 @@ public abstract class AbstractController
                 // method is synchronized.
                 if (!ovsdb.hasPort(grePortName)) {
                     ovsdb.addGrePort(datapathId, grePortName,
-                                     newAddrInt.toString())
+                                     newAddr.toString())
                          .key(greKey)
                          .localIp(publicIp.toString())
                          .build();
@@ -376,17 +371,17 @@ public abstract class AbstractController
             }
         }    
 
-        if (oldAddrInt != null && !oldAddrInt.equals(publicIp)) {
+        if (oldAddr != null && !oldAddr.equals(publicIp)) {
             // Peer might still be in portLocMap under a different portUuid.
             if (!portLocMapContainsPeer(oldAddr)) {
                 // Tear down the GRE tunnel.
-                String grePortName = makeGREPortName(oldAddrInt);
+                String grePortName = makeGREPortName(oldAddr);
                 log.info("Tearing down tunnel " + grePortName);
                 ovsdb.delPort(grePortName);
             }
         }
 
-        portMoved(portUuid, oldAddrInt, newAddrInt);
+        portMoved(portUuid, oldAddr, newAddr);
     }
 
     abstract protected void portMoved(UUID portUuid, IntIPv4 oldAddr,

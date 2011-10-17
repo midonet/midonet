@@ -38,7 +38,6 @@ public class BridgeController extends AbstractController {
 
     Logger log = LoggerFactory.getLogger(BridgeController.class);
 
-    PortToIntNwAddrMap port_locs;
     MacPortMap macPortMap;
     long mac_port_timeout;
     Reactor reactor;
@@ -123,7 +122,6 @@ public class BridgeController extends AbstractController {
               publicIp, externalIdKey);
         macPortMap = mac_port_map;
         mac_port_timeout = macPortTimeoutMillis;
-        port_locs = port_loc_map;
         delayedDeletes = new HashMap<MAC, PortFuture>();
         flowCount = new HashMap<MacPort, Integer>();
         macToPortWatcher = new BridgeControllerWatcher();
@@ -252,10 +250,9 @@ public class BridgeController extends AbstractController {
         OFAction[] actions;
 
         if (outPort != null) {
-            try {
-                destIP = new IntIPv4(portLocMap.get(outPort).intValue());
-                log.debug("Destination port maps to host {}", destIP);
-            } catch (NullPointerException e) {
+            destIP = portLocMap.get(outPort);
+            log.debug("Destination port maps to host {}", destIP);
+            if (destIP == null) {
                 log.warn("No host found for port {}", outPort);
             }
         }
@@ -471,7 +468,7 @@ public class BridgeController extends AbstractController {
     }
 
     private void invalidateFlowsToPeer(IntIPv4 peer_ip) {
-        List<UUID> remotePorts = port_locs.getByValue(new Integer(peer_ip.address));
+        List<UUID> remotePorts = portLocMap.getByValue(peer_ip);
         for (UUID port : remotePorts) {
             log.info("Invalidating flows for port {}", port);
             invalidateFlowsToPortUuid(port);
