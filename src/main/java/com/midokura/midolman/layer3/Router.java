@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -216,7 +217,11 @@ public class Router {
         for (Route rt : port.getVirtualConfig().getRoutes()) {
             log.debug("{} removing route {} from table", this, rt
                     .toString());
-            table.deleteRoute(rt);
+            try {
+                table.deleteRoute(rt);
+            } catch (NoNodeException e) {
+                log.warn("removePort got NoNodeException removing route.");
+            }
         }
         arpCaches.remove(port.getId());
         arpCallbackLists.remove(port.getId());
@@ -440,8 +445,8 @@ public class Router {
         ethReply.setSourceMACAddress(port.getMacAddr());
         ethReply.setEtherType(IPv4.ETHERTYPE);
         log.debug("processICMPtoLocal sending echo reply from {} to {}",
-                IPv4.fromIPv4Address(ipPkt.getSourceAddress()),
-                IPv4.fromIPv4Address(port.getVirtualConfig().portAddr));
+                IPv4.fromIPv4Address(port.getVirtualConfig().portAddr),
+                IPv4.fromIPv4Address(ipPkt.getSourceAddress()));
         port.send(ethReply.serialize());
     }
 
