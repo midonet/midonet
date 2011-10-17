@@ -115,6 +115,8 @@ public interface OpenvSwitchDatabaseConnection {
      */
     void delPort(String portName);
 
+    boolean hasPort(String portName);
+
     /**
      * Add an OpenFlow controller for a bridge.
      *

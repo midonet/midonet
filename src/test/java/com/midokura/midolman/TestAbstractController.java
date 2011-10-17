@@ -102,7 +102,7 @@ class AbstractControllerTester extends AbstractController {
     }
 
     @Override 
-    protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
+    protected void portMoved(UUID portUuid, IntIPv4 oldAddr, IntIPv4 newAddr) {
         // Do nothing.
     }
 

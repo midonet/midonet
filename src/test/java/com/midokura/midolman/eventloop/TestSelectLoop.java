@@ -137,7 +137,7 @@ public class TestSelectLoop {
                                 });
                             ByteBuffer recvbuf = ByteBuffer.allocate(8);
                             pipe1.source().read(recvbuf);
-                            Thread.sleep(15);
+                            Thread.sleep(30);
                             log.debug("Reactor thread waking up");
                             if (submitHasRun.value)
                                 somethingBroke.value = true;
@@ -151,7 +151,7 @@ public class TestSelectLoop {
         log.debug("About to write {}", message);
         pipe1.sink().write(message);
         log.debug("Just wrote {}", message);
-        Thread.sleep(30);   // Let the sleep() in handleEvent() finish.
+        Thread.sleep(60);   // Let the sleep() in handleEvent() finish.
         log.debug("Main thread waking up");
         assertTrue(submitHasRun.value);
         assertFalse(somethingBroke.value);
@@ -186,7 +186,7 @@ public class TestSelectLoop {
                            public void run() {
                                try {
                                    pipe1.sink().write(message);
-                                   Thread.sleep(15);
+                                   Thread.sleep(30);
                                    if (eventHasRun.value)
                                        somethingBroke.value = true;
                                } catch (Exception e) {
@@ -194,7 +194,7 @@ public class TestSelectLoop {
                                }
                            }
                        });
-        Thread.sleep(30);
+        Thread.sleep(60);
         assertTrue(eventHasRun.value);
         assertFalse(somethingBroke.value);
         assertFalse(reactorThrew.value);
@@ -223,7 +223,7 @@ public class TestSelectLoop {
                     ScatteringByteChannel channel = 
                                 (ScatteringByteChannel) key.channel();
                     channel.read(ByteBuffer.allocate(8));
-                    Thread.sleep(20);
+                    Thread.sleep(30);
                 } catch (Exception e) {
                     somethingBroke.value = true;
                 }
@@ -240,13 +240,13 @@ public class TestSelectLoop {
         reactor.register(channel2, SelectionKey.OP_READ, listener2);
         
         startReactorThread();
-        Thread.sleep(10);
+        Thread.sleep(30);
         assertTrue(event1HasRun.value ^ event2HasRun.value);
-        Thread.sleep(20);
+        Thread.sleep(60);
         assertTrue(event1HasRun.value && event2HasRun.value);
         assertFalse(reactorFinished.value);
         reactor.shutdown();
-        Thread.sleep(15);
+        Thread.sleep(30);
         assertTrue(reactorFinished.value);
         assertFalse(somethingBroke.value);
         assertFalse(reactorThrew.value);
@@ -270,7 +270,7 @@ public class TestSelectLoop {
             public void run() {
                 try {
                     hasRun.value = true;
-                    Thread.sleep(30);
+                    Thread.sleep(60);
                 } catch (Exception e) {
                     somethingBroke.value = true;
                 }
@@ -287,9 +287,9 @@ public class TestSelectLoop {
         //assertFalse(submit1HasRun.value);
         //assertFalse(submit2HasRun.value);
 
-        Thread.sleep(15);
-        assertTrue(submit1HasRun.value ^ submit2HasRun.value);
         Thread.sleep(30);
+        assertTrue(submit1HasRun.value ^ submit2HasRun.value);
+        Thread.sleep(60);
         assertTrue(submit1HasRun.value && submit2HasRun.value);
     }
 }

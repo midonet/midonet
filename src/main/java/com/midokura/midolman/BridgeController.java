@@ -442,15 +442,11 @@ public class BridgeController extends AbstractController {
     }
 
     @Override
-    protected void portMoved(UUID portUuid, Integer oldAddr, Integer newAddr) {
+    protected void portMoved(UUID portUuid, IntIPv4 oldAddr, IntIPv4 newAddr) {
         // Here we don't care whether oldAddr is local, because we would
         // get the OVS notification first.
         log.info("portMoved: ID {} from {} to {}", new Object[] {
-                    portUuid,
-                    oldAddr == null ? "null"
-                                    : Net.convertIntAddressToString(oldAddr),
-                    newAddr == null ? "null"
-                                    : Net.convertIntAddressToString(newAddr) });
+                    portUuid, oldAddr, newAddr });
 
         if (port_is_local(portUuid)) {
             log.info("portMoved: port ID {} is local", portUuid);
@@ -458,7 +454,7 @@ public class BridgeController extends AbstractController {
                 // TODO(pino): trigger a more useful action like removing
                 // the port from OVSDB and raising an alarm.
                 log.error("portMoved: peer at {} claims to own my port {}",
-                          Net.convertIntAddressToString(newAddr), portUuid);
+                          newAddr, portUuid);
             }
             // We've already reacted to this change.
             return;

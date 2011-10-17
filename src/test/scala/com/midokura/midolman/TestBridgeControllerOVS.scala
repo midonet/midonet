@@ -127,6 +127,7 @@ object TestBridgeControllerOVS
                                       reactor.shutdown
                                       ovsdb.close
                                       portModSemaphore.release(10)
+                                      connectionSemaphore.release
                                   } },
                               4000, TimeUnit.MILLISECONDS)
             reactor.doLoop

@@ -287,6 +287,12 @@ public class MockOpenvSwitchDatabaseConnection implements
     }
 
     @Override
+    public boolean hasPort(String portName) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
     public ControllerBuilder addBridgeOpenflowController(long bridgeId,
             String target) {
         // TODO Auto-generated method stub

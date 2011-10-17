@@ -1279,7 +1279,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             assume(ifs != null, "Invalid JSON object.")
             // ifs could be a single array, ["uuid", "1234"], or
             // a set of array, ["set" [["uuid", "1234"], ["uuid", "5678"]]].
-            log.debug("delPort: ifs = {}", ifs)
+            log.info("delPort: ifs = {}", ifs)
             val ifUUIDs: List[JsonNode] =
                 if (ifs.get(0).getTextValue == "uuid") {
                     List(ifs)
@@ -1290,7 +1290,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     assume(ifs.get(0) == null, "Invalid JSON object.")
                     List()
                 }
-            log.debug("delPort: ifUUIDs = {}", ifUUIDs)
+            log.info("delPort: ifUUIDs = {}", ifUUIDs)
             for {
                 uuidArray <- ifUUIDs
                 uuidArrayVal = uuidArray.get(1) if uuidArrayVal != null
@@ -1500,6 +1500,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                                 List(ColumnUUID))
         !portRows.getElements.isEmpty
+    }
+
+    def numPortsWithName(portName: String) = {
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                                List(ColumnUUID))
+        portRows.getElements.size
     }
 
     /**

@@ -81,6 +81,18 @@ class TestOpenvSwitchDatabaseConnection {
         }
     }
 
+    @Test def testDelTwoSystemPorts() {
+        portName.synchronized {
+            assertFalse(ovsdb.hasPort(portName))
+            ovsdb.addSystemPort(bridgeName, portName).build
+            ovsdb.addSystemPort(bridgeName, portName).build
+            assertTrue(ovsdb.hasPort(portName))
+            assertEquals(2, ovsdb.numPortsWithName(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
+    }
+            
     /**
      * Test addSystemPort().
      */
@@ -156,6 +168,16 @@ class TestOpenvSwitchDatabaseConnection {
             pb = ovsdb.addGrePort(bridgeId, portName, "127.0.0.1")
             pb.build
             assertTrue(ovsdb.hasPort(portName))
+            ovsdb.delPort(portName)
+            assertFalse(ovsdb.hasPort(portName))
+        }
+    }
+
+    @Test def deleteDuppedGrePorts() {
+        portName.synchronized {
+            ovsdb.addGrePort(bridgeName, portName, "127.0.0.1").build
+            ovsdb.addGrePort(bridgeName, portName, "127.0.0.1").build
+            assertEquals(2, ovsdb.numPortsWithName(portName))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
         }

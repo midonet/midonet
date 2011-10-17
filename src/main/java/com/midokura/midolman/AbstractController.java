@@ -128,17 +128,29 @@ public abstract class AbstractController
 
         // Add all the non-tunnel ports, delete all the pre-existing tunnel 
         // ports.
+        log.debug("onConnectionMade: There are {} pre-existing ports.",
+                  controllerStub.getFeatures().getPorts().size());
         for (OFPhysicalPort portDesc : controllerStub.getFeatures()
                                                      .getPorts()) {
-            if (isGREPortOfKey(portDesc.getName()))
-                ovsdb.delPort(portDesc.getName());
-            else {
+            String portName = portDesc.getName();
+            log.debug("onConnectionMade: pre-existing port {}", portName);
+            if (isGREPortOfKey(portName)) {
+                log.info("onConnectionMade: Deleting old tunnel {}", portName);
+                log.debug("ovsdb thinks there {} a port {}",
+                          ovsdb.hasPort(portName) ? "is" : "is not", portName);
+                ovsdb.delPort(portName);
+                log.debug("ovsdb thinks there {} a port {}",
+                          ovsdb.hasPort(portName) ? "is" : "is not", portName);
+            } else {
                 if ((portDesc.getConfig() & portDownFlag) == 0)
                     callAddPort(portDesc, portDesc.getPortNumber());
                 else
                     downPorts.add(new Integer(portDesc.getPortNumber()));
             }
         }
+        log.debug("onConnectionMade: All done handling pre-existing ports.  " +
+                  "There are now {} pre-existing ports.",
+                  controllerStub.getFeatures().getPorts().size());
                 
         portLocMap.start();
     }
@@ -337,46 +349,44 @@ public abstract class AbstractController
          *          was deleted.
          */
 
+        IntIPv4 newAddrInt = (newAddr == null) ? null 
+                                               : new IntIPv4(newAddr.intValue());
+        IntIPv4 oldAddrInt = (oldAddr == null) ? null
+                                               : new IntIPv4(oldAddr.intValue());
         log.info("PortLocationUpdate: {} moved from {} to {}",
-            new Object[] { 
-                portUuid, 
-                oldAddr == null ? "null" 
-                                : Net.convertIntAddressToString(oldAddr),
-                newAddr == null ? "null"
-                                : Net.convertIntAddressToString(newAddr)});
-        if (newAddr != null && !newAddr.equals(publicIp)) {
+            new Object[] { portUuid, oldAddrInt, newAddrInt });
+        if (newAddrInt != null && !newAddrInt.equals(publicIp)) {
             // Try opening the tunnel even if we already have one in order to
             // cancel any in-progress tunnel deletion requests.
-            String grePortName = makeGREPortName(new IntIPv4(newAddr));
-            String newAddrStr = Net.convertIntAddressToString(newAddr);
+            String grePortName = makeGREPortName(newAddrInt);
             log.info("Requesting tunnel from {} to {} with name {}",
-                     new Object[] { publicIp, newAddrStr, grePortName });
+                     new Object[] { publicIp, newAddrInt, grePortName });
 
             if (publicIp == null) {
                 log.error("Trying to make tunnel without a public IP.");
             } else {
-                ovsdb.addGrePort(datapathId, grePortName, newAddrStr)
+                ovsdb.addGrePort(datapathId, grePortName, newAddrInt.toString())
                      .key(greKey)
                      .localIp(publicIp.toString())
                      .build();
             }
         }    
 
-        if (oldAddr != null && !oldAddr.equals(publicIp)) {
+        if (oldAddrInt != null && !oldAddrInt.equals(publicIp)) {
             // Peer might still be in portLocMap under a different portUuid.
             if (!portLocMapContainsPeer(oldAddr)) {
                 // Tear down the GRE tunnel.
-                String grePortName = makeGREPortName(new IntIPv4(oldAddr.intValue()));
+                String grePortName = makeGREPortName(oldAddrInt);
                 log.info("Tearing down tunnel " + grePortName);
                 ovsdb.delPort(grePortName);
             }
         }
 
-        portMoved(portUuid, oldAddr, newAddr);
+        portMoved(portUuid, oldAddrInt, newAddrInt);
     }
 
-    abstract protected void portMoved(UUID portUuid, Integer oldAddr,
-                                      Integer newAddr);
+    abstract protected void portMoved(UUID portUuid, IntIPv4 oldAddr,
+                                      IntIPv4 newAddr);
 
     protected OFMatch createMatchFromPacket(Ethernet data, short inPort) {
         MidoMatch match = new MidoMatch();
