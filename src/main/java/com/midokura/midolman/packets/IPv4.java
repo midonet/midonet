@@ -373,7 +373,7 @@ public class IPv4 extends BasePacket {
         bb.put(this.diffServ);
         bb.putShort(this.totalLength);
         bb.putShort(this.identification);
-        bb.putShort((short) (((this.flags & 0x7) << 29) | (this.fragmentOffset & 0x1fff)));
+        bb.putShort((short) (((this.flags & 0x7) << 13) | (this.fragmentOffset & 0x1fff)));
         bb.put(this.ttl);
         bb.put(this.protocol);
         bb.putShort(this.checksum);
@@ -404,7 +404,7 @@ public class IPv4 extends BasePacket {
         this.totalLength = bb.getShort();
         this.identification = bb.getShort();
         sscratch = bb.getShort();
-        this.flags = (byte) ((sscratch >> 29) & 0x7);
+        this.flags = (byte) ((sscratch >> 13) & 0x7);
         this.fragmentOffset = (short) (sscratch & 0x1fff);
         this.ttl = bb.get();
         this.protocol = bb.get();
