@@ -4,8 +4,6 @@
 
 package com.midokura.midolman.openvswitch;
 
-import org.omg.CosNaming.NamingContextPackage.NotFound;
-
 import java.util.Map;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -60,8 +58,9 @@ public abstract class OpenvSwitchException extends Exception {
      */
     public static enum Code {
         OK  (0),  // OK, no problem.
-        OVSERROR  (-1),  // General error of Open vSwitch
-        NOTFOUND  (-2);
+        OVSERROR    (-1),  // General error of Open vSwitch
+        NOTFOUND    (-2),
+        DUPLICATED  (-3);
 
         private static final Map<Integer, Code> lookup
                 = new HashMap<Integer, Code>();
@@ -90,9 +89,11 @@ public abstract class OpenvSwitchException extends Exception {
     static String getCodeMessage(Code code) {
         switch (code) {
             case OVSERROR:
-                return "OVSDB Error:";
+                return "OVSDB Error";
             case NOTFOUND:
-                return "Not Found in OVSDB:";
+                return "Not Found in OVSDB";
+            case DUPLICATED:
+                return "Duplicated Rows in OVSDB";
             case OK:
                 return "ok";
             default:
@@ -154,7 +155,7 @@ public abstract class OpenvSwitchException extends Exception {
         if (error == null && details == null)
             return message;
         if (details == null)
-            return message + error;
+            return message + ": " + error;
         return message + error + " details = " + details;
     }
 
@@ -184,6 +185,21 @@ public abstract class OpenvSwitchException extends Exception {
         }
         public NotFoundException(String error, String details) {
             super(Code.NOTFOUND, error, details);
+        }
+    }
+
+    /**
+     * @see Code#DUPLICATED
+     */
+    public static class DuplicatedRowsException extends OpenvSwitchException {
+        public DuplicatedRowsException() {
+            super(Code.DUPLICATED);
+        }
+        public DuplicatedRowsException(String error) {
+            super(Code.DUPLICATED, error);
+        }
+        public DuplicatedRowsException(String error, String details) {
+            super(Code.DUPLICATED, error, details);
         }
     }
 }
