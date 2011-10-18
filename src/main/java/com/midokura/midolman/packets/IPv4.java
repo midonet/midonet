@@ -418,10 +418,6 @@ public class IPv4 extends BasePacket {
             bb.get(this.options);
         }
 
-        // Calculate offset and length for next packet.
-        offset = bb.position();
-        length = bb.limit() - offset;
-        IPacket payload;
         if (IPv4.protocolClassMap.containsKey(this.protocol)) {
             Class<? extends IPacket> clazz = IPv4.protocolClassMap.get(this.protocol);
             try {
@@ -431,12 +427,15 @@ public class IPv4 extends BasePacket {
             }
         } else {
             payload = new Data();
-            // Adjust length (the remaining bytes in data) if it is larger than
-            // the expected payload length (totalLength - 4 * headerLength).
-            length = Math.min(length, totalLength - 4 * headerLength);
         }
-        this.payload = payload.deserialize(data, offset, length);
-        this.payload.setParent(this);
+        // Calculate offset and length for next packet.
+        offset = bb.position();
+        length = bb.limit() - offset;
+        // Adjust length (the remaining bytes in data) if it is larger than
+        // the expected payload length (totalLength - 4 * headerLength).
+        length = Math.min(length, totalLength - 4 * headerLength);
+        payload.deserialize(data, offset, length);
+        payload.setParent(this);
         return this;
     }
 

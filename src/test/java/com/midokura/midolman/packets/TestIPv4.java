@@ -117,6 +117,13 @@ public class TestIPv4 {
         // Once checksums have been filled, the arrays should be equal.
         Assert.assertArrayEquals(ipBytes, bytes);
 
+        // Now deserializae/serialize the same packet from a larger-than-needed
+        // buffer.
+        byte[] longBuffer = Arrays.copyOf(ipBytes, ipBytes.length+100);
+        ipPkt = new IPv4();
+        ipPkt.deserialize(longBuffer, 0, longBuffer.length);
+        Assert.assertArrayEquals(ipBytes, ipPkt.serialize());
+
         // Now deserialize/serialize an incomplete packet. Note that the ICMP
         // has 56 bytes of data - we'll only deserialize some of it, but the
         // expected array is the same length as the original because it's
@@ -224,6 +231,13 @@ public class TestIPv4 {
         // Now re-serialize and verify we get the same bytes back.
         Assert.assertArrayEquals(data, ipPkt.serialize());
 
+        // Now deserializae/serialize the same packet from a larger-than-needed
+        // buffer.
+        byte[] longBuffer = Arrays.copyOf(data, data.length+100);
+        ipPkt = new IPv4();
+        ipPkt.deserialize(longBuffer, 0, longBuffer.length);
+        Assert.assertArrayEquals(data, ipPkt.serialize());
+
         // Now try a partial packet... lose 20 bytes from the IPv4.
         Arrays.fill(data, data.length-20, data.length, (byte)0);
         ipPkt = new IPv4();
@@ -233,8 +247,8 @@ public class TestIPv4 {
 
     @Test
     public void testSerializationMDNS() {
-        // UDP/MDNS from tcpdump. Assume we only got 128 bytes of the Ethernet
-        // packet, so we only have 114 bytes of the IPv4 packet.
+        // IPv4 packet from tcpdump with UDP/MDNS payload. Has been truncated
+        // to 114 bytes to simulate OpenFlow's 128 bytes which include Ethernet.
         byte[] data = new byte[] {
                 (byte)0x45, (byte)0x00, (byte)0x00, (byte)0xf2,
                 (byte)0x00, (byte)0x00, (byte)0x40, (byte)0x00,
@@ -279,6 +293,10 @@ public class TestIPv4 {
         byte[] expected = ipPkt.serialize();
         expected = Arrays.copyOf(expected, data.length);
         Assert.assertArrayEquals(data, expected);
+
+        // NOTE: in this case we can't test for a buffer/byte-array that's
+        // longer than the actual packet, because the packet has been truncated.
+        // We would not be able to distinguish excess bytes from real payload.
     }
 
     @Test
@@ -324,7 +342,14 @@ public class TestIPv4 {
         expected = Arrays.copyOf(expected, data.length);
         Assert.assertArrayEquals(data, expected);
 
-        // Now try deserializaing/serializing the truncated packet.
+        // Now deserializae/serialize the same packet from a larger-than-needed
+        // buffer.
+        byte[] longBuffer = Arrays.copyOf(data, data.length+100);
+        ipPkt = new IPv4();
+        ipPkt.deserialize(longBuffer, 0, longBuffer.length);
+        Assert.assertArrayEquals(data, ipPkt.serialize());
+
+        // Now try deserializaing/serializing a truncated packet.
         Arrays.fill(data, data.length-30, data.length, (byte)0);
         ipPkt = new IPv4();
         ipPkt.deserialize(data, 0, data.length-30);
