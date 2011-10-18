@@ -55,6 +55,9 @@ public abstract class NatRule extends Rule {
 
     @Override
     public String toString() {
-        return "NatRule [dnat=" + dnat + "]";
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append(", dnat=").append(dnat);
+        return sb.toString();
     }
 }

@@ -329,16 +329,6 @@ public class IPv4 extends BasePacket {
         return (short) (~accumulation & 0xffff);
     }
 
-    public static String addrToString(int addr) {
-        StringBuffer sbuf = new StringBuffer();
-        for (int i=0; i<4; i++) {
-            sbuf.append((addr >>> (3-i)*8) & 0xff);
-            if (i != 3)
-                sbuf.append(".");
-        }
-        return sbuf.toString(); 
-    }
-
     /**
      * Serializes the packet. Will compute and set the following fields if they
      * are set to specific values at the time serialize is called:

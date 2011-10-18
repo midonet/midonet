@@ -99,4 +99,13 @@ public class ReverseNatRule extends NatRule {
             return false;
         return super.equals(other);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("ReverseNatRule [");
+        sb.append(super.toString());
+        sb.append("]");
+        return sb.toString();
+    }
+
 }

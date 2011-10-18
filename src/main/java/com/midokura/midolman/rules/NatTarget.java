@@ -1,5 +1,7 @@
 package com.midokura.midolman.rules;
 
+import com.midokura.midolman.packets.IPv4;
+
 public class NatTarget {
 
     public int nwStart;
@@ -38,6 +40,12 @@ public class NatTarget {
 
     @Override
     public String toString() {
-        return "NatTarget [nwStart=" + nwStart + ", nwEnd=" + nwEnd + ", tpStart=" + tpStart + ", tpEnd=" + tpEnd + "]";
+        StringBuilder sb = new StringBuilder("NatTarget [");
+        sb.append("nwStart=").append(IPv4.fromIPv4Address(nwStart));
+        sb.append(", nwEnd=").append(IPv4.fromIPv4Address(nwEnd));
+        sb.append(", tpStart=").append(tpStart & 0xffff);
+        sb.append(", tpEnd=").append(tpEnd & 0xffff);
+        sb.append("]");
+        return sb.toString();
     }
 }

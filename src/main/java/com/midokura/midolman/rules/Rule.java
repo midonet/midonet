@@ -97,7 +97,11 @@ public abstract class Rule implements Comparable<Rule> {
 
     @Override
     public String toString() {
-        return "Rule [condition=" + condition + ", action=" + action + ", chainId=" + chainId + ", position="
-                + position + "]";
+        StringBuilder sb = new StringBuilder();
+        sb.append("condition=").append(condition);
+        sb.append(", action=").append(action);
+        sb.append(", chainId=").append(chainId);
+        sb.append(", position=").append(position);
+        return sb.toString();
     }
 }

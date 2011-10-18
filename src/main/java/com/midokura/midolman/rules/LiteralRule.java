@@ -55,4 +55,12 @@ public class LiteralRule extends Rule {
             return false;
         return super.equals(other);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("LiteralRule [");
+        sb.append(super.toString());
+        sb.append("]");
+        return sb.toString();
+    }
 }

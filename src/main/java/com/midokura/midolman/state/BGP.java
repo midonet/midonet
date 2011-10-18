@@ -2,6 +2,9 @@ package com.midokura.midolman.state;
 
 import java.net.InetAddress;
 
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.util.Net;
+
 public class BGP {
     /*
      * The bgp is a list of BGP information dictionaries enabled on this port.
@@ -46,5 +49,24 @@ public class BGP {
     // Default constructor for the Jackson deserialization.
     public BGP() {
         super();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("BGP [");
+        sb.append("localPort=").append(localPort & 0xffff);
+        sb.append(", localAS=").append(localAS);
+        sb.append("peerAddr=").append(peerAddr.toString());
+        sb.append("peerPort=").append(peerPort & 0xffff);
+        sb.append("peerAS=").append(peerAS);
+        sb.append("advertise={");
+        if (null != advertisedNetworkAddrs) {
+            for (int i = 0; i < advertisedNetworkAddrs.length; i++) {
+                sb.append(advertisedNetworkAddrs[i].toString()).append("/");
+                sb.append(advertisedNetworkLengths[i]).append(",");
+            }
+        }
+        sb.append("}]");
+        return sb.toString();
     }
 }

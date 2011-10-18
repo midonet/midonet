@@ -176,4 +176,22 @@ public class ForwardNatRule extends NatRule {
         ForwardNatRule r = (ForwardNatRule) other;
         return targets.equals(r.targets);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("ForwardNatRule [");
+        sb.append(super.toString());
+        sb.append(", floatingIp=").append(floatingIp);
+        if(floatingIp) {
+            sb.append(", floatingIpAddr=");
+            sb.append(IPv4.fromIPv4Address(floatingIpAddr));
+        }
+        sb.append(", targets={");
+        if(null != targets){
+            for (NatTarget t : targets)
+                sb.append(t.toString()).append(", ");
+        }
+        sb.append("}]");
+        return sb.toString();
+    }
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.packets.IPv4;
 
 public class Condition {
     public boolean conjunctionInv;
@@ -144,11 +145,62 @@ public class Condition {
     }
     @Override
     public String toString() {
-        return "Condition [conjunctionInv=" + conjunctionInv + ", inPortInv=" + inPortInv + ", outPortInv="
-                + outPortInv + ", nwTos=" + nwTos + ", nwTosInv=" + nwTosInv + ", nwProto=" + nwProto + ", nwProtoInv="
-                + nwProtoInv + ", nwSrcIp=" + nwSrcIp + ", nwSrcLength=" + nwSrcLength + ", nwSrcInv=" + nwSrcInv
-                + ", nwDstIp=" + nwDstIp + ", nwDstLength=" + nwDstLength + ", nwDstInv=" + nwDstInv + ", tpSrcStart="
-                + tpSrcStart + ", tpSrcEnd=" + tpSrcEnd + ", tpSrcInv=" + tpSrcInv + ", tpDstStart=" + tpDstStart
-                + ", tpDstEnd=" + tpDstEnd + ", tpDstInv=" + tpDstInv + "]";
+        StringBuilder sb = new StringBuilder("Condition [");
+        if (conjunctionInv)
+            sb.append("conjunctionInv=").append(conjunctionInv).append(",");
+        if (inPortIds != null && inPortIds.size() > 0) {
+            sb.append("inPortIds={");
+            for (UUID id : inPortIds) {
+                sb.append(id.toString()).append(",");
+            }
+            sb.append("},");
+            if (inPortInv)
+                sb.append("inPortInv=").append(inPortInv).append(",");
+        }
+        if (outPortIds != null && outPortIds.size() > 0) {
+            sb.append("outPortIds={");
+            for (UUID id : outPortIds) {
+                sb.append(id.toString()).append(",");
+            }
+            sb.append("},");
+            if (outPortInv)
+                sb.append("outPortInv=").append(outPortInv).append(",");
+        }
+        if (0 != nwTos) {
+            sb.append("nwTos=").append(nwTos).append(",");
+            if(nwTosInv)
+                sb.append("nwTosInv").append(nwTosInv).append(",");
+        }
+        if (0 != nwProto) {
+            sb.append("nwProto=").append(nwProto).append(",");
+            if(nwProtoInv)
+                sb.append("nwProtoInv").append(nwProtoInv).append(",");
+        }
+        if (0 != nwSrcIp) {
+            sb.append("nwSrcIp=").append(IPv4.fromIPv4Address(nwSrcIp));
+            sb.append(",nwSrcLength=").append(nwSrcLength).append(",");
+            if(nwSrcInv)
+                sb.append("nwSrcInv").append(nwSrcInv).append(",");
+        }
+        if (0 != nwDstIp) {
+            sb.append("nwDstIp=").append(IPv4.fromIPv4Address(nwDstIp));
+            sb.append(",nwDstLength=").append(nwDstLength).append(",");
+            if(nwDstInv)
+                sb.append("nwDstInv").append(nwDstInv).append(",");
+        }
+        if (0 != tpSrcEnd) {
+            sb.append("tpSrcStart=").append(tpSrcStart).append(",");
+            sb.append("tpSrcEnd=").append(tpSrcEnd).append(",");
+            if(tpSrcInv)
+                sb.append("tpSrcInv").append(tpSrcInv).append(",");
+        }
+        if (0 != tpDstEnd) {
+            sb.append("tpDstStart=").append(tpDstStart).append(",");
+            sb.append("tpDstEnd=").append(tpDstEnd).append(",");
+            if(tpDstInv)
+                sb.append("tpDstInv").append(tpDstInv).append(",");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }

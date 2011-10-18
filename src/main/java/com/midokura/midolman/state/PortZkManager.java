@@ -278,7 +278,7 @@ public class PortZkManager extends ZkManager {
      * @param watcher
      *            The watcher that gets notified when there is a change in the
      *            node.
-     * @return Route object found.
+     * @return Port object found.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */

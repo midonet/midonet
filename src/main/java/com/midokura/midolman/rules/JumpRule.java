@@ -53,4 +53,13 @@ public class JumpRule extends Rule {
             return false;
         return jumpToChain.equals(((JumpRule) other).jumpToChain);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("JumpRule [");
+        sb.append(super.toString());
+        sb.append(", jumpToChain=").append(jumpToChain);
+        sb.append("]");
+        return sb.toString();
+    }
 }

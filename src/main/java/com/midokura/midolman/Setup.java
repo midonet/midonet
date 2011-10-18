@@ -292,7 +292,7 @@ public class Setup implements Watcher {
                     deviceId, portNw, 24, portAddr, null, portNw, 24, null);
             portId = portMgr.create(portConfig);
             log.info("Created a router port with id {} that routes to {}",
-                    portId.toString(), IPv4.addrToString(portNw));
+                    portId.toString(), IPv4.fromIPv4Address(portNw));
             
             Route rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 10,
                     null, deviceId);

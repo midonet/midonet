@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.util.Net;
 
 public class PortDirectory {
@@ -57,6 +58,15 @@ public class PortDirectory {
         
         public Set<Route> getRoutes() { return routes; }
         public void setRoutes(Set<Route> routes) { this.routes = routes; }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("nwAddr=").append(IPv4.fromIPv4Address(nwAddr));
+            sb.append(", nwLength=").append(nwLength);
+            sb.append(", portAddr=").append(IPv4.fromIPv4Address(portAddr));
+            return sb.toString();
+        }
     }
 
     public static class LogicalRouterPortConfig extends RouterPortConfig {
@@ -87,7 +97,16 @@ public class PortDirectory {
                     && portAddr == port.portAddr
                     && getRoutes().equals(port.getRoutes());
         }
-    }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("LogicalRouterPort [");
+            sb.append(super.toString());
+            sb.append(", peerId=").append(peer_uuid);
+            sb.append("]");
+            return sb.toString();
+        }
+}
 
     public static class MaterializedRouterPortConfig extends RouterPortConfig {
         public int localNwAddr;
@@ -126,6 +145,21 @@ public class PortDirectory {
                     && getBgps().equals(port.getBgps())
                     && localNwAddr == port.localNwAddr
                     && localNwLength == port.localNwLength;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("MaterializedRouterPort [");
+            sb.append(super.toString());
+            sb.append(", localNwAddr=").append(IPv4.fromIPv4Address(localNwAddr));
+            sb.append(", localNwLength=").append(localNwLength);
+            sb.append(", bgps={");
+            if (null != bgps) {
+                for (BGP b : bgps)
+                    sb.append(b.toString());
+            }
+            sb.append("}]");
+            return sb.toString();
         }
     }
 

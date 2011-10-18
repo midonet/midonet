@@ -1,5 +1,6 @@
 package com.midokura.midolman.layer3;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -13,6 +14,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.codehaus.jackson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,6 +78,7 @@ import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.TopologyChecker;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -84,6 +88,8 @@ import com.midokura.midolman.util.ShortUUID;
 
 public class TestNetworkController {
 
+    private String basePath;
+    private Directory dir;
     private NetworkController networkCtrl;
     private short idleFlowTimeoutSeconds;
     private List<List<OFPhysicalPort>> phyPorts;
@@ -119,9 +125,9 @@ public class TestNetworkController {
         reactor = new MockReactor();
         controllerStub = new MockControllerStub();
 
-        String basePath = "/midolman";
+        basePath = "/midolman";
         ZkPathManager pathMgr = new ZkPathManager(basePath);
-        Directory dir = new MockDirectory();
+        dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
         Setup.createZkDirectoryStructure(dir, basePath);
         portMgr = new PortZkManager(dir, basePath);
@@ -1233,7 +1239,9 @@ public class TestNetworkController {
 
     @Test
     public void testDnat() throws StateAccessException,
-            ZkStateSerializationException, RuleIndexOutOfBoundsException {
+            ZkStateSerializationException, RuleIndexOutOfBoundsException,
+            JsonParseException, KeeperException, InterruptedException,
+            IOException {
         // First add the uplink to router0.
         addUplink();
         // Now add a dnat rule to map 0x808e0005:80 to 0x0a010009:10080, an
@@ -1270,6 +1278,7 @@ public class TestNetworkController {
                 routerIds.get(0)));
         r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, true /* dnat */);
         ruleMgr.create(r);
+        TopologyChecker.checkRouter(routerIds.get(0), basePath, dir);
 
         // Now send a packet into the uplink directed to the natted addr/port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
