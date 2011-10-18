@@ -241,6 +241,19 @@ public class BgpPortService implements PortService {
                 
                 log.debug("start: launching bgpd");
                 bgpdProcess = Runtime.getRuntime().exec("sudo /usr/lib/quagga/bgpd");
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        log.info("killing bgpd");
+                        // Calling killall because bgpdProcess.destroy()
+                        // doesn't seem to work.
+                        try {
+                            Runtime.getRuntime().exec("sudo killall bgpd");
+                        } catch (IOException e) {
+                            log.warn("killall bgpd", e);
+                        }
+                    }
+                });
 
                 // Need to wait for bgpd to come up before sending command.
                 reactor.schedule(new Runnable() {
