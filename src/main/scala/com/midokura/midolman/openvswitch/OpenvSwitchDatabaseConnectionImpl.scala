@@ -1105,8 +1105,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param name The name of the bridge to add.
      * @return A builder to set optional parameters of the bridge and add it.
      */
-    override def addBridge(name: String): BridgeBuilder =
+    override def addBridge(name: String): BridgeBuilder = {
+        if (hasBridge(name))
+            throw new DuplicatedRowsException(
+                "A bridge named %s already exists.".format(name))
         new BridgeBuilderImpl(name)
+    }
 
     /**
     * Add a port.
@@ -1164,8 +1168,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addSystemPort(bridgeId: Long,
-                               portName: String): PortBuilder =
+                               portName: String): PortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new PortBuilderImpl(InterfaceTypeSystem, bridgeId, portName)
+    }
 
     /**
      * Create a port and a system interface, and add the port to a bridge.
@@ -1177,9 +1185,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addSystemPort(bridgeName: String,
-                               portName: String): PortBuilder =
+                               portName: String): PortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new PortBuilderImpl(InterfaceTypeSystem, portName=portName,
                             bridgeName=bridgeName)
+    }
 
     /**
      * Create a port and an internal interface, and add the port to a bridge
@@ -1192,8 +1204,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addInternalPort(bridgeId: Long,
-                        portName: String): PortBuilder =
+                        portName: String): PortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists.".format(portName))
         new PortBuilderImpl(InterfaceTypeInternal, bridgeId, portName)
+    }
 
     /**
      * Create a port and an internal interface, and add the port to a bridge
@@ -1206,9 +1222,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addInternalPort(bridgeName: String,
-                        portName: String): PortBuilder =
+                        portName: String): PortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new PortBuilderImpl(InterfaceTypeInternal, portName=portName,
                         bridgeName=bridgeName)
+    }
 
     /**
      * Create a port and a TAP interface, and add the port to a bridge.
@@ -1217,8 +1237,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param portName The name of the port and of the TAP interface to create.
      * @return A builder to set optional parameters of the port and add it.
      */
-    override def addTapPort(bridgeId: Long, portName: String): PortBuilder =
+    override def addTapPort(bridgeId: Long, portName: String): PortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new PortBuilderImpl(InterfaceTypeTap, bridgeId, portName)
+    }
 
     /**
      * Create a port and a TAP interface, and add the port to a bridge.
@@ -1227,9 +1251,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param portName   The name of the port and of the TAP interface to create.
      * @return A builder to set optional parameters of the port and add it.
      */
-    override def addTapPort(bridgeName: String, portName: String): PortBuilder =
+    override def addTapPort(bridgeName: String, portName: String): PortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new PortBuilderImpl(InterfaceTypeTap, portName=portName,
                             bridgeName=bridgeName)
+    }
 
     /**
      * Create a port and a GRE interface, and add the port to a bridge.
@@ -1240,8 +1268,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addGrePort(bridgeId: Long,  portName: String,
-                   remoteIp: String): GrePortBuilder =
+                   remoteIp: String): GrePortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new GrePortBuilderImpl(bridgeId, portName, remoteIp)
+    }
 
     /**
      * Create a port and a GRE interface, and add the port to a bridge.
@@ -1252,9 +1284,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addGrePort(bridgeName: String,  portName: String,
-                   remoteIp: String): GrePortBuilder =
+                   remoteIp: String): GrePortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
         new GrePortBuilderImpl(bridgeName=bridgeName, portName=portName,
                                remoteIp=remoteIp)
+    }
 
     /**
      * Delete a port with the given port name.
