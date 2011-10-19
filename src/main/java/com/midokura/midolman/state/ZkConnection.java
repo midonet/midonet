@@ -58,7 +58,8 @@ public class ZkConnection implements Watcher {
         }
         if (!connected)
             throw new Exception("Cannot open ZooKeeper session.");
-        log.debug("Connected to ZooKeeper");
+        
+        log.info("Connected to ZooKeeper with session {}", zk.getSessionId());
     }
 
     public synchronized void close() {
