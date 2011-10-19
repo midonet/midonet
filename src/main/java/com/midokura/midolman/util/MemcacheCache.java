@@ -1,7 +1,9 @@
 package com.midokura.midolman.util;
 
+import java.net.InetSocketAddress;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
