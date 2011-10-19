@@ -269,6 +269,11 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         log.debug("sendFlowModAdd: about to send {}", fm);
 
         stream.write(fm);
+        try {
+            stream.flush();
+        } catch (IOException e) {
+            log.warn("sendFlowModAdd", e);
+        }
     }
 
     @Override
@@ -302,6 +307,11 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         po.setLengthU(OFPacketOut.MINIMUM_LENGTH + totalActionLength +
                 (null == data? 0 : data.length));
         stream.write(po);
+        try {
+            stream.flush();
+        } catch (IOException e) {
+            log.warn("sendPacketOut", e);
+        }
     }
 
     @Override
