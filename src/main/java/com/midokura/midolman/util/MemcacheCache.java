@@ -1,9 +1,7 @@
 package com.midokura.midolman.util;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Date;
-import java.util.List;
 
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
@@ -26,19 +24,8 @@ public class MemcacheCache implements Cache {
                 throws IOException {
         boolean success = false;
         try {
-            List<InetSocketAddress> addresses = AddrUtil.getAddresses(memcacheServers);
-            if (addresses.size() != 1) {
-                log.error("Multiple memcached servers specified");
-                throw new RuntimeException("Midolman only supports using a " +
-                                           "single memcached server");
-                // This is because memcached requires that clients ensure
-                // consistency of writes themselves when using multiple servers,
-                // and we don't.  So we have this restriction to avoid situations
-                // like write a NAT mapping to mc #1, look it up later on mc #2
-                // and don't find it, so write a new inconsistent NAT mapping.
-            }
             client = new MemcachedClient(new BinaryConnectionFactory(),
-                                         addresses);
+                                         AddrUtil.getAddresses(memcacheServers));
         
             this.expirationSecs = expirationSecs;
 
