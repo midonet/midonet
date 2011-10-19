@@ -24,17 +24,24 @@ public class MemcacheCache implements Cache {
                 throws IOException {
         boolean success = false;
         try {
+            List<InetSocketAddress> addresses =
+                                        AddrUtil.getAddresses(memcacheServers);
+
+            for (InetSocketAddress address : addresses) {
+                MemcachedClient testClient = new MemcachedClient(address);
+                String testKey = "testkey";
+                String testValue = (new Date()).toString() + address.toString();
+                testClient.set(testKey, expirationSecs, testValue);
+                String fetchedValue = (String) testClient.get(testKey);
+                assert testValue.equals(fetchedValue);
+                testClient.delete(testKey);
+            }
+
             client = new MemcachedClient(new BinaryConnectionFactory(),
-                                         AddrUtil.getAddresses(memcacheServers));
+                                         addresses);
         
             this.expirationSecs = expirationSecs;
 
-            String testKey = "testkey";
-            String testValue = (new Date()).toString();
-            set(testKey, testValue);
-            String fetchedValue = get(testKey);
-            assert testValue.equals(fetchedValue);
-            client.delete(testKey);   
             success = true;
         } finally {
             if (!success)
