@@ -5,7 +5,7 @@
   <groupId>com.midokura</groupId>
   <artifactId>midolmanj-mgmt</artifactId>
   <packaging>war</packaging>
-  <version>0.1.5-SNAPSHOT</version>
+  <version>11.11-SNAPSHOT</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -64,6 +64,7 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
+        <version>0.9-SNAPSHOT</version>
         <executions>
             <execution>
                 <phase>package</phase>
@@ -71,6 +72,7 @@
                     <goal>jdeb</goal>
                 </goals>
                 <configuration>
+                    <timestamped>true</timestamped>
                     <dataSet>
                         <data>
                             <src>${project.build.directory}/${project.build.finalName}</src>
