@@ -633,7 +633,7 @@ public class Rule {
                     chainId, position, type.equals(Rule.DNAT), targets);
         } else if (Arrays.asList(Rule.RevNatRuleTypes).contains(type)) {
             r = new ReverseNatRule(cond, getAction(this.getFlowAction()), type
-                    .equals(Rule.DNAT));
+                    .equals(Rule.RevDNAT));
         } else {
             // Jump
             r = new JumpRule(cond, this.getJumpChainName());
