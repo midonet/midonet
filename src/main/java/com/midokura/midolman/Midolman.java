@@ -59,6 +59,9 @@ public class Midolman implements SelectListener, Watcher {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+                log.warn("In shutdown hook: disconnecting ZK.");
+                if (null!= zkConnection)
+                    zkConnection.close();
                 log.warn("Exiting. BYE!");
             }
         });
