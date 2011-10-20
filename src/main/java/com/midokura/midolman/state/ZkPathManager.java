@@ -496,4 +496,51 @@ public class ZkPathManager {
         return new StringBuilder(basePath).append("/vrn_port_locations")
                 .toString();
     }
+
+    /**
+     * Get ZK VPN path.
+     *
+     * @return /vpns
+     */
+    public String getVpnPath() {
+        return new StringBuilder(basePath).append("/vpns").toString();
+    }
+
+    /**
+     * Get ZK VPN path.
+     *
+     * @param id
+     *            VPN UUID
+     * @return /vpns/vpnId
+     */
+    public String getVpnPath(UUID id) {
+        return new StringBuilder(getVpnPath()).append("/").append(id)
+                .toString();
+    }
+
+    /**
+     * Get ZK port VPN path.
+     *
+     * @param portId
+     *            Port UUID
+     * @return /ports/portId/vpns
+     */
+    public String getPortVpnPath(UUID portId) {
+        return new StringBuilder(getPortPath(portId)).append("/vpns")
+                .toString();
+    }
+
+    /**
+     * Get ZK port VPN path.
+     *
+     * @param portId
+     *            Port UUID
+     * @param vpnId
+     *            VPN UUID
+     * @return /ports/portId/vpns/vpnId
+     */
+    public String getPortVpnPath(UUID portId, UUID vpnId) {
+        return new StringBuilder(getPortVpnPath(portId)).append("/")
+            .append(vpnId).toString();
+    }
 }

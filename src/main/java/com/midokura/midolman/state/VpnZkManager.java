@@ -1,0 +1,163 @@
+/*
+ * @(#)VpnZkManager        1.6 11/10/19
+ *
+ * Copyright 2011 Midokura KK
+ */
+
+package com.midokura.midolman.state;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs.Ids;
+
+import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
+
+public class VpnZkManager extends ZkManager {
+
+    public static final class VpnConfig {
+        public int port;
+        public UUID portId;
+
+        public VpnConfig(UUID portId, int port) {
+            this.portId = portId;
+            this.port = port;
+        }
+
+        // Default constructor for the Jackson deserialization.
+        public VpnConfig() {
+            super();
+        }
+    }
+
+    /**
+     * VpnZkManager constructor.
+     *
+     * @param zk
+     *            Zookeeper object.
+     * @param basePath
+     *            Directory to set as the base.
+     */
+    public VpnZkManager(Directory zk, String basePath) {
+        super(zk, basePath);
+    }
+
+    public List<Op> prepareVpnCreate(ZkNodeEntry<UUID, VpnConfig> vpnNode)
+            throws ZkStateSerializationException {
+
+        List<Op> ops = new ArrayList<Op>();
+        try {
+            ops.add(Op.create(pathManager.getVpnPath(vpnNode.key),
+                    serialize(vpnNode.value), Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize VpnConfig", e, VpnConfig.class);
+        }
+
+        ops.add(
+            Op.create(pathManager.getPortVpnPath(vpnNode.value.portId,
+                                                 vpnNode.key),
+                      null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        return ops;
+    }
+
+    public List<Op> prepareVpnDelete(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        return prepareVpnDelete(get(id));
+    }
+
+    public List<Op> prepareVpnDelete(ZkNodeEntry<UUID, VpnConfig> entry)
+            throws StateAccessException, ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Delete the port vpn entry
+        ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.portId,
+                entry.key), -1));
+
+        // Delete the vpn
+        ops.add(Op.delete(pathManager.getVpnPath(entry.key), -1));
+        return ops;
+    }
+
+    public List<Op> preparePortDelete(UUID portId) throws StateAccessException,
+            ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+
+        List<ZkNodeEntry<UUID, VpnConfig>> vpnList = list(portId);
+        for (ZkNodeEntry<UUID, VpnConfig> vpn : vpnList) {
+            ops.addAll(prepareVpnDelete(vpn));
+        }
+
+        return ops;
+    }
+
+    public UUID create(VpnConfig vpn) throws StateAccessException,
+            ZkStateSerializationException {
+        UUID id = UUID.randomUUID();
+        ZkNodeEntry<UUID, VpnConfig> vpnNode = new ZkNodeEntry<UUID, VpnConfig>(
+                id, vpn);
+        multi(prepareVpnCreate(vpnNode));
+        return id;
+    }
+
+    public ZkNodeEntry<UUID, VpnConfig> get(UUID id, Runnable watcher)
+            throws StateAccessException, ZkStateSerializationException {
+        byte[] data = get(pathManager.getVpnPath(id), watcher);
+        VpnConfig config = null;
+        try {
+            config = deserialize(data, VpnConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize vpn " + id + " to VpnConfig", e,
+                    VpnConfig.class);
+        }
+        return new ZkNodeEntry<UUID, VpnConfig>(id, config);
+    }
+
+    public ZkNodeEntry<UUID, VpnConfig> get(UUID id)
+            throws StateAccessException, ZkStateSerializationException {
+        return get(id, null);
+    }
+
+    public List<ZkNodeEntry<UUID, VpnConfig>> list(UUID portId, Runnable watcher)
+            throws StateAccessException, ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, VpnConfig>> result = new ArrayList<ZkNodeEntry<UUID, VpnConfig>>();
+        Set<String> vpnIds = getChildren(pathManager.getPortVpnPath(portId),
+                watcher);
+        for (String vpnId : vpnIds) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(vpnId)));
+        }
+        return result;
+    }
+
+    public List<ZkNodeEntry<UUID, VpnConfig>> list(UUID portId)
+            throws StateAccessException, ZkStateSerializationException {
+        return list(portId, null);
+    }
+
+    public void update(ZkNodeEntry<UUID, VpnConfig> entry)
+            throws StateAccessException, ZkStateSerializationException {
+        byte[] data = null;
+        try {
+            data = serialize(entry.value);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException("Could not serialize vpn "
+                    + entry.key + " to VpnConfig", e, VpnConfig.class);
+        }
+        update(pathManager.getVpnPath(entry.key), data);
+    }
+
+    public void delete(UUID id) throws StateAccessException,
+            ZkStateSerializationException {
+        multi(prepareVpnDelete(id));
+    }
+}

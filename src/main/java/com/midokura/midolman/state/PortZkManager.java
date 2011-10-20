@@ -65,6 +65,8 @@ public class PortZkManager extends ZkManager {
         if (portNode.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             ops.add(Op.create(pathManager.getPortBgpPath(portNode.key), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            ops.add(Op.create(pathManager.getPortVpnPath(portNode.key), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
         return ops;
     }
@@ -140,6 +142,13 @@ public class PortZkManager extends ZkManager {
             ops.addAll(bgpManager.preparePortDelete(entry.key));
             String path = pathManager.getPortBgpPath(entry.key);
             log.debug("Preparing to delete: " + path);
+            ops.add(Op.delete(path, -1));
+
+            VpnZkManager vpnManager = new VpnZkManager(zk, pathManager
+                                                       .getBasePath());
+            ops.addAll(vpnManager.preparePortDelete(entry.key));
+            path = pathManager.getPortVpnPath(entry.key);
+            log.debug("Preparing to delete: {}", path);
             ops.add(Op.delete(path, -1));
         }
         RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
