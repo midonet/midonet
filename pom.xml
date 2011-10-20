@@ -150,6 +150,7 @@
             <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
+                <version>0.9-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -157,6 +158,7 @@
                             <goal>jdeb</goal>
                         </goals>
                         <configuration>
+                            <timestamped>true</timestamped>
                             <dataSet>
                                 <data>
                                     <src>${project.build.directory}/${project.build.finalName}.jar</src>
