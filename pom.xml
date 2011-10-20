@@ -208,12 +208,17 @@
       <artifactId>jersey-client</artifactId>
       <version>1.8</version>
     </dependency>
-    <dependency>
-      <groupId>com.sun.jersey.jersey-test-framework</groupId>
-      <artifactId>jersey-test-framework-grizzly2</artifactId>
-      <version>1.8</version>
-      <scope>test</scope>
-    </dependency>
+<!--     <dependency> -->
+<!--       <groupId>com.sun.jersey.jersey-test-framework</groupId> -->
+<!--       <artifactId>jersey-test-framework-grizzly2</artifactId> -->
+<!--       <version>1.8</version> -->
+<!--       <scope>test</scope> -->
+<!--     </dependency> -->
+	<dependency>
+		<groupId>com.sun.jersey</groupId>
+		<artifactId>jersey-test-framework</artifactId>
+		<version>1.1.2-ea</version>
+	</dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
