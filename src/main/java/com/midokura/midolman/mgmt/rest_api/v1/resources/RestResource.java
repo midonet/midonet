@@ -10,7 +10,6 @@ import javax.ws.rs.core.Context;
 
 import com.midokura.midolman.mgmt.data.ZooKeeperService;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
 
 /**
  * Base abstract class for all the resources.
@@ -19,43 +18,39 @@ import com.midokura.midolman.state.MockDirectory;
  * @author Ryu Ishimoto
  */
 public abstract class RestResource {
-    /*
-     * Provide resources that can be shared for all the subclassed resources.
-     */
+	/*
+	 * Provide resources that can be shared for all the subclassed resources.
+	 */
 
-    /** Constants **/
-    private final static int DEFAULT_ZK_TIMEOUT = 3000;
+	/** Constants **/
+	private final static int DEFAULT_ZK_TIMEOUT = 3000;
 
-    /** Zookeeper connection string **/
-    private String zookeeperConn = null;
-    private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
-    protected String zookeeperRoot = null;
-    protected String zookeeperMgmtRoot = null;
-    protected Directory zooKeeper = null;
+	/** Zookeeper connection string **/
+	private String zookeeperConn = null;
+	private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
+	protected String zookeeperRoot = null;
+	protected String zookeeperMgmtRoot = null;
+	protected Directory zooKeeper = null;
 
-    /**
-     * Set zookeeper connection from config at the application initialization.
-     * 
-     * @param context
-     *            ServletContext object to which it gets data from.
-     * @throws Exception
-     */
-    @Context
-    public void setZookeeperConn(ServletContext context) throws Exception {
+	/**
+	 * Set zookeeper connection from config at the application initialization.
+	 * 
+	 * @param context
+	 *            ServletContext object to which it gets data from.
+	 * @throws Exception
+	 */
+	@Context
+	public void setZookeeperConn(ServletContext context) throws Exception {
 
-        zookeeperConn = context.getInitParameter("zookeeper-connection");
-        String zkTo = context.getInitParameter("zookeeper-timeout");
-        if (zkTo != null) {
-            zookeeperTimeout = Integer.parseInt(zkTo);
-        }
+		zookeeperConn = context.getInitParameter("zookeeper-connection");
+		String zkTo = context.getInitParameter("zookeeper-timeout");
+		if (zkTo != null) {
+			zookeeperTimeout = Integer.parseInt(zkTo);
+		}
 
-        zookeeperRoot = context.getInitParameter("zookeeper-root");
-        zookeeperMgmtRoot = context.getInitParameter("zookeeper-mgmt-root");
-
-        if (null == zookeeperConn)
-            zooKeeper = new MockDirectory();
-        else
-            zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
-                    zookeeperTimeout);
-    }
+		zookeeperRoot = context.getInitParameter("zookeeper-root");
+		zookeeperMgmtRoot = context.getInitParameter("zookeeper-mgmt-root");
+		zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
+				zookeeperTimeout);
+	}
 }

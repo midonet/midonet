@@ -33,186 +33,187 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
  * @author Ryu Ishimoto
  */
 public class BridgeZkManagerProxy extends ZkMgmtManager implements
-        OwnerQueryable {
+		OwnerQueryable {
 
-    public static class BridgeMgmtConfig {
+	public static class BridgeMgmtConfig {
 
-        public BridgeMgmtConfig() {
-            super();
-        }
+		public BridgeMgmtConfig() {
+			super();
+		}
 
-        public BridgeMgmtConfig(String tenantId, String name) {
-            super();
-            this.tenantId = tenantId;
-            this.name = name;
-        }
+		public BridgeMgmtConfig(String tenantId, String name) {
+			super();
+			this.tenantId = tenantId;
+			this.name = name;
+		}
 
-        public String tenantId;
-        public String name;
-    }
+		public String tenantId;
+		public String name;
+	}
 
-    public static class BridgeNameMgmtConfig {
-        public BridgeNameMgmtConfig() {
-            super();
-        }
+	public static class BridgeNameMgmtConfig {
+		public BridgeNameMgmtConfig() {
+			super();
+		}
 
-        public BridgeNameMgmtConfig(UUID id) {
-            super();
-            this.id = id;
-        }
+		public BridgeNameMgmtConfig(UUID id) {
+			super();
+			this.id = id;
+		}
 
-        public UUID id;
-    }
+		public UUID id;
+	}
 
-    private BridgeZkManager zkManager = null;
-    private final static Logger log = LoggerFactory
-            .getLogger(BridgeZkManagerProxy.class);
+	private BridgeZkManager zkManager = null;
+	private final static Logger log = LoggerFactory
+			.getLogger(BridgeZkManagerProxy.class);
 
-    public BridgeZkManagerProxy(Directory zk, String basePath,
-            String mgmtBasePath) {
-        super(zk, basePath, mgmtBasePath);
-        zkManager = new BridgeZkManager(zk, basePath);
-    }
+	public BridgeZkManagerProxy(Directory zk, String basePath,
+			String mgmtBasePath) {
+		super(zk, basePath, mgmtBasePath);
+		zkManager = new BridgeZkManager(zk, basePath);
+	}
 
-    public List<Op> prepareCreate(Bridge bridge) throws StateAccessException,
-            ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
+	public List<Op> prepareCreate(Bridge bridge) throws StateAccessException,
+			ZkStateSerializationException {
+		List<Op> ops = new ArrayList<Op>();
 
-        // Create the root bridge path
-        String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
-        log.debug("Preparing to create: " + bridgePath);
-        try {
-            ops.add(Op.create(bridgePath, serialize(bridge.toMgmtConfig()),
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Serialization error occurred while preparing bridge creation multi ops for UUID "
-                            + bridge.getId(), e, BridgeMgmtConfig.class);
-        }
+		// Create the root bridge path
+		String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
+		log.debug("Preparing to create: " + bridgePath);
+		try {
+			ops.add(Op.create(bridgePath, serialize(bridge.toMgmtConfig()),
+					Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+		} catch (IOException e) {
+			throw new ZkStateSerializationException(
+					"Serialization error occurred while preparing bridge creation multi ops for UUID "
+							+ bridge.getId(), e, BridgeMgmtConfig.class);
+		}
 
-        // Add under tenant.
-        String tenantBridgePath = mgmtPathManager.getTenantBridgePath(bridge
-                .getTenantId(), bridge.getId());
-        log.debug("Preparing to create: " + tenantBridgePath);
-        ops.add(Op.create(tenantBridgePath, null, Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+		// Add under tenant.
+		String tenantBridgePath = mgmtPathManager.getTenantBridgePath(
+				bridge.getTenantId(), bridge.getId());
+		log.debug("Preparing to create: " + tenantBridgePath);
+		ops.add(Op.create(tenantBridgePath, null, Ids.OPEN_ACL_UNSAFE,
+				CreateMode.PERSISTENT));
 
-        String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
-                bridge.getTenantId(), bridge.getName());
-        log.debug("Preparing to create:" + tenantBridgeNamePath);
-        try {
-            ops.add(Op.create(tenantBridgeNamePath, serialize(bridge
-                    .toNameMgmtConfig()), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize BridgeNameMgmtConfig", e,
-                    BridgeNameMgmtConfig.class);
-        }
+		String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
+				bridge.getTenantId(), bridge.getName());
+		log.debug("Preparing to create:" + tenantBridgeNamePath);
+		try {
+			ops.add(Op.create(tenantBridgeNamePath,
+					serialize(bridge.toNameMgmtConfig()), Ids.OPEN_ACL_UNSAFE,
+					CreateMode.PERSISTENT));
+		} catch (IOException e) {
+			throw new ZkStateSerializationException(
+					"Could not serialize BridgeNameMgmtConfig", e,
+					BridgeNameMgmtConfig.class);
+		}
 
-        // Create Midolman data
-        ops.addAll(zkManager.prepareBridgeCreate(bridge.getId(),
-                new BridgeConfig()));
+		// Create Midolman data
+		ops.addAll(zkManager.prepareBridgeCreate(bridge.getId(),
+				new BridgeConfig()));
 
-        return ops;
-    }
+		return ops;
+	}
 
-    public List<Op> prepareDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
-        return prepareDelete(get(id));
-    }
+	public List<Op> prepareDelete(UUID id) throws StateAccessException,
+			ZkStateSerializationException, UnsupportedOperationException {
+		return prepareDelete(get(id));
+	}
 
-    public List<Op> prepareDelete(Bridge bridge) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
-        List<Op> ops = new ArrayList<Op>();
+	public List<Op> prepareDelete(Bridge bridge) throws StateAccessException,
+			ZkStateSerializationException, UnsupportedOperationException {
+		List<Op> ops = new ArrayList<Op>();
 
-        // Delete the Midolman side.
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = zkManager.get(bridge
-                .getId());
-        ops.addAll(zkManager.prepareBridgeDelete(bridgeNode));
+		// Delete the Midolman side.
+		ZkNodeEntry<UUID, BridgeConfig> bridgeNode = zkManager.get(bridge
+				.getId());
+		ops.addAll(zkManager.prepareBridgeDelete(bridgeNode));
 
-        // Delete the tenant router entry
-        String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
-                bridge.getTenantId(), bridge.getName());
-        log.debug("Preparing to delete:" + tenantBridgeNamePath);
-        ops.add(Op.delete(tenantBridgeNamePath, -1));
+		// Delete the tenant router entry
+		String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
+				bridge.getTenantId(), bridge.getName());
+		log.debug("Preparing to delete:" + tenantBridgeNamePath);
+		ops.add(Op.delete(tenantBridgeNamePath, -1));
 
-        String tenantBridgePath = mgmtPathManager.getTenantBridgePath(bridge
-                .getTenantId(), bridge.getId());
-        log.debug("Preparing to delete: " + tenantBridgePath);
-        ops.add(Op.delete(tenantBridgePath, -1));
+		String tenantBridgePath = mgmtPathManager.getTenantBridgePath(
+				bridge.getTenantId(), bridge.getId());
+		log.debug("Preparing to delete: " + tenantBridgePath);
+		ops.add(Op.delete(tenantBridgePath, -1));
 
-        // Delete the root bridge path.
-        String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
-        log.debug("Preparing to delete: " + bridgePath);
-        ops.add(Op.delete(bridgePath, -1));
+		// Delete the root bridge path.
+		String bridgePath = mgmtPathManager.getBridgePath(bridge.getId());
+		log.debug("Preparing to delete: " + bridgePath);
+		ops.add(Op.delete(bridgePath, -1));
 
-        // Remove all the ports in mgmt directory but don't cascade here.
-        PortZkManagerProxy portMgr = new PortZkManagerProxy(zk, pathManager
-                .getBasePath(), mgmtPathManager.getBasePath());
-        ops.addAll(portMgr.prepareBridgeDelete(bridge.getId()));
+		// Remove all the ports in mgmt directory but don't cascade here.
+		PortZkManagerProxy portMgr = new PortZkManagerProxy(zk,
+				pathManager.getBasePath(), mgmtPathManager.getBasePath());
+		ops.addAll(portMgr.prepareBridgeDelete(bridge.getId()));
 
-        return ops;
-    }
+		return ops;
+	}
 
-    public UUID create(Bridge bridge) throws StateAccessException,
-            ZkStateSerializationException {
-        UUID id = UUID.randomUUID();
-        bridge.setId(id);
-        multi(prepareCreate(bridge));
-        return id;
-    }
+	public UUID create(Bridge bridge) throws StateAccessException,
+			ZkStateSerializationException {
+		if (null == bridge.getId()) {
+			bridge.setId(UUID.randomUUID());
+		}
+		multi(prepareCreate(bridge));
+		return bridge.getId();
+	}
 
-    public Bridge get(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
-        byte[] data = get(mgmtPathManager.getBridgePath(id));
-        BridgeMgmtConfig config = null;
-        try {
-            config = deserialize(data, BridgeMgmtConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Serialization error occurred while getting the bridge with UUID "
-                            + id, e, BridgeMgmtConfig.class);
-        }
-        return Bridge.createBridge(id, config);
-    }
+	public Bridge get(UUID id) throws StateAccessException,
+			ZkStateSerializationException {
+		byte[] data = get(mgmtPathManager.getBridgePath(id));
+		BridgeMgmtConfig config = null;
+		try {
+			config = deserialize(data, BridgeMgmtConfig.class);
+		} catch (IOException e) {
+			throw new ZkStateSerializationException(
+					"Serialization error occurred while getting the bridge with UUID "
+							+ id, e, BridgeMgmtConfig.class);
+		}
+		return Bridge.createBridge(id, config);
+	}
 
-    public List<Bridge> list(String tenantId) throws StateAccessException,
-            ZkStateSerializationException {
-        List<Bridge> result = new ArrayList<Bridge>();
-        String path = mgmtPathManager.getTenantBridgesPath(tenantId);
-        Set<String> ids = getChildren(path);
-        for (String id : ids) {
-            // For now, get each one.
-            result.add(get(UUID.fromString(id)));
-        }
-        return result;
-    }
+	public List<Bridge> list(String tenantId) throws StateAccessException,
+			ZkStateSerializationException {
+		List<Bridge> result = new ArrayList<Bridge>();
+		String path = mgmtPathManager.getTenantBridgesPath(tenantId);
+		Set<String> ids = getChildren(path);
+		for (String id : ids) {
+			// For now, get each one.
+			result.add(get(UUID.fromString(id)));
+		}
+		return result;
+	}
 
-    public void update(Bridge bridge) throws StateAccessException,
-            ZkStateSerializationException {
-        Bridge b = get(bridge.getId());
-        b.setName(bridge.getName());
+	public void update(Bridge bridge) throws StateAccessException,
+			ZkStateSerializationException {
+		Bridge b = get(bridge.getId());
+		b.setName(bridge.getName());
 
-        String bridgePath = mgmtPathManager.getBridgePath(b.getId());
-        log.debug("Updating path: " + bridgePath);
-        try {
-            update(bridgePath, serialize(b.toMgmtConfig()));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Serialization error occurred while updating the bridge with UUID "
-                            + b.getId(), e, BridgeMgmtConfig.class);
-        }
-    }
+		String bridgePath = mgmtPathManager.getBridgePath(b.getId());
+		log.debug("Updating path: " + bridgePath);
+		try {
+			update(bridgePath, serialize(b.toMgmtConfig()));
+		} catch (IOException e) {
+			throw new ZkStateSerializationException(
+					"Serialization error occurred while updating the bridge with UUID "
+							+ b.getId(), e, BridgeMgmtConfig.class);
+		}
+	}
 
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
-        multi(prepareDelete(id));
-    }
+	public void delete(UUID id) throws StateAccessException,
+			ZkStateSerializationException, UnsupportedOperationException {
+		multi(prepareDelete(id));
+	}
 
-    @Override
-    public String getOwner(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
-        return get(id).getTenantId();
-    }
+	@Override
+	public String getOwner(UUID id) throws StateAccessException,
+			ZkStateSerializationException {
+		return get(id).getTenantId();
+	}
 }

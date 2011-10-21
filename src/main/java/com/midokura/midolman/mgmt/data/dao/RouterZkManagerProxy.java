@@ -275,10 +275,11 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements
 
     public UUID create(Router router) throws StateAccessException,
             ZkStateSerializationException {
-        UUID id = UUID.randomUUID();
-        router.setId(id);
-        multi(prepareRouterCreate(router));
-        return id;
+    	if (null == router.getId()) {
+    		router.setId(UUID.randomUUID());
+    	}
+    	multi(prepareRouterCreate(router));
+        return router.getId();
     }
 
     public PeerRouterLink createLink(LogicalRouterPort port)
