@@ -7,7 +7,6 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,7 +29,6 @@ public class ZooKeeperWriteLatency {
 
             @Override
             public synchronized void process(WatchedEvent event) {
-                // TODO Auto-generated method stub
                 if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
                     log.warn("Watcher.Event.KeeperState.Disconnected");
                     System.exit(-1);
@@ -63,10 +61,10 @@ public class ZooKeeperWriteLatency {
         Percentile p = new Percentile();
         
         byte b[] = new byte[1000];
-        for (int i=0; i<1000; i++) {
-            long before = System.currentTimeMillis();
+        for (int i=0; i<10000; i++) {
+            long before = System.nanoTime();
             zk.create("/"+i, b, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-            long after = System.currentTimeMillis();
+            long after = System.nanoTime();
             
             long delta = after - before;
             
@@ -84,9 +82,9 @@ public class ZooKeeperWriteLatency {
 //        
 //        byte b2[] = new byte[1000];
 //        for (int i=0; i<1000; i++) {
-//            long before = System.currentTimeMillis();
+//            long before = System.nanoTime();
 //            Stat s = zk.setData("/"+i, b2, -1);
-//            long after = System.currentTimeMillis();
+//            long after = System.nanoTime();
 //            
 //            long delta = after - before;
 //            
@@ -102,10 +100,10 @@ public class ZooKeeperWriteLatency {
         
         p = new Percentile();
         
-        for (int i=0; i<1000; i++) {
-            long before = System.currentTimeMillis();
-            byte[] data = zk.getData("/"+i, null, null);
-            long after = System.currentTimeMillis();
+        for (int i=0; i<10000; i++) {
+            long before = System.nanoTime();
+            zk.getData("/"+i, null, null);
+            long after = System.nanoTime();
             
             long delta = after - before;
             
