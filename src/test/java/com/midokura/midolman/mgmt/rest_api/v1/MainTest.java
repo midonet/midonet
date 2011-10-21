@@ -1,6 +1,9 @@
 package com.midokura.midolman.mgmt.rest_api.v1;
 
-import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.data.dto.Tenant;
+
+import javax.ws.rs.core.MediaType;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -9,63 +12,49 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.sun.jersey.test.framework.spi.container.TestContainerFactory;
-import com.sun.jersey.test.framework.spi.container.embedded.glassfish.EmbeddedGlassFishTestContainerFactory;
-import com.sun.jersey.test.framework.spi.container.external.*;
-import com.sun.jersey.test.framework.spi.container.grizzly.GrizzlyTestContainerFactory;
-import com.sun.jersey.test.framework.spi.container.grizzly.web.GrizzlyWebTestContainerFactory;
-import com.sun.jersey.test.framework.spi.container.http.HTTPContainerFactory;
-import com.sun.jersey.test.framework.spi.container.inmemory.*;
+import com.sun.jersey.test.framework.spi.container.grizzly2.GrizzlyTestContainerFactory;
+import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestContainerFactory;
 
 public class MainTest extends JerseyTest {
 
     static ClientConfig cc;
     static {
         cc = new DefaultClientConfig();
-        cc.getSingletons().add(new JacksonJaxbJsonProvider());
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,
+                             Boolean.TRUE);
     }
 
     public MainTest() {
-        //super("com.sun.jersey.samples.helloworld.resources");
-        //super(new WebAppDescriptor.Builder("com.sun.jersey.samples.helloworld.resources").contextPath("helloworld-webapp").build());
-         super(new WebAppDescriptor.Builder(
-                 "com.midokura.midolman.mgmt.rest_api.v1.resources")
-                 .contextPath("context").build());
-//         super(new WebAppDescriptor.Builder(
-//                 "com.midokura.midolman.mgmt.rest_api.v1.resources")
-//                 .contextPath("context").clientConfig(cc).build());
+        super(new WebAppDescriptor.Builder(
+                  "com.midokura.midolman.mgmt.rest_api.v1.resources")
+              .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
+              .contextPath("context").build());
     }
 
     @Test
     public void test() {
         WebResource resource;
-        //ClientResponse response;
-
-        //resource = resource();
-        //String responseMsg = resource.path("helloworld").get(String.class);
-	//System.out.println("respose: " + responseMsg);
-        //assertEquals("Hello World", responseMsg);
+        ClientResponse response;
 
         // Add the tenant
-        resource = resource().path("/ports");
-        String response = resource.get(String.class);
-	System.out.println("respose: " + response);
-	//try {
-	//	Thread.sleep(100000);
-	//} catch (Exception e) {
-        //}
-        //response = resource.post(ClientResponse.class);
-        //System.out.println(response.getLocation());
-
+        resource = resource().path("tenants");
+        response = resource.accept(
+            MediaType.APPLICATION_JSON).post(ClientResponse.class,
+                                             new Tenant());
+        System.out.println(response.getLocation());
+        // Loop if you want to test w/ curl.
+        // try {
+        //     Thread.sleep(100000);
+        // } catch (Exception e) {
+        // }
     }
 
     @Override
     protected TestContainerFactory getTestContainerFactory() {
-//        return new HTTPContainerFactory();
-//        return new ExternalTestContainerFactory();
         return new GrizzlyWebTestContainerFactory();
-
     }
 }
