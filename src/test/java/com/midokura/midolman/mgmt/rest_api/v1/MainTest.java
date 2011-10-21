@@ -32,6 +32,8 @@ public class MainTest extends JerseyTest {
         super(new WebAppDescriptor.Builder(
                   "com.midokura.midolman.mgmt.rest_api.v1.resources")
               .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
+              .initParam("com.sun.jersey.spi.container.ContainerRequestFilters",
+                         "com.midokura.midolman.mgmt.auth.KeystoneAuthFilter")
               .contextPath("context").build());
     }
 
