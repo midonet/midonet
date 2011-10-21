@@ -2,6 +2,7 @@ package com.midokura.midolman.mgmt.rest_api.v1;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
 import com.sun.jersey.api.client.ClientResponse;
@@ -27,28 +28,44 @@ public class MainTest extends JerseyTest {
     }
 
     public MainTest() {
-        super(new WebAppDescriptor.Builder(
-                "com.midokura.midolman.mgmt.rest_api.v1.resources")
-                .contextPath("context").clientConfig(cc).build());
+        //super("com.sun.jersey.samples.helloworld.resources");
+        //super(new WebAppDescriptor.Builder("com.sun.jersey.samples.helloworld.resources").contextPath("helloworld-webapp").build());
+         super(new WebAppDescriptor.Builder(
+                 "com.midokura.midolman.mgmt.rest_api.v1.resources")
+                 .contextPath("context").build());
+//         super(new WebAppDescriptor.Builder(
+//                 "com.midokura.midolman.mgmt.rest_api.v1.resources")
+//                 .contextPath("context").clientConfig(cc).build());
     }
 
     @Test
     public void test() {
         WebResource resource;
-        ClientResponse response;
+        //ClientResponse response;
+
+        //resource = resource();
+        //String responseMsg = resource.path("helloworld").get(String.class);
+	//System.out.println("respose: " + responseMsg);
+        //assertEquals("Hello World", responseMsg);
 
         // Add the tenant
-        resource = resource().path("/tenants");
-        response = resource.post(ClientResponse.class);
-        System.out.println(response.getLocation());
+        resource = resource().path("/ports");
+        String response = resource.get(String.class);
+	System.out.println("respose: " + response);
+	//try {
+	//	Thread.sleep(100000);
+	//} catch (Exception e) {
+        //}
+        //response = resource.post(ClientResponse.class);
+        //System.out.println(response.getLocation());
 
     }
 
     @Override
     protected TestContainerFactory getTestContainerFactory() {
-        return new HTTPContainerFactory();
+//        return new HTTPContainerFactory();
 //        return new ExternalTestContainerFactory();
-//        return new GrizzlyWebTestContainerFactory();
+        return new GrizzlyWebTestContainerFactory();
 
     }
 }
