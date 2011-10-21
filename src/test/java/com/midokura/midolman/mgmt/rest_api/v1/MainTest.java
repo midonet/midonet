@@ -42,7 +42,7 @@ public class MainTest extends JerseyTest {
 
         // Add the tenant
         resource = resource().path("tenants");
-        response = resource.accept(
+        response = resource.type(
             MediaType.APPLICATION_JSON).post(ClientResponse.class,
                                              new Tenant());
         System.out.println(response.getLocation());
