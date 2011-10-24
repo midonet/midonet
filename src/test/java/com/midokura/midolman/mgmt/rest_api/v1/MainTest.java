@@ -28,13 +28,6 @@ public class MainTest extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(MainTest.class);
 
-    static ClientConfig cc;
-    static {
-        cc = new DefaultClientConfig();
-        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,
-                             Boolean.TRUE);
-    }
-
     public MainTest() {
         super(new WebAppDescriptor.Builder(
                   "com.midokura.midolman.mgmt.rest_api.v1.resources")
