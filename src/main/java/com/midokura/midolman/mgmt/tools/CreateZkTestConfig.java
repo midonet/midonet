@@ -79,7 +79,7 @@ public class CreateZkTestConfig {
         String portPath = response.getLocation().toString();
         parts = portPath.split("/");
         String bgpPortId = parts[parts.length - 1];
-        System.out.println("BGP port id: " + bgpPortId);
+        System.out.println("BGP 180.214.47.66 port id: " + bgpPortId);
 
         // Add a BGP to the bgp port.
         url = new StringBuilder(portPath).append(
@@ -100,6 +100,43 @@ public class CreateZkTestConfig {
         AdRoute adRt = new AdRoute();
         adRt.setNwPrefix("14.128.23.0");
         adRt.setPrefixLength((byte) 27);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, adRt);
+
+        // Add another BGP port.
+        url = new StringBuilder(providerRouterUrl).append("/ports").toString();
+        resource = client.resource(url);
+        materPort = new MaterializedRouterPort();
+        materPort.setNetworkAddress("180.214.47.68");
+        materPort.setNetworkLength(30);
+        materPort.setPortAddress("180.214.47.70");
+        materPort.setLocalNetworkAddress("180.214.47.68");
+        materPort.setLocalNetworkLength(30);
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, materPort);
+        portPath = response.getLocation().toString();
+        parts = portPath.split("/");
+        bgpPortId = parts[parts.length - 1];
+        System.out.println("BGP 180.214.47.70 port id: " + bgpPortId);
+
+        // Add a BGP to the bgp port.
+        url = new StringBuilder(portPath).append(
+                "/bgps").toString();
+        resource = client.resource(url);
+        bgp = new Bgp();
+        bgp.setLocalAS(65104);
+        bgp.setPeerAS(23637);
+        bgp.setPeerAddr("180.214.47.65");
+        response = resource.type(MediaType.APPLICATION_JSON)
+                .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                .post(ClientResponse.class, bgp);
+
+        // Advertise the same route from this BGP.
+        url = new StringBuilder(response.getLocation().toString()).append(
+                "/ad_routes").toString();
+        resource = client.resource(url);
         response = resource.type(MediaType.APPLICATION_JSON)
                 .header("HTTP_X_AUTH_TOKEN", "999888777666")
                 .post(ClientResponse.class, adRt);
