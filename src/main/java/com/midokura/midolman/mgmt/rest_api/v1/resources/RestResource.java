@@ -8,7 +8,12 @@ package com.midokura.midolman.mgmt.rest_api.v1.resources;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+
+import com.midokura.midolman.mgmt.data.dao.AdminZkManager;
 import com.midokura.midolman.mgmt.data.ZooKeeperService;
+import com.midokura.midolman.mgmt.data.MockDirectory;
 import com.midokura.midolman.state.Directory;
 
 /**
@@ -18,39 +23,59 @@ import com.midokura.midolman.state.Directory;
  * @author Ryu Ishimoto
  */
 public abstract class RestResource {
-	/*
-	 * Provide resources that can be shared for all the subclassed resources.
-	 */
+    /*
+     * Provide resources that can be shared for all the subclassed resources.
+     */
 
-	/** Constants **/
-	private final static int DEFAULT_ZK_TIMEOUT = 3000;
+    /** Constants **/
+    private final static int DEFAULT_ZK_TIMEOUT = 3000;
 
-	/** Zookeeper connection string **/
-	private String zookeeperConn = null;
-	private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
-	protected String zookeeperRoot = null;
-	protected String zookeeperMgmtRoot = null;
-	protected Directory zooKeeper = null;
+    /** Zookeeper connection string **/
+    private String zookeeperConn = null;
+    private int zookeeperTimeout = DEFAULT_ZK_TIMEOUT;
+    protected String zookeeperRoot = null;
+    protected String zookeeperMgmtRoot = null;
+    protected Directory zooKeeper = null;
+    private static Directory staticZooKeeper = null;
 
-	/**
-	 * Set zookeeper connection from config at the application initialization.
-	 * 
-	 * @param context
-	 *            ServletContext object to which it gets data from.
-	 * @throws Exception
-	 */
-	@Context
-	public void setZookeeperConn(ServletContext context) throws Exception {
+    /**
+     * Set zookeeper connection from config at the application initialization.
+     * 
+     * @param context
+     *            ServletContext object to which it gets data from.
+     * @throws Exception
+     */
+    @Context
+    public void setZookeeperConn(ServletContext context) throws Exception {
 
-		zookeeperConn = context.getInitParameter("zookeeper-connection");
-		String zkTo = context.getInitParameter("zookeeper-timeout");
-		if (zkTo != null) {
-			zookeeperTimeout = Integer.parseInt(zkTo);
-		}
+        zookeeperConn = context.getInitParameter("zookeeper-connection");
+        String zkTo = context.getInitParameter("zookeeper-timeout");
+        if (zkTo != null) {
+            zookeeperTimeout = Integer.parseInt(zkTo);
+        }
 
-		zookeeperRoot = context.getInitParameter("zookeeper-root");
-		zookeeperMgmtRoot = context.getInitParameter("zookeeper-mgmt-root");
-		zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
-				zookeeperTimeout);
-	}
+        zookeeperRoot = context.getInitParameter("zookeeper-root");
+        zookeeperMgmtRoot = context.getInitParameter("zookeeper-mgmt-root");
+
+        if (null == zookeeperConn) {
+            if (staticZooKeeper == null) {
+                zooKeeper = new MockDirectory();
+                String[] path = zookeeperRoot.split("/");
+                StringBuilder parent = new StringBuilder();
+                // Create /<root> node.
+                try {
+                    zooKeeper.add(
+                        parent.append("/").append(path[1]).toString(), null,
+                        CreateMode.PERSISTENT);
+                } catch (NodeExistsException e) {
+                    // igonre if the node is already created.
+                }
+                staticZooKeeper = zooKeeper;
+            } else {
+                zooKeeper = staticZooKeeper;
+            }
+        } else
+            zooKeeper = ZooKeeperService.getZooKeeper(zookeeperConn,
+                                                      zookeeperTimeout);
+    }
 }
