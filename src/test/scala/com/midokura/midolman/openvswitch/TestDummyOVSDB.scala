@@ -78,6 +78,11 @@ class TestDummyOVSDB {
                                 "localhost", portNum)
         val bridgeTable = ovsdbConn.dumpBridgeTable
         assertEquals(1, bridgeTable.size)
+        val row = bridgeTable.head
+        assertEquals("public", row._1)
+        assertEquals(bridgeUuid1, row._2)
+        assertEquals("""["set",[["uuid","""" + portUuid1 + "\"]]]",
+                     row._3.toString)
     }
 }
 
