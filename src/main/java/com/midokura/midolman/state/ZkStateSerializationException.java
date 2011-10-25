@@ -13,14 +13,14 @@ package com.midokura.midolman.state;
  */
 // TODO(pino, ryu): why not parameterize this class and use that parameter as
 // the parameter to Class<> clazz?
-public class ZkStateSerializationException extends Exception {
+public class ZkStateSerializationException extends StateAccessException {
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     private Class clazz;
 
-    @SuppressWarnings("unchecked")
-    public ZkStateSerializationException(String msg, Throwable e, Class clazz) {
+    public ZkStateSerializationException(String msg, Throwable e,
+            @SuppressWarnings("rawtypes") Class clazz) {
         super(msg, e);
         this.clazz = clazz;
     }
