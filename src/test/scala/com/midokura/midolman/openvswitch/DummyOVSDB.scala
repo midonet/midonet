@@ -52,7 +52,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
     final val log = LoggerFactory.getLogger(getClass)
 
     // Warning, fragile RE parsing used.
-    val requestRE = """\{"method":"([[:alpha:]]+)","params":(\[.*\]),"id":(.+)\}""".r
+    val requestRE = """\{"method":"([a-z]+)","params":(\[.*\]),"id":(.+)\}""".r
 
     def loop(): Nothing = {
         log.info("Entering loop()")
