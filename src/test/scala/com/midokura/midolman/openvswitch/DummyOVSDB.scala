@@ -85,6 +85,12 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
     }
 
     def handleTransact(params: String, id: String) {
-        // TODO
+        val opRE = """\["Open_vSwitch",\{"op":"([a-z]+)","table":"([a-zA-Z]+)",(.*)\}\]""".r
+        params match {
+            case opRE("select", table, _) =>
+                outStream.write(String.format("""{"id":%s,"error":null,"result":[{"rows":[]}]}""", id).getBytes("ASCII"))
+            case _ =>
+                log.error("Unknown transact type received: {}", params)
+        }
     }
 }
