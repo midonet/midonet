@@ -12,6 +12,7 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.util.Net;
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
@@ -159,6 +160,16 @@ public class ForwardNatRule extends NatRule {
         this.targets = targets;
     }
 
+    // Getter for JSON serialization supporting readable IP addresses
+    public String getFloatingIpAddr() {
+    	return Net.convertIntAddressToString(this.floatingIpAddr);
+    }
+    
+    // Setter for JSON serialization supporting readable IP addresses
+    public void setFloatingIpAddr(String addr) {
+    	this.floatingIpAddr = Net.convertStringAddressToInt(addr);
+    }
+    
     @Override
     public int hashCode() {
         int hash = super.hashCode();

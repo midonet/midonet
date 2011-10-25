@@ -15,7 +15,7 @@ public class PortDirectory {
         }
         
         // Default constructor for the Jackson deserialization.
-        public BridgePortConfig() { super(); }
+        private BridgePortConfig() { super(); }
     
         @Override
         public boolean equals(Object other) {

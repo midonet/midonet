@@ -27,6 +27,10 @@ public abstract class Rule implements Comparable<Rule> {
         super();
     }
 
+    // Setter for Jackson serialization
+    @SuppressWarnings("unused")
+	private void setCondition(Condition cond) { this.condition = cond; }
+    
     /**
      * If the packet specified by res.match matches this rule's condition,
      * apply the rule.
