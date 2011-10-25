@@ -30,6 +30,9 @@ class DummyOVSDBServerConn(protected var socket: Socket,
 
     final val log = LoggerFactory.getLogger(getClass)
 
+    // Warning, fragile RE parsing used.
+    val requestRE = """{"method":"([[:alpha:]]+)","params":(\[.*\]),"id":(.+)}""".r
+
     def loop(): Nothing = {
         var buf = new Array[Byte](bufSize)
     
@@ -37,21 +40,24 @@ class DummyOVSDBServerConn(protected var socket: Socket,
             val bytesRead = inStream.read(buf)
             val message = new String(buf, 0, bytesRead, "ASCII")
 
-            if (message.startsWith("""{"method":"echo""""))
-                handleEcho(message)
-            else if (message.startsWith("""{"method":"transact""""))
-                handleTransact(message)
-            else
-                log.error("Unknown message type received: {}", message)
+            message match {
+                case requestRE("echo", params, id) => 
+                        handleEcho(params, id)
+                case requestRE("transact", params, id) => 
+                        handleTransact(params, id)
+                case _ => 
+                        log.error("Unknown message type received: {}", message)
+            }
         }
         throw new RuntimeException("Infinite loop ended!!")
     }
 
-    def handleEcho(message: String) {
-        // TODO
+    def handleEcho(params: String, id: String) {
+        outStream.write(String.format("""{"id":%s,"error":null,"result":%s}""",
+                                      id, params).getBytes("ASCII"))
     }
 
-    def handleTransact(message: String) {
+    def handleTransact(params: String, id: String) {
         // TODO
     }
 }
