@@ -103,9 +103,15 @@ public class AdRoute {
         this.bgpId = bgpId;
     }
 
-    public AdRouteConfig toConfig() throws UnknownHostException {
-        return new AdRouteConfig(this.getBgpId(), InetAddress.getByName(this
-                .getNwPrefix()), this.getPrefixLength());
+    public AdRouteConfig toConfig() {
+        try {
+            return new AdRouteConfig(this.getBgpId(),
+                    InetAddress.getByName(this.getNwPrefix()),
+                    this.getPrefixLength());
+        } catch (UnknownHostException ex) {
+            // This exception should never be thrown: Return null.
+            return null;
+        }
     }
 
     public static AdRoute createAdRoute(UUID id, AdRouteConfig config) {

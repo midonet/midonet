@@ -27,12 +27,10 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
-import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.RouteZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -43,7 +41,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @author Ryu Ishimoto
  */
 @Path("/routes")
-public class RouteResource extends RestResource {
+public class RouteResource {
     /*
      * Implements REST API endpoints for routes.
      */
@@ -59,18 +57,15 @@ public class RouteResource extends RestResource {
      * @return Route object.
      * @throws StateAccessException
      * @throws UnauthorizedException
-     * @throws ZkStateSerializationException
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Route get(@PathParam("id") UUID id, @Context SecurityContext context)
-            throws StateAccessException, UnauthorizedException,
-            ZkStateSerializationException {
+    public Route get(@PathParam("id") UUID id,
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
         // Get a route for the given ID.
-        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
+        RouteDao dao = daoFactory.getRouteDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only see your own route.");
         }
@@ -89,11 +84,9 @@ public class RouteResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
+        RouteDao dao = daoFactory.getRouteDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only delete your own route.");
         }
@@ -112,7 +105,7 @@ public class RouteResource extends RestResource {
     /**
      * Sub-resource class for router's route.
      */
-    public static class RouterRouteResource extends RestResource {
+    public static class RouterRouteResource {
 
         private UUID routerId = null;
 
@@ -124,18 +117,14 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public RouterRouteResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID routerId) {
-            this.zooKeeper = zkConn;
+        public RouterRouteResource(UUID routerId) {
             this.routerId = routerId;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
-        private boolean isRouterOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new RouterZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+        private boolean isRouterOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException,
+                ZkStateSerializationException {
+            OwnerQueryable q = daoFactory.getRouterDao();
             return AuthManager.isOwner(context, q, routerId);
         }
 
@@ -145,19 +134,17 @@ public class RouteResource extends RestResource {
          * @return A list of Route objects.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Route> list(@Context SecurityContext context)
-                throws StateAccessException, UnauthorizedException,
-                ZkStateSerializationException {
-            if (!isRouterOwner(context)) {
+        public List<Route> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
+                UnauthorizedException {
+            if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own route.");
             }
 
-            RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            RouteDao dao = daoFactory.getRouteDao();
             try {
                 return dao.list(routerId);
             } catch (StateAccessException e) {
@@ -176,22 +163,21 @@ public class RouteResource extends RestResource {
          *            Router object mapped to the request input.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          * @throws Exception
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Route route, @Context UriInfo uriInfo,
-                @Context SecurityContext context) throws StateAccessException,
-                ZkStateSerializationException, UnauthorizedException {
-            if (!isRouterOwner(context)) {
+                @Context SecurityContext context, @Context DaoFactory daoFactory)
+                throws StateAccessException, ZkStateSerializationException,
+                UnauthorizedException {
+            if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException(
                         "Can only create your own routes.");
             }
 
-            RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            RouteDao dao = daoFactory.getRouteDao();
             route.setRouterId(routerId);
 
             UUID id = null;
@@ -213,7 +199,7 @@ public class RouteResource extends RestResource {
     /**
      * Sub-resource class for port's route.
      */
-    public static class PortRouteResource extends RestResource {
+    public static class PortRouteResource {
 
         private UUID portId = null;
 
@@ -225,18 +211,14 @@ public class RouteResource extends RestResource {
          * @param routerId
          *            UUID of a router.
          */
-        public PortRouteResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID portId) {
-            this.zooKeeper = zkConn;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
+        public PortRouteResource(UUID portId) {
             this.portId = portId;
         }
 
-        private boolean isPortOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new PortZkManagerProxy(zooKeeper, zookeeperRoot,
-                    zookeeperMgmtRoot);
+        private boolean isPortOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException,
+                ZkStateSerializationException {
+            OwnerQueryable q = daoFactory.getPortDao();
             return AuthManager.isOwner(context, q, portId);
         }
 
@@ -246,19 +228,18 @@ public class RouteResource extends RestResource {
          * @return A list of Route objects.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Route> list(@Context SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException,
+        public List<Route> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
-            if (!isPortOwner(context)) {
+
+            if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own routes.");
             }
 
-            RouteZkManagerProxy dao = new RouteZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            RouteDao dao = daoFactory.getRouteDao();
             try {
                 return dao.listByPort(portId);
             } catch (StateAccessException e) {

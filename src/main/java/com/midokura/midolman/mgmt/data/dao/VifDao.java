@@ -1,0 +1,16 @@
+package com.midokura.midolman.mgmt.data.dao;
+
+import java.util.UUID;
+
+import com.midokura.midolman.mgmt.data.dto.Vif;
+import com.midokura.midolman.state.StateAccessException;
+
+public interface VifDao extends OwnerQueryable {
+
+    UUID create(Vif vif) throws StateAccessException;
+
+    void delete(UUID id) throws StateAccessException;
+
+    Vif get(UUID id) throws StateAccessException;
+
+}

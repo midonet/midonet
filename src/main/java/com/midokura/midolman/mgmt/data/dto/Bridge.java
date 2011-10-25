@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy.BridgeMgmtConfig;
-import com.midokura.midolman.mgmt.data.dao.BridgeZkManagerProxy.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkManagerProxy.BridgeMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkManagerProxy.BridgeNameMgmtConfig;
 
 /**
  * Class representing Virtual Bridge.

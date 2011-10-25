@@ -23,7 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.dao.TenantZkManager;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
@@ -36,7 +37,7 @@ import com.midokura.midolman.state.StateAccessException;
  * @author Ryu Ishimoto
  */
 @Path("/tenants")
-public class TenantResource extends RestResource {
+public class TenantResource {
     /*
      * Implements REST API endpoints for tenants.
      */
@@ -49,8 +50,7 @@ public class TenantResource extends RestResource {
      */
     @Path("/{id}/routers")
     public TenantRouterResource getRouterResource(@PathParam("id") String id) {
-        return new TenantRouterResource(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot, id);
+        return new TenantRouterResource(id);
     }
 
     /**
@@ -58,23 +58,21 @@ public class TenantResource extends RestResource {
      */
     @Path("/{id}/bridges")
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
-        return new TenantBridgeResource(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot, id);
+        return new TenantBridgeResource(id);
     }
 
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") String id,
-            @Context SecurityContext context) throws StateAccessException,
-            UnauthorizedException {
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
 
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException(
                     "Must be an admin to delete a tenant.");
         }
 
-        TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+        TenantDao dao = daoFactory.getTenantDao();
         try {
             dao.delete(id);
         } catch (StateAccessException e) {
@@ -99,15 +97,15 @@ public class TenantResource extends RestResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(Tenant tenant, @Context SecurityContext context)
-            throws StateAccessException, UnauthorizedException {
+    public Response create(Tenant tenant, @Context SecurityContext context,
+            @Context DaoFactory daoFactory) throws StateAccessException,
+            UnauthorizedException {
 
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be admin to create tenant.");
         }
 
-        TenantZkManager dao = new TenantZkManager(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+        TenantDao dao = daoFactory.getTenantDao();
         String id = null;
         try {
             id = dao.create(tenant.getId());

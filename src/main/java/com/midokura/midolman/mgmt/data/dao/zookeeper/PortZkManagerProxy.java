@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +16,8 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -36,7 +37,8 @@ import com.midokura.midolman.util.ShortUUID;
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
-public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
+public class PortZkManagerProxy extends ZkMgmtManager implements PortDao,
+        OwnerQueryable {
 
     public static class PortMgmtConfig {
 
@@ -224,8 +226,8 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
         }
     }
 
-    public Port get(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public Port get(UUID id) throws StateAccessException {
         ZkNodeEntry<UUID, PortMgmtConfig> mgmtNode = getMgmt(id);
         ZkNodeEntry<UUID, PortConfig> node = zkManager.get(id);
         return createPort(mgmtNode, node);
@@ -241,44 +243,46 @@ public class PortZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
         return portNodes;
     }
 
+    @Override
     public List<Port> listRouterPorts(UUID routerId)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         return generateList(zkManager.listRouterPorts(routerId));
     }
 
+    @Override
     public List<Port> listBridgePorts(UUID bridgeId)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         return generateList(zkManager.listBridgePorts(bridgeId));
     }
 
-    public UUID create(Port port) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
+    @Override
+    public UUID create(Port port) throws StateAccessException {
         UUID id = ShortUUID.generate32BitUUID();
         port.setId(id);
         multi(prepareCreate(port));
         return id;
     }
 
+    @Override
     public boolean exists(UUID id) throws StateAccessException {
         return super.exists(mgmtPathManager.getPortPath(id));
     }
 
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
+    @Override
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareDelete(id));
     }
 
     @Override
-    public String getOwner(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public String getOwner(UUID id) throws StateAccessException {
         Port port = get(id);
         if (port instanceof RouterPort) {
-            OwnerQueryable dao = new RouterZkManagerProxy(zk, pathManager
-                    .getBasePath(), mgmtPathManager.getBasePath());
+            OwnerQueryable dao = new RouterZkManagerProxy(zk,
+                    pathManager.getBasePath(), mgmtPathManager.getBasePath());
             return dao.getOwner(id);
         } else {
-            OwnerQueryable dao = new BridgeZkManagerProxy(zk, pathManager
-                    .getBasePath(), mgmtPathManager.getBasePath());
+            OwnerQueryable dao = new BridgeZkManagerProxy(zk,
+                    pathManager.getBasePath(), mgmtPathManager.getBasePath());
             return dao.getOwner(id);
         }
     }

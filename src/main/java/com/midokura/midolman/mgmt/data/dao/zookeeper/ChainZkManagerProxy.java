@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,16 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Router;
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
-public class ChainZkManagerProxy extends ZkMgmtManager implements
+public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         OwnerQueryable {
 
     public static class ChainMgmtConfig {
@@ -259,8 +260,8 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         }
 
         // Make sure that no chain with the same name exists.
-        String namePath = mgmtPathManager.getRouterTableChainNamePath(chain
-                .getRouterId(), chain.getTable(), chain.getName());
+        String namePath = mgmtPathManager.getRouterTableChainNamePath(
+                chain.getRouterId(), chain.getTable(), chain.getName());
         if (exists(namePath)) {
             throw new IllegalArgumentException(
                     "A chain with the same name already exists for this table.");
@@ -359,8 +360,8 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
 
         // Delete the name index.
         String routerTableChainNamePath = mgmtPathManager
-                .getRouterTableChainNamePath(chain.getRouterId(), chain
-                        .getTable(), chain.getName());
+                .getRouterTableChainNamePath(chain.getRouterId(),
+                        chain.getTable(), chain.getName());
         log.debug("Preparing to delete: " + routerTableChainNamePath);
         ops.add(Op.delete(routerTableChainNamePath, -1));
 
@@ -373,16 +374,17 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         return ops;
     }
 
-    public UUID create(Chain chain) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public UUID create(Chain chain) throws StateAccessException {
         UUID chainId = UUID.randomUUID();
         chain.setId(chainId);
         multi(prepareCreate(chain));
         return chainId;
     }
 
+    @Override
     public List<Chain> listTableChains(UUID routerId, String table)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         List<Chain> result = new ArrayList<Chain>();
         Set<String> ids = getChildren(mgmtPathManager.getRouterTableChainsPath(
                 routerId, table));
@@ -393,18 +395,18 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         return result;
     }
 
-    public List<Chain> listNatChains(UUID routerId)
-            throws StateAccessException, ZkStateSerializationException {
+    @Override
+    public List<Chain> listNatChains(UUID routerId) throws StateAccessException {
         return listTableChains(routerId, NAT_TABLE);
     }
 
-    public List<Chain> list(UUID routerId) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public List<Chain> list(UUID routerId) throws StateAccessException {
         return listNatChains(routerId);
     }
 
     public Chain get(UUID routerId, String table, String name)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         String namePath = mgmtPathManager.getRouterTableChainNamePath(routerId,
                 table.toLowerCase(), name.toLowerCase());
         byte[] data = get(namePath);
@@ -421,8 +423,8 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         return get(nameConfig.id);
     }
 
-    public Chain get(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public Chain get(UUID id) throws StateAccessException {
         ZkNodeEntry<UUID, ChainConfig> config = zkManager.get(id);
         byte[] data = get(mgmtPathManager.getChainPath(id));
         ChainMgmtConfig mgmtConfig = null;
@@ -436,17 +438,16 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements
         return Chain.createChain(id, config.value, mgmtConfig);
     }
 
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareDelete(id));
     }
 
     @Override
-    public String getOwner(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public String getOwner(UUID id) throws StateAccessException {
         Chain chain = get(id);
-        OwnerQueryable manager = new RouterZkManagerProxy(zk, pathManager
-                .getBasePath(), mgmtPathManager.getBasePath());
+        OwnerQueryable manager = new RouterZkManagerProxy(zk,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(chain.getRouterId());
     }
 }

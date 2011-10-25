@@ -123,9 +123,14 @@ public class Bgp {
         this.portId = portId;
     }
 
-    public BgpConfig toConfig() throws UnknownHostException {
-        return new BgpConfig(this.getPortId(), this.getLocalAS(), InetAddress
-                .getByName(this.getPeerAddr()), this.getPeerAS());
+    public BgpConfig toConfig() {
+        try {
+            return new BgpConfig(this.getPortId(), this.getLocalAS(),
+                    InetAddress.getByName(this.getPeerAddr()), this.getPeerAS());
+        } catch (UnknownHostException e) {
+            // This exception should never be thrown.
+            return null;
+        }
     }
 
     public static Bgp createBgp(UUID id, BgpConfig config) {

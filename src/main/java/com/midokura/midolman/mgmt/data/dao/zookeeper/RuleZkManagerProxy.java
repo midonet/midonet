@@ -3,13 +3,14 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
@@ -24,7 +25,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-public class RuleZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
+public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
+        OwnerQueryable {
 
     private RuleZkManager zkManager = null;
 
@@ -50,14 +52,14 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
      * @throws Exception
      *             Error adding data to Zookeeper.
      */
+    @Override
     public UUID create(Rule rule) throws RuleIndexOutOfBoundsException,
-            ZkStateSerializationException, StateAccessException {
+            StateAccessException {
         return zkManager.create(rule.toZkRule());
     }
 
-    public void delete(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
-        // TODO: catch NoNodeException if does not exist.
+    @Override
+    public void delete(UUID id) throws StateAccessException {
         zkManager.delete(id);
     }
 
@@ -72,8 +74,8 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
      * @throws Exception
      *             Error getting data to Zookeeper.
      */
-    public Rule get(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
+    @Override
+    public Rule get(UUID id) throws StateAccessException {
         return Rule.createRule(id, zkManager.get(id).value);
     }
 
@@ -88,8 +90,8 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
      * @throws Exception
      *             Zookeeper(or any) error.
      */
-    public List<Rule> list(UUID chainId) throws ZkStateSerializationException,
-            StateAccessException {
+    @Override
+    public List<Rule> list(UUID chainId) throws StateAccessException {
         List<Rule> rules = new ArrayList<Rule>();
         List<ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule>> entries = zkManager
                 .list(chainId);
@@ -100,11 +102,10 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements OwnerQueryable 
     }
 
     @Override
-    public String getOwner(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
+    public String getOwner(UUID id) throws StateAccessException {
         Rule rule = get(id);
-        OwnerQueryable manager = new ChainZkManagerProxy(zk, pathManager
-                .getBasePath(), mgmtPathManager.getBasePath());
+        OwnerQueryable manager = new ChainZkManagerProxy(zk,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(rule.getChainId());
     }
 }

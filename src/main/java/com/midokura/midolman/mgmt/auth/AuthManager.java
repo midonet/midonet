@@ -4,9 +4,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.SecurityContext;
 
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
 
 public class AuthManager {
 
@@ -34,7 +33,7 @@ public class AuthManager {
     }
 
     public static boolean isOwner(SecurityContext context, OwnerQueryable dao,
-            UUID id) throws StateAccessException, ZkStateSerializationException {
+            UUID id) throws StateAccessException {
         if (isAdmin(context)) {
             return true;
         }

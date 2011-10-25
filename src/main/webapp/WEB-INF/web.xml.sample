@@ -3,22 +3,6 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <context-param>
-    <param-name>zookeeper-connection</param-name>
-    <param-value>127.0.0.1:2181</param-value>
-  </context-param>
-  <context-param>
-    <param-name>zookeeper-timeout</param-name>
-    <param-value>3000</param-value>
-  </context-param>
-  <context-param>
-    <param-name>zookeeper-root</param-name>
-    <param-value>/midonet/v1/midolman</param-value>
-  </context-param>
-  <context-param>
-    <param-name>zookeeper-mgmt-root</param-name>
-    <param-value>/midonet/v1/midolman-mgmt</param-value>
-  </context-param>
   <display-name>Restful Web Application</display-name>
   <servlet>
     <servlet-name>jersey-servlet-v1</servlet-name>
@@ -75,4 +59,30 @@
     <filter-name>KeystoneAuth</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
+  
+  	<env-entry>
+		<env-entry-name>datastore_service</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<env-entry-name>connection_string</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>127.0.0.1:2181</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<env-entry-name>timeout</env-entry-name>
+		<env-entry-type>java.lang.Integer</env-entry-type>
+		<env-entry-value>3000</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<env-entry-name>zk_root_path</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>/midonet/v1/midolman</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<env-entry-name>zk_mgmt_root_path</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>/midonet/v1/midolman-mgmt</env-entry-value>
+	</env-entry>
 </web-app>

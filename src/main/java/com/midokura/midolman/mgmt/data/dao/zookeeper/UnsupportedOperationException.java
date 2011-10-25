@@ -3,9 +3,11 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
-public class UnsupportedOperationException extends Exception {
+import com.midokura.midolman.state.StateAccessException;
+
+public class UnsupportedOperationException extends StateAccessException {
 
     private static final long serialVersionUID = 6144720312726540080L;
 

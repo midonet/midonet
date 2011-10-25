@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +16,8 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.VifDao;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.state.Directory;
@@ -29,7 +30,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
-public class VifZkManager extends ZkMgmtManager implements OwnerQueryable {
+public class VifZkManager extends ZkMgmtManager implements VifDao,
+        OwnerQueryable {
 
     public static class VifConfig {
 
@@ -111,8 +113,8 @@ public class VifZkManager extends ZkMgmtManager implements OwnerQueryable {
         return ops;
     }
 
-    public UUID create(Vif vif) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public UUID create(Vif vif) throws StateAccessException {
         if (null == vif.getId()) {
             vif.setId(UUID.randomUUID());
         }
@@ -120,13 +122,13 @@ public class VifZkManager extends ZkMgmtManager implements OwnerQueryable {
         return vif.getId();
     }
 
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareDelete(id));
     }
 
-    public Vif get(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public Vif get(UUID id) throws StateAccessException {
         byte[] data = get(mgmtPathManager.getVifPath(id), null);
         VifConfig config = null;
         try {
@@ -139,11 +141,11 @@ public class VifZkManager extends ZkMgmtManager implements OwnerQueryable {
         return Vif.createVif(id, config);
     }
 
-    public String getOwner(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    @Override
+    public String getOwner(UUID id) throws StateAccessException {
         Vif vif = get(id);
-        OwnerQueryable manager = new PortZkManagerProxy(zk, pathManager
-                .getBasePath(), mgmtPathManager.getBasePath());
+        OwnerQueryable manager = new PortZkManagerProxy(zk,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(vif.getPortId());
     }
 }

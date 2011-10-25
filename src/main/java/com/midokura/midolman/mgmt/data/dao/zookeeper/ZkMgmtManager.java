@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;

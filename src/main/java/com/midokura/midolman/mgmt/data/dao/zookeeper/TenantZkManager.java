@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +17,10 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Abstract base class for TenantZkManager.
@@ -28,7 +28,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */
-public class TenantZkManager extends ZkManager {
+public class TenantZkManager extends ZkManager implements TenantDao {
 
     private ZkMgmtPathManager zkMgmtPathManager = null;
     private final static Logger log = LoggerFactory
@@ -47,11 +47,11 @@ public class TenantZkManager extends ZkManager {
         zkMgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
     }
 
-    public void delete(String id) throws StateAccessException,
-            ZkStateSerializationException, UnsupportedOperationException {
+    @Override
+    public void delete(String id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        Set<String> routers = getChildren(zkMgmtPathManager
-                .getTenantRoutersPath(id), null);
+        Set<String> routers = getChildren(
+                zkMgmtPathManager.getTenantRoutersPath(id), null);
         RouterZkManagerProxy routerManager = new RouterZkManagerProxy(zk,
                 pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
         for (String router : routers) {
@@ -59,8 +59,8 @@ public class TenantZkManager extends ZkManager {
                     .fromString(router)));
         }
 
-        Set<String> bridges = getChildren(zkMgmtPathManager
-                .getTenantBridgesPath(id), null);
+        Set<String> bridges = getChildren(
+                zkMgmtPathManager.getTenantBridgesPath(id), null);
         BridgeZkManagerProxy bridgeManager = new BridgeZkManagerProxy(zk,
                 pathManager.getBasePath(), zkMgmtPathManager.getBasePath());
         for (String bridge : bridges) {
@@ -96,6 +96,7 @@ public class TenantZkManager extends ZkManager {
      * @throws InterruptedException
      *             Unresponsive thread getting interrupted by another thread.
      */
+    @Override
     public String create() throws StateAccessException {
         return create(null);
     }
@@ -112,6 +113,7 @@ public class TenantZkManager extends ZkManager {
      * @throws InterruptedException
      *             Unresponsive thread getting interrupted by another thread.
      */
+    @Override
     public String create(String id) throws StateAccessException {
         if (null == id) {
             id = UUID.randomUUID().toString();

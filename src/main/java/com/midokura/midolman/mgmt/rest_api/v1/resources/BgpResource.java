@@ -13,7 +13,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -28,14 +27,12 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
-import com.midokura.midolman.mgmt.data.dao.BgpZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.BgpDao;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource.BgpAdRouteResource;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for bgps.
@@ -44,7 +41,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @author Yoshi Tamura
  */
 @Path("/bgps")
-public class BgpResource extends RestResource {
+public class BgpResource {
     /*
      * Implements REST API end points for bgps.
      */
@@ -57,8 +54,7 @@ public class BgpResource extends RestResource {
      */
     @Path("/{id}/ad_routes")
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
-        return new BgpAdRouteResource(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot, id);
+        return new BgpAdRouteResource(id);
     }
 
     /**
@@ -69,19 +65,16 @@ public class BgpResource extends RestResource {
      * @return Bgp object.
      * @throws StateAccessException
      * @throws UnauthorizedException
-     * @throws ZkStateSerializationException
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Bgp get(@PathParam("id") UUID id, @Context SecurityContext context)
-            throws StateAccessException, ZkStateSerializationException,
+    public Bgp get(@PathParam("id") UUID id, @Context SecurityContext context,
+            @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
 
         // Get a bgp for the given ID.
-        BgpZkManagerProxy dao = new BgpZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
-
+        BgpDao dao = daoFactory.getBgpDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
                     "Can only see your own advertised route.");
@@ -100,37 +93,13 @@ public class BgpResource extends RestResource {
         return bgp;
     }
 
-    @PUT
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Bgp bgp,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        BgpZkManagerProxy dao = new BgpZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
-
-        if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
-        }
-
-        try {
-            dao.update(id, bgp);
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        return Response.ok().build();
-    }
-
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        BgpZkManagerProxy dao = new BgpZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
 
+        BgpDao dao = daoFactory.getBgpDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
                     "Can only see your own advertised route.");
@@ -150,7 +119,7 @@ public class BgpResource extends RestResource {
     /**
      * Sub-resource class for port's BGP.
      */
-    public static class PortBgpResource extends RestResource {
+    public static class PortBgpResource {
 
         private UUID portId = null;
 
@@ -162,18 +131,13 @@ public class BgpResource extends RestResource {
          * @param portId
          *            UUID of a port.
          */
-        public PortBgpResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID portId) {
-            this.zooKeeper = zkConn;
+        public PortBgpResource(UUID portId) {
             this.portId = portId;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
-        private boolean isPortOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new PortZkManagerProxy(zooKeeper, zookeeperRoot,
-                    zookeeperMgmtRoot);
+        private boolean isPortOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException {
+            OwnerQueryable q = daoFactory.getPortDao();
             return AuthManager.isOwner(context, q, portId);
         }
 
@@ -183,19 +147,17 @@ public class BgpResource extends RestResource {
          * @return A list of bgps.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Bgp> list(@Context SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException,
+        public List<Bgp> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
-            if (!isPortOwner(context)) {
+            if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own BGP.");
             }
 
-            BgpZkManagerProxy dao = new BgpZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            BgpDao dao = daoFactory.getBgpDao();
             List<Bgp> bgps = null;
             try {
                 bgps = dao.list(portId);
@@ -216,19 +178,17 @@ public class BgpResource extends RestResource {
          *            Bgp object mapped to the request input.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Bgp bgp, @Context UriInfo uriInfo,
-                @Context SecurityContext context) throws StateAccessException,
-                ZkStateSerializationException, UnauthorizedException {
-            if (!isPortOwner(context)) {
+                @Context SecurityContext context, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
+            if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only create your own BGP.");
             }
-            BgpZkManagerProxy dao = new BgpZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            BgpDao dao = daoFactory.getBgpDao();
             bgp.setPortId(portId);
 
             UUID id = null;

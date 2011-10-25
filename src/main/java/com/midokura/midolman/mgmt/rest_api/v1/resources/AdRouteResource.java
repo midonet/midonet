@@ -13,7 +13,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -28,13 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
-import com.midokura.midolman.mgmt.data.dao.AdRouteZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.BgpZkManagerProxy;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for advertising routes.
@@ -43,7 +40,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @author Yoshi Tamura
  */
 @Path("/ad_routes")
-public class AdRouteResource extends RestResource {
+public class AdRouteResource {
     /*
      * Implements REST API end points for ad_routes.
      */
@@ -59,18 +56,15 @@ public class AdRouteResource extends RestResource {
      * @return AdRoute object.
      * @throws StateAccessException
      * @throws UnauthorizedException
-     * @throws ZkStateSerializationException
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public AdRoute get(@PathParam("id") UUID id,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
         // Get a advertising route for the given ID.
-        AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
+        AdRouteDao dao = daoFactory.getAdRouteDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
                     "Can only see your own advertised route.");
@@ -89,37 +83,12 @@ public class AdRouteResource extends RestResource {
         return adRoute;
     }
 
-    @PUT
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, AdRoute adRoute,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
-        if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only update your own advertised route.");
-        }
-
-        try {
-            dao.update(id, adRoute);
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        return Response.ok().build();
-    }
-
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
+        AdRouteDao dao = daoFactory.getAdRouteDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
                     "Can only delete your own advertised route.");
@@ -139,7 +108,7 @@ public class AdRouteResource extends RestResource {
     /**
      * Sub-resource class for bgp's advertising route.
      */
-    public static class BgpAdRouteResource extends RestResource {
+    public static class BgpAdRouteResource {
 
         private UUID bgpId = null;
 
@@ -151,18 +120,13 @@ public class AdRouteResource extends RestResource {
          * @param bgpId
          *            UUID of a bgp.
          */
-        public BgpAdRouteResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID bgpId) {
-            this.zooKeeper = zkConn;
+        public BgpAdRouteResource(UUID bgpId) {
             this.bgpId = bgpId;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
-        private boolean isBgpOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new BgpZkManagerProxy(zooKeeper, zookeeperRoot,
-                    zookeeperMgmtRoot);
+        private boolean isBgpOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException {
+            OwnerQueryable q = daoFactory.getBgpDao();
             return AuthManager.isOwner(context, q, bgpId);
         }
 
@@ -172,22 +136,19 @@ public class AdRouteResource extends RestResource {
          * @return A list of advertising routes.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<AdRoute> list(@Context SecurityContext context)
-                throws StateAccessException, UnauthorizedException,
-                ZkStateSerializationException {
+        public List<AdRoute> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
+                UnauthorizedException {
 
-            if (!isBgpOwner(context)) {
+            if (!isBgpOwner(context, daoFactory)) {
                 throw new UnauthorizedException(
                         "Can only see your own advertised route.");
             }
 
-            AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
-
+            AdRouteDao dao = daoFactory.getAdRouteDao();
             List<AdRoute> adRoutes = null;
             try {
                 adRoutes = dao.list(bgpId);
@@ -208,22 +169,20 @@ public class AdRouteResource extends RestResource {
          *            AdRoute object mapped to the request input.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(AdRoute adRoute, @Context UriInfo uriInfo,
-                @Context SecurityContext context) throws StateAccessException,
-                UnauthorizedException, ZkStateSerializationException {
+                @Context SecurityContext context, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
 
-            if (!isBgpOwner(context)) {
+            if (!isBgpOwner(context, daoFactory)) {
                 throw new UnauthorizedException(
                         "Can only create for your own BGP.");
             }
 
-            AdRouteZkManagerProxy dao = new AdRouteZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            AdRouteDao dao = daoFactory.getAdRouteDao();
             adRoute.setBgpId(bgpId);
 
             UUID id = null;

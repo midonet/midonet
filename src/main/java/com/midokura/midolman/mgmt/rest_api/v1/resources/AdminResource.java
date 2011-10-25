@@ -13,11 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.dao.AdminZkManager;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.AdminDao;
 import com.midokura.midolman.state.StateAccessException;
 
 @Path("/admin")
-public class AdminResource extends RestResource {
+public class AdminResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(AdminResource.class);
@@ -25,15 +26,15 @@ public class AdminResource extends RestResource {
     @POST
     @Path("/init")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response init(@Context SecurityContext context)
-            throws StateAccessException, UnauthorizedException {
+    public Response init(@Context SecurityContext context,
+            @Context DaoFactory daoFactory) throws StateAccessException,
+            UnauthorizedException {
 
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be admin to initialized ZK.");
         }
 
-        AdminZkManager dao = new AdminZkManager(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+        AdminDao dao = daoFactory.getAdminDao();
         try {
             dao.initialize();
         } catch (StateAccessException e) {

@@ -1,4 +1,4 @@
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,10 +7,11 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.mgmt.data.dao.AdminDao;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 
-public class AdminZkManager extends ZkMgmtManager {
+public class AdminZkManager extends ZkMgmtManager implements AdminDao {
 
     public AdminZkManager(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
@@ -25,6 +26,7 @@ public class AdminZkManager extends ZkMgmtManager {
         return ops;
     }
 
+    @Override
     public void initialize() throws StateAccessException {
         List<String> paths = new ArrayList<String>();
         paths.add(mgmtPathManager.getBasePath());

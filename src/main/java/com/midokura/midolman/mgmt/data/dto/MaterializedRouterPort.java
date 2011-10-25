@@ -11,7 +11,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;

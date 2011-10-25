@@ -27,12 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
-import com.midokura.midolman.mgmt.data.dao.ChainZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.RouterZkManagerProxy;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -43,7 +42,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @author Ryu Ishimoto
  */
 @Path("/chains")
-public class ChainResource extends RestResource {
+public class ChainResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(ChainResource.class);
@@ -53,19 +52,16 @@ public class ChainResource extends RestResource {
      */
     @Path("/{id}/rules")
     public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
-        return new ChainRuleResource(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot, id);
+        return new ChainRuleResource(id);
     }
 
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Chain get(@PathParam("id") UUID id, @Context SecurityContext context)
-            throws StateAccessException, UnauthorizedException,
-            ZkStateSerializationException {
-        ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
+    public Chain get(@PathParam("id") UUID id,
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
+        ChainDao dao = daoFactory.getChainDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only see your own chain.");
         }
@@ -84,11 +80,9 @@ public class ChainResource extends RestResource {
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
-                zookeeperRoot, zookeeperMgmtRoot);
-
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
+        ChainDao dao = daoFactory.getChainDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
                     "Can only delete your own advertised route.");
@@ -108,15 +102,11 @@ public class ChainResource extends RestResource {
     /**
      * Sub-resource class for router's chain tables.
      */
-    public static class RouterTableResource extends RestResource {
+    public static class RouterTableResource {
 
         private UUID routerId = null;
 
-        public RouterTableResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID routerId) {
-            this.zooKeeper = zkConn;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
+        public RouterTableResource(UUID routerId) {
             this.routerId = routerId;
         }
 
@@ -126,46 +116,40 @@ public class ChainResource extends RestResource {
         @Path("/{name}/chains")
         public RouterTableChainResource getChainTableResource(
                 @PathParam("name") String name) {
-            return new RouterTableChainResource(zooKeeper, zookeeperRoot,
-                    zookeeperMgmtRoot, routerId, name);
+            return new RouterTableChainResource(routerId, name);
         }
     }
 
     /**
      * Sub-resource class for router's table chains.
      */
-    public static class RouterTableChainResource extends RestResource {
+    public static class RouterTableChainResource {
 
         private UUID routerId = null;
         private String table = null;
 
-        public RouterTableChainResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID routerId, String table) {
-            this.zooKeeper = zkConn;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
+        public RouterTableChainResource(UUID routerId, String table) {
             this.routerId = routerId;
             this.table = table;
         }
 
-        private boolean isRouterOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new RouterZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+        private boolean isRouterOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException,
+                ZkStateSerializationException {
+            OwnerQueryable q = daoFactory.getRouterDao();
             return AuthManager.isOwner(context, q, routerId);
         }
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Chain> list(@Context SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException,
-                UnauthorizedException {
-            if (!isRouterOwner(context)) {
+        public List<Chain> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
+                ZkStateSerializationException, UnauthorizedException {
+            if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own chains.");
             }
 
-            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            ChainDao dao = daoFactory.getChainDao();
             try {
                 return dao.listTableChains(routerId, table);
             } catch (StateAccessException e) {
@@ -181,14 +165,14 @@ public class ChainResource extends RestResource {
         @Path("{name}")
         @Produces(MediaType.APPLICATION_JSON)
         public Chain get(@PathParam("name") String name,
-                @Context SecurityContext context) throws StateAccessException,
-                UnauthorizedException, ZkStateSerializationException {
-            if (!isRouterOwner(context)) {
+                @Context SecurityContext context, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException,
+                ZkStateSerializationException {
+            if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own chains.");
             }
 
-            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            ChainDao dao = daoFactory.getChainDao();
             try {
                 return dao.get(routerId, table, name);
             } catch (StateAccessException e) {
@@ -204,36 +188,30 @@ public class ChainResource extends RestResource {
     /**
      * Sub-resource class for router's table chains.
      */
-    public static class RouterChainResource extends RestResource {
+    public static class RouterChainResource {
 
         private UUID routerId = null;
 
-        public RouterChainResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID routerId) {
-            this.zooKeeper = zkConn;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
+        public RouterChainResource(UUID routerId) {
             this.routerId = routerId;
         }
 
-        private boolean isRouterOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new RouterZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+        private boolean isRouterOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException {
+            OwnerQueryable q = daoFactory.getRouterDao();
             return AuthManager.isOwner(context, q, routerId);
         }
 
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Chain chain, @Context UriInfo uriInfo,
-                @Context SecurityContext context) throws StateAccessException,
-                ZkStateSerializationException, UnauthorizedException {
-            if (!isRouterOwner(context)) {
+                @Context SecurityContext context, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
+            if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own chains.");
             }
 
-            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            ChainDao dao = daoFactory.getChainDao();
             chain.setRouterId(routerId);
 
             UUID id = null;
@@ -253,15 +231,14 @@ public class ChainResource extends RestResource {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Chain> list(@Context SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException,
+        public List<Chain> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
-            if (!isRouterOwner(context)) {
+            if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own chains.");
             }
 
-            ChainZkManagerProxy dao = new ChainZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            ChainDao dao = daoFactory.getChainDao();
             try {
                 return dao.list(routerId);
             } catch (StateAccessException e) {

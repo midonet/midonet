@@ -3,13 +3,14 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RouteZkManager;
@@ -23,7 +24,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-public class RouteZkManagerProxy extends ZkMgmtManager implements
+public class RouteZkManagerProxy extends ZkMgmtManager implements RouteDao,
         OwnerQueryable {
 
     private RouteZkManager zkManager = null;
@@ -42,8 +43,7 @@ public class RouteZkManagerProxy extends ZkMgmtManager implements
      * @throws StateAccessException
      * @throws ZkStateSerializationException
      */
-    public UUID create(Route route) throws ZkStateSerializationException,
-            StateAccessException {
+    public UUID create(Route route) throws StateAccessException {
         return zkManager.create(route.toZkRoute());
     }
 
@@ -56,9 +56,8 @@ public class RouteZkManagerProxy extends ZkMgmtManager implements
      * @throws StateAccessException
      * @throws ZkStateSerializationException
      */
-    public Route get(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
-        // TODO: Throw NotFound exception here.
+    @Override
+    public Route get(UUID id) throws StateAccessException {
         return Route.createRoute(id, zkManager.get(id).value);
     }
 
@@ -82,28 +81,26 @@ public class RouteZkManagerProxy extends ZkMgmtManager implements
      * @throws StateAccessException
      * @throws ZkStateSerializationException
      */
-    public List<Route> list(UUID routerId)
-            throws ZkStateSerializationException, StateAccessException {
+    @Override
+    public List<Route> list(UUID routerId) throws StateAccessException {
         return generateRouteList(zkManager.list(routerId));
     }
 
-    public List<Route> listByPort(UUID portId)
-            throws ZkStateSerializationException, StateAccessException {
+    @Override
+    public List<Route> listByPort(UUID portId) throws StateAccessException {
         return generateRouteList(zkManager.listPortRoutes(portId));
     }
 
-    public void delete(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
-        // TODO: catch NoNodeException if does not exist.
+    @Override
+    public void delete(UUID id) throws StateAccessException {
         zkManager.delete(id);
     }
 
     @Override
-    public String getOwner(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
+    public String getOwner(UUID id) throws StateAccessException {
         Route route = get(id);
-        OwnerQueryable manager = new RouterZkManagerProxy(zk, pathManager
-                .getBasePath(), mgmtPathManager.getBasePath());
+        OwnerQueryable manager = new RouterZkManagerProxy(zk,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(route.getRouterId());
     }
 }
