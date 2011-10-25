@@ -52,7 +52,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
     final val log = LoggerFactory.getLogger(getClass)
 
     // Warning, fragile RE parsing used.
-    val requestRE = """\{"method":"([a-z]+)","params":(\[.*\]),"id":(.+)\}""".r
+    val requestRE = """ *\{"method":"([a-z]+)","params":(\[.*\]),"id":(.+)\}""".r
 
     def loop(): Nothing = {
         log.info("Entering loop()")
@@ -73,7 +73,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
                         socket.close
                         throw new RuntimeException("Dying by request")
                 case _ => 
-                        log.error("Unknown message type received: {}", message)
+                        log.error("Unknown message type received: '{}'", message)
             }
         }
         throw new RuntimeException("Infinite loop ended!!")
@@ -87,7 +87,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
     def handleTransact(params: String, id: String) {
         val opRE = """\["Open_vSwitch",\{"op":"([a-z]+)","table":"([a-zA-Z]+)",(.*)\}\]""".r
         params match {
-            case opRE("select", table, _) =>
+            case opRE("select", unusedTable, unusedCdr) =>
                 outStream.write(String.format("""{"id":%s,"error":null,"result":[{"rows":[]}]}""", id).getBytes("ASCII"))
             case _ =>
                 log.error("Unknown transact type received: {}", params)

@@ -56,4 +56,18 @@ class TestDummyOVSDB {
                    """{"id":1,"error":null,"result":[{"rows":[]}]}""")
     }
 
+    @Test(timeout=1000) def testBasicOVSDBConnection() {
+        val portNum = basePortNum - counter.incrementAndGet
+        val ovsdb = new DummyOVSDB(portNum)
+        spawn {
+            ovsdb.accept(classOf[DummyOVSDBServerConn]).loop
+            ovsdb.close
+        }
+        Thread.sleep(20)
+        val ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                "localhost", portNum)
+        val bridgeTable = ovsdbConn.dumpBridgeTable
+        assertTrue(bridgeTable.isEmpty)
+    }
+
 }
