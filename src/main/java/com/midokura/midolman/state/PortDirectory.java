@@ -13,9 +13,8 @@ public class PortDirectory {
         public BridgePortConfig(UUID device_id) {
             super(device_id);
         }
-        
         // Default constructor for the Jackson deserialization.
-        public BridgePortConfig() { super(); }
+        private BridgePortConfig() { super(); }
     
         @Override
         public boolean equals(Object other) {
@@ -33,8 +32,7 @@ public class PortDirectory {
     public static abstract class RouterPortConfig extends PortConfig {
         public int nwAddr;
         public int nwLength;
-        public int portAddr;
-
+        public transient int portAddr;
         // Routes are stored in a ZK sub-directory. Don't serialize them.        
         public transient Set<Route> routes;
     
@@ -50,20 +48,10 @@ public class PortDirectory {
         // Default constructor for the Jackson deserialization.
         public RouterPortConfig() { super(); }
     
-        // Custom accessors for Jackson serialization
-        
-        public String getNwAddr() {
-        	return Net.convertIntAddressToString(this.nwAddr);
-        }
-        
-        public void setNwAddr(String addr) {
-        	this.nwAddr = Net.convertStringAddressToInt(addr);
-        }
-        
+        // Setter and getter for the transient property.
         public String getPortAddr() {
             return Net.convertIntAddressToString(this.portAddr);
         }
-        
         public void setPortAddr(String addr) {
             this.portAddr = Net.convertStringAddressToInt(addr);
         }
@@ -137,16 +125,7 @@ public class PortDirectory {
         // Default constructor for the Jackson deserialization
         public MaterializedRouterPortConfig() { super(); }
     
-        // Custom accessors for Jackson serialization
-        
-        public String getLocalNwAddr() {
-        	return Net.convertIntAddressToString(this.localNwAddr);
-        }
-        
-        public void setLocalNwAddr(String addr) {
-        	this.localNwAddr = Net.convertStringAddressToInt(addr);
-        }
-        
+        // Getter and setter for the Jackson deserialization
         public Set<BGP> getBgps() { return bgps; }
         public void setBgps(Set<BGP> bgps) { this.bgps = bgps; }
     
