@@ -496,8 +496,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                   jsonGenerator.flush
               }
             } catch {
+                case e: EOFException =>
+                    { stop; log.warn("doJsonRpc", e); throw e }
                 case e: IOException =>
-                    { log.warn("doJsonRpc", e); throw new IOException(e) }
+                    { stop; log.warn("doJsonRpc", e); throw e }
             }
             // Block until the response is received and parsed or stop in timeout.
             var response: JsonNode = null
@@ -506,6 +508,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 // response = queue.take
             } catch {
                 case e: InterruptedException => {
+                    stop
                     log.warn("doJsonRpc", e)
                     throw new OVSDBException(
                         "It took too long time to take response")
@@ -578,10 +581,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     { stop;
                       // TODO: Ignore this when the parent thread close the 
                       //       socket.
-                      log.warn("run: SocketException")
+                      log.warn("run: SocketException", e)
                     }
                 case e: EOFException =>
-                    { stop; log.info("run: EOFException the socket closed.") }
+                    { stop; log.info("run: EOFException", e) }
                 case e: IOException =>
                     { stop; log.warn("run: IOException", e) }
             }
