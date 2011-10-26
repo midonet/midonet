@@ -182,9 +182,10 @@ object TestBridgeControllerOVS
         controllerStub.start
     }
 
-    def addSystemPort(portName : String) {
+    def addSystemPort(portName : String, vportId : UUID) {
         var pb = ovsdb.addSystemPort(bridgeName, portName)
         pb.ifMac("00:01:02:03:04:05")
+        pb.externalId(bridgeExtIdKey, vportId.toString())
         pb.build
     }
 
@@ -192,8 +193,10 @@ object TestBridgeControllerOVS
         ovsdb.addInternalPort(bridgeName, portName).build
     }
 
-    def addTapPort(portName : String) {
-        ovsdb.addTapPort(bridgeName, portName).build
+    def addTapPort(portName : String, vportId : UUID) {
+        var pb = ovsdb.addTapPort(bridgeName, portName)
+        pb.externalId(bridgeExtIdKey, vportId.toString())
+        pb.build
     }
 }
 
@@ -223,13 +226,14 @@ class TestBridgeControllerOVS {
             // Clear the list of added ports, and make a new port which should
             // trigger an addPort callback.
             controller.addedPorts = List()
-            addSystemPort(portName)
+            val portId = UUID.randomUUID()
+            addSystemPort(portName, portId)
             assertTrue(ovsdb.hasPort(portName))
             log.info("Port {} successfully added to ovsdb", portName)
             // TODO: Verify this is a system port.
             portModSemaphore.acquire
             assertEquals(1, controller.addedPorts.size)
-            assertEquals(portName, controller.addedPorts(0).getName)
+            assertEquals(portId, controller.addedPorts(0))
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
             controller.addedPorts = List()
@@ -271,14 +275,15 @@ class TestBridgeControllerOVS {
         log.info("testNewTapPort has semaphore")
         try {
             val portName = "tap" + testportName
-            addTapPort(portName)
+            val portId = UUID.randomUUID()
+            addTapPort(portName, portId)
             // Clear the list of added ports, and make a new port which should
             // trigger an addPort callback.
             controller.addedPorts = List()
             assertTrue(ovsdb.hasPort(portName))
             portModSemaphore.acquire
             assertEquals(1, controller.addedPorts.size)
-            assertEquals(portName, controller.addedPorts(0).getName)
+            assertEquals(portName, controller.addedPorts(0))
             // TODO: Verify this is a TAP port.
             ovsdb.delPort(portName)
             assertFalse(ovsdb.hasPort(portName))
@@ -312,7 +317,7 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
                         publicIP, macPortTimeoutMillis, ovsdb, reactor,
                         externalIDKey) {
     downPorts = new NotifyingSet(portSemaphore)
-    var addedPorts = List[OFPhysicalPort]()
+    var addedPorts = List[UUID]()
 
     def getDownPorts() = { downPorts }
 
@@ -325,21 +330,14 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
         }
     }
 
-    /*
-    override def addServicePort(portNum: Integer, name: String, vId: UUID) {}
-    override def deleteServicePort(portNum: Integer, name: String, vId: UUID) {}
-    override def addTunnelPort(portNum: Integer, peerIp: IntIPv4) {}
-    override def deleteTunnelPort(portNum: Integer, peerIp: IntIPv4) {}
-    override def deleteVirtualPort(portNum: Integer, vId: UUID) {}
-    override def addVirtualPort(portNum: Integer, name: String, addr: MAC,
+    override def addVirtualPort(portNum: Int, name: String, addr: MAC,
             vId: UUID) {
         try {
             log.info("BridgeControllerTester: addPort")
             super.addVirtualPort(portNum, name, addr, vId)
-            //addedPorts ::= portDesc
+            addedPorts ::= vId
         } finally {
            portSemaphore.release
         }
     }
-    */
 }
