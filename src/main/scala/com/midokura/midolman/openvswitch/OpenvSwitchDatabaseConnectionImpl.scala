@@ -21,7 +21,6 @@ import scala.util.Random
 
 import java.math.BigInteger
 import java.net.{Socket, SocketException}
-import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import java.util.{UUID, Timer, TimerTask}
 
 import com.fasterxml.jackson.module.scala.ScalaModule
@@ -31,8 +30,9 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
 
 import OpenvSwitchDatabaseConsts._
-import com.midokura.midolman.openvswitch.OpenvSwitchException._
 import java.io._
+import java.util.concurrent.{TimeUnit, ArrayBlockingQueue, BlockingQueue}
+import com.midokura.midolman.openvswitch.OpenvSwitchException._
 
 /**
  * Static methods and constants for OpenvSwitchDatabaseConnection.
@@ -40,6 +40,7 @@ import java.io._
 object OpenvSwitchDatabaseConnectionImpl {
     import OpenvSwitchDatabaseConnectionImpl._
     private final val echo_interval = 1000
+    private final val PollInterval: Long = 3000L
     private final val log = LoggerFactory.getLogger(this.getClass)
 
     /**
@@ -456,13 +457,15 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     jsonGenerator.flush
                 }
             } catch {
+                case e: EOFException =>
+                    { log.warn("echo", e); throw e }
                 case e: IOException =>
-                    { log.warn("echo", e); throw new RuntimeException(e) }
+                    { log.warn("echo", e); throw e }
             }
         }
     }, 0, echo_interval)
 
-    def stop { continue = false }
+    def stop { timer.cancel; continue = false }
 
     /**
      * Apply a operation to the database.
@@ -494,17 +497,19 @@ extends OpenvSwitchDatabaseConnection with Runnable {
               }
             } catch {
                 case e: IOException =>
-                    { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
+                    { log.warn("doJsonRpc", e); throw new IOException(e) }
             }
-            // Block until the response is received and parsed.
-            // TODO: Set a timeout for the response, using poll() instead of
-            // take().
+            // Block until the response is received and parsed or stop in timeout.
             var response: JsonNode = null
             try {
-                response = queue.take
+                response = queue.poll(PollInterval, TimeUnit.MILLISECONDS)
+                // response = queue.take
             } catch {
-                case e: InterruptedException =>
-                    { log.warn("doJsonRpc", e); throw new RuntimeException(e) }
+                case e: InterruptedException => {
+                    log.warn("doJsonRpc", e)
+                    throw new OVSDBException(
+                        "It took too long time to take response")
+                }
             }
             val responseId: Long = response.get("id").getValueAsLong
             if (responseId != requestId)
@@ -568,16 +573,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 //TODO: handle "notification" type
             } catch {
                 case e: InterruptedException =>
-                    { stop; log.warn("run", e) }
+                    { stop; log.warn("run: InterruptedException", e) }
                 case e: SocketException =>
                     { stop;
                       // TODO: Ignore this when the parent thread close the 
                       //       socket.
+                      log.warn("run: SocketException")
                     }
                 case e: EOFException =>
-                    { stop; log.info("run", "EOF: the socket closed.") }
+                    { stop; log.info("run: EOFException the socket closed.") }
                 case e: IOException =>
-                    { stop; log.warn("run", e) }
+                    { stop; log.warn("run: IOException", e) }
             }
         }
     }
@@ -2306,7 +2312,6 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * Close the connection.
      */
     override def close() {
-        timer.cancel
         this.stop
         try {
             socket.close
