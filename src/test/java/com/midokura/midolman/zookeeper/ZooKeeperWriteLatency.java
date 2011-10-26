@@ -61,7 +61,7 @@ public class ZooKeeperWriteLatency {
         Percentile p = new Percentile();
         
         byte b[] = new byte[1000];
-        for (int i=0; i<10000; i++) {
+        for (int i=0; i<1000; i++) {
             long before = System.nanoTime();
             zk.create("/"+i, b, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
             long after = System.nanoTime();
@@ -72,11 +72,11 @@ public class ZooKeeperWriteLatency {
         }
         
         log.info("create latency");
-        log.info("50p = " + p.getPercentile(0.50));
-        log.info("70p = " + p.getPercentile(0.70));
-        log.info("80p = " + p.getPercentile(0.80));
-        log.info("90p = " + p.getPercentile(0.90));
-        log.info("100p = " + p.getPercentile(1.00));
+        log.info("50p = " + formatTime(p.getPercentile(0.50)));
+        log.info("70p = " + formatTime(p.getPercentile(0.70)));
+        log.info("80p = " + formatTime(p.getPercentile(0.80)));
+        log.info("90p = " + formatTime(p.getPercentile(0.90)));
+        log.info("100p = " + formatTime(p.getPercentile(1.00)));
         
 //        p = new Percentile();
 //        
@@ -92,15 +92,15 @@ public class ZooKeeperWriteLatency {
 //        }
 //        
 //        log.info("setData latency");
-//        log.info("50p = " + p.getPercentile(0.50));
-//        log.info("70p = " + p.getPercentile(0.70));
-//        log.info("80p = " + p.getPercentile(0.80));
-//        log.info("90p = " + p.getPercentile(0.90));
-//        log.info("100p = " + p.getPercentile(1.00));
+//        log.info("50p = " + formatTime(p.getPercentile(0.50)));
+//        log.info("70p = " + formatTime(p.getPercentile(0.70)));
+//        log.info("80p = " + formatTime(p.getPercentile(0.80)));
+//        log.info("90p = " + formatTime(p.getPercentile(0.90)));
+//        log.info("100p = " + formatTime(p.getPercentile(1.00)));
         
         p = new Percentile();
         
-        for (int i=0; i<10000; i++) {
+        for (int i=0; i<1000; i++) {
             long before = System.nanoTime();
             zk.getData("/"+i, null, null);
             long after = System.nanoTime();
@@ -111,11 +111,20 @@ public class ZooKeeperWriteLatency {
         }
         
         log.info("getData latency");
-        log.info("50p = " + p.getPercentile(0.50));
-        log.info("70p = " + p.getPercentile(0.70));
-        log.info("80p = " + p.getPercentile(0.80));
-        log.info("90p = " + p.getPercentile(0.90));
-        log.info("100p = " + p.getPercentile(1.00));
+        log.info("50p = " + formatTime(p.getPercentile(0.50)));
+        log.info("70p = " + formatTime(p.getPercentile(0.70)));
+        log.info("80p = " + formatTime(p.getPercentile(0.80)));
+        log.info("90p = " + formatTime(p.getPercentile(0.90)));
+        log.info("100p = " + formatTime(p.getPercentile(1.00)));
     }
 
+    /**
+     * Format nanasecond times in doubles as millisecond times in strings.
+     * 
+     * @param time time in nanoseconds
+     * @return time in milliseconds with units
+     */
+    private String formatTime(double time) {
+    	return String.format("%.3f ms", time / 1000000.0);
+    }
 }
