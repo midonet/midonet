@@ -26,6 +26,7 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.VifResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.VpnResource;
 
 /**
  * Jax-RS application class.
@@ -62,6 +63,7 @@ public class RestApplication extends Application {
         set.add(BgpResource.class);
         set.add(AdRouteResource.class);
         set.add(VifResource.class);
+        set.add(VpnResource.class);
         set.add(AdminResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
