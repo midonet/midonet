@@ -13,7 +13,6 @@ import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFPhysicalPort;
-import org.openflow.protocol.OFPhysicalPort.OFPortConfig;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -27,7 +26,6 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
-import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.LLDP;
 import com.midokura.midolman.packets.LLDPTLV;
@@ -42,8 +40,10 @@ import com.midokura.midolman.util.Net;
 
 
 class AbstractControllerTester extends AbstractController {
-    public List<OFPhysicalPort> portsAdded;
-    public List<OFPhysicalPort> portsRemoved;
+    public List<UUID> virtualPortsAdded;
+    public List<UUID> virtualPortsRemoved;
+    public List<IntIPv4> tunnelPortsAdded;
+    public List<IntIPv4> tunnelPortsRemoved;
     public int numClearCalls;
     short flowExpireSeconds;
     short idleFlowExpireSeconds;
@@ -60,8 +60,10 @@ class AbstractControllerTester extends AbstractController {
             IntIPv4 internalIp) {
         super(datapathId, switchUuid, greKey, ovsdb, dict, internalIp, 
               "midonet");
-        portsAdded = new ArrayList<OFPhysicalPort>();
-        portsRemoved = new ArrayList<OFPhysicalPort>();
+        virtualPortsAdded = new ArrayList<UUID>();
+        virtualPortsRemoved = new ArrayList<UUID>();
+        tunnelPortsAdded = new ArrayList<IntIPv4>();
+        tunnelPortsRemoved = new ArrayList<IntIPv4>();
         numClearCalls = 0;
         this.flowExpireSeconds = flowExpireSeconds;
         this.idleFlowExpireSeconds = (short)(idleFlowExpireMillis/1000);
@@ -85,20 +87,11 @@ class AbstractControllerTester extends AbstractController {
             long byteCount) { }
 
     public void clear() {
-        portsAdded = new ArrayList<OFPhysicalPort>();
-        portsRemoved = new ArrayList<OFPhysicalPort>();
+        virtualPortsAdded.clear();
+        virtualPortsRemoved.clear();
+        tunnelPortsAdded.clear();
+        tunnelPortsRemoved.clear();
         numClearCalls++;
-    }
-
-    @Override
-    protected void addPort(OFPhysicalPort portDesc, short portNum) { 
-        assertEquals(portDesc.getPortNumber(), portNum);
-        portsAdded.add(portDesc);
-    }
-
-    @Override
-    protected void deletePort(OFPhysicalPort portDesc) { 
-        portsRemoved.add(portDesc);
     }
 
     @Override 
@@ -119,6 +112,32 @@ class AbstractControllerTester extends AbstractController {
     public IntIPv4 peerIpOfGrePortName(String s) {
         return super.peerIpOfGrePortName(s);
     }
+
+    @Override
+    protected void addVirtualPort(int num, String name, MAC addr, UUID vId) {
+        virtualPortsAdded.add(vId);
+    }
+
+    @Override
+    protected void deleteVirtualPort(int num, UUID vId) {
+        virtualPortsRemoved.add(vId);
+    }
+
+    @Override
+    protected void addServicePort(int num, String name, UUID vId) {}
+
+    @Override
+    protected void deleteServicePort(int num, String name, UUID vId) {}
+
+    @Override
+    protected void addTunnelPort(int num, IntIPv4 peerIP) {
+        tunnelPortsAdded.add(peerIP);
+    }
+
+    @Override
+    protected void deleteTunnelPort(int num, IntIPv4 peerIP) {
+        tunnelPortsRemoved.add(peerIP);
+    }
 }
 
 
@@ -130,7 +149,7 @@ public class TestAbstractController {
     private OFPhysicalPort port2;
     private OFPhysicalPort port3;
     private UUID port1uuid;
-    private UUID port2uuid;
+    private IntIPv4 port2peer;
     private UUID port3uuid;
     private int dp_id;
     private MockOpenvSwitchDatabaseConnection ovsdb;
@@ -170,8 +189,7 @@ public class TestAbstractController {
         port2.setPortNumber((short) 47);
         port2.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 47 });
         port2.setName("tne12340a001122");
-        port2uuid = UUID.randomUUID();
-        ovsdb.setPortExternalId(dp_id, 47, "midonet", port2uuid.toString());
+        port2peer = new IntIPv4(0x0a001122);
 
         port3 = new OFPhysicalPort();
         port3.setPortNumber((short) 57);
@@ -187,12 +205,22 @@ public class TestAbstractController {
 
     @Test
     public void testPortMap() {
-        assertEquals(37, controller.portUuidToNumber(port1uuid));
-        assertEquals(47, controller.portUuidToNumber(port2uuid));
+        assertEquals(new Integer(37),
+                controller.portUuidToNumberMap.get(port1uuid));
+        assertEquals(port1uuid, controller.portNumToUuid.get(37));
+        // Port 57 is virtual but it's link is down.
+        assertNull(controller.portUuidToNumberMap.get(port3uuid));
+        assertNull(controller.portNumToUuid.get(57));
+        // Port 47 is a tunnel
+        assertNull(controller.portNumToUuid.get(47));
+        assertNull(controller.portNumToUuid.get(57));
+        // Only port 47 is a tunnel.
         assertFalse(controller.isTunnelPortNum(37));
+        assertFalse(controller.isTunnelPortNum(57));
         assertTrue(controller.isTunnelPortNum(47));
-        assertEquals(null, controller.peerOfTunnelPortNum(37));
-        assertEquals(0x0a001122, controller.peerOfTunnelPortNum(47).address);
+        assertNull(controller.peerOfTunnelPortNum(37));
+        assertNull(controller.peerOfTunnelPortNum(57));
+        assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
     }
 
     @Test
@@ -205,15 +233,15 @@ public class TestAbstractController {
         controller.setFeatures(features);
         controller.onConnectionLost();
         assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsAdded.toArray());
+                          controller.virtualPortsAdded.toArray());
         assertArrayEquals(new String[] { },
                           ovsdb.deletedPorts.toArray());
         MockControllerStub stub = 
                 (MockControllerStub) controller.controllerStub;
         assertEquals(0, stub.deletedFlows.size());
         controller.onConnectionMade();
-        assertArrayEquals(new OFPhysicalPort[] { port1 },
-                          controller.portsAdded.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                          controller.virtualPortsAdded.toArray());
         assertArrayEquals(new String[] { port2.getName() },
                           ovsdb.deletedPorts.toArray());
         assertEquals(1, stub.deletedFlows.size());
@@ -223,19 +251,25 @@ public class TestAbstractController {
 
     @Test
     public void testClearAdd() {
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-                          controller.portsAdded.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                controller.tunnelPortsAdded.toArray());
         assertEquals(0, controller.numClearCalls);
         controller.onConnectionLost();
         assertEquals(1, controller.numClearCalls);
         assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsAdded.toArray());
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { },
+                controller.tunnelPortsAdded.toArray());
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-                          controller.portsAdded.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                controller.tunnelPortsAdded.toArray());
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
-        assertEquals(port2uuid, controller.portNumToUuid.get(47));
+        assertNull(controller.portNumToUuid.get(47));
         assertNull(controller.peerOfTunnelPortNum(37));
         assertEquals("10.0.17.34",
                      controller.peerOfTunnelPortNum(47).toString());
@@ -243,83 +277,89 @@ public class TestAbstractController {
 
     @Test
     public void testBringPortUp() {
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-                          controller.portsAdded.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                controller.tunnelPortsAdded.toArray());
         port3.setConfig(0);
         controller.onPortStatus(port3, OFPortReason.OFPPR_MODIFY);
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2, port3 },
-                          controller.portsAdded.toArray());
+        assertArrayEquals(new UUID[] { port1uuid, port3uuid },
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                controller.tunnelPortsAdded.toArray());
     }
 
     @Test
     public void testModifyPort() {
         port2.setName("tne12340a001123");
-        UUID port2newUuid = UUID.randomUUID();
-        ovsdb.setPortExternalId(dp_id, 47, "midonet", port2newUuid.toString());
         controller.onPortStatus(port2, OFPortReason.OFPPR_MODIFY);
-        assertEquals(port2newUuid, controller.portNumToUuid.get(47));
+        assertNull(controller.portNumToUuid.get(47));
         assertEquals("10.0.17.35",
                      controller.peerOfTunnelPortNum(47).toString());
     }
 
     @Test
     public void testModifyDownPort() {
-        assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsRemoved.toArray());
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-                          controller.portsAdded.toArray());
-        port3.setName("tne12340a001123");
+        assertArrayEquals(new UUID[] { },
+                controller.virtualPortsRemoved.toArray());
+        assertArrayEquals(new IntIPv4[] { },
+                controller.tunnelPortsRemoved.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                controller.tunnelPortsAdded.toArray());
         UUID port3newUuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 57, "midonet", port3newUuid.toString());
         controller.onPortStatus(port3, OFPortReason.OFPPR_MODIFY);
         assertNull(controller.portNumToUuid.get(57));
         assertNull(controller.peerOfTunnelPortNum(57));
         assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsRemoved.toArray());
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-                          controller.portsAdded.toArray());
+                          controller.virtualPortsRemoved.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                controller.tunnelPortsAdded.toArray());
     }
 
     @Test
     public void testDeletePort() {
         assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsRemoved.toArray());
+                          controller.virtualPortsRemoved.toArray());
         assertTrue(controller.portNumToUuid.containsKey(37));
         assertNull(controller.peerOfTunnelPortNum(37));
         controller.onPortStatus(port1, OFPortReason.OFPPR_DELETE);
-        assertArrayEquals(new OFPhysicalPort[] { port1 },
-                          controller.portsRemoved.toArray());
+        assertArrayEquals(new UUID[] { port1uuid },
+                          controller.virtualPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(37));
-        assertTrue(controller.portNumToUuid.containsKey(47));
-        assertNotNull(controller.peerOfTunnelPortNum(47));
+        assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
         controller.onPortStatus(port2, OFPortReason.OFPPR_DELETE);
-        assertArrayEquals(new OFPhysicalPort[] { port1, port2 },
-                          controller.portsRemoved.toArray());
+        assertArrayEquals(new IntIPv4[] { port2peer },
+                          controller.tunnelPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(47));
         assertNull(controller.peerOfTunnelPortNum(47));
     }
 
     @Test
     public void testBringPortDown() {
-        assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsRemoved.toArray());
+        assertArrayEquals(new UUID[] { },
+                          controller.virtualPortsRemoved.toArray());
         assertTrue(controller.portNumToUuid.containsKey(37));
         port1.setConfig(AbstractController.portDownFlag);
         controller.onPortStatus(port1, OFPortReason.OFPPR_MODIFY);
-                assertArrayEquals(new OFPhysicalPort[] { port1 },
-                          controller.portsRemoved.toArray());
+                assertArrayEquals(new UUID[] { port1uuid },
+                          controller.virtualPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(37));
-        assertTrue(controller.portNumToUuid.containsKey(47));
-        assertNotNull(controller.peerOfTunnelPortNum(47));
+        assertFalse(controller.portNumToUuid.containsKey(47));
+        assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
     }
 
     @Test
     public void testDeleteDownPort() {
-        assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsRemoved.toArray());
+        assertArrayEquals(new UUID[] { },
+                          controller.virtualPortsRemoved.toArray());
         controller.onPortStatus(port3, OFPortReason.OFPPR_DELETE);
-        assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.portsRemoved.toArray());
+        assertArrayEquals(new UUID[] { },
+                          controller.virtualPortsRemoved.toArray());
     }
 
     @Test
@@ -344,8 +384,6 @@ public class TestAbstractController {
         port.setPortNumber((short) 54);
         port.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 54 });
         port.setName(grePortName);
-        ovsdb.setPortExternalId(dp_id, 54, "midonet", 
-                                UUID.randomUUID().toString());
         controller.onPortStatus(port, OFPortReason.OFPPR_ADD);
         log.debug("peerIP: {}", peerIP);
         assertEquals(new Integer(54), 
@@ -454,7 +492,7 @@ public class TestAbstractController {
         MAC dstMac = MAC.fromString("01:00:5e:00:00:fb");
         int srcIP = Net.convertStringAddressToInt("112.140.32.93");
         int dstIP = Net.convertStringAddressToInt("224.0.0.251");
-        byte diffServ = (byte)0xC0;
+        //byte diffServ = (byte)0xC0;
 
         assertEquals(60*2, frameHexDump.length());
         byte[] pktData = new byte[60];

@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,11 +32,11 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
-import com.midokura.midolman.util.Net;
 
 public abstract class AbstractController 
         implements Controller, AbstractControllerMXBean {
@@ -54,7 +53,7 @@ public abstract class AbstractController
     protected PortToIntNwAddrMap portLocMap;
 
     // Tunnel management data structures
-    // private to AbstractController, but publically queriable through
+    // private to AbstractController, but publicly queriable through
     // tunnelPortNumOfPeer() and peerOfTunnelPortNum().
     private HashMap<Integer, IntIPv4> tunnelPortNumToPeerIp;
     private HashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
@@ -142,10 +141,7 @@ public abstract class AbstractController
                 log.debug("ovsdb thinks there {} a port {}",
                           ovsdb.hasPort(portName) ? "is" : "is not", portName);
             } else {
-                if ((portDesc.getConfig() & portDownFlag) == 0)
-                    callAddPort(portDesc, portDesc.getPortNumber());
-                else
-                    downPorts.add(new Integer(portDesc.getPortNumber()));
+                onPortStatus(portDesc, OFPortReason.OFPPR_ADD);
             }
         }
         log.debug("onConnectionMade: All done handling pre-existing ports.  " +
@@ -176,107 +172,205 @@ public abstract class AbstractController
     public abstract void onPacketIn(int bufferId, int totalLen, short inPort,
                                     byte[] data);
 
-    private void callAddPort(OFPhysicalPort portDesc, short portNum) {
-        UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-        log.info("Adding port#{} id: {}", portNum, uuid);
-        if (uuid != null) {
-            portNumToUuid.put(new Integer(portNum), uuid);
-            portUuidToNumberMap.put(uuid, new Integer(portNum));
-            if (publicIp != null) {
-                try {
-                    portLocMap.put(uuid, publicIp);
-                } catch (KeeperException e) {
-                    log.warn("callAddPort", e);
-                } catch (InterruptedException e) {
-                    log.warn("callAddPort", e);
-                }
-            }
+    private void _addVirtualPort(int num, String name, MAC addr, UUID uuid) {
+        log.info("_addVirtualPort num:{} name:{} addr:{} id:{}", new Object[] {
+                num, name, addr, uuid });
+        portNumToUuid.put(num, uuid);
+        portUuidToNumberMap.put(uuid, num);
+        // TODO(pino, jacob): do we really need to check for null publicIp?
+        try {
+            portLocMap.put(uuid, publicIp);
+        } catch (KeeperException e) {
+            log.warn("callAddPort", e);
+        } catch (InterruptedException e) {
+            log.warn("callAddPort", e);
         }
-        // TODO(pino, jlm): should this be an else-if?
-        if (isGREPortOfKey(portDesc.getName())) {
-            IntIPv4 peerIp = peerIpOfGrePortName(portDesc.getName());
-            // TODO: Error out if already tunneled to this peer.
-            tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
-            peerIpToTunnelPortNum.put(peerIp, new Integer(portNum));
-            log.debug("Recording tunnel {} <=> {}", portNum, peerIp);
-        }
-
-        addPort(portDesc, portNum);
+        addVirtualPort(num, name, addr, uuid);
     }
 
-    private void handlePortGoingDown(OFPhysicalPort portDesc, Integer portNum) {
-        deletePort(portDesc);
-        portNumToUuid.remove(portNum);
-        portUuidToNumberMap.remove(
-                getPortUuidFromOvsdb(datapathId, portNum.shortValue()));
-        IntIPv4 peerIp = tunnelPortNumToPeerIp.remove(portNum);
+    private void _addTunnelPort(int portNum, IntIPv4 peerIp) {
+        // TODO: Error out if already tunneled to this peer.
+        tunnelPortNumToPeerIp.put(new Integer(portNum), peerIp);
+        peerIpToTunnelPortNum.put(peerIp, new Integer(portNum));
+        log.debug("Recording tunnel {} <=> {}", portNum, peerIp);
+        addTunnelPort(portNum, peerIp);
+    }
 
-        log.debug("handlePortGoingDown: removing port# {}", portNum);
+    private void _deleteVirtualPort(int portNum, UUID uuid) {
+        log.info("_deleteVirtualPort num:{} id:{}", portNum, uuid);
+        // First notify the subclass then update the maps.
+        deleteVirtualPort(portNum, uuid);
+        portNumToUuid.remove(portNum);
+        portUuidToNumberMap.remove(uuid);
+        try {
+            portLocMap.remove(uuid);
+        } catch (KeeperException e) {
+            log.warn("callAddPort", e);
+        } catch (InterruptedException e) {
+            log.warn("callAddPort", e);
+        }
+    }
+
+    private void _deleteTunnelPort(int portNum) {
+        IntIPv4 peerIp = tunnelPortNumToPeerIp.get(portNum);
+        log.info("_deleteTunnelPort num:{} to peer:{}", portNum, peerIp);
+        // First notify the subclass then update the maps.
+        deleteTunnelPort(portNum, peerIp);
+        tunnelPortNumToPeerIp.remove(portNum);
         peerIpToTunnelPortNum.remove(peerIp);
     }
 
     @Override
     public final void onPortStatus(OFPhysicalPort portDesc,
                                    OFPortReason reason) {
-        log.debug("onPortStatus: portDesc {} reason {}", portDesc, reason);
+        int portNum = portDesc.getPortNumber() & 0xffff;
+        String name = portDesc.getName();
+        MAC addr = new MAC(portDesc.getHardwareAddress());
+        log.info("onPortStatus: num:{} name:{} reason:{}", new Object[] {
+                portNum, name, reason });
+
+        // There are three uses/kinds of ports:
+        // 1) Virtual ports - have an external id.
+        // 2) Service ports - associated with vports, different external id.
+        // 3) Tunnel ports
+        // Treat each type differently.
+
+        // It's a virtual port if it has a uuid.
+        UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
+        // Is it a tunnel?
+        IntIPv4 peerIp = null;
+        if (isGREPortOfKey(name))
+            peerIp = peerIpOfGrePortName(name);
+        // It's a service port if the service port uuid is set.
+        UUID svcId = getServicePortUuidFromOvsdb(datapathId, portNum);
+
+        // The three port types are mutually exclusive
+        if(null != uuid && peerIp != null)
+            log.error("onPortStatus num:{} seems to be a tunnel to {} but " +
+                    "has a virtual port id {}", new Object[] { portNum, peerIp,
+                    uuid });
+        if(null != uuid && null != svcId)
+            log.error("onPortStatus num:{} has both a virtual port id {} " +
+                    "and a service port id {}", new Object[] { portNum, uuid,
+                    svcId});
+        if(null != svcId && peerIp != null)
+            log.error("onPortStatus num:{} seems to be a tunnel to {} but " +
+                    "has a service port uuid {}", new Object[] { portNum,
+                    peerIp, svcId });
 
         if (reason.equals(OFPortReason.OFPPR_ADD)) {
-            short portNum = portDesc.getPortNumber();
-            if ((portDesc.getConfig() & portDownFlag) == 0)
-                callAddPort(portDesc, portNum);
+            boolean portDown = (portDesc.getConfig() & portDownFlag) != 0;
+            // If it's a service port - don't care whether it's up.
+            if (null != svcId)
+                addServicePort(portNum, name, svcId);
+            else if(portDown) {
+                log.info("onPortStatus num:{} is down, don't notify subclass",
+                        portNum);
+                downPorts.add(portNum);
+            }
+            else if(null != uuid)
+                _addVirtualPort(portNum, name, addr, uuid);
+            else if(peerIp != null)
+                _addTunnelPort(portNum, peerIp);
             else
-                downPorts.add(new Integer(portNum));
-        } else if (reason.equals(OFPortReason.OFPPR_DELETE)) {
-            Integer portNum = new Integer(portDesc.getPortNumber());
-            if (downPorts.contains(portNum))
+                log.error("onPortStatus unrecognized port type - not service" +
+                		"port, nor virtual port, nor tunnel");
+        }
+        else if(reason.equals(OFPortReason.OFPPR_DELETE)) {
+            if (null != svcId)
+                deleteServicePort(portNum, name, svcId);
+            // It's a tunnel or virtual port.
+            else if (downPorts.contains(portNum))
                 downPorts.remove(portNum);
+            else if(null != uuid)
+                _deleteVirtualPort(portNum, uuid);
+            else if(peerIp != null)
+                _deleteTunnelPort(portNum);
             else
-                handlePortGoingDown(portDesc, portNum);
+                log.error("onPortStatus unrecognized port type - not service" +
+                        "port, nor virtual port, nor tunnel");
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
-            Integer portNum = new Integer(portDesc.getPortNumber());
+            // If it's a service port do nothing.
+            // TODO(pino, yoshi): handle service port changes.
+            if (null != svcId) {
+                return;
+            }
+            // It's a tunnel or virtual port.
+            boolean portDown = (portDesc.getConfig() & portDownFlag) != 0;
             // Logic for the four up/down states:
-            //  * Was down, remains down:  Do nothing.
-            //  * Was up, went down:  Treat as delete.
-            //  * Was down, came up:  Treat as add.
-            //  * Was up, remains up:  Update maps with new data.
-            if ((portDesc.getConfig() & portDownFlag) != 0) {
+            // * Was down, remains down:  Do nothing.
+            // * Was up, went down:  Treat as delete.
+            // * Was down, came up:  Treat as add.
+            // * Was up, remains up:  Update maps with new data.
+            if (portDown) {
                 if (!downPorts.contains(portNum)) {
+                    // * Was up, went down:  Treat as delete.
                     downPorts.add(portNum);
-                    handlePortGoingDown(portDesc, portNum);
-                }
+                    if (null != uuid)
+                        _deleteVirtualPort(portNum, uuid);
+                    else if(peerIp != null)
+                        _deleteTunnelPort(portNum);
+                } // else * Was down, remains down:  Do nothing.
                 return;
             }
             if (downPorts.contains(portNum)) {
+                // * Was down, came up:  Treat as add.
                 downPorts.remove(portNum);
-                callAddPort(portDesc, portNum.shortValue());
+                if (null != uuid)
+                    _addVirtualPort(portNum, name, addr, uuid);
+                else if(peerIp != null)
+                    _addTunnelPort(portNum, peerIp);
                 return;
             }
-            // Wasn't down, and is still up, so update the state maps.
-            UUID uuid = getPortUuidFromOvsdb(datapathId, portNum.shortValue());
-            if (uuid != null) {
-                portNumToUuid.put(portNum, uuid);
-                portUuidToNumberMap.put(uuid, portNum);
-            } else
-                portNumToUuid.remove(portNum);
+            // * Was up, remains up:  Update maps with new data.
+            // Was the port's uuid changed or removed?
+            UUID oldId = portNumToUuid.get(portNum);
+            if (null != oldId && !oldId.equals(uuid))
+                _deleteVirtualPort(portNum, oldId);
+            // Does the port have a new or different uuid?
+            if (uuid != null && (null == oldId || !oldId.equals(uuid)))
+                _addVirtualPort(portNum, name, addr, uuid);
 
-            if (isGREPortOfKey(portDesc.getName())) {
-                IntIPv4 peerIp = peerIpOfGrePortName(portDesc.getName());
-                tunnelPortNumToPeerIp.put(portNum, peerIp);
-                peerIpToTunnelPortNum.put(peerIp, portNum);
-            } else {
-                IntIPv4 peerIp = tunnelPortNumToPeerIp.remove(portNum);
-                peerIpToTunnelPortNum.remove(peerIp);
-            }
+            // Was the port previously a tunnel port?
+            IntIPv4 oldPeerIp = tunnelPortNumToPeerIp.get(portNum);
+            if (null != oldPeerIp && !oldPeerIp.equals(peerIp))
+                _deleteTunnelPort(portNum);
+            // Is the port a new tunnel or did its name change?
+            if (peerIp != null && (null == oldPeerIp ||
+                    !oldPeerIp.equals(peerIp)))
+                _addTunnelPort(portNum, peerIp);
         } else {
             log.error("Unknown OFPortReason update: {}", reason);
         }
-        
-        log.debug("onPortStatus: peerIpToTunnelPortNum {}", 
-                  peerIpToTunnelPortNum);
     }
 
-    protected abstract void addPort(OFPhysicalPort portDesc, short portNum);
-    protected abstract void deletePort(OFPhysicalPort portDesc);
+    /**
+     * Virtual ports are added only if they are actually up.
+     * @param num
+     * @param name
+     * @param addr
+     * @param vId
+     */
+    protected abstract void addVirtualPort(int num, String name, MAC addr,
+            UUID vId);
+    protected abstract void deleteVirtualPort(int num, UUID vId);
+
+    /**
+     * Service ports are added regardless of whether they are up.
+     * @param num
+     * @param name
+     * @param vId
+     */
+    protected abstract void addServicePort(int num, String name, UUID vId);
+    protected abstract void deleteServicePort(int num, String name, UUID vId);
+
+    /**
+     * Tunnel ports are added regardless of whether they are up.
+     * @param num
+     * @param peerIP
+     */
+    protected abstract void addTunnelPort(int num, IntIPv4 peerIP);
+    protected abstract void deleteTunnelPort(int num, IntIPv4 peerIP);
 
     @Override
     public abstract void onFlowRemoved(OFMatch match, long cookie,
@@ -288,11 +382,6 @@ public abstract class AbstractController
     public void onMessage(OFMessage m) {
         log.debug("onMessage: {}", m);
         // Don't do anything else.
-    }
-
-    /* Maps a port UUID to its number on the local datapath. */
-    public int portUuidToNumber(UUID port_uuid) {
-        return portUuidToNumberMap.get(port_uuid);
     }
 
     /* Maps a remote port UUID to the number of the tunnel port where it
@@ -332,12 +421,16 @@ public abstract class AbstractController
         return portLocMap.containsValue(peerAddress);
     }
 
-    protected UUID getPortUuidFromOvsdb(long datapathId, short portNum) {
+    protected UUID getPortUuidFromOvsdb(long datapathId, int portNum) {
         String extId = ovsdb.getPortExternalId(datapathId, portNum,
                                                externalIdKey);
-        if (extId == null)
-            return null;
-        return UUID.fromString(extId);
+        return (extId == null) ? null : UUID.fromString(extId);
+    }
+
+    protected UUID getServicePortUuidFromOvsdb(long datapathId, int portNum) {
+        String extId = ovsdb.getPortExternalId(datapathId, portNum,
+                "midolman_port_id");
+        return (extId == null) ? null : UUID.fromString(extId);
     }
 
     private synchronized void portLocationUpdate(UUID portUuid, IntIPv4 oldAddr,

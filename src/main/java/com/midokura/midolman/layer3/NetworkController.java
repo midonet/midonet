@@ -13,7 +13,6 @@ import java.util.UUID;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionDataLayer;
@@ -81,7 +80,7 @@ public class NetworkController extends AbstractController {
     private RouteZkManager routeMgr;
     Network network;
     private Map<UUID, L3DevicePort> devPortById;
-    private Map<Short, L3DevicePort> devPortByNum;
+    private Map<Integer, L3DevicePort> devPortByNum;
     short idleFlowExpireSeconds; //package private to allow test access.
 
     private PortService service;
@@ -106,7 +105,7 @@ public class NetworkController extends AbstractController {
         this.network = new Network(deviceId, portMgr, routerMgr, chainMgr,
                 ruleMgr, reactor, cache);
         this.devPortById = new HashMap<UUID, L3DevicePort>();
-        this.devPortByNum = new HashMap<Short, L3DevicePort>();
+        this.devPortByNum = new HashMap<Integer, L3DevicePort>();
 
         this.service = service;
         this.service.setController(this);
@@ -328,9 +327,11 @@ public class NetworkController extends AbstractController {
     }
 
     @Override
-    public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+    public void onPacketIn(int bufferId, int totalLen, short shortInPort,
+            byte[] data) {
+        int inPort = shortInPort & 0xffff;
         MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, inPort);
+        match.loadFromPacket(data, shortInPort);
         L3DevicePort devPortOut;
 
         // Rewrite inPort with the service's target port assuming that
@@ -397,8 +398,8 @@ public class NetworkController extends AbstractController {
         // Else it's a packet from a materialized port.
         L3DevicePort devPortIn = devPortByNum.get(inPort);
         if (null == devPortIn) {
-            log.warn("onPacketIn: from local {} wasn't previously added with addPort or "
-                    + "no virtual port Id found", inPort);
+            log.warn("onPacketIn: from local {} wasn't previously added with" +
+            		" addVirtualPort or no virtual port Id found", inPort);
             // drop packets entering on ports that we don't recognize.
             freeBuffer(bufferId);
             return;
@@ -685,7 +686,7 @@ public class NetworkController extends AbstractController {
     }
 
     private class TunneledPktArpCallback implements Callback<MAC> {
-        public TunneledPktArpCallback(int bufferId, int totalLen, short inPort,
+        public TunneledPktArpCallback(int bufferId, int totalLen, int inPort,
                 byte[] data, MidoMatch match, DecodedMacAddrs portsAndGw) {
             super();
             this.bufferId = bufferId;
@@ -698,7 +699,7 @@ public class NetworkController extends AbstractController {
 
         int bufferId;
         int totalLen;
-        short inPort;
+        int inPort;
         byte[] data;
         MidoMatch match;
         DecodedMacAddrs portsAndGw;
@@ -738,11 +739,11 @@ public class NetworkController extends AbstractController {
                 if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL) {
                     log.debug("TunneledPktArpCallback.call: forward ICMP without installing flow");
                     NetworkController.super.controllerStub.sendPacketOut(
-                            bufferId, inPort, ofActions, data);
+                            bufferId, (short)inPort, ofActions, data);
                 } else {
                     log.debug("TunneledPktArpCallback.call: forward and install flow {}", match);
                     addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                            NO_HARD_TIMEOUT, true, ofActions, inPort, data);
+                            NO_HARD_TIMEOUT, true, ofActions, (short)inPort, data);
                 }
             } else {
                 log.debug("TunneledPktArpCallback.call: ARP timed out for tunneled packet to {}, send ICMP",
@@ -764,7 +765,7 @@ public class NetworkController extends AbstractController {
 
     private void addFlowAndSendPacket(int bufferId, OFMatch match,
             short idleTimeoutSecs, short hardTimeoutSecs,
-            boolean sendFlowRemove, List<OFAction> actions, short inPort,
+            boolean sendFlowRemove, List<OFAction> actions, int inPort,
             byte[] data) {
         controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs,
                 hardTimeoutSecs, FLOW_PRIORITY, bufferId, sendFlowRemove,
@@ -772,7 +773,7 @@ public class NetworkController extends AbstractController {
         // If packet was unbuffered, we need to explicitly send it otherwise the
         // flow won't be applied to it.
         if (bufferId == ControllerStub.UNBUFFERED_ID)
-            controllerStub.sendPacketOut(bufferId, inPort, actions, data);
+            controllerStub.sendPacketOut(bufferId, (short)inPort, actions, data);
     }
 
     private class LocalPktArpCallback implements Callback<MAC> {
@@ -1219,31 +1220,6 @@ public class NetworkController extends AbstractController {
         }
     }
 
-    private L3DevicePort devPortOfPortDesc(OFPhysicalPort portDesc) {
-        short portNum = portDesc.getPortNumber();
-        L3DevicePort devPort = devPortByNum.get(portNum);
-        if (devPort != null)
-            return devPort;
-
-        // Create a new one.
-        UUID portId = getPortUuidFromOvsdb(datapathId, portNum);
-        if (portId == null) {
-            // Return null if this is a service port.
-            return null;
-        }
-
-        try {
-            devPort = new L3DevicePort(portMgr, routeMgr, portId, portNum,
-                    new MAC(portDesc.getHardwareAddress()), super.controllerStub);
-        } catch (Exception e) {
-            log.warn("devPortOfPortDesc", e);
-        }
-        devPortById.put(portId, devPort);
-        devPortByNum.put(portNum, devPort);
-
-        return devPort;
-    }
-
     public void setServicePortFlows(short localPortNum, short remotePortNum,
             int localAddr, int remoteAddr, short localTport, short remoteTport) {
         // Remember service's target port assuming that service flows sent
@@ -1381,16 +1357,14 @@ public class NetworkController extends AbstractController {
         }
     }
 
-    private void setupServicePort(OFPhysicalPort portDesc)
+    private void setupServicePort(int portNum, String portName)
             throws StateAccessException, ZkStateSerializationException,
             IOException, KeeperException, InterruptedException {
-        short portNum = portDesc.getPortNumber();
-        String portName = portDesc.getName();
-
-        UUID portId = service.getRemotePort(datapathId, portNum, portName);
+        UUID portId = service.getRemotePort(datapathId, (short)portNum,
+                portName);
         if (portId != null) {
             service.configurePort(datapathId, portId, portName);
-            startPortService(portNum, portId);
+            startPortService((short)portNum, portId);
         }
     }
 
@@ -1410,56 +1384,89 @@ public class NetworkController extends AbstractController {
     }
 
     @Override
-    protected void addPort(OFPhysicalPort portDesc, short portNum) {
-        if (!super.isTunnelPortNum(portDesc.getPortNumber())) {
-            L3DevicePort devPort = devPortOfPortDesc(portDesc);
-            try {
-                if (devPort != null) {
-                    log.info("addPort number {} bound to virtual port {} with "
-                            + "nw address {}", new Object[] { portNum,
-                            devPort.getId(),
-                            devPort.getVirtualConfig().portAddr });
-                    network.addPort(devPort);
-                    addServicePort(devPort);
-                    
-                    setFlowsForHandlingDhcpInController(devPort);
-                } else if (portNum != OFPort.OFPP_CONTROLLER.getValue()
-                        && portNum != OFPort.OFPP_LOCAL.getValue()) {
-                    // Service port is up.
-                    setupServicePort(portDesc);
-                }
-            } catch (Exception e) {
-                log.warn("addPort", e);
-            }
-        }
-    }
-
-    @Override
-    protected void deletePort(OFPhysicalPort portDesc) {
-        if (!super.isTunnelPortNum(portDesc.getPortNumber())) {
-            L3DevicePort devPort = devPortOfPortDesc(portDesc);
-            if (null == devPort)
-                return;
-            log.info("deletePort number {} bound to virtual port {} with "
-                    + "nw address {}", new Object[] { devPort.getNum(),
-                    devPort.getId(), devPort.getVirtualConfig().portAddr });
-            try {
-                network.removePort(devPort);
-            } catch (Exception e) {
-                log.warn("deletePort", e);
-            }
-            devPortById.remove(devPort.getId());
-            devPortByNum.remove(portDesc.getPortNumber());
-        }
-    }
-
-    @Override
     protected void portMoved(UUID portUuid, IntIPv4 oldAddr, IntIPv4 newAddr) {
         // Do nothing.
     }
 
     @Override
     public final void clear() {
+        // Do nothing.
+    }
+
+    @Override
+    protected void addVirtualPort(int portNum, String name, MAC addr,
+            UUID portId) {
+        L3DevicePort devPort = devPortByNum.get(portNum);
+        if (null != devPort) {
+            log.error("addVirtualPort num:{} name:{} was already added.",
+                    portNum, name);
+            return;
+        }
+
+        try {
+            devPort = new L3DevicePort(portMgr, routeMgr, portId,
+                    (short)portNum, addr, super.controllerStub);
+        } catch (Exception e) {
+            log.error("addVirtualPort", e);
+            return;
+        }
+        devPortById.put(portId, devPort);
+        devPortByNum.put(portNum, devPort);
+
+        log.info("addVirtualPort number {} bound to vport {} with "
+                + "nw address {}", new Object[] { portNum, devPort.getId(),
+                devPort.getVirtualConfig().portAddr });
+        try {
+            network.addPort(devPort);
+            addServicePort(devPort);
+        } catch (Exception e) {
+            log.error("addVirtualPort", e);
+        }
+        setFlowsForHandlingDhcpInController(devPort);
+    }
+
+    @Override
+    protected void deleteVirtualPort(int portNum, UUID portId) {
+        L3DevicePort devPort = devPortByNum.get(portNum);
+        if (null == devPort) {
+            log.error("deleteVirtualPort num:{} uuid:{} was never added.",
+                    portNum, portId);
+            return;
+        }
+        // TODO(pino): should we check that the devPort's uuid == portId?
+        log.info("deletePort number {} bound to virtual port {} with "
+                + "nw address {}", new Object[] { devPort.getNum(),
+                portId, devPort.getVirtualConfig().portAddr });
+        try {
+            network.removePort(devPort);
+        } catch (Exception e) {
+            log.error("deleteVirtualPort", e);
+        }
+        devPortById.remove(portId);
+        devPortByNum.remove(portNum);
+    }
+
+    @Override
+    protected void addServicePort(int num, String name, UUID vId) {
+        try {
+            setupServicePort(num, name);
+        } catch (Exception e) {
+            log.error("addServicePort", e);
+        }
+    }
+
+    @Override
+    protected void deleteServicePort(int num, String name, UUID vId) {
+        // TODO: handle the removal of a service port.
+    }
+
+    @Override
+    protected void addTunnelPort(int num, IntIPv4 peerIP) {
+        // Do nothing.
+    }
+
+    @Override
+    protected void deleteTunnelPort(int num, IntIPv4 peerIP) {
         // Do nothing.
     }
 }

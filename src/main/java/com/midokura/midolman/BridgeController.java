@@ -394,41 +394,26 @@ public class BridgeController extends AbstractController {
     }
 
     @Override
-    protected void addPort(OFPhysicalPort portDesc, short portNum) {
-        log.info("addPort: {} {}", portDesc, portNum);
-
-        if (isTunnelPortNum(portNum))
-            invalidateFlowsToPeer(peerOfTunnelPortNum(portNum));
-        else {
-            UUID portUuid = portNumToUuid.get(portNum);
-            if (portUuid != null)
-                invalidateFlowsToPortUuid(portUuid);
-        }
+    protected void addVirtualPort(int num, String name, MAC addr, UUID vId) {
+        log.info("addVirtualPort num:{} name:{} mac:{} uuid:{}",
+                new Object[] {num, name, addr, vId});
+        invalidateFlowsToPortUuid(vId);
     }
 
     @Override
-    protected void deletePort(OFPhysicalPort portDesc) {
-        short inPortNum = portDesc.getPortNumber();
-        UUID inPortUuid = portNumToUuid.get(new Integer(inPortNum));
-        IntIPv4 peerIP = peerOfTunnelPortNum(inPortNum);
-        log.info("Delete callback for port #{} ({}) => {}",
-                 new Object[] { inPortNum, inPortUuid, peerIP });
-        if (peerIP != null)
-            invalidateFlowsToPeer(peerIP);
-        if (inPortUuid == null)
-            return;
-        log.info("Removing all MAC-port mappings to port {}", inPortUuid);
-        List<MAC> macList = macPortMap.getByValue(inPortUuid);
+    protected void deleteVirtualPort(int num, UUID vportId) {
+        log.info("deleteVirtualPort removing all MAC-port mappings to port " +
+        		"num:{} uuid:{}", num, vportId);
+        List<MAC> macList = macPortMap.getByValue(vportId);
         for (MAC mac : macList) {
-            log.info("Removing mapping from MAC {} to port {}", mac,
-                      inPortUuid);
-            flowCount.remove(new MacPort(mac, inPortUuid));
+            log.info("Removing mapping from MAC {} to port {}", mac, vportId);
+            flowCount.remove(new MacPort(mac, vportId));
             invalidateFlowsFromMac(mac);
             invalidateFlowsToMac(mac);
             try {
                 macPortMap.remove(mac);
             } catch (KeeperException e) {
-                log.error("Caught ZooKeeper excetpion {}", e);
+                log.error("Caught ZooKeeper exception {}", e);
                 // TODO: What should we do?
             } catch (InterruptedException e) {
                 log.error("ZooKeeper operation interrupted: {}", e);
@@ -436,6 +421,26 @@ public class BridgeController extends AbstractController {
                 // at the next ZK operation?
             }
         }
+    }
+
+    @Override
+    protected void addTunnelPort(int num, IntIPv4 peerIP) {
+        log.info("addTunnelPort {} to peer {}", num, peerIP);
+        invalidateFlowsToPeer(peerOfTunnelPortNum(num));
+    }
+
+    @Override
+    protected void deleteTunnelPort(int num, IntIPv4 peerIP) {
+        log.info("deleteTunnelPort {} to peer {}", num, peerIP);
+        invalidateFlowsToPeer(peerIP);
+    }
+
+    @Override
+    protected void addServicePort(int num, String name, UUID vId) {
+    }
+
+    @Override
+    protected void deleteServicePort(int num, String name, UUID id) {
     }
 
     @Override

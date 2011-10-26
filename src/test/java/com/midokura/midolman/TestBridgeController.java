@@ -281,10 +281,12 @@ public class TestBridgeController {
         }
 
         OFFeaturesReply features = new OFFeaturesReply();
-        features.setPorts(portList);
+        // Start with an empty port list.
+        features.setPorts(new ArrayList<OFPhysicalPort>());
         controllerStub.setFeatures(features);
         controller.onConnectionMade();
 
+        features.setPorts(portList);
         // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
             phyPorts[i].setPortNumber((short)i);

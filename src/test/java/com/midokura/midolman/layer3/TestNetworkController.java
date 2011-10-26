@@ -179,6 +179,8 @@ public class TestNetworkController {
             routerIds.add(rtrId);
 
             Directory tableDir = routerMgr.getRoutingTableDirectory(rtrId);
+            // Note: we keep our own copy of the replicated routing tables
+            // so that we don't have to modify the internal ones.
             ReplicatedRoutingTable rTable = new ReplicatedRoutingTable(rtrId,
                     tableDir, CreateMode.PERSISTENT);
             rTables.add(rTable);
@@ -1913,6 +1915,11 @@ public class TestNetworkController {
         servicePort.setPortNumber(localPortNum);
         servicePort.setHardwareAddress(new byte[] { (byte) 0x02, (byte) 0xee,
                 (byte) 0xdd, (byte) 0xcc, (byte) 0xff, (byte) localPortNum });
+        // Set the external id so that AbstractController recognizes this
+        // as a service port. However, it's is not used by the MockPortService.
+        ovsdb.setPortExternalId(datapathId, localPortNum, "midolman_port_id",
+                portId.toString());
+
         networkCtrl.onPortStatus(servicePort,
                 OFPortStatus.OFPortReason.OFPPR_ADD);
 

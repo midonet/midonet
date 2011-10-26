@@ -13,6 +13,7 @@ import com.midokura.midolman.openvswitch.{
                 BridgeBuilder,
                 OpenvSwitchDatabaseConnectionImpl,
                 OpenvSwitchDatabaseConnectionBridgeConnector}
+import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.packets.IntIPv4
 import com.midokura.midolman.state.{MacPortMap, MockDirectory,
                                     PortToIntNwAddrMap}
@@ -324,13 +325,21 @@ private class BridgeControllerTester(datapath: Long, switchID: UUID,
         }
     }
 
-    override def addPort(portDesc: OFPhysicalPort, portNum: Short) {
+    /*
+    override def addServicePort(portNum: Integer, name: String, vId: UUID) {}
+    override def deleteServicePort(portNum: Integer, name: String, vId: UUID) {}
+    override def addTunnelPort(portNum: Integer, peerIp: IntIPv4) {}
+    override def deleteTunnelPort(portNum: Integer, peerIp: IntIPv4) {}
+    override def deleteVirtualPort(portNum: Integer, vId: UUID) {}
+    override def addVirtualPort(portNum: Integer, name: String, addr: MAC,
+            vId: UUID) {
         try {
             log.info("BridgeControllerTester: addPort")
-            super.addPort(portDesc, portNum)
-            addedPorts ::= portDesc
+            super.addVirtualPort(portNum, name, addr, vId)
+            //addedPorts ::= portDesc
         } finally {
            portSemaphore.release
         }
     }
+    */
 }
