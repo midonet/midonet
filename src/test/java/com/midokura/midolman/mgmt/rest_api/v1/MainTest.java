@@ -1,7 +1,9 @@
 package com.midokura.midolman.mgmt.rest_api.v1;
 
+import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.data.dto.Vpn;
 
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
@@ -73,8 +75,48 @@ public class MainTest extends JerseyTest {
         // Get the router.
         resource = resource().uri(routerURI);
         router = resource.type(MediaType.APPLICATION_JSON).get(Router.class);
-        log.debug("router name: " + router.getName());
+        log.debug("router name: {}", router.getName());
         assertEquals(router.getName(), routerName);
+
+        // Add a materialized router port.
+        MaterializedRouterPort port = new MaterializedRouterPort();
+        String portAddress = "180.214.47.66";
+        port.setNetworkAddress("180.214.47.64");
+        port.setNetworkLength(30);
+        port.setPortAddress(portAddress);
+        port.setLocalNetworkAddress("180.214.47.64");
+        port.setLocalNetworkLength(30);
+        resource = resource().uri(
+            UriBuilder.fromUri(routerURI).path("ports").build());
+        log.debug("port JSON {}", port.toString());
+        response = resource.type(MediaType.APPLICATION_JSON)
+            .post(ClientResponse.class, port);
+        URI portURI = response.getLocation();
+        log.debug("port location: {}", portURI);
+
+        // Get the port.
+        resource = resource().uri(portURI);
+        port = resource.type(MediaType.APPLICATION_JSON)
+            .get(MaterializedRouterPort.class);
+        log.debug("port address: {}", port.getPortAddress());
+        assertEquals(port.getPortAddress(), portAddress);
+
+        // Add a VPN to the materialized router port.
+        Vpn vpn = new Vpn();
+        int vpnPort = 1234;
+        vpn.setPort(vpnPort);
+        resource = resource().uri(
+            UriBuilder.fromUri(portURI).path("vpns").build());
+        response = resource.type(MediaType.APPLICATION_JSON)
+            .post(ClientResponse.class, vpn);
+        URI vpnURI = response.getLocation();
+        log.debug("vpn location: {}", vpnURI);
+
+        // Get the port.
+        resource = resource().uri(vpnURI);
+        vpn = resource.type(MediaType.APPLICATION_JSON).get(Vpn.class);
+        log.debug("vpn port: {}", vpn.getPort());
+        assertEquals(vpn.getPort(), vpnPort);
     }
 
     @Override
