@@ -30,13 +30,15 @@ class DummyOVSDB(val port:Int=DummyOVSDB.defaultPort) {
             log.info("New connection object constructed.")
             return connobj
         } catch { 
-            case e: InvocationTargetException =>
+            case e: InvocationTargetException => {
                 val d = e.getCause
                 log.error("constructor threw {} {}", d.getMessage, d)
                 throw d
-            case e: Exception =>
+            }
+            case e: Exception => {
                 log.error("accept() threw ", e)
                 throw e
+            }
         }
     }
 
@@ -50,6 +52,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
     protected val inStream = socket.getInputStream
 
     final val log = LoggerFactory.getLogger(getClass)
+    @volatile var continue: Boolean = true
 
     // Warning, fragile RE parsing used.
     val requestRE = """ *\{"method":"([a-z]+)","params":(\[.*\]),"id":(.+)\}""".r
@@ -58,7 +61,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
         log.info("Entering loop()")
         var buf = new Array[Byte](bufSize)
     
-        while (true) {
+        while (continue) {
             log.info("Waiting for data from socket...")
             val bytesRead = inStream.read(buf)
             log.info("Got {} bytes from socket.", bytesRead)
@@ -70,11 +73,15 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
                         handleEcho(params, id)
                 case requestRE("transact", params, id) => 
                         handleTransact(params, id)
-                case requestRE("die", _, _) =>
-                        socket.close
-                        throw new RuntimeException("Dying by request")
-                case _ => 
-                        log.error("Unknown message type received: '{}'", message)
+                case requestRE("die", _, _) =>  {
+                    socket.close
+                    continue = false
+                    throw new RuntimeException("Dying by request")
+                }
+                case _ => {
+                    log.error("Unknown message type received: '{}'", message)
+                    continue = false
+                }
             }
         }
         throw new RuntimeException("Infinite loop ended!!")
@@ -90,8 +97,9 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
         params match {
             case opRE("select", unusedTable, unusedCdr) =>
                 outStream.write(String.format("""{"id":%s,"error":null,"result":[{"rows":[]}]}""", id).getBytes("ASCII"))
-            case _ =>
+            case _ => {
                 log.error("Unknown transact type received: {}", params)
+            }
         }
     }
 }
