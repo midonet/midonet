@@ -1,79 +1,83 @@
 package com.midokura.midolman.mgmt.config;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.servlet.ServletContext;
 
 public class AppConfig {
 
-    private final static String dataStoreEnvPath = "java:comp/env/datastore_service";
-    private final static String connectionStringEnvPath = "java:comp/env/connection_string";
-    private final static String timeoutEnvPath = "java:comp/env/timeout";
-    private final static String zkRootPathEnvPath = "java:comp/env/zk_root_path";
-    private final static String zkMgmtRootPathEnvPath = "java:comp/env/zk_mgmt_root_path";
+    private final static String dataStoreKey = "datastore_service";
+    private final static String zkConnStringKey = "zk_conn_string";
+    private final static String zkTimeoutKey = "zk_timeout";
+    private final static String zkRootKey = "zk_root";
+    private final static String zkMgmtRootKey = "zk_mgmt_root";
 
-    private InitialContext ctx = null;
     private static AppConfig config = null;
+    private ServletContext ctx = null;
 
-    private AppConfig(InitialContext ctx) {
+    private AppConfig(ServletContext ctx) {
         this.ctx = ctx;
     }
 
-    synchronized public static AppConfig getConfig()
-            throws InvalidConfigException {
-        if (null == config) {
-            try {
-                config = new AppConfig(new InitialContext());
-            } catch (NamingException e) {
-                throw new InvalidConfigException("Could not initialize config",
-                        e);
-            }
+    synchronized public static void init(ServletContext c) {
+        // This can only be called once. Throw an exception if already set.
+        if (config == null) {
+            config = new AppConfig(c);
+        } else {
+            throw new UnsupportedOperationException(
+                    "Config has already been initialized.");
         }
+    }
+
+    public static AppConfig getConfig() {
         return config;
     }
 
     public String getDataStoreClassName() throws InvalidConfigException {
-        try {
-            return ctx.lookup(dataStoreEnvPath).toString();
-        } catch (NamingException e) {
+        String val = ctx.getInitParameter(dataStoreKey);
+        if (val == null) {
             throw new InvalidConfigException("Config is missing "
-                    + dataStoreEnvPath, e);
+                    + dataStoreKey);
+        }
+        return val;
+    }
+
+    public String getZkConnectionString() throws InvalidConfigException {
+        String val = ctx.getInitParameter(zkConnStringKey);
+        if (val == null) {
+            throw new InvalidConfigException("Config is missing "
+                    + zkConnStringKey);
+        }
+        return val;
+    }
+
+    public int getZkTimeout() throws InvalidConfigException {
+        String val = ctx.getInitParameter(zkTimeoutKey);
+        if (val == null) {
+            throw new InvalidConfigException("Config is missing "
+                    + zkTimeoutKey);
+        }
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            throw new InvalidConfigException("Invalid value for "
+                    + zkTimeoutKey, e);
         }
     }
 
-    public String getConnectionString() throws InvalidConfigException {
-        try {
-            return ctx.lookup(connectionStringEnvPath).toString();
-        } catch (NamingException e) {
-            throw new InvalidConfigException("Config is missing "
-                    + connectionStringEnvPath, e);
+    public String getZkRootPath() throws InvalidConfigException {
+        String val = ctx.getInitParameter(zkRootKey);
+        if (val == null) {
+            throw new InvalidConfigException("Config is missing " + zkRootKey);
         }
+        return val;
     }
 
-    public int getTimeout() throws InvalidConfigException {
-        try {
-            return (Integer) ctx.lookup(timeoutEnvPath);
-        } catch (NamingException e) {
+    public String getZkMgmtRootPath() throws InvalidConfigException {
+        String val = ctx.getInitParameter(zkMgmtRootKey);
+        if (val == null) {
             throw new InvalidConfigException("Config is missing "
-                    + timeoutEnvPath, e);
+                    + zkMgmtRootKey);
         }
-    }
-
-    public String getZkRootPathEnvPath() throws InvalidConfigException {
-        try {
-            return ctx.lookup(zkRootPathEnvPath).toString();
-        } catch (NamingException e) {
-            throw new InvalidConfigException("Config is missing "
-                    + zkRootPathEnvPath, e);
-        }
-    }
-
-    public String getZkMgmtRootPathEnvPath() throws InvalidConfigException {
-        try {
-            return ctx.lookup(zkMgmtRootPathEnvPath).toString();
-        } catch (NamingException e) {
-            throw new InvalidConfigException("Config is missing "
-                    + zkMgmtRootPathEnvPath, e);
-        }
+        return val;
     }
 
 }

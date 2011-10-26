@@ -9,7 +9,6 @@ import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 
-
 /**
  * Class implementing a singleton Zookeeper connection.
  * 
@@ -37,8 +36,8 @@ public class ZooKeeperService {
     synchronized public static ZooKeeperService getService() throws Exception {
         if (null == service) {
             AppConfig c = AppConfig.getConfig();
-            ZkConnection conn = new ZkConnection(c.getConnectionString(),
-                    c.getTimeout(), null);
+            ZkConnection conn = new ZkConnection(c.getZkConnectionString(),
+                    c.getZkTimeout(), null);
             conn.open();
             service = new ZooKeeperService(conn);
         }

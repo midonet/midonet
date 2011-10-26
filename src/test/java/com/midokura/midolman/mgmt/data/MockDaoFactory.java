@@ -1,7 +1,7 @@
-package com.midokura.midolman.mgmt.data.zookeeper;
+package com.midokura.midolman.mgmt.data;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dao.AdminDao;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
@@ -25,85 +25,77 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
 
-
-public class ZooKeeperDaoFactory implements DaoFactory {
+public class MockDaoFactory implements DaoFactory {
 
     private AppConfig config = null;
-    private ZooKeeperService zk = null;
+    private MockDirectory zk = null;
     private String rootPath = null;
     private String rootMgmtPath = null;
 
-    public ZooKeeperDaoFactory() throws Exception {
+    public MockDaoFactory() throws InvalidConfigException {
         this.config = AppConfig.getConfig();
-        this.zk = ZooKeeperService.getService();
+        this.zk = new MockDirectory();
         this.rootPath = this.config.getZkRootPath();
         this.rootMgmtPath = this.config.getZkMgmtRootPath();
     }
 
     @Override
     public AdminDao getAdminDao() {
-        return new AdminZkManager(this.zk.getZooKeeper(), this.rootPath,
-                this.rootMgmtPath);
+        return new AdminZkManager(this.zk, this.rootPath, this.rootMgmtPath);
     }
 
     @Override
     public AdRouteDao getAdRouteDao() {
-        return new AdRouteZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
+        return new AdRouteZkManagerProxy(this.zk, this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
     public BgpDao getBgpDao() {
-        return new BgpZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
-                this.rootMgmtPath);
+        return new BgpZkManagerProxy(this.zk, this.rootPath, this.rootMgmtPath);
     }
 
     @Override
     public BridgeDao getBridgeDao() {
-        return new BridgeZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
+        return new BridgeZkManagerProxy(this.zk, this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
     public ChainDao getChainDao() {
-        return new ChainZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
+        return new ChainZkManagerProxy(this.zk, this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
     public PortDao getPortDao() {
-        return new PortZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
-                this.rootMgmtPath);
+        return new PortZkManagerProxy(this.zk, this.rootPath, this.rootMgmtPath);
     }
 
     @Override
     public RouteDao getRouteDao() {
-        return new RouteZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
+        return new RouteZkManagerProxy(this.zk, this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
     public RouterDao getRouterDao() {
-        return new RouterZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
+        return new RouterZkManagerProxy(this.zk, this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
     public RuleDao getRuleDao() {
-        return new RuleZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
-                this.rootMgmtPath);
+        return new RuleZkManagerProxy(this.zk, this.rootPath, this.rootMgmtPath);
     }
 
     @Override
     public TenantDao getTenantDao() {
-        return new TenantZkManager(this.zk.getZooKeeper(), this.rootPath,
-                this.rootMgmtPath);
+        return new TenantZkManager(this.zk, this.rootPath, this.rootMgmtPath);
     }
 
     @Override
     public VifDao getVifDao() {
-        return new VifZkManager(this.zk.getZooKeeper(), this.rootPath,
-                this.rootMgmtPath);
+        return new VifZkManager(this.zk, this.rootPath, this.rootMgmtPath);
     }
-
 }
