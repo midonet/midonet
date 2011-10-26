@@ -148,6 +148,7 @@ public class TestAbstractController {
     private OFPhysicalPort port1;
     private OFPhysicalPort port2;
     private OFPhysicalPort port3;
+    private IntIPv4 localIp;
     private UUID port1uuid;
     private IntIPv4 port2peer;
     private UUID port3uuid;
@@ -167,7 +168,7 @@ public class TestAbstractController {
         mockDir = new MockDirectory();
         portLocMap = new PortToIntNwAddrMap(mockDir);
 
-        IntIPv4 publicIp = IntIPv4.fromString("192.168.1.50");
+        localIp = IntIPv4.fromString("192.168.1.50");
         controller = new AbstractControllerTester(
                              dp_id /* datapathId */,
                              UUID.randomUUID() /* switchUuid */,
@@ -176,7 +177,8 @@ public class TestAbstractController {
                              portLocMap /* portLocationMap */,
                              (short)300 /* flowExpireSeconds */,
                              60 * 1000 /* idleFlowExpireMillis */,
-                             publicIp /* internalIp */);
+                             localIp /* internalIp */);
+        portLocMap.start();
         controller.setControllerStub(controllerStub);
 
         port1 = new OFPhysicalPort();
@@ -208,9 +210,12 @@ public class TestAbstractController {
         assertEquals(new Integer(37),
                 controller.portUuidToNumberMap.get(port1uuid));
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
-        // Port 57 is virtual but it's link is down.
+        // port1uuid should be in the portLocMap.
+        assertEquals(localIp, portLocMap.get(port1uuid));
+        // Port 57 is virtual but its link is down.
         assertNull(controller.portUuidToNumberMap.get(port3uuid));
         assertNull(controller.portNumToUuid.get(57));
+        assertNull(portLocMap.get(port3uuid));
         // Port 47 is a tunnel
         assertNull(controller.portNumToUuid.get(47));
         assertNull(controller.portNumToUuid.get(57));
@@ -281,12 +286,16 @@ public class TestAbstractController {
                 controller.virtualPortsAdded.toArray());
         assertArrayEquals(new IntIPv4[] { port2peer },
                 controller.tunnelPortsAdded.toArray());
+        assertEquals(localIp, portLocMap.get(port1uuid));
+        assertNull(portLocMap.get(port3uuid));
         port3.setConfig(0);
         controller.onPortStatus(port3, OFPortReason.OFPPR_MODIFY);
         assertArrayEquals(new UUID[] { port1uuid, port3uuid },
                 controller.virtualPortsAdded.toArray());
         assertArrayEquals(new IntIPv4[] { port2peer },
                 controller.tunnelPortsAdded.toArray());
+        assertEquals(localIp, portLocMap.get(port1uuid));
+        assertEquals(localIp, portLocMap.get(port3uuid));
     }
 
     @Test
@@ -326,11 +335,13 @@ public class TestAbstractController {
         assertArrayEquals(new OFPhysicalPort[] { },
                           controller.virtualPortsRemoved.toArray());
         assertTrue(controller.portNumToUuid.containsKey(37));
+        assertEquals(localIp, portLocMap.get(port1uuid));
         assertNull(controller.peerOfTunnelPortNum(37));
         controller.onPortStatus(port1, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new UUID[] { port1uuid },
                           controller.virtualPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(37));
+        assertNull(portLocMap.get(port1uuid));
         assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
         controller.onPortStatus(port2, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new IntIPv4[] { port2peer },
@@ -344,11 +355,13 @@ public class TestAbstractController {
         assertArrayEquals(new UUID[] { },
                           controller.virtualPortsRemoved.toArray());
         assertTrue(controller.portNumToUuid.containsKey(37));
+        assertEquals(localIp, portLocMap.get(port1uuid));
         port1.setConfig(AbstractController.portDownFlag);
         controller.onPortStatus(port1, OFPortReason.OFPPR_MODIFY);
                 assertArrayEquals(new UUID[] { port1uuid },
                           controller.virtualPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(37));
+        assertNull(portLocMap.get(port1uuid));
         assertFalse(controller.portNumToUuid.containsKey(47));
         assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
     }
@@ -400,7 +413,6 @@ public class TestAbstractController {
         // Port comes up.  Verify tunnel made.
         String fullpath1 = mockDir.add(path1, null,
                                        CreateMode.PERSISTENT_SEQUENTIAL);
-        portLocMap.start();
         assertEquals(1, ovsdb.addedGrePorts.size());
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
                             "43", "tne1234ff0011aa", "255.0.17.170")).equals(
