@@ -8,6 +8,8 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.util.HashSet;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy.PortMgmtConfig;
 import com.midokura.midolman.state.BGP;
@@ -21,6 +23,7 @@ import com.midokura.midolman.util.Net;
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
+@XmlRootElement
 public class MaterializedRouterPort extends RouterPort {
 
     private String localNetworkAddress = null;
