@@ -7,7 +7,7 @@ import java.net.{InetAddress, Socket}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ops.spawn
 
-import org.junit.Test
+import org.junit.{Ignore, Test}
 import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
@@ -84,6 +84,17 @@ class TestDummyOVSDB {
         assertEquals("""["set",[["uuid","""" + portUuid1 + "\"]]]",
                      row._3.toString)
     }
+
+    @Ignore
+    @Test(timeout=10000) def testImmediateDisconnection() {
+        val portNum = startOVSDB(classOf[OVSDBImmediatelyDisconnects])
+        val ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                "localhost", portNum)
+        val bridgeTable = ovsdbConn.dumpBridgeTable
+        // FIXME(tfukushima): Is this supposed to hang indefinitely on 
+        //                    OVSDB disconnection?
+    }
+
 }
 
 
@@ -93,6 +104,21 @@ private class OVSDBWithBridgeTable(sokket: Socket)
     override def handleTransact(params: String, id: String) {
         if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
             outStream.write(String.format("""{"id":%s,"error":null,"result":[{"rows":[{"ports":["set",[["uuid","%s"]]],"_uuid":["uuid","%s"],"name":"public"}]}]}""", id, TestDummyOVSDB.portUuid1, TestDummyOVSDB.bridgeUuid1).getBytes("ASCII"))
+        } else {
+            super.handleTransact(params, id)
+        }
+    }
+}
+
+
+private class OVSDBImmediatelyDisconnects(sokket: Socket) 
+                extends DummyOVSDBServerConn(sokket) {
+    override def handleTransact(params: String, id: String) {
+        if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
+            log.info("Closing socket")
+            socket.shutdownOutput
+            socket.shutdownInput
+            socket.close
         } else {
             super.handleTransact(params, id)
         }

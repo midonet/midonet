@@ -61,6 +61,7 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
         while (true) {
             log.info("Waiting for data from socket...")
             val bytesRead = inStream.read(buf)
+            log.info("Got {} bytes from socket.", bytesRead)
             val message = new String(buf, 0, bytesRead, "ASCII")
 
             log.info("Received message: {}", message)
