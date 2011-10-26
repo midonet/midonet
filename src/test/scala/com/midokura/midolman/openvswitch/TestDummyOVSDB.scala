@@ -11,6 +11,7 @@ import org.junit.{Ignore, Test}
 import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
+import OpenvSwitchException.OVSDBException
 
 object TestDummyOVSDB {
     val counter = new AtomicInteger()
@@ -68,33 +69,43 @@ class TestDummyOVSDB {
         val portNum = startOVSDB(classOf[DummyOVSDBServerConn])
         val ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                 "localhost", portNum)
-        val bridgeTable = ovsdbConn.dumpBridgeTable
-        assertTrue(bridgeTable.isEmpty)
+        try {
+            val bridgeTable = ovsdbConn.dumpBridgeTable
+            assertTrue(bridgeTable.isEmpty)
+        } finally {
+            ovsdbConn.close
+        }
     }
 
     @Test(timeout=1000) def testDumpBridgeTable() {
         val portNum = startOVSDB(classOf[OVSDBWithBridgeTable])
         val ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                 "localhost", portNum)
-        val bridgeTable = ovsdbConn.dumpBridgeTable
-        assertEquals(1, bridgeTable.size)
-        val row = bridgeTable.head
-        assertEquals("public", row._1)
-        assertEquals(bridgeUuid1, row._2)
-        assertEquals("""["set",[["uuid","""" + portUuid1 + "\"]]]",
-                     row._3.toString)
+        try {
+            val bridgeTable = ovsdbConn.dumpBridgeTable
+            assertEquals(1, bridgeTable.size)
+            val row = bridgeTable.head
+            assertEquals("public", row._1)
+            assertEquals(bridgeUuid1, row._2)
+            assertEquals("""["set",[["uuid","""" + portUuid1 + "\"]]]",
+                         row._3.toString)
+        } finally {
+            ovsdbConn.close
+        }
     }
 
     @Ignore
-    @Test(timeout=10000) def testImmediateDisconnection() {
+    @Test(timeout=10000, expected = classOf[OVSDBException])
+    def testImmediateDisconnection() {
         val portNum = startOVSDB(classOf[OVSDBImmediatelyDisconnects])
         val ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                 "localhost", portNum)
-        val bridgeTable = ovsdbConn.dumpBridgeTable
-        // FIXME(tfukushima): Is this supposed to hang indefinitely on 
-        //                    OVSDB disconnection?
+        try {
+            val bridgeTable = ovsdbConn.dumpBridgeTable
+        } finally {
+            ovsdbConn.close
+        }
     }
-
 }
 
 
