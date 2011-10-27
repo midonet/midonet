@@ -11,6 +11,7 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
 
 public interface DaoFactory {
 
@@ -35,4 +36,6 @@ public interface DaoFactory {
     TenantDao getTenantDao();
 
     VifDao getVifDao();
+
+    VpnDao getVpnDao();
 }

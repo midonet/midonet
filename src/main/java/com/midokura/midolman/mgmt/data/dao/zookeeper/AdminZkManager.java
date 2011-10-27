@@ -3,6 +3,9 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.mgmt.data.dao.AdminDao;
 import com.midokura.midolman.mgmt.utils.CollectionUtils;
 import com.midokura.midolman.mgmt.utils.StringUtils;
@@ -11,6 +14,9 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.StatePathExistsException;
 
 public class AdminZkManager extends ZkMgmtManager implements AdminDao {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(AdminZkManager.class);
 
     public AdminZkManager(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath, mgmtBasePath);
@@ -21,6 +27,7 @@ public class AdminZkManager extends ZkMgmtManager implements AdminDao {
         List<String> added = new ArrayList<String>();
         for (String path : paths) {
             try {
+                log.debug("Preparing to create: " + path);
                 addPersistent(path, null);
                 added.add(path);
             } catch (StatePathExistsException e) {

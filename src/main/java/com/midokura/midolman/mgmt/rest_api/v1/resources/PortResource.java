@@ -35,7 +35,6 @@ import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.VpnResource.PortVpnResource;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 

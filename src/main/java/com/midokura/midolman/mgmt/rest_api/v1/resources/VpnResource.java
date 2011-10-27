@@ -13,7 +13,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -28,13 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
-import com.midokura.midolman.mgmt.data.dao.VpnZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.PortZkManagerProxy;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.PortDao;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for vpns.
@@ -43,13 +40,13 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @author Yoshi Tamura
  */
 @Path("/vpns")
-public class VpnResource extends RestResource {
+public class VpnResource {
     /*
      * Implements REST API end points for vpns.
      */
 
     private final static Logger log = LoggerFactory
-        .getLogger(VpnResource.class);
+            .getLogger(VpnResource.class);
 
     /**
      * Get the VPN with the given ID.
@@ -59,22 +56,19 @@ public class VpnResource extends RestResource {
      * @return Vpn object.
      * @throws StateAccessException
      * @throws UnauthorizedException
-     * @throws ZkStateSerializationException
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Vpn get(@PathParam("id") UUID id, @Context SecurityContext context)
-            throws StateAccessException, ZkStateSerializationException,
+    public Vpn get(@PathParam("id") UUID id, @Context SecurityContext context,
+            @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
 
         // Get a vpn for the given ID.
-        VpnZkManagerProxy dao = new VpnZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
+        VpnDao dao = daoFactory.getVpnDao();
 
         if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
+            throw new UnauthorizedException("Can only see your own VPN.");
         }
 
         Vpn vpn = null;
@@ -90,37 +84,12 @@ public class VpnResource extends RestResource {
         return vpn;
     }
 
-    @PUT
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") UUID id, Vpn vpn,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        VpnZkManagerProxy dao = new VpnZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
-
-        if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
-        }
-
-        try {
-            dao.update(id, vpn);
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        return Response.ok().build();
-    }
-
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context) throws StateAccessException,
-            ZkStateSerializationException, UnauthorizedException {
-        VpnZkManagerProxy dao = new VpnZkManagerProxy(zooKeeper, zookeeperRoot,
-                zookeeperMgmtRoot);
-
+            @Context SecurityContext context, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
+        VpnDao dao = daoFactory.getVpnDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
                     "Can only see your own advertised route.");
@@ -140,7 +109,7 @@ public class VpnResource extends RestResource {
     /**
      * Sub-resource class for port's VPN.
      */
-    public static class PortVpnResource extends RestResource {
+    public static class PortVpnResource {
 
         private UUID portId = null;
 
@@ -152,18 +121,13 @@ public class VpnResource extends RestResource {
          * @param portId
          *            UUID of a port.
          */
-        public PortVpnResource(Directory zkConn, String zkRootDir,
-                String zkMgmtRootDir, UUID portId) {
-            this.zooKeeper = zkConn;
+        public PortVpnResource(UUID portId) {
             this.portId = portId;
-            this.zookeeperRoot = zkRootDir;
-            this.zookeeperMgmtRoot = zkMgmtRootDir;
         }
 
-        private boolean isPortOwner(SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException {
-            OwnerQueryable q = new PortZkManagerProxy(zooKeeper, zookeeperRoot,
-                    zookeeperMgmtRoot);
+        private boolean isPortOwner(SecurityContext context,
+                DaoFactory daoFactory) throws StateAccessException {
+            PortDao q = daoFactory.getPortDao();
             return AuthManager.isOwner(context, q, portId);
         }
 
@@ -173,19 +137,17 @@ public class VpnResource extends RestResource {
          * @return A list of vpns.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Vpn> list(@Context SecurityContext context)
-                throws StateAccessException, ZkStateSerializationException,
+        public List<Vpn> list(@Context SecurityContext context,
+                @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
-            if (!isPortOwner(context)) {
+            if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own VPN.");
             }
 
-            VpnZkManagerProxy dao = new VpnZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            VpnDao dao = daoFactory.getVpnDao();
             List<Vpn> vpns = null;
             try {
                 vpns = dao.list(portId);
@@ -206,19 +168,17 @@ public class VpnResource extends RestResource {
          *            Vpn object mapped to the request input.
          * @throws StateAccessException
          * @throws UnauthorizedException
-         * @throws ZkStateSerializationException
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         public Response create(Vpn vpn, @Context UriInfo uriInfo,
-                @Context SecurityContext context) throws StateAccessException,
-                ZkStateSerializationException, UnauthorizedException {
-            if (!isPortOwner(context)) {
+                @Context SecurityContext context, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
+            if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only create your own VPN.");
             }
-            VpnZkManagerProxy dao = new VpnZkManagerProxy(zooKeeper,
-                    zookeeperRoot, zookeeperMgmtRoot);
+            VpnDao dao = daoFactory.getVpnDao();
             vpn.setPortId(portId);
 
             UUID id = null;
