@@ -274,9 +274,10 @@ public abstract class AbstractController
                 _addTunnelPort(portNum, peerIp);
             else
                 log.error("onPortStatus unrecognized port type - not service" +
-                		"port, nor virtual port, nor tunnel");
-        }
-        else if(reason.equals(OFPortReason.OFPPR_DELETE)) {
+                          "port, nor virtual port, nor tunnel");
+        } else if(reason.equals(OFPortReason.OFPPR_DELETE)) {
+            // Remove any flows which have this port as the in-port.
+            deleteFlowsByInPort(portNum);
             if (null != svcId)
                 deleteServicePort(portNum, name, svcId);
             // It's a tunnel or virtual port.
@@ -540,5 +541,11 @@ public abstract class AbstractController
     
     public Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
         return peerIpToTunnelPortNum.get(peerIP);
+    }
+
+    protected void deleteFlowsByInPort(int portNum) {
+        MidoMatch match = new MidoMatch();
+        match.setInputPort((short) portNum);
+        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 }

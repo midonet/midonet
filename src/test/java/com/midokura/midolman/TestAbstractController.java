@@ -348,6 +348,12 @@ public class TestAbstractController {
                           controller.tunnelPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(47));
         assertNull(controller.peerOfTunnelPortNum(47));
+        MockControllerStub stub =
+                (MockControllerStub) controller.controllerStub;
+        assertEquals(2, stub.deletedFlows.size());
+        assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT, 
+                     stub.deletedFlows.get(1).match.getWildcards());
+        assertEquals(47, stub.deletedFlows.get(1).match.getInputPort());
     }
 
     @Test
