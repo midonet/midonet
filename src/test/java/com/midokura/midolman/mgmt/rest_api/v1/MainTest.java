@@ -1,9 +1,5 @@
 package com.midokura.midolman.mgmt.rest_api.v1;
 
-import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.data.dto.Vpn;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
@@ -15,8 +11,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.mgmt.servlet.listeners.ServletListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;

@@ -4,14 +4,15 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.mgmt.data.dao;
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
@@ -20,14 +21,13 @@ import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
-
 /**
  * Data access class for VPN.
  * 
  * @version 1.6 25 Oct 2011
  * @author Yoshi Tamura
  */
-public class VpnZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
+public class VpnZkManagerProxy extends ZkMgmtManager implements VpnDao {
 
     private VpnZkManager zkManager = null;
 
@@ -53,8 +53,7 @@ public class VpnZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
      * @throws Exception
      *             Error connecting to Zookeeper.
      */
-    public UUID create(Vpn vpn) throws UnknownHostException,
-            StateAccessException, ZkStateSerializationException {
+    public UUID create(Vpn vpn) throws StateAccessException {
         return zkManager.create(vpn.toConfig());
     }
 
@@ -63,19 +62,16 @@ public class VpnZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
      * 
      * @param id
      *            Vpn UUID to fetch.
-     * @throws ZkStateSerializationException
      * @throws StateAccessException
      * @throws Exception
      *             Error connecting to Zookeeper.
      */
-    public Vpn get(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public Vpn get(UUID id) throws StateAccessException {
         // TODO: Throw NotFound exception here.
         return Vpn.createVpn(id, zkManager.get(id).value);
     }
 
-    public List<Vpn> list(UUID portId) throws StateAccessException,
-            ZkStateSerializationException {
+    public List<Vpn> list(UUID portId) throws StateAccessException {
         List<Vpn> vpns = new ArrayList<Vpn>();
         List<ZkNodeEntry<UUID, VpnConfig>> entries = zkManager.list(portId);
         for (ZkNodeEntry<UUID, VpnConfig> entry : entries) {
@@ -84,23 +80,16 @@ public class VpnZkManagerProxy extends ZkMgmtManager implements OwnerQueryable {
         return vpns;
     }
 
-    public void update(UUID id, Vpn vpn) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException(
-                "VPN update is not currently supported.");
-    }
-
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public void delete(UUID id) throws StateAccessException {
         // TODO: catch NoNodeException if does not exist.
         zkManager.delete(id);
     }
 
     @Override
-    public String getOwner(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public String getOwner(UUID id) throws StateAccessException {
         Vpn vpn = get(id);
-        OwnerQueryable manager = new PortZkManagerProxy(zk, pathManager
-                .getBasePath(), mgmtPathManager.getBasePath());
+        OwnerQueryable manager = new PortZkManagerProxy(zk,
+                pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(vpn.getPortId());
     }
 }

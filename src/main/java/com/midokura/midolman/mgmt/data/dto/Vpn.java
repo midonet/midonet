@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -83,8 +81,9 @@ public class Vpn {
         this.portId = portId;
     }
 
-    public VpnConfig toConfig() throws UnknownHostException {
+    public VpnConfig toConfig() {
         return new VpnConfig(this.getPortId(), this.getPort());
+
     }
 
     public static Vpn createVpn(UUID id, VpnConfig config) {

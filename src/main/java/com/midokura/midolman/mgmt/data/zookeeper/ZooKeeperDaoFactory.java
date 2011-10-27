@@ -13,6 +13,7 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.AdRouteZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.AdminZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpZkManagerProxy;
@@ -24,7 +25,7 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
-
+import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkManagerProxy;
 
 public class ZooKeeperDaoFactory implements DaoFactory {
 
@@ -106,4 +107,9 @@ public class ZooKeeperDaoFactory implements DaoFactory {
                 this.rootMgmtPath);
     }
 
+    @Override
+    public VpnDao getVpnDao() {
+        return new VpnZkManagerProxy(this.zk.getZooKeeper(), this.rootPath,
+                this.rootMgmtPath);
+    }
 }
