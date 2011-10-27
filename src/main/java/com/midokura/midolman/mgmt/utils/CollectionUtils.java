@@ -6,7 +6,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class CollectionUtils {
-    
+
     public static <T> List<T> uniquifyAndSort(List<T>...lists) {
         SortedSet<T> set = new TreeSet<T>();
         for (List<T> list : lists) {

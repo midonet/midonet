@@ -13,7 +13,7 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager.VifConfig;
 
 /**
  * Class representing Vif.
- * 
+ *
  * @version 1.6 24 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -22,7 +22,7 @@ public class Vif {
 
     private UUID id;
     private UUID portId;
-    
+
     /**
      * @return the id
      */
@@ -47,13 +47,13 @@ public class Vif {
     public void setPortId(UUID portId) {
         this.portId = portId;
     }
-    
+
     public VifConfig toConfig() {
         VifConfig c = new VifConfig();
         c.portId = this.portId;
         return c;
     }
-    
+
     public static Vif createVif(UUID id, VifConfig c) {
         Vif v = new Vif();
         v.setId(id);
