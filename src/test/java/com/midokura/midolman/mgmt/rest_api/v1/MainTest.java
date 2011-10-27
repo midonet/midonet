@@ -44,8 +44,8 @@ public class MainTest extends JerseyTest {
                 .contextParam("zk_timeout", "0")
                 .contextParam("zk_root", "/test/midolman")
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
-                .contextListenerClass(ServletListener.class).contextPath("/test")
-                .build());
+                .contextListenerClass(ServletListener.class)
+                .contextPath("/test").build());
     }
 
     @Test

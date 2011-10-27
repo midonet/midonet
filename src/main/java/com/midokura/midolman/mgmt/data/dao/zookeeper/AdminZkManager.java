@@ -3,13 +3,12 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.midokura.midolman.mgmt.data.dao.AdminDao;
+import com.midokura.midolman.mgmt.utils.CollectionUtils;
+import com.midokura.midolman.mgmt.utils.StringUtils;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.StatePathExistsException;
 
 public class AdminZkManager extends ZkMgmtManager implements AdminDao {
 
@@ -17,26 +16,36 @@ public class AdminZkManager extends ZkMgmtManager implements AdminDao {
         super(zk, basePath, mgmtBasePath);
     }
 
-    private List<Op> preparePathsCreate(List<String> paths) {
-        List<Op> ops = new ArrayList<Op>();
+    private List<String> excecuteCreate(List<String> paths)
+            throws StateAccessException {
+        List<String> added = new ArrayList<String>();
         for (String path : paths) {
-            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
+            try {
+                addPersistent(path, null);
+                added.add(path);
+            } catch (StatePathExistsException e) {
+                // We can ignore this.
+            }
         }
-        return ops;
+        return added;
     }
 
     @Override
     public void initialize() throws StateAccessException {
-        List<String> paths = new ArrayList<String>();
-        paths.add(mgmtPathManager.getBasePath());
+        List<String> rootPaths = StringUtils.splitAndAppend(
+                mgmtPathManager.getBasePath(), "/");
+        List<String> mgmtRootPaths = StringUtils.splitAndAppend(
+                pathManager.getBasePath(), "/");
+
+        @SuppressWarnings("unchecked")
+        List<String> paths = CollectionUtils.uniquifyAndSort(rootPaths,
+                mgmtRootPaths);
         paths.add(mgmtPathManager.getTenantsPath());
         paths.add(mgmtPathManager.getRoutersPath());
         paths.add(mgmtPathManager.getBridgesPath());
         paths.add(mgmtPathManager.getPortsPath());
         paths.add(mgmtPathManager.getChainsPath());
         paths.add(mgmtPathManager.getVifsPath());
-        paths.add(pathManager.getBasePath());
         paths.add(pathManager.getRoutersPath());
         paths.add(pathManager.getBridgesPath());
         paths.add(pathManager.getPortsPath());
@@ -48,6 +57,6 @@ public class AdminZkManager extends ZkMgmtManager implements AdminDao {
         paths.add(pathManager.getAdRoutesPath());
         paths.add(pathManager.getVRNPortLocationsPath());
         paths.add(pathManager.getVpnPath());
-        multi(preparePathsCreate(paths));
+        excecuteCreate(paths);
     }
 }
