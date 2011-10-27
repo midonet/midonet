@@ -27,8 +27,7 @@
   <filter>
     <filter-name>keystone_auth</filter-name>
     <description>
-      This filter authenticates the request by checking
-      the
+      This filter authenticates the request by checking the
       token sent via Keystone.
     </description>
     <filter-class>
