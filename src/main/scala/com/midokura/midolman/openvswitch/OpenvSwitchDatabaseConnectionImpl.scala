@@ -503,9 +503,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             }
             // Block until the response is received and parsed or stop in timeout.
             var response: JsonNode = null
+            var responseId: Long = -1L
             try {
                 response = queue.poll(PollInterval, TimeUnit.MILLISECONDS)
                 // response = queue.take
+                responseId = response.get("id").getValueAsLong
             } catch {
                 case e: InterruptedException => {
                     stop
@@ -513,8 +515,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     throw new OVSDBException(
                         "It took too long time to take response")
                 }
+                case e: NullPointerException => {
+                    stop
+                    log.warn("doJsonRpc", e)
+                    throw new OVSDBException(
+                        "response was null or lacked an ID")
+                }
             }
-            val responseId: Long = response.get("id").getValueAsLong
             if (responseId != requestId)
                 throw new OVSDBException(
                     "wrong id in JSON-RPC result: %s".format(responseId))

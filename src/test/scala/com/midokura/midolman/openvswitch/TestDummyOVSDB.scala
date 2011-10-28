@@ -94,15 +94,19 @@ class TestDummyOVSDB {
         }
     }
 
-    @Ignore
     @Test(timeout=10000, expected = classOf[OVSDBException])
     def testImmediateDisconnection() {
-        val portNum = startOVSDB(classOf[OVSDBImmediatelyDisconnects])
-        val ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                "localhost", portNum)
+        var ovsdbConnSuccessful = false
+        var ovsdbConn: OpenvSwitchDatabaseConnectionImpl = null
         try {
+            val portNum = startOVSDB(classOf[OVSDBImmediatelyDisconnects])
+            ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                "localhost", portNum)
+            ovsdbConnSuccessful = true
             val bridgeTable = ovsdbConn.dumpBridgeTable
+            ovsdbConnSuccessful = false   // Shouldn't be reached
         } finally {
+            assertTrue(ovsdbConnSuccessful)
             ovsdbConn.close
         }
     }
