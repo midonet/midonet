@@ -6,14 +6,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-public class MockAuthorizer implements SecurityContext {
+public class NoAuthorizer implements SecurityContext {
 
     private Principal principal = null;
 
     @Context
     UriInfo uriInfo;
 
-    public MockAuthorizer() {
+    public NoAuthorizer() {
         principal = new Principal() {
             public String getName() {
                 return "Mock";

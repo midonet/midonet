@@ -35,7 +35,7 @@ public class MainTest extends JerseyTest {
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
-                        "com.midokura.midolman.mgmt.auth.MockAuthFilter")
+                        "com.midokura.midolman.mgmt.auth.NoAuthFilter")
                 .contextParam("datastore_service",
                         "com.midokura.midolman.mgmt.data.MockDaoFactory")
                 .contextParam("zk_conn_string", "")

@@ -6,14 +6,14 @@ import javax.ws.rs.core.Context;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 
-public class MockAuthFilter implements ContainerRequestFilter {
+public class NoAuthFilter implements ContainerRequestFilter {
 
     @Context
     HttpServletRequest hsr;
 
     @Override
     public ContainerRequest filter(ContainerRequest req) {
-        req.setSecurityContext(new MockAuthorizer());
+        req.setSecurityContext(new NoAuthorizer());
         return req;
     }
 }
