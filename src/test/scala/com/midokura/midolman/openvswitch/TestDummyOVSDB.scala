@@ -94,6 +94,7 @@ class TestDummyOVSDB {
         }
     }
 
+    // TODO: Reduce the timeout to 1000 or 2000 ms once Bug #341 is fixed.
     @Test(timeout=10000, expected = classOf[OVSDBException])
     def testImmediateDisconnection() {
         var ovsdbConnSuccessful = false
@@ -110,6 +111,25 @@ class TestDummyOVSDB {
             ovsdbConn.close
         }
     }
+
+    // TODO: Reduce the timeout to 1000 or 2000 ms once Bug #341 is fixed.
+    @Test(timeout=10000, expected = classOf[OVSDBException])
+    def testGracefulDisconnection() {
+        var ovsdbConnSuccessful = false
+        var ovsdbConn: OpenvSwitchDatabaseConnectionImpl = null
+        try {
+            val portNum = startOVSDB(classOf[OVSDBGracefullyDisconnects])
+            ovsdbConn = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                "localhost", portNum)
+            ovsdbConnSuccessful = true
+            val bridgeTable = ovsdbConn.dumpBridgeTable
+            ovsdbConnSuccessful = false   // Shouldn't be reached
+        } finally {
+            assertTrue(ovsdbConnSuccessful)
+            ovsdbConn.close
+        }
+    }
+
 }
 
 
@@ -125,7 +145,6 @@ private class OVSDBWithBridgeTable(sokket: Socket)
     }
 }
 
-
 private class OVSDBImmediatelyDisconnects(sokket: Socket) 
                 extends DummyOVSDBServerConn(sokket) {
     override def handleTransact(params: String, id: String) {
@@ -134,6 +153,18 @@ private class OVSDBImmediatelyDisconnects(sokket: Socket)
             socket.shutdownOutput
             socket.shutdownInput
             socket.close
+        } else {
+            super.handleTransact(params, id)
+        }
+    }
+}
+
+private class OVSDBGracefullyDisconnects(sokket: Socket)
+                extends DummyOVSDBServerConn(sokket) {
+    override def handleTransact(params: String, id: String) {
+        if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
+            log.info("shutting down my half of socket")
+            socket.shutdownOutput
         } else {
             super.handleTransact(params, id)
         }
