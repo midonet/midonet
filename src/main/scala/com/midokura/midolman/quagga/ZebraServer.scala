@@ -378,7 +378,8 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                                 AdvertisedWeight, "", port.device_id)
                             routeMgr.synchronized {
                                 try {
-                                    val routeUUID = routeMgr.create(route)
+                                    val routeUUID = routeMgr.create(route,
+                                                                    false)
                                     zebraToRoute(advertised) = routeUUID
                                 } catch {
                                     case e: StatePathExistsException =>
