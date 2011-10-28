@@ -95,21 +95,26 @@ public class RouteZkManager extends ZkManager {
      * @param entry
      *            ZooKeeper node representing a key-value entry of Route UUID
      *            and Route object.
+     * @param persistent
+     *            Store as PERSISTENT mode if true.
      * @return A list of Op objects to represent the operations to perform.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws StateAccessException
      */
-    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry)
-            throws ZkStateSerializationException, StateAccessException {
+    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry,
+                                       boolean persistent)
+        throws ZkStateSerializationException, StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
+        CreateMode mode = persistent ?
+            CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
 
         // Add to root
         try {
             ops.add(Op.create(pathManager.getRoutePath(entry.key),
-                    serialize(entry.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
+                              serialize(entry.value), Ids.OPEN_ACL_UNSAFE,
+                              mode));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize Route data", e, Route.class);
@@ -118,8 +123,7 @@ public class RouteZkManager extends ZkManager {
         // Add under port or router. Router routes and logical port routes
         // should also be added to the routing table.
         for (String path : getSubDirectoryRoutePaths(entry)) {
-            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
+            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
         }
         return ops;
     }
@@ -157,6 +161,26 @@ public class RouteZkManager extends ZkManager {
      * 
      * @param route
      *            Route object to add to the ZooKeeper directory.
+     * @param persistent
+     *            Store as PERSISTENT mode if true.
+     * @return The UUID of the newly created object.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     * @throws StateAccessException
+     */
+    public UUID create(Route route, boolean persistent)
+        throws ZkStateSerializationException, StateAccessException {
+        UUID id = UUID.randomUUID();
+        ZkNodeEntry<UUID, Route> entry = new ZkNodeEntry<UUID, Route>(id, route);
+        multi(prepareRouteCreate(entry, persistent));
+        return id;
+    }
+
+    /**
+     * Performs an atomic update on the ZooKeeper to add a new route entry.
+     *
+     * @param route
+     *            Route object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
@@ -164,10 +188,7 @@ public class RouteZkManager extends ZkManager {
      */
     public UUID create(Route route) throws ZkStateSerializationException,
             StateAccessException {
-        UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, Route> entry = new ZkNodeEntry<UUID, Route>(id, route);
-        multi(prepareRouteCreate(entry));
-        return id;
+        return this.create(route, true);
     }
 
     /**
