@@ -157,7 +157,7 @@ public class L3DevicePort {
     public void send(byte[] pktData) {
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(portNum, (short) 0));
-        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID, OFPort.OFPP_CONTROLLER
+        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID, OFPort.OFPP_NONE
                 .getValue(), actions, pktData);
     }
 
