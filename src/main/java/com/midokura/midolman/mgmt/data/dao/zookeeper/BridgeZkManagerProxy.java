@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
+import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.Directory;
@@ -35,35 +37,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  */
 public class BridgeZkManagerProxy extends ZkMgmtManager implements BridgeDao,
         OwnerQueryable {
-
-    public static class BridgeMgmtConfig {
-
-        public BridgeMgmtConfig() {
-            super();
-        }
-
-        public BridgeMgmtConfig(String tenantId, String name) {
-            super();
-            this.tenantId = tenantId;
-            this.name = name;
-        }
-
-        public String tenantId;
-        public String name;
-    }
-
-    public static class BridgeNameMgmtConfig {
-        public BridgeNameMgmtConfig() {
-            super();
-        }
-
-        public BridgeNameMgmtConfig(UUID id) {
-            super();
-            this.id = id;
-        }
-
-        public UUID id;
-    }
 
     private BridgeZkManager zkManager = null;
     private final static Logger log = LoggerFactory

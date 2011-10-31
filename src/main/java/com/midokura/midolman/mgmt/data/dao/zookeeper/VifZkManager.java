@@ -20,6 +20,7 @@ import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Vif;
+import com.midokura.midolman.mgmt.data.dto.config.VifConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -32,20 +33,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  */
 public class VifZkManager extends ZkMgmtManager implements VifDao,
         OwnerQueryable {
-
-    public static class VifConfig {
-
-        public VifConfig() {
-            super();
-        }
-
-        public VifConfig(UUID portId) {
-            super();
-            this.portId = portId;
-        }
-
-        public UUID portId;
-    }
 
     private final static Logger log = LoggerFactory
             .getLogger(VifZkManager.class);

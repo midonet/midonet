@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkManagerProxy.PeerRouterConfig;
+import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.ZkNodeEntry;

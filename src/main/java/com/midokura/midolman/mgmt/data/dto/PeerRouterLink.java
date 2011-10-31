@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkManagerProxy.PeerRouterConfig;
+import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 
 /**
  * Class representing port.

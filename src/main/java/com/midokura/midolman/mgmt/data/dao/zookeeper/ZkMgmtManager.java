@@ -5,8 +5,12 @@
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
+import java.io.IOException;
+
+import com.midokura.midolman.mgmt.utils.JsonJaxbSerializer;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.util.Serializer;
 
 /**
  * Abstract base class for MgmtZkManager.
@@ -31,5 +35,17 @@ public class ZkMgmtManager extends ZkManager {
     public ZkMgmtManager(Directory zk, String basePath, String mgmtBasePath) {
         super(zk, basePath);
         this.mgmtPathManager = new ZkMgmtPathManager(mgmtBasePath);
+    }
+
+    @Override
+    protected <T> byte[] serialize(T obj) throws IOException {
+        Serializer<T> s = new JsonJaxbSerializer<T>();
+        return s.objToBytes(obj);
+    }
+
+    @Override
+    protected <T> T deserialize(byte[] obj, Class<T> clazz) throws IOException {
+        Serializer<T> s = new JsonJaxbSerializer<T>();
+        return s.bytesToObj(obj, clazz);
     }
 }

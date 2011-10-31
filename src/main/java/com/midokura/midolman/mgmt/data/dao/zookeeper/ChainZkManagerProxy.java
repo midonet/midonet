@@ -22,6 +22,8 @@ import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
@@ -31,33 +33,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         OwnerQueryable {
-
-    public static class ChainMgmtConfig {
-
-        public ChainMgmtConfig() {
-            super();
-        }
-
-        public ChainMgmtConfig(String table) {
-            super();
-            this.table = table;
-        }
-
-        public String table;
-    }
-
-    public static class ChainNameMgmtConfig {
-        public ChainNameMgmtConfig() {
-            super();
-        }
-
-        public ChainNameMgmtConfig(UUID id) {
-            super();
-            this.id = id;
-        }
-
-        public UUID id;
-    }
 
     public final static String NAT_TABLE = "nat";
     private static String[] builtInChainNames = { Router.POST_ROUTING,

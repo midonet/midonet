@@ -22,6 +22,9 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
+import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -34,50 +37,6 @@ import com.midokura.midolman.util.ShortUUID;
 
 public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
         OwnerQueryable {
-
-    public static class RouterMgmtConfig {
-
-        public RouterMgmtConfig() {
-            super();
-        }
-
-        public RouterMgmtConfig(String tenantId, String name) {
-            super();
-            this.tenantId = tenantId;
-            this.name = name;
-        }
-
-        public String tenantId;
-        public String name;
-    }
-
-    public static class PeerRouterConfig {
-        public PeerRouterConfig() {
-            super();
-        }
-
-        public PeerRouterConfig(UUID portId, UUID peerPortId) {
-            super();
-            this.portId = portId;
-            this.peerPortId = peerPortId;
-        }
-
-        public UUID portId;
-        public UUID peerPortId;
-    }
-
-    public static class RouterNameMgmtConfig {
-        public RouterNameMgmtConfig() {
-            super();
-        }
-
-        public RouterNameMgmtConfig(UUID id) {
-            super();
-            this.id = id;
-        }
-
-        public UUID id;
-    }
 
     private RouterZkManager zkManager = null;
     private final static Logger log = LoggerFactory

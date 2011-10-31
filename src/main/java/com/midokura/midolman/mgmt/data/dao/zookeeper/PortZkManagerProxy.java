@@ -22,6 +22,7 @@ import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.RouterPort;
+import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -39,20 +40,6 @@ import com.midokura.midolman.util.ShortUUID;
  */
 public class PortZkManagerProxy extends ZkMgmtManager implements PortDao,
         OwnerQueryable {
-
-    public static class PortMgmtConfig {
-
-        public PortMgmtConfig() {
-            super();
-        }
-
-        public PortMgmtConfig(UUID vifId) {
-            super();
-            this.vifId = vifId;
-        }
-
-        public UUID vifId = null;
-    }
 
     private PortZkManager zkManager = null;
     private final static Logger log = LoggerFactory
