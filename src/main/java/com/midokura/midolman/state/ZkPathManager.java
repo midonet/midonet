@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * This class was created to have all state classes share the Zk path
  * information.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -20,7 +20,7 @@ public class ZkPathManager {
 
     /**
      * Constructor.
-     * 
+     *
      * @param basePath
      *            Base path of Zk.
      */
@@ -45,7 +45,7 @@ public class ZkPathManager {
 
     /**
      * Get GRE path.
-     * 
+     *
      * @return /gre
      */
     public String getGrePath() {
@@ -54,7 +54,7 @@ public class ZkPathManager {
 
     /**
      * Get GRE key path.
-     * 
+     *
      * @return /gre/greKey
      */
     public String getGreKeyPath(int greKeyId) {
@@ -65,7 +65,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK bridges path.
-     * 
+     *
      * @return /birdges
      */
     public String getBridgesPath() {
@@ -74,7 +74,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK bridge path.
-     * 
+     *
      * @param id
      *            Bridge UUID
      * @return /bridges/bridgeId
@@ -86,7 +86,7 @@ public class ZkPathManager {
 
     /**
      * Get the path of a bridge's dynamic filtering database (mac to ports map).
-     * 
+     *
      * @param id
      *            Bridge UUID
      * @return /bridges/bridgeId/mac_ports
@@ -98,7 +98,7 @@ public class ZkPathManager {
 
     /**
      * Get the path of a bridge's port to location map.
-     * 
+     *
      * @param id
      *            Bridge UUID
      * @return /bridges/bridgeId/port_locations
@@ -110,7 +110,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router path.
-     * 
+     *
      * @return /routers
      */
     public String getRoutersPath() {
@@ -119,7 +119,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId
@@ -131,7 +131,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port path.
-     * 
+     *
      * @return /ports
      */
     public String getPortsPath() {
@@ -140,7 +140,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port path.
-     * 
+     *
      * @param id
      *            Port ID.
      * @return /ports/portId
@@ -152,7 +152,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router port path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/ports
@@ -164,7 +164,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router port path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @param portId
@@ -178,7 +178,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK bridge port path.
-     * 
+     *
      * @param bridgeId
      *            Bridge UUID
      * @return /bridges/bridgeId/ports
@@ -190,7 +190,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK bridge port path.
-     * 
+     *
      * @param bridgeId
      *            Bridge UUID
      * @param portId
@@ -204,7 +204,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK routes path.
-     * 
+     *
      * @return /routes
      */
     public String getRoutesPath() {
@@ -213,7 +213,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK routes path. /routes/routeId
-     * 
+     *
      * @param portId
      *            Port UUID
      * @param Route
@@ -227,7 +227,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router routes path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/routes
@@ -239,7 +239,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router routes path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/routes/routeId
@@ -251,7 +251,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port routes path.
-     * 
+     *
      * @param portId
      *            Port UUID
      * @return /ports/portId/routes
@@ -263,7 +263,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port routes path.
-     * 
+     *
      * @param portId
      *            Port UUID
      * @param routeId
@@ -277,7 +277,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK rule chain path.
-     * 
+     *
      * @return /rule_chains
      */
     public String getChainsPath() {
@@ -286,7 +286,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK rule chain path.
-     * 
+     *
      * @param id
      *            Chain UUID.
      * @return /chains/chainId
@@ -298,7 +298,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router rule chains path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/chains
@@ -310,7 +310,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router rule chains path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @param chainId
@@ -324,7 +324,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK rule path.
-     * 
+     *
      * @return /rules
      */
     public String getRulesPath() {
@@ -333,7 +333,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK rule path.
-     * 
+     *
      * @param id
      *            Rule UUID.
      * @return /rules/ruleId
@@ -345,7 +345,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK chain rule path.
-     * 
+     *
      * @param chainId
      *            Chain UUID
      * @return /chains/chainId/rules
@@ -357,7 +357,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK chain rule path.
-     * 
+     *
      * @param chainId
      *            Chain UUID
      * @param ruleId
@@ -371,7 +371,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router routing table path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/routing_table
@@ -383,7 +383,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK router SNAT blocks path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/snat_blocks
@@ -395,7 +395,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK BGP path.
-     * 
+     *
      * @return /bgps
      */
     public String getBgpPath() {
@@ -404,7 +404,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK BGP path.
-     * 
+     *
      * @param id
      *            BGP UUID
      * @return /bgps/bgpId
@@ -416,7 +416,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port BGP path.
-     * 
+     *
      * @param portId
      *            Port UUID
      * @return /ports/portId/bgps
@@ -428,7 +428,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK port BGP path.
-     * 
+     *
      * @param portId
      *            Port UUID
      * @param bgpId
@@ -442,7 +442,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK advertising routes path.
-     * 
+     *
      * @return /ad_routes
      */
     public String getAdRoutesPath() {
@@ -451,7 +451,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK advertising routes path.
-     * 
+     *
      * @param id
      *            AdRoutes UUID
      * @return /ad_routes/adRouteId
@@ -463,7 +463,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK BGP advertising routes path.
-     * 
+     *
      * @param bgpId
      *            BGP UUID
      * @return /bgps/bgpId/ad_routes
@@ -475,7 +475,7 @@ public class ZkPathManager {
 
     /**
      * Get ZK bgp advertising route path.
-     * 
+     *
      * @param bgpId
      *            BGP UUID
      * @param adRouteId
@@ -489,7 +489,7 @@ public class ZkPathManager {
 
     /**
      * Get the path to the port to location map for the router network.
-     * 
+     *
      * @return /vrn_port_locations
      */
     public String getVRNPortLocationsPath() {
