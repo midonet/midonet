@@ -62,6 +62,14 @@ public class Route implements Serializable {
     	this.dstNetworkAddr = Net.convertStringAddressToInt(addr);
     }
     
+    public String getNextHopGateway() {
+    	return Net.convertIntAddressToString(this.nextHopGateway);
+    }
+    
+    public void setNextHopGateway(String addr) {
+    	this.nextHopGateway = Net.convertStringAddressToInt(addr);
+    }
+    
     @Override
     public boolean equals(Object other) {
         if (other == null)
