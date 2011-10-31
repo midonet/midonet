@@ -45,31 +45,31 @@ public class Route implements Serializable {
     public Route() { super(); }
 
     /* Custom accessors for more readable IP address representation in Jackson serialization. */
-    
+
     public String getSrcNetworkAddr() {
-    	return Net.convertIntAddressToString(this.srcNetworkAddr);
+        return Net.convertIntAddressToString(this.srcNetworkAddr);
     }
-    
+
     public void setSrcNetworkAddr(String addr) {
-    	this.srcNetworkAddr = Net.convertStringAddressToInt(addr);
+        this.srcNetworkAddr = Net.convertStringAddressToInt(addr);
     }
-    
+
     public String getDstNetworkAddr() {
-    	return Net.convertIntAddressToString(this.dstNetworkAddr);
+        return Net.convertIntAddressToString(this.dstNetworkAddr);
     }
-    
+
     public void setDstNetworkAddr(String addr) {
-    	this.dstNetworkAddr = Net.convertStringAddressToInt(addr);
+        this.dstNetworkAddr = Net.convertStringAddressToInt(addr);
     }
-    
+
     public String getNextHopGateway() {
-    	return Net.convertIntAddressToString(this.nextHopGateway);
+        return Net.convertIntAddressToString(this.nextHopGateway);
     }
-    
+
     public void setNextHopGateway(String addr) {
-    	this.nextHopGateway = Net.convertStringAddressToInt(addr);
+        this.nextHopGateway = Net.convertStringAddressToInt(addr);
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if (other == null)
