@@ -43,12 +43,12 @@ public abstract class ZkManager {
         this.zk = zk;
     }
 
-    protected static <T> byte[] serialize(T obj) throws IOException {
+    protected <T> byte[] serialize(T obj) throws IOException {
         Serializer<T> s = new JSONSerializer<T>();
         return s.objToBytes(obj);
     }
 
-    protected static <T> T deserialize(byte[] obj, Class<T> clazz)
+    protected <T> T deserialize(byte[] obj, Class<T> clazz)
             throws IOException {
         Serializer<T> s = new JSONSerializer<T>();
         return s.bytesToObj(obj, clazz);
