@@ -357,6 +357,8 @@ public class DHCP extends BasePacket {
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
         ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+        if (length < 44)
+            return this;
         this.opCode = bb.get();
         this.hardwareType = bb.get();
         this.hardwareAddressLength = bb.get();
@@ -373,8 +375,14 @@ public class DHCP extends BasePacket {
         bb.get(this.clientHardwareAddress);
         for (int i = hardwareAddressLength; i < 16; ++i)
             bb.get();
+        if (length < 108)
+            return this;
         this.serverName = readString(bb, 64);
+        if (length < 236)
+            return this;
         this.bootFileName = readString(bb, 128);
+        if (length < 240)
+            return this;
         // read the magic cookie
         // magic cookie
         bb.get();
@@ -390,9 +398,13 @@ public class DHCP extends BasePacket {
                 // skip these
                 continue;
             } else if (code != DHCPOption.Code.END.value()) {
-                byte l = bb.get();
-                option.setLength(l);
-                byte[] optionData = new byte[l & 0xff]; // needs length as positive int
+                if (!bb.hasRemaining())
+                    break;
+                byte len = bb.get();
+                if (bb.remaining() < len)
+                    break;
+                option.setLength(len);
+                byte[] optionData = new byte[len & 0xff]; // needs length as positive int
                 bb.get(optionData);
                 option.setData(optionData);
                 log.debug("deserialize: found option with code {}", code & 0xff);

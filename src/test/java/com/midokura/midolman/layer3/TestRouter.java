@@ -375,7 +375,7 @@ public class TestRouter {
         OFAction ofAction = new OFActionOutput(devPort23.getNum(), (short) 0);
         Assert.assertTrue(ofAction.equals(pktRecord.actions.get(0)));
         Assert.assertEquals(controllerStub.UNBUFFERED_ID, pktRecord.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pktRecord.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pktRecord.inPort);
         Ethernet ethReply = new Ethernet();
         ethReply.deserialize(pktRecord.data, 0, pktRecord.data.length);
         Assert.assertEquals(IPv4.ETHERTYPE, ethReply.getEtherType());

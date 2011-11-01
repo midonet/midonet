@@ -309,6 +309,22 @@ public class TestNetworkController {
     }
 
     @Test
+    public void testPacketToUnrecognizedPort() {
+        // Verify that if a packet arrives on a port that is neither a tunnel
+        // nor a virtual port, the packet is dropped.
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0a000005, 0x0a040005,
+                (short) 101, (short) 212, new byte[] {4, 5, 6, 7, 8});
+        byte[] data = eth.serialize();
+        // Send to a non-existent port.
+        networkCtrl.onPacketIn(55, data.length, (short)1234, data);
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
+        Assert.assertTrue(55 == controllerStub.droppedPktBufIds.get(0));
+    }
+
+    @Test
     public void testOneRouterBlackhole() {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.

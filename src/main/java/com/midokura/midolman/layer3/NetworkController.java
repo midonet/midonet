@@ -340,6 +340,8 @@ public class NetworkController extends AbstractController {
         if (null == devPortIn && !super.isTunnelPortNum(inPort)) {
             log.warn("onPacketIn: dropping packet from port {} (not virtual "
                     + "or tunnel): {}", inPort, match);
+            // TODO(pino): should we install a drop rule to avoid processing
+            // all the packets from this port?
             freeBuffer(bufferId);
             return;
         }
