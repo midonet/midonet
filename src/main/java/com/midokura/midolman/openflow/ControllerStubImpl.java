@@ -291,7 +291,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
 
     @Override
     public void sendPacketOut(int bufferId, short inPort, List<OFAction> actions, byte[] data) {
-        log.debug("sendPacketOut");
+        log.debug("sendPacketOut buffer {} in_port {}", bufferId, inPort);
 
         OFPacketOut po = (OFPacketOut) factory.getMessage(OFType.PACKET_OUT);
         po.setBufferId(bufferId).setActions(actions);

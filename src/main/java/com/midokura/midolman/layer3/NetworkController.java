@@ -358,7 +358,8 @@ public class NetworkController extends AbstractController {
 
         Ethernet ethPkt = new Ethernet();
         ethPkt.deserialize(data, 0, data.length);
-        log.debug("onPacketIn: port {} packet {}", inPort, ethPkt);
+        log.debug("onPacketIn: port {} received buffer {} of size {} - {}",
+                new Object [] { inPort, bufferId, totalLen, ethPkt });
 
         if (super.isTunnelPortNum(inPort)) {
             log.debug("onPacketIn: got packet from tunnel {}", inPort);
