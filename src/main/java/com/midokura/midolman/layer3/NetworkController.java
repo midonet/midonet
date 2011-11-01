@@ -334,6 +334,16 @@ public class NetworkController extends AbstractController {
         match.loadFromPacket(data, shortInPort);
         L3DevicePort devPortOut;
 
+        // Try mapping the port number to a virtual device port.
+        L3DevicePort devPortIn = devPortByNum.get(inPort);
+        // If the port isn't a virtual port and it isn't a tunnel, drop the pkt.
+        if (null == devPortIn && !super.isTunnelPortNum(inPort)) {
+            log.warn("onPacketIn: dropping packet from port {} (not virtual "
+                    + "or tunnel): {}", inPort, match);
+            freeBuffer(bufferId);
+            return;
+        }
+
         // Rewrite inPort with the service's target port assuming that
         // service flows sent this packet to the OFPP_CONTROLLER.
         // TODO(yoshi): replace this with better mechanism such as ARP proxy
@@ -392,16 +402,6 @@ public class NetworkController extends AbstractController {
                 log.warn("onPacketIn", e);
             }
             // The ARP will be completed asynchronously by the callback.
-            return;
-        }
-
-        // Else it's a packet from a materialized port.
-        L3DevicePort devPortIn = devPortByNum.get(inPort);
-        if (null == devPortIn) {
-            log.warn("onPacketIn: from local {} wasn't previously added with" +
-            		" addVirtualPort or no virtual port Id found", inPort);
-            // drop packets entering on ports that we don't recognize.
-            freeBuffer(bufferId);
             return;
         }
 
@@ -1415,7 +1415,7 @@ public class NetworkController extends AbstractController {
 
         log.info("addVirtualPort number {} bound to vport {} with "
                 + "nw address {}", new Object[] { portNum, devPort.getId(),
-                devPort.getVirtualConfig().portAddr });
+                IPv4.fromIPv4Address(devPort.getVirtualConfig().portAddr) });
         try {
             network.addPort(devPort);
             addServicePort(devPort);

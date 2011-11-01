@@ -144,10 +144,7 @@ public abstract class AbstractController
                 onPortStatus(portDesc, OFPortReason.OFPPR_ADD);
             }
         }
-        log.debug("onConnectionMade: All done handling pre-existing ports.  " +
-                  "There are now {} pre-existing ports.",
-                  controllerStub.getFeatures().getPorts().size());
-                
+        log.debug("onConnectionMade: All done handling pre-existing ports.");
         portLocMap.start();
     }
 
