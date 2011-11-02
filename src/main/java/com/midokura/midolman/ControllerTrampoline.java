@@ -134,14 +134,13 @@ public class ControllerTrampoline implements Controller {
                             .getString("public_ip_address"));
 
                 // TODO need better way to match this with what servers use
-                int voldemortLifetime =
-                        (int)(AmnesicStorageConfiguration.DEFAULT_LIFETIME / 1000L);
+                int voldemortLifetime = CACHE_EXPIRATION_SECONDS;
                 
                 String voldemortStore = config.configurationAt("voldemort")
-                        .getString("voldemort_store");
+                        .getString("store");
 
                 String[] voldemortHosts = config.configurationAt("voldemort")
-                        .getString("voldemort_servers").split(",");
+                        .getString("servers").split(",");
 
                 Cache cache = new VoldemortCache(voldemortStore, voldemortLifetime,
                         Arrays.asList(voldemortHosts));
