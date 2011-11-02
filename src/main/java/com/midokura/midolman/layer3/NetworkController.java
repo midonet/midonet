@@ -760,9 +760,6 @@ public class NetworkController extends AbstractController {
                 installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                         ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
-                // The packet came over a tunnel so its mac addresses were used
-                // to encode Midonet port ids. Set the mac addresses to make
-                // sure they don't run afoul of the ICMP error rules.
                 Ethernet ethPkt = new Ethernet();
                 ethPkt.deserialize(data, 0, data.length);
                 sendICMPforTunneledPkt(ICMP.UNREACH_CODE.UNREACH_HOST, ethPkt,
@@ -888,6 +885,12 @@ public class NetworkController extends AbstractController {
          * requires invoking the routing logic and then ARPing the next hop
          * gateway network address.
          */
+
+        // The packet came over a tunnel so its mac addresses were used
+        // to encode Midonet port ids. Set the mac addresses to make
+        // sure they don't run afoul of the ICMP error rules.
+        tunneledEthPkt.setDestinationMACAddress(MAC.fromString("02:00:00:33:44:55"));
+        tunneledEthPkt.setSourceMACAddress(MAC.fromString("02:00:00:33:44:55"));
         if (!canSendICMP(tunneledEthPkt, lastEgress)) {
             log.debug("sendICMPforTunneledPkt: cannot send ICMP");
             return;
