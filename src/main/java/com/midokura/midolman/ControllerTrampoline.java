@@ -7,6 +7,7 @@ package com.midokura.midolman;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.UUID;
 
 import javax.management.JMException;
@@ -48,7 +49,8 @@ import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.MemcacheCache;
+import com.midokura.midolman.util.VoldemortCache;
+import com.midokura.midolman.voldemort.AmnesicStorageConfiguration;
 
 public class ControllerTrampoline implements Controller {
 
@@ -131,12 +133,19 @@ public class ControllerTrampoline implements Controller {
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
 
-                String memcacheHosts = config.configurationAt("memcache")
-                                             .getString("memcache_hosts");
+                // TODO need better way to match this with what servers use
+                int voldemortLifetime =
+                        (int)(AmnesicStorageConfiguration.DEFAULT_LIFETIME / 1000L);
                 
-                Cache cache = new MemcacheCache(memcacheHosts,
-                        CACHE_EXPIRATION_SECONDS);
-                
+                String voldemortStore = config.configurationAt("voldemort")
+                        .getString("voldemort_store");
+
+                String[] voldemortHosts = config.configurationAt("voldemort")
+                        .getString("voldemort_servers").split(",");
+
+                Cache cache = new VoldemortCache(voldemortStore, voldemortLifetime,
+                        Arrays.asList(voldemortHosts));
+
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
                 BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);

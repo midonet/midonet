@@ -266,11 +266,18 @@
     </repositories>
 
     <dependencies>
-                <dependency>
-                        <groupId>spy</groupId>
-                        <artifactId>spymemcached</artifactId>
-                        <version>2.7</version>
-                </dependency>
+        <dependency>
+            <groupId>voldemort</groupId>
+            <artifactId>voldemort</artifactId>
+            <version>0.90.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>voldemort</groupId>
+            <artifactId>voldemort-test</artifactId>
+            <version>0.90.1</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.newsclub</groupId>
