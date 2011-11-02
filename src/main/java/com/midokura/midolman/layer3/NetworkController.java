@@ -297,6 +297,12 @@ public class NetworkController extends AbstractController {
                 DHCPOption.Code.ROUTER.length(),
                 IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
         options.add(opt);
+        // in MidoNet the DHCP server is the same as the router
+        opt = new DHCPOption(
+                DHCPOption.Code.SERVER_ID.value(),
+                DHCPOption.Code.SERVER_ID.length(),
+                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+        options.add(opt);
         // And finally add the END option.
         opt = new DHCPOption(DHCPOption.Code.END.value(),
                 DHCPOption.Code.END.length(), null);
