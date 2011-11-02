@@ -340,6 +340,16 @@ public class NetworkController extends AbstractController {
         match.loadFromPacket(data, shortInPort);
         L3DevicePort devPortOut;
 
+        // Rewrite inPort with the service's target port assuming that
+        // service flows sent this packet to the OFPP_CONTROLLER.
+        // TODO(yoshi): replace this with better mechanism such as ARP proxy
+        // for service ports.
+        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
+            log.debug("onPacketIn: rewrite port {} to {}", inPort,
+                      serviceTargetPort);
+            inPort = serviceTargetPort;
+        }
+
         // Try mapping the port number to a virtual device port.
         L3DevicePort devPortIn = devPortByNum.get(inPort);
         // If the port isn't a virtual port and it isn't a tunnel, drop the pkt.
@@ -350,16 +360,6 @@ public class NetworkController extends AbstractController {
             // all the packets from this port?
             freeBuffer(bufferId);
             return;
-        }
-
-        // Rewrite inPort with the service's target port assuming that
-        // service flows sent this packet to the OFPP_CONTROLLER.
-        // TODO(yoshi): replace this with better mechanism such as ARP proxy
-        // for service ports.
-        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
-            log.debug("onPacketIn: rewrite port {} to {}", inPort,
-                      serviceTargetPort);
-            inPort = serviceTargetPort;
         }
 
         Ethernet ethPkt = new Ethernet();
