@@ -133,9 +133,10 @@ public class ControllerTrampoline implements Controller {
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
 
-                // TODO need better way to match this with what servers use
-                int voldemortLifetime = CACHE_EXPIRATION_SECONDS;
-                
+                // TODO better way to match lifetime used by server?
+                int voldemortLifetime = (int)(config.configurationAt("voldemort")
+                        .getLong("lifetime") / 1000);
+
                 String voldemortStore = config.configurationAt("voldemort")
                         .getString("store");
 
