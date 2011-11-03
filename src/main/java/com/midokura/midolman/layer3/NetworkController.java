@@ -297,6 +297,12 @@ public class NetworkController extends AbstractController {
                 DHCPOption.Code.ROUTER.length(),
                 IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
         options.add(opt);
+        // in MidoNet the DHCP server is the same as the router
+        opt = new DHCPOption(
+                DHCPOption.Code.SERVER_ID.value(),
+                DHCPOption.Code.SERVER_ID.length(),
+                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+        options.add(opt);
         // And finally add the END option.
         opt = new DHCPOption(DHCPOption.Code.END.value(),
                 DHCPOption.Code.END.length(), null);
@@ -334,6 +340,16 @@ public class NetworkController extends AbstractController {
         match.loadFromPacket(data, shortInPort);
         L3DevicePort devPortOut;
 
+        // Rewrite inPort with the service's target port assuming that
+        // service flows sent this packet to the OFPP_CONTROLLER.
+        // TODO(yoshi): replace this with better mechanism such as ARP proxy
+        // for service ports.
+        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
+            log.debug("onPacketIn: rewrite port {} to {}", inPort,
+                      serviceTargetPort);
+            inPort = serviceTargetPort;
+        }
+
         // Try mapping the port number to a virtual device port.
         L3DevicePort devPortIn = devPortByNum.get(inPort);
         // If the port isn't a virtual port and it isn't a tunnel, drop the pkt.
@@ -344,16 +360,6 @@ public class NetworkController extends AbstractController {
             // all the packets from this port?
             freeBuffer(bufferId);
             return;
-        }
-
-        // Rewrite inPort with the service's target port assuming that
-        // service flows sent this packet to the OFPP_CONTROLLER.
-        // TODO(yoshi): replace this with better mechanism such as ARP proxy
-        // for service ports.
-        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
-            log.debug("onPacketIn: rewrite port {} to {}", inPort,
-                      serviceTargetPort);
-            inPort = serviceTargetPort;
         }
 
         Ethernet ethPkt = new Ethernet();
@@ -754,9 +760,6 @@ public class NetworkController extends AbstractController {
                 installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                         ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
-                // The packet came over a tunnel so its mac addresses were used
-                // to encode Midonet port ids. Set the mac addresses to make
-                // sure they don't run afoul of the ICMP error rules.
                 Ethernet ethPkt = new Ethernet();
                 ethPkt.deserialize(data, 0, data.length);
                 sendICMPforTunneledPkt(ICMP.UNREACH_CODE.UNREACH_HOST, ethPkt,
@@ -882,6 +885,12 @@ public class NetworkController extends AbstractController {
          * requires invoking the routing logic and then ARPing the next hop
          * gateway network address.
          */
+
+        // The packet came over a tunnel so its mac addresses were used
+        // to encode Midonet port ids. Set the mac addresses to make
+        // sure they don't run afoul of the ICMP error rules.
+        tunneledEthPkt.setDestinationMACAddress(MAC.fromString("02:00:00:33:44:55"));
+        tunneledEthPkt.setSourceMACAddress(MAC.fromString("02:00:00:33:44:55"));
         if (!canSendICMP(tunneledEthPkt, lastEgress)) {
             log.debug("sendICMPforTunneledPkt: cannot send ICMP");
             return;
