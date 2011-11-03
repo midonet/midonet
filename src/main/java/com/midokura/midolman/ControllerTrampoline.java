@@ -57,8 +57,6 @@ public class ControllerTrampoline implements Controller {
     private static final Logger log = LoggerFactory
             .getLogger(ControllerTrampoline.class);
 
-    public static final int CACHE_EXPIRATION_SECONDS = 60;
-
     private HierarchicalConfiguration config;
     private OpenvSwitchDatabaseConnection ovsdb;
     private Directory directory;
