@@ -13,7 +13,7 @@ import voldemort.store.Store;
 import voldemort.utils.ByteArray;
 import voldemort.versioning.Versioned;
 
-public class AmnesicStorageEngineTest extends AbstractByteArrayStoreTest {
+public class TestAmnesicStorageEngine extends AbstractByteArrayStoreTest {
 
     @Override
     public Store<ByteArray, byte[], byte[]> getStore() throws Exception {

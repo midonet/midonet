@@ -27,7 +27,7 @@ import voldemort.server.VoldemortServer;
  * 
  * @author Yoo Chung
  */
-public class VoldemortCacheTest {
+public class TestVoldemortCache {
 
     private static final String tmpPrefix = "/tmp/midovold-";
     
