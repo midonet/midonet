@@ -173,6 +173,26 @@ public class VoldemortCacheTest {
         assertNull(cache.get("test_key"));
     }
     
+    @Test
+    public void testRefresh() throws Exception {
+        cache.set("test_key", "test_value");
+        
+        // repeat refreshes until at least 3*lifetime()
+        // if refresh does not work, this will ensure expiration
+        Thread.sleep(lifetime() / 2);
+        assertEquals("test_value", cache.getAndTouch("test_key"));
+        Thread.sleep(lifetime() / 2);
+        assertEquals("test_value", cache.getAndTouch("test_key"));
+        Thread.sleep(lifetime() / 2);
+        assertEquals("test_value", cache.getAndTouch("test_key"));
+        Thread.sleep(lifetime() / 2);
+        assertEquals("test_value", cache.getAndTouch("test_key"));
+        Thread.sleep(lifetime() / 2);
+        assertEquals("test_value", cache.getAndTouch("test_key"));
+        Thread.sleep(lifetime() / 2);
+        assertEquals("test_value", cache.get("test_key"));
+    }
+    
     /*
      * It would be preferable to instantiate Voldemort servers programmatically.
      * Unfortunately, a lot of configuration (also called 'metadata') has to be
