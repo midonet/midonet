@@ -21,12 +21,21 @@ import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 public class VpnZkManager extends ZkManager {
 
-    public static final class VpnConfig {
-        public int port;
-        public UUID portId;
+    public static enum VpnType {
+        OPENVPN_SERVER, OPENVPN_CLIENT, OPENVPN_TCP_SERVER, OPENVPN_TCP_CLIENT,
+    }
 
-        public VpnConfig(UUID portId, int port) {
-            this.portId = portId;
+    public static final class VpnConfig {
+        public UUID publicPortId;
+        public UUID privatePortId;
+        public VpnType vpnType;
+        public int port;
+
+        public VpnConfig(UUID publicPortId, UUID privatePortId,
+                         VpnType vpnType, int port) {
+            this.publicPortId = publicPortId;
+            this.privatePortId = privatePortId;
+            this.vpnType = vpnType;
             this.port = port;
         }
 
@@ -62,7 +71,11 @@ public class VpnZkManager extends ZkManager {
         }
 
         ops.add(
-            Op.create(pathManager.getPortVpnPath(vpnNode.value.portId,
+            Op.create(pathManager.getPortVpnPath(vpnNode.value.publicPortId,
+                                                 vpnNode.key),
+                      null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(
+            Op.create(pathManager.getPortVpnPath(vpnNode.value.privatePortId,
                                                  vpnNode.key),
                       null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
@@ -79,11 +92,23 @@ public class VpnZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the port vpn entry
-        ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.portId,
+        ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.publicPortId,
+                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.privatePortId,
                 entry.key), -1));
 
         // Delete the vpn
         ops.add(Op.delete(pathManager.getVpnPath(entry.key), -1));
+
+        // Unlock if exists
+        if (this.exists(pathManager.getAgentVpnPath(entry.key)) &&
+            this.exists(pathManager.getAgentPortPath(
+                            entry.value.privatePortId))) {
+            ops.add(Op.delete(pathManager.getAgentVpnPath(entry.key), -1));
+            ops.add(Op.delete(pathManager.getAgentPortPath(
+                                  entry.value.privatePortId), -1));
+        }
+
         return ops;
     }
 
@@ -127,6 +152,23 @@ public class VpnZkManager extends ZkManager {
         return get(id, null);
     }
 
+    // List all vpns.
+    public List<ZkNodeEntry<UUID, VpnConfig>> listAll(Runnable watcher)
+            throws StateAccessException, ZkStateSerializationException {
+        List<ZkNodeEntry<UUID, VpnConfig>> result = new ArrayList<ZkNodeEntry<UUID, VpnConfig>>();
+        Set<String> vpnIds = getChildren(pathManager.getVpnPath(), watcher);
+        for (String vpnId : vpnIds) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(vpnId)));
+        }
+        return result;
+    }
+
+    public List<ZkNodeEntry<UUID, VpnConfig>> listAll()
+            throws StateAccessException, ZkStateSerializationException {
+        return listAll(null);
+    }
+
     public List<ZkNodeEntry<UUID, VpnConfig>> list(UUID portId, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
         List<ZkNodeEntry<UUID, VpnConfig>> result = new ArrayList<ZkNodeEntry<UUID, VpnConfig>>();
@@ -159,5 +201,54 @@ public class VpnZkManager extends ZkManager {
     public void delete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         multi(prepareVpnDelete(id));
+    }
+
+    public List<Op> prepareVpnLock(UUID id, Long sessionId)
+        throws StateAccessException {
+        ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
+
+        List<Op> ops = new ArrayList<Op>();
+        byte[] data = null;
+        try {
+            data =  serialize(sessionId);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                "Could not serialize sessionId", e, Long.class);
+        }
+
+        // Add UUID of vpn, private port as ephemeral nodes.
+        ops.add(Op.create(pathManager.getAgentVpnPath(vpnNode.key),
+                          data, Ids.OPEN_ACL_UNSAFE,
+                          CreateMode.EPHEMERAL));
+        ops.add(Op.create(pathManager.getAgentPortPath(
+                              vpnNode.value.privatePortId),
+                          data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+
+        return ops;
+    }
+
+    public void lock(UUID id, Long sessionId) throws StateAccessException {
+        multi(prepareVpnLock(id, sessionId));
+    }
+
+    public List<Op> prepareVpnUnlock(UUID id)
+        throws StateAccessException {
+        ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
+
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.delete(pathManager.getAgentVpnPath(vpnNode.key), -1));
+        ops.add(Op.delete(pathManager.getAgentPortPath(
+                              vpnNode.value.privatePortId), -1));
+
+        return ops;
+    }
+
+    public void unlock(UUID id) throws StateAccessException {
+        multi(prepareVpnUnlock(id));
+    }
+
+    public void wait(UUID id, Runnable watcher) throws StateAccessException {
+        ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
+        get(pathManager.getAgentVpnPath(vpnNode.key), watcher);
     }
 }

@@ -543,4 +543,55 @@ public class ZkPathManager {
         return new StringBuilder(getPortVpnPath(portId)).append("/")
             .append(vpnId).toString();
     }
+
+    /**
+     * Get ZK agent path.
+     *
+     * @return /agents
+     */
+    public String getAgentPath() {
+        return new StringBuilder(basePath).append("/agents").toString();
+    }
+
+    /**
+     * Get ZK agent port path.
+     *
+     * @return /agents/ports
+     */
+    public String getAgentPortPath() {
+        return new StringBuilder(getAgentPath()).append("/ports").toString();
+    }
+
+    /**
+     * Get ZK agent port path.
+     *
+     * @param vpnId
+     *            VPN UUID
+     * @return /agents/ports/portId
+     */
+    public String getAgentPortPath(UUID portId) {
+        return new StringBuilder(getAgentPortPath()).append("/").append(portId)
+            .toString();
+    }
+
+    /**
+     * Get ZK agent VPN path.
+     *
+     * @return /agents/vpns
+     */
+    public String getAgentVpnPath() {
+        return new StringBuilder(getAgentPath()).append("/vpns").toString();
+    }
+
+    /**
+     * Get ZK agent VPN path.
+     *
+     * @param vpnId
+     *            VPN UUID
+     * @return /agents/vpns/vpnId
+     */
+    public String getAgentVpnPath(UUID vpnId) {
+        return new StringBuilder(getAgentVpnPath()).append("/").append(vpnId)
+            .toString();
+    }
 }
