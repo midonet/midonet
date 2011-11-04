@@ -31,6 +31,12 @@ public class TestVoldemortCache {
 
     private static final String tmpPrefix = "/tmp/midovold-";
     
+    /** 
+     * Name of Voldemort stores used in tests.
+     * If changed, be sure to also change it in {@link storesXMLContent}.
+     */
+    public static final String storeName = "midonat";
+    
     private static final long lifetime = 200L;
     
     private static final int INSTANCES = 4;
@@ -131,6 +137,13 @@ public class TestVoldemortCache {
             tearDownVoldemortServer(i);
     }
     
+    /** Construct cache interface to test Voldemort servers. */
+    public VoldemortCache constructCache() {
+        return new VoldemortCache(storeName, 
+                (int)(lifetime() / 1000), 
+                bootstrapURLs());
+    }
+
     /* 
      * The actual tests for VoldemortCache are below.
      * The stuff above are for setting up and tearing down tests,
@@ -143,9 +156,7 @@ public class TestVoldemortCache {
     @Before
     public void setUp() throws Exception {
         setUpVoldemort();
-        cache = new VoldemortCache("midonat", 
-                (int)(lifetime() / 1000), 
-                bootstrapURLs());
+        cache = constructCache();
     }
 
     @After
