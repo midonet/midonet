@@ -19,6 +19,18 @@
     <build>
         <defaultGoal>package</defaultGoal>
 
+        <resources>
+            <!-- GIT COMMIT ID PLUGIN CONFIGURATION
+                 https://github.com/ktoso/maven-git-commit-id-plugin/ -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
 
         <plugins>
              <plugin>
@@ -214,6 +226,31 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+
+            <!-- GIT COMMIT ID PLUGIN CONFIGURATION
+                 https://github.com/ktoso/maven-git-commit-id-plugin/ -->
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>1.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                         </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <prefix>git</prefix>
+                    <dateFormat>yyyy-MMM-dd '@' HH:mm:ss z</dateFormat>
+                    <verbose>true</verbose>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+                </configuration>
             </plugin>
 
         </plugins>
