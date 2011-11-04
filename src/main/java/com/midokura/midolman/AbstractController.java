@@ -38,10 +38,10 @@ import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 
-public abstract class AbstractController 
+public abstract class AbstractController
         implements Controller, AbstractControllerMXBean {
 
-    private final static Logger log = 
+    private final static Logger log =
                         LoggerFactory.getLogger(AbstractController.class);
 
     protected long datapathId;
@@ -125,7 +125,7 @@ public abstract class AbstractController
         OFMatch match = new OFMatch();
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
 
-        // Add all the non-tunnel ports, delete all the pre-existing tunnel 
+        // Add all the non-tunnel ports, delete all the pre-existing tunnel
         // ports.
         log.debug("onConnectionMade: There are {} pre-existing ports.",
                   controllerStub.getFeatures().getPorts().size());
@@ -449,7 +449,7 @@ public abstract class AbstractController
             if (publicIp == null) {
                 log.error("Trying to make tunnel without a public IP.");
             } else {
-                // Only create tunnel if it doesn't already exist.  
+                // Only create tunnel if it doesn't already exist.
                 // This won't race with tearing down a tunnel because this
                 // method is synchronized.
                 if (!ovsdb.hasPort(grePortName)) {
@@ -460,7 +460,7 @@ public abstract class AbstractController
                          .build();
                 }
             }
-        }    
+        }
 
         if (oldAddr != null && !oldAddr.equals(publicIp)) {
             // Peer might still be in portLocMap under a different portUuid.
@@ -516,7 +516,7 @@ public abstract class AbstractController
         return match;
     }
 
-    protected void addFlowAndPacketOut(OFMatch match, long cookie, 
+    protected void addFlowAndPacketOut(OFMatch match, long cookie,
                 short idleTimeout, short hardTimeout, short priority,
                 int bufferId, boolean sendFlowRemoval, boolean checkOverlap,
                 boolean emergency, OFAction[] actions, short inPort,
@@ -531,11 +531,11 @@ public abstract class AbstractController
             controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
         }
     }
-    
+
     public int getGreKey() {
         return greKey;
     }
-    
+
     public Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
         return peerIpToTunnelPortNum.get(peerIP);
     }

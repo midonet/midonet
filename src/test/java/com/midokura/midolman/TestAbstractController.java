@@ -332,6 +332,8 @@ public class TestAbstractController {
 
     @Test
     public void testDeletePort() {
+        MockControllerStub stub =
+                (MockControllerStub) controller.controllerStub;
         assertArrayEquals(new OFPhysicalPort[] { },
                           controller.virtualPortsRemoved.toArray());
         assertTrue(controller.portNumToUuid.containsKey(37));
@@ -342,14 +344,16 @@ public class TestAbstractController {
                           controller.virtualPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(37));
         assertNull(portLocMap.get(port1uuid));
+        assertEquals(1, stub.deletedFlows.size());
+        assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT, 
+                     stub.deletedFlows.get(0).match.getWildcards());
+        assertEquals(37, stub.deletedFlows.get(0).match.getInputPort());
         assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
         controller.onPortStatus(port2, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new IntIPv4[] { port2peer },
                           controller.tunnelPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(47));
         assertNull(controller.peerOfTunnelPortNum(47));
-        MockControllerStub stub =
-                (MockControllerStub) controller.controllerStub;
         assertEquals(2, stub.deletedFlows.size());
         assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT, 
                      stub.deletedFlows.get(1).match.getWildcards());

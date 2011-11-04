@@ -268,7 +268,14 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         
         log.debug("sendFlowModAdd: about to send {}", fm);
 
+        // TODO(pino): remove after finding the root cause of Redmine #301.
+        // OVS seems to always install nw_tos=0 regardless of what we write.
+        // Wildcard the TOS as a quick workaround.
+        int wc = match.getWildcards();
+        match.setWildcards(wc | OFMatch.OFPFW_NW_TOS);
         stream.write(fm);
+        // Not sure we need to do this... undo our change.
+        match.setWildcards(wc);
         try {
             stream.flush();
         } catch (IOException e) {
