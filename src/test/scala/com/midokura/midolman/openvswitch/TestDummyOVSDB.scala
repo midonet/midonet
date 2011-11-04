@@ -28,7 +28,7 @@ object TestDummyOVSDB {
         spawn {
             ovsdb.accept(clazz).loop
             ovsdb.close
-        }          
+        }
         Thread.sleep(20)
         return portNum
     }
@@ -134,7 +134,7 @@ class TestDummyOVSDB {
 
 
 // TODO: Why doesn't this work as an inner class?
-private class OVSDBWithBridgeTable(sokket: Socket) 
+private class OVSDBWithBridgeTable(sokket: Socket)
                 extends DummyOVSDBServerConn(sokket) {
     override def handleTransact(params: String, id: String) {
         if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
@@ -145,7 +145,7 @@ private class OVSDBWithBridgeTable(sokket: Socket)
     }
 }
 
-private class OVSDBImmediatelyDisconnects(sokket: Socket) 
+private class OVSDBImmediatelyDisconnects(sokket: Socket)
                 extends DummyOVSDBServerConn(sokket) {
     override def handleTransact(params: String, id: String) {
         if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
