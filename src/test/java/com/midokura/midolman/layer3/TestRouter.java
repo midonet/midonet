@@ -88,6 +88,10 @@ public class TestRouter {
     ChainZkManager chainMgr;
     RuleZkManager ruleMgr;
 
+    protected Cache createCache() {
+        return new MockCache();
+    }
+
     @Before
     public void setUp() throws Exception {
         String basePath = "/midolman";
@@ -108,8 +112,7 @@ public class TestRouter {
 
         UUID rtrId = routerMgr.create();
         // TODO(pino): replace the following with a real implementation.
-        Cache cache = new MockCache();
-        cache = new CacheWithPrefix(cache, rtrId.toString());
+        Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
         NatMapping natMap = new NatLeaseManager(routerMgr, rtrId, cache,
                 reactor);

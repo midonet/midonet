@@ -37,6 +37,7 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 
 public class TestNetwork {
@@ -46,6 +47,10 @@ public class TestNetwork {
     private List<UUID> routerIds;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
+
+    protected Cache createCache() {
+        return new MockCache();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -69,7 +74,7 @@ public class TestNetwork {
 
         network = new Network(new UUID(19, 19), portMgr, routerMgr,
                 new ChainZkManager(dir, basePath), new RuleZkManager(dir,
-                        basePath), reactor, new MockCache());
+                        basePath), reactor, createCache());
 
         /*
          * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16

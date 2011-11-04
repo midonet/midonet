@@ -19,11 +19,16 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 
 public class TestNatLeaseManager {
 
     private NatLeaseManager natManager;
+
+    protected Cache createCache() {
+        return new MockCache();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -36,7 +41,7 @@ public class TestNatLeaseManager {
         Reactor reactor = new MockReactor();
 
         UUID rtrId = routerMgr.create();
-        natManager = new NatLeaseManager(routerMgr, rtrId, new MockCache(),
+        natManager = new NatLeaseManager(routerMgr, rtrId, createCache(),
                 reactor);
     }
 
