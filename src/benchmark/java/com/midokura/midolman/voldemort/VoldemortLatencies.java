@@ -7,7 +7,7 @@ import voldemort.client.SocketStoreClientFactory;
 import voldemort.client.StoreClient;
 import voldemort.client.StoreClientFactory;
 
-public class AmnesicStorageLatencies {
+public class VoldemortLatencies {
 
     private static String format(double x) {
         return String.format("%.3f ms", x / 1000000.0);
