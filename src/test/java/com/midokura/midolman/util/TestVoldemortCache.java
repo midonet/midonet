@@ -31,12 +31,14 @@ public class TestVoldemortCache {
 
     private static final String tmpPrefix = "/tmp/midovold-";
     
-    private static final long lifetime = 100L;
+    private static final long lifetime = 200L;
+    
+    private static final int INSTANCES = 4;
     
     private static final Random random = new Random();
     
-    private File[] tmpDirs = new File[3];
-    private VoldemortServer[] servers = new VoldemortServer[3];
+    private File[] tmpDirs = new File[INSTANCES];
+    private VoldemortServer[] servers = new VoldemortServer[INSTANCES];
     
     private void setUpVoldemortServer(int i) throws IOException {
         String tmpName = tmpPrefix + random.nextInt(1000000);
@@ -46,7 +48,16 @@ public class TestVoldemortCache {
         new File(tmpName + "/config").mkdir();
         
         FileWriter writer = new FileWriter(tmpName + "/config/cluster.xml");
-        writer.write(clusterXMLContent);
+        writer.write(clusterXMLPrefix);
+        for (int j = 0; j < INSTANCES; j++)
+            writer.write(String.format(clusterXMLServerFormat,
+                    j,
+                    8081 + j,
+                    16666 + 2 * j,
+                    16667 + 2 * j,
+                    2 * j,
+                    2 * j + 1));
+        writer.write(clusterXMLPostfix);
         writer.close();
         
         writer = new FileWriter(tmpName + "/config/server.properties");
@@ -72,7 +83,7 @@ public class TestVoldemortCache {
      * @throws Exception
      */
     public void setUpVoldemort() throws Exception {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < INSTANCES; i++)
             setUpVoldemortServer(i);
     }
 
@@ -116,7 +127,7 @@ public class TestVoldemortCache {
      * Tear down Voldemort servers that were set up for test purposes.
      */
     public void tearDownVoldemort() {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < INSTANCES; i++)
             tearDownVoldemortServer(i);
     }
     
@@ -193,41 +204,48 @@ public class TestVoldemortCache {
         assertEquals("test_value", cache.get("test_key"));
     }
     
+    @Test
+    public void testSingleServerDeath() {
+        for (int i = 0; i < 20; i++) {
+            cache.set("key-" + i, "value-" + i);
+        }
+        
+        servers[0].stop();
+        
+        for (int i = 0; i < 20; i++) {
+            assertEquals("value-" + i, cache.get("key-" + i));
+        }
+
+        for (int i = 0; i < 20; i++) {
+            cache.set("key-" + i, "value-" + (i + 100));
+        }
+
+        for (int i = 0; i < 20; i++) {
+            assertEquals("value-" + (i + 100), cache.get("key-" + i));
+        }
+    }
+    
     /*
      * It would be preferable to instantiate Voldemort servers programmatically.
      * Unfortunately, a lot of configuration (also called 'metadata') has to be
      * stored in files, so might as well go all the way.
      */
     
-    private static final String clusterXMLContent =
-            "<cluster>"
-            + "<name>midonet</name>"
-            + "<server>"
-            + "<id>0</id>"
+    private static final String clusterXMLPrefix =
+            "<cluster><name>midonet</name>";
+
+    private static final String clusterXMLPostfix = "</cluster>";
+
+    private static final String clusterXMLServerFormat = 
+            "<server>"
+            + "<id>%d</id>"
             + "<host>localhost</host>"
-            + "<http-port>8081</http-port>"
-            + "<socket-port>16666</socket-port>"
-            + "<admin-port>16667</admin-port>"
-            + "<partitions>0, 1</partitions>"
-            + "</server>"
-            + "<server>"
-            + "<id>1</id>"
-            + "<host>localhost</host>"
-            + "<http-port>8082</http-port>"
-            + "<socket-port>16668</socket-port>"
-            + "<admin-port>16669</admin-port>"
-            + "<partitions>2, 3</partitions>"
-            + "</server>"
-            + "<server>"
-            + "<id>2</id>"
-            + "<host>localhost</host>"
-            + "<http-port>8083</http-port>"
-            + "<socket-port>16670</socket-port>"
-            + "<admin-port>16671</admin-port>"
-            + "<partitions>4, 5</partitions>"
-            + "</server>"
-            + "</cluster>";
-    
+            + "<http-port>%d</http-port>"
+            + "<socket-port>%d</socket-port>"
+            + "<admin-port>%d</admin-port>"
+            + "<partitions>%d, %d</partitions>"
+            + "</server>";
+
     private static final String serverPropertiesFormat =
             "node.id=%d\n"
             + "amnesic.lifetime=%d\n"
@@ -244,7 +262,7 @@ public class TestVoldemortCache {
             + "<name>midonat</name>"
             + "<persistence>amnesic</persistence>"
             + "<routing>client</routing>"
-            + "<replication-factor>2</replication-factor>"
+            + "<replication-factor>3</replication-factor>"
             + "<required-reads>2</required-reads>"
             + "<required-writes>2</required-writes>"
             + "<key-serializer><type>string</type></key-serializer>"
