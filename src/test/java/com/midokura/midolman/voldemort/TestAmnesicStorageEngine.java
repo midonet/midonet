@@ -8,17 +8,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import voldemort.TestUtils;
-import voldemort.store.AbstractByteArrayStoreTest;
-import voldemort.store.Store;
+import voldemort.store.AbstractStorageEngineTest;
+import voldemort.store.StorageEngine;
 import voldemort.utils.ByteArray;
 import voldemort.versioning.Versioned;
 
-public class TestAmnesicStorageEngine extends AbstractByteArrayStoreTest {
+public class TestAmnesicStorageEngine extends AbstractStorageEngineTest {
 
     @Override
-    public Store<ByteArray, byte[], byte[]> getStore() throws Exception {
-        return new AmnesicStorageEngine<ByteArray, byte[], byte[]>("subtest",
-                10000);
+    public StorageEngine<ByteArray, byte[], byte[]> getStorageEngine() {
+        return new AmnesicStorageEngine<ByteArray, byte[], byte[]>("test", 10000);
     }
 
     /** Minimum lifetime in milliseconds. Maximum will be twice this. */
