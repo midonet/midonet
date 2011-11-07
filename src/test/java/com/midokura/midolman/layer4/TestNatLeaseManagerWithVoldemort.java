@@ -4,11 +4,11 @@ import org.junit.After;
 import org.junit.Before;
 
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.TestVoldemortCache;
+import com.midokura.midolman.voldemort.VoldemortTester;
 
 public class TestNatLeaseManagerWithVoldemort extends TestNatLeaseManager {
 
-    private TestVoldemortCache voldemort;
+    private VoldemortTester voldemort;
 
     @Override
     protected Cache createCache() {
@@ -17,13 +17,13 @@ public class TestNatLeaseManagerWithVoldemort extends TestNatLeaseManager {
 
     @Before
     public void setUp() throws Exception {
-        voldemort = new TestVoldemortCache();
-        voldemort.setUpVoldemort();
+        voldemort = new VoldemortTester();
+        voldemort.setUp();
         super.setUp();
     }
-    
+
     @After
     public void tearDown() {
-        voldemort.tearDownVoldemort();
+        voldemort.tearDown();
     }
 }
