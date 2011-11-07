@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -54,7 +55,18 @@ public class Midolman implements SelectListener, Watcher {
     private Midolman() {}
 
     private void run(String[] args) throws Exception {
-        log.info("main start");
+        // log git commit info
+        Properties properties = new Properties();
+        properties.load(getClass().getClassLoader().getResourceAsStream("git.properties"));
+        log.info("main start -------------------------");
+        log.info("branch: {}", properties.get("git.branch"));
+        log.info("commit.time: {}", properties.get("git.commit.time"));
+        log.info("commit.id: {}", properties.get("git.commit.id"));
+        log.info("commit.user: {}", properties.get("git.commit.user.name"));
+        log.info("build.time: {}", properties.get("git.build.time"));
+        log.info("build.user: {}", properties.get("git.build.user.name"));
+        log.info("-------------------------------------");
+
         log.info("Adding shutdownHook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
