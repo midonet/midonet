@@ -49,6 +49,7 @@ import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.MemcacheCache;
 import com.midokura.midolman.util.VoldemortCache;
 import com.midokura.midolman.voldemort.AmnesicStorageConfiguration;
 
@@ -56,6 +57,8 @@ public class ControllerTrampoline implements Controller {
 
     private static final Logger log = LoggerFactory
             .getLogger(ControllerTrampoline.class);
+
+    public static final int CACHE_EXPIRATION_SECONDS = 60;
 
     private HierarchicalConfiguration config;
     private OpenvSwitchDatabaseConnection ovsdb;
@@ -90,6 +93,43 @@ public class ControllerTrampoline implements Controller {
     @Override
     public void setControllerStub(ControllerStub controllerStub) {
         this.controllerStub = controllerStub;
+    }
+
+    /**
+     * Create and configure the ephemeral store depending on the configuration.
+     *
+     * @return cache-like interface to store
+     */
+    protected Cache createEphemeralStore() throws IOException {
+        String ephemeralType =
+                config.configurationAt("ephemeral").getString("type");
+
+        if (ephemeralType.equals("voldemort")) {
+            long voldemortLifetimeMilliseconds =
+                    config.configurationAt("voldemort")
+                    .getLong("lifetime",
+                            AmnesicStorageConfiguration.DEFAULT_LIFETIME);
+
+            int voldemortLifetime =
+                    (int)(voldemortLifetimeMilliseconds / 1000);
+
+            String voldemortStore =
+                    config.configurationAt("voldemort").getString("store");
+
+            String[] voldemortHosts = config.configurationAt("voldemort")
+                    .getString("servers").split(",");
+
+            return new VoldemortCache(voldemortStore, voldemortLifetime,
+                    Arrays.asList(voldemortHosts));
+        } else if (ephemeralType.equals("memcache")) {
+            String memcacheHosts = config.configurationAt("memcache")
+                    .getString("memcache_hosts");
+
+            return new MemcacheCache(memcacheHosts, CACHE_EXPIRATION_SECONDS);
+        } else {
+            log.error("unknown ephemeral store type");
+            return null;
+        }
     }
 
     @Override
@@ -131,18 +171,7 @@ public class ControllerTrampoline implements Controller {
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
 
-                // TODO better way to match lifetime used by server?
-                int voldemortLifetime = (int)(config.configurationAt("voldemort")
-                        .getLong("lifetime") / 1000);
-
-                String voldemortStore = config.configurationAt("voldemort")
-                        .getString("store");
-
-                String[] voldemortHosts = config.configurationAt("voldemort")
-                        .getString("servers").split(",");
-
-                Cache cache = new VoldemortCache(voldemortStore, voldemortLifetime,
-                        Arrays.asList(voldemortHosts));
+                Cache cache = createEphemeralStore();
 
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
