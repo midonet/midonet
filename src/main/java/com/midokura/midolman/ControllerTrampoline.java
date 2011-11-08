@@ -101,8 +101,7 @@ public class ControllerTrampoline implements Controller {
      * @return cache-like interface to store
      */
     protected Cache createEphemeralStore() throws IOException {
-        String ephemeralType =
-                config.configurationAt("ephemeral").getString("type");
+        String ephemeralType = config.getString("ephemeral.type", "memcache");
 
         if (ephemeralType.equals("voldemort")) {
             long voldemortLifetimeMilliseconds =
