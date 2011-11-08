@@ -21,27 +21,27 @@ import voldemort.versioning.Versioned;
 
 /**
  * An in-memory storage engine which suffers from amnesia.
- * 
+ *
  * This is a storage engine where all items are considered to be temporary.
  * There is a fixed minimum lifetime that is the same for all items, before
  * which the items will remain in the store. After the minimum lifetime passes
  * after an item is added to the store, it will eventually expire, although
  * there is no guarantee that it will expire right about the time the minimum
  * lifetime is reached.
- * 
+ *
  * Getting an item will not refresh it. This must be simulated by putting the
  * item back in the store. While this could have been done by the store engine
  * itself, replication of data among many servers means that the same item could
  * expire on one server while it does not on another, which can make things
  * difficult to say the least.
- * 
+ *
  * @param <K>
  *            the type for keys
  * @param <V>
  *            the type for values
  * @param <T>
  *            the type for transforms
- * 
+ *
  * @author Yoo Chung
  */
 public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
@@ -56,23 +56,23 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
      * value for a key is done by first searching the new item map, and only if
      * none is found is the old item map searched. All accesses to the item maps
      * are synchronized.
-     * 
+     *
      * Many alternative approaches are possible, although the one described
      * above was implemented due to simplicity:
-     * 
+     *
      * Instead of having a single point of synchronization, we might be able to
      * arrange references to the new and old item maps carefully such that
      * everything still works correctly without separate synchronization. The
      * maps would have to be ConcurrentMaps. While it may be possible, much
      * caution and scrutiny would be required to make sure concurrent accesses
      * work correctly.
-     * 
+     *
      * Use a single ConcurrentMap, and store all items in a queue in order they
      * were added, along with timestamps. The queue would be used to expire
      * items as appropriate. Complicated by the fact that puts must expire old
      * versions of values, which can make it harder to implement the expiration
      * logic.
-     * 
+     *
      * With Java 7, use a ConcurrentLinkedDeque to maintain a queue of maps to
      * expire. Basically an extension of the approach in use, it is elegant in
      * that a more fine-grained expiration of items would become possible. And
@@ -95,7 +95,7 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
 
     /**
      * Constructs an amnesic store with given minimum lifetime for items.
-     * 
+     *
      * @param name
      *            name for the store
      * @param lifetime
@@ -169,7 +169,7 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
 
     /**
      * Remove versions that occurred before the given version.
-     * 
+     *
      * @param items
      *            set of items to remove from
      * @param version
@@ -234,7 +234,7 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
 
     /**
      * Remove versions that occurred before given version from list of items.
-     * 
+     *
      * @param items
      *            list of items to remove from
      * @param version

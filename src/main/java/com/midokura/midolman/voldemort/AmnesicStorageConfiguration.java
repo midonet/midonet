@@ -7,11 +7,11 @@ import voldemort.utils.ByteArray;
 
 /**
  * A storage engine that forgets items as time passes.
- * 
+ *
  * 'amnesic.lifetime' in the properties will specify the minimum lifetime for
  * items in the amnesic store. If not specified, the default minimum lifetime
  * will be set to DEFAULT_LIFETIME. The number is specified in milliseconds.
- * 
+ *
  * @author Yoo Chung
  */
 public class AmnesicStorageConfiguration implements StorageConfiguration {
@@ -27,9 +27,9 @@ public class AmnesicStorageConfiguration implements StorageConfiguration {
 
     /**
      * Construct storage configuration for amnesic storage engine.
-     * 
+     *
      * The 'amnesic.lifetime' property specifies a minimum lifetime for items.
-     * 
+     *
      * @param config
      */
     public AmnesicStorageConfiguration(VoldemortConfig config) {

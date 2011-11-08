@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman;
@@ -33,7 +33,6 @@ import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
@@ -101,30 +100,30 @@ public class ControllerTrampoline implements Controller {
 
             // lookup midolman-vnet of datapath
             String uuid = ovsdb.getDatapathExternalId(datapathId, externalIdKey);
-            
+
             if (uuid == null) {
                 log.warn("onConnectionMade: datapath {} connected but has no relevant external id, ignore it", datapathId);
                 return;
             }
-            
+
             UUID deviceId = UUID.fromString(uuid);
 
 
             log.info("onConnectionMade: DP with UUID {}", deviceId);
-            
+
             // TODO: is this the right way to check that a DP is for a VRN?
             // ----- No.  We should have a directory of VRN UUIDs in ZooKeeper,
             //       just like for Bridges and Routers.
             Controller newController;
             if (uuid.equals(config.configurationAt("vrn")
                                   .getString("router_network_id"))) {
-                Directory portLocationDirectory = 
+                Directory portLocationDirectory =
                     directory.getSubDirectory(pathMgr.getVRNPortLocationsPath());
 
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
-                
-                long idleFlowExpireMillis = 
+
+                long idleFlowExpireMillis =
                          config.configurationAt("openflow")
                                .getLong("flow_idle_expire_millis");
                 IntIPv4 localNwAddr = IntIPv4.fromString(
@@ -186,7 +185,7 @@ public class ControllerTrampoline implements Controller {
                         cache,
                         externalIdKey,
                         service);
-            } 
+            }
             else {
                 BridgeConfig bridgeConfig;
                 try {
@@ -199,27 +198,27 @@ public class ControllerTrampoline implements Controller {
                 }
                 log.info("Creating Bridge {}", uuid);
 
-                Directory portLocationDirectory = 
+                Directory portLocationDirectory =
                     directory.getSubDirectory(
                             pathMgr.getBridgePortLocationsPath(deviceId));
 
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
 
-                Directory macPortDir = 
+                Directory macPortDir =
                     directory.getSubDirectory(
                             pathMgr.getBridgeMacPortsPath(deviceId));
                 MacPortMap macPortMap = new MacPortMap(macPortDir);
 
-                long idleFlowExpireMillis = 
+                long idleFlowExpireMillis =
                          config.configurationAt("openflow")
                                .getLong("flow_idle_expire_millis");
-                long flowExpireMillis = 
+                long flowExpireMillis =
                          config.configurationAt("openflow")
                                .getLong("flow_expire_millis");
-                long macPortTimeoutMillis = 
+                long macPortTimeoutMillis =
                          config.configurationAt("bridge")
-                               .getLong("mac_port_mapping_expire_millis");                
+                               .getLong("mac_port_mapping_expire_millis");
                 IntIPv4 localNwAddr = IntIPv4.fromString(
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
@@ -241,10 +240,10 @@ public class ControllerTrampoline implements Controller {
             controllerStub.setController(newController);
             controllerStub = null;
             newController.onConnectionMade();
-            
+
             ObjectName on = new ObjectName("com.midokura.midolman:type=Controller,name=" + deviceId);
             ManagementFactory.getPlatformMBeanServer().registerMBean(newController, on);
-            
+
         } catch (KeeperException e) {
             log.warn("ZK error", e);
         } catch (IOException e) {
