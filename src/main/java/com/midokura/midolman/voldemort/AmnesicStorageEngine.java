@@ -123,8 +123,12 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
             throws VoldemortException {
         StoreUtils.assertValidKey(key);
         List<Versioned<V>> result = newMap.get(key);
-        if (result == null)
-            result = oldMap.get(key);
+        List<Versioned<V>> extra = oldMap.get(key);
+        if (result == null) {
+            result = extra;
+        } else if (extra != null) {
+            result.addAll(extra);
+        }
 
         if (result == null)
             return new ArrayList<Versioned<V>>(0);
@@ -145,26 +149,26 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
         StoreUtils.assertValidKey(key);
 
         Version version = value.getVersion();
-        List<Versioned<V>> items = newMap.get(key);
 
-        /*
-         * oldMap is ignored since if we put a new value in newMap for a key,
-         * the key in oldMap will be ignored for any get, anyway
-         */
+        List<Versioned<V>> newItems = newMap.get(key);
+        List<Versioned<V>> oldItems = oldMap.get(key);
 
-        if (items == null) {
-            items = new ArrayList<Versioned<V>>();
-            items.add(new Versioned<V>(value.getValue(), version));
+        if (oldItems != null) {
+            removeOldVersionsForPut(oldItems, version, key);
+            if (oldItems.size() == 0)
+                oldMap.remove(key);
+        }
+
+        if (newItems == null) {
+            List<Versioned<V>> items = new ArrayList<Versioned<V>>();
+            items.add(value);
             newMap.put(key, items);
         } else {
-            removeOldVersionsForPut(items, version, key);
-            items.add(value);
-
-            // remove old versions from oldMap as well
-            List<Versioned<V>> oldItems = oldMap.get(key);
-            if (oldItems != null)
-                removeOldVersionsForPut(oldItems, version, key);
+            removeOldVersionsForPut(newItems, version, key);
+            newItems.add(value);
         }
+
+        assert get(key, null).contains(value);
     }
 
     /**
