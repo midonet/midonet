@@ -17,7 +17,7 @@ public class TestNatLeaseManagerWithVoldemort extends TestNatLeaseManager {
 
     @Before
     public void setUp() throws Exception {
-        voldemort = new VoldemortTester();
+        voldemort = new VoldemortTester("midonat", 60000L, 4);
         voldemort.setUp();
         super.setUp();
     }
