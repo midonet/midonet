@@ -52,33 +52,11 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
      * Periodically, the old map is discarded, the new item map becomes the old
      * item map, and a fresh new item map is created. This ensures that each
      * item would survive at least a fixed amount of time, while also ensuring
-     * that they will die after about twice the fixed amount of time. Getting a
-     * value for a key is done by first searching the new item map, and only if
-     * none is found is the old item map searched. All accesses to the item maps
-     * are synchronized.
+     * that they will die after about twice the fixed amount of time. All
+     * accesses to the item maps are synchronized.
      *
-     * Many alternative approaches are possible, although the one described
-     * above was implemented due to simplicity:
-     *
-     * Instead of having a single point of synchronization, we might be able to
-     * arrange references to the new and old item maps carefully such that
-     * everything still works correctly without separate synchronization. The
-     * maps would have to be ConcurrentMaps. While it may be possible, much
-     * caution and scrutiny would be required to make sure concurrent accesses
-     * work correctly.
-     *
-     * Use a single ConcurrentMap, and store all items in a queue in order they
-     * were added, along with timestamps. The queue would be used to expire
-     * items as appropriate. Complicated by the fact that puts must expire old
-     * versions of values, which can make it harder to implement the expiration
-     * logic.
-     *
-     * With Java 7, use a ConcurrentLinkedDeque to maintain a queue of maps to
-     * expire. Basically an extension of the approach in use, it is elegant in
-     * that a more fine-grained expiration of items would become possible. And
-     * even with just two maps in the queue, it would be much easier to reason
-     * about concurrent accesses without having to use a single point of
-     * synchronization.
+     * Alternative approaches are possible, which are described in the wiki at
+     * http://goo.gl/Ul4R3
      */
 
     /** Name of the store. */
