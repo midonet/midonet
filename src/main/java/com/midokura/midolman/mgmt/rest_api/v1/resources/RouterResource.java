@@ -102,6 +102,7 @@ public class RouterResource {
      * @return Router object.
      * @throws Exception
      * @throws UnauthorizedException
+     * @throws StateAccessException
      * @throws Exception
      */
     @GET
@@ -109,7 +110,7 @@ public class RouterResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Router get(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws UnauthorizedException, Exception {
+            throws UnauthorizedException, StateAccessException {
         // Get a router for the given ID.
         RouterDao dao = daoFactory.getRouterDao();
         if (!AuthManager.isOwner(context, dao, id)) {

@@ -15,7 +15,7 @@ import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.AdminResource;
+import com.midokura.midolman.mgmt.rest_api.v1.resources.ApplicationResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource;
@@ -25,7 +25,6 @@ import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.StateAccessExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.VifResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.VpnResource;
 
@@ -54,18 +53,17 @@ public class RestApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
+        set.add(ApplicationResource.class);
         set.add(PortResource.class);
         set.add(RuleResource.class);
         set.add(RouteResource.class);
         set.add(RouterResource.class);
-        set.add(TenantResource.class);
         set.add(ChainResource.class);
         set.add(BridgeResource.class);
         set.add(BgpResource.class);
         set.add(AdRouteResource.class);
         set.add(VifResource.class);
         set.add(VpnResource.class);
-        set.add(AdminResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
         set.add(UnauthorizedExceptionMapper.class);

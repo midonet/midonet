@@ -4,6 +4,7 @@ import javax.servlet.ServletContext;
 
 public class AppConfig {
 
+    private final static String versionKey = "version";
     private final static String dataStoreKey = "datastore_service";
     private final static String zkConnStringKey = "zk_conn_string";
     private final static String zkTimeoutKey = "zk_timeout";
@@ -29,6 +30,14 @@ public class AppConfig {
 
     public static AppConfig getConfig() {
         return config;
+    }
+
+    public String getVersion() throws InvalidConfigException {
+        String val = ctx.getInitParameter(versionKey);
+        if (val == null) {
+            throw new InvalidConfigException("Config is missing " + versionKey);
+        }
+        return val;
     }
 
     public String getDataStoreClassName() throws InvalidConfigException {

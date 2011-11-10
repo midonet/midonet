@@ -1,5 +1,6 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -7,25 +8,40 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
+import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.AdminDao;
+import com.midokura.midolman.mgmt.data.dto.Admin;
+import com.midokura.midolman.mgmt.rest_api.v1.VendorMediaType;
 import com.midokura.midolman.state.StateAccessException;
 
-@Path("/admin")
 public class AdminResource {
+
+    private final static String initPath = "/init";
 
     private final static Logger log = LoggerFactory
             .getLogger(AdminResource.class);
 
+    @GET
+    @Produces({ VendorMediaType.APPLICATION_ADMIN_JSON,
+            MediaType.APPLICATION_JSON })
+    public Admin get(@Context UriInfo uriInfo) throws InvalidConfigException {
+        Admin a = new Admin();
+        a.setUri(uriInfo.getAbsolutePath().toString());
+        a.setInit(initPath);
+        return a;
+    }
+
     @POST
-    @Path("/init")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path(initPath)
+    @Produces(VendorMediaType.APPLICATION_ADMIN_JSON)
     public Response init(@Context SecurityContext context,
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
