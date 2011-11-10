@@ -25,13 +25,6 @@ public class TestVoldemortCache {
     private long lifetime;
     private VoldemortServer[] servers;
 
-    /*
-     * The actual tests for VoldemortCache are below.
-     * The stuff above are for setting up and tearing down tests,
-     * either for the tests here or for other tests which wish to
-     * use Voldemort servers.
-     */
-
     private VoldemortCache cache;
 
     @Before
