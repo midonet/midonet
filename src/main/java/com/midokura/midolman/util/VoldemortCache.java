@@ -62,6 +62,7 @@ public class VoldemortCache implements Cache {
     @Override
     public String getAndTouch(String key) {
         // depends on AmnesicStorageEngine refreshing items on get
+        // also depends on Voldemort to replicate refreshed items
         return client.getValue(key);
     }
 

@@ -111,4 +111,29 @@ public class TestVoldemortCache {
         }
     }
 
+    @Test
+    public void testRefreshWithSingleServerDeath() throws Exception {
+        // set many keys in hopes that one will be located in dead server
+        for (int i = 0; i < 24; i++)
+            cache.set("key-" + i, "value-" + i);
+
+        for (int i = 0; i < 12; i++) {
+            Thread.sleep(lifetime / 4);
+            for (int j = 0; j < 24; j++)
+                assertEquals("value-" + j, cache.getAndTouch("key-" + j));
+        }
+
+        voldemort.servers()[0].stop();
+
+        for (int i = 0; i < 24; i++) {
+            Thread.sleep(lifetime / 4);
+            for (int j = 0; j < 24; j++)
+                assertEquals("value-" + j, cache.getAndTouch("key-" + j));
+        }
+
+        Thread.sleep(lifetime / 4);
+        for (int i = 0; i < 24; i++)
+            assertEquals("value-" + i, cache.get("key-" + i));
+    }
+
 }
