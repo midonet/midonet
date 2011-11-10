@@ -354,7 +354,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.1</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -374,15 +373,13 @@
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-grizzly2</artifactId>
             <version>1.9.1</version>
-            <scope>test</scope>
         </dependency>
 
-    <dependency>
-      <groupId>com.sun.jersey.jersey-test-framework</groupId>
-      <artifactId>jersey-test-framework-grizzly2</artifactId>
-      <version>1.9.1</version>
-      <scope>test</scope>
-    </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.jersey-test-framework</groupId>
+            <artifactId>jersey-test-framework-grizzly2</artifactId>
+            <version>1.9.1</version>
+        </dependency>
 
     </dependencies>
 </project>
