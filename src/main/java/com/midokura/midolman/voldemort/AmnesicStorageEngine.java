@@ -100,11 +100,18 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
     public synchronized List<Versioned<V>> get(K key, T transforms)
             throws VoldemortException {
         StoreUtils.assertValidKey(key);
+
+        // always check both because of potential concurrent versions
         List<Versioned<V>> result = newMap.get(key);
         List<Versioned<V>> extra = oldMap.get(key);
-        if (result == null) {
+
+        // refresh items on get while including oldMap items
+        if (result == null && extra != null) {
+            newMap.put(key, extra);
+            oldMap.remove(key);
             result = extra;
         } else if (extra != null) {
+            oldMap.clear();
             result.addAll(extra);
         }
 
