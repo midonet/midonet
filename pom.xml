@@ -233,6 +233,21 @@
     </repositories>
 
     <dependencies>
+        <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.44</version>
+        </dependency>
+
+<!--
+        <dependency>
+            <groupId>ch.ethz.ganymed</groupId>
+            <artifactId>ganymed-ssh2</artifactId>
+            <version>build210</version>
+        </dependency>
+-->
+
         <dependency>
             <groupId>spy</groupId>
             <artifactId>spymemcached</artifactId>
