@@ -43,7 +43,7 @@ public class TestControllerTrampoline {
 
             HierarchicalConfiguration config = minConfig();
             config.setProperty("ephemeral.type", "voldemort");
-            config.setProperty("voldemort.lifetime", "2000");
+            config.setProperty("voldemort.lifetime_millis", "2000");
             config.setProperty("voldemort.store", "ephtest");
             config.setProperty("voldemort.servers", servers);
 

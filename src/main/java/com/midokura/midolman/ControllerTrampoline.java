@@ -106,7 +106,7 @@ public class ControllerTrampoline implements Controller {
         if (ephemeralType.equals("voldemort")) {
             long voldemortLifetimeMilliseconds =
                     config.configurationAt("voldemort")
-                    .getLong("lifetime",
+                    .getLong("lifetime_millis",
                             AmnesicStorageConfiguration.DEFAULT_LIFETIME);
 
             int voldemortLifetime =
@@ -214,8 +214,7 @@ public class ControllerTrampoline implements Controller {
                         cache,
                         externalIdKey,
                         service);
-            }
-            else {
+            } else {
                 BridgeConfig bridgeConfig;
                 try {
                     bridgeConfig = bridgeMgr.get(deviceId).value;
