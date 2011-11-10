@@ -29,11 +29,9 @@ import voldemort.versioning.Versioned;
  * there is no guarantee that it will expire right about the time the minimum
  * lifetime is reached.
  *
- * Getting an item will not refresh it. This must be simulated by putting the
- * item back in the store. While this could have been done by the store engine
- * itself, replication of data among many servers means that the same item could
- * expire on one server while it does not on another, which can make things
- * difficult to say the least.
+ * Getting an item will refresh it, but this only works if the number of
+ * required reads is greater than one, which would allow Voldemort to take
+ * care of missing replicas that were expired in other servers.
  *
  * @param <K>
  *            the type for keys

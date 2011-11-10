@@ -27,10 +27,10 @@ public class VoldemortCache implements Cache {
     private int lifetime;
 
     /**
-     * Construct a cache-like interface to Voldemort stores which server as
-     * an expiring store of key-value items.  The lifetime is descriptive,
-     * not prescriptive, so the value used by the servers must be obtained
-     * through a separate channel.
+     * Construct a cache-like interface to Voldemort stores which serve as
+     * an expiring store of key-value items.  The lifetime given here does
+     * not actually control the expiration lifetime in the servers, so care
+     * should be taken such that they match.
      *
      * The list of URLs are potential entry points for the client to connect
      * to the Voldemort store.  The list may include all Voldemort servers in
