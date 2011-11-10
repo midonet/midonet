@@ -218,8 +218,7 @@ public class ControllerTrampoline implements Controller {
                 BridgeConfig bridgeConfig;
                 try {
                     bridgeConfig = bridgeMgr.get(deviceId).value;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     log.info("can't handle this datapath, disconnecting", e);
                     controllerStub.close();
                     return;
