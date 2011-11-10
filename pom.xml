@@ -291,6 +291,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.libvirt</groupId>
+            <artifactId>libvirt</artifactId>
+            <version>0.4.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache</groupId>
             <artifactId>zookeeper</artifactId>
             <version>3.4.0-SNAPSHOT</version>
@@ -380,6 +386,5 @@
             <artifactId>jersey-test-framework-grizzly2</artifactId>
             <version>1.9.1</version>
         </dependency>
-
     </dependencies>
 </project>

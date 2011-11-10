@@ -10,7 +10,7 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 
-public class MockMidolmanManagement  extends JerseyTest {
+public class MockMidolmanManagement extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(
             MockMidolmanManagement.class);
