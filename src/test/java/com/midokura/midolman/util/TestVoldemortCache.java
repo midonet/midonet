@@ -81,16 +81,11 @@ public class TestVoldemortCache {
 
         // repeat refreshes until at least 3*lifetime
         // if refresh does not work, this will ensure expiration
-        Thread.sleep(lifetime / 2);
-        assertEquals("test_value", cache.getAndTouch("test_key"));
-        Thread.sleep(lifetime / 2);
-        assertEquals("test_value", cache.getAndTouch("test_key"));
-        Thread.sleep(lifetime / 2);
-        assertEquals("test_value", cache.getAndTouch("test_key"));
-        Thread.sleep(lifetime / 2);
-        assertEquals("test_value", cache.getAndTouch("test_key"));
-        Thread.sleep(lifetime / 2);
-        assertEquals("test_value", cache.getAndTouch("test_key"));
+        for (int i = 0; i < 12; i++) {
+            Thread.sleep(lifetime / 2);
+            assertEquals("test_value", cache.getAndTouch("test_key"));
+        }
+
         Thread.sleep(lifetime / 2);
         assertEquals("test_value", cache.get("test_key"));
     }
