@@ -6,9 +6,11 @@
 package com.midokura.midolman.mgmt.rest_api.v1.resources;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -59,6 +61,26 @@ public class TenantResource {
     @Path("/{id}/bridges")
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
         return new TenantBridgeResource(id);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Tenant> list(@Context SecurityContext context,
+            @Context DaoFactory daoFactory) throws UnauthorizedException,
+            StateAccessException {
+        if (!AuthManager.isAdmin(context)) {
+            throw new UnauthorizedException("Must be an admin to list tenants.");
+        }
+        TenantDao dao = daoFactory.getTenantDao();
+        try {
+            return dao.list();
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
     }
 
     @DELETE
