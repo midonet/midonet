@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -33,10 +33,10 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterChainResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterTableResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterChainResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterTableResource;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPortResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.RouterRouteResource;
 import com.midokura.midolman.state.StateAccessException;
 
 /**

@@ -1,9 +1,9 @@
 /*
- * @(#)AdRouteResource        1.6 11/09/05
+ * @(#)VpnResource        1.6 11/10/25
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -28,51 +28,52 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
-import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
-import com.midokura.midolman.mgmt.data.dto.AdRoute;
+import com.midokura.midolman.mgmt.data.dao.PortDao;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
+import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Root resource class for advertising routes.
+ * Root resource class for vpns.
  * 
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-@Path("/ad_routes")
-public class AdRouteResource {
+@Path("/vpns")
+public class VpnResource {
     /*
-     * Implements REST API end points for ad_routes.
+     * Implements REST API end points for vpns.
      */
 
     private final static Logger log = LoggerFactory
-            .getLogger(AdRouteResource.class);
+            .getLogger(VpnResource.class);
 
     /**
-     * Get the advertising route with the given ID.
+     * Get the VPN with the given ID.
      * 
      * @param id
-     *            AdRoute UUID.
-     * @return AdRoute object.
+     *            VPN UUID.
+     * @return Vpn object.
      * @throws StateAccessException
      * @throws UnauthorizedException
      */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public AdRoute get(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws StateAccessException, UnauthorizedException {
-        // Get a advertising route for the given ID.
-        AdRouteDao dao = daoFactory.getAdRouteDao();
+    public Vpn get(@PathParam("id") UUID id, @Context SecurityContext context,
+            @Context DaoFactory daoFactory) throws StateAccessException,
+            UnauthorizedException {
+
+        // Get a vpn for the given ID.
+        VpnDao dao = daoFactory.getVpnDao();
+
         if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
+            throw new UnauthorizedException("Can only see your own VPN.");
         }
 
-        AdRoute adRoute = null;
+        Vpn vpn = null;
         try {
-            adRoute = dao.get(id);
+            vpn = dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -80,7 +81,7 @@ public class AdRouteResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        return adRoute;
+        return vpn;
     }
 
     @DELETE
@@ -88,10 +89,10 @@ public class AdRouteResource {
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
-        AdRouteDao dao = daoFactory.getAdRouteDao();
+        VpnDao dao = daoFactory.getVpnDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
-                    "Can only delete your own advertised route.");
+                    "Can only see your own advertised route.");
         }
 
         try {
@@ -106,52 +107,50 @@ public class AdRouteResource {
     }
 
     /**
-     * Sub-resource class for bgp's advertising route.
+     * Sub-resource class for port's VPN.
      */
-    public static class BgpAdRouteResource {
+    public static class PortVpnResource {
 
-        private UUID bgpId = null;
+        private UUID portId = null;
 
         /**
          * Constructor.
          * 
          * @param zkConn
          *            ZooKeeper connection string.
-         * @param bgpId
-         *            UUID of a bgp.
+         * @param portId
+         *            UUID of a port.
          */
-        public BgpAdRouteResource(UUID bgpId) {
-            this.bgpId = bgpId;
+        public PortVpnResource(UUID portId) {
+            this.portId = portId;
         }
 
-        private boolean isBgpOwner(SecurityContext context,
+        private boolean isPortOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getBgpDao();
-            return AuthManager.isOwner(context, q, bgpId);
+            PortDao q = daoFactory.getPortDao();
+            return AuthManager.isOwner(context, q, portId);
         }
 
         /**
-         * Index of advertising routes belonging to the bgp.
+         * Index of vpns belonging to the port.
          * 
-         * @return A list of advertising routes.
+         * @return A list of vpns.
          * @throws StateAccessException
          * @throws UnauthorizedException
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<AdRoute> list(@Context SecurityContext context,
+        public List<Vpn> list(@Context SecurityContext context,
                 @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
-
-            if (!isBgpOwner(context, daoFactory)) {
-                throw new UnauthorizedException(
-                        "Can only see your own advertised route.");
+            if (!isPortOwner(context, daoFactory)) {
+                throw new UnauthorizedException("Can only see your own VPN.");
             }
 
-            AdRouteDao dao = daoFactory.getAdRouteDao();
-            List<AdRoute> adRoutes = null;
+            VpnDao dao = daoFactory.getVpnDao();
+            List<Vpn> vpns = null;
             try {
-                adRoutes = dao.list(bgpId);
+                vpns = dao.list(portId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -159,35 +158,32 @@ public class AdRouteResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
-            return adRoutes;
+            return vpns;
         }
 
         /**
-         * Handler for create advertising route.
+         * Handler for create vpn.
          * 
-         * @param adRoute
-         *            AdRoute object mapped to the request input.
+         * @param vpn
+         *            Vpn object mapped to the request input.
          * @throws StateAccessException
          * @throws UnauthorizedException
          * @returns Response object with 201 status code set if successful.
          */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(AdRoute adRoute, @Context UriInfo uriInfo,
+        public Response create(Vpn vpn, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
-
-            if (!isBgpOwner(context, daoFactory)) {
-                throw new UnauthorizedException(
-                        "Can only create for your own BGP.");
+            if (!isPortOwner(context, daoFactory)) {
+                throw new UnauthorizedException("Can only create your own VPN.");
             }
-
-            AdRouteDao dao = daoFactory.getAdRouteDao();
-            adRoute.setBgpId(bgpId);
+            VpnDao dao = daoFactory.getVpnDao();
+            vpn.setPortId(portId);
 
             UUID id = null;
             try {
-                id = dao.create(adRoute);
+                id = dao.create(vpn);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -196,10 +192,8 @@ public class AdRouteResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("ad_routes/" + id)
-                    .build();
+            URI uri = uriInfo.getBaseUriBuilder().path("vpns/" + id).build();
             return Response.created(uri).build();
         }
     }
-
 }

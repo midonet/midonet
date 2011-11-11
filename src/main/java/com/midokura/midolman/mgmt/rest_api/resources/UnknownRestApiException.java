@@ -1,4 +1,4 @@
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;

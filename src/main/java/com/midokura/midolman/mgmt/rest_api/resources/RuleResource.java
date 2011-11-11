@@ -1,9 +1,9 @@
 /*
- * @(#)VpnResource        1.6 11/10/25
+ * @(#)RuleResource        1.6 11/09/05
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -28,52 +28,37 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.PortDao;
-import com.midokura.midolman.mgmt.data.dao.VpnDao;
-import com.midokura.midolman.mgmt.data.dto.Vpn;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.RuleDao;
+import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Root resource class for vpns.
+ * Root resource class for rules.
  * 
  * @version 1.6 11 Sept 2011
- * @author Yoshi Tamura
+ * @author Ryu Ishimoto
  */
-@Path("/vpns")
-public class VpnResource {
-    /*
-     * Implements REST API end points for vpns.
-     */
+@Path("/rules")
+public class RuleResource {
 
     private final static Logger log = LoggerFactory
-            .getLogger(VpnResource.class);
+            .getLogger(RuleResource.class);
 
-    /**
-     * Get the VPN with the given ID.
-     * 
-     * @param id
-     *            VPN UUID.
-     * @return Vpn object.
-     * @throws StateAccessException
-     * @throws UnauthorizedException
-     */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Vpn get(@PathParam("id") UUID id, @Context SecurityContext context,
+    public Rule get(@PathParam("id") UUID id, @Context SecurityContext context,
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
-
-        // Get a vpn for the given ID.
-        VpnDao dao = daoFactory.getVpnDao();
-
+        RuleDao dao = daoFactory.getRuleDao();
         if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException("Can only see your own VPN.");
+            throw new UnauthorizedException("Can only see your own rule.");
         }
 
-        Vpn vpn = null;
         try {
-            vpn = dao.get(id);
+            return dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -81,7 +66,6 @@ public class VpnResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        return vpn;
     }
 
     @DELETE
@@ -89,10 +73,9 @@ public class VpnResource {
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
-        VpnDao dao = daoFactory.getVpnDao();
+        RuleDao dao = daoFactory.getRuleDao();
         if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
+            throw new UnauthorizedException("Can only delete your own rule.");
         }
 
         try {
@@ -107,50 +90,34 @@ public class VpnResource {
     }
 
     /**
-     * Sub-resource class for port's VPN.
+     * Sub-resource class for chain's rules.
      */
-    public static class PortVpnResource {
+    public static class ChainRuleResource {
 
-        private UUID portId = null;
+        private UUID chainId = null;
 
-        /**
-         * Constructor.
-         * 
-         * @param zkConn
-         *            ZooKeeper connection string.
-         * @param portId
-         *            UUID of a port.
-         */
-        public PortVpnResource(UUID portId) {
-            this.portId = portId;
+        public ChainRuleResource(UUID chainId) {
+            this.chainId = chainId;
         }
 
-        private boolean isPortOwner(SecurityContext context,
+        private boolean isChainOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            PortDao q = daoFactory.getPortDao();
-            return AuthManager.isOwner(context, q, portId);
+            OwnerQueryable q = daoFactory.getChainDao();
+            return AuthManager.isOwner(context, q, chainId);
         }
 
-        /**
-         * Index of vpns belonging to the port.
-         * 
-         * @return A list of vpns.
-         * @throws StateAccessException
-         * @throws UnauthorizedException
-         */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public List<Vpn> list(@Context SecurityContext context,
+        public List<Rule> list(@Context SecurityContext context,
                 @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
-            if (!isPortOwner(context, daoFactory)) {
-                throw new UnauthorizedException("Can only see your own VPN.");
+            RuleDao dao = daoFactory.getRuleDao();
+            if (!isChainOwner(context, daoFactory)) {
+                throw new UnauthorizedException("Can only see your own rule.");
             }
 
-            VpnDao dao = daoFactory.getVpnDao();
-            List<Vpn> vpns = null;
             try {
-                vpns = dao.list(portId);
+                return dao.list(chainId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -158,32 +125,27 @@ public class VpnResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
-            return vpns;
         }
 
-        /**
-         * Handler for create vpn.
-         * 
-         * @param vpn
-         *            Vpn object mapped to the request input.
-         * @throws StateAccessException
-         * @throws UnauthorizedException
-         * @returns Response object with 201 status code set if successful.
-         */
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response create(Vpn vpn, @Context UriInfo uriInfo,
+        public Response create(Rule rule, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
-                throws StateAccessException, UnauthorizedException {
-            if (!isPortOwner(context, daoFactory)) {
-                throw new UnauthorizedException("Can only create your own VPN.");
+                throws StateAccessException, RuleIndexOutOfBoundsException,
+                UnauthorizedException {
+            if (!isChainOwner(context, daoFactory)) {
+                throw new UnauthorizedException(
+                        "Can only create your own rule.");
             }
-            VpnDao dao = daoFactory.getVpnDao();
-            vpn.setPortId(portId);
 
+            RuleDao dao = daoFactory.getRuleDao();
+            rule.setChainId(chainId);
             UUID id = null;
             try {
-                id = dao.create(vpn);
+                id = dao.create(rule);
+            } catch (RuleIndexOutOfBoundsException e) {
+                log.error("Invalid rule position.", e);
+                throw e;
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -192,7 +154,7 @@ public class VpnResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("vpns/" + id).build();
+            URI uri = uriInfo.getBaseUriBuilder().path("rules/" + id).build();
             return Response.created(uri).build();
         }
     }

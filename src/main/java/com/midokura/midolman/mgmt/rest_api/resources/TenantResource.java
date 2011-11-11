@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -30,8 +30,8 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
+import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
 import com.midokura.midolman.state.StateAccessException;
 
 /**

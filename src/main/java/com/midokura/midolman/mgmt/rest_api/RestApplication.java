@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1;
+package com.midokura.midolman.mgmt.rest_api;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,19 +13,19 @@ import javax.ws.rs.core.Application;
 import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ApplicationResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.InvalidStateOperationExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.StateAccessExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.VifResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.VpnResource;
+import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
+import com.midokura.midolman.mgmt.rest_api.resources.BgpResource;
+import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource;
+import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouterResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RuleResource;
+import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
+import com.midokura.midolman.mgmt.rest_api.resources.VifResource;
+import com.midokura.midolman.mgmt.rest_api.resources.VpnResource;
 
 /**
  * Jax-RS application class.
