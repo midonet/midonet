@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.midokura.midolman.openvswitch.*;
+import com.midokura.midolman.mgmt.rest_api.resources.*;
 
 public class SmokeTest {
 
