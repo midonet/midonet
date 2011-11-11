@@ -35,7 +35,7 @@
       token sent via Keystone.
     </description>
     <filter-class>
-      com.midokura.midolman.mgmt.servlet.filters.KeystoneAuthFilter
+      com.midokura.midolman.mgmt.servlet.KeystoneAuthFilter
     </filter-class>
     <init-param>
       <param-name>service_protocol</param-name>
@@ -59,7 +59,7 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   <listener>
-    <listener-class>com.midokura.midolman.mgmt.servlet.listeners.ServletListener</listener-class>
+    <listener-class>com.midokura.midolman.mgmt.servlet.ServletListener</listener-class>
   </listener>
   <servlet>
     <servlet-name>jersey_servlet_v1</servlet-name>

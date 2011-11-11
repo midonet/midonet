@@ -19,7 +19,7 @@ import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.AdminDao;
 import com.midokura.midolman.mgmt.data.dto.Admin;
-import com.midokura.midolman.mgmt.rest_api.v1.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.state.StateAccessException;
 
 public class AdminResource {

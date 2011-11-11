@@ -29,7 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.rest_api.v1.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource.TenantRouterResource;
 import com.midokura.midolman.state.StateAccessException;

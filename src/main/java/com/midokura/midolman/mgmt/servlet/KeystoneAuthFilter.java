@@ -4,7 +4,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.mgmt.servlet.filters;
+package com.midokura.midolman.mgmt.servlet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

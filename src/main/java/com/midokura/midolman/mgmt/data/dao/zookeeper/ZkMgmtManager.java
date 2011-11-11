@@ -7,7 +7,7 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.io.IOException;
 
-import com.midokura.midolman.mgmt.utils.JsonJaxbSerializer;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.JsonJaxbSerializer;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.util.Serializer;

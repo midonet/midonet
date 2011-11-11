@@ -10,7 +10,7 @@ import javax.ws.rs.core.UriInfo;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.rest_api.v1.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 
 @Path("/")
 public class ApplicationResource {
