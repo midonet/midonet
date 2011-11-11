@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -33,10 +33,10 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterChainResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource.RouterTableResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource.RouterPortResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.RouterRouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterChainResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterTableResource;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPortResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.RouterRouteResource;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -102,6 +102,7 @@ public class RouterResource {
      * @return Router object.
      * @throws Exception
      * @throws UnauthorizedException
+     * @throws StateAccessException
      * @throws Exception
      */
     @GET
@@ -109,7 +110,7 @@ public class RouterResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Router get(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws UnauthorizedException, Exception {
+            throws UnauthorizedException, StateAccessException {
         // Get a router for the given ID.
         RouterDao dao = daoFactory.getRouterDao();
         if (!AuthManager.isOwner(context, dao, id)) {

@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -32,9 +32,9 @@ import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource.PortBgpResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource.PortRouteResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.VpnResource.PortVpnResource;
+import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.PortRouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 

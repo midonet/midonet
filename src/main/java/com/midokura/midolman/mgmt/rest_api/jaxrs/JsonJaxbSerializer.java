@@ -1,4 +1,9 @@
-package com.midokura.midolman.mgmt.utils;
+/*
+ * @(#)JsonJaxbSerializer        1.6 11/11/11
+ *
+ * Copyright 2011 Midokura KK
+ */
+package com.midokura.midolman.mgmt.rest_api.jaxrs;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

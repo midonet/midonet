@@ -3,31 +3,29 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1;
+package com.midokura.midolman.mgmt.rest_api;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
-import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
-
 import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.AdRouteResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.AdminResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.BgpResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.BridgeResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.ChainResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.InvalidStateOperationExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.PortResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouteResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RouterResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.StateAccessExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.TenantResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.VifResource;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.VpnResource;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
+import com.midokura.midolman.mgmt.rest_api.resources.BgpResource;
+import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource;
+import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouterResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RuleResource;
+import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
+import com.midokura.midolman.mgmt.rest_api.resources.VifResource;
+import com.midokura.midolman.mgmt.rest_api.resources.VpnResource;
 
 /**
  * Jax-RS application class.
@@ -54,18 +52,17 @@ public class RestApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
+        set.add(ApplicationResource.class);
         set.add(PortResource.class);
         set.add(RuleResource.class);
         set.add(RouteResource.class);
         set.add(RouterResource.class);
-        set.add(TenantResource.class);
         set.add(ChainResource.class);
         set.add(BridgeResource.class);
         set.add(BgpResource.class);
         set.add(AdRouteResource.class);
         set.add(VifResource.class);
         set.add(VpnResource.class);
-        set.add(AdminResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
         set.add(UnauthorizedExceptionMapper.class);
@@ -81,7 +78,7 @@ public class RestApplication extends Application {
     @Override
     public Set<Object> getSingletons() {
         HashSet<Object> singletons = new HashSet<Object>();
-        singletons.add(new JacksonJaxbJsonProvider());
+        singletons.add(new WildCardJacksonJaxbJsonProvider());
         return singletons;
     }
 }

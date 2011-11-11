@@ -5,6 +5,10 @@
 <web-app>
   <display-name>Midolman Management</display-name>
   <context-param>
+    <param-name>version</param-name>
+    <param-value>1</param-value>
+  </context-param>
+  <context-param>
     <param-name>datastore_service</param-name>
     <param-value>com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory</param-value>
   </context-param>
@@ -31,7 +35,7 @@
       token sent via Keystone.
     </description>
     <filter-class>
-      com.midokura.midolman.mgmt.servlet.filters.KeystoneAuthFilter
+      com.midokura.midolman.mgmt.servlet.KeystoneAuthFilter
     </filter-class>
     <init-param>
       <param-name>service_protocol</param-name>
@@ -55,10 +59,10 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   <listener>
-    <listener-class>com.midokura.midolman.mgmt.servlet.listeners.ServletListener</listener-class>
+    <listener-class>com.midokura.midolman.mgmt.servlet.ServletListener</listener-class>
   </listener>
   <servlet>
-    <servlet-name>jersey_servlet_v1</servlet-name>
+    <servlet-name>jersey_servlet</servlet-name>
     <servlet-class>
       com.sun.jersey.spi.container.servlet.ServletContainer
     </servlet-class>
@@ -67,7 +71,7 @@
         javax.ws.rs.Application
       </param-name>
       <param-value>
-        com.midokura.midolman.mgmt.rest_api.v1.RestApplication
+        com.midokura.midolman.mgmt.rest_api.RestApplication
       </param-value>
     </init-param>
     <init-param>
@@ -77,7 +81,11 @@
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
-    <servlet-name>jersey_servlet_v1</servlet-name>
+    <servlet-name>jersey_servlet</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>jersey_servlet</servlet-name>
     <url-pattern>/v1/*</url-pattern>
   </servlet-mapping>
 </web-app>

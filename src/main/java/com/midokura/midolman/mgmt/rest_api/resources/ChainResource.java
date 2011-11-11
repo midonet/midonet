@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.v1.resources;
+package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
 import java.util.List;
@@ -31,7 +31,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.rest_api.v1.resources.RuleResource.ChainRuleResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RuleResource.ChainRuleResource;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 

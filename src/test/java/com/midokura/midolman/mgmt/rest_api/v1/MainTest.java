@@ -15,7 +15,7 @@ import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
-import com.midokura.midolman.mgmt.servlet.listeners.ServletListener;
+import com.midokura.midolman.mgmt.servlet.ServletListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.json.JSONConfiguration;

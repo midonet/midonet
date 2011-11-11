@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
+import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
@@ -133,4 +134,17 @@ public class TenantZkManager extends ZkManager implements TenantDao {
         return id;
     }
 
+    @Override
+    public List<Tenant> list() throws StateAccessException {
+        List<Tenant> tenants = new ArrayList<Tenant>();
+        Set<String> tenantIds = getChildren(zkMgmtPathManager.getTenantsPath(),
+                null);
+        for (String tenantId : tenantIds) {
+            // For now, get each one.
+            Tenant t = new Tenant();
+            t.setId(tenantId);
+            tenants.add(t);
+        }
+        return tenants;
+    }
 }

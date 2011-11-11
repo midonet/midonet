@@ -1,3 +1,8 @@
+/*
+ * @(#)InitZkDirectories        1.6 11/11/11
+ *
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.mgmt.tools;
 
 import java.io.IOException;
@@ -12,15 +17,16 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 public class InitZkDirectories {
 
-    //private final static String tokenHeader = "HTTP_X_AUTH_TOKEN";
+    // private final static String tokenHeader = "HTTP_X_AUTH_TOKEN";
 
     /**
      * @param args
      * @throws IOException
-     * @throws KeeperException 
-     * @throws InterruptedException 
+     * @throws KeeperException
+     * @throws InterruptedException
      */
-    public static void main(String[] args) throws IOException, InterruptedException, KeeperException {
+    public static void main(String[] args) throws IOException,
+            InterruptedException, KeeperException {
         ZooKeeper zk = new ZooKeeper(args[0], 300, null);
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create("/midonet", null, Ids.OPEN_ACL_UNSAFE,

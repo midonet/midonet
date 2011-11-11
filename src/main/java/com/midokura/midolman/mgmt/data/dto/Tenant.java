@@ -8,7 +8,7 @@ package com.midokura.midolman.mgmt.data.dto;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class Tenant {
+public class Tenant extends ResourceDao {
 
     private String id = null;
 
