@@ -30,7 +30,7 @@ public class MainTest extends JerseyTest {
 
     public MainTest() {
         super(new WebAppDescriptor.Builder(new String[] {
-                "com.midokura.midolman.mgmt.rest_api.v1.resources",
+                "com.midokura.midolman.mgmt.rest_api.resources",
                 "com.midokura.midolman.mgmt.data" })
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(

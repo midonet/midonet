@@ -1,5 +1,7 @@
 package com.midokura.midolman.mgmt.data;
 
+import com.midokura.midolman.state.MockDirectory;
+
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
