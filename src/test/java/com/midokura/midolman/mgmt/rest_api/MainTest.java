@@ -1,4 +1,4 @@
-package com.midokura.midolman.mgmt.rest_api.v1;
+package com.midokura.midolman.mgmt.rest_api;
 
 import static org.junit.Assert.assertEquals;
 
