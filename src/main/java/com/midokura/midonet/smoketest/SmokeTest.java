@@ -1,18 +1,67 @@
 package com.midokura.midonet.smoketest;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import com.midokura.midolman.openvswitch.*;
-import com.midokura.midolman.mgmt.rest_api.resources.*;
+import java.io.FileReader;
+import java.net.URI;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.data.dto.Vpn;
+import com.midokura.midonet.smoketest.mocks.*;
+import com.sun.jersey.api.client.ClientResponse;
 
 public class SmokeTest {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(SmokeTest.class);
 
     @Test
     public void test() {
         // 1) Create mock objects:
         //      - smoketest.mocks.MockMidolmanManagement
         //      - ?
+        // Init directory.
+        MidolmanMgmt mgmt = new MockMidolmanMgmt();
+        // Add the tenant
+        Tenant tenant = new Tenant();
+        tenant.setId("tenant1");
+        URI tenantURI = mgmt.addTenant(tenant);
+        log.debug("tenant location: {}", tenantURI);
+        // Add a router.
+        Router router = new Router();
+        String routerName = "router1";
+        router.setName(routerName);
+        URI routerURI = mgmt.addRouter(tenantURI, router);
+        log.debug("router location: {}", routerURI);
+        // Get the router.
+        router = mgmt.get(routerURI.getPath(), Router.class);
+        log.debug("router name: {}", router.getName());
+        assertEquals(router.getName(), routerName);
+
+        // Add a materialized router port.
+        MaterializedRouterPort port = new MaterializedRouterPort();
+        String portAddress = "180.214.47.66";
+        port.setNetworkAddress("180.214.47.64");
+        port.setNetworkLength(30);
+        port.setPortAddress(portAddress);
+        port.setLocalNetworkAddress("180.214.47.64");
+        port.setLocalNetworkLength(30);
+        log.debug("port JSON {}", port.toString());
+        URI portURI = mgmt.addRouterPort(routerURI, port);
+        log.debug("port location: {}", portURI);
+        // Get the port.
+        port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
+        log.debug("port address: {}", port.getPortAddress());
+        assertEquals(port.getPortAddress(), portAddress);
 
         // 2) Make REST calls to create the virtual topology.
         // See midolmanj-mgmt: com.midokura.midolman.mgmt.rest_api.v1.MainTest.java
