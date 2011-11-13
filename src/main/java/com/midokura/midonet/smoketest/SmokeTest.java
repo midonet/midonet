@@ -2,11 +2,7 @@ package com.midokura.midonet.smoketest;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.FileReader;
 import java.net.URI;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -15,20 +11,18 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.data.dto.Vpn;
-import com.midokura.midonet.smoketest.mocks.*;
-import com.sun.jersey.api.client.ClientResponse;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 
 public class SmokeTest {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(SmokeTest.class);
+    private final static Logger log = LoggerFactory.getLogger(SmokeTest.class);
 
     @Test
     public void test() {
         // 1) Create mock objects:
-        //      - smoketest.mocks.MockMidolmanManagement
-        //      - ?
+        // - smoketest.mocks.MockMidolmanManagement
+        // - ?
         // Init directory.
         MidolmanMgmt mgmt = new MockMidolmanMgmt();
         // Add the tenant
@@ -64,16 +58,19 @@ public class SmokeTest {
         assertEquals(port.getPortAddress(), portAddress);
 
         // 2) Make REST calls to create the virtual topology.
-        // See midolmanj-mgmt: com.midokura.midolman.mgmt.rest_api.v1.MainTest.java
+        // See midolmanj-mgmt:
+        // com.midokura.midolman.mgmt.rest_api.v1.MainTest.java
         // and com.midokura.midolman.mgmt.tools.CreateZkTestConfig
 
         // 3) Create taps
 
-        // 4) Create OVS datapaths and ports and set externalIds of corresponding
+        // 4) Create OVS datapaths and ports and set externalIds of
+        // corresponding
         // vports. Use midolmanj's com.midokura.midolman.openvswitch.
         // OpenvSwitchDatabaseConnectionImpl class (it's defined in scala code).
 
-        // 5) Create a ControllerTrampoline for each datapath. Initially, just one
+        // 5) Create a ControllerTrampoline for each datapath. Initially, just
+        // one
         // later probably 2. Later modify midolmanj's com.midokura.midolman
         // package to allow different ControllerTrampolines listening on
         // different ports.
