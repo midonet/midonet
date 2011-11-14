@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.sun.jersey.api.client.ClientResponse;
@@ -107,6 +108,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public URI addRouterPort(URI routerURI, MaterializedRouterPort p) {
         return post(routerURI, "ports", p);
+    }
+
+    @Override
+    public URI addRoute(URI routerURI, Route rt) {
+        return post(routerURI, "routes", rt);
     }
 
 }

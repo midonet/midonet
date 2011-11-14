@@ -9,8 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 
@@ -20,10 +23,6 @@ public class SmokeTest {
 
     @Test
     public void test() {
-        // 1) Create mock objects:
-        // - smoketest.mocks.MockMidolmanManagement
-        // - ?
-        // Init directory.
         MidolmanMgmt mgmt = new MockMidolmanMgmt();
         // Add the tenant
         Tenant tenant = new Tenant();
@@ -56,11 +55,26 @@ public class SmokeTest {
         port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
         log.debug("port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
+        // Add a route to the port.
+        Route rt = new Route();
+        rt.setSrcNetworkAddr("0.0.0.0");
+        rt.setSrcNetworkLength(0);
+        String nwDst = "180.214.47.64";
+        rt.setDstNetworkAddr(nwDst);
+        rt.setDstNetworkLength(30);
+        rt.setType(Route.Normal);
+        rt.setNextHopPort(port.getId());
+        rt.setWeight(10);
+        URI routeURI = mgmt.addRoute(routerURI, rt);
+        log.debug("route location: {}", routeURI);
+        // Get the route.
+        rt = mgmt.get(routeURI.getPath(), Route.class);
+        log.debug("route destination: {}", rt.getDstNetworkAddr());
+        assertEquals(rt.getDstNetworkAddr(), nwDst);
 
-        // 2) Make REST calls to create the virtual topology.
-        // See midolmanj-mgmt:
-        // com.midokura.midolman.mgmt.rest_api.v1.MainTest.java
-        // and com.midokura.midolman.mgmt.tools.CreateZkTestConfig
+        OpenvSwitchDatabaseConnection ovsdb;
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
+                "Open_vSwitch", "127.0.0.1", 6634);
 
         // 3) Create taps
 
