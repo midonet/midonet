@@ -115,7 +115,7 @@ public class UDP extends BasePacket implements Transport {
                     : payloadData.length));
         }
 
-        byte[] data = new byte[this.length];
+        byte[] data = new byte[this.length & 0xffff];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.putShort(this.sourcePort);
@@ -225,7 +225,7 @@ public class UDP extends BasePacket implements Transport {
         length = bb.limit() - offset;
         // Adjust length (the remaining bytes in data) if it is larger than
         // the expected payload length (this.length - 8).
-        length = Math.min(length, this.length - 8);
+        length = Math.min(length, (this.length & 0xffff) - 8);
         payload.deserialize(data, offset, length);
         payload.setParent(this);
         return this;
