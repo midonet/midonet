@@ -96,14 +96,14 @@ public class ControllerTrampoline implements Controller {
     }
 
     /**
-     * Create and configure the ephemeral store depending on the configuration.
+     * Create and configure the cache depending on the configuration.
      *
-     * @return cache-like interface to store
+     * @return the cache
      */
-    protected Cache createEphemeralStore() throws IOException {
-        String ephemeralType = config.getString("ephemeral.type", "memcache");
+    protected Cache createCache() throws IOException {
+        String cacheType = config.getString("cache.type", "memcache");
 
-        if (ephemeralType.equals("voldemort")) {
+        if (cacheType.equals("voldemort")) {
             long voldemortLifetimeMilliseconds =
                     config.configurationAt("voldemort")
                     .getLong("lifetime_millis",
@@ -120,13 +120,13 @@ public class ControllerTrampoline implements Controller {
 
             return new VoldemortCache(voldemortStore, voldemortLifetime,
                     Arrays.asList(voldemortHosts));
-        } else if (ephemeralType.equals("memcache")) {
+        } else if (cacheType.equals("memcache")) {
             String memcacheHosts = config.configurationAt("memcache")
                     .getString("memcache_hosts");
 
             return new MemcacheCache(memcacheHosts, CACHE_EXPIRATION_SECONDS);
         } else {
-            log.error("unknown ephemeral store type");
+            log.error("unknown cache type");
             return null;
         }
     }
@@ -170,7 +170,7 @@ public class ControllerTrampoline implements Controller {
                         config.configurationAt("openflow")
                             .getString("public_ip_address"));
 
-                Cache cache = createEphemeralStore();
+                Cache cache = createCache();
 
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);

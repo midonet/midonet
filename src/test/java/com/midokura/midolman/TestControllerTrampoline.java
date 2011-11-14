@@ -29,7 +29,7 @@ public class TestControllerTrampoline {
     }
 
     @Test
-    public void testCreateEphemeralStoreVoldemort() throws Exception {
+    public void testCreateCacheVoldemort() throws Exception {
         // since this should be only test here to set up Voldemort servers,
         // use try-finally block for tear down
 
@@ -42,7 +42,7 @@ public class TestControllerTrampoline {
             String servers = urls.get(0) + "," + urls.get(1);
 
             HierarchicalConfiguration config = minConfig();
-            config.setProperty("ephemeral.type", "voldemort");
+            config.setProperty("cache.type", "voldemort");
             config.setProperty("voldemort.lifetime_millis", "2000");
             config.setProperty("voldemort.store", "ephtest");
             config.setProperty("voldemort.servers", servers);
@@ -50,7 +50,7 @@ public class TestControllerTrampoline {
             ControllerTrampoline trampoline = new ControllerTrampoline(config,
                     null, null, null);
 
-            Cache cache = trampoline.createEphemeralStore();
+            Cache cache = trampoline.createCache();
 
             assertTrue(cache instanceof VoldemortCache);
             assertEquals(2, cache.getExpirationSeconds());
@@ -60,16 +60,16 @@ public class TestControllerTrampoline {
     }
 
     @Test(expected = net.spy.memcached.OperationTimeoutException.class)
-    public void testCreateEphemeralStoreMemcache() throws Exception {
+    public void testCacheMemcache() throws Exception {
         HierarchicalConfiguration config = minConfig();
-        config.setProperty("ephemeral.type", "memcache");
+        config.setProperty("cache.type", "memcache");
         config.setProperty("memcache.memcache_hosts",
                 "192.0.2.4:1211,192.0.2.5:1211");
 
         ControllerTrampoline trampoline = new ControllerTrampoline(config,
                 null, null, null);
 
-        Cache cache = trampoline.createEphemeralStore();
+        Cache cache = trampoline.createCache();
 
         // shouldn't really reach here
         assertTrue(cache instanceof MemcacheCache);
@@ -81,14 +81,14 @@ public class TestControllerTrampoline {
     }
 
     @Test
-    public void testCreateEphemeralStoreInvalid() throws Exception {
+    public void testCreateCacheInvalid() throws Exception {
         HierarchicalConfiguration config = minConfig();
-        config.setProperty("ephemeral.type", "nevergonnaexist");
+        config.setProperty("cache.type", "nevergonnaexist");
 
         ControllerTrampoline trampoline = new ControllerTrampoline(config,
                 null, null, null);
 
-        Cache cache = trampoline.createEphemeralStore();
+        Cache cache = trampoline.createCache();
 
         assertNull(cache);
     }
