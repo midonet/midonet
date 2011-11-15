@@ -420,7 +420,7 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
 
         @Override
         public Pair<K, Versioned<V>> next() {
-            assert !(key == null ^ values == null);
+            assert (key == null) == (values == null);
 
             if (values == null || !values.hasNext()) {
                 Map.Entry<K, List<Versioned<V>>> entry = nextEntry();
