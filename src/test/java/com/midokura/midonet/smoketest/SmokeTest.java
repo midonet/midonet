@@ -6,6 +6,7 @@ package com.midokura.midonet.smoketest;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.net.URI;
 
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class SmokeTest {
     private final static Logger log = LoggerFactory.getLogger(SmokeTest.class);
 
     @Test
-    public void test() {
+    public void test() throws IOException, InterruptedException {
         MidolmanMgmt mgmt = new MockMidolmanMgmt();
         // Add the tenant
         Tenant tenant = new Tenant();
@@ -51,7 +52,7 @@ public class SmokeTest {
 
         // Add a materialized router port.
         MaterializedRouterPort port = new MaterializedRouterPort();
-        String portAddress = "180.214.47.66";
+        String portAddress = "180.214.47.65";
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(30);
         port.setPortAddress(portAddress);
@@ -82,8 +83,8 @@ public class SmokeTest {
         assertEquals(rt.getDstNetworkAddr(), nwDst);
 
         OpenvSwitchDatabaseConnection ovsdb;
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-                "Open_vSwitch", "127.0.0.1", 12344);
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                "127.0.0.1", 12344);
 
         String brName = "smoke-br";
         BridgeBuilder brBuilder = ovsdb.addBridge(brName);
@@ -96,18 +97,41 @@ public class SmokeTest {
                 brName, "tcp:127.0.0.1:6633");
 
         // Replace this with a call to Rossella's tap module.
-        //Process tapAdd = Runtime.getRuntime().exec(
-        //        "sudo ip tuntap add dev port1 mode tap");
-        //tapAdd.waitFor();
+        // Process tapAdd = Runtime.getRuntime().exec(
+        // "sudo ip tuntap add dev port1 mode tap");
+        // tapAdd.waitFor();
         ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
         ctlBuilder.build();
         String portName = "port1";
-        PortBuilder pBuilder= ovsdb.addInternalPort(brName, portName);
+        PortBuilder pBuilder = ovsdb.addInternalPort(brName, portName);
         pBuilder.externalId("midolman-vnet", port.getId().toString());
         pBuilder.build();
-        
+        Runtime.getRuntime().exec(
+                String.format(
+                    "sudo ip link set dev %s arp on mtu 1300 multicast off up",
+                    portName));
+        Runtime.getRuntime().exec(
+                String.format(
+                    "sudo ip addr add 180.214.47.65/24 dev %s",
+                    portName));
 
-        
+        System.out.println("Starting MM");
+        // Start midolman
+        Process mmController = Runtime.getRuntime()
+                .exec("/usr/lib/jvm/java-6-openjdk/jre/bin/java "
+                        + "-cp ./conf/midolman:/usr/share/midolman/midolmanj.jar "
+                        + "-Dmidolman.log.dir=./target "
+                        + "-Dcom.sun.management.jmxremote "
+                        + "-Dcom.sun.management.jmxremote.local.only= "
+                        + "com.midokura.midolman.Midolman "
+                        + "-c ./conf/midolman.conf");
+        Thread.sleep(10000);
+        Runtime.getRuntime().exec(
+                String.format(
+                    "ping -c 5 180.214.47.66",
+                    portName));
+
+
         // 3) Create taps
 
         // 4) Create OVS datapaths and ports and set externalIds of

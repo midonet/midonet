@@ -38,9 +38,9 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
                 .contextParam("datastore_service",
-                        "com.midokura.midolman.mgmt.data.MockDaoFactory")
-                .contextParam("zk_conn_string", "")
-                .contextParam("zk_timeout", "0")
+                        "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
+                .contextParam("zk_conn_string", "127.0.0.1:2181")
+                .contextParam("zk_timeout", "10000")
                 .contextParam("zk_root", "/test/midolman")
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
                 .contextListenerClass(ServletListener.class)
