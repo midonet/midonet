@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 package com.midokura.midonet.smoketest;
 
 import static org.junit.Assert.assertEquals;
@@ -79,7 +83,7 @@ public class SmokeTest {
 
         OpenvSwitchDatabaseConnection ovsdb;
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-                "Open_vSwitch", "127.0.0.1", 6634);
+                "Open_vSwitch", "127.0.0.1", 12344);
 
         String brName = "smoke-br";
         BridgeBuilder brBuilder = ovsdb.addBridge(brName);
