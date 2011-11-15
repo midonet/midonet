@@ -410,7 +410,7 @@ public class AmnesicStorageEngine<K, V, T> implements StorageEngine<K, V, T> {
 
         @Override
         public boolean hasNext() {
-            assert !(key == null ^ values == null);
+            assert (key == null) == (values == null);
 
             if (values != null && values.hasNext())
                 return true;
