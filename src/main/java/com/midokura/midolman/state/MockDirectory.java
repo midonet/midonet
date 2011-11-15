@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura KK
+ */
+
 package com.midokura.midolman.state;
 
 import java.util.ArrayList;
@@ -19,6 +23,11 @@ import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
 
+/**
+ * This is an in-memory, naive implementation of the Directory interface.
+ * It is only meant to be used in tests. However, it is packaged here
+ * so that it can be used by external projects (e.g. functional tests).
+ */
 public class MockDirectory implements Directory {
 
     private class Node {
