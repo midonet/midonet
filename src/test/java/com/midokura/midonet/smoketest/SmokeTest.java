@@ -131,6 +131,10 @@ public class SmokeTest {
                     "ping -c 5 180.214.47.66",
                     portName));
 
+        Thread.sleep(5000);
+        // Now clean up.
+        mgmt.delete(tenantURI.getPath());
+        ovsdb.delBridge(brName);
 
         // 3) Create taps
 

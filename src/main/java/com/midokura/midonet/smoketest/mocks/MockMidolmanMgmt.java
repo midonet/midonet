@@ -77,6 +77,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return makeResource(path).type(MediaType.APPLICATION_JSON).get(clazz);
     }
 
+    @Override
+    public void delete(String path) {
+        makeResource(path).type(MediaType.APPLICATION_JSON).delete();
+    }
+
     public static class ServletListener implements ServletContextListener {
 
         @Override
