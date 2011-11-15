@@ -1,3 +1,8 @@
+/*
+ * @(#)DeleteZkTestConfig        1.6 11/11/15
+ *
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.mgmt.tools;
 
 import javax.ws.rs.core.MediaType;
@@ -21,9 +26,7 @@ public class DeleteZkTestConfig {
         cc.getSingletons().add(new JacksonJaxbJsonProvider());
         Client client = Client.create(cc);
 
-        String[] tenants = new String[] { 
-                "525106eb-ede2-47d0-8db2-dca0f4e49cce"
-        };
+        String[] tenants = new String[] { "525106eb-ede2-47d0-8db2-dca0f4e49cce" };
         for (String tenant : tenants) {
             url = new StringBuilder(basePath).append("/tenants/")
                     .append(tenant).toString();

@@ -1,3 +1,8 @@
+/*
+ * @(#)MainTest        1.6 11/11/15
+ *
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.mgmt.rest_api;
 
 import static org.junit.Assert.assertEquals;
@@ -92,17 +97,17 @@ public class MainTest extends JerseyTest {
         port.setLocalNetworkAddress("180.214.47.64");
         port.setLocalNetworkLength(30);
         resource = resource().uri(
-            UriBuilder.fromUri(routerURI).path("ports").build());
+                UriBuilder.fromUri(routerURI).path("ports").build());
         log.debug("port JSON {}", port.toString());
-        response = resource.type(MediaType.APPLICATION_JSON)
-            .post(ClientResponse.class, port);
+        response = resource.type(MediaType.APPLICATION_JSON).post(
+                ClientResponse.class, port);
         URI portURI = response.getLocation();
         log.debug("port location: {}", portURI);
 
         // Get the port.
         resource = resource().uri(portURI);
-        port = resource.type(MediaType.APPLICATION_JSON)
-            .get(MaterializedRouterPort.class);
+        port = resource.type(MediaType.APPLICATION_JSON).get(
+                MaterializedRouterPort.class);
         log.debug("port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
 
@@ -111,9 +116,9 @@ public class MainTest extends JerseyTest {
         int vpnPort = 1234;
         vpn.setPort(vpnPort);
         resource = resource().uri(
-            UriBuilder.fromUri(portURI).path("vpns").build());
-        response = resource.type(MediaType.APPLICATION_JSON)
-            .post(ClientResponse.class, vpn);
+                UriBuilder.fromUri(portURI).path("vpns").build());
+        response = resource.type(MediaType.APPLICATION_JSON).post(
+                ClientResponse.class, vpn);
         URI vpnURI = response.getLocation();
         log.debug("vpn location: {}", vpnURI);
 

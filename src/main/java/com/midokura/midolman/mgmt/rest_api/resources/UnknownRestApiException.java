@@ -1,3 +1,8 @@
+/*
+ * @(#)UnknownRestApiException        1.6 11/11/15
+ *
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import javax.ws.rs.WebApplicationException;
@@ -30,9 +35,9 @@ public class UnknownRestApiException extends WebApplicationException {
     }
 
     public UnknownRestApiException(Throwable e, String message) {
-        super(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
-                buildErrorEntity(message)).type(MediaType.APPLICATION_JSON)
-                .build());
+        super(e, Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(buildErrorEntity(message))
+                .type(MediaType.APPLICATION_JSON).build());
     }
 
 }

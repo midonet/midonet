@@ -1,3 +1,8 @@
+/*
+ * @(#)DataStoreInjectableProvider        1.6 11/11/15
+ *
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.mgmt.data;
 
 import java.lang.reflect.Type;
@@ -12,7 +17,6 @@ import com.sun.jersey.core.spi.component.ComponentScope;
 import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
 import com.sun.jersey.spi.inject.Injectable;
 import com.sun.jersey.spi.inject.InjectableProvider;
-
 
 @Provider
 public class DataStoreInjectableProvider extends

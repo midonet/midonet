@@ -1,3 +1,8 @@
+/*
+ * @(#)StateAccessExceptionMapper        1.6 11/11/15
+ *
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import javax.ws.rs.core.MediaType;
@@ -17,8 +22,8 @@ public class StateAccessExceptionMapper implements
         ErrorEntity error = new ErrorEntity();
         error.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         error.setMessage("Data access error: " + e.getMessage());
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
-                error).type(MediaType.APPLICATION_JSON).build();
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(error).type(MediaType.APPLICATION_JSON).build();
     }
 
 }
