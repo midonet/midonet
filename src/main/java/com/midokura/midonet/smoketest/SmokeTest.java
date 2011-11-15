@@ -12,8 +12,13 @@ import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.openvswitch.BridgeBuilder;
+import com.midokura.midolman.openvswitch.BridgeFailMode;
+import com.midokura.midolman.openvswitch.ControllerBuilder;
+import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 
@@ -76,6 +81,29 @@ public class SmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
                 "Open_vSwitch", "127.0.0.1", 6634);
 
+        String brName = "smoke-br";
+        BridgeBuilder brBuilder = ovsdb.addBridge(brName);
+        brBuilder.externalId("midolman-vnet",
+                "01234567-0123-0123-aaaa-0123456789ab");
+        brBuilder.failMode(BridgeFailMode.SECURE);
+        brBuilder.otherConfig("hwaddr", "02:aa:bb:11:22:33");
+        brBuilder.build();
+        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
+                brName, "tcp:127.0.0.1:6633");
+
+        // Replace this with a call to Rossella's tap module.
+        //Process tapAdd = Runtime.getRuntime().exec(
+        //        "sudo ip tuntap add dev port1 mode tap");
+        //tapAdd.waitFor();
+        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
+        ctlBuilder.build();
+        String portName = "port1";
+        PortBuilder pBuilder= ovsdb.addInternalPort(brName, portName);
+        pBuilder.externalId("midolman-vnet", port.getId().toString());
+        pBuilder.build();
+        
+
+        
         // 3) Create taps
 
         // 4) Create OVS datapaths and ports and set externalIds of
@@ -93,5 +121,4 @@ public class SmokeTest {
 
         // 7) Tear down the OVS structures and taps.
     }
-
 }
