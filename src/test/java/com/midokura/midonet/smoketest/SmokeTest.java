@@ -36,7 +36,7 @@ public class SmokeTest {
         MidolmanMgmt mgmt = new MockMidolmanMgmt();
         // Add the tenant
         Tenant tenant = new Tenant();
-        tenant.setId("tenant6");
+        tenant.setId("tenant7");
         URI tenantURI = mgmt.addTenant(tenant);
         log.debug("tenant location: {}", tenantURI);
         // Add a router.
@@ -106,16 +106,21 @@ public class SmokeTest {
         PortBuilder pBuilder = ovsdb.addInternalPort(brName, portName);
         pBuilder.externalId("midolman-vnet", port.getId().toString());
         pBuilder.build();
-        Thread.sleep(10000);
-        Runtime.getRuntime().exec(
-                    "sudo ip link set dev port1 arp on mtu 1300 multicast off");
         Thread.sleep(2000);
-        Runtime.getRuntime().exec(
-                    "sudo ip addr add 180.214.47.65/24 dev port1");
-        Thread.sleep(2000);
-        Runtime.getRuntime().exec(
+        Process p = Runtime.getRuntime().exec(
+                    "sudo ip link set dev port1 arp on mtu 1300 multicast off up");
+        p.waitFor();
+        log.info("ip link set arp,mtu,multicast - returned {}", p.exitValue());
+        p = Runtime.getRuntime().exec(
+                    "sudo ip addr add 180.214.47.66/24 dev port1");
+        p.waitFor();
+        log.info("ip addr add - returned {}", p.exitValue());
+        /*
+        p = Runtime.getRuntime().exec(
                     "sudo ip link set dev port1 up");
-
+        p.waitFor();
+        log.info("ip link set up - returned {}", p.exitValue());
+        */
         System.out.println("Starting MM");
         // Start midolman
         /*
@@ -128,10 +133,10 @@ public class SmokeTest {
                         + "com.midokura.midolman.Midolman "
                         + "-c ./conf/midolman.conf");
         */
-        Thread.sleep(30000);
+        Thread.sleep(20000);
         Runtime.getRuntime().exec(
                 String.format(
-                    "ping -c 5 180.214.47.66",
+                    "ping -c 5 180.214.47.65",
                     portName));
 
         Thread.sleep(10000);
