@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -321,7 +322,7 @@ public class Setup implements Watcher {
      */
     private void zkTearDown() throws Exception {
         initZK();
-        Set<String> paths = getTopLevelPaths(zkBasePath);
+        List<String> paths = getTopLevelPaths(zkBasePath);
         for (String path : paths) {
             destroyZkDirectoryContents(path);
         }
@@ -411,9 +412,9 @@ public class Setup implements Watcher {
         }
     }
 
-    private static Set<String> getTopLevelPaths(String basePath) {
+    private static List<String> getTopLevelPaths(String basePath) {
         ZkPathManager pathMgr = new ZkPathManager(basePath);
-        Set<String> paths = new HashSet<String>();
+        List<String> paths = new ArrayList<String>();
         paths.add(pathMgr.getBgpPath());
         paths.add(pathMgr.getBridgesPath());
         paths.add(pathMgr.getChainsPath());
@@ -428,7 +429,7 @@ public class Setup implements Watcher {
 
     public static void createZkDirectoryStructure(Directory rootDir,
             String basePath) throws KeeperException, InterruptedException {
-        Set<String> paths = Setup.getTopLevelPaths(basePath);
+        List<String> paths = Setup.getTopLevelPaths(basePath);
         for (String path : paths) {
             rootDir.add(path, null, CreateMode.PERSISTENT);
         }
