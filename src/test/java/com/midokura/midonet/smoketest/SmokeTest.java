@@ -36,7 +36,7 @@ public class SmokeTest {
         MidolmanMgmt mgmt = new MockMidolmanMgmt();
         // Add the tenant
         Tenant tenant = new Tenant();
-        tenant.setId("tenant1");
+        tenant.setId("tenant6");
         URI tenantURI = mgmt.addTenant(tenant);
         log.debug("tenant location: {}", tenantURI);
         // Add a router.
@@ -106,33 +106,37 @@ public class SmokeTest {
         PortBuilder pBuilder = ovsdb.addInternalPort(brName, portName);
         pBuilder.externalId("midolman-vnet", port.getId().toString());
         pBuilder.build();
+        Thread.sleep(10000);
         Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip link set dev %s arp on mtu 1300 multicast off up",
-                    portName));
+                    "sudo ip link set dev port1 arp on mtu 1300 multicast off");
+        Thread.sleep(2000);
         Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip addr add 180.214.47.65/24 dev %s",
-                    portName));
+                    "sudo ip addr add 180.214.47.65/24 dev port1");
+        Thread.sleep(2000);
+        Runtime.getRuntime().exec(
+                    "sudo ip link set dev port1 up");
 
         System.out.println("Starting MM");
         // Start midolman
+        /*
         Process mmController = Runtime.getRuntime()
-                .exec("/usr/lib/jvm/java-6-openjdk/jre/bin/java "
-                        + "-cp ./conf/midolman:/usr/share/midolman/midolmanj.jar "
-                        + "-Dmidolman.log.dir=./target "
+                .exec("sudo /usr/lib/jvm/java-6-openjdk/jre/bin/java "
+                        + "-cp ./conf:/usr/share/midolman/midolmanj.jar "
+                        + "-Dmidolman.log.dir=. "
                         + "-Dcom.sun.management.jmxremote "
                         + "-Dcom.sun.management.jmxremote.local.only= "
                         + "com.midokura.midolman.Midolman "
                         + "-c ./conf/midolman.conf");
-        Thread.sleep(10000);
+        */
+        Thread.sleep(30000);
         Runtime.getRuntime().exec(
                 String.format(
                     "ping -c 5 180.214.47.66",
                     portName));
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         // Now clean up.
+        //mmController.destroy();
         mgmt.delete(tenantURI.getPath());
         ovsdb.delBridge(brName);
 
