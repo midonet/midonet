@@ -434,7 +434,7 @@ class TestOpenvSwitchDatabaseConnection {
     /**
      * Test updateQueue
      */
-    @Test def testUpdateQueue() {
+    @Ignore @Test def testUpdateQueue() {
         val queueMinRate: Long = 100000000
         val queueExtIdKey = bridgeExtIdKey
         val queueExtIdValue = "002bcb5f-0000-8000-1000-bafbafbafbaf"
