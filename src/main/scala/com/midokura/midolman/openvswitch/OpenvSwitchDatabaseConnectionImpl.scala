@@ -31,7 +31,8 @@ import org.slf4j.LoggerFactory
 
 import OpenvSwitchDatabaseConsts._
 import java.io._
-import java.util.concurrent.{TimeUnit, ArrayBlockingQueue, BlockingQueue}
+import java.util.concurrent.{
+  ArrayBlockingQueue, BlockingQueue, ConcurrentHashMap, TimeUnit}
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
 
 /**
@@ -40,8 +41,8 @@ import com.midokura.midolman.openvswitch.OpenvSwitchException._
 object OpenvSwitchDatabaseConnectionImpl {
     import OpenvSwitchDatabaseConnectionImpl._
     private final val echo_interval = 1000
-    private final val PollInterval: Long = 3000L
     private final val log = LoggerFactory.getLogger(this.getClass)
+    private final val OVSDBConnectionLostId: String = "connection_lost"
 
     /**
      * Generates a new UUID to identify a newly added row.
@@ -430,8 +431,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     import OpenvSwitchDatabaseConnectionImpl._
 
     private var nextRequestid = 0
-    private val pendingJsonRpcRequests =
-        new mutable.HashMap[Long, BlockingQueue[JsonNode]]()
+    private val pendingJsonRpcRequests: mutable.ConcurrentMap[Long, BlockingQueue[JsonNode]] =
+        new ConcurrentHashMap[Long, BlockingQueue[JsonNode]]()
     private val objectMapper = new ObjectMapper().withModule(new ScalaModule())
     private val jsonFactory = new JsonFactory(objectMapper)
     private val factory = JsonNodeFactory.instance
@@ -481,11 +482,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val queue = new ArrayBlockingQueue[JsonNode](1)
 
         nextRequestid += 1
-        pendingJsonRpcRequests.synchronized {
-            // TODO: Check that no queue is already registered with that
-            // requestId.
-            pendingJsonRpcRequests.put(requestId, queue)
-        }
+        // TODO: Check that no queue is already registered with that
+        // requestId.
+        pendingJsonRpcRequests.put(requestId, queue)
         log.debug("doJsonRpc request: %s".format(request))
         try {
             // Serialize the JSON-RPC 1.0 request into JSON text in the output
@@ -501,13 +500,15 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 case e: IOException =>
                     { stop; log.warn("doJsonRpc", e); throw e }
             }
-            // Block until the response is received and parsed or stop in timeout.
+            // Block until the response is received and parsed or stop.
             var response: JsonNode = null
-            var responseId: Long = -1L
+            var responseId: Int = -1
             try {
-                response = queue.poll(PollInterval, TimeUnit.MILLISECONDS)
-                // response = queue.take
-                responseId = response.get("id").getValueAsLong
+                response = queue.take
+                if (response.get("id").toString == OVSDBConnectionLostId)
+                    throw new OVSDBException(
+                        "The connection between OVSDB has been lost.")
+                responseId = response.get("id").getValueAsInt
             } catch {
                 case e: InterruptedException => {
                     stop
@@ -526,8 +527,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 throw new OVSDBException(
                     "wrong id in JSON-RPC result: %s".format(responseId))
             val errorValue = response.get("error")
-            if (!errorValue.isNull) {
-                log.warn("doJsonRpc: error from server: ", errorValue)
+            log.warn("error: {}", errorValue)
+            if (errorValue != null) {
+                log.warn("doJsonRpc: error from server: ", errorValue.toString)
                 throw new OVSDBException(
                     "OVSDB request error: " + errorValue.toString,
                     response.get("details").getTextValue)
@@ -551,9 +553,25 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             }
             return response.get("result")
         } finally {
-            pendingJsonRpcRequests.synchronized {
-                pendingJsonRpcRequests.remove(requestId)
-            }
+            pendingJsonRpcRequests.remove(requestId)
+        }
+    }
+
+    /**
+     * Stop the connection between OVSDB and abort pending requests.
+     *
+     * @param e The exception thrown by operations related with the OVSDB
+     *          connection.
+     */
+    private def stopConnection(e: Exception) = {
+        stop
+        log.info("run: %s".format(e.getClass.getName), e)
+        for ((_, queue) <- pendingJsonRpcRequests) {
+            // Insert the poison to pad and unblock
+            // pendingJsonRpcRequests
+            val poison = objectMapper.createObjectNode
+            poison.put("id", factory.textNode(OVSDBConnectionLostId))
+            queue.put(poison)
         }
     }
 
@@ -568,32 +586,22 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     assume(id != null, "Invalid JSON object.")
                     // Ignore echo response.
                     if (id.getTextValue != "echo") {
-                        val requestId = json.get("id").getValueAsLong
-                        pendingJsonRpcRequests.synchronized {
-                            pendingJsonRpcRequests.get(requestId) match {
-                                // Pass the JSON object to the caller, and
-                                // notify it.
-                                case Some(queue) => queue.add(json)
-                                case None => throw new OVSDBException(
-                                    "Invalid requestId %d".format(requestId))
-                            }
+                        val requestId = json.get("id").getValueAsInt
+                        pendingJsonRpcRequests.get(requestId) match {
+                            // Pass the JSON object to the caller, and
+                            // notify it.
+                            case Some(queue) => queue.add(json)
+                            case None => throw new OVSDBException(
+                                "Invalid requestId %d".format(requestId))
                         }
                     }
                 }
                 //TODO: handle "notification" type
             } catch {
-                case e: InterruptedException =>
-                    { stop; log.warn("run: InterruptedException", e) }
-                case e: SocketException =>
-                    { stop;
-                      // TODO: Ignore this when the parent thread close the 
-                      //       socket.
-                      log.warn("run: SocketException", e)
-                    }
-                case e: EOFException =>
-                    { stop; log.info("run: EOFException", e) }
-                case e: IOException =>
-                    { stop; log.warn("run: IOException", e) }
+                case e: InterruptedException => stopConnection(e)
+                case e: SocketException => stopConnection(e)
+                case e: EOFException => stopConnection(e)
+                case e: IOException => stopConnection(e)
             }
         }
     }

@@ -94,8 +94,7 @@ class TestDummyOVSDB {
         }
     }
 
-    // TODO: Reduce the timeout to 1000 or 2000 ms once Bug #341 is fixed.
-    @Test(timeout=10000, expected = classOf[OVSDBException])
+    @Test(timeout=1000, expected = classOf[OVSDBException])
     def testImmediateDisconnection() {
         var ovsdbConnSuccessful = false
         var ovsdbConn: OpenvSwitchDatabaseConnectionImpl = null
@@ -112,8 +111,7 @@ class TestDummyOVSDB {
         }
     }
 
-    // TODO: Reduce the timeout to 1000 or 2000 ms once Bug #341 is fixed.
-    @Test(timeout=10000, expected = classOf[OVSDBException])
+    @Test(timeout=1000, expected = classOf[OVSDBException])
     def testGracefulDisconnection() {
         var ovsdbConnSuccessful = false
         var ovsdbConn: OpenvSwitchDatabaseConnectionImpl = null
