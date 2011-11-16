@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura KK
+ */
+
 package com.midokura.midolman.rules;
 
 import java.util.HashSet;

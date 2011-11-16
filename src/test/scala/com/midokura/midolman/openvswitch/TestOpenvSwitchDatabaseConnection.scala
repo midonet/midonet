@@ -167,12 +167,59 @@ class TestOpenvSwitchDatabaseConnection {
                 ovsdb.delPort(portName)
                 assertFalse(ovsdb.hasPort(portName))
             }
+            // Test adding a tap interface created with ip command.
+            try {
+                log.debug("Add tap port {} with ip command", portName)
+                var ipCmd = Runtime.getRuntime().exec(
+                    "sudo ip tuntap add dev %s mode tap".format(portName))
+                ipCmd.waitFor
+                assertEquals(ipCmd.exitValue, 0)
+                ipCmd = Runtime.getRuntime().exec(
+                    "sudo ip link set dev %s arp on mtu 1300 multicast off up"
+                    .format(portName));
+                ipCmd.waitFor
+                assertEquals(ipCmd.exitValue, 0)
+                val pb = ovsdb.addTapPort(bridgeName, portName)
+                pb.build
+                assertTrue(ovsdb.hasPort(portName))
+            } finally {
+                ovsdb.delPort(portName)
+                log.debug("Delete tap port {} with ip command", portName)
+                val ipCmd = Runtime.getRuntime().exec(
+                    "sudo ip link del %s".format(portName))
+                ipCmd.waitFor
+                assertEquals(ipCmd.exitValue, 0)
+                assertFalse(ovsdb.hasPort(portName))
+            }
             try {
                 val pb = ovsdb.addTapPort(bridgeId, portName)
                 pb.build
                 assertTrue(ovsdb.hasPort(portName))
             } finally {
                 ovsdb.delPort(portName)
+                assertFalse(ovsdb.hasPort(portName))
+            }
+            try {
+                log.debug("Add tap port {} with ip command", portName)
+                var ipCmd = Runtime.getRuntime().exec(
+                    "sudo ip tuntap add dev %s mode tap".format(portName))
+                ipCmd.waitFor
+                assertEquals(ipCmd.exitValue, 0)
+                ipCmd = Runtime.getRuntime().exec(
+                    "sudo ip link set dev %s arp on mtu 1300 multicast off up"
+                    .format(portName));
+                ipCmd.waitFor
+                assertEquals(ipCmd.exitValue, 0)
+                val pb = ovsdb.addTapPort(bridgeId, portName)
+                pb.build
+                assertTrue(ovsdb.hasPort(portName))
+            } finally {
+                ovsdb.delPort(portName)
+                log.debug("Delete tap port {} with ip command", portName)
+                val ipCmd = Runtime.getRuntime().exec(
+                    "sudo ip link del %s".format(portName))
+                ipCmd.waitFor
+                assertEquals(ipCmd.exitValue, 0)
                 assertFalse(ovsdb.hasPort(portName))
             }
         }

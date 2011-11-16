@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura KK
+ */
+
 package com.midokura.midolman.layer3;
 
 import java.io.IOException;
@@ -344,7 +348,7 @@ public class NetworkController extends AbstractController {
         // service flows sent this packet to the OFPP_CONTROLLER.
         // TODO(yoshi): replace this with better mechanism such as ARP proxy
         // for service ports.
-        if (inPort == OFPort.OFPP_LOCAL.getValue()) {
+        if (inPort == (OFPort.OFPP_LOCAL.getValue() & 0xffff)) {
             log.debug("onPacketIn: rewrite port {} to {}", inPort,
                       serviceTargetPort);
             inPort = serviceTargetPort;
