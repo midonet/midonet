@@ -8,11 +8,9 @@ package com.midokura.midonet.smoketest.vm;
  */
 public interface VMController {
 
-    public enum VMType {
-        Kvm, Qemu, Xen, VBox
-    }
-
     public void shutdown();
 
     public void startup();
+    
+    public String getNetworkMacAddress();
 }
