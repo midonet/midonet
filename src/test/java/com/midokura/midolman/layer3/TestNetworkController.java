@@ -60,6 +60,7 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.portservice.MockPortService;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.LiteralRule;
@@ -151,7 +152,7 @@ public class TestNetworkController {
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
         // Now create the PortService
-        service = new MockPortService(bgpMgr);
+        service = new MockPortService(portMgr, bgpMgr);
 
         // Now we can create the NetworkController itself.
         IntIPv4 localNwIP = IntIPv4.fromString("192.168.1.4"); // 0xc0a80104
@@ -1933,6 +1934,7 @@ public class TestNetworkController {
         // Offset local port number to avoid conflicts.
         short localPortNum = MockPortService.BGP_TCP_PORT;
         servicePort.setPortNumber(localPortNum);
+        servicePort.setName("midobgp0");
         servicePort.setHardwareAddress(new byte[] { (byte) 0x02, (byte) 0xee,
                 (byte) 0xdd, (byte) 0xcc, (byte) 0xff, (byte) localPortNum });
         // Set the external id so that AbstractController recognizes this

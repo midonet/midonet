@@ -52,6 +52,7 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -1355,7 +1356,8 @@ public class NetworkController extends AbstractController {
         // If the materiazlied router port isn't discovered yet, try
         // setting flows between BGP peers later.
         if (devPortById.containsKey(portId)) {
-            service.start(portNum, devPortById.get(portId));
+            service.start(datapathId, portNum,
+                          devPortById.get(portId).getNum());
         } else {
             if (!portServicesById.containsKey(portId)) {
                 portServicesById.put(portId, new ArrayList<Runnable>());
@@ -1364,7 +1366,8 @@ public class NetworkController extends AbstractController {
             watchers.add(new Runnable() {
                 public void run() {
                     try {
-                        service.start(portNum, devPortById.get(portId));
+                        service.start(datapathId, portNum,
+                                      devPortById.get(portId).getNum());
                     } catch (Exception e) {
                         log.warn("startPortService", e);
                     }
@@ -1376,17 +1379,16 @@ public class NetworkController extends AbstractController {
     private void setupServicePort(int portNum, String portName)
             throws StateAccessException, ZkStateSerializationException,
             IOException, KeeperException, InterruptedException {
-        UUID portId = service.getRemotePort(datapathId, (short)portNum,
-                portName);
+        UUID portId = service.getRemotePort(portName);
         if (portId != null) {
-            service.configurePort(datapathId, portId, portName);
+            service.configurePort(portId, portName);
             startPortService((short)portNum, portId);
         }
     }
 
     private void addServicePort(L3DevicePort port) throws StateAccessException,
             ZkStateSerializationException, KeeperException {
-        Set<String> servicePorts = service.getPorts(port);
+        Set<String> servicePorts = service.getPorts(port.getId());
         if (!servicePorts.isEmpty()) {
             UUID portId = port.getId();
             if (portServicesById.containsKey(portId)) {
@@ -1396,7 +1398,7 @@ public class NetworkController extends AbstractController {
                 return;
             }
         }
-        service.addPort(datapathId, port);
+        service.addPort(datapathId, port.getId(), port.getMacAddr());
     }
 
     @Override

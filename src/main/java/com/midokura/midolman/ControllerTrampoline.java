@@ -27,13 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer3.BgpPortService;
 import com.midokura.midolman.layer3.NetworkController;
-import com.midokura.midolman.layer3.PortService;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.portservice.BgpPortService;
+import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;

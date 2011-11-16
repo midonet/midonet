@@ -1,4 +1,12 @@
-package com.midokura.midolman.layer3;
+/**
+ * BgpPortService.java - BGP port service class.
+ *
+ * This file implements a port service for Quagga's BGP.
+ *
+ * Copyright (c) 2011 Midokura KK. All rights reserved.
+ */
+
+package com.midokura.midolman.portservice;
 
 import java.io.IOException;
 import java.util.List;
@@ -6,12 +14,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.NetworkController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.MAC;
@@ -80,19 +88,24 @@ public class BgpPortService implements PortService {
     }
 
     @Override
+    public void clear() {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
     public void setController(NetworkController controller) {
         this.controller = controller;
     }
 
     @Override
-    public Set<String> getPorts(L3DevicePort port) throws StateAccessException, ZkStateSerializationException {
-        UUID portId = port.getId();
-        return ovsdb.getPortNamesByExternalId(portIdExtIdKey,
-                                              portId.toString());
+    public Set<String> getPorts(UUID portId) throws StateAccessException {
+         return ovsdb.getPortNamesByExternalId(portIdExtIdKey,
+                                               portId.toString());
     }
 
-    private void addPort(final long datapathId, final UUID portId, final MAC mac) throws
-            StateAccessException, ZkStateSerializationException {
+    @Override
+    public void addPort(final long datapathId, final UUID portId,
+                        final MAC mac) throws StateAccessException {
         // Check service attributes in port configurations.
         List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(
             portId, new Runnable() {
@@ -128,7 +141,9 @@ public class BgpPortService implements PortService {
                                                             portName);
             portBuilder.externalId(portIdExtIdKey, portId.toString());
             portBuilder.externalId(portServiceExtIdKey, BGP_SERVICE_EXT_ID);
-            portBuilder.ifMac(mac.toString());
+            if (mac != null) {
+                portBuilder.ifMac(mac.toString());
+            }
             // If there is an existing service port, ovs will return False.
             portBuilder.build();
 
@@ -137,23 +152,20 @@ public class BgpPortService implements PortService {
     }
 
     @Override
-    public void addPort(long datapathId, L3DevicePort port)
-        throws StateAccessException,
-        ZkStateSerializationException, KeeperException {
-        UUID portId = port.getId();
-        this.addPort(datapathId, portId, port.getMacAddr());
+    public void addPort(long datapathId, UUID portId)
+        throws StateAccessException {
+        addPort(datapathId, portId, null);
     }
 
     @Override
-    public UUID getRemotePort(long datapathId, short portNum,
-                              String portName) {
-        String service = ovsdb.getPortExternalId(datapathId, portNum,
+    public UUID getRemotePort(String portName) {
+        String service = ovsdb.getPortExternalId(portName,
                                                  portServiceExtIdKey);
         if (!BGP_SERVICE_EXT_ID.equals(service)) {
             log.info("No service type found for this port");
             return null;
         }
-        String extId = ovsdb.getPortExternalId(datapathId, portNum,
+        String extId = ovsdb.getPortExternalId(portName,
                                                portIdExtIdKey);
         if (extId == null) {
             log.info("No remote port found for this service port ");
@@ -164,22 +176,20 @@ public class BgpPortService implements PortService {
     }
 
     @Override
-    public void configurePort(long datapathId, UUID portId, String portName)
-        throws StateAccessException,
-        ZkStateSerializationException, IOException {
+    public void configurePort(UUID portId, String portName)
+        throws StateAccessException, IOException {
         log.debug("configurePort: {} {}", portId, portName);
-        
+
         // Turn on ARP and link up the interface.
         // mtu 1300 is to avoid ovs dropping packets.
         // TODO(yoshi): Make MTU variable configurable.
-        
         Process ipLinkCommand = Runtime.getRuntime().exec(
             String.format(
                 "sudo ip link set dev %s arp on mtu 1300 multicast off up",
                 portName));
-        
+
         log.debug("configurePort: ran ip link");
-        
+
         // Assume that materialized port config is already there.
         PortConfig config = portMgr.get(portId).value;
         if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
@@ -194,17 +204,36 @@ public class BgpPortService implements PortService {
                 "sudo ip addr add %s/%d dev %s",
                 Net.convertIntAddressToString(portConfig.portAddr),
                 portConfig.nwLength, portName));
-        
+
         log.debug("configurePort: ran ip addr");
     }
 
-    public void start(final short localPortNum, final L3DevicePort remotePort)
-        throws
-        StateAccessException, ZkStateSerializationException,
-        IOException {
-        UUID remotePortId = remotePort.getId();
-        short remotePortNum = remotePort.getNum();
-        PortDirectory.MaterializedRouterPortConfig portConfig = remotePort.getVirtualConfig();
+    @Override
+    public void configurePort(UUID portId)
+        throws StateAccessException, IOException {
+        for (String portName : this.getPorts(portId)) {
+            configurePort(portId, portName);
+        }
+    }
+
+    @Override
+    public void delPort(UUID portId) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public void start(final long datapathId, final short localPortNum,
+                      final short remotePortNum)
+        throws StateAccessException, IOException {
+        UUID remotePortId = UUID.fromString(
+            ovsdb.getPortExternalId(datapathId, localPortNum, portIdExtIdKey));
+        PortConfig config = portMgr.get(remotePortId).value;
+        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
+            throw new RuntimeException(
+                "Target port isn't a MaterializedRouterPortConfig.");
+        }
+        PortDirectory.MaterializedRouterPortConfig portConfig =
+            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
         final int localAddr = portConfig.portAddr;
 
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(
@@ -212,7 +241,7 @@ public class BgpPortService implements PortService {
                      @Override
                      public void run() {
                          try {
-                             start(localPortNum, remotePort);
+                             start(datapathId, localPortNum, remotePortNum);
                          } catch(Exception e) {
                              log.warn("start", e);
                          }
@@ -238,7 +267,7 @@ public class BgpPortService implements PortService {
                     log.warn("start", e);
                 }
                 zebra.start();
-                
+
                 log.debug("start: launching bgpd");
                 bgpdProcess = Runtime.getRuntime().exec("sudo /usr/lib/quagga/bgpd");
                 Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -273,5 +302,16 @@ public class BgpPortService implements PortService {
                             bgpConfig);
             }
         }
+    }
+
+    @Override
+    public void start(UUID serviceId)
+        throws StateAccessException, IOException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public void stop(UUID serviceId) {
+        throw new RuntimeException("not implemented");
     }
 }
