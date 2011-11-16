@@ -14,6 +14,8 @@ import voldemort.client.StoreClientFactory;
 /**
  * A cache-like interface to a Voldemort store which expires items.
  *
+ * The Voldemort servers must be set up separately (see http://goo.gl/yvIt5)
+ *
  * @author Yoo Chung
  */
 public class VoldemortCache implements Cache {
@@ -34,7 +36,8 @@ public class VoldemortCache implements Cache {
      * Construct a cache-like interface to Voldemort stores which serve as
      * an expiring store of key-value items.  The lifetime given here does
      * not actually control the expiration lifetime in the servers, so care
-     * should be taken such that they match.
+     * should be taken such that they match.  (See http://goo.gl/yvIt5 for
+     * info on setting up Voldemort servers.)
      *
      * The list of URLs are potential entry points for the client to connect
      * to the Voldemort store.  The list may include all Voldemort servers in
