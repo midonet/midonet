@@ -26,6 +26,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.openflow.ServiceController;
 
 public class SmokeTest {
 
@@ -93,15 +94,21 @@ public class SmokeTest {
         brBuilder.failMode(BridgeFailMode.SECURE);
         brBuilder.otherConfig("hwaddr", "02:aa:bb:11:22:33");
         brBuilder.build();
+        // Add the Midolman controller.
         ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
                 brName, "tcp:127.0.0.1:6633");
+        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
+        ctlBuilder.build();
+        // Add a service controller. This test will launch the service
+        // controller in order to query the switch statistics.
+        ctlBuilder = ovsdb.addBridgeOpenflowController(
+                brName, "ptcp:127.0.0.1:6634");
+        ctlBuilder.build();
 
         // Replace this with a call to Rossella's tap module.
         // Process tapAdd = Runtime.getRuntime().exec(
         // "sudo ip tuntap add dev port1 mode tap");
         // tapAdd.waitFor();
-        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
-        ctlBuilder.build();
         String portName = "port1";
         PortBuilder pBuilder = ovsdb.addInternalPort(brName, portName);
         pBuilder.externalId("midolman-vnet", port.getId().toString());
@@ -115,13 +122,11 @@ public class SmokeTest {
                     "sudo ip addr add 180.214.47.66/24 dev port1");
         p.waitFor();
         log.info("ip addr add - returned {}", p.exitValue());
-        /*
-        p = Runtime.getRuntime().exec(
-                    "sudo ip link set dev port1 up");
-        p.waitFor();
-        log.info("ip link set up - returned {}", p.exitValue());
-        */
-        System.out.println("Starting MM");
+
+        // Create the service controller we'll use to query the switch stats.
+        ServiceController svcController = new ServiceController(
+                "127.0.0.1", 6634);
+
         // Start midolman
         /*
         Process mmController = Runtime.getRuntime()
