@@ -102,7 +102,7 @@ public class SmokeTest {
         // Add a service controller. This test will launch the service
         // controller in order to query the switch statistics.
         ctlBuilder = ovsdb.addBridgeOpenflowController(
-                brName, "ptcp:127.0.0.1:6634");
+                brName, "ptcp:6634");
         ctlBuilder.build();
 
         // Replace this with a call to Rossella's tap module.

@@ -28,15 +28,14 @@ public class ServiceController implements Controller, SelectListener {
     private ControllerStub controllerStub;
     private SelectLoop loop;
     private SocketChannel client;
-    Thread myThread;
+    private Thread myThread;
 
     public ServiceController(String host, int port) throws IOException {
         client = SocketChannel.open();
-        client.configureBlocking(true);
+        client.configureBlocking(false);
         boolean connected = client.connect(new java.net.InetSocketAddress(host,
                 port));
-        if (connected)
-            log.info("connected immediately...");
+ 
         executor = Executors.newScheduledThreadPool(1);
         loop = new SelectLoop(executor);
         loop.register(client, SelectionKey.OP_CONNECT, this);
@@ -61,17 +60,18 @@ public class ServiceController implements Controller, SelectListener {
 
         if (key.isConnectable())
             log.info("Can connect...");
-        if (key.channel().equals(client))
-            log.info("key's channel same as client.");
-        else
-            log.info("key's channel different from client");
-        if (client.isConnectionPending())
+        else {
+            loop.register(client, SelectionKey.OP_CONNECT, this);
+            return;
+        }
+        if (client.isConnectionPending()) {
+            log.info("Connection still pending... try to finish");
             client.finishConnect();
+        }
         client.socket().setTcpNoDelay(true);
         ControllerStubImpl controllerStubImpl = new ControllerStubImpl(client,
                 loop, this);
-        SelectionKey switchKey = loop.register(client, SelectionKey.OP_READ,
-                controllerStubImpl);
+        loop.register(client, SelectionKey.OP_READ, controllerStubImpl);
         loop.wakeup();
         controllerStubImpl.start();
     }
