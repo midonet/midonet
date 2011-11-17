@@ -157,7 +157,7 @@ class TestOpenvSwitchDatabaseConnection {
     /**
      * Test addTapPort().
      */
-    @Test def testAddTapPort() {
+    @Test(timeout=5000) def testAddTapPort() {
         portName.synchronized {
             try {
                 val pb = ovsdb.addTapPort(bridgeName, portName)
@@ -171,11 +171,11 @@ class TestOpenvSwitchDatabaseConnection {
             try {
                 log.debug("Add tap port {} with ip command", portName)
                 var ipCmd = Runtime.getRuntime().exec(
-                    "sudo ip tuntap add dev %s mode tap".format(portName))
+                    "sudo -n ip tuntap add dev %s mode tap".format(portName))
                 ipCmd.waitFor
                 assertEquals(ipCmd.exitValue, 0)
                 ipCmd = Runtime.getRuntime().exec(
-                    "sudo ip link set dev %s arp on mtu 1300 multicast off up"
+                    "sudo -n ip link set dev %s arp on mtu 1300 multicast off up"
                     .format(portName));
                 ipCmd.waitFor
                 assertEquals(ipCmd.exitValue, 0)
@@ -186,7 +186,7 @@ class TestOpenvSwitchDatabaseConnection {
                 ovsdb.delPort(portName)
                 log.debug("Delete tap port {} with ip command", portName)
                 val ipCmd = Runtime.getRuntime().exec(
-                    "sudo ip link del %s".format(portName))
+                    "sudo -n ip link del %s".format(portName))
                 ipCmd.waitFor
                 assertEquals(ipCmd.exitValue, 0)
                 assertFalse(ovsdb.hasPort(portName))
@@ -202,11 +202,11 @@ class TestOpenvSwitchDatabaseConnection {
             try {
                 log.debug("Add tap port {} with ip command", portName)
                 var ipCmd = Runtime.getRuntime().exec(
-                    "sudo ip tuntap add dev %s mode tap".format(portName))
+                    "sudo -n ip tuntap add dev %s mode tap".format(portName))
                 ipCmd.waitFor
                 assertEquals(ipCmd.exitValue, 0)
                 ipCmd = Runtime.getRuntime().exec(
-                    "sudo ip link set dev %s arp on mtu 1300 multicast off up"
+                    "sudo -n ip link set dev %s arp on mtu 1300 multicast off up"
                     .format(portName));
                 ipCmd.waitFor
                 assertEquals(ipCmd.exitValue, 0)
@@ -217,7 +217,7 @@ class TestOpenvSwitchDatabaseConnection {
                 ovsdb.delPort(portName)
                 log.debug("Delete tap port {} with ip command", portName)
                 val ipCmd = Runtime.getRuntime().exec(
-                    "sudo ip link del %s".format(portName))
+                    "sudo -n ip link del %s".format(portName))
                 ipCmd.waitFor
                 assertEquals(ipCmd.exitValue, 0)
                 assertFalse(ovsdb.hasPort(portName))
