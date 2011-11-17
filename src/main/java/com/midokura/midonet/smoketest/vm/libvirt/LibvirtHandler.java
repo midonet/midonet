@@ -30,7 +30,8 @@ import static com.midokura.midonet.smoketest.vm.libvirt.LibvirtUtils.uriForHyper
 public class LibvirtHandler {
 
     private final static Logger log = LoggerFactory.getLogger(LibvirtHandler.class);
-    private static final String RUNTIME_ENV_PROPERTIES = "/runtime_env.properties";
+
+    private static final String RUNTIME_ENV_PROPERTIES = "/libvirt_runtime_env.properties";
 
     private String connectUri;
     private String templateName;
@@ -186,7 +187,6 @@ public class LibvirtHandler {
             process.waitFor();
 
             return targetOverlayFile.getAbsolutePath();
-
         } catch (IOException e) {
             log.error("Exception while creating overlay image for domain : " + domainName, e);
         } catch (InterruptedException e) {
@@ -229,6 +229,31 @@ public class LibvirtHandler {
         throw
                 new FileNotFoundException("Could not find template in the configured templates folder: "
                         + templateFile.getParentFile().getAbsolutePath() + " or as a resource in the classpath: " + "templates/" + this.templateName + ".xml");
+    }
+
+    public boolean isRuntimeConfigurationValid() {        
+        
+        File workFolder = new File(properties.getProperty(VM_WORK_FOLDER));  
+        if ( ! workFolder.exists() || ! workFolder.isDirectory() ) {
+            return false;    
+        }
+        
+        File imagesFolder = new File(properties.getProperty(VM_IMAGES_FOLDER));
+        if ( ! imagesFolder.exists() || ! imagesFolder.isDirectory() ) {
+            return false;
+        }
+        
+        File templatesFolder = new File(properties.getProperty(VM_TEMPLATES_FOLDER));
+        if ( templatesFolder.exists() && ! templatesFolder.isDirectory() ) {
+            return false;
+        }
+        
+        File baseImageFile = new File(baseImage);
+        if ( ! baseImageFile.exists() || ! baseImageFile.isFile() || ! baseImageFile.canRead() ) {
+            return false;
+        }
+
+        return true;
     }
 
     public interface DomainBuilder {

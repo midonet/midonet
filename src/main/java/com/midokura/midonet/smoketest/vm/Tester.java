@@ -28,6 +28,13 @@ public class Tester {
 
         String mac = controller.getNetworkMacAddress();
 
+//        Starts up the new machine
 //        controller.startup();
+
+//        Shuts down the new machine
+//        controller.shutdown();
+
+//        Destroys the new machine completely (does not remove the overlay files)
+//        controller.destroy();
     }
 }
