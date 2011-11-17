@@ -28,6 +28,7 @@ public class ServiceController implements Controller, SelectListener {
     private ControllerStub controllerStub;
     private SelectLoop loop;
     private SocketChannel client;
+    Thread myThread;
 
     public ServiceController(String host, int port) throws IOException {
         client = SocketChannel.open();
@@ -39,6 +40,19 @@ public class ServiceController implements Controller, SelectListener {
         executor = Executors.newScheduledThreadPool(1);
         loop = new SelectLoop(executor);
         loop.register(client, SelectionKey.OP_CONNECT, this);
+        myThread = new Thread() {
+            @Override
+            public void run() {
+                log.debug("before doLoop which will block");
+                try {
+                    loop.doLoop();
+                } catch (IOException e) {
+                    log.error("exited doLoop because of exception", e);
+                }
+                log.debug("after doLoop is done");
+            }
+        };
+        myThread.start();
     }
 
     @Override
