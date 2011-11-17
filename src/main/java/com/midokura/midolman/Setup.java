@@ -1,5 +1,6 @@
 package com.midokura.midolman;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,7 +64,7 @@ import com.midokura.midolman.state.ZkPathManager;
 public class Setup implements Watcher {
 
     static final Logger log = LoggerFactory.getLogger(Setup.class);
-    
+
     private static final String ZK_CREATE = "zk_create";
     private static final String ZK_DESTROY = "zk_destroy";
     private static final String ZK_SETUP = "zk_setup";
@@ -72,6 +73,8 @@ public class Setup implements Watcher {
     private static final String ZK_DEL_RULES = "zk_del_rules";
     private static final String OVS_SETUP = "zk_setup";
     private static final String OVS_TEARDOWN = "zk_teardown";
+    private static final String QDISC_CREATE = "qdisc_create";
+    private static final String QDISC_DESTROY = "qdisc_destroy";
 
     private int disconnected_ttl_seconds;
     private ScheduledExecutorService executor;
@@ -118,6 +121,10 @@ public class Setup implements Watcher {
             ovsSetup();
         else if (command.equals(OVS_TEARDOWN))
             ovsTearDown();
+        else if (command.equals(QDISC_CREATE))
+            setupTrafficPriorityQdiscs("eth0" /* XXX */);
+        else if (command.equals(QDISC_DESTROY))
+            removeTrafficPriorityQdiscs("eth0" /* XXX */);
         else
             System.out.println("Unrecognized command. Exiting.");
     }
@@ -247,7 +254,7 @@ public class Setup implements Watcher {
 
     /**
      * Destroy the base path and everything underneath.
-     * 
+     *
      * @throws Exception
      */
     private void zkDestroy() throws Exception {
@@ -293,7 +300,7 @@ public class Setup implements Watcher {
             portId = portMgr.create(portConfig);
             log.info("Created a router port with id {} that routes to {}",
                     portId.toString(), IPv4.fromIPv4Address(portNw));
-            
+
             Route rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 10,
                     null, deviceId);
             routeMgr.create(rt);
@@ -303,7 +310,7 @@ public class Setup implements Watcher {
     /**
      * Remove everything from Midonet's top-level paths but leave those
      * directories.
-     * 
+     *
      * @throws Exception
      */
     private void zkTearDown() throws Exception {
@@ -335,9 +342,17 @@ public class Setup implements Watcher {
     }
 
     private void initZK() throws Exception {
-        zkConnection = new ZkConnection(config.configurationAt("zookeeper")
-                .getString("zookeeper_hosts", "127.0.0.1:2181"), config
-                .configurationAt("zookeeper").getInt("session_timeout", 30000),
+        String zkHosts = config.configurationAt("zookeeper")
+                               .getString("zookeeper_hosts", "127.0.0.1:2181");
+        for (String zkServer : zkHosts.split(",")) {
+            String[] hostport = zkServer.split(":");
+            assert hostport.length == 2;
+            setupTrafficPriorityRule(hostport[0], hostport[1]);
+        }
+
+        zkConnection = new ZkConnection(zkHosts,
+                config.configurationAt("zookeeper")
+                      .getInt("session_timeout", 30000),
                 this);
 
         log.debug("about to ZkConnection.open()");
@@ -417,6 +432,31 @@ public class Setup implements Watcher {
         for (String path : paths) {
             rootDir.add(path, null, CreateMode.PERSISTENT);
         }
+    }
+
+    protected static void setupTrafficPriorityQdiscs(String iface)
+            throws IOException {
+        int markValue = 0x00ACCABA;  // Midokura's OUI.
+        Runtime rt = Runtime.getRuntime();
+        // Add a prio qdisc to root, and have marked packets prioritized.
+        rt.exec("sudo -n tc qdisc add dev " + iface + " root handle 1: prio");
+        rt.exec("sudo -n tc filter add dev " + iface +
+                " parent 1: protocol ip prio 1 handle " + markValue +
+                " fw flowid 1:1");
+    }
+
+    protected static void removeTrafficPriorityQdiscs(String iface)
+            throws IOException {
+        // Clear existing qdiscs
+        Runtime.getRuntime().exec("sudo -n tc qdisc del dev " + iface + " root");
+    }
+
+    protected static void setupTrafficPriorityRule(String host, String port)
+            throws IOException {
+        int markValue = 0x00ACCABA;  // Midokura's OUI.
+        Runtime.getRuntime().exec(
+                "sudo -n iptables -t mangle -A POSTROUTING -p tcp -m tcp -d " +
+                host + " --dport " + port + " -j MARK --set-mark " + markValue);
     }
 
     public static void main(String[] args) {
