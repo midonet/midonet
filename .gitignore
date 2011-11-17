@@ -1,4 +1,5 @@
 .idea/
+target/
 *.iml
 src/main/resources/git.properties
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
 package com.midokura.midonet.smoketest.vm;
 
 /**
@@ -8,11 +11,17 @@ package com.midokura.midonet.smoketest.vm;
  */
 public interface VMController {
 
-    public enum VMType {
-        Kvm, Qemu, Xen, VBox
-    }
-
     public void shutdown();
 
     public void startup();
+
+    public void destroy();
+
+    public boolean isRunning();
+
+    public String getNetworkMacAddress();
+    
+    public String getHostName();
+    
+    public String getDomainName();
 }
