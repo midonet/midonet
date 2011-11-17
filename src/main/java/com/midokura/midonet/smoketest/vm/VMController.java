@@ -11,6 +11,14 @@ public interface VMController {
     public void shutdown();
 
     public void startup();
-    
+
+    public void destroy();
+
+    public boolean isRunning();
+
     public String getNetworkMacAddress();
+    
+    public String getHostName();
+    
+    public String getDomainName();
 }

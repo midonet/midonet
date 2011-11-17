@@ -4,6 +4,7 @@ import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
+import org.libvirt.DomainInfo;
 import org.libvirt.LibvirtException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -30,22 +31,25 @@ import static com.midokura.midonet.smoketest.vm.libvirt.LibvirtUtils.uriForHyper
 public class DomainController implements VMController {
 
     Domain domain;
+    private String hostName;
     HypervisorType hypervisorType;
     String domainName;
 
-    protected DomainController(HypervisorType hypervisorType, String domainName) {
+    protected DomainController(HypervisorType hypervisorType, String domainName, String hostName) {
         this.hypervisorType = hypervisorType;
         this.domainName = domainName;
+        this.hostName = hostName;
         this.domain = locateDomain();
     }
 
-    protected DomainController(HypervisorType hypervisorType, Domain domain) {
+    protected DomainController(HypervisorType hypervisorType, Domain domain, String hostName) {
         this.hypervisorType = hypervisorType;
         this.domain = domain;
+        this.hostName = hostName;
         this.domainName = getDomainName();
     }
 
-    private String getDomainName() {
+    public String getDomainName() {
         return executeWithDomain(new DomainAwareExecutor<String>() {
             @Override
             public String execute(Domain domain) throws LibvirtException {
@@ -70,6 +74,34 @@ public class DomainController implements VMController {
                 return domain.create();
             }
         });
+    }
+
+    @Override
+    public void destroy() {
+        executeWithDomain(new DomainAwareExecutor<Void>() {
+            @Override
+            public Void execute(Domain domain) throws LibvirtException {
+                if ( domain.getInfo().state !=  DomainInfo.DomainState.VIR_DOMAIN_SHUTOFF ) {
+                    domain.destroy();
+                }
+
+                domain.undefine();
+
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public boolean isRunning() {
+        Boolean isRunningStatus = executeWithDomain(new DomainAwareExecutor<Boolean>() {
+            @Override
+            public Boolean execute(Domain domain) throws LibvirtException {
+                return domain.getInfo().state == DomainInfo.DomainState.VIR_DOMAIN_RUNNING;
+            }
+        });
+
+        return isRunningStatus != null && isRunningStatus;
     }
 
     @Override
@@ -109,6 +141,11 @@ public class DomainController implements VMController {
                 return "";
             }
         });
+    }
+
+    @Override
+    public String getHostName() {
+        return hostName;
     }
 
     public void shutdown() {

@@ -9,19 +9,22 @@ import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
  * Time: 5:37 PM
  */
 public class Tester {
+
     public static void main(String[] args) {
+
         LibvirtHandler handler = LibvirtHandler.forHypervisor(HypervisorType.Qemu);
 
-        handler.setTemplate("basic_template");
-        handler.setTemplateImage("/home/mtoader/ubuntu-kvm/tmppxcR6r.qcow2");
+        handler.setTemplate("basic_template_x86_64");
 
         VMController controller =
                 handler.newDomain()
-                .setName("test_domain4")
-                .setNetworkDeviceName("tap1")
-                .build();
+                        .setDomainName("test_domain9")
+                        .setHostName("hostname")
+                        .setNetworkDevice("tap1")
+                        .build();
 
         String mac = controller.getNetworkMacAddress();
-        System.out.println("Mac: " + mac);
+
+//        controller.startup();
     }
 }
