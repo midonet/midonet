@@ -155,6 +155,9 @@ public class VoldemortTester {
     public void tearDown() {
         for (int i = 0; i < instances; i++)
             tearDownServer(i);
+
+        servers = null;
+        tmpDirs = null;
     }
 
     /** Direct access to the servers. */

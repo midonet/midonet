@@ -29,5 +29,6 @@ public class TestNatLeaseManagerWithVoldemort extends TestNatLeaseManager {
     @After
     public void tearDown() {
         voldemort.tearDown();
+        voldemort = null;
     }
 }

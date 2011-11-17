@@ -29,6 +29,7 @@ public class TestRouterWithVoldemort extends TestRouter {
     @After
     public void tearDown() throws Exception {
         voldemort.tearDown();
+        voldemort = null;
     }
 
 }

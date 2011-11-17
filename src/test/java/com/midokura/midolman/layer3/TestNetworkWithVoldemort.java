@@ -29,6 +29,7 @@ public class TestNetworkWithVoldemort extends TestNetwork {
     @After
     public void tearDown() throws Exception {
         voldemort.tearDown();
+        voldemort = null;
     }
 
 }

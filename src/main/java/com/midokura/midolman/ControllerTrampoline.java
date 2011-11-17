@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.UUID;
 
 import javax.management.JMException;
@@ -121,6 +122,11 @@ public class ControllerTrampoline implements Controller {
             return new VoldemortCache(voldemortStore, voldemortLifetime,
                     Arrays.asList(voldemortHosts));
         } else if (cacheType.equals("memcache")) {
+            // set log4j logging for spymemcached client
+            Properties props = System.getProperties();
+            props.put("net.spy.log.LoggerImpl", "net.spy.memcached.compat.log.Log4JLogger");
+            System.setProperties(props);
+
             String memcacheHosts = config.configurationAt("memcache")
                     .getString("memcache_hosts");
 

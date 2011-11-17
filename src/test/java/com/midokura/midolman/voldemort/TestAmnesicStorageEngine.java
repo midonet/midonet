@@ -41,6 +41,7 @@ public class TestAmnesicStorageEngine extends AbstractStorageEngineTest {
     @After
     public void tearDown() throws Exception {
         store = null;
+        random = null;
     }
 
     @Test
