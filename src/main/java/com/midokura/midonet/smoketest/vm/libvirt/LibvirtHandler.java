@@ -1,3 +1,6 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
 package com.midokura.midonet.smoketest.vm.libvirt;
 
 import com.midokura.midonet.smoketest.vm.HypervisorType;
@@ -120,7 +123,7 @@ public class LibvirtHandler {
                 try {
                     Connect connect = new Connect(connectUri);
                     Domain domain = connect.domainDefineXML(domainDescription);
-                    return new DomainController(hypervisorType, domain);
+                    return new DomainController(hypervisorType, domain, hostName);
                 } catch (LibvirtException e) {
                     log.error("Error while defining new domain: " + domainName, e);
                 }

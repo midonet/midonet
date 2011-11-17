@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 package com.midokura.midonet.smoketest.vm.libvirt;
 
 import com.midokura.midonet.smoketest.vm.HypervisorType;

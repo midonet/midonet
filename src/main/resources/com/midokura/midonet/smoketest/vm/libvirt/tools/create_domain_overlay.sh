@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#
+# Copyright 2011 Midokura Europe SARL
+#
+
 BASE_IMAGE=$1
 MACHINE_NAME=$2
 TARGET_FILE=$3
