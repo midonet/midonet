@@ -195,7 +195,6 @@ public class RouterResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of Router objects.
      */
     @PUT
     @Path("{id}")
@@ -205,12 +204,11 @@ public class RouterResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         RouterDao dao = daoFactory.getRouterDao();
-        router.setId(id);
-
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only update your own router.");
         }
 
+        router.setId(id);
         try {
             dao.update(router);
         } catch (StateAccessException e) {
@@ -237,7 +235,6 @@ public class RouterResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of Router objects.
      */
     @DELETE
     @Path("{id}")

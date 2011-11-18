@@ -52,6 +52,16 @@ public class ApplicationResource {
     }
 
     /**
+     * Bridge resource locator.
+     * 
+     * @returns BridgeResource object to handle sub-resource requests.
+     */
+    @Path(ResourcePath.BRIDGES)
+    public BridgeResource getBridgeResource() {
+        return new BridgeResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo

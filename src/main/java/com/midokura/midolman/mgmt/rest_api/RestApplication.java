@@ -16,12 +16,10 @@ import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider
 import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource;
-import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource;
 import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource;
-import com.midokura.midolman.mgmt.rest_api.resources.RouterResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RuleResource;
 import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.VifResource;
@@ -56,9 +54,7 @@ public class RestApplication extends Application {
         set.add(PortResource.class);
         set.add(RuleResource.class);
         set.add(RouteResource.class);
-        set.add(RouterResource.class);
         set.add(ChainResource.class);
-        set.add(BridgeResource.class);
         set.add(BgpResource.class);
         set.add(AdRouteResource.class);
         set.add(VifResource.class);

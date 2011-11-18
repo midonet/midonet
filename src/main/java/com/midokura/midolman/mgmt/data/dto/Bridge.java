@@ -5,9 +5,12 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
@@ -19,11 +22,12 @@ import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Bridge {
+public class Bridge extends ResourceDao {
 
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
+    private URI ports = null;
 
     /**
      * Get bridge ID.
@@ -80,6 +84,31 @@ public class Bridge {
      */
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    /**
+     * @return the ports
+     */
+    public URI getPorts() {
+        return ports;
+    }
+
+    /**
+     * @param ports
+     *            the ports to set
+     */
+    public void setPorts(URI ports) {
+        this.ports = ports;
+    }
+
+    /**
+     * @param uri
+     *            the uri to set
+     * @throws URISyntaxException
+     */
+    @XmlTransient
+    public void setPorts(String uri) throws URISyntaxException {
+        this.ports = new URI(uri);
     }
 
     public BridgeMgmtConfig toMgmtConfig() {
