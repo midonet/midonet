@@ -5,9 +5,12 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
@@ -19,11 +22,15 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Router {
+public class Router extends ResourceDao {
 
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
+    private URI ports = null;
+    private URI chains = null;
+    private URI routes = null;
+    private URI peerRouters = null;
 
     /**
      * Get router ID.
@@ -80,6 +87,106 @@ public class Router {
      */
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    /**
+     * @return the ports
+     */
+    public URI getPorts() {
+        return ports;
+    }
+
+    /**
+     * @param ports
+     *            the ports to set
+     */
+    public void setPorts(URI ports) {
+        this.ports = ports;
+    }
+
+    /**
+     * @param uri
+     *            the uri to set
+     * @throws URISyntaxException
+     */
+    @XmlTransient
+    public void setPorts(String uri) throws URISyntaxException {
+        this.ports = new URI(uri);
+    }
+
+    /**
+     * @return the chains
+     */
+    public URI getChains() {
+        return chains;
+    }
+
+    /**
+     * @param chains
+     *            the chains to set
+     */
+    public void setChains(URI chains) {
+        this.chains = chains;
+    }
+
+    /**
+     * @param uri
+     *            the uri to set
+     * @throws URISyntaxException
+     */
+    @XmlTransient
+    public void setChains(String uri) throws URISyntaxException {
+        this.chains = new URI(uri);
+    }
+
+    /**
+     * @return the routes
+     */
+    public URI getRoutes() {
+        return routes;
+    }
+
+    /**
+     * @param routes
+     *            the routes to set
+     */
+    public void setRoutes(URI routes) {
+        this.routes = routes;
+    }
+
+    /**
+     * @param uri
+     *            the uri to set
+     * @throws URISyntaxException
+     */
+    @XmlTransient
+    public void setRoutes(String uri) throws URISyntaxException {
+        this.routes = new URI(uri);
+    }
+
+    /**
+     * @return the peerRouters
+     */
+    public URI getPeerRouters() {
+        return peerRouters;
+    }
+
+    /**
+     * @param peerRouter
+     *            the peerRouter to set
+     */
+    public void setPeerRouters(URI peerRouters) {
+        this.peerRouters = peerRouters;
+    }
+
+    /**
+     * @param uri
+     *            the uri to set
+     * @throws URISyntaxException
+     */
+    @XmlTransient
+    public void setPeerRouters(String uri) throws URISyntaxException {
+        this.peerRouters = new URI(uri);
     }
 
     public RouterMgmtConfig toMgmtConfig() {

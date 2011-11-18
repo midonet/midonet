@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
+import java.net.URISyntaxException;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,6 +29,12 @@ import com.midokura.midolman.mgmt.data.dto.Admin;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.state.StateAccessException;
 
+/**
+ * Root resource class for admin.
+ * 
+ * @version 1.6 15 Nov 2011
+ * @author Ryu Ishimoto
+ */
 public class AdminResource {
 
     private final static String initPath = "/init";
@@ -34,23 +42,48 @@ public class AdminResource {
     private final static Logger log = LoggerFactory
             .getLogger(AdminResource.class);
 
+    /**
+     * Handler for getting administrative resource.
+     * 
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @throws InvalidConfigException
+     *             Configuration is not set correctly.
+     * @returns Admin object.
+     */
     @GET
     @Produces({ VendorMediaType.APPLICATION_ADMIN_JSON,
             MediaType.APPLICATION_JSON })
     public Admin get(@Context UriInfo uriInfo) throws InvalidConfigException {
         Admin a = new Admin();
-        a.setUri(uriInfo.getAbsolutePath().toString());
+        try {
+            a.setUri("/" + uriInfo.getPath());
+        } catch (URISyntaxException e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
         a.setInit(initPath);
         return a;
     }
 
+    /**
+     * Handler for initializing data storage.
+     * 
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @returns A Response object indicating the status of the request.
+     */
     @POST
     @Path(initPath)
-    @Produces(VendorMediaType.APPLICATION_ADMIN_JSON)
     public Response init(@Context SecurityContext context,
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
-
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be admin to initialized ZK.");
         }
@@ -65,7 +98,6 @@ public class AdminResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-
         return Response.ok().build();
     }
 }

@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,10 +34,13 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterChainResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterTableResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.RouterRouteResource;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -45,7 +49,6 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
-@Path("/routers")
 public class RouterResource {
     /*
      * Implements REST API endpoints for routers.
@@ -54,64 +57,108 @@ public class RouterResource {
     private final static Logger log = LoggerFactory
             .getLogger(RouterResource.class);
 
+    private static void setUri(Router router, UriInfo uriInfo)
+            throws URISyntaxException {
+        String routerUri = ResourcePath.ROUTERS + "/" + router.getId();
+        router.setUri(routerUri);
+        router.setPorts(routerUri + ResourcePath.PORTS);
+        router.setChains(routerUri + ResourcePath.CHAINS);
+        router.setRoutes(routerUri + ResourcePath.ROUTES);
+        router.setPeerRouters(routerUri + ResourcePath.ROUTERS);
+    }
+
+    private static void setUri(List<Router> routers, UriInfo uriInfo)
+            throws URISyntaxException {
+        for (Router router : routers) {
+            setUri(router, uriInfo);
+        }
+    }
+
     /**
-     * Port resource locator for routers
+     * Port resource locator for routers.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterPortResource object to handle sub-resource requests.
      */
-    @Path("/{id}/ports")
+    @Path("/{id}" + ResourcePath.PORTS)
     public RouterPortResource getPortResource(@PathParam("id") UUID id) {
         return new RouterPortResource(id);
     }
 
     /**
-     * Route resource locator for routers
+     * Route resource locator for routers.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterRouteResource object to handle sub-resource requests.
      */
-    @Path("/{id}/routes")
+    @Path("/{id}" + ResourcePath.ROUTES)
     public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
         return new RouterRouteResource(id);
     }
 
     /**
-     * Chain resource locator for routers
+     * Chain resource locator for routers.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterChainResource object to handle sub-resource requests.
      */
-    @Path("/{id}/chains")
+    @Path("/{id}" + ResourcePath.CHAINS)
     public RouterChainResource getChainResource(@PathParam("id") UUID id) {
         return new RouterChainResource(id);
     }
 
     /**
-     * Chain table resource locator for routers
+     * Chain table resource locator for routers.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterTableResource object to handle sub-resource requests.
      */
-    @Path("/{id}/tables")
+    @Path("/{id}" + ResourcePath.TABLES)
     public RouterTableResource getTableResource(@PathParam("id") UUID id) {
         return new RouterTableResource(id);
     }
 
     /**
-     * Router resource locator for routers
+     * Router resource locator for routers.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterRouterResource object to handle sub-resource requests.
      */
-    @Path("/{id}/routers")
+    @Path("/{id}" + ResourcePath.ROUTERS)
     public RouterRouterResource getRouterResource(@PathParam("id") UUID id) {
         return new RouterRouterResource(id);
     }
 
     /**
-     * Get the Router with the given ID.
+     * Handler to getting a router.
      * 
      * @param id
-     *            Router UUID.
-     * @return Router object.
-     * @throws Exception
-     * @throws UnauthorizedException
+     *            Router ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
-     * @throws Exception
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A list of Router objects.
      */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_ROUTER_JSON,
+            MediaType.APPLICATION_JSON })
     public Router get(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws UnauthorizedException, StateAccessException {
-        // Get a router for the given ID.
+            @Context SecurityContext context, @Context UriInfo uriInfo,
+            @Context DaoFactory daoFactory) throws UnauthorizedException,
+            StateAccessException {
         RouterDao dao = daoFactory.getRouterDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only see your own router.");
@@ -120,6 +167,7 @@ public class RouterResource {
         Router router = null;
         try {
             router = dao.get(id);
+            setUri(router, uriInfo);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -130,9 +178,29 @@ public class RouterResource {
         return router;
     }
 
+    /**
+     * Handler to updating a router.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @param router
+     *            Router object.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A list of Router objects.
+     */
     @PUT
     @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
+            MediaType.APPLICATION_JSON })
     public Response update(@PathParam("id") UUID id, Router router,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
@@ -156,6 +224,21 @@ public class RouterResource {
         return Response.ok().build();
     }
 
+    /**
+     * Handler to deleting a router.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A list of Router objects.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
@@ -168,6 +251,9 @@ public class RouterResource {
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -185,38 +271,46 @@ public class RouterResource {
         private String tenantId = null;
 
         /**
-         * Default constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            Zookeeper connection string.
          * @param tenantId
-         *            UUID of a tenant.
+         *            ID of a tenant.
          */
         public TenantRouterResource(String tenantId) {
             this.tenantId = tenantId;
         }
 
         /**
-         * Return a list of routers.
+         * Handler to list tenant routers.
          * 
-         * @return A list of Router objects.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of Router objects.
          */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Router> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
-
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             if (!AuthManager.isSelf(context, tenantId)) {
                 throw new UnauthorizedException(
                         "Can only see your own routers.");
             }
 
             RouterDao dao = daoFactory.getRouterDao();
+            List<Router> routers = null;
             try {
-                return dao.list(tenantId);
+                routers = dao.list(tenantId);
+                setUri(routers, uriInfo);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -224,23 +318,32 @@ public class RouterResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            return routers;
         }
 
         /**
-         * Handler for create router API call.
+         * Handler for creating a tenant router.
          * 
          * @param router
-         *            Router object mapped to the request input.
+         *            Router object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(Router router, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
-
             if (!AuthManager.isSelf(context, tenantId)) {
                 throw new UnauthorizedException(
                         "Can only create your own router.");
@@ -258,8 +361,8 @@ public class RouterResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
-
-            URI uri = uriInfo.getBaseUriBuilder().path("routers/" + id).build();
+            URI uri = uriInfo.getBaseUriBuilder()
+                    .path(ResourcePath.ROUTERS + "/" + id).build();
             return Response.created(uri).build();
         }
     }

@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -29,9 +30,11 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -48,30 +51,57 @@ public class TenantResource {
     private final static Logger log = LoggerFactory
             .getLogger(TenantResource.class);
 
+    private static void setUri(List<Tenant> tenants, UriInfo uriInfo)
+            throws URISyntaxException {
+        for (Tenant tenant : tenants) {
+            String tenantUri = ResourcePath.TENANTS + "/" + tenant.getId();
+            tenant.setUri(tenantUri);
+            tenant.setRouters(tenantUri + ResourcePath.ROUTERS);
+            tenant.setBridges(tenantUri + ResourcePath.BRIDGES);
+        }
+    }
+
     /**
-     * Router resource locator for tenants
+     * Router resource locator for tenants.
+     * 
+     * @param id
+     *            Tenant ID from the request.
+     * @returns TenantRouterResource object to handle sub-resource requests.
      */
-    @Path("/{id}/routers")
+    @Path("/{id}" + ResourcePath.ROUTERS)
     public TenantRouterResource getRouterResource(@PathParam("id") String id) {
         return new TenantRouterResource(id);
     }
 
     /**
      * Bridge resource locator for tenants
+     * 
+     * @param id
+     *            Tenant ID from the request.
+     * @returns TenantBridgeResource object to handle sub-resource requests.
      */
-    @Path("/{id}/bridges")
+    @Path("/{id}" + ResourcePath.BRIDGES)
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
         return new TenantBridgeResource(id);
     }
 
-    private void setUri(List<Tenant> tenants, UriInfo uriInfo) {
-        for (Tenant tenant : tenants) {
-            tenant.setUri("/" + uriInfo.getPath() + "/" + tenant.getId());
-        }
-    }
-
+    /**
+     * Handler for listing all the tenants.
+     * 
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @returns A list of Tenant objects.
+     */
     @GET
-    @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
+    @Produces({ VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Tenant> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
@@ -79,10 +109,12 @@ public class TenantResource {
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be an admin to list tenants.");
         }
+
         TenantDao dao = daoFactory.getTenantDao();
         List<Tenant> tenants = null;
         try {
             tenants = dao.list();
+            setUri(tenants, uriInfo);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -90,20 +122,28 @@ public class TenantResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        setUri(tenants, uriInfo);
         return tenants;
     }
 
+    /**
+     * Handler for deleting a tenant.
+     * 
+     * @param id
+     *            Tenant ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
-    @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
-            MediaType.APPLICATION_JSON })
-    @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
-            MediaType.APPLICATION_JSON })
     @Path("{id}")
     public void delete(@PathParam("id") String id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
-
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException(
                     "Must be an admin to delete a tenant.");
@@ -112,6 +152,9 @@ public class TenantResource {
         TenantDao dao = daoFactory.getTenantDao();
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -122,24 +165,26 @@ public class TenantResource {
     }
 
     /**
-     * Handler for create tenant API call.
+     * Handler for creating a tenant.
      * 
      * @param tenant
      *            Tenant object.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
+     *             Data access error.
      * @throws UnauthorizedException
-     * @throws Exception
+     *             Authentication/authorization error.
      * @returns Response object with 201 status code set if successful.
      */
     @POST
     @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })
-    @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
-            MediaType.APPLICATION_JSON })
     public Response create(Tenant tenant, @Context SecurityContext context,
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
-
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be admin to create tenant.");
         }
@@ -155,7 +200,6 @@ public class TenantResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-
         return Response.created(URI.create("/" + id)).build();
     }
 }

@@ -5,13 +5,18 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.xml.bind.annotation.XmlTransient;
+
 public class ResourceDao {
-    private String uri = null;
+    private URI uri = null;
 
     /**
      * @return the uri
      */
-    public String getUri() {
+    public URI getUri() {
         return uri;
     }
 
@@ -19,7 +24,17 @@ public class ResourceDao {
      * @param uri
      *            the uri to set
      */
-    public void setUri(String uri) {
+    public void setUri(URI uri) {
         this.uri = uri;
+    }
+
+    /**
+     * @param uri
+     *            the uri to set
+     * @throws URISyntaxException
+     */
+    @XmlTransient
+    public void setUri(String uri) throws URISyntaxException {
+        this.uri = new URI(uri);
     }
 }

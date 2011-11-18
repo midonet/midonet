@@ -15,30 +15,51 @@ import javax.ws.rs.core.UriInfo;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dto.Application;
+import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 
-@Path("/")
+@Path(ResourcePath.ROOT)
 public class ApplicationResource {
-
-    private final static String adminResourcePath = "/admin";
-    private final static String tenantResourcePath = "/tenants";
 
     /**
      * Admin resource locator.
+     * 
+     * @returns AdminResource object to handle sub-resource requests.
      */
-    @Path(adminResourcePath)
+    @Path(ResourcePath.ADMIN)
     public AdminResource getAdminResource() {
         return new AdminResource();
     }
 
     /**
      * Tenant resource locator.
+     * 
+     * @returns TenantResource object to handle sub-resource requests.
      */
-    @Path(tenantResourcePath)
+    @Path(ResourcePath.TENANTS)
     public TenantResource getTenantResource() {
         return new TenantResource();
     }
 
+    /**
+     * Router resource locator.
+     * 
+     * @returns RouterResource object to handle sub-resource requests.
+     */
+    @Path(ResourcePath.ROUTERS)
+    public RouterResource getRouterResource() {
+        return new RouterResource();
+    }
+
+    /**
+     * Handler for getting root application resources.
+     * 
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @throws InvalidConfigException
+     *             Missing configuration parameter.
+     * @returns An Application object.
+     */
     @GET
     @Produces({ VendorMediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON })
     public Application get(@Context UriInfo uriInfo)
@@ -46,9 +67,9 @@ public class ApplicationResource {
         Application a = new Application();
         AppConfig config = AppConfig.getConfig();
         a.setVersion(config.getVersion());
-        a.setUri(uriInfo.getAbsolutePath().toString());
-        a.setAdmin(adminResourcePath);
-        a.setTenant(tenantResourcePath);
+        a.setUri(uriInfo.getAbsolutePath());
+        a.setAdmin(ResourcePath.ADMIN);
+        a.setTenant(ResourcePath.TENANTS);
         return a;
     }
 }
