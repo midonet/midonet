@@ -9,6 +9,10 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.net.URI;
 
+import com.midokura.midonet.smoketest.vm.HypervisorType;
+import com.midokura.midonet.smoketest.vm.VMController;
+import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
+import org.apache.velocity.util.introspection.LinkingUberspector;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +36,12 @@ public class SmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(SmokeTest.class);
 
+
     @Test
     public void test() throws IOException, InterruptedException {
+
+        LibvirtHandler libvirtHandler =  LibvirtHandler.forHypervisor(HypervisorType.Qemu);
+
         MidolmanMgmt mgmt = new MockMidolmanMgmt();
         // Add the tenant
         Tenant tenant = new Tenant();
@@ -153,11 +161,27 @@ public class SmokeTest {
         rt = mgmt.get(routeURI.getPath(), Route.class);
         log.debug("2nd route destination: {}", rt.getDstNetworkAddr());
         assertEquals(rt.getDstNetworkAddr(), nwDst);
+
         p = Runtime.getRuntime().exec(
                 "sudo -n ip tuntap add dev port2 mode tap");
+        p.waitFor();
+
+        log.debug("\"sudo -n ip tuntap add dev port2 mode tap\" exited with: {}", p.exitValue());
         pBuilder = ovsdb.addSystemPort(brName, "port2");
         pBuilder.externalId("midolman-vnet", port.getId().toString());
         pBuilder.build();
+
+        libvirtHandler.setTemplate("basic_template_x86_64");
+
+        VMController vmController = libvirtHandler.newDomain()
+                .setDomainName("test_domain")
+                .setHostName("hostname")
+                .setNetworkDevice("port2")
+                .build();
+
+        vmController.startup();
+        // the machine should be booting up
+
 
         // Create the service controller we'll use to query the switch stats.
         ServiceController svcController = new ServiceController(
