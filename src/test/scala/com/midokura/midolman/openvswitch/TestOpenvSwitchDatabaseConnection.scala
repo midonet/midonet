@@ -9,6 +9,7 @@ package com.midokura.midolman.openvswitch
 
 import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
+import org.junit.Assume._
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
@@ -167,6 +168,10 @@ class TestOpenvSwitchDatabaseConnection {
                 ovsdb.delPort(portName)
                 assertFalse(ovsdb.hasPort(portName))
             }
+            // Skip tests if a user don't have sudo access w/o password.
+            val cmd = Runtime.getRuntime().exec("sudo -n pwd")
+            cmd.waitFor
+            assumeTrue(cmd.exitValue == 0)
             // Test adding a tap interface created with ip command.
             try {
                 log.debug("Add tap port {} with ip command", portName)
