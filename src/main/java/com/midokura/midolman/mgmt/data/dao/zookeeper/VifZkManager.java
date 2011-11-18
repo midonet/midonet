@@ -133,6 +133,9 @@ public class VifZkManager extends ZkMgmtManager implements VifDao,
         Vif vif = get(id);
         OwnerQueryable manager = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
+        if (vif.getPortId() == null){
+               return null;
+        }
         return manager.getOwner(vif.getPortId());
     }
 }
