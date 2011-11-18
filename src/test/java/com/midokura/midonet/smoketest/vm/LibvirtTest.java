@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.notNullValue;
  * Date: 11/17/11
  * Time: 2:38 PM
  */
-public class LibvirtTests extends AbstractLibvirtTest {
+public class LibvirtTest extends AbstractLibvirtTest {
 
     @Test
     public void testDomainCreation() throws Exception {
