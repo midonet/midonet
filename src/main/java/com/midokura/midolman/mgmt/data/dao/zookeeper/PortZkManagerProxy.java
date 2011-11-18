@@ -266,11 +266,11 @@ public class PortZkManagerProxy extends ZkMgmtManager implements PortDao,
         if (port instanceof RouterPort) {
             OwnerQueryable dao = new RouterZkManagerProxy(zk,
                     pathManager.getBasePath(), mgmtPathManager.getBasePath());
-            return dao.getOwner(id);
+            return dao.getOwner(port.getDeviceId());
         } else {
             OwnerQueryable dao = new BridgeZkManagerProxy(zk,
                     pathManager.getBasePath(), mgmtPathManager.getBasePath());
-            return dao.getOwner(id);
+            return dao.getOwner(port.getDeviceId());
         }
     }
 }
