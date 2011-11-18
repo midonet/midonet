@@ -61,7 +61,8 @@ public class MockDirectory implements Directory {
         }
 
         // Document that this returns the absolute path of the child
-        String addChild(String name, byte[] data, CreateMode mode)
+        String addChild(String name, byte[] data, CreateMode mode,
+                        boolean multi)
                 throws NodeExistsException, NoChildrenForEphemeralsException {
             if (!mode.isSequential() && children.containsKey(name))
                 throw new NodeExistsException(path + '/' + name);
@@ -74,13 +75,13 @@ public class MockDirectory implements Directory {
                     .toString();
             Node child = new Node(childPath, data, mode);
             children.put(name, child);
-            notifyChildrenWatchers();
+            notifyChildrenWatchers(multi);
             return childPath;
         }
 
-        void setData(byte[] data) {
+        void setData(byte[] data, boolean multi) {
             this.data = data;
-            notifyDataWatchers();
+            notifyDataWatchers(multi);
         }
 
         byte[] getData(Runnable watcher) {
@@ -95,7 +96,8 @@ public class MockDirectory implements Directory {
             return new HashSet<String>(children.keySet());
         }
 
-        void deleteChild(String name) throws NoNodeException, NotEmptyException {
+        void deleteChild(String name, boolean multi)
+            throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
             String childPath = new StringBuilder(path).append("/").append(name)
                     .toString();
@@ -104,39 +106,51 @@ public class MockDirectory implements Directory {
             if (child.children.size() > 0)
                 throw new NotEmptyException(childPath);
             children.remove(name);
-            child.notifyDataWatchers();
-            this.notifyChildrenWatchers();
+            child.notifyDataWatchers(multi);
+            this.notifyChildrenWatchers(multi);
         }
 
-        void notifyChildrenWatchers() {
+        void notifyChildrenWatchers(boolean multi) {
             // Each Watcher is called back at most once for every time they
             // register.
             Set<Runnable> watchers = childrenWatchers;
             childrenWatchers = new HashSet<Runnable>();
             for (Runnable watcher : watchers) {
-                watcher.run();
+                if (multi) {
+                    multiDataWatchers.add(watcher);
+                } else {
+                    watcher.run();
+                }
             }
         }
 
-        void notifyDataWatchers() {
+        void notifyDataWatchers(boolean multi) {
             // Each Watcher is called back at most once for every time they
             // register.
             Set<Runnable> watchers = dataWatchers;
             dataWatchers = new HashSet<Runnable>();
             for (Runnable watcher : watchers) {
-                watcher.run();
+                if (multi) {
+                    multiDataWatchers.add(watcher);
+                } else {
+                    watcher.run();
+                }
             }
         }
     }
 
     private Node rootNode;
-
-    public MockDirectory() {
-        rootNode = new Node("", null, CreateMode.PERSISTENT);
-    }
+    private Set<Runnable> multiDataWatchers;
 
     private MockDirectory(Node root) {
         rootNode = root;
+        // All the nodes will belong to another MockDirectory whose
+        // multiDataWatchers set is initialized, and they will use it.
+    }
+
+    public MockDirectory() {
+        rootNode = new Node("", null, CreateMode.PERSISTENT);
+        multiDataWatchers = new HashSet<Runnable>();
     }
 
     private Node getNode(String path) throws NoNodeException {
@@ -154,8 +168,8 @@ public class MockDirectory implements Directory {
         return curNode;
     }
 
-    @Override
-    public String add(String relativePath, byte[] data, CreateMode mode)
+    private String add(String relativePath, byte[] data, CreateMode mode,
+                       boolean multi)
             throws NoNodeException, NodeExistsException,
             NoChildrenForEphemeralsException {
         if (!relativePath.startsWith("/")) {
@@ -165,13 +179,26 @@ public class MockDirectory implements Directory {
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot add the root node");
         Node parent = getNode(path, path.length - 1);
-        String childPath = parent.addChild(path[path.length - 1], data, mode);
+        String childPath = parent.addChild(path[path.length - 1], data, mode,
+                                           multi);
         return childPath.substring(rootNode.path.length());
     }
 
     @Override
+    public String add(String relativePath, byte[] data, CreateMode mode)
+            throws NoNodeException, NodeExistsException,
+            NoChildrenForEphemeralsException {
+        return add(relativePath, data, mode, false);
+    }
+
+    private void update(String path, byte[] data, boolean multi)
+        throws NoNodeException {
+        getNode(path).setData(data, multi);
+    }
+
+    @Override
     public void update(String path, byte[] data) throws NoNodeException {
-        getNode(path).setData(data);
+        update(path, data, false);
     }
 
     @Override
@@ -195,14 +222,19 @@ public class MockDirectory implements Directory {
         }
     }
 
-    @Override
-    public void delete(String relativePath) throws NoNodeException,
-            NotEmptyException {
+    private void delete(String relativePath, boolean multi)
+        throws NoNodeException, NotEmptyException {
         String[] path = relativePath.split("/");
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot delete the root node");
         Node parent = getNode(path, path.length - 1);
-        parent.deleteChild(path[path.length - 1]);
+        parent.deleteChild(path[path.length - 1], multi);
+    }
+
+    @Override
+    public void delete(String relativePath)
+        throws NoNodeException, NotEmptyException {
+        delete(relativePath, false);
     }
 
     @Override
@@ -215,37 +247,55 @@ public class MockDirectory implements Directory {
     public List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException {
         List<OpResult> results = new ArrayList<OpResult>();
-        for (Op op : ops) {
-            Record record = op.toRequestRecord();
-            if (record instanceof CreateRequest) {
-                // TODO(pino, ryu): should we use the try/catch and create
-                // new ErrorResult? Don't for now, but this means that the
-                // unit tests can't purposely make a bad Op.
-                // try {
-                CreateRequest req = CreateRequest.class.cast(record);
-                String path = this.add(req.getPath(), req.getData(), CreateMode
-                        .fromFlag(req.getFlags()));
-                results.add(new OpResult.CreateResult(path));
-                // } catch (KeeperException e) {
-                // e.printStackTrace();
-                // results.add(new OpResult.ErrorResult(e.code().intValue()));
-                // }
-            } else if (record instanceof SetDataRequest) {
-                SetDataRequest req = SetDataRequest.class.cast(record);
-                this.update(req.getPath(), req.getData());
-                // We create the SetDataResult with Stat=null. The Directory
-                // interface doesn't provide the Stat object.
-                results.add(new OpResult.SetDataResult(null));
-            } else if (record instanceof DeleteRequest) {
-                DeleteRequest req = DeleteRequest.class.cast(record);
-                this.delete(req.getPath());
-                results.add(new OpResult.DeleteResult());
-            } else {
-                // might be CheckVersionRequest or some new type we miss.
-                throw new IllegalArgumentException("This mock implementation "
-                        + "only supports Create, SetData and Delete operations");
+        // Fire watchers after finishing multi operation.
+        // Copy to the local Set to avoid concurrent access.
+        Set<Runnable> watchers = new HashSet<Runnable>();
+        try {
+            for (Op op : ops) {
+                Record record = op.toRequestRecord();
+                if (record instanceof CreateRequest) {
+                    // TODO(pino, ryu): should we use the try/catch and create
+                    // new ErrorResult? Don't for now, but this means that the
+                    // unit tests can't purposely make a bad Op.
+                    // try {
+                    CreateRequest req = CreateRequest.class.cast(record);
+                    String path = this.add(req.getPath(), req.getData(),
+                                           CreateMode.fromFlag(req.getFlags()),
+                                           true);
+                    results.add(new OpResult.CreateResult(path));
+                    // } catch (KeeperException e) {
+                    // e.printStackTrace();
+                    // results.add(
+                    // new OpResult.ErrorResult(e.code().intValue()));
+                    // }
+                } else if (record instanceof SetDataRequest) {
+                    SetDataRequest req = SetDataRequest.class.cast(record);
+                    this.update(req.getPath(), req.getData(), true);
+                    // We create the SetDataResult with Stat=null. The
+                    // Directory interface doesn't provide the Stat object.
+                    results.add(new OpResult.SetDataResult(null));
+                } else if (record instanceof DeleteRequest) {
+                    DeleteRequest req = DeleteRequest.class.cast(record);
+                    this.delete(req.getPath(), true);
+                    results.add(new OpResult.DeleteResult());
+                } else {
+                    // might be CheckVersionRequest or some new type we miss.
+                    throw new IllegalArgumentException(
+                        "This mock implementation only supports Create, " +
+                        "SetData and Delete operations");
+                }
             }
+        } finally {
+            for (Runnable watcher : multiDataWatchers) {
+                watchers.add(watcher);
+            }
+            multiDataWatchers.clear();
         }
+
+        for (Runnable watcher : watchers) {
+            watcher.run();
+        }
+
         return results;
     }
 }
