@@ -175,6 +175,45 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
         return ops;
     }
 
+    public List<Op> prepareRouterUpdate(Router router)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get the router.
+        Router r = get(router.getId());
+
+        // Remove the name of this router
+        String routerOldNamePath = mgmtPathManager.getTenantRouterNamePath(
+                r.getTenantId(), r.getName());
+        log.debug("Preparing to delete: " + routerOldNamePath);
+        ops.add(Op.delete(routerOldNamePath, -1));
+        r.setName(router.getName());
+
+        // Add the new name.
+        String routerNamePath = mgmtPathManager.getTenantRouterNamePath(
+                r.getTenantId(), r.getName());
+        try {
+            ops.add(Op.create(routerNamePath, serialize(r.toNameMgmtConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize RouterNameMgmtConfig", e,
+                    RouterNameMgmtConfig.class);
+        }
+
+        // Update router
+        String routerPath = mgmtPathManager.getRouterPath(r.getId());
+        log.debug("Preparing to update: " + routerPath);
+        try {
+            update(routerPath, serialize(r.toMgmtConfig()));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize router mgmt " + r.getId()
+                            + " to RouterMgmtConfig", e, RouterMgmtConfig.class);
+        }
+        return ops;
+    }
+
     public List<Op> prepareRouterDelete(Router router)
             throws StateAccessException, ZkStateSerializationException,
             UnsupportedOperationException {
@@ -315,17 +354,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
     @Override
     public void update(Router router) throws StateAccessException {
         // Update any version for now.
-        Router r = get(router.getId());
-        r.setName(router.getName());
-        String path = mgmtPathManager.getRouterPath(r.getId());
-
-        try {
-            update(path, serialize(r.toMgmtConfig()));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize router mgmt " + r.getId()
-                            + " to RouterMgmtConfig", e, RouterMgmtConfig.class);
-        }
+        multi(prepareRouterUpdate(router));
     }
 
     @Override
