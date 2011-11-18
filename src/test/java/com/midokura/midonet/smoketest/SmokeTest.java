@@ -57,32 +57,32 @@ public class SmokeTest {
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(30);
         port.setPortAddress(portAddress);
-        port.setLocalNetworkAddress("180.214.47.64");
-        port.setLocalNetworkLength(30);
+        port.setLocalNetworkAddress("180.214.47.66");
+        port.setLocalNetworkLength(32);
         log.debug("port JSON {}", port.toString());
         URI portURI = mgmt.addRouterPort(routerURI, port);
-        log.debug("port location: {}", portURI);
+        log.debug("1st port location: {}", portURI);
         // Get the port.
         port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
-        log.debug("port address: {}", port.getPortAddress());
+        log.debug("1st port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
         Route rt = new Route();
         rt.setSrcNetworkAddr("0.0.0.0");
         rt.setSrcNetworkLength(0);
-        String nwDst = "180.214.47.64";
+        String nwDst = "180.214.47.66";
         rt.setDstNetworkAddr(nwDst);
-        rt.setDstNetworkLength(30);
+        rt.setDstNetworkLength(32);
         rt.setType(Route.Normal);
         rt.setNextHopPort(port.getId());
         rt.setWeight(10);
         URI routeURI = mgmt.addRoute(routerURI, rt);
-        log.debug("route location: {}", routeURI);
+        log.debug("1st route location: {}", routeURI);
         // Get the route.
         rt = mgmt.get(routeURI.getPath(), Route.class);
         log.debug("route destination: {}", rt.getDstNetworkAddr());
         assertEquals(rt.getDstNetworkAddr(), nwDst);
-
+        
         OpenvSwitchDatabaseConnection ovsdb;
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
@@ -115,13 +115,49 @@ public class SmokeTest {
         pBuilder.build();
         Thread.sleep(2000);
         Process p = Runtime.getRuntime().exec(
-                    "sudo ip link set dev port1 arp on mtu 1300 multicast off up");
+                    "sudo -n ip link set dev port1 arp on mtu 1300 multicast off up");
         p.waitFor();
         log.info("ip link set arp,mtu,multicast - returned {}", p.exitValue());
         p = Runtime.getRuntime().exec(
-                    "sudo ip addr add 180.214.47.66/24 dev port1");
+                    "sudo -n ip addr add 180.214.47.66/24 dev port1");
         p.waitFor();
         log.info("ip addr add - returned {}", p.exitValue());
+
+        // Create another virtual port and its tap and OVS port for 'port2'
+        port = new MaterializedRouterPort();
+        port.setNetworkAddress("180.214.47.64");
+        port.setNetworkLength(30);
+        port.setPortAddress(portAddress);
+        port.setLocalNetworkAddress("180.214.47.67");
+        port.setLocalNetworkLength(32);
+        log.debug("port JSON {}", port.toString());
+        mgmt.addRouterPort(routerURI, port);
+        log.debug("2nd port location: {}", portURI);
+        // Get the port.
+        port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
+        log.debug("2nd port address: {}", port.getPortAddress());
+        assertEquals(port.getPortAddress(), portAddress);
+        // Add a route to the port.
+        rt = new Route();
+        rt.setSrcNetworkAddr("0.0.0.0");
+        rt.setSrcNetworkLength(0);
+        nwDst = "180.214.47.67";
+        rt.setDstNetworkAddr(nwDst);
+        rt.setDstNetworkLength(32);
+        rt.setType(Route.Normal);
+        rt.setNextHopPort(port.getId());
+        rt.setWeight(10);
+        routeURI = mgmt.addRoute(routerURI, rt);
+        log.debug("2nd route location: {}", routeURI);
+        // Get the route.
+        rt = mgmt.get(routeURI.getPath(), Route.class);
+        log.debug("2nd route destination: {}", rt.getDstNetworkAddr());
+        assertEquals(rt.getDstNetworkAddr(), nwDst);
+        p = Runtime.getRuntime().exec(
+                "sudo -n ip tuntap add dev port2 mode tap");
+        pBuilder = ovsdb.addSystemPort(brName, "port2");
+        pBuilder.externalId("midolman-vnet", port.getId().toString());
+        pBuilder.build();
 
         // Create the service controller we'll use to query the switch stats.
         ServiceController svcController = new ServiceController(
