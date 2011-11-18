@@ -59,7 +59,8 @@ public class TestControllerTrampoline {
         }
     }
 
-    @Test(expected = net.spy.memcached.OperationTimeoutException.class)
+    @Test(expected = net.spy.memcached.OperationTimeoutException.class,
+          timeout = 5000)
     public void testCacheMemcache() throws Exception {
         HierarchicalConfiguration config = minConfig();
         config.setProperty("cache.type", "memcache");
