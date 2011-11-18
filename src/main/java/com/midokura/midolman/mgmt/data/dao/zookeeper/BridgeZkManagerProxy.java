@@ -90,6 +90,44 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements BridgeDao,
         return ops;
     }
 
+    public List<Op> prepareUpdate(Bridge bridge) throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get the bridge.
+        Bridge b = get(bridge.getId());
+
+        // Remove the name of this bridge
+        String bridgeOldNamePath = mgmtPathManager.getTenantBridgeNamePath(
+                b.getTenantId(), b.getName());
+        log.debug("Preparing to delete: " + bridgeOldNamePath);
+        ops.add(Op.delete(bridgeOldNamePath, -1));
+        b.setName(bridge.getName());
+
+        // Add the new name.
+        String bridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
+                b.getTenantId(), b.getName());
+        try {
+            ops.add(Op.create(bridgeNamePath, serialize(b.toNameMgmtConfig()),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize BridgeNameMgmtConfig", e,
+                    BridgeNameMgmtConfig.class);
+        }
+
+        // Update bridge
+        String bridgePath = mgmtPathManager.getBridgePath(b.getId());
+        log.debug("Preparing to update: " + bridgePath);
+        try {
+            update(bridgePath, serialize(b.toMgmtConfig()));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize bridge mgmt " + b.getId()
+                            + " to BridgeMgmtConfig", e, BridgeMgmtConfig.class);
+        }
+        return ops;
+    }
+
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
         return prepareDelete(get(id));
     }
@@ -102,7 +140,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements BridgeDao,
                 .getId());
         ops.addAll(zkManager.prepareBridgeDelete(bridgeNode));
 
-        // Delete the tenant router entry
+        // Delete the tenant bridge entry
         String tenantBridgeNamePath = mgmtPathManager.getTenantBridgeNamePath(
                 bridge.getTenantId(), bridge.getName());
         log.debug("Preparing to delete:" + tenantBridgeNamePath);
@@ -163,18 +201,8 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements BridgeDao,
 
     @Override
     public void update(Bridge bridge) throws StateAccessException {
-        Bridge b = get(bridge.getId());
-        b.setName(bridge.getName());
-
-        String bridgePath = mgmtPathManager.getBridgePath(b.getId());
-        log.debug("Updating path: " + bridgePath);
-        try {
-            update(bridgePath, serialize(b.toMgmtConfig()));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Serialization error occurred while updating the bridge with UUID "
-                            + b.getId(), e, BridgeMgmtConfig.class);
-        }
+        // Update any version for now.
+        multi(prepareUpdate(bridge));
     }
 
     @Override
