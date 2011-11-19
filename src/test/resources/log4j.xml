@@ -9,9 +9,17 @@
     </layout> 
   </appender> 
 
+  <appender name="file" class="org.apache.log4j.FileAppender">
+    <param name="file" value="smoke.log" />
+    <layout class="org.apache.log4j.PatternLayout"> 
+      <param name="ConversionPattern" value="%-5p %c{1} - %M(%L) - %m%n"/>
+    </layout>
+  </appender>
+
   <root> 
     <priority value ="debug" /> 
     <appender-ref ref="console" /> 
+    <appender-ref ref="file" /> 
   </root>
   
 </log4j:configuration>

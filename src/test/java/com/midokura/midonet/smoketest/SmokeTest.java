@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.net.URI;
 
+import com.midokura.midonet.smoketest.utils.Tap;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
@@ -28,6 +29,11 @@ import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.util.Net;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.openflow.ServiceController;
@@ -63,7 +69,7 @@ public class SmokeTest {
         MaterializedRouterPort port = new MaterializedRouterPort();
         String portAddress = "180.214.47.65";
         port.setNetworkAddress("180.214.47.64");
-        port.setNetworkLength(30);
+        port.setNetworkLength(29);
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.66");
         port.setLocalNetworkLength(32);
@@ -72,6 +78,7 @@ public class SmokeTest {
         log.debug("1st port location: {}", portURI);
         // Get the port.
         port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
+        log.info("1st port id {}", port.getId());
         log.debug("1st port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
@@ -134,16 +141,17 @@ public class SmokeTest {
         // Create another virtual port and its tap and OVS port for 'port2'
         port = new MaterializedRouterPort();
         port.setNetworkAddress("180.214.47.64");
-        port.setNetworkLength(30);
+        port.setNetworkLength(29);
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.67");
         port.setLocalNetworkLength(32);
         log.debug("port JSON {}", port.toString());
-        mgmt.addRouterPort(routerURI, port);
+        portURI = mgmt.addRouterPort(routerURI, port);
         log.debug("2nd port location: {}", portURI);
         // Get the port.
         port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
         log.debug("2nd port address: {}", port.getPortAddress());
+        log.info("2nd port id {}", port.getId());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
         rt = new Route();
@@ -162,30 +170,53 @@ public class SmokeTest {
         log.debug("2nd route destination: {}", rt.getDstNetworkAddr());
         assertEquals(rt.getDstNetworkAddr(), nwDst);
 
-        p = Runtime.getRuntime().exec(
-                "sudo -n ip tuntap add dev port2 mode tap");
+        p = Runtime.getRuntime().exec("sudo -n ip tuntap add dev port2 mode tap");
         p.waitFor();
-
         log.debug("\"sudo -n ip tuntap add dev port2 mode tap\" exited with: {}", p.exitValue());
+        p = Runtime.getRuntime().exec("sudo -n ip link set dev port2 up");
+        p.waitFor();
+        log.debug("\"sudo -n ip link set dev port2 up\" exited with: {}", p.exitValue());
         pBuilder = ovsdb.addSystemPort(brName, "port2");
         pBuilder.externalId("midolman-vnet", port.getId().toString());
         pBuilder.build();
+        
+        Thread.sleep(20000);
 
+        ICMP icmpReq = new ICMP();
+        short id = -12345;
+        short seq = -20202;
+        byte[] data = new byte[] { (byte) 0xaa, (byte) 0xbb, (byte) 0xcc,
+                (byte) 0xdd, (byte) 0xee, (byte) 0xff };
+        icmpReq.setEchoRequest(id, seq, data);
+        IPv4 ipReq = new IPv4();
+        ipReq.setPayload(icmpReq);
+        ipReq.setProtocol(ICMP.PROTOCOL_NUMBER);
+        // The ping can come from anywhere if one of the next hops is a
+        int senderIP = Net.convertStringAddressToInt("180.214.47.67");
+        ipReq.setSourceAddress(senderIP);
+        ipReq.setDestinationAddress(Net.convertStringAddressToInt("180.214.47.66"));
+        Ethernet ethReq = new Ethernet();
+        ethReq.setPayload(ipReq);
+        ethReq.setEtherType(IPv4.ETHERTYPE);
+        ethReq.setDestinationMACAddress(MAC.fromString(Tap.getHwAddress("port2")));
+        MAC senderMac = MAC.fromString("ab:cd:ef:01:23:45");
+        ethReq.setSourceMACAddress(senderMac);
+        byte[] pktData = ethReq.serialize();
+
+        Tap.writeToTap("port2", pktData, pktData.length);
+        
         libvirtHandler.setTemplate("basic_template_x86_64");
-
         VMController vmController = libvirtHandler.newDomain()
                 .setDomainName("test_domain")
                 .setHostName("hostname")
                 .setNetworkDevice("port2")
                 .build();
-
         vmController.startup();
         // the machine should be booting up
 
-
         // Create the service controller we'll use to query the switch stats.
-        ServiceController svcController = new ServiceController(
-                "127.0.0.1", 6634);
+        //ServiceController svcController = new ServiceController(
+        //        "127.0.0.1", 6634);
 
         // Start midolman
         /*
@@ -197,14 +228,18 @@ public class SmokeTest {
                         + "-Dcom.sun.management.jmxremote.local.only= "
                         + "com.midokura.midolman.Midolman "
                         + "-c ./conf/midolman.conf");
-        */
         Thread.sleep(20000);
         Runtime.getRuntime().exec(
                 String.format(
                     "ping -c 5 180.214.47.65",
                     portName));
+        */
 
         Thread.sleep(10000);
+        p = Runtime.getRuntime().exec("sudo -n ip tuntap del dev port2");
+        p.waitFor();
+        log.debug("\"sudo -n ip tuntap del dev port2\" exited with: {}", p.exitValue());
+
         // Now clean up.
         //mmController.destroy();
         mgmt.delete(tenantURI.getPath());
