@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -30,7 +28,8 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
@@ -51,16 +50,6 @@ public class TenantResource {
     private final static Logger log = LoggerFactory
             .getLogger(TenantResource.class);
 
-    private static void setUri(List<Tenant> tenants, UriInfo uriInfo)
-            throws URISyntaxException {
-        for (Tenant tenant : tenants) {
-            String tenantUri = ResourcePath.TENANTS + "/" + tenant.getId();
-            tenant.setUri(tenantUri);
-            tenant.setRouters(tenantUri + ResourcePath.ROUTERS);
-            tenant.setBridges(tenantUri + ResourcePath.BRIDGES);
-        }
-    }
-
     /**
      * Router resource locator for tenants.
      * 
@@ -68,7 +57,7 @@ public class TenantResource {
      *            Tenant ID from the request.
      * @returns TenantRouterResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.ROUTERS)
+    @Path("/{id}" + UriManager.ROUTERS)
     public TenantRouterResource getRouterResource(@PathParam("id") String id) {
         return new TenantRouterResource(id);
     }
@@ -80,7 +69,7 @@ public class TenantResource {
      *            Tenant ID from the request.
      * @returns TenantBridgeResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.BRIDGES)
+    @Path("/{id}" + UriManager.BRIDGES)
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
         return new TenantBridgeResource(id);
     }
@@ -114,13 +103,16 @@ public class TenantResource {
         List<Tenant> tenants = null;
         try {
             tenants = dao.list();
-            setUri(tenants, uriInfo);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
         } catch (Exception e) {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
+        }
+
+        for (UriResource resource : tenants) {
+            resource.setBaseUri(uriInfo.getBaseUri());
         }
         return tenants;
     }
@@ -171,6 +163,8 @@ public class TenantResource {
      *            Tenant object.
      * @param context
      *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
      * @param daoFactory
      *            Data access factory object.
      * @throws StateAccessException
@@ -183,8 +177,8 @@ public class TenantResource {
     @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Tenant tenant, @Context SecurityContext context,
-            @Context DaoFactory daoFactory) throws StateAccessException,
-            UnauthorizedException {
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
         if (!AuthManager.isAdmin(context)) {
             throw new UnauthorizedException("Must be admin to create tenant.");
         }
@@ -200,6 +194,8 @@ public class TenantResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        return Response.created(URI.create("/" + id)).build();
+        tenant.setId(id);
+        return Response.created(
+                UriManager.getTenant(uriInfo.getBaseUri(), tenant)).build();
     }
 }

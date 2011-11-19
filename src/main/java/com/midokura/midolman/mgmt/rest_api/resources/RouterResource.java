@@ -6,7 +6,6 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +33,8 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterChainResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterTableResource;
@@ -57,23 +57,6 @@ public class RouterResource {
     private final static Logger log = LoggerFactory
             .getLogger(RouterResource.class);
 
-    private static void setUri(Router router, UriInfo uriInfo)
-            throws URISyntaxException {
-        String routerUri = ResourcePath.ROUTERS + "/" + router.getId();
-        router.setUri(routerUri);
-        router.setPorts(routerUri + ResourcePath.PORTS);
-        router.setChains(routerUri + ResourcePath.CHAINS);
-        router.setRoutes(routerUri + ResourcePath.ROUTES);
-        router.setPeerRouters(routerUri + ResourcePath.ROUTERS);
-    }
-
-    private static void setUri(List<Router> routers, UriInfo uriInfo)
-            throws URISyntaxException {
-        for (Router router : routers) {
-            setUri(router, uriInfo);
-        }
-    }
-
     /**
      * Port resource locator for routers.
      * 
@@ -81,7 +64,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterPortResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.PORTS)
+    @Path("/{id}" + UriManager.PORTS)
     public RouterPortResource getPortResource(@PathParam("id") UUID id) {
         return new RouterPortResource(id);
     }
@@ -93,7 +76,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterRouteResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.ROUTES)
+    @Path("/{id}" + UriManager.ROUTES)
     public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
         return new RouterRouteResource(id);
     }
@@ -105,7 +88,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterChainResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.CHAINS)
+    @Path("/{id}" + UriManager.CHAINS)
     public RouterChainResource getChainResource(@PathParam("id") UUID id) {
         return new RouterChainResource(id);
     }
@@ -117,7 +100,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterTableResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.TABLES)
+    @Path("/{id}" + UriManager.TABLES)
     public RouterTableResource getTableResource(@PathParam("id") UUID id) {
         return new RouterTableResource(id);
     }
@@ -129,7 +112,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterRouterResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.ROUTERS)
+    @Path("/{id}" + UriManager.ROUTERS)
     public RouterRouterResource getRouterResource(@PathParam("id") UUID id) {
         return new RouterRouterResource(id);
     }
@@ -167,7 +150,6 @@ public class RouterResource {
         Router router = null;
         try {
             router = dao.get(id);
-            setUri(router, uriInfo);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -175,6 +157,7 @@ public class RouterResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        router.setBaseUri(uriInfo.getBaseUri());
         return router;
     }
 
@@ -307,13 +290,16 @@ public class RouterResource {
             List<Router> routers = null;
             try {
                 routers = dao.list(tenantId);
-                setUri(routers, uriInfo);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
             } catch (Exception e) {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
+            }
+
+            for (UriResource resource : routers) {
+                resource.setBaseUri(uriInfo.getBaseUri());
             }
             return routers;
         }
@@ -358,9 +344,10 @@ public class RouterResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
-            URI uri = uriInfo.getBaseUriBuilder()
-                    .path(ResourcePath.ROUTERS + "/" + id).build();
-            return Response.created(uri).build();
+
+            router.setId(id);
+            return Response.created(
+                    UriManager.getRouter(uriInfo.getBaseUri(), router)).build();
         }
     }
 

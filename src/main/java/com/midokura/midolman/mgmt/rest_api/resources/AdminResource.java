@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URISyntaxException;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -55,15 +53,7 @@ public class AdminResource {
     @Produces({ VendorMediaType.APPLICATION_ADMIN_JSON,
             MediaType.APPLICATION_JSON })
     public Admin get(@Context UriInfo uriInfo) throws InvalidConfigException {
-        Admin a = new Admin();
-        try {
-            a.setUri("/" + uriInfo.getPath());
-        } catch (URISyntaxException e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        a.setInit(initPath);
-        return a;
+        return new Admin(uriInfo.getBaseUri());
     }
 
     /**

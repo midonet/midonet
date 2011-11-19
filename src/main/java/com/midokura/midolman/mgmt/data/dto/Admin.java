@@ -5,25 +5,43 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+
+/**
+ * Admin DTO.
+ * 
+ * @version 1.6 20 Nov 2011
+ * @author Ryu Ishimoto
+ */
 @XmlRootElement
-public class Admin extends ResourceDao {
-    private String init = null;
+public class Admin extends UriResource {
 
     /**
-     * @return the init
+     * Constructor
+     * 
+     * @param baseUri
+     *            The base URI to construct all the URIs from.
      */
-    public String getInit() {
-        return init;
+    public Admin(URI baseUri) {
+        super(baseUri);
     }
 
     /**
-     * @param init
-     *            the init to set
+     * @return the init URI
      */
-    public void setInit(String init) {
-        this.init = init;
+    public URI getInit() {
+        return UriManager.getInit(getBaseUri());
     }
 
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getAdmin(getBaseUri());
+    }
 }

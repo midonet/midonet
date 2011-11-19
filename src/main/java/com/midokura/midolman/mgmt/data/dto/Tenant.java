@@ -6,17 +6,21 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+
+/**
+ * Tenant DTO.
+ * 
+ * @version 1.6 20 Nov 2011
+ * @author Ryu Ishimoto
+ */
 @XmlRootElement
-public class Tenant extends ResourceDao {
+public class Tenant extends UriResource {
 
     private String id = null;
-    private URI routers = null;
-    private URI bridges = null;
 
     /**
      * Get tenant ID.
@@ -38,53 +42,24 @@ public class Tenant extends ResourceDao {
     }
 
     /**
-     * @return the bridges
+     * @return the bridges URI
      */
     public URI getBridges() {
-        return bridges;
+        return UriManager.getTenantBridges(getBaseUri(), this);
     }
 
     /**
-     * @param bridges
-     *            the bridges to set
-     */
-    public void setBridges(URI bridges) {
-        this.bridges = bridges;
-    }
-
-    /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
-     */
-    @XmlTransient
-    public void setBridges(String uri) throws URISyntaxException {
-        this.bridges = new URI(uri);
-    }
-
-    /**
-     * @return the routers
+     * @return the routers URI
      */
     public URI getRouters() {
-        return routers;
+        return UriManager.getTenantRouters(getBaseUri(), this);
     }
 
     /**
-     * @param routers
-     *            the routers to set
+     * @return the self URI
      */
-    public void setRouters(URI routers) {
-        this.routers = routers;
+    @Override
+    public URI getUri() {
+        return UriManager.getTenant(getBaseUri(), this);
     }
-
-    /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
-     */
-    @XmlTransient
-    public void setRouters(String uri) throws URISyntaxException {
-        this.routers = new URI(uri);
-    }
-
 }

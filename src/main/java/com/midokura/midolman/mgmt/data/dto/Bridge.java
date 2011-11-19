@@ -6,14 +6,13 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Class representing Virtual Bridge.
@@ -22,12 +21,11 @@ import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Bridge extends ResourceDao {
+public class Bridge extends UriResource {
 
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
-    private URI ports = null;
 
     /**
      * Get bridge ID.
@@ -87,34 +85,38 @@ public class Bridge extends ResourceDao {
     }
 
     /**
-     * @return the ports
+     * @return the ports URI
      */
     public URI getPorts() {
-        return ports;
+        return UriManager.getBridgePorts(getBaseUri(), this);
     }
 
     /**
-     * @param ports
-     *            the ports to set
+     * @return the self URI
      */
-    public void setPorts(URI ports) {
-        this.ports = ports;
+    @Override
+    public URI getUri() {
+        return UriManager.getBridge(getBaseUri(), this);
     }
 
     /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
+     * Convert this object to BridgeMgmtConfig object.
+     * 
+     * @return BridgeMgmtConfig object.
      */
-    @XmlTransient
-    public void setPorts(String uri) throws URISyntaxException {
-        this.ports = new URI(uri);
-    }
-
     public BridgeMgmtConfig toMgmtConfig() {
         return new BridgeMgmtConfig(this.getTenantId(), this.getName());
     }
 
+    /**
+     * Convert BridgeMgmtConfig object to Bridge object.
+     * 
+     * @param id
+     *            ID of the object.
+     * @param config
+     *            BridgeMgmtConfig object.
+     * @return Bridge object.
+     */
     public static Bridge createBridge(UUID id, BridgeMgmtConfig config) {
         Bridge b = new Bridge();
         b.setName(config.name);
@@ -123,6 +125,11 @@ public class Bridge extends ResourceDao {
         return b;
     }
 
+    /**
+     * Convert this object to BridgeNameMgmtConfig object.
+     * 
+     * @return BridgeNameMgmtConfig object.
+     */
     public BridgeNameMgmtConfig toNameMgmtConfig() {
         return new BridgeNameMgmtConfig(this.getId());
     }

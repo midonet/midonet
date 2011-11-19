@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +30,8 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePortResource;
 import com.midokura.midolman.state.NoStatePathException;
@@ -52,20 +51,6 @@ public class BridgeResource {
     private final static Logger log = LoggerFactory
             .getLogger(BridgeResource.class);
 
-    private static void setUri(Bridge bridge, UriInfo uriInfo)
-            throws URISyntaxException {
-        String bridgeUri = ResourcePath.BRIDGES + "/" + bridge.getId();
-        bridge.setUri(bridgeUri);
-        bridge.setPorts(bridgeUri + ResourcePath.PORTS);
-    }
-
-    private static void setUri(List<Bridge> bridges, UriInfo uriInfo)
-            throws URISyntaxException {
-        for (Bridge bridge : bridges) {
-            setUri(bridge, uriInfo);
-        }
-    }
-
     /**
      * Port resource locator for bridges.
      * 
@@ -73,7 +58,7 @@ public class BridgeResource {
      *            Bridge ID from the request.
      * @returns BridgePortResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + ResourcePath.PORTS)
+    @Path("/{id}" + UriManager.PORTS)
     public BridgePortResource getPortResource(@PathParam("id") UUID id) {
         return new BridgePortResource(id);
     }
@@ -111,7 +96,6 @@ public class BridgeResource {
         Bridge bridge = null;
         try {
             bridge = dao.get(id);
-            setUri(bridge, uriInfo);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -119,6 +103,8 @@ public class BridgeResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+
+        bridge.setBaseUri(uriInfo.getBaseUri());
         return bridge;
     }
 
@@ -250,13 +236,16 @@ public class BridgeResource {
             List<Bridge> bridges = null;
             try {
                 bridges = dao.list(tenantId);
-                setUri(bridges, uriInfo);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
             } catch (Exception e) {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
+            }
+
+            for (UriResource resource : bridges) {
+                resource.setBaseUri(uriInfo.getBaseUri());
             }
             return bridges;
         }
@@ -266,10 +255,10 @@ public class BridgeResource {
          * 
          * @param bridge
          *            Bridge object.
-         * @param uriInfo
-         *            Object that holds the request URI data.
          * @param context
          *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
          * @param daoFactory
          *            Data access factory object.
          * @throws StateAccessException
@@ -281,8 +270,8 @@ public class BridgeResource {
         @POST
         @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(Bridge bridge, @Context UriInfo uriInfo,
-                @Context SecurityContext context, @Context DaoFactory daoFactory)
+        public Response create(Bridge bridge, @Context SecurityContext context,
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
 
             if (!AuthManager.isSelf(context, tenantId)) {
@@ -303,9 +292,9 @@ public class BridgeResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder()
-                    .path(ResourcePath.BRIDGES + "/" + id).build();
-            return Response.created(uri).build();
+            bridge.setId(id);
+            return Response.created(
+                    UriManager.getBridge(uriInfo.getBaseUri(), bridge)).build();
         }
     }
 }

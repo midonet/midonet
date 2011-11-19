@@ -15,10 +15,10 @@ import javax.ws.rs.core.UriInfo;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.rest_api.core.ResourcePath;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 
-@Path(ResourcePath.ROOT)
+@Path(UriManager.ROOT)
 public class ApplicationResource {
 
     /**
@@ -26,7 +26,7 @@ public class ApplicationResource {
      * 
      * @returns AdminResource object to handle sub-resource requests.
      */
-    @Path(ResourcePath.ADMIN)
+    @Path(UriManager.ADMIN)
     public AdminResource getAdminResource() {
         return new AdminResource();
     }
@@ -36,7 +36,7 @@ public class ApplicationResource {
      * 
      * @returns TenantResource object to handle sub-resource requests.
      */
-    @Path(ResourcePath.TENANTS)
+    @Path(UriManager.TENANTS)
     public TenantResource getTenantResource() {
         return new TenantResource();
     }
@@ -46,7 +46,7 @@ public class ApplicationResource {
      * 
      * @returns RouterResource object to handle sub-resource requests.
      */
-    @Path(ResourcePath.ROUTERS)
+    @Path(UriManager.ROUTERS)
     public RouterResource getRouterResource() {
         return new RouterResource();
     }
@@ -56,9 +56,19 @@ public class ApplicationResource {
      * 
      * @returns BridgeResource object to handle sub-resource requests.
      */
-    @Path(ResourcePath.BRIDGES)
+    @Path(UriManager.BRIDGES)
     public BridgeResource getBridgeResource() {
         return new BridgeResource();
+    }
+
+    /**
+     * Port resource locator.
+     * 
+     * @returns PortResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.PORTS)
+    public PortResource getPortResource() {
+        return new PortResource();
     }
 
     /**
@@ -74,12 +84,9 @@ public class ApplicationResource {
     @Produces({ VendorMediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON })
     public Application get(@Context UriInfo uriInfo)
             throws InvalidConfigException {
-        Application a = new Application();
+        Application a = new Application(uriInfo.getBaseUri());
         AppConfig config = AppConfig.getConfig();
         a.setVersion(config.getVersion());
-        a.setUri(uriInfo.getAbsolutePath());
-        a.setAdmin(ResourcePath.ADMIN);
-        a.setTenant(ResourcePath.TENANTS);
         return a;
     }
 }

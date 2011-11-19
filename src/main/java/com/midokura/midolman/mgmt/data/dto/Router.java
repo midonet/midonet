@@ -6,14 +6,13 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Class representing Virtual Router.
@@ -22,15 +21,11 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Router extends ResourceDao {
+public class Router extends UriResource {
 
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
-    private URI ports = null;
-    private URI chains = null;
-    private URI routes = null;
-    private URI peerRouters = null;
 
     /**
      * Get router ID.
@@ -90,109 +85,59 @@ public class Router extends ResourceDao {
     }
 
     /**
-     * @return the ports
+     * @return the ports URI.
      */
     public URI getPorts() {
-        return ports;
+        return UriManager.getRouterPorts(getBaseUri(), this);
     }
 
     /**
-     * @param ports
-     *            the ports to set
-     */
-    public void setPorts(URI ports) {
-        this.ports = ports;
-    }
-
-    /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
-     */
-    @XmlTransient
-    public void setPorts(String uri) throws URISyntaxException {
-        this.ports = new URI(uri);
-    }
-
-    /**
-     * @return the chains
+     * @return the chains URI.
      */
     public URI getChains() {
-        return chains;
+        return UriManager.getRouterChains(getBaseUri(), this);
     }
 
     /**
-     * @param chains
-     *            the chains to set
-     */
-    public void setChains(URI chains) {
-        this.chains = chains;
-    }
-
-    /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
-     */
-    @XmlTransient
-    public void setChains(String uri) throws URISyntaxException {
-        this.chains = new URI(uri);
-    }
-
-    /**
-     * @return the routes
+     * @return the routes URI.
      */
     public URI getRoutes() {
-        return routes;
+        return UriManager.getRouterRoutes(getBaseUri(), this);
     }
 
     /**
-     * @param routes
-     *            the routes to set
-     */
-    public void setRoutes(URI routes) {
-        this.routes = routes;
-    }
-
-    /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
-     */
-    @XmlTransient
-    public void setRoutes(String uri) throws URISyntaxException {
-        this.routes = new URI(uri);
-    }
-
-    /**
-     * @return the peerRouters
+     * @return the peerRouters URI.F
      */
     public URI getPeerRouters() {
-        return peerRouters;
+        return UriManager.getRouterRouters(getBaseUri(), this);
     }
 
     /**
-     * @param peerRouter
-     *            the peerRouter to set
+     * @return the self URI
      */
-    public void setPeerRouters(URI peerRouters) {
-        this.peerRouters = peerRouters;
+    @Override
+    public URI getUri() {
+        return UriManager.getRouter(getBaseUri(), this);
     }
 
     /**
-     * @param uri
-     *            the uri to set
-     * @throws URISyntaxException
+     * Convert this object to RouterMgmtConfig object.
+     * 
+     * @return RouterMgmtConfig object.
      */
-    @XmlTransient
-    public void setPeerRouters(String uri) throws URISyntaxException {
-        this.peerRouters = new URI(uri);
-    }
-
     public RouterMgmtConfig toMgmtConfig() {
         return new RouterMgmtConfig(this.getTenantId(), this.getName());
     }
 
+    /**
+     * Convert RouterMgmtConfig object to Router object.
+     * 
+     * @param id
+     *            ID of the object.
+     * @param config
+     *            RouterMgmtConfig object.
+     * @return Router object.
+     */
     public static Router createRouter(UUID id, RouterMgmtConfig config) {
         Router router = new Router();
         router.setName(config.name);
@@ -201,6 +146,11 @@ public class Router extends ResourceDao {
         return router;
     }
 
+    /**
+     * Convert this object to RouterNameMgmtConfig object.
+     * 
+     * @return RouterNameMgmtConfig object.
+     */
     public RouterNameMgmtConfig toNameMgmtConfig() {
         return new RouterNameMgmtConfig(this.getId());
     }

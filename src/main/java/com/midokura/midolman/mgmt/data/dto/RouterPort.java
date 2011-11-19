@@ -17,10 +17,6 @@ public abstract class RouterPort extends Port {
     private int networkLength;
     private String portAddress = null;
 
-    public RouterPort() {
-        super();
-    }
-
     /**
      * @return the networkAddress
      */

@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,11 +31,13 @@ import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for ports.
@@ -44,7 +45,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-@Path("/ports")
 public class PortResource {
     /*
      * Implements REST API endpoints for ports.
@@ -54,54 +54,73 @@ public class PortResource {
             .getLogger(PortResource.class);
 
     /**
-     * Port resource locator for bgp
+     * Port resource locator for BGP.
+     * 
+     * @param id
+     *            Port ID from the request.
+     * @returns PortBgpResource object to handle sub-resource requests.
      */
-    @Path("/{id}/bgps")
+    @Path("/{id}" + UriManager.BGP)
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
         return new PortBgpResource(id);
     }
 
     /**
-     * Route resource locator for ports
+     * Port resource locator for routes.
+     * 
+     * @param id
+     *            Port ID from the request.
+     * @returns PortRouteResource object to handle sub-resource requests.
      */
-    @Path("/{id}/routes")
+    @Path("/{id}" + UriManager.ROUTES)
     public PortRouteResource getRouteResource(@PathParam("id") UUID id) {
         return new PortRouteResource(id);
     }
 
     /**
-     * Port resource locator for vpn
+     * Port resource locator for VPN.
+     * 
+     * @param id
+     *            Port ID from the request.
+     * @returns PortVpnResource object to handle sub-resource requests.
      */
-    @Path("/{id}/vpns")
+    @Path("/{id}" + UriManager.VPN)
     public PortVpnResource getVpnResource(@PathParam("id") UUID id) {
         return new PortVpnResource(id);
     }
 
     /**
-     * Get the port with the given ID.
+     * Handler to getting a port.
      * 
      * @param id
-     *            Port UUID.
-     * @return Port object.
+     *            Port ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
+     *             Data access error.
      * @throws UnauthorizedException
-     * @throws Exception
-     * @throws Exception
+     *             Authentication/authorization error.
+     * @return A list of Port objects.
      */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_PORT_JSON,
+            MediaType.APPLICATION_JSON })
     public Port get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context DaoFactory daoFactory) throws StateAccessException,
-            UnauthorizedException {
-        // Get a port for the given ID.
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
         PortDao dao = daoFactory.getPortDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only see your own port.");
         }
 
+        Port port = null;
         try {
-            return dao.get(id);
+            port = dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -109,8 +128,24 @@ public class PortResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        port.setBaseUri(uriInfo.getBaseUri());
+        return port;
     }
 
+    /**
+     * Handler to deleting a port.
+     * 
+     * @param id
+     *            Port ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
@@ -132,10 +167,19 @@ public class PortResource {
         }
     }
 
+    /**
+     * Sub-resource class for bridge's ports.
+     */
     public static class BridgePortResource {
 
         private UUID bridgeId = null;
 
+        /**
+         * Constructor.
+         * 
+         * @param bridgeId
+         *            UUID of a bridge.
+         */
         public BridgePortResource(UUID bridgeId) {
             this.bridgeId = bridgeId;
         }
@@ -146,8 +190,24 @@ public class PortResource {
             return AuthManager.isOwner(context, q, bridgeId);
         }
 
+        /**
+         * Handler to create a bridge port.
+         * 
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @returns Response object with 201 status code set if successful.
+         */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(Port port, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
@@ -170,23 +230,41 @@ public class PortResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
-            return Response.created(uri).build();
+            port.setId(id);
+            return Response.created(
+                    UriManager.getPort(uriInfo.getBaseUri(), port)).build();
         }
 
+        /**
+         * Handler to list bridge ports.
+         * 
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of Port objects.
+         */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Port> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
 
             if (!isBridgeOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own ports.");
             }
 
             PortDao dao = daoFactory.getPortDao();
+            List<Port> ports = null;
             try {
-                return dao.listBridgePorts(bridgeId);
+                ports = dao.listBridgePorts(bridgeId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -194,6 +272,10 @@ public class PortResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            for (UriResource resource : ports) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+            return ports;
         }
     }
 
@@ -204,23 +286,44 @@ public class PortResource {
 
         private UUID routerId = null;
 
+        /**
+         * Constructor.
+         * 
+         * @param routerId
+         *            UUID of a router.
+         */
         public RouterPortResource(UUID routerId) {
             this.routerId = routerId;
         }
 
         private boolean isRouterOwner(SecurityContext context,
-                DaoFactory daoFactory) throws StateAccessException,
-                ZkStateSerializationException {
+                DaoFactory daoFactory) throws StateAccessException {
             OwnerQueryable q = daoFactory.getRouterDao();
             return AuthManager.isOwner(context, q, routerId);
         }
 
+        /**
+         * Handler to create a router port.
+         * 
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @returns Response object with 201 status code set if successful.
+         */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(MaterializedRouterPort port,
                 @Context UriInfo uriInfo, @Context SecurityContext context,
                 @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException, ZkStateSerializationException {
+                UnauthorizedException {
             if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own ports.");
             }
@@ -239,22 +342,40 @@ public class PortResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("ports/" + id).build();
-            return Response.created(uri).build();
+            port.setId(id);
+            return Response.created(
+                    UriManager.getPort(uriInfo.getBaseUri(), port)).build();
         }
 
+        /**
+         * Handler to list router ports.
+         * 
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of Port objects.
+         */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Port> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                ZkStateSerializationException, UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own ports.");
             }
 
             PortDao dao = daoFactory.getPortDao();
+            List<Port> ports = null;
             try {
-                return dao.listRouterPorts(routerId);
+                ports = dao.listRouterPorts(routerId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -262,6 +383,10 @@ public class PortResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            for (UriResource resource : ports) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+            return ports;
         }
     }
 }
