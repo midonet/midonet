@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #
 # Copyright 2011 Midokura Europe SARL
 #
@@ -8,41 +7,53 @@ BASE_IMAGE=$1
 MACHINE_NAME=$2
 TARGET_FILE=$3
 
+NBD_DEVICE=/dev/nbd0
+
+function kill_nbd_client() {
+    NBD_CLIENT_PIDS=`sudo pidof nbd-client`
+    if [ "x${NBD_CLIENT_PIDS}x" != "xx" ]; then
+        echo ${NBD_CLIENT_PIDS} | sudo xargs kill -9
+    fi
+}
+
 echo Creating overlay image: \"${TARGET_FILE}\" using hostname \"${MACHINE_NAME}\" with base image: \"${BASE_IMAGE}\"
 
-qemu-img create -b "${BASE_IMAGE}" -f qcow2 ${TARGET_FILE}
+qemu-img create -b "${BASE_IMAGE}" -f qcow2 "${TARGET_FILE}"
 
-QEMU_NBD_PIDS=`pidof qemu-nbd`
-if [ "x${QEMU_NBD_PIDS}x" != "xx" ]; then
-	echo ${QEMU_NBD_PIDS} | xargs kill -9
-fi
+kill_nbd_client
 
-qemu-nbd --connect=/dev/nbd0 ${TARGET_FILE}
+echo "Starting qemu-nbd server for the file \"${TARGET_FILE}\" "
+qemu-nbd -p 2049 -b 127.0.0.1 "${TARGET_FILE}" &
 
-stat /dev/nbd0p1 2>&1 1>/dev/null
+echo "Strating nbd-client connected to the device
+sudo nbd-client localhost 2049 ${NBD_DEVICE}
+
+sleep 0.25
+stat ${NBD_DEVICE}p1 2>&1 1>/dev/null
 while [ $? -ne 0 ]; do
-	echo "Waiting for the ndb client to read the partitions"
-	sleep 1;
-	stat /dev/nbd0p1 2>&1 1>/dev/null
+        echo "Waiting for the ndb client to read the partitions"
+        sleep 5;
+        stat ${NBD_DEVICE}p1 2>&1 1>/dev/null
 done
 
+echo "Mounting overlay image to folder `pwd`/mnt/image_${MACHINE_NAME}"
 mkdir -p mnt/image_${MACHINE_NAME}
-mount /dev/nbd0p1 mnt/image_${MACHINE_NAME}
+sudo mount ${NBD_DEVICE}p1 mnt/image_${MACHINE_NAME}
 
 HOSTNAME=`cat mnt/image_${MACHINE_NAME}/etc/hostname`
 echo "Found machine hostname to be: ${HOSTNAME}"
 echo "Changing it to: ${MACHINE_NAME}"
 
-echo ${MACHINE_NAME} > mnt/image_${MACHINE_NAME}/etc/hostname
-sed -i.bak -e "s/^\([0-9\.]\+\) ${HOSTNAME}\.\([^ ]\+\) ${HOSTNAME}$/\1 ${MACHINE_NAME}.\2 ${MACHINE_NAME}/g" mnt/image_${MACHINE_NAME}/etc/hosts
+sudo sed -i.bak -e "s/^${HOSTNAME}$/${MACHINE_NAME}/g" mnt/image_${MACHINE_NAME}/etc/hostname
+sudo sed -i.bak -e "s/^\([0-9\.]\+\) ${HOSTNAME}\.\([^ ]\+\) ${HOSTNAME}$/\1 ${MACHINE_NAME}.\2 ${MACHINE_NAME}/g" mnt/image_${MACHINE_NAME}/etc/hosts
 
-umount -l mnt/image_${MACHINE_NAME}
-qemu-nbd --disconnect ${TARGET_FILE}
+echo "Unmounting the changed image"
+sudo umount -l mnt/image_${MACHINE_NAME}
 
-QEMU_NBD_PIDS=`pidof qemu-nbd`
-if [ "x${QEMU_NBD_PIDS}x" != "xx" ]; then
-	echo ${QEMU_NBD_PIDS} | xargs kill -9
-fi
+echo "Disconnecting the nbd-client connected device: ${NBD_DEVICE}"
+sudo nbd-client -d ${NBD_DEVICE}
+
+kill_nbd_client
 
 rm -rf mnt/image_${MACHINE_NAME}
-chmod 777 ${TARGET_FILE}
+#chmod 777 ${TARGET_FILE}

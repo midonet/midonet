@@ -5,6 +5,8 @@ package com.midokura.midonet.smoketest.vm.libvirt;
 
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
+import com.midokura.tools.process.DrainTargets;
+import com.midokura.tools.process.ProcessOutputDrainer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.libvirt.Connect;
@@ -171,6 +173,7 @@ public class LibvirtHandler {
         File targetOverlayFile = new File(properties.getProperty(VM_IMAGES_FOLDER), domainName + "_image.ovl");
 
         try {
+            create_overlay_script.delete();
             FileUtils.copyURLToFile(
                     getClass().getResource("/com/midokura/midonet/smoketest/vm/libvirt/tools/create_domain_overlay.sh"),
                     create_overlay_script);
@@ -180,9 +183,11 @@ public class LibvirtHandler {
             Process process =
                     new ProcessBuilder()
                             .directory(new File(properties.getProperty(VM_WORK_FOLDER)))
-                            .command("/bin/bash", "-c", "sudo " + create_overlay_script.getAbsolutePath() + " " + templateImage + " " + hostName + " " + targetOverlayFile.getAbsolutePath())
+                            .command("/bin/bash", "-c", create_overlay_script.getAbsolutePath() + " " + templateImage + " " + hostName + " " + targetOverlayFile.getAbsolutePath())
                             .redirectErrorStream(true)
                             .start();
+
+            new ProcessOutputDrainer(process).drainOutput(DrainTargets.slf4jTarget(log, "create_domain_overlay.sh"));
 
             process.waitFor();
 

@@ -13,7 +13,6 @@ import com.midokura.midonet.smoketest.utils.Tap;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
-import org.apache.velocity.util.introspection.LinkingUberspector;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
