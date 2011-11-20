@@ -47,21 +47,18 @@ public class SmokeTest {
 
         LibvirtHandler libvirtHandler =  LibvirtHandler.forHypervisor(HypervisorType.Qemu);
 
-        MidolmanMgmt mgmt = new MockMidolmanMgmt();
+        MidolmanMgmt mgmt = new MockMidolmanMgmt(true);
         // Add the tenant
         Tenant tenant = new Tenant();
         tenant.setId("tenant7");
-        URI tenantURI = mgmt.addTenant(tenant);
-        log.debug("tenant location: {}", tenantURI);
+        tenant = mgmt.addTenant(tenant);
+        log.debug("tenant location: {}", tenant.getUri());
         // Add a router.
         Router router = new Router();
         String routerName = "router1";
         router.setName(routerName);
-        URI routerURI = mgmt.addRouter(tenantURI, router);
-        log.debug("router location: {}", routerURI);
-        // Get the router.
-        router = mgmt.get(routerURI.getPath(), Router.class);
-        log.debug("router name: {}", router.getName());
+        router = mgmt.addRouter(tenant.getRouters(), router);
+        log.debug("router location: {}", router.getUri());
         assertEquals(router.getName(), routerName);
 
         // Add a materialized router port.
@@ -72,13 +69,9 @@ public class SmokeTest {
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.66");
         port.setLocalNetworkLength(32);
-        log.debug("port JSON {}", port.toString());
-        URI portURI = mgmt.addRouterPort(routerURI, port);
-        log.debug("1st port location: {}", portURI);
-        // Get the port.
-        port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
+        port = mgmt.addRouterPort(router.getPorts(), port);
+        log.debug("1st port location: {}", port.getUri());
         log.info("1st port id {}", port.getId());
-        log.debug("1st port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
         Route rt = new Route();
@@ -90,11 +83,7 @@ public class SmokeTest {
         rt.setType(Route.Normal);
         rt.setNextHopPort(port.getId());
         rt.setWeight(10);
-        URI routeURI = mgmt.addRoute(routerURI, rt);
-        log.debug("1st route location: {}", routeURI);
-        // Get the route.
-        rt = mgmt.get(routeURI.getPath(), Route.class);
-        log.debug("route destination: {}", rt.getDstNetworkAddr());
+        rt = mgmt.addRoute(router.getRoutes(), rt);
         assertEquals(rt.getDstNetworkAddr(), nwDst);
         
         OpenvSwitchDatabaseConnection ovsdb;
@@ -144,12 +133,8 @@ public class SmokeTest {
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.67");
         port.setLocalNetworkLength(32);
-        log.debug("port JSON {}", port.toString());
-        portURI = mgmt.addRouterPort(routerURI, port);
-        log.debug("2nd port location: {}", portURI);
-        // Get the port.
-        port = mgmt.get(portURI.getPath(), MaterializedRouterPort.class);
-        log.debug("2nd port address: {}", port.getPortAddress());
+        port = mgmt.addRouterPort(router.getPorts(), port);
+        log.debug("2nd port location: {}", port.getUri());
         log.info("2nd port id {}", port.getId());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
@@ -162,11 +147,7 @@ public class SmokeTest {
         rt.setType(Route.Normal);
         rt.setNextHopPort(port.getId());
         rt.setWeight(10);
-        routeURI = mgmt.addRoute(routerURI, rt);
-        log.debug("2nd route location: {}", routeURI);
-        // Get the route.
-        rt = mgmt.get(routeURI.getPath(), Route.class);
-        log.debug("2nd route destination: {}", rt.getDstNetworkAddr());
+        rt = mgmt.addRoute(router.getRoutes(), rt);
         assertEquals(rt.getDstNetworkAddr(), nwDst);
 
         p = Runtime.getRuntime().exec("sudo -n ip tuntap add dev port2 mode tap");
@@ -241,7 +222,7 @@ public class SmokeTest {
 
         // Now clean up.
         //mmController.destroy();
-        mgmt.delete(tenantURI.getPath());
+        mgmt.delete(tenant.getUri());
         ovsdb.delBridge(brName);
 
         // 3) Create taps

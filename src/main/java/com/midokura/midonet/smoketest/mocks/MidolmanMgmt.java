@@ -9,16 +9,17 @@ import com.midokura.midolman.mgmt.data.dto.Tenant;
 
 public interface MidolmanMgmt {
 
-    URI addTenant(Tenant t);
+    Tenant addTenant(Tenant t);
 
-    URI addRouter(URI tenantURI, Router r);
+    Router addRouter(URI tenantRoutersURI, Router r);
 
-    URI addRouterPort(URI routerURI, MaterializedRouterPort p);
+    MaterializedRouterPort addRouterPort(URI routerURI,
+            MaterializedRouterPort p);
 
-    URI addRoute(URI routerURI, Route rt);
+    Route addRoute(URI routerURI, Route rt);
 
     <T> T get(String path, Class<T> clazz);
 
-    void delete(String path);
+    void delete(URI uri);
 
 }

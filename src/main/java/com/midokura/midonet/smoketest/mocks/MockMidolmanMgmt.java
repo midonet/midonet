@@ -28,8 +28,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     private final static Logger log = LoggerFactory
             .getLogger(MockMidolmanMgmt.class);
 
-    // TODO: make mocking ZK configurable.
-    public MockMidolmanMgmt() {
+    public MockMidolmanMgmt(boolean mockZK) {
         super(new WebAppDescriptor.Builder(new String[] {
                 "com.midokura.midolman.mgmt.rest_api.resources",
                 "com.midokura.midolman.mgmt.data" })
@@ -37,7 +36,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
-                .contextParam("datastore_service",
+                .contextParam("datastore_service", mockZK ? 
+                        "com.midokura.midolman.mgmt.data.MockDaoFactory" :
                         "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
                 .contextParam("zk_conn_string", "127.0.0.1:2181")
                 .contextParam("zk_timeout", "10000")
@@ -66,8 +66,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .post(ClientResponse.class, entity).getLocation();
     }
 
-    private URI post(URI uri, String path, Object entity) {
-        return resource().uri(UriBuilder.fromUri(uri).path(path).build())
+    private URI post(URI uri, Object entity) {
+        return resource().uri(uri)
                 .type(MediaType.APPLICATION_JSON)
                 .post(ClientResponse.class, entity).getLocation();
     }
@@ -78,8 +78,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public void delete(String path) {
-        makeResource(path).type(MediaType.APPLICATION_JSON).delete();
+    public void delete(URI uri) {
+        resource().uri(uri).type(MediaType.APPLICATION_JSON).delete();
     }
 
     public static class ServletListener implements ServletContextListener {
@@ -101,23 +101,28 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public URI addTenant(Tenant t) {
-        return post("tenants", t);
+    public Tenant addTenant(Tenant t) {
+        URI uri = post("tenants", t);
+        return get(uri.getPath(), Tenant.class);
     }
 
     @Override
-    public URI addRouter(URI tenantURI, Router r) {
-        return post(tenantURI, "routers", r);
+    public Router addRouter(URI tenantRoutersURI, Router r) {
+        URI uri = post(tenantRoutersURI, r);
+        return get(uri.getPath(), Router.class);
     }
 
     @Override
-    public URI addRouterPort(URI routerURI, MaterializedRouterPort p) {
-        return post(routerURI, "ports", p);
+    public MaterializedRouterPort addRouterPort(URI routerPortsURI,
+            MaterializedRouterPort p) {
+        URI uri = post(routerPortsURI, p);
+        return get(uri.getPath(), MaterializedRouterPort.class);
     }
 
     @Override
-    public URI addRoute(URI routerURI, Route rt) {
-        return post(routerURI, "routes", rt);
+    public Route addRoute(URI routerURI, Route rt) {
+        URI uri = post(routerURI, rt);
+        return get(uri.getPath(), Route.class);
     }
 
 }
