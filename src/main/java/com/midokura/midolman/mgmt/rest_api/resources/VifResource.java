@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -30,6 +29,8 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
 import com.midokura.midolman.mgmt.data.dto.Vif;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -38,7 +39,6 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 24 Sept 2011
  * @author Ryu Ishimoto
  */
-@Path("/vifs")
 public class VifResource {
     /*
      * Implements REST API endpoints for VIFs.
@@ -59,8 +59,24 @@ public class VifResource {
         return AuthManager.isOwner(context, q, vifId);
     }
 
+    /**
+     * Handler to create a VIF.
+     * 
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @returns Response object with 201 status code set if successful.
+     */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({ VendorMediaType.APPLICATION_VIF_JSON,
+            MediaType.APPLICATION_JSON })
     public Response create(Vif vif, @Context UriInfo uriInfo,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
@@ -83,24 +99,44 @@ public class VifResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        URI uri = uriInfo.getBaseUriBuilder().path("vifs/" + id).build();
-        return Response.created(uri).build();
+        vif.setId(id);
+        return Response.created(UriManager.getVif(uriInfo.getBaseUri(), vif))
+                .build();
     }
 
+    /**
+     * Handler to getting a VIF.
+     * 
+     * @param id
+     *            VIF ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A VIF object.
+     */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_VIF_JSON,
+            MediaType.APPLICATION_JSON })
     public Vif get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context DaoFactory daoFactory) throws StateAccessException,
-            UnauthorizedException {
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
         if (!isPluggedToOwnPort(context, id, daoFactory)) {
             throw new UnauthorizedException(
                     "Can only see VIFs plugged into your port.");
         }
 
         VifDao dao = daoFactory.getVifDao();
+        Vif vif = null;
         try {
-            return dao.get(id);
+            vif = dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -108,11 +144,26 @@ public class VifResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        vif.setBaseUri(uriInfo.getBaseUri());
+        return vif;
     }
 
+    /**
+     * Handler to deleting a VIF.
+     * 
+     * @param id
+     *            VIF ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {

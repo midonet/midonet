@@ -21,7 +21,6 @@ import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExcept
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RuleResource;
 import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.resources.VifResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource;
 
 /**
@@ -55,7 +54,6 @@ public class RestApplication extends Application {
         set.add(ChainResource.class);
         set.add(BgpResource.class);
         set.add(AdRouteResource.class);
-        set.add(VifResource.class);
         set.add(VpnResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);

@@ -78,7 +78,7 @@ public class BridgeResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of Bridge objects.
+     * @return A Bridge object.
      */
     @GET
     @Path("{id}")

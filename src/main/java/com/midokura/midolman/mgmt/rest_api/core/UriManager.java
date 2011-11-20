@@ -16,6 +16,7 @@ import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 
 public class UriManager {
@@ -161,5 +162,14 @@ public class UriManager {
 
     public static URI getPortVpns(URI baseUri, Port port) {
         return UriBuilder.fromUri(getPort(baseUri, port)).path(VPN).build();
+    }
+
+    public static URI getVifs(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(VIFS).build();
+    }
+
+    public static URI getVif(URI baseUri, Vif vif) {
+        return UriBuilder.fromUri(getVifs(baseUri))
+                .path(vif.getId().toString()).build();
     }
 }

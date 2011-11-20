@@ -62,6 +62,13 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the VIFs URI
+     */
+    public URI getVifs() {
+        return UriManager.getVifs(getBaseUri());
+    }
+
+    /**
      * @return the self URI
      */
     @Override

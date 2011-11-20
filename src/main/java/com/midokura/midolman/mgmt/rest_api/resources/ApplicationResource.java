@@ -72,6 +72,16 @@ public class ApplicationResource {
     }
 
     /**
+     * VIF resource locator.
+     * 
+     * @returns VifResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.VIFS)
+    public VifResource getVifResource() {
+        return new VifResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo

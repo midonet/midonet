@@ -104,7 +104,7 @@ public class PortResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of Port objects.
+     * @return A Port object.
      */
     @GET
     @Path("{id}")
@@ -206,7 +206,7 @@ public class PortResource {
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+        @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Port port, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
@@ -218,6 +218,7 @@ public class PortResource {
 
             PortDao dao = daoFactory.getPortDao();
             port.setDeviceId(bridgeId);
+            port.setVifId(null); // Don't allow any VIF plugging in create.
 
             UUID id = null;
             try {
@@ -318,7 +319,7 @@ public class PortResource {
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+        @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(MaterializedRouterPort port,
                 @Context UriInfo uriInfo, @Context SecurityContext context,
@@ -330,6 +331,7 @@ public class PortResource {
 
             PortDao dao = daoFactory.getPortDao();
             port.setDeviceId(routerId);
+            port.setVifId(null); // Don't allow any VIF plugging in create.
 
             UUID id = null;
             try {

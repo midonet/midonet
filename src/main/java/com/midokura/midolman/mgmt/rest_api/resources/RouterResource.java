@@ -132,7 +132,7 @@ public class RouterResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of Router objects.
+     * @return A Router object.
      */
     @GET
     @Path("{id}")
