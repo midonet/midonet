@@ -94,6 +94,6 @@ public class VpnZkManagerProxy extends ZkMgmtManager implements VpnDao {
         Vpn vpn = get(id);
         OwnerQueryable manager = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
-        return manager.getOwner(vpn.getPortId());
+        return manager.getOwner(vpn.getPublicPortId());
     }
 }

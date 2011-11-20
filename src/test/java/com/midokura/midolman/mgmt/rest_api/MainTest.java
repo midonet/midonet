@@ -8,6 +8,7 @@ package com.midokura.midolman.mgmt.rest_api;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.TenantClient;
@@ -111,10 +113,28 @@ public class MainTest extends JerseyTest {
         log.debug("port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
 
+        // Add a materialized router port for private port of VPN.
+        port = new MaterializedRouterPort();
+        portAddress = "192.168.10.1";
+        port.setNetworkAddress("192.168.10.0");
+        port.setNetworkLength(30);
+        port.setPortAddress(portAddress);
+        port.setLocalNetworkAddress("192.168.10.2");
+        port.setLocalNetworkLength(30);
+        resource = resource().uri(
+                UriBuilder.fromUri(routerURI).path("ports").build());
+        response = resource.type(MediaType.APPLICATION_JSON).post(
+                ClientResponse.class, port);
+        log.debug("port JSON {}", port.toString());
+        UUID privatePortId = UUID.fromString(response.getLocation().getPath()
+                                             .split("test/ports/")[1]);
+
         // Add a VPN to the materialized router port.
         Vpn vpn = new Vpn();
         int vpnPort = 1234;
         vpn.setPort(vpnPort);
+        vpn.setPrivatePortId(privatePortId);
+        vpn.setVpnType(VpnType.valueOf("OPENVPN_SERVER"));
         resource = resource().uri(
             UriBuilder.fromUri(portURI).path("vpns").build());
         response = resource.type(MediaType.APPLICATION_JSON).post(

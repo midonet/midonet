@@ -8,9 +8,12 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 
 /**
@@ -24,7 +27,9 @@ public class Vpn extends UriResource {
 
     private UUID id = null;
     private int port;
-    private UUID portId = null;
+    private UUID publicPortId = null;
+    private UUID privatePortId = null;
+    private VpnZkManager.VpnType vpnType;
 
     /**
      * Get VPN ID.
@@ -65,15 +70,6 @@ public class Vpn extends UriResource {
     }
 
     /**
-     * Get port ID.
-     *
-     * @return Port ID.
-     */
-    public UUID getPortId() {
-        return portId;
-    }
-
-    /**
      * @return the self URI
      */
     @Override
@@ -82,24 +78,74 @@ public class Vpn extends UriResource {
     }
 
     /**
-     * Set port ID.
+     * Get public port ID.
      *
-     * @param portId
-     *            Port ID of the VPN.
+     * @return Public port ID.
      */
-    public void setPortId(UUID portId) {
-        this.portId = portId;
+    public UUID getPublicPortId() {
+        return publicPortId;
+    }
+
+    /**
+     * Set public port ID.
+     *
+     * @param publicPortId
+     *            Public port ID of the VPN.
+     */
+    public void setPublicPortId(UUID publicPortId) {
+        this.publicPortId = publicPortId;
+    }
+
+    /**
+     * Get private port ID.
+     *
+     * @return Private port ID.
+     */
+    public UUID getPrivatePortId() {
+        return privatePortId;
+    }
+
+    /**
+     * Set private port ID.
+     *
+     * @param privatePortId
+     *            Private port ID of the VPN.
+     */
+    public void setPrivatePortId(UUID privatePortId) {
+        this.privatePortId = privatePortId;
+    }
+
+    /**
+     * Get VPN type.
+     *
+     * @return VPN type.
+     */
+    public VpnZkManager.VpnType getType() {
+        return vpnType;
+    }
+
+    /**
+     * Set VPN type.
+     *
+     * @param id
+     *            ID of the type.
+     */
+    public void setVpnType(VpnZkManager.VpnType vpnType) {
+        this.vpnType = vpnType;
     }
 
     public VpnConfig toConfig() {
-        return new VpnConfig(this.getPortId(), this.getPort());
+        return new VpnConfig(this.getPublicPortId(), this.getPrivatePortId(),
+                             this.vpnType, this.getPort());
 
     }
 
     public static Vpn createVpn(UUID id, VpnConfig config) {
         Vpn b = new Vpn();
         b.setPort(config.port);
-        b.setPortId(config.portId);
+        b.setPublicPortId(config.publicPortId);
+        b.setPrivatePortId(config.privatePortId);
+        b.setVpnType(config.vpnType);
         b.setId(id);
         return b;
     }

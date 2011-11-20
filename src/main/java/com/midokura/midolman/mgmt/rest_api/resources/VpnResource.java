@@ -228,7 +228,7 @@ public class VpnResource {
                 throw new UnauthorizedException("Can only create your own VPN.");
             }
             VpnDao dao = daoFactory.getVpnDao();
-            vpn.setPortId(portId);
+            vpn.setPublicPortId(portId);
 
             UUID id = null;
             try {
