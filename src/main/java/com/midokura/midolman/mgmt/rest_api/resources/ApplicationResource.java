@@ -92,6 +92,16 @@ public class ApplicationResource {
     }
 
     /**
+     * Chain resource locator.
+     * 
+     * @returns ChainResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.CHAINS)
+    public ChainResource getChainResource() {
+        return new ChainResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo

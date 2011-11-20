@@ -5,12 +5,14 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
@@ -20,7 +22,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Chain {
+public class Chain extends UriResource {
 
     private UUID id = null;
     private UUID routerId = null;
@@ -85,6 +87,21 @@ public class Chain {
      */
     public void setTable(String table) {
         this.table = table;
+    }
+
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getChain(getBaseUri(), id);
+    }
+
+    /**
+     * @return the rules URI
+     */
+    public URI getRules() {
+        return UriManager.getChainRules(getBaseUri(), id);
     }
 
     public ChainConfig toConfig() {

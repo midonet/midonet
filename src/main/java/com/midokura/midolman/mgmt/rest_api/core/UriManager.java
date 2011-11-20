@@ -109,6 +109,20 @@ public class UriManager {
                 .build();
     }
 
+    public static URI getRules(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(RULES).build();
+    }
+
+    public static URI getRule(URI baseUri, UUID ruleId) {
+        return UriBuilder.fromUri(getRules(baseUri)).path(ruleId.toString())
+                .build();
+    }
+
+    public static URI getChainRules(URI baseUri, UUID chainId) {
+        return UriBuilder.fromUri(getChain(baseUri, chainId)).path(RULES)
+                .build();
+    }
+
     public static URI getRouterRouters(URI baseUri, UUID routerId) {
         return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTERS)
                 .build();
