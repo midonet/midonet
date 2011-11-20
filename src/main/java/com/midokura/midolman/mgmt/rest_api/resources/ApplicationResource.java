@@ -82,6 +82,16 @@ public class ApplicationResource {
     }
 
     /**
+     * Route resource locator.
+     * 
+     * @returns RouteResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.ROUTES)
+    public RouteResource getRouteResource() {
+        return new RouteResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo

@@ -37,6 +37,7 @@ import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -158,6 +159,9 @@ public class PortResource {
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -231,9 +235,8 @@ public class PortResource {
                 throw new UnknownRestApiException(e);
             }
 
-            port.setId(id);
             return Response.created(
-                    UriManager.getPort(uriInfo.getBaseUri(), port)).build();
+                    UriManager.getPort(uriInfo.getBaseUri(), id)).build();
         }
 
         /**
@@ -344,9 +347,8 @@ public class PortResource {
                 throw new UnknownRestApiException(e);
             }
 
-            port.setId(id);
             return Response.created(
-                    UriManager.getPort(uriInfo.getBaseUri(), port)).build();
+                    UriManager.getPort(uriInfo.getBaseUri(), id)).build();
         }
 
         /**

@@ -45,14 +45,14 @@ public class Tenant extends UriResource {
      * @return the bridges URI
      */
     public URI getBridges() {
-        return UriManager.getTenantBridges(getBaseUri(), this);
+        return UriManager.getTenantBridges(getBaseUri(), id);
     }
 
     /**
      * @return the routers URI
      */
     public URI getRouters() {
-        return UriManager.getTenantRouters(getBaseUri(), this);
+        return UriManager.getTenantRouters(getBaseUri(), id);
     }
 
     /**
@@ -60,6 +60,6 @@ public class Tenant extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getTenant(getBaseUri(), this);
+        return UriManager.getTenant(getBaseUri(), id);
     }
 }

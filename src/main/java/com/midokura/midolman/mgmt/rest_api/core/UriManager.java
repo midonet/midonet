@@ -10,16 +10,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.data.dto.Vif;
-import com.midokura.midolman.mgmt.data.dto.Vpn;
-
 public class UriManager {
 
     public static final String ROOT = "/";
@@ -54,9 +44,8 @@ public class UriManager {
         return UriBuilder.fromUri(getRoot(baseUri)).path(TENANTS).build();
     }
 
-    public static URI getTenant(URI baseUri, Tenant tenant) {
-        return UriBuilder.fromUri(getTenants(baseUri)).path(tenant.getId())
-                .build();
+    public static URI getTenant(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenants(baseUri)).path(tenantId).build();
     }
 
     public static URI getRouters(URI baseUri) {
@@ -68,12 +57,8 @@ public class UriManager {
                 .path(routerId.toString()).build();
     }
 
-    public static URI getRouter(URI baseUri, Router router) {
-        return getRouter(baseUri, router.getId());
-    }
-
-    public static URI getTenantRouters(URI baseUri, Tenant tenant) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenant)).path(ROUTERS)
+    public static URI getTenantRouters(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(ROUTERS)
                 .build();
     }
 
@@ -81,13 +66,13 @@ public class UriManager {
         return UriBuilder.fromUri(getRoot(baseUri)).path(BRIDGES).build();
     }
 
-    public static URI getBridge(URI baseUri, Bridge bridge) {
+    public static URI getBridge(URI baseUri, UUID bridgeId) {
         return UriBuilder.fromUri(getBridges(baseUri))
-                .path(bridge.getId().toString()).build();
+                .path(bridgeId.toString()).build();
     }
 
-    public static URI getTenantBridges(URI baseUri, Tenant tenant) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenant)).path(BRIDGES)
+    public static URI getTenantBridges(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(BRIDGES)
                 .build();
     }
 
@@ -95,18 +80,18 @@ public class UriManager {
         return UriBuilder.fromUri(getRoot(baseUri)).path(PORTS).build();
     }
 
-    public static URI getPort(URI baseUri, Port port) {
-        return UriBuilder.fromUri(getPorts(baseUri))
-                .path(port.getId().toString()).build();
-    }
-
-    public static URI getBridgePorts(URI baseUri, Bridge bridge) {
-        return UriBuilder.fromUri(getBridge(baseUri, bridge)).path(PORTS)
+    public static URI getPort(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
                 .build();
     }
 
-    public static URI getRouterPorts(URI baseUri, Router router) {
-        return UriBuilder.fromUri(getRouter(baseUri, router)).path(PORTS)
+    public static URI getBridgePorts(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(PORTS)
+                .build();
+    }
+
+    public static URI getRouterPorts(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(PORTS)
                 .build();
     }
 
@@ -114,32 +99,18 @@ public class UriManager {
         return UriBuilder.fromUri(getRoot(baseUri)).path(CHAINS).build();
     }
 
-    public static URI getChain(URI baseUri, Chain chain) {
-        return UriBuilder.fromUri(getChains(baseUri))
-                .path(chain.getId().toString()).build();
-    }
-
-    public static URI getRouterChains(URI baseUri, Router router) {
-        return UriBuilder.fromUri(getRouter(baseUri, router)).path(CHAINS)
+    public static URI getChain(URI baseUri, UUID chainId) {
+        return UriBuilder.fromUri(getChains(baseUri)).path(chainId.toString())
                 .build();
     }
 
-    public static URI getRoutes(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(ROUTES).build();
-    }
-
-    public static URI getRoute(URI baseUri, Route route) {
-        return UriBuilder.fromUri(getRoutes(baseUri))
-                .path(route.getId().toString()).build();
-    }
-
-    public static URI getRouterRoutes(URI baseUri, Router router) {
-        return UriBuilder.fromUri(getRouter(baseUri, router)).path(ROUTES)
+    public static URI getRouterChains(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(CHAINS)
                 .build();
     }
 
-    public static URI getRouterRouters(URI baseUri, Router router) {
-        return UriBuilder.fromUri(getRouter(baseUri, router)).path(ROUTERS)
+    public static URI getRouterRouters(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTERS)
                 .build();
     }
 
@@ -147,35 +118,35 @@ public class UriManager {
         return UriBuilder.fromUri(getRoot(baseUri)).path(BGP).build();
     }
 
-    public static URI getBgp(URI baseUri, Bgp bgp) {
-        return UriBuilder.fromUri(getBgps(baseUri))
-                .path(bgp.getId().toString()).build();
+    public static URI getBgp(URI baseUri, UUID bgpId) {
+        return UriBuilder.fromUri(getBgps(baseUri)).path(bgpId.toString())
+                .build();
     }
 
-    public static URI getPortBgps(URI baseUri, Port port) {
-        return UriBuilder.fromUri(getPort(baseUri, port)).path(BGP).build();
+    public static URI getPortBgps(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPort(baseUri, portId)).path(BGP).build();
     }
 
     public static URI getVpns(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(VPN).build();
     }
 
-    public static URI getVpn(URI baseUri, Vpn vpn) {
-        return UriBuilder.fromUri(getVpns(baseUri))
-                .path(vpn.getId().toString()).build();
+    public static URI getVpn(URI baseUri, UUID vpnId) {
+        return UriBuilder.fromUri(getVpns(baseUri)).path(vpnId.toString())
+                .build();
     }
 
-    public static URI getPortVpns(URI baseUri, Port port) {
-        return UriBuilder.fromUri(getPort(baseUri, port)).path(VPN).build();
+    public static URI getPortVpns(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPort(baseUri, portId)).path(VPN).build();
     }
 
     public static URI getVifs(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(VIFS).build();
     }
 
-    public static URI getVif(URI baseUri, Vif vif) {
-        return UriBuilder.fromUri(getVifs(baseUri))
-                .path(vif.getId().toString()).build();
+    public static URI getVif(URI baseUri, UUID vifId) {
+        return UriBuilder.fromUri(getVifs(baseUri)).path(vifId.toString())
+                .build();
     }
 
     public static URI getRouterLinks(URI baseUri, UUID routerId) {
@@ -187,5 +158,19 @@ public class UriManager {
             UUID peerRouterId) {
         return UriBuilder.fromUri(getRouterLinks(baseUri, routerId))
                 .path(peerRouterId.toString()).build();
+    }
+
+    public static URI getRoutes(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(ROUTES).build();
+    }
+
+    public static URI getRoute(URI baseUri, UUID routeId) {
+        return UriBuilder.fromUri(getRoutes(baseUri)).path(routeId.toString())
+                .build();
+    }
+
+    public static URI getRouterRoutes(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTES)
+                .build();
     }
 }

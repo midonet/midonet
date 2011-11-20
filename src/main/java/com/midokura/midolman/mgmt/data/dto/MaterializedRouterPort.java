@@ -65,14 +65,14 @@ public class MaterializedRouterPort extends RouterPort {
      * @return the bgps URI
      */
     public URI getBgps() {
-        return UriManager.getPortBgps(getBaseUri(), this);
+        return UriManager.getPortBgps(getBaseUri(), this.getId());
     }
 
     /**
      * @return the vpns URI
      */
     public URI getVpns() {
-        return UriManager.getPortVpns(getBaseUri(), this);
+        return UriManager.getPortVpns(getBaseUri(), this.getId());
     }
 
     /**

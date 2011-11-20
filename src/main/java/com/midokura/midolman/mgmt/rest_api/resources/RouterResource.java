@@ -344,9 +344,8 @@ public class RouterResource {
                 throw new UnknownRestApiException(e);
             }
 
-            router.setId(id);
             return Response.created(
-                    UriManager.getRouter(uriInfo.getBaseUri(), router)).build();
+                    UriManager.getRouter(uriInfo.getBaseUri(), id)).build();
         }
     }
 
@@ -505,8 +504,6 @@ public class RouterResource {
         /**
          * Handler to list router links.
          * 
-         * @param id
-         *            Router ID from the request.
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -522,10 +519,9 @@ public class RouterResource {
         @GET
         @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<PeerRouterLink> list(@PathParam("id") UUID id,
-                @Context SecurityContext context, @Context UriInfo uriInfo,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+        public List<PeerRouterLink> list(@Context SecurityContext context,
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             if (!AuthManager.isServiceProvider(context)) {
                 throw new UnauthorizedException(
                         "Must be a service provider to see the linked routers.");
@@ -534,7 +530,7 @@ public class RouterResource {
             RouterDao dao = daoFactory.getRouterDao();
             List<PeerRouterLink> links = null;
             try {
-                links = dao.listPeerRouterLinks(id);
+                links = dao.listPeerRouterLinks(routerId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;

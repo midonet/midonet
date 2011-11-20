@@ -5,11 +5,13 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route.NextHop;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.util.Net;
 
 /**
@@ -19,7 +21,7 @@ import com.midokura.midolman.util.Net;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Route {
+public class Route extends UriResource {
 
     public static final String Normal = "Normal";
     public static final String BlackHole = "BlackHole";
@@ -202,6 +204,14 @@ public class Route {
         this.attributes = attributes;
     }
 
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getRoute(getBaseUri(), id);
+    }
+
     public com.midokura.midolman.layer3.Route toZkRoute() {
         NextHop nextHop = null;
         String type = this.getType();
@@ -218,12 +228,12 @@ public class Route {
             nextHop = NextHop.PORT;
         }
 
-        return new com.midokura.midolman.layer3.Route(Net
-                .convertStringAddressToInt(this.getSrcNetworkAddr()), this
-                .getSrcNetworkLength(), Net.convertStringAddressToInt(this
-                .getDstNetworkAddr()), this.getDstNetworkLength(), nextHop,
-                this.getNextHopPort(), gateway, this.getWeight(), this
-                        .getAttributes(), this.getRouterId());
+        return new com.midokura.midolman.layer3.Route(
+                Net.convertStringAddressToInt(this.getSrcNetworkAddr()),
+                this.getSrcNetworkLength(), Net.convertStringAddressToInt(this
+                        .getDstNetworkAddr()), this.getDstNetworkLength(),
+                nextHop, this.getNextHopPort(), gateway, this.getWeight(),
+                this.getAttributes(), this.getRouterId());
     }
 
     public static Route createRoute(UUID id,

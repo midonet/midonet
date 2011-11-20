@@ -60,7 +60,7 @@ public class Vif extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getVif(getBaseUri(), this);
+        return UriManager.getVif(getBaseUri(), id);
     }
 
     public VifConfig toConfig() {

@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +30,10 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -40,7 +43,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-@Path("/routes")
 public class RouteResource {
     /*
      * Implements REST API endpoints for routes.
@@ -50,28 +52,38 @@ public class RouteResource {
             .getLogger(RouteResource.class);
 
     /**
-     * Get the route with the given ID.
+     * Handler to getting a route.
      * 
      * @param id
-     *            Route UUID.
-     * @return Route object.
+     *            Route ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
+     *             Data access error.
      * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A Route object.
      */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_ROUTE_JSON,
+            MediaType.APPLICATION_JSON })
     public Route get(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws StateAccessException, UnauthorizedException {
-        // Get a route for the given ID.
+            @Context SecurityContext context, @Context UriInfo uriInfo,
+            @Context DaoFactory daoFactory) throws StateAccessException,
+            UnauthorizedException {
         RouteDao dao = daoFactory.getRouteDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only see your own route.");
         }
 
+        Route route = null;
         try {
-            return dao.get(id);
+            route = dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -79,8 +91,24 @@ public class RouteResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        route.setBaseUri(uriInfo.getBaseUri());
+        return route;
     }
 
+    /**
+     * Handler to deleting a route.
+     * 
+     * @param id
+     *            Route ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
@@ -93,6 +121,9 @@ public class RouteResource {
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -110,12 +141,10 @@ public class RouteResource {
         private UUID routerId = null;
 
         /**
-         * Constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            Zookeeper connection string.
-         * @param routerId
-         *            UUID of a router.
+         * @param UUID
+         *            routerId ID of a router.
          */
         public RouterRouteResource(UUID routerId) {
             this.routerId = routerId;
@@ -129,24 +158,34 @@ public class RouteResource {
         }
 
         /**
-         * Return a list of routes.
+         * Handler to list routes.
          * 
-         * @return A list of Route objects.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of Route objects.
          */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Route> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             if (!isRouterOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own route.");
             }
 
             RouteDao dao = daoFactory.getRouteDao();
+            List<Route> routes = null;
             try {
-                return dao.list(routerId);
+                routes = dao.list(routerId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -154,20 +193,33 @@ public class RouteResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+
+            for (UriResource resource : routes) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+            return routes;
         }
 
         /**
-         * Handler for create route API call.
+         * Handler for creating a router route.
          * 
-         * @param port
-         *            Router object mapped to the request input.
+         * @param router
+         *            Route object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
-         * @throws Exception
+         *             Authentication/authorization error.
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_ROUTE_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(Route route, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, ZkStateSerializationException,
@@ -191,8 +243,8 @@ public class RouteResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("routes/" + id).build();
-            return Response.created(uri).build();
+            return Response.created(
+                    UriManager.getRoute(uriInfo.getBaseUri(), id)).build();
         }
     }
 
@@ -204,14 +256,12 @@ public class RouteResource {
         private UUID portId = null;
 
         /**
-         * Constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            Zookeeper connection string.
-         * @param routerId
-         *            UUID of a router.
+         * @param portId
+         *            ID of a port.
          */
-        public PortRouteResource(UUID portId) {
+        PortRouteResource(UUID portId) {
             this.portId = portId;
         }
 

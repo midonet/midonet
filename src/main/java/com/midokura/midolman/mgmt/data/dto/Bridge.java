@@ -88,7 +88,7 @@ public class Bridge extends UriResource {
      * @return the ports URI
      */
     public URI getPorts() {
-        return UriManager.getBridgePorts(getBaseUri(), this);
+        return UriManager.getBridgePorts(getBaseUri(), id);
     }
 
     /**
@@ -96,7 +96,7 @@ public class Bridge extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getBridge(getBaseUri(), this);
+        return UriManager.getBridge(getBaseUri(), id);
     }
 
     /**

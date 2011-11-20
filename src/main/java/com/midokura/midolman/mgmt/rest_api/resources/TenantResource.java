@@ -194,8 +194,7 @@ public class TenantResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        tenant.setId(id);
-        return Response.created(
-                UriManager.getTenant(uriInfo.getBaseUri(), tenant)).build();
+        return Response.created(UriManager.getTenant(uriInfo.getBaseUri(), id))
+                .build();
     }
 }

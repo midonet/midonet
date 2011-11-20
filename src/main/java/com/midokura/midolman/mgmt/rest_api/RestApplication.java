@@ -18,7 +18,6 @@ import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource;
 import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.resources.RouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RuleResource;
 import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource;
@@ -50,7 +49,6 @@ public class RestApplication extends Application {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
         set.add(ApplicationResource.class);
         set.add(RuleResource.class);
-        set.add(RouteResource.class);
         set.add(ChainResource.class);
         set.add(BgpResource.class);
         set.add(AdRouteResource.class);

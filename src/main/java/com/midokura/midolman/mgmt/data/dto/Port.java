@@ -87,7 +87,7 @@ public class Port extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getPort(getBaseUri(), this);
+        return UriManager.getPort(getBaseUri(), id);
     }
 
     /**

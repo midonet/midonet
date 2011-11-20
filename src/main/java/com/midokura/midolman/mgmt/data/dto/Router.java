@@ -88,28 +88,28 @@ public class Router extends UriResource {
      * @return the ports URI.
      */
     public URI getPorts() {
-        return UriManager.getRouterPorts(getBaseUri(), this);
+        return UriManager.getRouterPorts(getBaseUri(), id);
     }
 
     /**
      * @return the chains URI.
      */
     public URI getChains() {
-        return UriManager.getRouterChains(getBaseUri(), this);
+        return UriManager.getRouterChains(getBaseUri(), id);
     }
 
     /**
      * @return the routes URI.
      */
     public URI getRoutes() {
-        return UriManager.getRouterRoutes(getBaseUri(), this);
+        return UriManager.getRouterRoutes(getBaseUri(), id);
     }
 
     /**
      * @return the peerRouters URI.F
      */
     public URI getPeerRouters() {
-        return UriManager.getRouterRouters(getBaseUri(), this);
+        return UriManager.getRouterRouters(getBaseUri(), id);
     }
 
     /**
@@ -117,7 +117,7 @@ public class Router extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getRouter(getBaseUri(), this);
+        return UriManager.getRouter(getBaseUri(), id);
     }
 
     /**

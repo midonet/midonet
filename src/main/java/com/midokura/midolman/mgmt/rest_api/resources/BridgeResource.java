@@ -292,9 +292,8 @@ public class BridgeResource {
                 throw new UnknownRestApiException(e);
             }
 
-            bridge.setId(id);
             return Response.created(
-                    UriManager.getBridge(uriInfo.getBaseUri(), bridge)).build();
+                    UriManager.getBridge(uriInfo.getBaseUri(), id)).build();
         }
     }
 }
