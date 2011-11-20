@@ -25,7 +25,7 @@ kill_nbd_client
 echo "Starting qemu-nbd server for the file \"${TARGET_FILE}\" "
 qemu-nbd -p 2049 -b 127.0.0.1 "${TARGET_FILE}" &
 
-echo "Strating nbd-client connected to the device
+echo "Strating nbd-client connected to the device"
 sudo nbd-client localhost 2049 ${NBD_DEVICE}
 
 sleep 0.25
