@@ -8,6 +8,7 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -133,9 +134,20 @@ public class VifZkManager extends ZkMgmtManager implements VifDao,
         Vif vif = get(id);
         OwnerQueryable manager = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
-        if (vif.getPortId() == null){
-               return null;
+        if (vif.getPortId() == null) {
+            return null;
         }
         return manager.getOwner(vif.getPortId());
+    }
+
+    @Override
+    public List<Vif> list() throws StateAccessException {
+        List<Vif> result = new ArrayList<Vif>();
+        Set<String> vifIds = getChildren(mgmtPathManager.getVifsPath(), null);
+        for (String vifId : vifIds) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(vifId)));
+        }
+        return result;
     }
 }

@@ -5,6 +5,7 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -28,6 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
@@ -185,4 +187,46 @@ public class VifResource {
         return Response.ok().build();
     }
 
+    /**
+     * Handler to list VIFs.
+     * 
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A list of VIF objects.
+     */
+    @GET
+    @Produces({ VendorMediaType.APPLICATION_VIF_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON })
+    public List<Vif> list(@Context SecurityContext context,
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
+        if (!AuthManager.isAdmin(context)) {
+            throw new UnauthorizedException("Must be admin to see all VIFs.");
+        }
+
+        VifDao dao = daoFactory.getVifDao();
+        List<Vif> vifs = null;
+        try {
+            vifs = dao.list();
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+
+        for (UriResource resource : vifs) {
+            resource.setBaseUri(uriInfo.getBaseUri());
+        }
+        return vifs;
+    }
 }
