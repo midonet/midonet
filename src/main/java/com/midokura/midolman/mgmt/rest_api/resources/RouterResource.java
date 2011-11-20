@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -359,20 +358,38 @@ public class RouterResource {
         private UUID routerId = null;
 
         /**
-         * Default constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            Zookeeper connection string.
          * @param routerId
-         *            UUID of a router.
+         *            ID of a router.
          */
         public RouterRouterResource(UUID routerId) {
             this.routerId = routerId;
         }
 
+        /**
+         * Handler for creating a router to router link.
+         * 
+         * @param port
+         *            LogicalRouterPort object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @returns Response object with 201 status code set if successful. Body
+         *          is set to PeerRouterLink.
+         */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
+                MediaType.APPLICATION_JSON })
+        @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(LogicalRouterPort port,
                 @Context UriInfo uriInfo, @Context SecurityContext context,
                 @Context DaoFactory daoFactory) throws StateAccessException,
@@ -396,11 +413,26 @@ public class RouterResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
-            URI uri = uriInfo.getBaseUriBuilder()
-                    .path("routers/" + port.getPeerRouterId()).build();
-            return Response.created(uri).entity(peerRouter).build();
+
+            peerRouter.setBaseUri(uriInfo.getBaseUri());
+            return Response.created(peerRouter.getUri()).entity(peerRouter)
+                    .build();
         }
 
+        /**
+         * Handler to deleting a router link.
+         * 
+         * @param peerId
+         *            Peer router ID from the request.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         */
         @DELETE
         @Path("{id}")
         public void delete(@PathParam("id") UUID peerId,
@@ -424,12 +456,31 @@ public class RouterResource {
             }
         }
 
+        /**
+         * Handler to getting a router to router link.
+         * 
+         * @param id
+         *            Peer router ID from the request.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A PeerRouterLink object.
+         */
         @GET
         @Path("{id}")
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
+                MediaType.APPLICATION_JSON })
         public PeerRouterLink get(@PathParam("id") UUID id,
-                @Context SecurityContext context, @Context DaoFactory daoFactory)
-                throws StateAccessException, UnauthorizedException {
+                @Context SecurityContext context, @Context UriInfo uriInfo,
+                @Context DaoFactory daoFactory) throws StateAccessException,
+                UnauthorizedException {
 
             if (!AuthManager.isServiceProvider(context)) {
                 throw new UnauthorizedException(
@@ -447,7 +498,56 @@ public class RouterResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            link.setBaseUri(uriInfo.getBaseUri());
             return link;
         }
+
+        /**
+         * Handler to list router links.
+         * 
+         * @param id
+         *            Router ID from the request.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of PeerRouterLink objects.
+         */
+        @GET
+        @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<PeerRouterLink> list(@PathParam("id") UUID id,
+                @Context SecurityContext context, @Context UriInfo uriInfo,
+                @Context DaoFactory daoFactory) throws StateAccessException,
+                UnauthorizedException {
+            if (!AuthManager.isServiceProvider(context)) {
+                throw new UnauthorizedException(
+                        "Must be a service provider to see the linked routers.");
+            }
+
+            RouterDao dao = daoFactory.getRouterDao();
+            List<PeerRouterLink> links = null;
+            try {
+                links = dao.listPeerRouterLinks(id);
+            } catch (StateAccessException e) {
+                log.error("Error accessing data", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unhandled error", e);
+                throw new UnknownRestApiException(e);
+            }
+
+            for (UriResource resource : links) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+            return links;
+        }
+
     }
 }

@@ -28,6 +28,9 @@ public interface RouterDao extends OwnerQueryable {
     PeerRouterLink getPeerRouterLink(UUID routerId, UUID peerRouterId)
             throws StateAccessException;
 
+    List<PeerRouterLink> listPeerRouterLinks(UUID routerId)
+            throws StateAccessException;
+
     List<Router> list(String tenantId) throws StateAccessException;
 
     void update(Router router) throws StateAccessException;

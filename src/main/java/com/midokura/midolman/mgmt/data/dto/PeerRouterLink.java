@@ -5,11 +5,13 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Class representing port.
@@ -18,10 +20,12 @@ import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class PeerRouterLink {
+public class PeerRouterLink extends UriResource {
 
     private UUID portId = null;
     private UUID peerPortId = null;
+    private UUID routerId = null;
+    private UUID peerRouterId = null;
 
     /**
      * @return the portId
@@ -51,6 +55,44 @@ public class PeerRouterLink {
      */
     public void setPeerPortId(UUID peerPortId) {
         this.peerPortId = peerPortId;
+    }
+
+    /**
+     * @return the routerId
+     */
+    public UUID getRouterId() {
+        return routerId;
+    }
+
+    /**
+     * @param routerId
+     *            the routerId to set
+     */
+    public void setRouterId(UUID routerId) {
+        this.routerId = routerId;
+    }
+
+    /**
+     * @return the peerRouterId
+     */
+    public UUID getPeerRouterId() {
+        return peerRouterId;
+    }
+
+    /**
+     * @param peerRouterId
+     *            the peerRouterId to set
+     */
+    public void setPeerRouterId(UUID peerRouterId) {
+        this.peerRouterId = peerRouterId;
+    }
+
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getRouterLink(getBaseUri(), routerId, peerRouterId);
     }
 
     public PeerRouterConfig toConfig() {

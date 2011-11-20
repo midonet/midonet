@@ -329,14 +329,30 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
         byte[] data = get(
                 mgmtPathManager.getRouterRouterPath(routerId, peerRouterId),
                 null);
+        PeerRouterLink link = null;
         try {
-            return PeerRouterLink.createPeerRouterLink(deserialize(data,
+            link = PeerRouterLink.createPeerRouterLink(deserialize(data,
                     PeerRouterConfig.class));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not deserialize peer router " + routerId
                             + " to PeerRouterConfig", e, PeerRouterConfig.class);
         }
+        link.setRouterId(routerId);
+        link.setPeerRouterId(peerRouterId);
+        return link;
+    }
+
+    @Override
+    public List<PeerRouterLink> listPeerRouterLinks(UUID id)
+            throws StateAccessException {
+        List<PeerRouterLink> result = new ArrayList<PeerRouterLink>();
+        Set<String> routerIds = getChildren(
+                mgmtPathManager.getRouterRoutersPath(id), null);
+        for (String routerId : routerIds) {
+            result.add(getPeerRouterLink(id, UUID.fromString(routerId)));
+        }
+        return result;
     }
 
     @Override

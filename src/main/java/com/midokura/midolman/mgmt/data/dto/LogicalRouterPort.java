@@ -79,17 +79,17 @@ public class LogicalRouterPort extends RouterPort {
     @Override
     public PortConfig toConfig() {
         return new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
-                Net.convertStringAddressToInt(this.getNetworkAddress()), this
-                        .getNetworkLength(), Net.convertStringAddressToInt(this
-                        .getPortAddress()), new HashSet<Route>(), this
-                        .getPeerId());
+                Net.convertStringAddressToInt(this.getNetworkAddress()),
+                this.getNetworkLength(), Net.convertStringAddressToInt(this
+                        .getPortAddress()), new HashSet<Route>(),
+                this.getPeerId());
     }
 
     public PortConfig toPeerConfig() {
         return new PortDirectory.LogicalRouterPortConfig(
                 this.getPeerRouterId(), Net.convertStringAddressToInt(this
-                        .getNetworkAddress()), this.getNetworkLength(), Net
-                        .convertStringAddressToInt(this.getPeerPortAddress()),
+                        .getNetworkAddress()), this.getNetworkLength(),
+                Net.convertStringAddressToInt(this.getPeerPortAddress()),
                 new HashSet<Route>(), this.getId());
     }
 
@@ -105,6 +105,8 @@ public class LogicalRouterPort extends RouterPort {
         PeerRouterLink link = new PeerRouterLink();
         link.setPortId(this.getId());
         link.setPeerPortId(peerId);
+        link.setRouterId(this.getDeviceId());
+        link.setPeerRouterId(peerRouterId);
         return link;
     }
 

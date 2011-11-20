@@ -6,6 +6,7 @@
 package com.midokura.midolman.mgmt.rest_api.core;
 
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -62,9 +63,13 @@ public class UriManager {
         return UriBuilder.fromUri(getRoot(baseUri)).path(ROUTERS).build();
     }
 
-    public static URI getRouter(URI baseUri, Router router) {
+    public static URI getRouter(URI baseUri, UUID routerId) {
         return UriBuilder.fromUri(getRouters(baseUri))
-                .path(router.getId().toString()).build();
+                .path(routerId.toString()).build();
+    }
+
+    public static URI getRouter(URI baseUri, Router router) {
+        return getRouter(baseUri, router.getId());
     }
 
     public static URI getTenantRouters(URI baseUri, Tenant tenant) {
@@ -171,5 +176,16 @@ public class UriManager {
     public static URI getVif(URI baseUri, Vif vif) {
         return UriBuilder.fromUri(getVifs(baseUri))
                 .path(vif.getId().toString()).build();
+    }
+
+    public static URI getRouterLinks(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTERS)
+                .build();
+    }
+
+    public static URI getRouterLink(URI baseUri, UUID routerId,
+            UUID peerRouterId) {
+        return UriBuilder.fromUri(getRouterLinks(baseUri, routerId))
+                .path(peerRouterId.toString()).build();
     }
 }
