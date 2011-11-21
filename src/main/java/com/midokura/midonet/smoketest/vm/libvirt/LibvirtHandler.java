@@ -207,7 +207,7 @@ public class LibvirtHandler {
 
             templateContent = templateContent.replaceAll("\\$\\{domainName\\}", domainName);
             templateContent = templateContent.replaceAll("\\$\\{imageFile\\}", fileLocation);
-            templateContent = templateContent.replaceAll("\\$\\{networkDevice\\}", networkDevice);
+            templateContent = templateContent.replaceAll("\\$\\{networkInterface\\}", createNetworkSpecification(networkDevice));
 
             return templateContent;
         } catch (IOException e) {
@@ -216,11 +216,32 @@ public class LibvirtHandler {
         }
     }
 
+    private String createNetworkSpecification(String networkDevice) {
+        String defaultNetworkConfig = "   <interface type='network'>\n" +
+                "      <source network='default'/>\n" +
+                "    </interface>";
+        
+        if (networkDevice == null || networkDevice.trim().length() == 0 ) {
+            return defaultNetworkConfig;
+        }
+        
+        String ethernetNetworkConfig = "" +
+                "        <interface type='ethernet'>\n" +
+                "            <script path=''/>\n" +
+                "            <target dev='${networkDevice}'/>\n" +
+//                "            <model type='virtio'/>\n" +
+//                "            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>\n" +
+                "        </interface>";
+
+
+        return ethernetNetworkConfig.replaceAll("\\$\\{networkDevice\\}", networkDevice);
+    }
+
     private String getTemplateContent() throws IOException {
 
-        File templateFile = new File(properties.getProperty(VM_TEMPLATES_FOLDER, this.templateName + ".xml"));
+        File templateFile = new File(properties.getProperty(VM_TEMPLATES_FOLDER), this.templateName + ".xml");
 
-        if (templateFile.exists()) {
+        if (templateFile.exists() && templateFile.isFile() && templateFile.canRead()) {
             log.info("Loading template named " + this.templateName + " from: " + templateFile.getAbsolutePath());
             return FileUtils.readFileToString(templateFile);
         }

@@ -85,7 +85,7 @@ public class DomainController implements VMController {
         executeWithDomain(new DomainAwareExecutor<Void>() {
             @Override
             public Void execute(Domain domain) throws LibvirtException {
-                if ( domain.getInfo().state !=  DomainInfo.DomainState.VIR_DOMAIN_SHUTOFF ) {
+                if ( domain.getInfo().state != DomainInfo.DomainState.VIR_DOMAIN_SHUTOFF ) {
                     domain.destroy();
                 }
 

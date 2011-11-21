@@ -25,14 +25,7 @@
         <controller type='ide' index='0'>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
         </controller>
-        <interface type='ethernet'>
-            <!--leave the mac address empty so it will get assigned one -->
-            <!--<mac address='7e:80:67:92:4a:be'/>-->
-            <script path=''/>
-            <target dev='${networkDevice}'/>
-            <model type='virtio'/>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
-        </interface>
+        ${networkInterface}
         <input type='mouse' bus='ps2'/>
         <graphics type='vnc' port='-1' autoport='yes' listen='127.0.0.1'>
             <listen type='address' address='127.0.0.1'/>

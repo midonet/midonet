@@ -3,6 +3,7 @@
  */
 package com.midokura.midonet.smoketest.vm;
 
+import com.midokura.midonet.smoketest.utils.Tap;
 import org.junit.Test;
 
 import static com.midokura.tools.hamcrest.RegexMatcher.matchesRegex;
@@ -28,13 +29,13 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         libvirtHandler.setTemplate("basic_template_x86_64");
 
-        String testDomainName = "testdomain";
+        String testDomainName = "testdomain1";
         String testHostname = "testvm";
 
         VMController vmController = libvirtHandler.newDomain()
                 .setHostName(testHostname)
                 .setDomainName(testDomainName)
-                .setNetworkDevice("tap1")
+//                .setNetworkDevice("tap1")
                 .build();
 
         assertThat("The controller for the new VM should be properly created!", vmController, is(notNullValue()));
@@ -46,6 +47,8 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         // just destroy the domain
         vmController.destroy();
+
+        int a = 10;
     }
 
     @Test
@@ -56,13 +59,13 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         libvirtHandler.setTemplate("basic_template_x86_64");
 
-        String testDomainName = "testdomain";
+        String testDomainName = "testdomain2";
         String testHostname = "testvm";
 
         VMController vmController = libvirtHandler.newDomain()
                 .setHostName(testHostname)
                 .setDomainName(testDomainName)
-                .setNetworkDevice("tap1")
+//                .setNetworkDevice("tap1")
                 .build();
 
         assertThat("The controller for the new VM should be properly created!", vmController, is(notNullValue()));
@@ -76,5 +79,7 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         // just destroy the domain
         vmController.destroy();
+
+        int a = 10;
     }
 }
