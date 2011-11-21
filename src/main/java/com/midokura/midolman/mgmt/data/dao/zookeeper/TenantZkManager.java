@@ -120,7 +120,7 @@ public class TenantZkManager extends ZkManager implements TenantDao {
             id = UUID.randomUUID().toString();
         }
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(zkMgmtPathManager.getTenantPath(id), null,
+        ops.add(Op.create(zkMgmtPathManager.getTenantPath(id), "".getBytes(),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(zkMgmtPathManager.getTenantRoutersPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -146,5 +146,15 @@ public class TenantZkManager extends ZkManager implements TenantDao {
             tenants.add(t);
         }
         return tenants;
+    }
+
+    @Override
+    public Tenant getTenant(String id)  throws StateAccessException {
+        // Call get to generate the StateAccessException if the tenant hasn't
+        // been created yet.
+        get(zkMgmtPathManager.getTenantPath(id), null);
+        Tenant t = new Tenant();
+        t.setId(id);
+        return t;
     }
 }

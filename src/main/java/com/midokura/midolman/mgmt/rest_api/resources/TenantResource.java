@@ -198,4 +198,50 @@ public class TenantResource {
         return Response.created(UriManager.getTenant(uriInfo.getBaseUri(), id))
                 .build();
     }
+
+    /**
+     * Handler to getting a tenant.
+     *
+     * @param id
+     *            Tenant ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A Tenant object.
+     */
+    @GET
+    @Path("{id}")
+    @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
+            MediaType.APPLICATION_JSON })
+    public Tenant get(@PathParam("id") String id,
+            @Context SecurityContext context, @Context UriInfo uriInfo,
+            @Context DaoFactory daoFactory) throws UnauthorizedException,
+            StateAccessException {
+        TenantDao dao = daoFactory.getTenantDao();
+        if (!AuthManager.isAdmin(context) &&
+                !context.getUserPrincipal().getName().equals(id)) {
+            throw new UnauthorizedException("Can only see your own tenant.");
+        }
+
+        Tenant tenant = null;
+        try {
+            tenant = dao.getTenant(id);
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+
+        tenant.setBaseUri(uriInfo.getBaseUri());
+        return tenant;
+    }
 }
