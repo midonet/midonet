@@ -2,21 +2,21 @@ package com.midokura.midonet.smoketest.mocks;
 
 import java.net.URI;
 
-import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
+import com.midokura.midonet.smoketest.mgmt.DtoRouter;
+import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 
 public interface MidolmanMgmt {
 
-    Tenant addTenant(Tenant t);
+    DtoTenant addTenant(DtoTenant t);
 
-    Router addRouter(URI tenantRoutersURI, Router r);
+    DtoRouter addRouter(DtoTenant t, DtoRouter r);
 
-    MaterializedRouterPort addRouterPort(URI routerURI,
-            MaterializedRouterPort p);
+    DtoMaterializedRouterPort addRouterPort(DtoRouter r,
+            DtoMaterializedRouterPort p);
 
-    Route addRoute(URI routerURI, Route rt);
+    DtoRoute addRoute(DtoRouter r, DtoRoute rt);
 
     <T> T get(String path, Class<T> clazz);
 

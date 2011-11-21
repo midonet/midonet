@@ -4,19 +4,22 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+import java.net.URI;
 
-import com.midokura.midolman.mgmt.data.*;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.midokura.midonet.smoketest.mgmt.DtoTenant;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class Tenant {
 
     public static class Builder {
         MidolmanMgmt mgmt;
-        com.midokura.midolman.mgmt.data.dto.Tenant dtoTenant;
+        DtoTenant dtoTenant;
 
         public Builder(MidolmanMgmt mgmt) {
             this.mgmt = mgmt;
-            dtoTenant = new com.midokura.midolman.mgmt.data.dto.Tenant();
+            dtoTenant = new DtoTenant();
         }
 
         public Builder setName(String name) {
@@ -36,12 +39,11 @@ public class Tenant {
     }
 
     MidolmanMgmt mgmt;
-    com.midokura.midolman.mgmt.data.dto.Tenant dtoTenant;
+    DtoTenant dto;
 
-    public Tenant(MidolmanMgmt mgmt,
-            com.midokura.midolman.mgmt.data.dto.Tenant dtoTenant) {
+    Tenant(MidolmanMgmt mgmt, DtoTenant t) {
         this.mgmt = mgmt;
-        this.dtoTenant = dtoTenant;
+        this.dto = t;
     }
 
     public Router.Builder addRouter() {
@@ -50,7 +52,6 @@ public class Tenant {
 
     public void delete() {
         // TODO Auto-generated method stub
-
     }
 
 }

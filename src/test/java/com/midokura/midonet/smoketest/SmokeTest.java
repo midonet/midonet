@@ -7,20 +7,13 @@ package com.midokura.midonet.smoketest;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.net.URI;
 
-import com.midokura.midonet.smoketest.utils.Tap;
-import com.midokura.midonet.smoketest.vm.HypervisorType;
-import com.midokura.midonet.smoketest.vm.VMController;
-import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.BridgeFailMode;
 import com.midokura.midolman.openvswitch.ControllerBuilder;
@@ -28,14 +21,21 @@ import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.util.Net;
+import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
+import com.midokura.midonet.smoketest.mgmt.DtoRouter;
+import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.smoketest.openflow.ServiceController;
+import com.midokura.midonet.smoketest.utils.Tap;
+import com.midokura.midonet.smoketest.vm.HypervisorType;
+import com.midokura.midonet.smoketest.vm.VMController;
+import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
 
 public class SmokeTest {
 
@@ -49,41 +49,41 @@ public class SmokeTest {
 
         MidolmanMgmt mgmt = new MockMidolmanMgmt(true);
         // Add the tenant
-        Tenant tenant = new Tenant();
+        DtoTenant tenant = new DtoTenant();
         tenant.setId("tenant7");
         tenant = mgmt.addTenant(tenant);
         log.debug("tenant location: {}", tenant.getUri());
         // Add a router.
-        Router router = new Router();
+        DtoRouter router = new DtoRouter();
         String routerName = "router1";
         router.setName(routerName);
-        router = mgmt.addRouter(tenant.getRouters(), router);
+        router = mgmt.addRouter(tenant, router);
         log.debug("router location: {}", router.getUri());
         assertEquals(router.getName(), routerName);
 
         // Add a materialized router port.
-        MaterializedRouterPort port = new MaterializedRouterPort();
+        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
         String portAddress = "180.214.47.65";
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(29);
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.66");
         port.setLocalNetworkLength(32);
-        port = mgmt.addRouterPort(router.getPorts(), port);
+        port = mgmt.addRouterPort(router, port);
         log.debug("1st port location: {}", port.getUri());
         log.info("1st port id {}", port.getId());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
-        Route rt = new Route();
+        DtoRoute rt = new DtoRoute();
         rt.setSrcNetworkAddr("0.0.0.0");
         rt.setSrcNetworkLength(0);
         String nwDst = "180.214.47.66";
         rt.setDstNetworkAddr(nwDst);
         rt.setDstNetworkLength(32);
-        rt.setType(Route.Normal);
+        rt.setType(DtoRoute.Normal);
         rt.setNextHopPort(port.getId());
         rt.setWeight(10);
-        rt = mgmt.addRoute(router.getRoutes(), rt);
+        rt = mgmt.addRoute(router, rt);
         assertEquals(rt.getDstNetworkAddr(), nwDst);
         
         OpenvSwitchDatabaseConnection ovsdb;
@@ -127,18 +127,18 @@ public class SmokeTest {
         log.info("ip addr add - returned {}", p.exitValue());
 
         // Create another virtual port and its tap and OVS port for 'port2'
-        port = new MaterializedRouterPort();
+        port = new DtoMaterializedRouterPort();
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(29);
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.67");
         port.setLocalNetworkLength(32);
-        port = mgmt.addRouterPort(router.getPorts(), port);
+        port = mgmt.addRouterPort(router, port);
         log.debug("2nd port location: {}", port.getUri());
         log.info("2nd port id {}", port.getId());
         assertEquals(port.getPortAddress(), portAddress);
         // Add a route to the port.
-        rt = new Route();
+        rt = new DtoRoute();
         rt.setSrcNetworkAddr("0.0.0.0");
         rt.setSrcNetworkLength(0);
         nwDst = "180.214.47.67";
@@ -147,7 +147,7 @@ public class SmokeTest {
         rt.setType(Route.Normal);
         rt.setNextHopPort(port.getId());
         rt.setWeight(10);
-        rt = mgmt.addRoute(router.getRoutes(), rt);
+        rt = mgmt.addRoute(router, rt);
         assertEquals(rt.getDstNetworkAddr(), nwDst);
 
         p = Runtime.getRuntime().exec("sudo -n ip tuntap add dev port2 mode tap");

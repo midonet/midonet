@@ -11,12 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midolman.mgmt.data.dto.Admin;
-import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midonet.smoketest.mgmt.DtoAdmin;
+import com.midokura.midonet.smoketest.mgmt.DtoApplication;
+import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
+import com.midokura.midonet.smoketest.mgmt.DtoRouter;
+import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -30,7 +30,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     private final static Logger log = LoggerFactory
             .getLogger(MockMidolmanMgmt.class);
 
-    Application app;
+    DtoApplication app;
 
     public MockMidolmanMgmt(boolean mockZK) {
         super(new WebAppDescriptor.Builder(new String[] {
@@ -51,8 +51,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextListenerClass(ServletListener.class)
                 .contextPath("/test").build());
         // Initialize the directory structure.
-        app = get("", Application.class);
-        Admin admin = get(app.getAdmin(), Admin.class);
+        app = get("", DtoApplication.class);
+        DtoAdmin admin = get(app.getAdmin(), DtoAdmin.class);
         post(admin.getInit(), null);
         //resource().path("admin/init").type(MediaType.APPLICATION_JSON)
         //        .post(ClientResponse.class).getLocation();
@@ -109,28 +109,28 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public Tenant addTenant(Tenant t) {
+    public DtoTenant addTenant(DtoTenant t) {
         URI uri = post(app.getTenant(), t);
-        return get(uri, Tenant.class);
+        return get(uri, DtoTenant.class);
     }
 
     @Override
-    public Router addRouter(URI tenantRoutersURI, Router r) {
-        URI uri = post(tenantRoutersURI, r);
-        return get(uri, Router.class);
+    public DtoRouter addRouter(DtoTenant t, DtoRouter r) {
+        URI uri = post(t.getRouters(), r);
+        return get(uri, DtoRouter.class);
     }
 
     @Override
-    public MaterializedRouterPort addRouterPort(URI routerPortsURI,
-            MaterializedRouterPort p) {
-        URI uri = post(routerPortsURI, p);
-        return get(uri, MaterializedRouterPort.class);
+    public DtoMaterializedRouterPort addRouterPort(DtoRouter r,
+            DtoMaterializedRouterPort p) {
+        URI uri = post(r.getPorts(), p);
+        return get(uri, DtoMaterializedRouterPort.class);
     }
 
     @Override
-    public Route addRoute(URI routerURI, Route rt) {
-        URI uri = post(routerURI, rt);
-        return get(uri, Route.class);
+    public DtoRoute addRoute(DtoRouter r, DtoRoute rt) {
+        URI uri = post(r.getRoutes(), rt);
+        return get(uri, DtoRoute.class);
     }
 
 }
