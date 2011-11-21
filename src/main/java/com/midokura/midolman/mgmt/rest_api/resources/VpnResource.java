@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,7 +29,11 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -39,7 +42,6 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-@Path("/vpns")
 public class VpnResource {
     /*
      * Implements REST API end points for vpns.
@@ -49,20 +51,29 @@ public class VpnResource {
             .getLogger(VpnResource.class);
 
     /**
-     * Get the VPN with the given ID.
+     * Handler to getting VPN configuration record.
      * 
      * @param id
-     *            VPN UUID.
-     * @return Vpn object.
+     *            VPN ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
+     *             Data access error.
      * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A Vpn object.
      */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_VPN_JSON,
+            MediaType.APPLICATION_JSON })
     public Vpn get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context DaoFactory daoFactory) throws StateAccessException,
-            UnauthorizedException {
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
 
         // Get a vpn for the given ID.
         VpnDao dao = daoFactory.getVpnDao();
@@ -81,9 +92,24 @@ public class VpnResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        vpn.setBaseUri(uriInfo.getBaseUri());
         return vpn;
     }
 
+    /**
+     * Handler to deleting a VPN record.
+     * 
+     * @param id
+     *            VPN ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
@@ -97,6 +123,9 @@ public class VpnResource {
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -114,12 +143,10 @@ public class VpnResource {
         private UUID portId = null;
 
         /**
-         * Constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            ZooKeeper connection string.
          * @param portId
-         *            UUID of a port.
+         *            ID of a port.
          */
         public PortVpnResource(UUID portId) {
             this.portId = portId;
@@ -132,17 +159,26 @@ public class VpnResource {
         }
 
         /**
-         * Index of vpns belonging to the port.
+         * Handler to getting a list of VPN records.
          * 
-         * @return A list of vpns.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of VPN objects.
          */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_VPN_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Vpn> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own VPN.");
             }
@@ -158,20 +194,32 @@ public class VpnResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            for (UriResource resource : vpns) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
             return vpns;
         }
 
         /**
-         * Handler for create vpn.
+         * Handler for creating a VPN record.
          * 
-         * @param vpn
-         *            Vpn object mapped to the request input.
+         * @param chain
+         *            VPN object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_VPN_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(Vpn vpn, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
@@ -192,8 +240,9 @@ public class VpnResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("vpns/" + id).build();
-            return Response.created(uri).build();
+            return Response
+                    .created(UriManager.getVpn(uriInfo.getBaseUri(), id))
+                    .build();
         }
     }
 }

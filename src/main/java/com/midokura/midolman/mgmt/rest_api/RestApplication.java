@@ -16,7 +16,6 @@ import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
 import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.resources.VpnResource;
 
 /**
  * Jax-RS application class.
@@ -44,7 +43,6 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
         set.add(ApplicationResource.class);
-        set.add(VpnResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
         set.add(UnauthorizedExceptionMapper.class);

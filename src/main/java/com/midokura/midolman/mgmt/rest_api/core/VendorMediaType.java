@@ -37,4 +37,6 @@ public class VendorMediaType {
     public static final String APPLICATION_BGP_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Bgp+json";
     public static final String APPLICATION_AD_ROUTE_JSON = "application/vnd.com.midokura.midolman.mgmt.AdRoute+json";
     public static final String APPLICATION_AD_ROUTE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.AdRoute+json";
+    public static final String APPLICATION_VPN_JSON = "application/vnd.com.midokura.midolman.mgmt.Vpn+json";
+    public static final String APPLICATION_VPN_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Vpn+json";
 }

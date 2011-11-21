@@ -5,10 +5,12 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 
 /**
@@ -18,7 +20,7 @@ import com.midokura.midolman.state.VpnZkManager.VpnConfig;
  * @author Yoshi Tamura
  */
 @XmlRootElement
-public class Vpn {
+public class Vpn extends UriResource {
 
     private UUID id = null;
     private int port;
@@ -69,6 +71,14 @@ public class Vpn {
      */
     public UUID getPortId() {
         return portId;
+    }
+
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getVpn(getBaseUri(), id);
     }
 
     /**
