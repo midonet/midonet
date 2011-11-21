@@ -31,7 +31,11 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource.BgpAdRouteResource;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -40,7 +44,6 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-@Path("/bgps")
 public class BgpResource {
     /*
      * Implements REST API end points for bgps.
@@ -50,34 +53,46 @@ public class BgpResource {
             .getLogger(BgpResource.class);
 
     /**
-     * Advertising route resource locator for bgps
+     * Advertising route resource locator for chains.
+     * 
+     * @param id
+     *            BGP ID from the request.
+     * @returns BgpAdRouteResource object to handle sub-resource requests.
      */
-    @Path("/{id}/ad_routes")
+    @Path("/{id}" + UriManager.AD_ROUTES)
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
         return new BgpAdRouteResource(id);
     }
 
     /**
-     * Get the BGP with the given ID.
+     * Handler to getting BGP.
      * 
      * @param id
-     *            BGP UUID.
-     * @return Bgp object.
+     *            BGP ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
+     *             Data access error.
      * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A BGP object.
      */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_BGP_JSON,
+            MediaType.APPLICATION_JSON })
     public Bgp get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context DaoFactory daoFactory) throws StateAccessException,
-            UnauthorizedException {
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
 
         // Get a bgp for the given ID.
         BgpDao dao = daoFactory.getBgpDao();
         if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
+            throw new UnauthorizedException("Can only see your own BGP.");
         }
 
         Bgp bgp = null;
@@ -90,23 +105,39 @@ public class BgpResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        bgp.setBaseUri(uriInfo.getBaseUri());
         return bgp;
     }
 
+    /**
+     * Handler to deleting BGP.
+     * 
+     * @param id
+     *            BGP ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
-
         BgpDao dao = daoFactory.getBgpDao();
         if (!AuthManager.isOwner(context, dao, id)) {
-            throw new UnauthorizedException(
-                    "Can only see your own advertised route.");
+            throw new UnauthorizedException("Can only see your own BGP.");
         }
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -124,12 +155,10 @@ public class BgpResource {
         private UUID portId = null;
 
         /**
-         * Constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            ZooKeeper connection string.
          * @param portId
-         *            UUID of a port.
+         *            ID of a port.
          */
         public PortBgpResource(UUID portId) {
             this.portId = portId;
@@ -142,17 +171,26 @@ public class BgpResource {
         }
 
         /**
-         * Index of bgps belonging to the port.
+         * Handler to getting a list of BGPs.
          * 
-         * @return A list of bgps.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of BGP objects.
          */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Bgp> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             if (!isPortOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own BGP.");
             }
@@ -168,20 +206,32 @@ public class BgpResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            for (UriResource resource : bgps) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
             return bgps;
         }
 
         /**
-         * Handler for create bgp.
+         * Handler for creating BGP.
          * 
-         * @param bgp
-         *            Bgp object mapped to the request input.
+         * @param chain
+         *            BGP object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_BGP_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(Bgp bgp, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
@@ -202,8 +252,9 @@ public class BgpResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("bgps/" + id).build();
-            return Response.created(uri).build();
+            return Response
+                    .created(UriManager.getBgp(uriInfo.getBaseUri(), id))
+                    .build();
         }
     }
 

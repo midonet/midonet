@@ -6,11 +6,13 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
@@ -20,7 +22,7 @@ import com.midokura.midolman.state.BgpZkManager.BgpConfig;
  * @author Yoshi Tamura
  */
 @XmlRootElement
-public class Bgp {
+public class Bgp extends UriResource {
 
     private UUID id = null;
     private int localAS;
@@ -121,6 +123,21 @@ public class Bgp {
      */
     public void setPortId(UUID portId) {
         this.portId = portId;
+    }
+
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getBgp(getBaseUri(), id);
+    }
+
+    /**
+     * @return the Ad routes URI
+     */
+    public URI getAdRoutes() {
+        return UriManager.getBgpAdRoutes(getBaseUri(), id);
     }
 
     public BgpConfig toConfig() {

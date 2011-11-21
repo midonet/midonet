@@ -358,7 +358,7 @@ public class ChainResource {
         }
 
         /**
-         * Handler to getting a chain.
+         * Handler to getting a collection of chains.
          * 
          * @param context
          *            Object that holds the security data.

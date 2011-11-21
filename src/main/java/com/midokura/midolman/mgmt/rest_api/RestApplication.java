@@ -15,7 +15,6 @@ import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
-import com.midokura.midolman.mgmt.rest_api.resources.BgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource;
@@ -46,7 +45,6 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
         set.add(ApplicationResource.class);
-        set.add(BgpResource.class);
         set.add(AdRouteResource.class);
         set.add(VpnResource.class);
         set.add(StateAccessExceptionMapper.class);

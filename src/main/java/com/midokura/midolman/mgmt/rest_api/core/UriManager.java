@@ -141,6 +141,20 @@ public class UriManager {
         return UriBuilder.fromUri(getPort(baseUri, portId)).path(BGP).build();
     }
 
+    public static URI getAdRoutes(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(AD_ROUTES).build();
+    }
+
+    public static URI getAdRoute(URI baseUri, UUID adRouteId) {
+        return UriBuilder.fromUri(getAdRoutes(baseUri))
+                .path(adRouteId.toString()).build();
+    }
+
+    public static URI getBgpAdRoutes(URI baseUri, UUID bgpId) {
+        return UriBuilder.fromUri(getBgp(baseUri, bgpId)).path(AD_ROUTES)
+                .build();
+    }
+
     public static URI getVpns(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(VPN).build();
     }

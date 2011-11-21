@@ -112,6 +112,16 @@ public class ApplicationResource {
     }
 
     /**
+     * BGP resource locator.
+     * 
+     * @returns BgpResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.BGP)
+    public BgpResource getBgpResource() {
+        return new BgpResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo

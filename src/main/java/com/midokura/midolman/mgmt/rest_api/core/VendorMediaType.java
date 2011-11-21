@@ -33,5 +33,6 @@ public class VendorMediaType {
     public static final String APPLICATION_CHAIN_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Chain+json";
     public static final String APPLICATION_RULE_JSON = "application/vnd.com.midokura.midolman.mgmt.Rule+json";
     public static final String APPLICATION_RULE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Rule+json";
-
+    public static final String APPLICATION_BGP_JSON = "application/vnd.com.midokura.midolman.mgmt.Bgp+json";
+    public static final String APPLICATION_BGP_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Bgp+json";
 }
