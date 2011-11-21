@@ -33,7 +33,9 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.portservice.BgpPortService;
+import com.midokura.midolman.portservice.OpenVpnPortService;
 import com.midokura.midolman.portservice.PortService;
+import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.state.AdRouteZkManager;
@@ -48,6 +50,9 @@ import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midolman.state.VpnZkManager.VpnType;
+import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
@@ -202,6 +207,20 @@ public class ControllerTrampoline implements Controller {
                     portMgr, routeMgr, bgpMgr, adRouteMgr, zebra,
                     new BgpVtyConnection("localhost", 2605, "zebra",
                                          bgpMgr, adRouteMgr));
+
+                // Create VPN port agent for OpenVPN.
+                VpnZkManager vpnMgr = new VpnZkManager(directory, basePath);
+                OpenVpnPortService openVpnSvc = new OpenVpnPortService(
+                    ovsdb, externalIdKey, "midolman_port_service", portMgr,
+                    vpnMgr);
+                openVpnSvc.clear();
+                long sessionId = directory.getSessionId();
+                VpnPortAgent vpnAgent = new VpnPortAgent(sessionId, datapathId,
+                                                         vpnMgr);
+                vpnAgent.setPortService(VpnType.OPENVPN_SERVER, openVpnSvc);
+                vpnAgent.setPortService(VpnType.OPENVPN_TCP_SERVER,
+                                        openVpnSvc);
+                vpnAgent.start();
 
                 newController = new NetworkController(
                         datapathId,
