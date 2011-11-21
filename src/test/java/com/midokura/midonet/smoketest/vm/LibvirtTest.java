@@ -78,4 +78,48 @@ public class LibvirtTest extends AbstractLibvirtTest {
         // just destroy the domain
         vmController.destroy();
     }
+
+    @Test
+    public void testTwoMachines() throws Exception {
+        if ( ! checkRuntimeConfiguration() ) {
+            return;
+        }
+
+        libvirtHandler.setTemplate("basic_template_x86_64");
+
+        String testDomainName = "testdomain_";
+        String testHostname = "testvm_";
+
+        VMController firstVm = libvirtHandler.newDomain()
+                .setHostName(testHostname + "1")
+                .setDomainName(testDomainName + "1")
+                .build();
+
+        assertThat("The controller for the first VM should be properly created!", firstVm, is(notNullValue()));
+        assertThat("The domain should not be running by default", firstVm.isRunning(), equalTo(false));
+
+        VMController secondVm = libvirtHandler.newDomain()
+                .setHostName(testHostname + "2")
+                .setDomainName(testDomainName + "2")
+                .build();
+
+        assertThat("The controller for the second VM should be properly created!", secondVm, is(notNullValue()));
+        assertThat("The domain should not be running by default", secondVm.isRunning(), equalTo(false));
+
+        firstVm.startup();
+        assertThat("The domain should be running after starting up", firstVm.isRunning(), equalTo(true));
+
+        secondVm.startup();
+        assertThat("The domain should be running after starting up", secondVm.isRunning(), equalTo(true));
+
+        firstVm.shutdown();
+        assertThat("The domain should not be running after shutdown", firstVm.isRunning(), equalTo(false));
+
+        secondVm.shutdown();
+        assertThat("The domain should not be running after shutdown", firstVm.isRunning(), equalTo(false));
+
+        // just destroy the domain
+        firstVm.destroy();
+        secondVm.destroy();
+    }
 }

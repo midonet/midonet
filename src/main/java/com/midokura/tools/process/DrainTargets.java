@@ -27,16 +27,12 @@ public class DrainTargets {
         return new ProcessOutputDrainer.DrainTarget() {
             @Override
             public void outLine(String line) {
-                if ( logger.isDebugEnabled()) {
-                    logger.debug(String.format("%s <stdout> %s", prefix, line));
-                }
+                logger.debug("{}:<stdout> {}", prefix, line);
             }
 
             @Override
             public void errLine(String line) {
-                if ( logger.isDebugEnabled()) {
-                    logger.debug(String.format("%s <stderr> %s", prefix, line));
-                }
+                logger.debug("{}:<stderr> {}", prefix, line);
             }
         };
     }
