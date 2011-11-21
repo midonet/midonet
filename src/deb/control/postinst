@@ -31,6 +31,10 @@ install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
 
 # allow group access to /var/run/quagga
 usermod -G quagga $USER
+if [ ! -d /var/run/quagga ]; then
+    mkdir -p -m 755 /var/run/quagga
+    chown quagga:quagga /var/run/quagga
+fi
 chmod g+w /var/run/quagga
 
 # enable OVSDB TCP interface on port 12344 if not already enabled
