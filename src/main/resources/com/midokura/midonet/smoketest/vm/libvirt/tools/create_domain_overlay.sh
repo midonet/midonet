@@ -57,4 +57,4 @@ sudo nbd-client -d ${NBD_DEVICE}
 kill_nbd_client
 
 rm -rf mnt/image_${MACHINE_NAME}
-#chmod 777 ${TARGET_FILE}
+chmod 777 "${TARGET_FILE}"

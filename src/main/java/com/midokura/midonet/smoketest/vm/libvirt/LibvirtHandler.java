@@ -170,7 +170,7 @@ public class LibvirtHandler {
     private String buildOverlayImage(String hostName, String domainName, String templateImage) {
 
         File create_overlay_script = new File(properties.getProperty(VM_WORK_FOLDER), "create_domain_overlay.sh");
-        File targetOverlayFile = new File(properties.getProperty(VM_IMAGES_FOLDER), domainName + "_image.ovl");
+        File targetOverlayFile = new File(properties.getProperty(VM_IMAGES_FOLDER), domainName + "_image.qcow2");
 
         try {
             create_overlay_script.delete();

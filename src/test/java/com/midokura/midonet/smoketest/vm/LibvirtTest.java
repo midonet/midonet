@@ -29,7 +29,7 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         libvirtHandler.setTemplate("basic_template_x86_64");
 
-        String testDomainName = "testdomain1";
+        String testDomainName = "testdomain51";
         String testHostname = "testvm";
 
         VMController vmController = libvirtHandler.newDomain()
@@ -47,8 +47,6 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         // just destroy the domain
         vmController.destroy();
-
-        int a = 10;
     }
 
     @Test
@@ -59,7 +57,7 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         libvirtHandler.setTemplate("basic_template_x86_64");
 
-        String testDomainName = "testdomain2";
+        String testDomainName = "testdomain52";
         String testHostname = "testvm";
 
         VMController vmController = libvirtHandler.newDomain()
@@ -79,7 +77,5 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         // just destroy the domain
         vmController.destroy();
-
-        int a = 10;
     }
 }
