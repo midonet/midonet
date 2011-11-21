@@ -4,7 +4,20 @@
 
 package com.midokura.midonet.smoketest.topology;
 
+import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+
 public class Port {
+
+    MidolmanMgmt mgmt;
+    DtoMaterializedRouterPort port;
+    String name;
+
+    Port(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
+        this.mgmt = mgmt;
+        this.port = port;
+        this.name = name;
+    }
 
     public Route.Builder addRoute() {
         // TODO Auto-generated method stub
@@ -12,7 +25,6 @@ public class Port {
     }
 
     public void delete() {
-        
+        mgmt.delete(port.getUri());
     }
-
 }

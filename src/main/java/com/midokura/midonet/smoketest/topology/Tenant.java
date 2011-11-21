@@ -47,11 +47,11 @@ public class Tenant {
     }
 
     public Router.Builder addRouter() {
-        return null;
+        return new Router.Builder(mgmt, dto);
     }
 
     public void delete() {
-        // TODO Auto-generated method stub
+        mgmt.delete(dto.getUri());
     }
 
 }
