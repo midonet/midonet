@@ -69,6 +69,9 @@ public class AdminZkManager extends ZkMgmtManager implements AdminDao {
         paths.add(pathManager.getAdRoutesPath());
         paths.add(pathManager.getVRNPortLocationsPath());
         paths.add(pathManager.getVpnPath());
+        paths.add(pathManager.getAgentPath());
+        paths.add(pathManager.getAgentPortPath());
+        paths.add(pathManager.getAgentVpnPath());
         excecuteCreate(paths);
     }
 }
