@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +30,10 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -40,25 +43,43 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
-@Path("/rules")
 public class RuleResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(RuleResource.class);
 
+    /**
+     * Handler to getting a rule.
+     * 
+     * @param id
+     *            Rule ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return A Rule object.
+     */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_RULE_JSON,
+            MediaType.APPLICATION_JSON })
     public Rule get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context DaoFactory daoFactory) throws StateAccessException,
-            UnauthorizedException {
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+            throws StateAccessException, UnauthorizedException {
         RuleDao dao = daoFactory.getRuleDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException("Can only see your own rule.");
         }
 
+        Rule rule = null;
         try {
-            return dao.get(id);
+            rule = dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -66,8 +87,24 @@ public class RuleResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        rule.setBaseUri(uriInfo.getBaseUri());
+        return rule;
     }
 
+    /**
+     * Handler to deleting a rule.
+     * 
+     * @param id
+     *            Rule ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
@@ -80,6 +117,9 @@ public class RuleResource {
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -96,6 +136,12 @@ public class RuleResource {
 
         private UUID chainId = null;
 
+        /**
+         * Constructor
+         * 
+         * @param chainId
+         *            ID of a chain.
+         */
         public ChainRuleResource(UUID chainId) {
             this.chainId = chainId;
         }
@@ -106,18 +152,35 @@ public class RuleResource {
             return AuthManager.isOwner(context, q, chainId);
         }
 
+        /**
+         * Handler to list chain rules.
+         * 
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of Rule objects.
+         */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<Rule> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
             RuleDao dao = daoFactory.getRuleDao();
             if (!isChainOwner(context, daoFactory)) {
                 throw new UnauthorizedException("Can only see your own rule.");
             }
 
+            List<Rule> rules = null;
             try {
-                return dao.list(chainId);
+                rules = dao.list(chainId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -125,10 +188,33 @@ public class RuleResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+
+            for (UriResource resource : rules) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+            return rules;
         }
 
+        /**
+         * Handler for creating a chain rule.
+         * 
+         * @param router
+         *            Rule object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
+         * @throws StateAccessException
+         *             Data access error.
+         * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @returns Response object with 201 status code set if successful.
+         */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_RULE_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(Rule rule, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, RuleIndexOutOfBoundsException,
@@ -154,8 +240,8 @@ public class RuleResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("rules/" + id).build();
-            return Response.created(uri).build();
+            return Response.created(
+                    UriManager.getRule(uriInfo.getBaseUri(), id)).build();
         }
     }
 }

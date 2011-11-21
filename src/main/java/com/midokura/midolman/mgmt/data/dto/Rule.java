@@ -5,6 +5,7 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
@@ -31,7 +33,7 @@ import com.midokura.midolman.util.Net;
  * @author Ryu Ishimoto
  */
 @XmlRootElement
-public class Rule {
+public class Rule extends UriResource {
     public static final String Accept = "accept";
     public static final String Continue = "continue";
     public static final String Drop = "drop";
@@ -516,6 +518,14 @@ public class Rule {
         this.position = position;
     }
 
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getRule(getBaseUri(), id);
+    }
+
     public static String getActionString(Action a) {
         switch (a) {
         case ACCEPT:
@@ -597,11 +607,11 @@ public class Rule {
         for (String[][] natTarget : natTargets) {
             String[] addressRange = natTarget[0];
             String[] portRange = natTarget[1];
-            NatTarget t = new NatTarget(Net
-                    .convertStringAddressToInt(addressRange[0]), Net
-                    .convertStringAddressToInt(addressRange[1]),
-                    (short) Integer.parseInt(portRange[0]), (short) Integer
-                            .parseInt(portRange[1]));
+            NatTarget t = new NatTarget(
+                    Net.convertStringAddressToInt(addressRange[0]),
+                    Net.convertStringAddressToInt(addressRange[1]),
+                    (short) Integer.parseInt(portRange[0]),
+                    (short) Integer.parseInt(portRange[1]));
             targets.add(t);
         }
         return targets;
@@ -632,8 +642,8 @@ public class Rule {
             r = new ForwardNatRule(cond, getAction(this.getFlowAction()),
                     chainId, position, type.equals(Rule.DNAT), targets);
         } else if (Arrays.asList(Rule.RevNatRuleTypes).contains(type)) {
-            r = new ReverseNatRule(cond, getAction(this.getFlowAction()), type
-                    .equals(Rule.RevDNAT));
+            r = new ReverseNatRule(cond, getAction(this.getFlowAction()),
+                    type.equals(Rule.RevDNAT));
         } else {
             // Jump
             r = new JumpRule(cond, this.getJumpChainName());
@@ -663,8 +673,7 @@ public class Rule {
         this.setNwSrcLength(c.nwSrcLength);
         this.setNwTos(c.nwTos);
         if (c.outPortIds != null) {
-            this.setOutPorts(c.outPortIds
-                    .toArray(new UUID[c.outPortIds.size()]));
+            this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
         }
         this.setTpDstEnd(c.tpDstEnd);
         this.setTpDstStart(c.tpDstStart);

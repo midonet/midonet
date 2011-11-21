@@ -102,6 +102,16 @@ public class ApplicationResource {
     }
 
     /**
+     * Rule resource locator.
+     * 
+     * @returns RuleResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.RULES)
+    public RuleResource getRuleResource() {
+        return new RuleResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo
