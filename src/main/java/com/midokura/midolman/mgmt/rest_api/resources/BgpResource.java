@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 

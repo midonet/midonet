@@ -122,6 +122,16 @@ public class ApplicationResource {
     }
 
     /**
+     * Ad route resource locator.
+     * 
+     * @returns AdRouteResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.AD_ROUTES)
+    public AdRouteResource getAdRouteResource() {
+        return new AdRouteResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      * 
      * @param uriInfo

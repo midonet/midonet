@@ -13,7 +13,6 @@ import javax.ws.rs.core.Application;
 import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
 import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
@@ -45,7 +44,6 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
         set.add(ApplicationResource.class);
-        set.add(AdRouteResource.class);
         set.add(VpnResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);

@@ -6,11 +6,13 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 /**
@@ -20,7 +22,7 @@ import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
  * @author Yoshi Tamura
  */
 @XmlRootElement
-public class AdRoute {
+public class AdRoute extends UriResource {
 
     private UUID id = null;
     private String nwPrefix = null;
@@ -91,6 +93,14 @@ public class AdRoute {
      */
     public UUID getBgpId() {
         return bgpId;
+    }
+
+    /**
+     * @return the self URI
+     */
+    @Override
+    public URI getUri() {
+        return UriManager.getAdRoute(getBaseUri(), id);
     }
 
     /**

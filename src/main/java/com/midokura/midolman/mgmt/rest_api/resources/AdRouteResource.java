@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +30,10 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -39,7 +42,6 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-@Path("/ad_routes")
 public class AdRouteResource {
     /*
      * Implements REST API end points for ad_routes.
@@ -49,21 +51,30 @@ public class AdRouteResource {
             .getLogger(AdRouteResource.class);
 
     /**
-     * Get the advertising route with the given ID.
+     * Handler to getting BGP advertised route.
      * 
      * @param id
-     *            AdRoute UUID.
-     * @return AdRoute object.
+     *            Ad route ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
      * @throws StateAccessException
+     *             Data access error.
      * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @return An AdRoute object.
      */
     @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({ VendorMediaType.APPLICATION_AD_ROUTE_JSON,
+            MediaType.APPLICATION_JSON })
     public AdRoute get(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws StateAccessException, UnauthorizedException {
-        // Get a advertising route for the given ID.
+            @Context SecurityContext context, @Context UriInfo uriInfo,
+            @Context DaoFactory daoFactory) throws StateAccessException,
+            UnauthorizedException {
         AdRouteDao dao = daoFactory.getAdRouteDao();
         if (!AuthManager.isOwner(context, dao, id)) {
             throw new UnauthorizedException(
@@ -80,9 +91,24 @@ public class AdRouteResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
+        adRoute.setBaseUri(uriInfo.getBaseUri());
         return adRoute;
     }
 
+    /**
+     * Handler to deleting an advertised route.
+     * 
+     * @param id
+     *            AdRoute ID from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
@@ -96,6 +122,9 @@ public class AdRouteResource {
 
         try {
             dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -113,12 +142,10 @@ public class AdRouteResource {
         private UUID bgpId = null;
 
         /**
-         * Constructor.
+         * Constructor
          * 
-         * @param zkConn
-         *            ZooKeeper connection string.
          * @param bgpId
-         *            UUID of a bgp.
+         *            ID of a BGP configuration record.
          */
         public BgpAdRouteResource(UUID bgpId) {
             this.bgpId = bgpId;
@@ -131,17 +158,26 @@ public class AdRouteResource {
         }
 
         /**
-         * Index of advertising routes belonging to the bgp.
+         * Handler to getting a list of BGP advertised routes.
          * 
-         * @return A list of advertising routes.
+         * @param context
+         *            Object that holds the security data.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
+         * @return A list of AdRoute objects.
          */
         @GET
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces({ VendorMediaType.APPLICATION_AD_ROUTE_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
         public List<AdRoute> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
+                @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+                throws StateAccessException, UnauthorizedException {
 
             if (!isBgpOwner(context, daoFactory)) {
                 throw new UnauthorizedException(
@@ -159,20 +195,32 @@ public class AdRouteResource {
                 log.error("Unhandled error", e);
                 throw new UnknownRestApiException(e);
             }
+            for (UriResource resource : adRoutes) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
             return adRoutes;
         }
 
         /**
-         * Handler for create advertising route.
+         * Handler for creating BGP advertised route.
          * 
-         * @param adRoute
-         *            AdRoute object mapped to the request input.
+         * @param chain
+         *            AdRoute object.
+         * @param uriInfo
+         *            Object that holds the request URI data.
+         * @param context
+         *            Object that holds the security data.
+         * @param daoFactory
+         *            Data access factory object.
          * @throws StateAccessException
+         *             Data access error.
          * @throws UnauthorizedException
+         *             Authentication/authorization error.
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({ VendorMediaType.APPLICATION_AD_ROUTE_JSON,
+                MediaType.APPLICATION_JSON })
         public Response create(AdRoute adRoute, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
@@ -196,9 +244,8 @@ public class AdRouteResource {
                 throw new UnknownRestApiException(e);
             }
 
-            URI uri = uriInfo.getBaseUriBuilder().path("ad_routes/" + id)
-                    .build();
-            return Response.created(uri).build();
+            return Response.created(
+                    UriManager.getAdRoute(uriInfo.getBaseUri(), id)).build();
         }
     }
 
