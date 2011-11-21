@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
+import com.midokura.midolman.mgmt.data.dto.Admin;
+import com.midokura.midolman.mgmt.data.dto.Application;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
@@ -28,6 +30,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     private final static Logger log = LoggerFactory
             .getLogger(MockMidolmanMgmt.class);
 
+    Application app;
+
     public MockMidolmanMgmt(boolean mockZK) {
         super(new WebAppDescriptor.Builder(new String[] {
                 "com.midokura.midolman.mgmt.rest_api.resources",
@@ -36,6 +40,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+                .contextParam("version", "1.0")
                 .contextParam("datastore_service", mockZK ? 
                         "com.midokura.midolman.mgmt.data.MockDaoFactory" :
                         "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
@@ -46,7 +51,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextListenerClass(ServletListener.class)
                 .contextPath("/test").build());
         // Initialize the directory structure.
-        post("admin/init", null);
+        app = get("", Application.class);
+        Admin admin = get(app.getAdmin(), Admin.class);
+        post(admin.getInit(), null);
+        //resource().path("admin/init").type(MediaType.APPLICATION_JSON)
+        //        .post(ClientResponse.class).getLocation();
     }
 
     private WebResource makeResource(String path) {
@@ -61,11 +70,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return resource.uri(uri);
     }
 
-    private URI post(String path, Object entity) {
-        return makeResource(path).type(MediaType.APPLICATION_JSON)
-                .post(ClientResponse.class, entity).getLocation();
-    }
-
     private URI post(URI uri, Object entity) {
         return resource().uri(uri)
                 .type(MediaType.APPLICATION_JSON)
@@ -75,6 +79,10 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public <T> T get(String path, Class<T> clazz) {
         return makeResource(path).type(MediaType.APPLICATION_JSON).get(clazz);
+    }
+
+    public <T> T get(URI uri, Class<T> clazz) {
+        return resource().uri(uri).type(MediaType.APPLICATION_JSON).get(clazz);
     }
 
     @Override
@@ -102,27 +110,27 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     @Override
     public Tenant addTenant(Tenant t) {
-        URI uri = post("tenants", t);
-        return get(uri.getPath(), Tenant.class);
+        URI uri = post(app.getTenant(), t);
+        return get(uri, Tenant.class);
     }
 
     @Override
     public Router addRouter(URI tenantRoutersURI, Router r) {
         URI uri = post(tenantRoutersURI, r);
-        return get(uri.getPath(), Router.class);
+        return get(uri, Router.class);
     }
 
     @Override
     public MaterializedRouterPort addRouterPort(URI routerPortsURI,
             MaterializedRouterPort p) {
         URI uri = post(routerPortsURI, p);
-        return get(uri.getPath(), MaterializedRouterPort.class);
+        return get(uri, MaterializedRouterPort.class);
     }
 
     @Override
     public Route addRoute(URI routerURI, Route rt) {
         URI uri = post(routerURI, rt);
-        return get(uri.getPath(), Route.class);
+        return get(uri, Route.class);
     }
 
 }
