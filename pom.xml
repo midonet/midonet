@@ -125,6 +125,14 @@
                     <prefix>/etc/tomcat6/Catalina/localhost</prefix>
                   </mapper>
                 </data>
+                <data>
+                  <src>${project.basedir}/conf/log4j.xml</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/share/midolmanj-mgmt/WEB-INF/classes</prefix>
+                  </mapper>
+                </data>
               </dataSet>
             </configuration>
           </execution>
