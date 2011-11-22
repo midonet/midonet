@@ -106,18 +106,6 @@ public class RouterZkManager extends ZkManager {
         log.debug("Preparing to delete: " + snatBlockPath);
         ops.add(Op.delete(snatBlockPath, -1));
 
-        // Delete routing table
-        String routingTablePath = pathManager.getRouterRoutingTablePath(id);
-        Set<String> tableEntries = getChildren(routingTablePath, null);
-        for (String tableEntry : tableEntries) {
-            String path = pathManager.getRouterRoutingTablePath(id) + "/"
-                    + tableEntry;
-            log.debug("Preparing to delete: " + path);
-            ops.add(Op.delete(path, -1));
-        }
-        log.debug("Preparing to delete: " + routingTablePath);
-        ops.add(Op.delete(routingTablePath, -1));
-
         // Get chains delete ops.
         List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager.list(id);
         for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
@@ -146,6 +134,11 @@ public class RouterZkManager extends ZkManager {
         String portsPath = pathManager.getRouterPortsPath(id);
         log.debug("Preparing to delete: " + portsPath);
         ops.add(Op.delete(portsPath, -1));
+
+        // Delete routing table
+        String routingTablePath = pathManager.getRouterRoutingTablePath(id);
+        log.debug("Preparing to delete: " + routingTablePath);
+        ops.add(Op.delete(routingTablePath, -1));
 
         String routerPath = pathManager.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);
