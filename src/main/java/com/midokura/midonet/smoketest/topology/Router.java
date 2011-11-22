@@ -43,9 +43,8 @@ public class Router {
         return new VPortBuilder(ovsdb, mgmt, dto);
     }
 
-    public InterRouterLink.Builder addRouterLink() {
-        // TODO Auto-generated method stub
-        return null;
+    public PeerRouterLink.Builder addRouterLink() {
+        return new PeerRouterLink.Builder(mgmt, dto);
     }
 
     public void delete() {

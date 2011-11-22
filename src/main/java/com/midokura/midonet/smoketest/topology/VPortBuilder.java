@@ -92,20 +92,19 @@ public class VPortBuilder {
         DtoRoute rt = new DtoRoute();
         rt.setDstNetworkAddr(p.getLocalNetworkAddress());
         rt.setDstNetworkLength(p.getLocalNetworkLength());
-        rt.setRouterId(p.getDeviceId());
         rt.setSrcNetworkAddr("0.0.0.0");
         rt.setSrcNetworkLength(0);
         rt.setType(DtoRoute.Normal);
         rt.setNextHopPort(p.getId());
         rt.setWeight(10);
-        mgmt.addRoute(router, rt);
+        rt = mgmt.addRoute(router, rt);
         return p;
     }
 
     public TapPort buildTap() {
         DtoMaterializedRouterPort vport = buildVPort();
-        addOVSBridge();
         String portName = ovsPortName == null ? "tapPort1" : ovsPortName;
+        addOVSBridge();
         try {
             Process p = Runtime.getRuntime().exec(
                     String.format("sudo -n ip tuntap add dev %s mode tap",
@@ -133,8 +132,8 @@ public class VPortBuilder {
 
     public InternalPort buildInternal() {
         DtoMaterializedRouterPort vport = buildVPort();
-        addOVSBridge();
         String portName = ovsPortName == null ? "intPort1" : ovsPortName;
+        addOVSBridge();
         PortBuilder pBuilder = ovsdb.addInternalPort(ovsBridgeName, portName);
         pBuilder.externalId("midolman-vnet", vport.getId().toString());
         pBuilder.build();

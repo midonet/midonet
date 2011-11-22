@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midonet.smoketest.mgmt.DtoAdmin;
 import com.midokura.midonet.smoketest.mgmt.DtoApplication;
+import com.midokura.midonet.smoketest.mgmt.DtoLogicalRouterPort;
 import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoPeerRouterLink;
 import com.midokura.midonet.smoketest.mgmt.DtoRoute;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
 import com.midokura.midonet.smoketest.mgmt.DtoTenant;
@@ -121,6 +123,16 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
+    public DtoPeerRouterLink linkRouterToPeer(DtoRouter router,
+            DtoLogicalRouterPort logPort) {
+        return resource().uri(router.getPeerRouters())
+                .type(MediaType.APPLICATION_JSON)
+                .post(DtoPeerRouterLink.class, logPort);
+        //URI uri = post(router.getPeerRouters(), logPort);
+        //return get(uri, DtoPeerRouterLink.class);
+    }
+
+    @Override
     public DtoMaterializedRouterPort addRouterPort(DtoRouter r,
             DtoMaterializedRouterPort p) {
         URI uri = post(r.getPorts(), p);
@@ -132,5 +144,4 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         URI uri = post(r.getRoutes(), rt);
         return get(uri, DtoRoute.class);
     }
-
 }
