@@ -31,6 +31,7 @@ import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
 import com.midokura.midolman.state.NoStatePathException;
@@ -38,7 +39,7 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for tenants.
- * 
+ *
  * @version 1.6 07 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -52,7 +53,7 @@ public class TenantResource {
 
     /**
      * Router resource locator for tenants.
-     * 
+     *
      * @param id
      *            Tenant ID from the request.
      * @returns TenantRouterResource object to handle sub-resource requests.
@@ -64,7 +65,7 @@ public class TenantResource {
 
     /**
      * Bridge resource locator for tenants
-     * 
+     *
      * @param id
      *            Tenant ID from the request.
      * @returns TenantBridgeResource object to handle sub-resource requests.
@@ -76,7 +77,7 @@ public class TenantResource {
 
     /**
      * Handler for listing all the tenants.
-     * 
+     *
      * @param context
      *            Object that holds the security data.
      * @param uriInfo
@@ -119,7 +120,7 @@ public class TenantResource {
 
     /**
      * Handler for deleting a tenant.
-     * 
+     *
      * @param id
      *            Tenant ID from the request.
      * @param context
@@ -158,7 +159,7 @@ public class TenantResource {
 
     /**
      * Handler for creating a tenant.
-     * 
+     *
      * @param tenant
      *            Tenant object.
      * @param context

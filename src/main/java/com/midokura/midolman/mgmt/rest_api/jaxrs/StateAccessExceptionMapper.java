@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.rest_api.resources;
+package com.midokura.midolman.mgmt.rest_api.jaxrs;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -13,10 +13,19 @@ import javax.ws.rs.ext.Provider;
 import com.midokura.midolman.mgmt.data.dto.ErrorEntity;
 import com.midokura.midolman.state.StateAccessException;
 
+/**
+ * Data access exception class.
+ *
+ * @version 1.6 22 Nov 2011
+ * @author Ryu Ishimoto *
+ */
 @Provider
 public class StateAccessExceptionMapper implements
         ExceptionMapper<StateAccessException> {
 
+    /* (non-Javadoc)
+     * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
+     */
     @Override
     public Response toResponse(StateAccessException e) {
         ErrorEntity error = new ErrorEntity();

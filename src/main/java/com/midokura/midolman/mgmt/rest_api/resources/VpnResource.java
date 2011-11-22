@@ -33,12 +33,13 @@ import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for vpns.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -52,7 +53,7 @@ public class VpnResource {
 
     /**
      * Handler to getting VPN configuration record.
-     * 
+     *
      * @param id
      *            VPN ID from the request.
      * @param context
@@ -98,7 +99,7 @@ public class VpnResource {
 
     /**
      * Handler to deleting a VPN record.
-     * 
+     *
      * @param id
      *            VPN ID from the request.
      * @param context
@@ -144,7 +145,7 @@ public class VpnResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param portId
          *            ID of a port.
          */
@@ -160,7 +161,7 @@ public class VpnResource {
 
         /**
          * Handler to getting a list of VPN records.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -202,7 +203,7 @@ public class VpnResource {
 
         /**
          * Handler for creating a VPN record.
-         * 
+         *
          * @param chain
          *            VPN object.
          * @param uriInfo

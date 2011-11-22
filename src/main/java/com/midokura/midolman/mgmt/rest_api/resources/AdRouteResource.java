@@ -33,12 +33,13 @@ import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for advertising routes.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -52,7 +53,7 @@ public class AdRouteResource {
 
     /**
      * Handler to getting BGP advertised route.
-     * 
+     *
      * @param id
      *            Ad route ID from the request.
      * @param context
@@ -97,7 +98,7 @@ public class AdRouteResource {
 
     /**
      * Handler to deleting an advertised route.
-     * 
+     *
      * @param id
      *            AdRoute ID from the request.
      * @param context
@@ -143,7 +144,7 @@ public class AdRouteResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param bgpId
          *            ID of a BGP configuration record.
          */
@@ -159,7 +160,7 @@ public class AdRouteResource {
 
         /**
          * Handler to getting a list of BGP advertised routes.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -203,7 +204,7 @@ public class AdRouteResource {
 
         /**
          * Handler for creating BGP advertised route.
-         * 
+         *
          * @param chain
          *            AdRoute object.
          * @param uriInfo

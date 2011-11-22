@@ -34,6 +34,7 @@ import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
@@ -42,7 +43,7 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for ports.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -56,7 +57,7 @@ public class PortResource {
 
     /**
      * Port resource locator for BGP.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @returns PortBgpResource object to handle sub-resource requests.
@@ -68,7 +69,7 @@ public class PortResource {
 
     /**
      * Port resource locator for routes.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @returns PortRouteResource object to handle sub-resource requests.
@@ -80,7 +81,7 @@ public class PortResource {
 
     /**
      * Port resource locator for VPN.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @returns PortVpnResource object to handle sub-resource requests.
@@ -92,7 +93,7 @@ public class PortResource {
 
     /**
      * Handler to getting a port.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @param context
@@ -135,7 +136,7 @@ public class PortResource {
 
     /**
      * Handler to deleting a port.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @param context
@@ -180,7 +181,7 @@ public class PortResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param bridgeId
          *            UUID of a bridge.
          */
@@ -196,7 +197,7 @@ public class PortResource {
 
         /**
          * Handler to create a bridge port.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -241,7 +242,7 @@ public class PortResource {
 
         /**
          * Handler to list bridge ports.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -292,7 +293,7 @@ public class PortResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param routerId
          *            UUID of a router.
          */
@@ -308,7 +309,7 @@ public class PortResource {
 
         /**
          * Handler to create a router port.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -353,7 +354,7 @@ public class PortResource {
 
         /**
          * Handler to list router ports.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo

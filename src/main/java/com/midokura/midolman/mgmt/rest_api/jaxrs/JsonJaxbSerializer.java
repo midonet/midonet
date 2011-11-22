@@ -25,6 +25,15 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 import com.midokura.midolman.util.Serializer;
 
+/**
+ * JAXB serializer using Jackson JAXB annotation inspector.
+ *
+ * @version 1.6 22 Nov 2011
+ * @author Ryu Ishimoto
+ *
+ * @param <T>
+ *            Class type to serialize.
+ */
 public class JsonJaxbSerializer<T> implements Serializer<T> {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
@@ -39,6 +48,10 @@ public class JsonJaxbSerializer<T> implements Serializer<T> {
                 introspector);
     }
 
+    /* (non-Javadoc)
+     * @see com.midokura.midolman.util.Serializer#objToBytes(java.lang.Object)
+     */
+    @Override
     public byte[] objToBytes(T obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
@@ -49,6 +62,10 @@ public class JsonJaxbSerializer<T> implements Serializer<T> {
         return bos.toByteArray();
     }
 
+    /* (non-Javadoc)
+     * @see com.midokura.midolman.util.Serializer#bytesToObj(byte[], java.lang.Class)
+     */
+    @Override
     public T bytesToObj(byte[] data, Class<T> clazz) throws JsonParseException,
             IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);

@@ -12,14 +12,14 @@ import javax.ws.rs.core.Application;
 
 import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.InvalidStateOperationExceptionMapper;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
-import com.midokura.midolman.mgmt.rest_api.resources.InvalidStateOperationExceptionMapper;
-import com.midokura.midolman.mgmt.rest_api.resources.StateAccessExceptionMapper;
 
 /**
  * Jax-RS application class.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -36,7 +36,7 @@ public class RestApplication extends Application {
 
     /**
      * Get a set of root resource and provider classes.
-     * 
+     *
      * @return A list of Class objects.
      */
     @Override
@@ -52,7 +52,7 @@ public class RestApplication extends Application {
 
     /**
      * Get a set of root resource and provider instances.
-     * 
+     *
      * @return A list of singleton instances.
      */
     @Override

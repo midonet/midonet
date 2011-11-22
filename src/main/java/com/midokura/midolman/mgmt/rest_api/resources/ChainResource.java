@@ -33,13 +33,14 @@ import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.RuleResource.ChainRuleResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for chains.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -50,7 +51,7 @@ public class ChainResource {
 
     /**
      * Rule resource locator for chains.
-     * 
+     *
      * @param id
      *            Chain ID from the request.
      * @returns ChainRuleResource object to handle sub-resource requests.
@@ -62,7 +63,7 @@ public class ChainResource {
 
     /**
      * Handler to getting a chain.
-     * 
+     *
      * @param id
      *            Chain ID from the request.
      * @param context
@@ -106,7 +107,7 @@ public class ChainResource {
 
     /**
      * Handler to deleting a chain.
-     * 
+     *
      * @param id
      *            Chain ID from the request.
      * @param context
@@ -152,7 +153,7 @@ public class ChainResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param routerId
          *            ID of a router.
          */
@@ -162,7 +163,7 @@ public class ChainResource {
 
         /**
          * Chain resource locator for router.
-         * 
+         *
          * @param id
          *            Chain ID from the request.
          * @returns RouterTableChainResource object to handle sub-resource
@@ -185,7 +186,7 @@ public class ChainResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param routerId
          *            ID of a router.
          * @param table
@@ -204,7 +205,7 @@ public class ChainResource {
 
         /**
          * Handler to list chains.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -246,7 +247,7 @@ public class ChainResource {
 
         /**
          * Handler to getting a chain.
-         * 
+         *
          * @param name
          *            Chain name from the request.
          * @param context
@@ -298,7 +299,7 @@ public class ChainResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param routerId
          *            ID of a router.
          */
@@ -314,7 +315,7 @@ public class ChainResource {
 
         /**
          * Handler for creating a router chain.
-         * 
+         *
          * @param chain
          *            Chain object.
          * @param uriInfo
@@ -359,7 +360,7 @@ public class ChainResource {
 
         /**
          * Handler to getting a collection of chains.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo

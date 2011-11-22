@@ -33,12 +33,13 @@ import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.dto.Vif;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for VIFs.
- * 
+ *
  * @version 1.6 24 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -64,7 +65,7 @@ public class VifResource {
 
     /**
      * Handler to create a VIF.
-     * 
+     *
      * @param context
      *            Object that holds the security data.
      * @param uriInfo
@@ -108,7 +109,7 @@ public class VifResource {
 
     /**
      * Handler to getting a VIF.
-     * 
+     *
      * @param id
      *            VIF ID from the request.
      * @param context
@@ -152,7 +153,7 @@ public class VifResource {
 
     /**
      * Handler to deleting a VIF.
-     * 
+     *
      * @param id
      *            VIF ID from the request.
      * @param context
@@ -192,7 +193,7 @@ public class VifResource {
 
     /**
      * Handler to list VIFs.
-     * 
+     *
      * @param context
      *            Object that holds the security data.
      * @param uriInfo

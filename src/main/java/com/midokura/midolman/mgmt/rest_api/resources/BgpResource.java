@@ -33,13 +33,14 @@ import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource.BgpAdRouteResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for bgps.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -53,7 +54,7 @@ public class BgpResource {
 
     /**
      * Advertising route resource locator for chains.
-     * 
+     *
      * @param id
      *            BGP ID from the request.
      * @returns BgpAdRouteResource object to handle sub-resource requests.
@@ -65,7 +66,7 @@ public class BgpResource {
 
     /**
      * Handler to getting BGP.
-     * 
+     *
      * @param id
      *            BGP ID from the request.
      * @param context
@@ -110,7 +111,7 @@ public class BgpResource {
 
     /**
      * Handler to deleting BGP.
-     * 
+     *
      * @param id
      *            BGP ID from the request.
      * @param context
@@ -155,7 +156,7 @@ public class BgpResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param portId
          *            ID of a port.
          */
@@ -171,7 +172,7 @@ public class BgpResource {
 
         /**
          * Handler to getting a list of BGPs.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -213,7 +214,7 @@ public class BgpResource {
 
         /**
          * Handler for creating BGP.
-         * 
+         *
          * @param chain
          *            BGP object.
          * @param uriInfo

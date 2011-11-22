@@ -33,13 +33,14 @@ import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Root resource class for ports.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -53,7 +54,7 @@ public class RouteResource {
 
     /**
      * Handler to getting a route.
-     * 
+     *
      * @param id
      *            Route ID from the request.
      * @param context
@@ -97,7 +98,7 @@ public class RouteResource {
 
     /**
      * Handler to deleting a route.
-     * 
+     *
      * @param id
      *            Route ID from the request.
      * @param context
@@ -142,7 +143,7 @@ public class RouteResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param UUID
          *            routerId ID of a router.
          */
@@ -159,7 +160,7 @@ public class RouteResource {
 
         /**
          * Handler to list routes.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -202,7 +203,7 @@ public class RouteResource {
 
         /**
          * Handler for creating a router route.
-         * 
+         *
          * @param router
          *            Route object.
          * @param uriInfo
@@ -257,7 +258,7 @@ public class RouteResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param portId
          *            ID of a port.
          */
@@ -274,7 +275,7 @@ public class RouteResource {
 
         /**
          * Return a list of routes.
-         * 
+         *
          * @return A list of Route objects.
          * @throws StateAccessException
          * @throws UnauthorizedException

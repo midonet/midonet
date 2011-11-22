@@ -33,13 +33,14 @@ import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePortResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for Virtual bridges.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -53,7 +54,7 @@ public class BridgeResource {
 
     /**
      * Port resource locator for bridges.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @returns BridgePortResource object to handle sub-resource requests.
@@ -65,7 +66,7 @@ public class BridgeResource {
 
     /**
      * Handler to getting a bridge.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @param context
@@ -110,7 +111,7 @@ public class BridgeResource {
 
     /**
      * Handler to updating a bridge.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @param bridge
@@ -153,7 +154,7 @@ public class BridgeResource {
 
     /**
      * Handler to deleting a bridge.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @param context
@@ -198,7 +199,7 @@ public class BridgeResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param tenantId
          *            UUID of a tenant.
          */
@@ -208,7 +209,7 @@ public class BridgeResource {
 
         /**
          * Handler to list tenant bridges.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -252,7 +253,7 @@ public class BridgeResource {
 
         /**
          * Handler for creating a tenant bridge.
-         * 
+         *
          * @param bridge
          *            Bridge object.
          * @param context

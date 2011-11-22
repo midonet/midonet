@@ -18,12 +18,18 @@ import com.midokura.midolman.mgmt.data.dto.Application;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 
+/**
+ * The top application resource class.
+ *
+ * @version 1.6 15 Nov 2011
+ * @author Ryu Ishimoto
+ */
 @Path(UriManager.ROOT)
 public class ApplicationResource {
 
     /**
      * Admin resource locator.
-     * 
+     *
      * @returns AdminResource object to handle sub-resource requests.
      */
     @Path(UriManager.ADMIN)
@@ -33,7 +39,7 @@ public class ApplicationResource {
 
     /**
      * Tenant resource locator.
-     * 
+     *
      * @returns TenantResource object to handle sub-resource requests.
      */
     @Path(UriManager.TENANTS)
@@ -43,7 +49,7 @@ public class ApplicationResource {
 
     /**
      * Router resource locator.
-     * 
+     *
      * @returns RouterResource object to handle sub-resource requests.
      */
     @Path(UriManager.ROUTERS)
@@ -53,7 +59,7 @@ public class ApplicationResource {
 
     /**
      * Bridge resource locator.
-     * 
+     *
      * @returns BridgeResource object to handle sub-resource requests.
      */
     @Path(UriManager.BRIDGES)
@@ -63,7 +69,7 @@ public class ApplicationResource {
 
     /**
      * Port resource locator.
-     * 
+     *
      * @returns PortResource object to handle sub-resource requests.
      */
     @Path(UriManager.PORTS)
@@ -73,7 +79,7 @@ public class ApplicationResource {
 
     /**
      * VIF resource locator.
-     * 
+     *
      * @returns VifResource object to handle sub-resource requests.
      */
     @Path(UriManager.VIFS)
@@ -83,7 +89,7 @@ public class ApplicationResource {
 
     /**
      * Route resource locator.
-     * 
+     *
      * @returns RouteResource object to handle sub-resource requests.
      */
     @Path(UriManager.ROUTES)
@@ -93,7 +99,7 @@ public class ApplicationResource {
 
     /**
      * Chain resource locator.
-     * 
+     *
      * @returns ChainResource object to handle sub-resource requests.
      */
     @Path(UriManager.CHAINS)
@@ -103,7 +109,7 @@ public class ApplicationResource {
 
     /**
      * Rule resource locator.
-     * 
+     *
      * @returns RuleResource object to handle sub-resource requests.
      */
     @Path(UriManager.RULES)
@@ -113,7 +119,7 @@ public class ApplicationResource {
 
     /**
      * BGP resource locator.
-     * 
+     *
      * @returns BgpResource object to handle sub-resource requests.
      */
     @Path(UriManager.BGP)
@@ -123,7 +129,7 @@ public class ApplicationResource {
 
     /**
      * Ad route resource locator.
-     * 
+     *
      * @returns AdRouteResource object to handle sub-resource requests.
      */
     @Path(UriManager.AD_ROUTES)
@@ -133,7 +139,7 @@ public class ApplicationResource {
 
     /**
      * Handler for getting root application resources.
-     * 
+     *
      * @param uriInfo
      *            Object that holds the request URI data.
      * @throws InvalidConfigException

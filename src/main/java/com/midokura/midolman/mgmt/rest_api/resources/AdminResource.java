@@ -25,11 +25,12 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.AdminDao;
 import com.midokura.midolman.mgmt.data.dto.Admin;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for admin.
- * 
+ *
  * @version 1.6 15 Nov 2011
  * @author Ryu Ishimoto
  */
@@ -42,7 +43,7 @@ public class AdminResource {
 
     /**
      * Handler for getting administrative resource.
-     * 
+     *
      * @param uriInfo
      *            Object that holds the request URI data.
      * @throws InvalidConfigException
@@ -58,7 +59,7 @@ public class AdminResource {
 
     /**
      * Handler for initializing data storage.
-     * 
+     *
      * @param context
      *            Object that holds the security data.
      * @param daoFactory

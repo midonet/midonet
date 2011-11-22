@@ -33,13 +33,14 @@ import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for rules.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -50,7 +51,7 @@ public class RuleResource {
 
     /**
      * Handler to getting a rule.
-     * 
+     *
      * @param id
      *            Rule ID from the request.
      * @param context
@@ -93,7 +94,7 @@ public class RuleResource {
 
     /**
      * Handler to deleting a rule.
-     * 
+     *
      * @param id
      *            Rule ID from the request.
      * @param context
@@ -138,7 +139,7 @@ public class RuleResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param chainId
          *            ID of a chain.
          */
@@ -154,7 +155,7 @@ public class RuleResource {
 
         /**
          * Handler to list chain rules.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -197,7 +198,7 @@ public class RuleResource {
 
         /**
          * Handler for creating a chain rule.
-         * 
+         *
          * @param router
          *            Rule object.
          * @param uriInfo

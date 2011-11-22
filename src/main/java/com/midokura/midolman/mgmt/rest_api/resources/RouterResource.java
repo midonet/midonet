@@ -35,6 +35,7 @@ import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterChainResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.RouterTableResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPortResource;
@@ -44,7 +45,7 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for Virtual Router.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -58,7 +59,7 @@ public class RouterResource {
 
     /**
      * Port resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterPortResource object to handle sub-resource requests.
@@ -70,7 +71,7 @@ public class RouterResource {
 
     /**
      * Route resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterRouteResource object to handle sub-resource requests.
@@ -82,7 +83,7 @@ public class RouterResource {
 
     /**
      * Chain resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterChainResource object to handle sub-resource requests.
@@ -94,7 +95,7 @@ public class RouterResource {
 
     /**
      * Chain table resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterTableResource object to handle sub-resource requests.
@@ -106,7 +107,7 @@ public class RouterResource {
 
     /**
      * Router resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterRouterResource object to handle sub-resource requests.
@@ -118,7 +119,7 @@ public class RouterResource {
 
     /**
      * Handler to getting a router.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @param context
@@ -162,7 +163,7 @@ public class RouterResource {
 
     /**
      * Handler to updating a router.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @param router
@@ -206,7 +207,7 @@ public class RouterResource {
 
     /**
      * Handler to deleting a router.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @param context
@@ -251,7 +252,7 @@ public class RouterResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param tenantId
          *            ID of a tenant.
          */
@@ -261,7 +262,7 @@ public class RouterResource {
 
         /**
          * Handler to list tenant routers.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -305,7 +306,7 @@ public class RouterResource {
 
         /**
          * Handler for creating a tenant router.
-         * 
+         *
          * @param router
          *            Router object.
          * @param uriInfo
@@ -358,7 +359,7 @@ public class RouterResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param routerId
          *            ID of a router.
          */
@@ -368,7 +369,7 @@ public class RouterResource {
 
         /**
          * Handler for creating a router to router link.
-         * 
+         *
          * @param port
          *            LogicalRouterPort object.
          * @param uriInfo
@@ -420,7 +421,7 @@ public class RouterResource {
 
         /**
          * Handler to deleting a router link.
-         * 
+         *
          * @param peerId
          *            Peer router ID from the request.
          * @param context
@@ -457,7 +458,7 @@ public class RouterResource {
 
         /**
          * Handler to getting a router to router link.
-         * 
+         *
          * @param id
          *            Peer router ID from the request.
          * @param context
@@ -503,7 +504,7 @@ public class RouterResource {
 
         /**
          * Handler to list router links.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
