@@ -1,4 +1,11 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 package com.midokura.midonet.smoketest;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -6,6 +13,8 @@ import org.junit.Test;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.topology.InterRouterLink;
 import com.midokura.midonet.smoketest.topology.InternalPort;
@@ -22,6 +31,7 @@ public class SmokeTest2 {
     static TapPort tapPort;
     static InternalPort internalPort;
     static OpenvSwitchDatabaseConnection ovsdb;
+    static PacketHelper helper;
 
     @BeforeClass
     public static void setUp() {
@@ -32,6 +42,7 @@ public class SmokeTest2 {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         tapPort = router1.addPort(ovsdb).setDestination("192.168.100.2")
                 .buildTap();
+        helper = new PacketHelper(tapPort.getInnerMAC(), "192.168.100.2");
 
         tenant2 = new Tenant.Builder(mgmt).setName("tenant2").build();
         Router router2 = tenant2.addRouter().setName("rtr1").build();
@@ -60,11 +71,51 @@ public class SmokeTest2 {
 
     @Test
     public void testDhcpClient() {
+        // Send the DHCP Discover
+        byte[] request = helper.makeDhcpDiscover();
+        assertTrue(tapPort.send(request));
+        byte[] reply = tapPort.recv();
+        helper.checkDhcpOffer(request, reply, "192.168.100.2");
 
+        // Send the DHCP Request
+        request = helper.makeDhcpRequest(reply);
+        assertTrue(tapPort.send(request));
+        helper.checkDhcpAck(request, tapPort.recv());
     }
 
     @Test
     public void testPingTapToInternal() {
-        tapPort.sendICMP("192.168.100.1");
+        /* Ping my router's port, then ping the peer port. */
+
+        // Note: the router port's own MAC is the tap's hwAddr.
+        MAC rtr_mac = tapPort.getOuterMAC();
+        IntIPv4 rtr_ip = IntIPv4.fromString("192.168.100.1");
+
+        // First arp for router's mac.
+        byte[] request = helper.makeArpRequest(rtr_ip);
+        assertTrue(tapPort.send(request));
+        byte[] reply = tapPort.recv();
+        helper.checkArpReply(request, reply, rtr_mac);
+
+        // Ping router's port.
+        request = helper.makeIcmpEchoRequest(rtr_mac, rtr_ip);
+        assertTrue(tapPort.send(request));
+        // Note: Midolman's virtual router currently does not ARP before
+        // responding to ICMP echo requests addressed to its own port.
+        helper.checkIcmpEchoReply(request, tapPort.recv());
+
+        // Ping peer port.
+        IntIPv4 peer_ip = IntIPv4.fromString("192.168.101.2");
+        request = helper.makeIcmpEchoRequest(rtr_mac, peer_ip);
+        assertTrue(tapPort.send(request));
+        // Note: the virtual router ARPs before delivering the packet.
+        byte[] arp = tapPort.recv();
+        helper.checkArpRequest(arp, rtr_mac, rtr_ip);
+        assertTrue(tapPort.send(helper.makeArpReply(rtr_mac, rtr_ip)));
+        // Finally, the icmp echo reply from the peer.
+        helper.checkIcmpEchoReply(request, tapPort.recv());
+
+        // No other packets arrive at the port.
+        assertNull(tapPort.recv());
     }
 }

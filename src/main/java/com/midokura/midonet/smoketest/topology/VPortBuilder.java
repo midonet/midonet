@@ -17,6 +17,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.util.Net;
 import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
@@ -87,7 +88,18 @@ public class VPortBuilder {
     }
 
     private DtoMaterializedRouterPort buildVPort() {
-        return mgmt.addRouterPort(router, port);
+        DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
+        DtoRoute rt = new DtoRoute();
+        rt.setDstNetworkAddr(p.getLocalNetworkAddress());
+        rt.setDstNetworkLength(p.getLocalNetworkLength());
+        rt.setRouterId(p.getDeviceId());
+        rt.setSrcNetworkAddr("0.0.0.0");
+        rt.setSrcNetworkLength(0);
+        rt.setType(DtoRoute.Normal);
+        rt.setNextHopPort(p.getId());
+        rt.setWeight(10);
+        mgmt.addRoute(router, rt);
+        return p;
     }
 
     public TapPort buildTap() {
