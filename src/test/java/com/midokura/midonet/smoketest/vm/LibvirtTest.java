@@ -3,8 +3,11 @@
  */
 package com.midokura.midonet.smoketest.vm;
 
-import com.midokura.midonet.smoketest.utils.Tap;
+import com.midokura.tools.process.DrainTargets;
+import com.midokura.tools.process.ProcessOutputDrainer;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.midokura.tools.hamcrest.RegexMatcher.matchesRegex;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,6 +22,8 @@ import static org.hamcrest.Matchers.notNullValue;
  * Time: 2:38 PM
  */
 public class LibvirtTest extends AbstractLibvirtTest {
+
+    private final static Logger log = LoggerFactory.getLogger(LibvirtTest.class);
 
     @Test
     public void testDomainCreation() throws Exception {
@@ -121,5 +126,41 @@ public class LibvirtTest extends AbstractLibvirtTest {
         // just destroy the domain
         firstVm.destroy();
         secondVm.destroy();
+    }
+
+    @Test
+    public void testBindToTapDevice() throws Exception {
+
+        String portName = "customTapPort";
+
+        // create a tap port
+        runCommandAndWait(
+                String.format("sudo -n ip tuntap add dev %s mode tap", portName));
+
+        // set link up to that port
+        runCommandAndWait(
+                String.format("sudo -n ip link set dev %s up", portName));
+
+        libvirtHandler.setTemplate("basic_template_x86_64");
+
+        VMController vm =
+                libvirtHandler.newDomain()
+                    .setDomainName("test_tap_bind")
+                    .setNetworkDevice(portName)
+                    .build();
+        try {
+            vm.startup();
+            assertThat("The domain should be running after starting up", vm.isRunning(), equalTo(true));
+        } finally {
+            vm.destroy();
+        }
+    }
+
+    protected void runCommandAndWait(String command) throws Exception {
+        Process p = Runtime.getRuntime().exec(command);
+        new ProcessOutputDrainer(p, true).drainOutput(DrainTargets.slf4jTarget(log, command));
+        p.waitFor();
+
+        log.debug("\"{}\" returned: {}", command, p.exitValue());
     }
 }

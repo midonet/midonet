@@ -10,6 +10,8 @@ import org.libvirt.Connect;
 import org.libvirt.Domain;
 import org.libvirt.DomainInfo;
 import org.libvirt.LibvirtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -33,6 +35,8 @@ import static com.midokura.midonet.smoketest.vm.libvirt.LibvirtUtils.uriForHyper
  * Time: 10:06 AM
  */
 public class DomainController implements VMController {
+
+    private final static Logger log = LoggerFactory.getLogger(DomainController.class);
 
     Domain domain;
     private String hostName;
@@ -180,7 +184,7 @@ public class DomainController implements VMController {
             }
 
         } catch (LibvirtException ex) {
-            ex.printStackTrace();
+            log.error("Exception while working with a Domain: ", ex);
         }
 
         return null;
