@@ -17,9 +17,25 @@
   </appender>
 
   <root> 
-    <priority value ="debug" /> 
+    <priority value ="info" /> 
     <appender-ref ref="console" />
     <appender-ref ref="file" />
   </root>
-  
+
+  <logger name="com.midokura.midolman.mgmt.auth"> 
+    <level value="info"/>  
+  </logger> 
+   
+  <logger name="com.midokura.midolman.mgmt.data"> 
+    <level value="info"/>  
+  </logger> 
+   
+  <logger name="com.midokura.midolman.mgmt.rest_api"> 
+    <level value="info"/>  
+  </logger> 
+   
+  <logger name="com.midokura.midolman.mgmt.servlet"> 
+    <level value="info"/>  
+  </logger> 
+   
 </log4j:configuration>
