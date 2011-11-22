@@ -17,7 +17,7 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Data transfer class for logical router port.
- * 
+ *
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -110,6 +110,7 @@ public class LogicalRouterPort extends RouterPort {
         return link;
     }
 
+    @Override
     public ZkNodeEntry<UUID, PortConfig> toZkNode() {
         return new ZkNodeEntry<UUID, PortConfig>(this.getId(), toConfig());
     }

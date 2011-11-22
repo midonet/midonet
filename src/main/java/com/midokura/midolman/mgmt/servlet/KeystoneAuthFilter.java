@@ -30,7 +30,7 @@ import com.midokura.midolman.mgmt.auth.TenantUser;
 
 /**
  * Servlet filter for Keystone authentication.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -93,7 +93,7 @@ public final class KeystoneAuthFilter implements Filter {
     /**
      * Called by the web container to indicate to a filter that it is being
      * placed into service.
-     * 
+     *
      * @param filterConfig
      *            A filter configuration object used by a servlet servlet
      *            container to pass information to a filter during
@@ -101,6 +101,7 @@ public final class KeystoneAuthFilter implements Filter {
      * @throws ServletException
      *             A servlet error.
      */
+    @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         // Initialize member variables.
         log.debug("Initializing KeystoneAuthFilter.");
@@ -116,7 +117,7 @@ public final class KeystoneAuthFilter implements Filter {
      * Called by the container each time a request/response pair is passed
      * through the chain due to a client request for a resource at the end of
      * the chain.
-     * 
+     *
      * @param request
      *            Request passed along the chain.
      * @param response
@@ -128,6 +129,7 @@ public final class KeystoneAuthFilter implements Filter {
      * @throws ServletException
      *             A servlet error.
      */
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         // Ask the Keystone server if the token is valid.
@@ -165,6 +167,7 @@ public final class KeystoneAuthFilter implements Filter {
      * Called by the web container to indicate to a filter that it is being
      * taken out of service.
      */
+    @Override
     public void destroy() {
         log.debug("Destroying KeystoneAuthFilter resources.");
         // Reset all the member variables.

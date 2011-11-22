@@ -28,7 +28,7 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Class representing rule.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */

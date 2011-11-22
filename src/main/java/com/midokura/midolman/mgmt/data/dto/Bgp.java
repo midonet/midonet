@@ -17,7 +17,7 @@ import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
  * Class representing BGP.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -32,7 +32,7 @@ public class Bgp extends UriResource {
 
     /**
      * Get BGP ID.
-     * 
+     *
      * @return BGP ID.
      */
     public UUID getId() {
@@ -41,7 +41,7 @@ public class Bgp extends UriResource {
 
     /**
      * Set BGP ID.
-     * 
+     *
      * @param id
      *            ID of the BGP.
      */
@@ -51,7 +51,7 @@ public class Bgp extends UriResource {
 
     /**
      * Get BGP localAS.
-     * 
+     *
      * @return BGP localAS.
      */
     public int getLocalAS() {
@@ -60,7 +60,7 @@ public class Bgp extends UriResource {
 
     /**
      * Set BGP localAS.
-     * 
+     *
      * @param localAS
      *            localAS of the BGP.
      */
@@ -70,7 +70,7 @@ public class Bgp extends UriResource {
 
     /**
      * Get peer address.
-     * 
+     *
      * @return peer address.
      */
     public String getPeerAddr() {
@@ -79,7 +79,7 @@ public class Bgp extends UriResource {
 
     /**
      * Set peer address.
-     * 
+     *
      * @param peerAddr
      *            Address of the peer.
      */
@@ -89,7 +89,7 @@ public class Bgp extends UriResource {
 
     /**
      * Get BGP peerAS.
-     * 
+     *
      * @return BGP peerAS.
      */
     public int getPeerAS() {
@@ -98,7 +98,7 @@ public class Bgp extends UriResource {
 
     /**
      * Set BGP peerAS.
-     * 
+     *
      * @param peerAS
      *            peerAS of the BGP.
      */
@@ -108,7 +108,7 @@ public class Bgp extends UriResource {
 
     /**
      * Get port ID.
-     * 
+     *
      * @return Port ID.
      */
     public UUID getPortId() {
@@ -117,7 +117,7 @@ public class Bgp extends UriResource {
 
     /**
      * Set port ID.
-     * 
+     *
      * @param portId
      *            Port ID of the BGP.
      */

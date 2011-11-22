@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * JSON parser for Keystone response.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -37,7 +37,7 @@ public final class KeystoneJsonParser {
 
     /**
      * Parse the Keystone JSON string.
-     * 
+     *
      * @param src
      *            JSON string to parse.
      * @throws IOException

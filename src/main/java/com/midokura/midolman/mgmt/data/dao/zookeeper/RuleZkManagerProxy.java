@@ -21,7 +21,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Data access class for rules.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -32,7 +32,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
 
     /**
      * Constructor
-     * 
+     *
      * @param zkConn
      *            Zookeeper connection string
      */
@@ -43,7 +43,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
 
     /**
      * Add rule object to Zookeeper directories.
-     * 
+     *
      * @param rule
      *            Rule object to add.
      * @throws StateAccessException
@@ -65,7 +65,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
 
     /**
      * Get a Rule for the given ID.
-     * 
+     *
      * @param id
      *            Rule ID to search.
      * @return Rule object with the given ID.
@@ -81,7 +81,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
 
     /**
      * Get a list of rules for a chain.
-     * 
+     *
      * @param chainId
      *            UUID of chain.
      * @return A Set of Rules

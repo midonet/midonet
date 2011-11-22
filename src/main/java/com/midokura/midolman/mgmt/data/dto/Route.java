@@ -16,7 +16,7 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Class representing route.
- * 
+ *
  * @version 1.6 10 Sept 2011
  * @author Ryu Ishimoto
  */

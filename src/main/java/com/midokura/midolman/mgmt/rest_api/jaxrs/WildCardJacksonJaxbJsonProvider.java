@@ -13,7 +13,7 @@ import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
 /**
  * JacksonJaxbJsonProvider that consumes and produces wildcard media types.
- * 
+ *
  * @version 1.6 11 Nov 2011
  * @author Ryu Ishimoto
  */

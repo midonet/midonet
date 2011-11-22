@@ -12,8 +12,8 @@ import java.util.List;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
 
 public class InitZkDirectories {
 
@@ -39,7 +39,7 @@ public class InitZkDirectories {
          * // TODO: Do better arg checking if (args.length != 2) { throw new
          * IllegalArgumentException( "Usage: InitZkDirectorires <API url>"); }
          * String url = args[0]; String token = args[1];
-         * 
+         *
          * Client client = Client.create(); WebResource webResource =
          * client.resource(url + "/admin/init"); ClientResponse response =
          * webResource.type(MediaType.APPLICATION_JSON) .header(tokenHeader,

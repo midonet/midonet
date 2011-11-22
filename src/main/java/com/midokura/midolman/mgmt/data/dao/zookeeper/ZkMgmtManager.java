@@ -14,7 +14,7 @@ import com.midokura.midolman.util.Serializer;
 
 /**
  * Abstract base class for MgmtZkManager.
- * 
+ *
  * @version 1.6 20 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -24,7 +24,7 @@ public class ZkMgmtManager extends ZkManager {
 
     /**
      * Constructor.
-     * 
+     *
      * @param zk
      *            ZooKeeper object.
      * @param basePath

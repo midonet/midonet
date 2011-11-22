@@ -12,7 +12,7 @@ import com.midokura.midolman.state.ZkBasePathManager;
 /**
  * This class was created to have all state classes share the Zk path
  * information.
- * 
+ *
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -20,7 +20,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Constructor.
-     * 
+     *
      * @param basePath
      *            Base path of Zk.
      */
@@ -30,7 +30,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get VIF path.
-     * 
+     *
      * @return /vifs
      */
     public String getVifsPath() {
@@ -39,7 +39,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get VIF path.
-     * 
+     *
      * @return /vifs/vifId
      */
     public String getVifPath(UUID vifId) {
@@ -49,7 +49,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant path.
-     * 
+     *
      * @return /tenants
      */
     public String getTenantsPath() {
@@ -58,7 +58,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant path.
-     * 
+     *
      * @param id
      *            Tenant ID
      * @return /tenants/tenantId
@@ -70,7 +70,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant router path.
-     * 
+     *
      * @param tenantId
      *            Tenant ID
      * @return /tenants/tenantId/routers
@@ -82,7 +82,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant router path.
-     * 
+     *
      * @param tenantId
      *            Tenant UUID
      * @param routerId
@@ -96,7 +96,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant bridge path.
-     * 
+     *
      * @param tenantId
      *            Tenant UUID
      * @return /tenants/tenantId/bridges
@@ -108,7 +108,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant bridge path.
-     * 
+     *
      * @param tenantId
      *            Tenant UUID
      * @param routerId
@@ -122,7 +122,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant bridge names path.
-     * 
+     *
      * @return /tenants/tenantId/bridge-names
      */
     public String getTenantBridgeNamesPath(String tenantId) {
@@ -132,7 +132,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant bridge name path.
-     * 
+     *
      * @return /tenants/tenantId/bridge-names/name
      */
     public String getTenantBridgeNamePath(String tenantId, String name) {
@@ -142,7 +142,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant router names path.
-     * 
+     *
      * @return /tenants/tenantId/router-names
      */
     public String getTenantRouterNamesPath(String tenantId) {
@@ -152,7 +152,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK tenant router name path.
-     * 
+     *
      * @return /tenants/tenantId/router-names/name
      */
     public String getTenantRouterNamePath(String tenantId, String name) {
@@ -162,7 +162,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router path.
-     * 
+     *
      * @return /routers
      */
     public String getRoutersPath() {
@@ -171,7 +171,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId
@@ -183,7 +183,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router peer router path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/routers
@@ -195,7 +195,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router peer router path.
-     * 
+     *
      * @param routerId
      *            Router UUID
      * @return /routers/routerId/routers/routerId
@@ -207,7 +207,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK port path.
-     * 
+     *
      * @return /ports
      */
     public String getPortsPath() {
@@ -216,7 +216,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK port path.
-     * 
+     *
      * @param id
      *            Port ID.
      * @return /ports/portId
@@ -228,7 +228,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK bridges path.
-     * 
+     *
      * @return /birdges
      */
     public String getBridgesPath() {
@@ -237,7 +237,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK bridge path.
-     * 
+     *
      * @param id
      *            Bridge UUID
      * @return /bridges/bridgeId
@@ -249,7 +249,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router tables path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId/tables
@@ -261,7 +261,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router tables path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId/tables/table_name
@@ -273,7 +273,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router table chains path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chains
@@ -285,7 +285,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router router table chain path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chains/chainId
@@ -298,7 +298,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router router table chain names path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chain-names
@@ -310,7 +310,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK router router table chain path.
-     * 
+     *
      * @param id
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chain-names/chainName
@@ -323,7 +323,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK chains path.
-     * 
+     *
      * @return /chains
      */
     public String getChainsPath() {
@@ -332,7 +332,7 @@ public class ZkMgmtPathManager extends ZkBasePathManager {
 
     /**
      * Get ZK chain path.
-     * 
+     *
      * @return /chains/chainId
      */
     public String getChainPath(UUID id) {

@@ -20,6 +20,7 @@ public class NoAuthorizer implements SecurityContext {
 
     public NoAuthorizer() {
         principal = new Principal() {
+            @Override
             public String getName() {
                 return "Mock";
             }
@@ -41,17 +42,17 @@ public class NoAuthorizer implements SecurityContext {
         return true;
     }
 
-//     public void setTenantUser(TenantUser tenantUser) {
-//         this.tenantUser = tenantUser;
-//     }
+    // public void setTenantUser(TenantUser tenantUser) {
+    // this.tenantUser = tenantUser;
+    // }
 
-//     public TenantUser getTenantUser() {
-//         return tenantUser;
-//     }
+    // public TenantUser getTenantUser() {
+    // return tenantUser;
+    // }
 
     @Override
     public String getAuthenticationScheme() {
-        //return "Keystone";
+        // return "Keystone";
         return "Mock";
     }
 }

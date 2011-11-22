@@ -16,7 +16,7 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Class representing Virtual Bridge.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -29,7 +29,7 @@ public class Bridge extends UriResource {
 
     /**
      * Get bridge ID.
-     * 
+     *
      * @return Bridge ID.
      */
     public UUID getId() {
@@ -38,7 +38,7 @@ public class Bridge extends UriResource {
 
     /**
      * Set bridge ID.
-     * 
+     *
      * @param id
      *            ID of the bridge.
      */
@@ -48,7 +48,7 @@ public class Bridge extends UriResource {
 
     /**
      * Get bridge name.
-     * 
+     *
      * @return Bridge name.
      */
     public String getName() {
@@ -57,7 +57,7 @@ public class Bridge extends UriResource {
 
     /**
      * Set bridge name.
-     * 
+     *
      * @param name
      *            Name of the bridge.
      */
@@ -67,7 +67,7 @@ public class Bridge extends UriResource {
 
     /**
      * Get tenant ID.
-     * 
+     *
      * @return Tenant ID.
      */
     public String getTenantId() {
@@ -76,7 +76,7 @@ public class Bridge extends UriResource {
 
     /**
      * Set tenant ID.
-     * 
+     *
      * @param tenantId
      *            Tenant ID of the bridge.
      */
@@ -101,7 +101,7 @@ public class Bridge extends UriResource {
 
     /**
      * Convert this object to BridgeMgmtConfig object.
-     * 
+     *
      * @return BridgeMgmtConfig object.
      */
     public BridgeMgmtConfig toMgmtConfig() {
@@ -110,7 +110,7 @@ public class Bridge extends UriResource {
 
     /**
      * Convert BridgeMgmtConfig object to Bridge object.
-     * 
+     *
      * @param id
      *            ID of the object.
      * @param config
@@ -127,7 +127,7 @@ public class Bridge extends UriResource {
 
     /**
      * Convert this object to BridgeNameMgmtConfig object.
-     * 
+     *
      * @return BridgeNameMgmtConfig object.
      */
     public BridgeNameMgmtConfig toNameMgmtConfig() {

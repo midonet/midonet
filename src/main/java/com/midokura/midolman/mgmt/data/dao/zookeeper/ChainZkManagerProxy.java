@@ -380,6 +380,7 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         return listNatChains(routerId);
     }
 
+    @Override
     public Chain get(UUID routerId, String table, String name)
             throws StateAccessException {
         String namePath = mgmtPathManager.getRouterTableChainNamePath(routerId,

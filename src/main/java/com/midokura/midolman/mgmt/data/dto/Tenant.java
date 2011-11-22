@@ -13,7 +13,7 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Tenant DTO.
- * 
+ *
  * @version 1.6 20 Nov 2011
  * @author Ryu Ishimoto
  */
@@ -24,7 +24,7 @@ public class Tenant extends UriResource {
 
     /**
      * Get tenant ID.
-     * 
+     *
      * @return Tenant ID.
      */
     public String getId() {
@@ -33,7 +33,7 @@ public class Tenant extends UriResource {
 
     /**
      * Set tenant ID.
-     * 
+     *
      * @param id
      *            ID of the tenant.
      */

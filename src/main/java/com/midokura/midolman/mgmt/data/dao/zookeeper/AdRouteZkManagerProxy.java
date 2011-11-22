@@ -21,7 +21,7 @@ import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for advertising route.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -31,7 +31,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao {
 
     /**
      * Constructor
-     * 
+     *
      * @param zkConn
      *            Zookeeper connection string
      */
@@ -43,7 +43,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao {
 
     /**
      * Add a JAXB object the ZK directories.
-     * 
+     *
      * @param adRoute
      *            AdRoute object to add.
      * @throws DataAccessException
@@ -55,7 +55,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao {
 
     /**
      * Fetch a JAXB object from the ZooKeeper.
-     * 
+     *
      * @param id
      *            AdRoute UUID to fetch..
      * @throws DataAccessException

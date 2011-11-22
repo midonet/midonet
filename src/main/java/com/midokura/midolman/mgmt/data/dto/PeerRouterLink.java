@@ -15,7 +15,7 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Class representing port.
- * 
+ *
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */

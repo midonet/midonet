@@ -28,7 +28,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * ZK VIF management class.
- * 
+ *
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */

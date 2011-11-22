@@ -25,7 +25,7 @@ import com.midokura.midolman.state.ZkManager;
 
 /**
  * Abstract base class for TenantZkManager.
- * 
+ *
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -37,7 +37,7 @@ public class TenantZkManager extends ZkManager implements TenantDao {
 
     /**
      * TenantZkManager constructor.
-     * 
+     *
      * @param zk
      *            ZooKeeper object.
      * @param basePath
@@ -88,8 +88,8 @@ public class TenantZkManager extends ZkManager implements TenantDao {
 
     /**
      * Add a new tenant entry in the ZooKeeper directory.
-     * 
-     * 
+     *
+     *
      * @param tenant
      *            TenantConfig object to store tenant data.
      * @throws KeeperException
@@ -104,7 +104,7 @@ public class TenantZkManager extends ZkManager implements TenantDao {
 
     /**
      * Add a new tenant entry in the ZooKeeper directory.
-     * 
+     *
      * @param id
      *            Tenant UUID
      * @param tenant

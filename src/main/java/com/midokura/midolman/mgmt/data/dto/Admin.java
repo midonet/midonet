@@ -13,7 +13,7 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Admin DTO.
- * 
+ *
  * @version 1.6 20 Nov 2011
  * @author Ryu Ishimoto
  */
@@ -22,7 +22,7 @@ public class Admin extends UriResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param baseUri
      *            The base URI to construct all the URIs from.
      */

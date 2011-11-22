@@ -7,7 +7,7 @@ package com.midokura.midolman.mgmt.rest_api.core;
 
 /**
  * Vendor media types
- * 
+ *
  * @version 1.6 11 Nov 2011
  * @author Ryu Ishimoto
  */

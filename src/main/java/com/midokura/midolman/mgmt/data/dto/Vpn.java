@@ -15,7 +15,7 @@ import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 
 /**
  * Class representing VPN.
- * 
+ *
  * @version 1.6 25 Oct 2011
  * @author Yoshi Tamura
  */
@@ -28,7 +28,7 @@ public class Vpn extends UriResource {
 
     /**
      * Get VPN ID.
-     * 
+     *
      * @return VPN ID.
      */
     public UUID getId() {
@@ -37,7 +37,7 @@ public class Vpn extends UriResource {
 
     /**
      * Set VPN ID.
-     * 
+     *
      * @param id
      *            ID of the VPN.
      */
@@ -47,7 +47,7 @@ public class Vpn extends UriResource {
 
     /**
      * Get VPN port.
-     * 
+     *
      * @return VPN port.
      */
     public int getPort() {
@@ -56,7 +56,7 @@ public class Vpn extends UriResource {
 
     /**
      * Set VPN port.
-     * 
+     *
      * @param port
      *            port of the VPN.
      */
@@ -66,7 +66,7 @@ public class Vpn extends UriResource {
 
     /**
      * Get port ID.
-     * 
+     *
      * @return Port ID.
      */
     public UUID getPortId() {
@@ -83,7 +83,7 @@ public class Vpn extends UriResource {
 
     /**
      * Set port ID.
-     * 
+     *
      * @param portId
      *            Port ID of the VPN.
      */

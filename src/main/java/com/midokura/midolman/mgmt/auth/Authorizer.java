@@ -22,6 +22,7 @@ public class Authorizer implements SecurityContext {
     public Authorizer(final TenantUser tenantUser) {
         if (tenantUser != null) {
             principal = new Principal() {
+                @Override
                 public String getName() {
                     return tenantUser.getTenantId();
                 }

@@ -17,7 +17,7 @@ import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 /**
  * Class representing advertising route.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -31,7 +31,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Get AdRoute ID.
-     * 
+     *
      * @return AdRoute ID.
      */
     public UUID getId() {
@@ -40,7 +40,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Set AdRoute ID.
-     * 
+     *
      * @param id
      *            ID of the AdRoute.
      */
@@ -50,7 +50,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Get advertising route nework address.
-     * 
+     *
      * @return Advertising nework address.
      */
     public String getNwPrefix() {
@@ -59,7 +59,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Set advertising route nework address.
-     * 
+     *
      * @param newPrefix
      *            Advertising nework address.
      */
@@ -69,7 +69,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Get advertising route prefix length.
-     * 
+     *
      * @return Advertising route prefix length.
      */
     public byte getPrefixLength() {
@@ -78,7 +78,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Set advertising route prefix length.
-     * 
+     *
      * @param prefixLength
      *            Advertising route prefix length.
      */
@@ -88,7 +88,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Get bgp ID.
-     * 
+     *
      * @return Bgp ID.
      */
     public UUID getBgpId() {
@@ -105,7 +105,7 @@ public class AdRoute extends UriResource {
 
     /**
      * Set bgp ID.
-     * 
+     *
      * @param bgpId
      *            BGP ID of the advertsing route.
      */

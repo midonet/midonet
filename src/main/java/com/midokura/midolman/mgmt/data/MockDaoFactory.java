@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.mgmt.data;
 
-import com.midokura.midolman.state.MockDirectory;
-
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
@@ -33,6 +31,7 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkManagerProxy;
+import com.midokura.midolman.state.MockDirectory;
 
 public class MockDaoFactory implements DaoFactory {
 

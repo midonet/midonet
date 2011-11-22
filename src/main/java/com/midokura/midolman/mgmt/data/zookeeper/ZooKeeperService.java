@@ -11,7 +11,7 @@ import com.midokura.midolman.state.ZkConnection;
 
 /**
  * Class implementing a singleton Zookeeper connection.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -29,7 +29,7 @@ public class ZooKeeperService {
 
     /**
      * Get the Zookeeper connection.
-     * 
+     *
      * @throws Exception
      * @throws
      */

@@ -31,7 +31,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Class to manage the bridge ZooKeeper data.
- * 
+ *
  * @version 1.6 19 Sept 2011
  * @author Ryu Ishimoto
  */

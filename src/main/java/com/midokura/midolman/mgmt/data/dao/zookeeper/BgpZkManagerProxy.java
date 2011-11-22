@@ -23,7 +23,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Data access class for BGP.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
@@ -34,7 +34,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements BgpDao,
 
     /**
      * Constructor
-     * 
+     *
      * @param zkConn
      *            Zookeeper connection string
      */
@@ -45,7 +45,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements BgpDao,
 
     /**
      * Add a JAXB object the ZK directories.
-     * 
+     *
      * @param bgp
      *            Bgp object to add.
      * @throws ZkStateSerializationException
@@ -61,7 +61,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements BgpDao,
 
     /**
      * Fetch a JAXB object from the ZooKeeper.
-     * 
+     *
      * @param id
      *            Bgp UUID to fetch..
      * @throws ZkStateSerializationException

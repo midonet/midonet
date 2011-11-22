@@ -18,7 +18,7 @@ import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Class representing port.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -31,7 +31,7 @@ public class Port extends UriResource {
 
     /**
      * Get port ID.
-     * 
+     *
      * @return port ID.
      */
     public UUID getId() {
@@ -40,7 +40,7 @@ public class Port extends UriResource {
 
     /**
      * Set port ID.
-     * 
+     *
      * @param id
      *            ID of the port.
      */
@@ -50,7 +50,7 @@ public class Port extends UriResource {
 
     /**
      * Get device ID.
-     * 
+     *
      * @return device ID.
      */
     public UUID getDeviceId() {
@@ -59,7 +59,7 @@ public class Port extends UriResource {
 
     /**
      * logical Set device ID.
-     * 
+     *
      * @param id
      *            ID of the device.
      */
@@ -92,7 +92,7 @@ public class Port extends UriResource {
 
     /**
      * Convert this object to PortConfig object.
-     * 
+     *
      * @return PortConfig object.
      */
     public PortConfig toConfig() {
@@ -101,7 +101,7 @@ public class Port extends UriResource {
 
     /**
      * Convert this object to PortMgmtConfig object.
-     * 
+     *
      * @return PortMgmtConfig object.
      */
     public PortMgmtConfig toMgmtConfig() {
@@ -110,7 +110,7 @@ public class Port extends UriResource {
 
     /**
      * Convert this object to ZkNodeEntry object.
-     * 
+     *
      * @return ZkNodeEntry object.
      */
     public ZkNodeEntry<UUID, PortConfig> toZkNode() {
@@ -119,7 +119,7 @@ public class Port extends UriResource {
 
     /**
      * Convert PortMgmtConfig object to Port object.
-     * 
+     *
      * @param id
      *            ID of the object.
      * @param config

@@ -17,7 +17,7 @@ import com.sun.jersey.api.client.WebResource;
 
 /**
  * Client for Keystone.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -34,7 +34,7 @@ public final class KeystoneClient {
 
     /**
      * Default constructor for KeystoneClient.
-     * 
+     *
      * @param protocol
      *            Protocol to use to access Keystone server.
      * @param host
@@ -53,7 +53,7 @@ public final class KeystoneClient {
 
     /**
      * Set the admin token.
-     * 
+     *
      * @param token
      *            Token to set as the admin token.
      */
@@ -63,7 +63,7 @@ public final class KeystoneClient {
 
     /**
      * Get the admin token.
-     * 
+     *
      * @return The admin token.
      */
     public String getAdminToken() {
@@ -72,7 +72,7 @@ public final class KeystoneClient {
 
     /**
      * Validate a token via Keystone.
-     * 
+     *
      * @param token
      *            Token to validate.
      * @return True if token is valid, False if invalid.
@@ -92,8 +92,8 @@ public final class KeystoneClient {
         WebResource resource = client.resource(url);
         String response = null;
         try {
-            response = resource.accept("text/json").header("X-Auth-Token",
-                    this.adminToken).get(String.class);
+            response = resource.accept("text/json")
+                    .header("X-Auth-Token", this.adminToken).get(String.class);
         } catch (UniformInterfaceException e) {
             // Invalid token.
             return null;

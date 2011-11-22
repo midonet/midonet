@@ -16,7 +16,7 @@ public abstract class UriResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param baseUri
      *            The base URI to construct all the URIs from.
      */

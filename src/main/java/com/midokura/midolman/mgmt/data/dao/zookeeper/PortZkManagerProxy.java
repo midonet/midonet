@@ -34,7 +34,7 @@ import com.midokura.midolman.util.ShortUUID;
 
 /**
  * ZK port management class.
- * 
+ *
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */

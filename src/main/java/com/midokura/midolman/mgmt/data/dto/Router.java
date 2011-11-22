@@ -16,7 +16,7 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 
 /**
  * Class representing Virtual Router.
- * 
+ *
  * @version 1.6 05 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -29,7 +29,7 @@ public class Router extends UriResource {
 
     /**
      * Get router ID.
-     * 
+     *
      * @return Router ID.
      */
     public UUID getId() {
@@ -38,7 +38,7 @@ public class Router extends UriResource {
 
     /**
      * Set router ID.
-     * 
+     *
      * @param id
      *            ID of the router.
      */
@@ -48,7 +48,7 @@ public class Router extends UriResource {
 
     /**
      * Get router name.
-     * 
+     *
      * @return Router name.
      */
     public String getName() {
@@ -57,7 +57,7 @@ public class Router extends UriResource {
 
     /**
      * Set router name.
-     * 
+     *
      * @param name
      *            Name of the router.
      */
@@ -67,7 +67,7 @@ public class Router extends UriResource {
 
     /**
      * Get tenant ID.
-     * 
+     *
      * @return Tenant ID.
      */
     public String getTenantId() {
@@ -76,7 +76,7 @@ public class Router extends UriResource {
 
     /**
      * Set tenant ID.
-     * 
+     *
      * @param tenantId
      *            Tenant ID of the router.
      */
@@ -122,7 +122,7 @@ public class Router extends UriResource {
 
     /**
      * Convert this object to RouterMgmtConfig object.
-     * 
+     *
      * @return RouterMgmtConfig object.
      */
     public RouterMgmtConfig toMgmtConfig() {
@@ -131,7 +131,7 @@ public class Router extends UriResource {
 
     /**
      * Convert RouterMgmtConfig object to Router object.
-     * 
+     *
      * @param id
      *            ID of the object.
      * @param config
@@ -148,7 +148,7 @@ public class Router extends UriResource {
 
     /**
      * Convert this object to RouterNameMgmtConfig object.
-     * 
+     *
      * @return RouterNameMgmtConfig object.
      */
     public RouterNameMgmtConfig toNameMgmtConfig() {

@@ -21,7 +21,7 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Data transfer class for materialized router port.
- * 
+ *
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -77,7 +77,7 @@ public class MaterializedRouterPort extends RouterPort {
 
     /**
      * Convert this object to PortConfig object.
-     * 
+     *
      * @return PortConfig object.
      */
     @Override
@@ -94,7 +94,7 @@ public class MaterializedRouterPort extends RouterPort {
     /**
      * Convert PortMgmtConfig and MaterializedRouterPortConfig objects to Port
      * object.
-     * 
+     *
      * @param id
      *            ID of the object.
      * @param mgmtConfig
