@@ -481,12 +481,12 @@ public class RouterResource {
                 @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
 
-            if (!AuthManager.isServiceProvider(context)) {
+            RouterDao dao = daoFactory.getRouterDao();
+            if (!AuthManager.isOwner(context, dao , routerId)) {
                 throw new UnauthorizedException(
-                        "Must be a service provider to see the linked routers.");
+                        "Must be a owner to see the linked routers.");
             }
 
-            RouterDao dao = daoFactory.getRouterDao();
             PeerRouterLink link = null;
             try {
                 link = dao.getPeerRouterLink(routerId, id);
