@@ -80,30 +80,30 @@ public class SmokeTest2 {
         /* Ping my router's port, then ping the peer port. */
 
         // Note: the router port's own MAC is the tap's hwAddr.
-        MAC rtr_mac = tapPort.getOuterMAC();
-        IntIPv4 rtr_ip = IntIPv4.fromString("192.168.100.1");
+        MAC rtrMac = tapPort.getOuterMAC();
+        IntIPv4 rtrIp = IntIPv4.fromString("192.168.100.1");
 
         // First arp for router's mac.
-        byte[] request = helper.makeArpRequest(rtr_ip);
+        byte[] request = helper.makeArpRequest(rtrIp);
         assertTrue(tapPort.send(request));
         byte[] reply = tapPort.recv();
-        helper.checkArpReply(request, reply, rtr_mac);
+        helper.checkArpReply(reply, rtrMac, rtrIp);
 
         // Ping router's port.
-        request = helper.makeIcmpEchoRequest(rtr_mac, rtr_ip);
+        request = helper.makeIcmpEchoRequest(rtrMac, rtrIp);
         assertTrue(tapPort.send(request));
         // Note: Midolman's virtual router currently does not ARP before
         // responding to ICMP echo requests addressed to its own port.
         helper.checkIcmpEchoReply(request, tapPort.recv());
 
         // Ping peer port.
-        IntIPv4 peer_ip = IntIPv4.fromString("192.168.101.2");
-        request = helper.makeIcmpEchoRequest(rtr_mac, peer_ip);
+        IntIPv4 peerIp = IntIPv4.fromString("192.168.101.2");
+        request = helper.makeIcmpEchoRequest(rtrMac, peerIp);
         assertTrue(tapPort.send(request));
         // Note: the virtual router ARPs before delivering the packet.
         byte[] arp = tapPort.recv();
-        helper.checkArpRequest(arp, rtr_mac, rtr_ip);
-        assertTrue(tapPort.send(helper.makeArpReply(rtr_mac, rtr_ip)));
+        helper.checkArpRequest(arp, rtrMac, rtrIp);
+        assertTrue(tapPort.send(helper.makeArpReply(rtrMac, rtrIp)));
         // Finally, the icmp echo reply from the peer.
         helper.checkIcmpEchoReply(request, tapPort.recv());
 

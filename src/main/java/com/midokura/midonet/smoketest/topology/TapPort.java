@@ -54,12 +54,13 @@ public class TapPort extends Port {
         Tap.writeToTap(name, pktData, pktData.length);
     }
 
-    public boolean send(byte[] request) {
-        return false;
+    public boolean send(byte[] pktBytes) {
+        Tap.writeToTap(this.name, pktBytes, pktBytes.length);
+        return true;
     }
 
     public byte[] recv() {
-        return null;
+        return Tap.readFromTap(name, 1000);
     }
 
     public MAC getInnerMAC() {
