@@ -76,7 +76,7 @@ public class Setup implements Watcher {
     private static final String OVS_SETUP = "zk_setup";
     private static final String OVS_TEARDOWN = "zk_teardown";
     private static final String MIDONET_QDISC_CREATE = "midonet_qdisc_create";
-    private static final String NOVA_QDISC_CREATE = "midonet_qdisc_create";
+    private static final String NOVA_QDISC_CREATE = "nova_qdisc_create";
     private static final String QDISC_DESTROY = "qdisc_destroy";
 
     private int disconnected_ttl_seconds;
@@ -491,6 +491,19 @@ public class Setup implements Watcher {
         // RabbitMQ
         String rabbitHost = cl.getOptionValue("rabbit_host", "127.0.0.1");
         setupTrafficPriorityRule(rabbitHost, "5672");
+        
+        // mysql
+        String mysqlUrl = 
+            cl.getOptionValue("sql_connection",
+                              "mysql://root:midokura@127.0.0.1/nova_trunk");
+        String hostpath = mysqlUrl.substring(mysqlUrl.indexOf('@')+1);
+        String mysqlHost = hostpath.substring(0, hostpath.indexOf('/'));
+
+        // VNC
+        String vncUrl = 
+            cl.getOptionValue("vncproxy_url", "http://127.0.0.1:6080");
+        String[] hostport = vncUrl.substring(vncUrl.lastIndexOf('/')+1).split(":");
+        setupTrafficPriorityRule(hostport[0], hostport[1]);
     }
 
     protected void removeTrafficPriorityQdiscs()
