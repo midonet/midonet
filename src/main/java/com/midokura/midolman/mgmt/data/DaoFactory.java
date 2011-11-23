@@ -43,4 +43,5 @@ public interface DaoFactory {
     VifDao getVifDao();
 
     VpnDao getVpnDao();
+
 }

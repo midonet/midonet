@@ -152,16 +152,17 @@ public class ApplicationResource {
      *
      * @param uriInfo
      *            Object that holds the request URI data.
+     * @param config
+     *            AppConfig object that holds the application configurations.
      * @throws InvalidConfigException
      *             Missing configuration parameter.
      * @returns An Application object.
      */
     @GET
     @Produces({ VendorMediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON })
-    public Application get(@Context UriInfo uriInfo)
+    public Application get(@Context UriInfo uriInfo, @Context AppConfig config)
             throws InvalidConfigException {
         Application a = new Application(uriInfo.getBaseUri());
-        AppConfig config = AppConfig.getConfig();
         a.setVersion(config.getVersion());
         return a;
     }

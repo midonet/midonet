@@ -33,18 +33,25 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkManagerProxy;
 import com.midokura.midolman.state.MockDirectory;
 
-public class MockDaoFactory implements DaoFactory {
+public class MockDaoFactory extends AbstractDaoFactory {
 
-    private AppConfig config = null;
     private MockDirectory zk = null;
     private String rootPath = null;
     private String rootMgmtPath = null;
 
-    public MockDaoFactory() throws InvalidConfigException {
-        this.config = AppConfig.getConfig();
+    public MockDaoFactory(AppConfig config) {
+        super(config);
+    }
+
+    @Override
+    public void initialize() throws DaoInitializationException {
         this.zk = new MockDirectory();
-        this.rootPath = this.config.getZkRootPath();
-        this.rootMgmtPath = this.config.getZkMgmtRootPath();
+        try {
+            this.rootPath = this.config.getZkRootPath();
+            this.rootMgmtPath = this.config.getZkMgmtRootPath();
+        } catch (InvalidConfigException e) {
+            throw new DaoInitializationException("Invalid configurations", e);
+        }
     }
 
     @Override

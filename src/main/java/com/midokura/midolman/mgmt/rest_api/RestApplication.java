@@ -11,7 +11,8 @@ import java.util.Set;
 import javax.ws.rs.core.Application;
 
 import com.midokura.midolman.mgmt.auth.UnauthorizedExceptionMapper;
-import com.midokura.midolman.mgmt.data.DataStoreInjectableProvider;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ConfigInjectableProvider;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.InvalidStateOperationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
@@ -47,6 +48,7 @@ public class RestApplication extends Application {
         set.add(InvalidStateOperationExceptionMapper.class);
         set.add(UnauthorizedExceptionMapper.class);
         set.add(DataStoreInjectableProvider.class);
+        set.add(ConfigInjectableProvider.class);
         return set;
     }
 

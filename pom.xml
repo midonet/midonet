@@ -8,6 +8,7 @@
   <version>11.11-SNAPSHOT</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <powermock.version>1.4.10</powermock.version>
   </properties>
   <scm>
     <connection>git://github.com:midokura/midolmanj-mgmt.git</connection>
@@ -146,7 +147,7 @@
       <name>mido-maven</name>
       <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
     </pluginRepository>
-    <!-- pluginRepository> <id>maven.java.net</id> <name>Java.net Maven2
+    <!-- pluginRepository> <id>maven.java.net</id> <name>Java.net Maven2 
       Repository</name> <url>http://download.java.net/maven/2</url> </pluginRepository -->
   </pluginRepositories>
   <repositories>
@@ -155,8 +156,8 @@
       <name>mido-maven</name>
       <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
     </repository>
-    <!-- repository> <id>maven2-repository.dev.java.net</id> <name>Java.net
-      Repository for Maven</name> <url>http://download.java.net/maven/2/</url>
+    <!-- repository> <id>maven2-repository.dev.java.net</id> <name>Java.net 
+      Repository for Maven</name> <url>http://download.java.net/maven/2/</url> 
       <layout>default</layout> </repository -->
     <!-- TODO: Move this to mido-maven -->
     <repository>
@@ -275,6 +276,25 @@
       <version>1.9-ea04</version>
       <scope>test</scope>
       <type>war</type>
+    </dependency>
+    <dependency>
+      <!-- needs extra dependencies: objenesis & hamcrest -->
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.0-rc1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
