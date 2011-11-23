@@ -122,9 +122,9 @@ public class Setup implements Watcher {
         else if (command.equals(OVS_TEARDOWN))
             ovsTearDown();
         else if (command.equals(QDISC_CREATE))
-            setupTrafficPriorityQdiscs("eth0" /* XXX */);
+            setupTrafficPriorityQdiscs();
         else if (command.equals(QDISC_DESTROY))
-            removeTrafficPriorityQdiscs("eth0" /* XXX */);
+            removeTrafficPriorityQdiscs();
         else
             System.out.println("Unrecognized command. Exiting.");
     }
@@ -344,12 +344,6 @@ public class Setup implements Watcher {
     private void initZK() throws Exception {
         String zkHosts = config.configurationAt("zookeeper")
                                .getString("zookeeper_hosts", "127.0.0.1:2181");
-        for (String zkServer : zkHosts.split(",")) {
-            String[] hostport = zkServer.split(":");
-            assert hostport.length == 2;
-            setupTrafficPriorityRule(hostport[0], hostport[1]);
-        }
-
         zkConnection = new ZkConnection(zkHosts,
                 config.configurationAt("zookeeper")
                       .getInt("session_timeout", 30000),
@@ -434,20 +428,53 @@ public class Setup implements Watcher {
         }
     }
 
-    protected static void setupTrafficPriorityQdiscs(String iface)
+    protected void setupTrafficPriorityQdiscs()
             throws IOException {
         int markValue = 0x00ACCABA;  // Midokura's OUI.
         Runtime rt = Runtime.getRuntime();
+        String iface = config.configurationAt("midolman")
+                             .getString("control_interface", "eth0");
+
         // Add a prio qdisc to root, and have marked packets prioritized.
         rt.exec("sudo -n tc qdisc add dev " + iface + " root handle 1: prio");
         rt.exec("sudo -n tc filter add dev " + iface +
                 " parent 1: protocol ip prio 1 handle " + markValue +
                 " fw flowid 1:1");
+
+        // Add rules to mark ZooKeeper packets.
+        String zkHosts = config.configurationAt("zookeeper")
+                               .getString("zookeeper_hosts", "127.0.0.1:2181");
+        for (String zkServer : zkHosts.split(",")) {
+            String[] hostport = zkServer.split(":");
+            assert hostport.length == 2;
+            setupTrafficPriorityRule(hostport[0], hostport[1]);
+        }
+
+        // Add rules to mark memcached packets.
+        String mcHosts = config.configurationAt("memcache")
+                               .getString("memcache_hosts", "127.0.0.1:11211");
+        for (String mcServer : mcHosts.split(",")) {
+            String[] hostport = mcServer.split(":");
+            setupTrafficPriorityRule(hostport[0], hostport[1]); 
+        }
+
+        // Add rules to mark Voldemort packets.
+        String volHosts = config.configurationAt("voldemort")
+                                .getString("servers", "127.0.0.1:6666");
+        for (String volUrl : volHosts.split(",")) {
+            String[] hostport = volUrl.split(":/");
+            // "proto":""/""/"host":"port"
+            assert hostport.length == 5;
+            setupTrafficPriorityRule(hostport[3], hostport[4]);
+        }
+        
     }
 
-    protected static void removeTrafficPriorityQdiscs(String iface)
+    protected void removeTrafficPriorityQdiscs()
             throws IOException {
         // Clear existing qdiscs
+        String iface = config.configurationAt("midolman")
+                             .getString("control_interface", "eth0");
         Runtime.getRuntime().exec("sudo -n tc qdisc del dev " + iface + " root");
     }
 
