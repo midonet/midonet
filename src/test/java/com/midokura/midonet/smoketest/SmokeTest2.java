@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -61,6 +62,7 @@ public class SmokeTest2 {
         ovsdb.delBridge("smoke-br");
     }
 
+    @Ignore
     @Test
     public void testDhcpClient() {
         // Send the DHCP Discover

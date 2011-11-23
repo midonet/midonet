@@ -4,7 +4,12 @@
 
 package com.midokura.midonet.smoketest.topology;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Random;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
@@ -17,8 +22,11 @@ import com.midokura.midonet.smoketest.utils.Tap;
 
 public class TapPort extends Port {
 
+    private final static Logger log = LoggerFactory.getLogger(TapPort.class);
+
     MAC hwAddr;
     static Random rand = new Random();
+    byte[] unreadBytes;
 
     TapPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
         super(mgmt, port, name);
@@ -60,7 +68,66 @@ public class TapPort extends Port {
     }
 
     public byte[] recv() {
-        return Tap.readFromTap(name, 1000);
+        long maxSleepMillis = 1000;
+        long timeSlept = 0;
+        // Max pkt size = 14 (Ethernet) + 1500 (MTU) - 20 GRE = 1492
+        byte[] data = new byte[1492];
+        ByteBuffer buf = ByteBuffer.wrap(data);
+        int totalSize = -1;
+        if (null != unreadBytes) {
+            buf.put(unreadBytes);
+            unreadBytes = null;
+            totalSize = getTotalPacketSize(data, buf.position());
+        }
+        while (true) {
+            byte[] tmp = Tap.readFromTap(name, 1480);
+            if (null == tmp || 0 == tmp.length) {
+                if (timeSlept >= maxSleepMillis)
+                    return null;
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    log.error("InterrupException in recv()", e);
+                }
+                timeSlept += 100;
+                continue;
+            }
+            buf.put(tmp);
+            if (totalSize < 0)
+                totalSize = getTotalPacketSize(data, buf.position());
+            // breat out of the loop if you've read at least one full packet.
+            if (totalSize > 0 && totalSize <= buf.position())
+                break;
+        }
+        if (buf.position() > totalSize)
+            unreadBytes = Arrays.copyOfRange(data, totalSize, buf.position());
+        return Arrays.copyOf(data, totalSize);
+    }
+
+    private int getTotalPacketSize(byte[] pktBytes, int size) {
+        if (size < 14)
+            return -1;
+        ByteBuffer bb = ByteBuffer.wrap(pktBytes);
+        bb.position(12);
+        short etherType = bb.getShort();
+        while (etherType == (short) 0x8100) {
+            // Move past any vlan tags.
+            if (size - bb.position() < 4)
+                return -1;
+            bb.getShort();
+            etherType = bb.getShort();
+        }
+        // Now parse the payload.
+        if (etherType != IPv4.ETHERTYPE)
+            throw new RuntimeException("Received non-IPv4 packet");
+        if (size - bb.position() < 4)
+            return -1;
+        // Ignore the first 2 bytes of the IP header.
+        bb.getShort();
+        // Now read the total IP pkt length
+        int totalLength = bb.getShort(); 
+        // Compute the Ethernet frame length.
+        return totalLength + bb.position() - 4;
     }
 
     public MAC getInnerMAC() {
