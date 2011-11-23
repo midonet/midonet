@@ -138,6 +138,16 @@ public class ApplicationResource {
     }
 
     /**
+     * VPN resource locator.
+     *
+     * @returns VpnResource object to handle sub-resource requests.
+     */
+    @Path(UriManager.VPN)
+    public VpnResource getVpnResource() {
+        return new VpnResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      *
      * @param uriInfo
