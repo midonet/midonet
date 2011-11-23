@@ -72,6 +72,7 @@ public class TapPort extends Port {
         long timeSlept = 0;
         // Max pkt size = 14 (Ethernet) + 1500 (MTU) - 20 GRE = 1492
         byte[] data = new byte[1492];
+        byte[] tmp = new byte[1492];
         ByteBuffer buf = ByteBuffer.wrap(data);
         int totalSize = -1;
         if (null != unreadBytes) {
@@ -80,8 +81,8 @@ public class TapPort extends Port {
             totalSize = getTotalPacketSize(data, buf.position());
         }
         while (true) {
-            byte[] tmp = Tap.readFromTap(name, 1480);
-            if (null == tmp || 0 == tmp.length) {
+            int numRead = Tap.readFromTap(name, tmp, 1492 - buf.position());
+            if (0 == numRead) {
                 if (timeSlept >= maxSleepMillis)
                     return null;
                 try {
@@ -92,7 +93,7 @@ public class TapPort extends Port {
                 timeSlept += 100;
                 continue;
             }
-            buf.put(tmp);
+            buf.put(tmp, 0, numRead);
             if (totalSize < 0)
                 totalSize = getTotalPacketSize(data, buf.position());
             // breat out of the loop if you've read at least one full packet.

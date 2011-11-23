@@ -32,6 +32,8 @@ public class Tap {
     
     /* fcntl.h */
     public static final int O_RDWR = 2;
+    public static final int O_NONBLOCK = 04000;
+    public static final int EWOULDBLOCK = 11;
 
     public static class InterfaceReq extends Structure{
     	
@@ -75,7 +77,7 @@ public class Tap {
        Returns:
         The file descriptor of the open socket to the TAP interface.    
      */
-    public static int openTap(String tapName)
+    public static int openTap(String tapName, boolean nonblocking)
     {
     	// check if the the parameter is valid
         if(tapName.length() > IFNAMSIZ)
@@ -84,7 +86,8 @@ public class Tap {
         }
         
     	String tunPath = "/dev/net/tun";
-    	int fd = TestLibrary.INSTANCE.open(tunPath, O_RDWR);
+    	int flags = nonblocking ? O_NONBLOCK : 0;
+    	int fd = TestLibrary.INSTANCE.open(tunPath, O_RDWR | flags);
     	if(fd < 0)
     		throw new RuntimeException("Problem in opening /dev/net/tun");
         
@@ -167,7 +170,7 @@ public class Tap {
     public static void openPersistentTap(String tapName, int owner, int group, String hwAddr)
     {
     	int res;
-    	int fd = openTap(tapName);
+    	int fd = openTap(tapName, false);
     	    	
     	/* change owner */
     	if( owner >= 0 )
@@ -211,7 +214,7 @@ public class Tap {
      */
     public static void setHwAddress(String tapName, String hwAddress)
     {
-    	int fd = openTap(tapName);
+    	int fd = openTap(tapName, false);
     	setHwAddress(fd, tapName, hwAddress);
     	TestLibrary.INSTANCE.close(fd);
     }
@@ -282,7 +285,7 @@ public class Tap {
      */
     public static String getHwAddress(String tapName)
     {
-    	int fd = openTap(tapName);
+    	int fd = openTap(tapName, false);
     	InterfaceReq hwStruct = new InterfaceReq();
     	String hwAddr = getHwAddress(fd, tapName, hwStruct);
     	TestLibrary.INSTANCE.close(fd);
@@ -348,7 +351,7 @@ public class Tap {
  */
     public static void destroyPersistentTap(String name)
     {
-    	int fd = openTap(name);
+    	int fd = openTap(name, false);
     	int res = TestLibrary.INSTANCE.ioctl(fd, TUNSETPERSIST, 0);
     	TestLibrary.INSTANCE.close(fd);
     	if(res < 0)
@@ -357,22 +360,27 @@ public class Tap {
 
     public static void writeToTap(String name, byte[] buffer, int nBytes)
     {
-    	int fd = openTap(name);
+    	int fd = openTap(name, false);
     	int res = TestLibrary.INSTANCE.write(fd, buffer, nBytes);
     	TestLibrary.INSTANCE.close(fd);
     	if(res < 0)
     		throw new RuntimeException("write failed!");   	
     }
     
-    public static byte[] readFromTap(String name, int nBytes)
+    public static int readFromTap(String name, byte[] buffer, int nBytes)
     {
-    	byte[] buffer = new byte[nBytes];
-    	int fd = openTap(name);
+    	int fd = openTap(name, true);
+    	Native.setLastError(0);
     	int res = TestLibrary.INSTANCE.read(fd, buffer, nBytes);
+    	int err = Native.getLastError();
     	TestLibrary.INSTANCE.close(fd);
-    	if(res < 0)
-    		throw new RuntimeException("write failed!"); 
-    	return buffer;
+    	if(res < 0) {
+    		if (err != EWOULDBLOCK)
+    			throw new RuntimeException(
+    					String.format("read failed with code %d!", err)); 
+    		return 0;
+    	}
+    	return res;
     }
     
     public interface TestLibrary extends Library {

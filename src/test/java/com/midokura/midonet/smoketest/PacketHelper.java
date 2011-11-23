@@ -74,7 +74,8 @@ public class PacketHelper {
     }
 
     public void checkArpReply(byte[] bytes, MAC senderMac, IntIPv4 senderIp) {
-        Ethernet pkt = new Ethernet();
+        assertNotNull(bytes);
+    	Ethernet pkt = new Ethernet();
         pkt.deserialize(bytes, 0, bytes.length);
         assertEquals(ARP.ETHERTYPE, pkt.getEtherType());
         assertEquals(senderMac, pkt.getSourceMACAddress());

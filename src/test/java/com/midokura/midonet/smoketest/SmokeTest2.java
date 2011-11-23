@@ -34,17 +34,17 @@ public class SmokeTest2 {
     static PacketHelper helper;
 
     @BeforeClass
-    public static void setUp() {
+    public static void setUp() throws InterruptedException {
         ovsdb =  new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
-        MockMidolmanMgmt mgmt = new MockMidolmanMgmt(true);
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
+        MockMidolmanMgmt mgmt = new MockMidolmanMgmt(false);
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant27").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         tapPort = router1.addPort(ovsdb).setDestination("192.168.100.2")
                 .buildTap();
         helper = new PacketHelper(tapPort.getInnerMAC(), "192.168.100.2");
 
-        tenant2 = new Tenant.Builder(mgmt).setName("tenant2").build();
+        tenant2 = new Tenant.Builder(mgmt).setName("tenant28").build();
         Router router2 = tenant2.addRouter().setName("rtr1").build();
         internalPort = router2.addPort(ovsdb).setDestination("192.168.101.2")
                 .buildInternal();
@@ -52,6 +52,8 @@ public class SmokeTest2 {
         rtrLink = router1.addRouterLink().setPeer(router2).
                 setLocalPrefix("192.168.100.0").setPeerPrefix("192.168.100.0").
                 build();
+
+        Thread.sleep(10000);
     }
 
     @AfterClass
