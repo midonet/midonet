@@ -553,7 +553,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 } {
                     log.warn("doJsonRpc: %s : %s".format(error, details))
                     throw new OVSDBException(
-                        "OVSDB response error: %s".format(error), details)
+                        "OVSDB response error: %s %s".format(error, details))
                 }
             }
             return response.get("result")
