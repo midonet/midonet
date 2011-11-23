@@ -2,6 +2,7 @@ package com.midokura.midolman;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -481,6 +482,7 @@ public class Setup implements Watcher {
         options.addOption("rabbit_host", true, "");
         options.addOption("sql_connection", true, "");
         options.addOption("vncproxy_url", true, "");
+        options.addOption("ec2_url", true, "");
         CommandLineParser parser = new GnuParser();
         FileReader confFile = new FileReader("/etc/nova/nova.conf");
         char[] confBytes = new char[5000];
@@ -493,17 +495,29 @@ public class Setup implements Watcher {
         setupTrafficPriorityRule(rabbitHost, "5672");
         
         // mysql
-        String mysqlUrl = 
+        URL mysqlUrl = new URL(
             cl.getOptionValue("sql_connection",
-                              "mysql://root:midokura@127.0.0.1/nova_trunk");
-        String hostpath = mysqlUrl.substring(mysqlUrl.indexOf('@')+1);
-        String mysqlHost = hostpath.substring(0, hostpath.indexOf('/'));
+                              "mysql://root:midokura@127.0.0.1/nova_trunk"));
+        int port = mysqlUrl.getPort();
+        if (port == -1)
+            port = 3306;
+        setupTrafficPriorityRule(mysqlUrl.getHost(), Integer.toString(port));
 
         // VNC
-        String vncUrl = 
-            cl.getOptionValue("vncproxy_url", "http://127.0.0.1:6080");
-        String[] hostport = vncUrl.substring(vncUrl.lastIndexOf('/')+1).split(":");
-        setupTrafficPriorityRule(hostport[0], hostport[1]);
+        URL vncUrl = new URL(
+            cl.getOptionValue("vncproxy_url", "http://127.0.0.1:6080"));
+        port = vncUrl.getPort();
+        if (port == -1)
+            port = 6080;
+        setupTrafficPriorityRule(vncUrl.getHost(), Integer.toString(port));
+
+        // EC2
+        URL ec2Url = new URL(
+            cl.getOptionValue("ec2_url", "http://127.0.0.1:8773/services/Cloud"));
+        port = ec2Url.getPort();
+        if (port == -1)
+            port = 8773;
+        setupTrafficPriorityRule(ec2Url.getHost(), Integer.toString(port));
     }
 
     protected void removeTrafficPriorityQdiscs()
