@@ -1,13 +1,25 @@
 package com.midokura.midolman.openflow;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFStatisticsReply;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.statistics.OFAggregateStatisticsRequest;
+import org.openflow.protocol.statistics.OFDescriptionStatistics;
+import org.openflow.protocol.statistics.OFFlowStatisticsRequest;
+import org.openflow.protocol.statistics.OFPortStatisticsRequest;
+import org.openflow.protocol.statistics.OFQueueStatisticsRequest;
+import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFTableStatistics;
 
 public class MockControllerStub implements ControllerStub {
     public class Packet {
@@ -80,8 +92,10 @@ public class MockControllerStub implements ControllerStub {
     // Accumulated calls to sendFlowModDelete()
     public List<Flow> deletedFlows = new ArrayList<Flow>();
     public List<Packet> sentPackets = new ArrayList<Packet>();
-    public List<Integer> droppedPktBufIds = new ArrayList<Integer>(); 
+    public List<Integer> droppedPktBufIds = new ArrayList<Integer>();
     public OFFeaturesReply features = null;
+    public List<OFStatistics> sentStatsRequest = new ArrayList<OFStatistics>();
+    public OFStatisticsReply statisticsReply = null;
 
     @Override
     public void setController(Controller controller) {
@@ -94,6 +108,15 @@ public class MockControllerStub implements ControllerStub {
     @Override
     public OFFeaturesReply getFeatures() {
         return features;
+    }
+
+    public void setStatistics(OFStatisticsReply statisticsReply) {
+        this.statisticsReply = statisticsReply;
+    }
+
+    @Override
+    public OFStatisticsReply getStatisticsReply(int xid) {
+        return statisticsReply;
     }
 
     @Override
@@ -131,10 +154,86 @@ public class MockControllerStub implements ControllerStub {
         else
             sentPackets.add(new Packet(bufferId, inPort, actions, data));
     }
-    
+
+    @Override
+    public int sendDescStatsRequest() {
+        OFDescriptionStatistics descStatsREquest = new OFDescriptionStatistics();
+        sentStatsRequest.add(descStatsREquest);
+        return 0;
+    }
+
+    @Override
+    public int sendFlowStatsRequest(OFMatch match, byte tableId,
+                                    short outPort) {
+        OFFlowStatisticsRequest flowStatsRequest =
+                new OFFlowStatisticsRequest();
+        flowStatsRequest.setMatch(match);
+        flowStatsRequest.setTableId(tableId);
+        flowStatsRequest.setOutPort(outPort);
+        sentStatsRequest.add(flowStatsRequest);
+        return 0;
+    }
+
+    @Override
+    public int sendAggregateStatsRequest(OFMatch match, byte tableId,
+                                         short outPort) {
+        OFAggregateStatisticsRequest aggregateStatsRequest =
+                new OFAggregateStatisticsRequest();
+
+        aggregateStatsRequest.setMatch(match);
+        aggregateStatsRequest.setTableId(tableId);
+        aggregateStatsRequest.setOutPort(outPort);
+        sentStatsRequest.add(aggregateStatsRequest);
+        return 0;
+    }
+
+    @Override
+    public int sendTableStatsRequest() {
+        OFTableStatistics tableStatsRequest = new OFTableStatistics();
+
+        sentStatsRequest.add(tableStatsRequest);
+        return 0;
+    }
+
+    @Override
+    public int sendPortStatsRequest(short portNo) {
+        OFPortStatisticsRequest portStatsRequest =
+                new OFPortStatisticsRequest();
+
+        portStatsRequest.setPortNumber(portNo);
+        sentStatsRequest.add(portStatsRequest);
+        return 0;
+    }
+
+    @Override
+    public int sendQueueStatsRequest(short portNo, int queueId) {
+        Map <Short, Set<Integer>> queueRequests =
+                new HashMap<Short, Set<Integer>>();
+        Set<Integer> queueIds = new HashSet<Integer>();
+
+        queueIds.add(queueId);
+        queueRequests.put(portNo, queueIds);
+        return sendQueueStatsRequest(queueRequests);
+    }
+
+    @Override
+    public int sendQueueStatsRequest(Map<Short, Set<Integer>> requests) {
+        for (Map.Entry<Short, Set<Integer>> request: requests.entrySet()) {
+            for (Integer queueId: request.getValue()) {
+                OFQueueStatisticsRequest queueStatsRequest =
+                    new OFQueueStatisticsRequest();
+
+                queueStatsRequest.setPortNumber(request.getKey());
+                queueStatsRequest.setQueueId(queueId);
+                sentStatsRequest.add(queueStatsRequest);
+            }
+        }
+        return 0;
+    }
+
     @Override
     public void close() {
-        
+
     }
 
 }

@@ -6,9 +6,16 @@ package com.midokura.midolman.openflow;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.openflow.protocol.OFBarrierReply;
@@ -26,9 +33,19 @@ import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus;
-import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.OFStatisticsMessageBase;
+import org.openflow.protocol.OFStatisticsReply;
+import org.openflow.protocol.OFStatisticsRequest;
 import org.openflow.protocol.OFType;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.statistics.OFAggregateStatisticsRequest;
+import org.openflow.protocol.statistics.OFDescriptionStatistics;
+import org.openflow.protocol.statistics.OFFlowStatisticsRequest;
+import org.openflow.protocol.statistics.OFPortStatisticsRequest;
+import org.openflow.protocol.statistics.OFQueueStatisticsRequest;
+import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFStatisticsType;
 import org.openflow.util.HexString;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
@@ -39,6 +56,9 @@ import com.midokura.midolman.eventloop.Reactor;
 public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub {
 
     private final static Logger log = LoggerFactory.getLogger(ControllerStubImpl.class);
+    private final static int FLOW_REQUEST_BODY_LENGTH = 44;
+    private final static int PORT_QUEUE_REQUEST_BODY_LENGTH = 8;
+    private final static String OPENFLOW_CONNECTION_LOST = "connection_lost";
 
     protected Controller controller;
 
@@ -46,6 +66,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     protected Date connectedSince;
     protected OFFeaturesReply featuresReply;
     protected OFGetConfigReply configReply;
+    private ConcurrentHashMap<Integer,
+        BlockingQueue<OFStatisticsReply>> statsReplies =
+            new ConcurrentHashMap<Integer, BlockingQueue<OFStatisticsReply>>();
     protected HashMap<Short, OFPhysicalPort> ports = new HashMap<Short, OFPhysicalPort>();
 
     public ControllerStubImpl(SocketChannel sock, Reactor reactor,
@@ -79,6 +102,47 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
 
         stream.write(msg);
     }
+
+    private boolean isValidStatsType(OFStatisticsType type) {
+        EnumSet statsTypes = EnumSet.allOf(OFStatisticsType.class);
+        if (statsTypes.contains(type))
+            return true;
+        else
+            return false;
+    }
+
+    private boolean isValidStatsMessage(OFStatisticsMessageBase stats) {
+        if (isValidStatsType(stats.getStatisticType()))
+            return  true;
+        else
+            return false;
+    }
+
+   @SuppressWarnings("unchecked")
+   public OFStatisticsReply getStatisticsReply(int xid) {
+       OFStatisticsReply reply = null;
+       try {
+           log.debug("getStatisticsReply");
+           log.debug("statsReplies: {}", statsReplies.toString());
+           BlockingQueue<OFStatisticsReply> replyQueue = statsReplies.get(xid);
+           log.debug("Waiting for the response...");
+           reply = replyQueue.take();
+           log.debug("reply: {}", reply);
+           if (isDisconnected(reply)) {
+               log.error("The connection to the datapath has been lost.");
+               throw new OpenFlowError(
+                       "The connection to the datapath has been lost.");
+           }
+           statsReplies.remove(xid);
+           log.debug("Succeeded to retrieve statistics data.");
+           return reply;
+       } catch (InterruptedException e) {
+           log.error("Error on getStatisticsReply: {}", e);
+           Thread.currentThread().interrupt();
+       }
+       log.warn("Failed to convert statistics data due to its invalid type.");
+       return reply;
+   }
 
     public OFFeaturesReply getFeatures() {
         return featuresReply;
@@ -155,8 +219,212 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 }
             }
         }, Long.valueOf(500), OFType.GET_CONFIG_REQUEST));
-        
+
         stream.write(m);
+    }
+
+    private boolean isValidStatsRequestLength(
+            OFStatisticsRequest msg, int size) {
+        switch (msg.getStatisticType()) {
+            case DESC:  case TABLE:
+                return (msg.getLengthU() ==
+                        OFStatisticsRequest.MINIMUM_LENGTH);
+            case AGGREGATE:  case FLOW:
+                return (msg.getLengthU() ==
+                        (OFStatisticsRequest.MINIMUM_LENGTH +
+                                FLOW_REQUEST_BODY_LENGTH * size));
+            case PORT:  case QUEUE:
+                return (msg.getLengthU() ==
+                        (OFStatisticsRequest.MINIMUM_LENGTH +
+                                PORT_QUEUE_REQUEST_BODY_LENGTH * size));
+            default:
+                return false;
+        }
+    }
+
+    private boolean isDisconnected(OFStatisticsReply reply) {
+        if (reply.getStatisticType() == OFStatisticsType.DESC) {
+            List<OFStatistics> statsReplies = reply.getStatistics();
+            OFDescriptionStatistics poison =
+                    (OFDescriptionStatistics) statsReplies.get(0);
+            return (poison.getSoftwareDescription().equals(
+                    OPENFLOW_CONNECTION_LOST));
+        }
+        return false;
+    }
+
+    private int sendStatsRequest(final OFStatistics statsRequest,
+                                 final OFStatisticsType statsType) {
+        List<OFStatistics> statsRequests = new ArrayList<OFStatistics>();
+
+        if (statsType != OFStatisticsType.DESC
+                && statsType != OFStatisticsType.TABLE)
+            statsRequests.add(statsRequest);
+        return sendStatsRequest(statsRequests, statsType);
+    }
+
+    private int sendStatsRequest(final List<OFStatistics> statsRequests,
+                                 final OFStatisticsType statsType) {
+        log.debug("sendStatsRequest");
+
+        if (!isValidStatsType(statsType))
+            throw new OpenFlowError("invalid Openflow statistic type request");
+        final OFStatisticsRequest request = new OFStatisticsRequest();
+
+        if (statsType != OFStatisticsType.DESC
+                && statsType != OFStatisticsType.TABLE) {
+            request.setStatistics(statsRequests);
+            for (OFStatistics statsRequest: statsRequests)
+                request.setLengthU(
+                        request.getLengthU() + statsRequest.getLength());
+        }
+
+        request.setStatisticType(statsType);
+        if (request.getLengthU() < OFStatisticsRequest.MINIMUM_LENGTH)
+            throw new OpenFlowError("OFPT_STATS_REQUEST message is too short" +
+                    " with length: " + String.valueOf(request.getLengthU()));
+        int xid = initiateOperation(
+                new SuccessHandler<OFStatisticsReply>() {
+                    @Override
+                    public void onSuccess(OFStatisticsReply reply) {
+                        if (reply.getStatistics().isEmpty())
+                            log.debug("No response");
+                        BlockingQueue<OFStatisticsReply> replyQueue =
+                                        statsReplies.get(reply.getXid());
+                        try {
+                            replyQueue.put(reply);
+                            log.debug("received statistics reply: {}", reply);
+                            log.debug("replyQueue: {}, size: {}",
+                                    replyQueue, replyQueue.size());
+                            log.debug("statsReplies: {}", statsReplies);
+                        } catch (InterruptedException e) {
+                            log.error("Failed to enqueue statistics reply.");
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                },
+                new TimeoutHandler() {
+                    @Override
+                    public void onTimeout() {
+                        log.warn("Retrievineg statistics timed out.");
+                        if (socketChannel.isConnected())
+                            sendStatsRequest(statsRequests, statsType);
+                    }
+                }, 3500L, OFType.STATS_REQUEST);
+        request.setXid(xid);
+        // Initialize the response queue which behaves in the producer-consumer
+        // pattern with xid.
+        statsReplies.put(xid,
+                new ArrayBlockingQueue<OFStatisticsReply>(1));
+        log.debug("initiated statistics operation with id: {}",
+                request.getXid());
+        if (!isValidStatsRequestLength(request, statsRequests.size()))
+             throw new OpenFlowError("OFPT_STATS_REQUEST message has invalid" +
+                     " length: " + String.valueOf(request.getLengthU()));
+        stream.write(request);
+        try {
+            stream.flush();
+        } catch (IOException e) {
+            BlockingQueue<OFStatisticsReply> replyQueue =
+                    statsReplies.get(xid);
+            // Poison object which represents the disconnection from the OpenFlow
+            // socket.
+            OFDescriptionStatistics poison = new OFDescriptionStatistics();
+            poison.setSoftwareDescription(OPENFLOW_CONNECTION_LOST);
+            OFStatisticsReply poisonReply = new OFStatisticsReply();
+            List<OFStatistics> replyList = new ArrayList<OFStatistics>(1);
+            replyList.add(poison);
+            poisonReply.setStatistics(replyList);
+            try {
+                replyQueue.put(poisonReply);
+            } catch (InterruptedException ex) {
+                log.error("The reply queue inside reply lists is broken.");
+                Thread.currentThread().interrupt();
+            }
+        }
+        log.debug("sent OFPT_STATS_REQUEST message with length {}.",
+                request.getLengthU());
+        return xid;
+    }
+
+    public int sendDescStatsRequest() {
+        log.debug("OFPT_STATS_REQUEST / OFPST_DESC");
+        return sendStatsRequest(new ArrayList<OFStatistics>(),
+                OFStatisticsType.DESC);
+    }
+
+    public int sendFlowStatsRequest(OFMatch match, byte tableId,
+                                    short outPort) {
+        log.debug("OFPT_STATS_REQUEST / OFPST_FLOW");
+        OFFlowStatisticsRequest flowStatsRequest =
+                new OFFlowStatisticsRequest();
+        flowStatsRequest.setMatch(match);
+        flowStatsRequest.setTableId(tableId);
+        flowStatsRequest.setOutPort(outPort);
+        return sendStatsRequest(flowStatsRequest, OFStatisticsType.FLOW);
+    }
+
+    public int sendAggregateStatsRequest(OFMatch match, byte tableId,
+                                         short outPort) {
+        log.debug("OFPT_STATS_REQUEST / OFPST_AGGREGATE: match={}, " +
+                "tableId={], outPort={}",
+                new Object[]{match, tableId, outPort});
+        OFAggregateStatisticsRequest aggregateStatsRequest =
+                new OFAggregateStatisticsRequest();
+
+        aggregateStatsRequest.setMatch(match);
+        aggregateStatsRequest.setTableId(tableId);
+        aggregateStatsRequest.setOutPort(outPort);
+        return sendStatsRequest(
+                aggregateStatsRequest, OFStatisticsType.AGGREGATE);
+    }
+
+    public int sendTableStatsRequest() {
+        log.debug("OFPT_STATS_REQUEST / OFPST_TABLE");
+        return sendStatsRequest(new ArrayList<OFStatistics>(),
+                OFStatisticsType.TABLE);
+    }
+
+    public int sendPortStatsRequest(short portNo) {
+        log.debug("OFPT_STATS_REQUEST / OFPST_PORT: portNo={}", portNo);
+        OFPortStatisticsRequest portStatsRequest =
+                new OFPortStatisticsRequest();
+
+        portStatsRequest.setPortNumber(portNo);
+        return sendStatsRequest(portStatsRequest, OFStatisticsType.PORT);
+    }
+
+    public int sendQueueStatsRequest(short portNo, int queueId) {
+        log.debug("OFPT_STATS_REQUEST / OFPST_QUEUE: portNo={}, queueId={}",
+                portNo, queueId);
+        OFQueueStatisticsRequest queueStatsRequest =
+                new OFQueueStatisticsRequest();
+
+        queueStatsRequest.setPortNumber(portNo);
+        queueStatsRequest.setQueueId(queueId);
+        return sendStatsRequest(queueStatsRequest, OFStatisticsType.QUEUE);
+    }
+
+    @SuppressWarnings("unchecked")
+    public int sendQueueStatsRequest(Map<Short, Set<Integer>> queueRequests) {
+        String debugString = "";
+        for (short portNum : queueRequests.keySet())
+            debugString += new StringBuilder().append(" portNo=").append(
+                    queueRequests.get(portNum)).append(", queueIds=").append(
+                    queueRequests.values());
+        log.debug("OFPT_STATS_REQUEST / OFPST_QUEUE: {}", debugString);
+        List<OFQueueStatisticsRequest> queueStatsRequests =
+                new ArrayList<OFQueueStatisticsRequest>(queueRequests.size());
+        for (short portNum: queueRequests.keySet())
+            for (int queueNum: queueRequests.get(portNum)) {
+                OFQueueStatisticsRequest queueStatsRequest =
+                    new OFQueueStatisticsRequest();
+                queueStatsRequest.setPortNumber(portNum);
+                queueStatsRequest.setQueueId(queueNum);
+                queueStatsRequests.add(queueStatsRequest);
+            }
+        return sendStatsRequest(
+                (List) queueStatsRequests, OFStatisticsType.QUEUE);
     }
 
     protected boolean handleMessage(OFMessage m) {
@@ -215,6 +483,14 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             OFPortStatus ps = (OFPortStatus) m;
             controller.onPortStatus(ps.getDesc(), OFPortReason.values()[ps.getReason()]);
             return true;
+        case STATS_REPLY:
+            log.debug("handleMessage: STATS_REPLY / OFPST_{}",
+                    ((OFStatisticsReply) m).getStatisticType());
+            successHandler = terminateOperation(
+                    m.getXid(), OFType.STATS_REQUEST);
+            if (successHandler != null)
+                successHandler.onSuccess(m);
+            return true;
         default:
             log.debug("handleMessages: default: " + m.getType());
             // let the controller handle any messages not handled here
@@ -233,14 +509,15 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     }
 
     @Override
-    public void sendFlowModAdd(OFMatch match, long cookie, 
-            short idleTimeoutSecs, short hardTimeoutSecs, short priority, 
-            int bufferId, boolean sendFlowRemove, boolean checkOverlap,                     boolean emergency, List<OFAction> actions) {
+    public void sendFlowModAdd(OFMatch match, long cookie,
+            short idleTimeoutSecs, short hardTimeoutSecs, short priority,
+            int bufferId, boolean sendFlowRemove, boolean checkOverlap,
+            boolean emergency, List<OFAction> actions) {
         log.debug("sendFlowModAdd");
 
         short flags = 0;
 
-        // Whether to send a OFPT_FLOW_REMOVED message when the flow expires 
+        // Whether to send a OFPT_FLOW_REMOVED message when the flow expires
         // or is deleted.
         if (sendFlowRemove)
             flags |= 1;
