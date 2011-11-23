@@ -9,18 +9,26 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
-import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
-import org.openflow.protocol.OFPhysicalPort.OFPortConfig;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFStatisticsReply;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
+import org.openflow.protocol.OFPhysicalPort.OFPortConfig;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
+import org.openflow.protocol.statistics.OFDescriptionStatistics;
+import org.openflow.protocol.statistics.OFFlowStatisticsReply;
+import org.openflow.protocol.statistics.OFPortStatisticsReply;
+import org.openflow.protocol.statistics.OFQueueStatisticsReply;
+import org.openflow.protocol.statistics.OFTableStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -575,5 +583,54 @@ public abstract class AbstractController
         // Then delete flows with an output action directed at this port.
         controllerStub.sendFlowModDelete(new MidoMatch(), false, (short)0,
                 (short)portNum);
+    }
+
+    public List<OFDescriptionStatistics> getDescStats() {
+        int xid = controllerStub.sendDescStatsRequest();
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
+    }
+
+    public List<OFFlowStatisticsReply> getFlowStats(OFMatch match,
+                                                    byte tableId,
+                                                    short outPort) {
+        int xid = controllerStub.sendFlowStatsRequest(match, tableId, outPort);
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
+    }
+
+    public List<OFAggregateStatisticsReply> getAggregateStats(OFMatch match,
+                                                              byte tableId,
+                                                              short outPort) {
+        int xid = controllerStub.sendAggregateStatsRequest(
+                match, tableId, outPort);
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
+    }
+
+    public List<OFTableStatistics> getTableStats() {
+        int xid = controllerStub.sendTableStatsRequest();
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
+    }
+
+    public List<OFPortStatisticsReply> getPortStats(short portNum) {
+        int xid = controllerStub.sendPortStatsRequest(portNum);
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
+    }
+
+    public List<OFQueueStatisticsReply> getQueueStats(short portNum,
+                                                      int queueNum) {
+        int xid = controllerStub.sendQueueStatsRequest(portNum, queueNum);
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
+    }
+
+    public List<OFQueueStatisticsReply> getQueueStats(
+            Map<Short, Set<Integer>> queueRequests) {
+        int xid = controllerStub.sendQueueStatsRequest(queueRequests);
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        return (List) reply.getStatistics();
     }
 }
