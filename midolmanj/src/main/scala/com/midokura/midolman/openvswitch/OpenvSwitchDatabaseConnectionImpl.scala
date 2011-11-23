@@ -805,7 +805,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val bridgeName: String="") extends PortBuilder {
         private var ifRow = Map[String, String](ColumnType -> ifType,
                                                 ColumnName -> portName)
-        private var portRow = Map[String, String](ColumnName -> portName)
+        private var portRow = Map[String, Any](ColumnName -> portName)
         private var portExternalIds = Map[String, String]()
 
         /**
@@ -829,6 +829,17 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def ifMac(ifMac: String) = {
             ifRow += (ColumnMac -> ifMac)
             portRow += (ColumnMac -> ifMac)
+            this
+        }
+
+        /**
+         * Add a qos.
+         *
+         * @param qosUUID The UUID of the qos to add.
+         * @return This PortBuilderImpl instance.
+         */
+        override def qos(qosUUID: String) = {
+            portRow += (ColumnQos -> List("uuid", qosUUID))
             this
         }
 

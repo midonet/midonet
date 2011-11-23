@@ -32,6 +32,14 @@ public interface PortBuilder {
     PortBuilder ifMac(String ifMac);
 
     /**
+     * Set the qos field.
+     *
+     * @param qosUUID The uuid of the QoS to add
+     * @return this builder
+     */
+    PortBuilder qos(String qosUUID);
+
+    /**
      * Build and add the port.
      */
     void build();
