@@ -1,5 +1,6 @@
 package com.midokura.midolman;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.zookeeper.CreateMode;
@@ -73,7 +75,8 @@ public class Setup implements Watcher {
     private static final String ZK_DEL_RULES = "zk_del_rules";
     private static final String OVS_SETUP = "zk_setup";
     private static final String OVS_TEARDOWN = "zk_teardown";
-    private static final String QDISC_CREATE = "qdisc_create";
+    private static final String MIDONET_QDISC_CREATE = "midonet_qdisc_create";
+    private static final String NOVA_QDISC_CREATE = "midonet_qdisc_create";
     private static final String QDISC_DESTROY = "qdisc_destroy";
 
     private int disconnected_ttl_seconds;
@@ -121,8 +124,10 @@ public class Setup implements Watcher {
             ovsSetup();
         else if (command.equals(OVS_TEARDOWN))
             ovsTearDown();
-        else if (command.equals(QDISC_CREATE))
-            setupTrafficPriorityQdiscs();
+        else if (command.equals(MIDONET_QDISC_CREATE))
+            setupTrafficPriorityQdiscsMidonet();
+        else if (command.equals(NOVA_QDISC_CREATE))
+            setupTrafficPriorityQdiscsNova();
         else if (command.equals(QDISC_DESTROY))
             removeTrafficPriorityQdiscs();
         else
@@ -428,7 +433,7 @@ public class Setup implements Watcher {
         }
     }
 
-    protected void setupTrafficPriorityQdiscs()
+    protected void setupTrafficPriorityQdiscsMidonet()
             throws IOException {
         int markValue = 0x00ACCABA;  // Midokura's OUI.
         Runtime rt = Runtime.getRuntime();
@@ -468,6 +473,24 @@ public class Setup implements Watcher {
             setupTrafficPriorityRule(hostport[3], hostport[4]);
         }
         
+    }
+
+    protected void setupTrafficPriorityQdiscsNova()
+            throws IOException, ParseException {
+        Options options = new Options();
+        options.addOption("rabbit_host", true, "");
+        options.addOption("sql_connection", true, "");
+        options.addOption("vncproxy_url", true, "");
+        CommandLineParser parser = new GnuParser();
+        FileReader confFile = new FileReader("/etc/nova/nova.conf");
+        char[] confBytes = new char[5000];
+        int confByteLength = confFile.read(confBytes);
+        String[] allArgs = (new String(confBytes, 0, confByteLength)).split("\n");
+        CommandLine cl = parser.parse(options, allArgs);
+
+        // RabbitMQ
+        String rabbitHost = cl.getOptionValue("rabbit_host", "127.0.0.1");
+        setupTrafficPriorityRule(rabbitHost, "5672");
     }
 
     protected void removeTrafficPriorityQdiscs()
