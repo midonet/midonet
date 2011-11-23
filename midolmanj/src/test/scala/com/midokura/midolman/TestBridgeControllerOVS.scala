@@ -17,13 +17,20 @@ import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.packets.IntIPv4
 import com.midokura.midolman.state.{MacPortMap, MockDirectory,
                                     PortToIntNwAddrMap}
-
+import com.midokura.midolman.openflow.OpenFlowError
+import org.openflow.protocol.{OFMatch, OFPort, OFStatisticsReply}
+import org.openflow.protocol.action.OFActionEnqueue
+import org.openflow.protocol.statistics.{
+    OFAggregateStatisticsReply, OFDescriptionStatistics, OFFlowStatisticsReply,
+    OFPortStatisticsReply, OFQueueStatisticsReply, OFStatistics,
+    OFTableStatistics}
 import org.apache.zookeeper.CreateMode
 import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
 import org.junit.Assume._
-import org.openflow.protocol.OFPhysicalPort
 import org.slf4j.LoggerFactory
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 import java.io.{File, RandomAccessFile}
 import java.lang.Long.parseLong
@@ -74,6 +81,13 @@ object TestBridgeControllerOVS
     override final val bridgeExtIdKey = "midolman-vnet"
     override final val bridgeExtIdValue = "ebbf1184-4dc2-11e0-b2c3-a4b17460e319"
     override final val bridgeId: Long = 0x74a027d6e9288adbL
+    private final val portName = "testport"
+    private final var qosUUID: String = _
+    private final val qosExtIdKey = "test-midolman-vnet-qos"
+    private final val qosExtIdVal = UUID.randomUUID().toString
+    private final var queueUUID: String = _
+    private final val queueExtIdKey = "test-midolman-vnet-queue"
+    private final val queueExtIdVal = UUID.randomUUID().toString
 
     @BeforeClass def initializeTest() {
         connectToOVSDB
@@ -130,13 +144,16 @@ object TestBridgeControllerOVS
                                       portModSemaphore.release(10)
                                       connectionSemaphore.release
                                   } },
-                              4000, TimeUnit.MILLISECONDS)
+                              10000, TimeUnit.MILLISECONDS)
             reactor.doLoop
             log.info("reactor thread exiting")
         } }
 
         reactorThread.start
 
+        addPortWithQosAndQueue(portName)
+        assertTrue(ovsdb.hasPort(portName))
+        log.info("Port {} successfully added to ovsdb", portName)
         log.info("Leaving initializeTest()")
     }
 
@@ -149,6 +166,19 @@ object TestBridgeControllerOVS
                 assertTrue(ovsdb.hasBridge(bridgeId))
                 ovsdb.delBridgeOpenflowControllers(bridgeId)
                 assertFalse(ovsdb.hasController(target))
+                // Queue
+                assertTrue(ovsdb.hasQueue(queueUUID))
+                ovsdb.clearQosQueues(qosUUID)
+                assertTrue(ovsdb.isEmptyColumn("QoS", qosUUID, "queues"))
+                ovsdb.delQueue(queueUUID)
+                assertFalse(ovsdb.hasQueue(queueUUID))
+                // QoS
+                assertTrue(ovsdb.hasQos(qosUUID))
+                ovsdb.unsetPortQos(portName)
+                ovsdb.delQos(qosUUID)
+                assertFalse(ovsdb.hasQos(qosUUID))
+                ovsdb.delPort(portName)
+                assertFalse(ovsdb.hasPort(portName))
             }
         } finally {
             disconnectFromOVSDB
@@ -176,6 +206,7 @@ object TestBridgeControllerOVS
         sock.configureBlocking(false)
 
         var controllerStub = new ControllerStubImpl(sock, reactor, controller)
+        controller.setControllerStub(controllerStub)
         var switchKey = reactor.register(sock, SelectionKey.OP_READ,
                                          controllerStub)
         reactor.wakeup
@@ -189,8 +220,24 @@ object TestBridgeControllerOVS
         pb.build
     }
 
-    def addInternalPort(portName : String) {
+    def addInternalPort(portName: String) {
         ovsdb.addInternalPort(bridgeName, portName).build
+    }
+
+    def addPortWithQosAndQueue(portName : String) {
+        val queues = ovsdb.addQueue().maxRate(1000000)
+        queues.externalId(queueExtIdKey, queueExtIdVal).build
+        val queueUUIDs: List[String] = (ovsdb.getQueueUUIDsByExternalId(
+            queueExtIdKey, queueExtIdVal): mutable.Set[String]).toList
+        queueUUID = queueUUIDs(0)
+        val qos = ovsdb.addQos("linux-hfsc").queues(
+            (mutable.Map(
+                (0L: java.lang.Long) -> (queueUUID: java.lang.String))))
+        qos.externalId(qosExtIdKey, qosExtIdVal).build
+        val qosUUIDs: List[String] = (ovsdb.getQosUUIDsByExternalId(
+              qosExtIdKey, qosExtIdVal): mutable.Set[String]).toList
+        qosUUID = qosUUIDs(0)
+      ovsdb.addInternalPort(bridgeName, portName).qos(qosUUIDs(0)).build
     }
 
     def addTapPort(portName : String, vportId : UUID) {
@@ -240,6 +287,122 @@ class TestBridgeControllerOVS {
         } finally {
             serializeTestsSemaphore.release
             log.info("testNewSystemPort exiting")
+        }
+    }
+
+    @Test(timeout=1000) def testGetDescStats() {
+        log.info("testGetDescStats")
+        try {
+            val response = controller.getDescStats()
+            log.info("Controller got the response: {}", response)
+            for (reply: OFDescriptionStatistics <- response) {
+                assertEquals(reply.getManufacturerDescription,
+                    "Nicira Networks, Inc.")
+                assertEquals(reply.getHardwareDescription,
+                    "Open vSwitch")
+            }
+        } catch {
+            case e: OpenFlowError => throw e
+        } finally {
+            log.info("testGetDescStats exiting")
+        }
+    }
+
+    // TODO(tfukushima): Add a unit test for getFlowStats.
+    @Ignore @Test(timeout=1000) def testGetFlowStats() {
+        log.info("testGetFlowStatas")
+        try {
+            val ofmatch = new OFMatch()
+            val ofActionEnqueue = new OFActionEnqueue
+            val portNum = ovsdb.getPortNumsByPortName(
+              portName).filter(_ > 0).head
+            ofActionEnqueue.setPort(portNum)
+            ofActionEnqueue.setQueueId(ovsdb.getQueueNumByQueueUUID(
+              qosUUID, queueUUID))
+            val ofActions = List(ofActionEnqueue)
+            // Add flow such as...
+            // controller.addFlow(ofmatch, 0,
+            //     1000, 1000, 0,
+            //     0, true, true, false, ofActions)
+            val reply = controller.getFlowStats(
+                ofmatch, 0xff.toByte, OFPort.OFPP_NONE.getValue)
+            log.info("Controller got the response: {}", reply)
+            for (response: OFFlowStatisticsReply <- reply)
+                 assertNotSame(0, response.getDurationNanoseconds)
+        } catch {
+            case e: OpenFlowError => throw e
+        } finally {
+            log.info("testGetFlowStats exiting")
+        }
+    }
+
+    @Test(timeout=1000) def testGetAggregateStats() {
+        log.info("testAggregateStats")
+        try {
+            val ofmatch = new OFMatch()
+            val response = controller.getAggregateStats(
+                ofmatch, 0xff.toByte,
+                ovsdb.getPortNumByUUID(ovsdb.getPortUUID(portName)))
+            log.info("Controller got the response: {}", response)
+            for (reply: OFAggregateStatisticsReply <- response)
+                 assertEquals(0, reply.getFlowCount)
+        } catch {
+            case e: OpenFlowError => throw e
+        } finally {
+            log.info("testGetAggregateStats exiting")
+        }
+    }
+
+    @Test(timeout=1000) def testTableStats() {
+        log.info("testTableStats")
+        try {
+            val response = controller.getTableStats
+            log.info("Controlelr got the response {}", response)
+            for (reply: OFTableStatistics <- response) {
+                assertEquals(reply.getTableId, 0)
+                assertNotSame(reply.getActiveCount, 0)
+            }
+        } catch {
+            case e: OpenFlowError => throw e
+        } finally {
+            log.info("testTableStats exiting")
+        }
+    }
+
+    @Test(timeout=1000) def testGetPortStats() {
+       log.info("testGetPortStats")
+       try {
+           val portNum = ovsdb.getPortNumsByPortName(
+               portName).filter(_ > 0).head
+           val reply = controller.getPortStats(portNum)
+           for (response: OFPortStatisticsReply <- reply) {
+               log.info("Controller got the response: {}",
+                        response.getPortNumber)
+               assertEquals(response.getPortNumber, portNum)
+           }
+       } catch {
+           case e: OpenFlowError => throw e
+       } finally {
+           log.info("testGetPortStats exiting")
+       }
+    }
+
+    @Test(timeout=1000) def testGetQueueStats() {
+        log.info("testGetQueueStats")
+        try {
+            val portNum = ovsdb.getPortNumsByPortName(
+                portName).filter(_ > 0).head
+            val reply = controller.getQueueStats(portNum,
+                ovsdb.getQueueNumByQueueUUID(qosUUID, queueUUID))
+            for (response: OFQueueStatisticsReply <- reply) {
+                log.info("Controller got the response: {}",
+                    response.getQueueId)
+                assertEquals(response.getPortNumber, portNum)
+            }
+        } catch {
+            case e: OpenFlowError => throw e
+        } finally {
+            log.info("testGetQueueStats exiting")
         }
     }
 
