@@ -115,24 +115,24 @@ public class Tap {
     	int res2 = ioctl.invokeInt(new Object[]{fd, 0x400454ca, interfaceReq});  
          */
     }
-    public static int openPersistentTapSetOwner(String tapName, int owner)
+    public static void openPersistentTapSetOwner(String tapName, int owner)
     {
-    	return openPersistentTap(tapName, owner, -1, "");
+         openPersistentTap(tapName, owner, -1, "");
     }
     
-    public static int openPersistentTapSetGroup(String tapName, int group)
+    public static void openPersistentTapSetGroup(String tapName, int group)
     {
-    	return openPersistentTap(tapName, -1, group, "");
+    	 openPersistentTap(tapName, -1, group, "");
     }
     
-    public static int openPersistentTap(String tapName)
+    public static void openPersistentTap(String tapName)
     {
-    	return openPersistentTap(tapName, -1, -1, "");
+    	 openPersistentTap(tapName, -1, -1, "");
     }
     
-    public static int openPersistentTap(String tapName, String hwAddr)
+    public static void openPersistentTap(String tapName, String hwAddr)
     {
-    	return openPersistentTap(tapName, -1, -1, hwAddr);
+    	 openPersistentTap(tapName, -1, -1, hwAddr);
     }
     
     /*
@@ -164,7 +164,7 @@ public class Tap {
 
      *  
      */
-    public static int openPersistentTap(String tapName, int owner, int group, String hwAddr)
+    public static void openPersistentTap(String tapName, int owner, int group, String hwAddr)
     {
     	int res;
     	int fd = openTap(tapName);
@@ -197,8 +197,7 @@ public class Tap {
     	}
     	
     	TestLibrary.INSTANCE.close(fd);
-    	
-    	return fd;
+
     }
     
     /*
@@ -351,6 +350,7 @@ public class Tap {
     {
     	int fd = openTap(name);
     	int res = TestLibrary.INSTANCE.ioctl(fd, TUNSETPERSIST, 0);
+    	TestLibrary.INSTANCE.close(fd);
     	if(res < 0)
     		throw new RuntimeException("ioctl failed in destroying the tap!");   	
     }
@@ -359,6 +359,7 @@ public class Tap {
     {
     	int fd = openTap(name);
     	int res = TestLibrary.INSTANCE.write(fd, buffer, nBytes);
+    	TestLibrary.INSTANCE.close(fd);
     	if(res < 0)
     		throw new RuntimeException("write failed!");   	
     }
@@ -368,6 +369,7 @@ public class Tap {
     	byte[] buffer = new byte[nBytes];
     	int fd = openTap(name);
     	int res = TestLibrary.INSTANCE.read(fd, buffer, nBytes);
+    	TestLibrary.INSTANCE.close(fd);
     	if(res < 0)
     		throw new RuntimeException("write failed!"); 
     	return buffer;
