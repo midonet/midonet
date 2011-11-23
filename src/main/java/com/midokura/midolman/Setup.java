@@ -461,7 +461,7 @@ public class Setup implements Watcher {
                                .getString("memcache_hosts", "127.0.0.1:11211");
         for (String mcServer : mcHosts.split(",")) {
             String[] hostport = mcServer.split(":");
-            setupTrafficPriorityRule(hostport[0], hostport[1]); 
+            setupTrafficPriorityRule(hostport[0], hostport[1]);
         }
 
         // Add rules to mark Voldemort packets.
@@ -473,7 +473,7 @@ public class Setup implements Watcher {
             assert hostport.length == 5;
             setupTrafficPriorityRule(hostport[3], hostport[4]);
         }
-        
+
     }
 
     protected void setupTrafficPriorityQdiscsNova()
@@ -493,7 +493,7 @@ public class Setup implements Watcher {
         // RabbitMQ
         String rabbitHost = cl.getOptionValue("rabbit_host", "127.0.0.1");
         setupTrafficPriorityRule(rabbitHost, "5672");
-        
+
         // mysql
         URL mysqlUrl = new URL(
             cl.getOptionValue("sql_connection",
