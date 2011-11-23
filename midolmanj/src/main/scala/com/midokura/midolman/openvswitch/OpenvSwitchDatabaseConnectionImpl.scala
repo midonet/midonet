@@ -2059,7 +2059,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             for (portRow <- portRows) {
                 val portUUID = portRow.get(ColumnUUID).get(1).getTextValue
                 val qosValue = portRow.get(ColumnQos).get(1).getTextValue
-                tx.setDelete(TablePort, Some(portUUID), ColumnQos, qosValue)
+                tx.setDelete(TablePort, Some(portUUID), ColumnQos,
+                             List("uuid", qosValue))
             }
         }
         tx.addComment("deleted QoS with uuid " + qosUUID)
