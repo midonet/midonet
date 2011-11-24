@@ -107,7 +107,7 @@ public class VPortBuilder {
         addOVSBridge();
         try {
             Process p = Runtime.getRuntime().exec(
-                    String.format("sudo -n ip tuntap add dev %s mode tap user pino group pino",
+                    String.format("sudo -n ip tuntap add dev %s mode tap",
                             portName));
             p.waitFor();
             log.debug("\"sudo -n ip tuntap add dev {} mode tap\" returned: {}",
