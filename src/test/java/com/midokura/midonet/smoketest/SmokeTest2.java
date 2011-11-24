@@ -7,6 +7,8 @@ package com.midokura.midonet.smoketest;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -16,9 +18,10 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.smoketest.topology.PeerRouterLink;
 import com.midokura.midonet.smoketest.topology.InternalPort;
+import com.midokura.midonet.smoketest.topology.PeerRouterLink;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
@@ -32,35 +35,56 @@ public class SmokeTest2 {
     static InternalPort internalPort;
     static OpenvSwitchDatabaseConnection ovsdb;
     static PacketHelper helper;
+    static MidolmanMgmt mgmt;
 
     @BeforeClass
-    public static void setUp() throws InterruptedException {
-        ovsdb =  new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+    public static void setUp() throws InterruptedException, IOException {
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
-        MockMidolmanMgmt mgmt = new MockMidolmanMgmt(false);
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant27").build();
+        mgmt = new MockMidolmanMgmt(false);
+        // First clean up left-overs from previous incomplete tests.
+        Process p = Runtime.getRuntime().exec(
+                "sudo -n ip tuntap del dev tapPort1 mode tap");
+        p.waitFor();
+        if(ovsdb.hasBridge("smoke-br"))
+            ovsdb.delBridge("smoke-br");
+        try {
+            mgmt.deleteTenant("tenant1");
+        }
+        catch (Exception e) {}
+
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         tapPort = router1.addPort(ovsdb).setDestination("192.168.100.2")
                 .buildTap();
         helper = new PacketHelper(tapPort.getInnerMAC(), "192.168.100.2");
+        internalPort = router1.addPort(ovsdb).setDestination("192.168.100.3")
+                .buildInternal();
 
-        tenant2 = new Tenant.Builder(mgmt).setName("tenant28").build();
-        Router router2 = tenant2.addRouter().setName("rtr1").build();
+        /*
+        tenant2 = new Tenant.Builder(mgmt).setName("tenant2").build();
+        Router router2 = tenant2.addRouter().setName("rtr2").build();
         internalPort = router2.addPort(ovsdb).setDestination("192.168.101.2")
                 .buildInternal();
 
         rtrLink = router1.addRouterLink().setPeer(router2).
                 setLocalPrefix("192.168.100.0").setPeerPrefix("192.168.100.0").
                 build();
+        */
 
-        Thread.sleep(10000);
+        Thread.sleep(1000);
     }
 
     @AfterClass
     public static void tearDown() {
+        /*
         rtrLink.delete();
+        DtoTenant[] tenants = mgmt.getTenants();
+        for (int i = 0; i < tenants.length; i++)
+            mgmt.delete(tenants[i].getUri());
+        */
         tenant1.delete();
-        tenant2.delete();
+        //tenant2.delete();
         ovsdb.delBridge("smoke-br");
     }
 
@@ -101,7 +125,7 @@ public class SmokeTest2 {
         helper.checkIcmpEchoReply(request, tapPort.recv());
 
         // Ping peer port.
-        IntIPv4 peerIp = IntIPv4.fromString("192.168.101.2");
+        IntIPv4 peerIp = IntIPv4.fromString("192.168.100.3");
         request = helper.makeIcmpEchoRequest(rtrMac, peerIp);
         assertTrue(tapPort.send(request));
         // Note: the virtual router ARPs before delivering the packet.

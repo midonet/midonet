@@ -26,4 +26,8 @@ public interface MidolmanMgmt {
     <T> T get(String path, Class<T> clazz);
 
     void delete(URI uri);
+
+    DtoTenant[] getTenants();
+
+    void deleteTenant(String string);
 }

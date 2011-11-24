@@ -37,7 +37,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public MockMidolmanMgmt(boolean mockZK) {
         super(new WebAppDescriptor.Builder(new String[] {
                 "com.midokura.midolman.mgmt.rest_api.resources",
-                "com.midokura.midolman.mgmt.data" })
+                "com.midokura.midolman.mgmt.rest_api.jaxrs" })
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
@@ -143,5 +143,14 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public DtoRoute addRoute(DtoRouter r, DtoRoute rt) {
         URI uri = post(r.getRoutes(), rt);
         return get(uri, DtoRoute.class);
+    }
+
+    public DtoTenant[] getTenants() {
+        return get(app.getTenant(), DtoTenant[].class);
+    }
+
+    @Override
+    public void deleteTenant(String name) {
+        delete(UriBuilder.fromUri(app.getTenant()).path(name).build());
     }
 }
