@@ -1,6 +1,8 @@
+/*
+* Copyright 2011 Midokura Europe SARL
+*/
 package com.midokura.midonet.smoketest;
 
-import com.jcraft.jsch.*;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
@@ -12,8 +14,8 @@ import com.midokura.midonet.smoketest.topology.Tenant;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.process.ProcessHelper;
-import org.apache.commons.io.IOUtils;
+import com.midokura.tools.ssh.SshHelper;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -22,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import static com.midokura.tools.process.ProcessHelper.newProcess;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@gmail.com>
@@ -29,9 +33,9 @@ import static com.midokura.tools.process.ProcessHelper.newProcess;
  * Date: 11/24/11
  * Time: 12:16 PM
  */
-public class VmPingTest {
+public class VmSshTest {
 
-    private final static Logger log = LoggerFactory.getLogger(VmPingTest.class);
+    private final static Logger log = LoggerFactory.getLogger(VmSshTest.class);
 
     static Tenant tenant;
     static TapPort tapPort;
@@ -40,26 +44,13 @@ public class VmPingTest {
 
     static OpenvSwitchDatabaseConnection ovsdb;
 
+    static String tapPortName = "tapPort1";
+
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch", "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-
-        String tapPortName = "tapPort1";
-
-        // First clean up left-overs from previous incomplete tests.
-        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap", tapPortName))
-                .logOutput(log, "remove_old_tap")
-                .runAndWait();
-
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-
-        try {
-            mgmt.deleteTenant("tenant1");
-        } catch (Exception e) {
-        }
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
 
@@ -78,7 +69,23 @@ public class VmPingTest {
                 .logOutput(log, "add_host_route")
                 .runAndWait();
 
+        tapPort.closeFd();
         Thread.sleep(1000);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        // First clean up left-overs from previous incomplete tests.
+        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap", tapPortName))
+                .logOutput(log, "remove_old_tap")
+                .runAndWait();
+
+        ovsdb.delBridge("smoke-br");
+
+        try {
+            mgmt.deleteTenant("tenant1");
+        } catch (Exception e) {
+        }
     }
 
     @Test
@@ -94,63 +101,23 @@ public class VmPingTest {
                         .setNetworkDevice(tapPort.getName())
                         .build();
 
-        vm.startup();
-
-        // validate ping to the 192.168.100.2 address
-        // validate ssh to the 192.168.100.2 address
-
-
         try {
-            JSch jsch = new JSch();
-            Session session=jsch.getSession("ubuntu", "192.168.100.2", 22);
+            vm.startup();
 
-            // username and password will be given via UserInfo interface.
-            UserInfo ui=new UserInfo() {
-                @Override
-                public String getPassphrase() {
-                    return null;
-                }
+            // validate ssh to the 192.168.100.2 address
+            String output =
+                    SshHelper.newRemoteCommand("hostname")
+                            .onHost("192.168.100.2")
+                            .withCredentials("ubuntu", "ubuntu")
+                            .runWithTimeout(60 * 1000); // 60 seconds
 
-                @Override
-                public String getPassword() {
-                    return "ubuntu";
-                }
+            // validate that the hostname of the target VM matches the hostname that we configured for the vm
+            assertThat("The remote hostname command output should match the hostname we chosen for the vm",
+                    output.trim(), equalTo(vm.getHostName()));
 
-                @Override
-                public boolean promptPassword(String s) {
-                    return true;
-                }
-
-                @Override
-                public boolean promptPassphrase(String s) {
-                    return false;
-                }
-
-                @Override
-                public boolean promptYesNo(String s) {
-                    return true;
-                }
-
-                @Override
-                public void showMessage(String s) {
-                    int a = 10;
-                }
-            };
-
-            session.setUserInfo(ui);
-            // try to connect to the vm for a maximum of 10 seconds
-            session.connect(60 * 1000);
-
-            ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
-            channelExec.setCommand("hostname");
-            channelExec.connect();
-            String result = IOUtils.toString(channelExec.getInputStream(), "UTF-8");
-
-            int a = 10;
-
-        } catch (JSchException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            vm.shutdown();
+            vm.destroy();
         }
-
     }
 }
