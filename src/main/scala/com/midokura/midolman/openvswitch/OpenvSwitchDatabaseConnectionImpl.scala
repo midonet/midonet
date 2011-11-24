@@ -505,7 +505,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             var responseId: Int = -1
             try {
                 response = queue.take
-                if (response.get("id").toString == OVSDBConnectionLostId)
+                if (response.get("id").getValueAsText == OVSDBConnectionLostId)
                     throw new OVSDBException(
                         "The connection between OVSDB has been lost.")
                 responseId = response.get("id").getValueAsInt
@@ -528,7 +528,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     "wrong id in JSON-RPC result: %s".format(responseId))
             val errorValue = response.get("error")
             log.warn("error: {}", errorValue)
-            if (errorValue != null) {
+            if (errorValue != null && !errorValue.isNull) {
                 log.warn("doJsonRpc: error from server: ", errorValue.toString)
                 throw new OVSDBException(
                     "OVSDB request error: " + errorValue.toString,
