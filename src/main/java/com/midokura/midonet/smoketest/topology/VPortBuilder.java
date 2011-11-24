@@ -113,7 +113,7 @@ public class VPortBuilder {
             log.debug("\"sudo -n ip tuntap add dev {} mode tap\" returned: {}",
                     portName, p.exitValue());
             p = Runtime.getRuntime().exec(
-                    String.format("sudo -n ip link set dev %s up", portName));
+                    String.format("sudo -n ip link set dev %s arp off multicast off up", portName));
             p.waitFor();
             log.debug("\"sudo -n ip link set dev {} up\" exited with: {}",
                     portName, p.exitValue());
@@ -149,8 +149,7 @@ public class VPortBuilder {
                     p.exitValue());
             p = Runtime.getRuntime().exec(
                     String.format("sudo -n ip addr add %s/%s dev %s",
-                            vport.getLocalNetworkAddress(),
-                            vport.getLocalNetworkLength(), portName));
+                            vport.getLocalNetworkAddress(), 24, portName));
             p.waitFor();
             log.info("ip addr add - returned {}", p.exitValue());
         } catch (InterruptedException e) {

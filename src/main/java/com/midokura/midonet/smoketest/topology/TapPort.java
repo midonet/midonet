@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
@@ -25,8 +26,10 @@ public class TapPort extends Port {
     private final static Logger log = LoggerFactory.getLogger(TapPort.class);
 
     MAC hwAddr;
+    MAC outerMac;
     static Random rand = new Random();
     byte[] unreadBytes;
+    int fd;
 
     TapPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
         super(mgmt, port, name);
@@ -34,7 +37,10 @@ public class TapPort extends Port {
         // written to the underlying tap.
         byte[] hw_bytes = new byte[6];
         rand.nextBytes(hw_bytes);
+        hw_bytes[0] = (byte)02;
         hwAddr = new MAC(hw_bytes);
+        outerMac = MAC.fromString(Tap.getHwAddress(this.name));
+        fd = Tap.openTap(name, true);
     }
 
     public void sendICMP(String dstIp4) {
@@ -55,20 +61,20 @@ public class TapPort extends Port {
         Ethernet ethReq = new Ethernet();
         ethReq.setPayload(ipReq);
         ethReq.setEtherType(IPv4.ETHERTYPE);
-        ethReq.setDestinationMACAddress(MAC.fromString(Tap.getHwAddress(name)));
+        ethReq.setDestinationMACAddress(outerMac);
         MAC senderMac = MAC.fromString("ab:cd:ef:01:23:45");
         ethReq.setSourceMACAddress(senderMac);
         byte[] pktData = ethReq.serialize();
-        Tap.writeToTap(name, pktData, pktData.length);
+        Tap.writeToTap(fd, pktData, pktData.length);
     }
 
     public boolean send(byte[] pktBytes) {
-        Tap.writeToTap(this.name, pktBytes, pktBytes.length);
+        Tap.writeToTap(this.fd, pktBytes, pktBytes.length);
         return true;
     }
 
     public byte[] recv() {
-        long maxSleepMillis = 1000;
+        long maxSleepMillis = 2000;
         long timeSlept = 0;
         // Max pkt size = 14 (Ethernet) + 1500 (MTU) - 20 GRE = 1492
         byte[] data = new byte[1492];
@@ -81,11 +87,17 @@ public class TapPort extends Port {
             totalSize = getTotalPacketSize(data, buf.position());
         }
         while (true) {
-            int numRead = Tap.readFromTap(name, tmp, 1492 - buf.position());
+            int numRead = Tap.readFromTap(this.fd, tmp, 1492 - buf.position());
+            if (numRead > 0)
+            	log.debug("Got {} bytes reading from tap.", numRead);
             if (0 == numRead) {
-                if (timeSlept >= maxSleepMillis)
+                if (timeSlept >= maxSleepMillis) {
+                	//log.debug("Returning null after receiving {} bytes",
+                	//		buf.position());
                     return null;
+                }
                 try {
+                	log.debug("Sleeping for 100 millis.");
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     log.error("InterrupException in recv()", e);
@@ -94,18 +106,31 @@ public class TapPort extends Port {
                 continue;
             }
             buf.put(tmp, 0, numRead);
-            if (totalSize < 0)
+            if (totalSize < 0) {
                 totalSize = getTotalPacketSize(data, buf.position());
-            // breat out of the loop if you've read at least one full packet.
+                if (totalSize == -2) {
+                	log.warn("Got a non-IPv4 packet. Discarding.");
+                	totalSize = -1;
+                	buf.position(0);
+                	continue;
+                }
+                else if (totalSize > -1)
+                	log.debug("The packet has size {}", totalSize);
+            }
+            // break out of the loop if you've read at least one full packet.
             if (totalSize > 0 && totalSize <= buf.position())
                 break;
         }
-        if (buf.position() > totalSize)
+        if (buf.position() > totalSize) {
             unreadBytes = Arrays.copyOfRange(data, totalSize, buf.position());
+            log.debug("Saving {} unread bytes for next packet recv call.",
+            		unreadBytes.length);
+        }
         return Arrays.copyOf(data, totalSize);
     }
 
     private int getTotalPacketSize(byte[] pktBytes, int size) {
+    	log.debug("computing total size, currently have {} bytes", size);
         if (size < 14)
             return -1;
         ByteBuffer bb = ByteBuffer.wrap(pktBytes);
@@ -119,8 +144,16 @@ public class TapPort extends Port {
             etherType = bb.getShort();
         }
         // Now parse the payload.
+        if (etherType == ARP.ETHERTYPE) {
+        	bb.getInt();
+        	int hwLen = bb.get();
+        	int protoLen = bb.get();
+        	bb.getShort();
+        	return bb.position() + 2*(hwLen + protoLen);
+        }
         if (etherType != IPv4.ETHERTYPE)
-            throw new RuntimeException("Received non-IPv4 packet");
+        	return -2;
+            //throw new RuntimeException("Received non-IPv4 packet");
         if (size - bb.position() < 4)
             return -1;
         // Ignore the first 2 bytes of the IP header.
@@ -136,6 +169,6 @@ public class TapPort extends Port {
     }
 
     public MAC getOuterMAC() {
-        return MAC.fromString(Tap.getHwAddress(this.name));
+        return outerMac;
     }
 }

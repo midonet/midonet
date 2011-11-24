@@ -14,6 +14,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
@@ -26,8 +29,12 @@ import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
 
+import java.util.Random;
+
 public class SmokeTest2 {
 
+	private final static Logger log = LoggerFactory
+            .getLogger(SmokeTest2.class);
     static Tenant tenant1;
     static Tenant tenant2;
     static PeerRouterLink rtrLink;
@@ -36,6 +43,7 @@ public class SmokeTest2 {
     static OpenvSwitchDatabaseConnection ovsdb;
     static PacketHelper helper;
     static MidolmanMgmt mgmt;
+    static Random rand = new Random(System.currentTimeMillis());
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
@@ -43,17 +51,22 @@ public class SmokeTest2 {
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         // First clean up left-overs from previous incomplete tests.
-        Process p = Runtime.getRuntime().exec(
-                "sudo -n ip tuntap del dev tapPort1 mode tap");
-        p.waitFor();
+        //Process p = Runtime.getRuntime().exec(
+        //        "sudo -n ip tuntap del dev tapPort1 mode tap");
+        //p.waitFor();
         if(ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
+        /*
         try {
-            mgmt.deleteTenant("tenant1");
+            mgmt.deleteTenant("tenant30");
+            log.debug("deleted tenant30");
         }
-        catch (Exception e) {}
-
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
+        catch (Exception e) {
+        	log.error("failed to delete tenant30", e);
+        }
+        */
+        String tenantName = "tenant" + rand.nextInt();
+        tenant1 = new Tenant.Builder(mgmt).setName(tenantName).build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         tapPort = router1.addPort(ovsdb).setDestination("192.168.100.2")
                 .buildTap();
@@ -77,15 +90,15 @@ public class SmokeTest2 {
 
     @AfterClass
     public static void tearDown() {
+        ovsdb.delBridge("smoke-br");
         /*
         rtrLink.delete();
         DtoTenant[] tenants = mgmt.getTenants();
         for (int i = 0; i < tenants.length; i++)
             mgmt.delete(tenants[i].getUri());
         */
-        tenant1.delete();
+        //tenant1.delete();
         //tenant2.delete();
-        ovsdb.delBridge("smoke-br");
     }
 
     @Ignore
@@ -111,10 +124,13 @@ public class SmokeTest2 {
         MAC rtrMac = tapPort.getOuterMAC();
         IntIPv4 rtrIp = IntIPv4.fromString("192.168.100.1");
 
+        byte[] request;
+        byte[] reply;
+
         // First arp for router's mac.
-        byte[] request = helper.makeArpRequest(rtrIp);
+        request = helper.makeArpRequest(rtrIp);
         assertTrue(tapPort.send(request));
-        byte[] reply = tapPort.recv();
+        reply = tapPort.recv();
         helper.checkArpReply(reply, rtrMac, rtrIp);
 
         // Ping router's port.

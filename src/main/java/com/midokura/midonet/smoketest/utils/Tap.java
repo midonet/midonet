@@ -5,13 +5,19 @@
 
 package com.midokura.midonet.smoketest.utils;
 
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Structure;
 import com.sun.jna.Union;
 
 public class Tap {
-	
+	private final static Logger log = LoggerFactory
+    		.getLogger(Tap.class);
 	/* if.h */
     public static final int IFNAMSIZ = 16;
     
@@ -31,6 +37,8 @@ public class Tap {
     public static final int SIOCSIFHWADDR =	0x8924;		/* set hardware address 	*/
     
     /* fcntl.h */
+    public static final int O_RDONLY = 0;
+    public static final int O_WRONLY = 1;
     public static final int O_RDWR = 2;
     public static final int O_NONBLOCK = 04000;
     public static final int EWOULDBLOCK = 11;
@@ -87,7 +95,7 @@ public class Tap {
         
     	String tunPath = "/dev/net/tun";
     	int flags = nonblocking ? O_NONBLOCK : 0;
-    	int fd = TestLibrary.INSTANCE.open(tunPath, O_RDWR | flags);
+    	int fd = TestLibrary.INSTANCE.open(tunPath, flags | O_RDWR);
     	if(fd < 0)
     		throw new RuntimeException("Problem in opening /dev/net/tun");
         
@@ -358,22 +366,80 @@ public class Tap {
     		throw new RuntimeException("ioctl failed in destroying the tap!");   	
     }
 
+    public static void closeFD(int fd) {
+    	Native.setLastError(0);
+    	int close_res = TestLibrary.INSTANCE.close(fd);
+    	if (close_res < 0) {
+        	int err = Native.getLastError();
+    		log.error("Closing write fd returned {} and last error is {}",
+    				close_res, err);
+    	}
+    }
+
     public static void writeToTap(String name, byte[] buffer, int nBytes)
     {
     	int fd = openTap(name, false);
+    	//log.debug("Opened tap {} write-blocking returned fd:{}", name, fd);
     	int res = TestLibrary.INSTANCE.write(fd, buffer, nBytes);
-    	TestLibrary.INSTANCE.close(fd);
     	if(res < 0)
-    		throw new RuntimeException("write failed!");   	
+    		throw new RuntimeException("write failed!");
+    	closeFD(fd);
+    }
+    
+    public static void writeToTap(int fd, byte[] buffer, int nBytes)
+    {
+    	long maxSleepMillis = 1000;
+    	long timeSlept = 0;
+    	while (nBytes > 0) {
+        	Native.setLastError(0);
+    		int res = TestLibrary.INSTANCE.write(fd, buffer, nBytes);
+        	int err = Native.getLastError();    		
+    		if(res < 0) {
+        		if (err != EWOULDBLOCK)
+        			throw new RuntimeException(
+        					String.format("write failed with code %d!", err));
+    		}
+    		if (res > 0) {
+    			nBytes -= res;
+    			if (0 == nBytes)
+    				return;
+    			buffer = Arrays.copyOfRange(buffer, res, nBytes);
+    		}
+    		if (timeSlept >= maxSleepMillis)
+    			throw new RuntimeException("write timed out");
+            try {
+            	log.debug("Sleeping for 100 millis.");
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                log.error("InterrupException in recv()", e);
+            }
+            timeSlept += 100;
+    	}
     }
     
     public static int readFromTap(String name, byte[] buffer, int nBytes)
     {
     	int fd = openTap(name, true);
+    	//log.debug("Opened tap {} nonblocking returned fd:{}", name, fd);
     	Native.setLastError(0);
     	int res = TestLibrary.INSTANCE.read(fd, buffer, nBytes);
     	int err = Native.getLastError();
-    	TestLibrary.INSTANCE.close(fd);
+    	closeFD(fd);
+    	if(res < 0) {
+    		if (err != EWOULDBLOCK)
+    			throw new RuntimeException(
+    					String.format("read failed with code %d!", err)); 
+    		return 0;
+    	}
+    	return res;
+    }
+    
+    public static int readFromTap(int fd, byte[] buffer, int nBytes)
+    {
+    	//log.debug("Opened tap {} nonblocking returned fd:{}", name, fd);
+    	Native.setLastError(0);
+    	int res = TestLibrary.INSTANCE.read(fd, buffer, nBytes);
+    	int err = Native.getLastError();
     	if(res < 0) {
     		if (err != EWOULDBLOCK)
     			throw new RuntimeException(

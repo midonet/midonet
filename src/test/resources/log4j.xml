@@ -17,9 +17,13 @@
   </appender>
 
   <root> 
-    <priority value ="debug" /> 
+    <priority value ="info" /> 
     <appender-ref ref="console" /> 
     <appender-ref ref="file" /> 
   </root>
+
+  <logger name="com.midokura.midonet">
+    <level value="debug"/> 
+  </logger>
   
 </log4j:configuration>
