@@ -35,9 +35,10 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     DtoApplication app;
 
     public MockMidolmanMgmt(boolean mockZK) {
-        super(new WebAppDescriptor.Builder(new String[] {
+        super(new WebAppDescriptor.Builder(
                 "com.midokura.midolman.mgmt.rest_api.resources",
-                "com.midokura.midolman.mgmt.rest_api.jaxrs" })
+                "com.midokura.midolman.mgmt.rest_api.jaxrs",
+                "com.midokura.midolman.mgmt.data")
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",

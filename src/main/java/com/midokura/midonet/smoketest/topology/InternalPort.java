@@ -12,5 +12,4 @@ public class InternalPort extends Port {
     InternalPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
         super(mgmt, port, name);
     }
-
 }

@@ -27,4 +27,8 @@ public class Port {
     public void delete() {
         mgmt.delete(port.getUri());
     }
+
+    public String getName() {
+        return name;
+    }
 }
