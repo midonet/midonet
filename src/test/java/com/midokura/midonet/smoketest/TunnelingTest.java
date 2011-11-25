@@ -4,9 +4,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -18,8 +20,6 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.smoketest.topology.InternalPort;
-import com.midokura.midonet.smoketest.topology.PeerRouterLink;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
@@ -29,13 +29,11 @@ public class TunnelingTest {
 	private final static Logger log = LoggerFactory
             .getLogger(SmokeTest2.class);
     static Tenant tenant1;
-    static Tenant tenant2;
-    static PeerRouterLink rtrLink;
-    static TapPort tapPort;
-    static InternalPort internalPort1;
-    static InternalPort internalPort2;
+    static TapPort tapPort1;
+    static TapPort tapPort2;
+    static PacketHelper helper1;
+    static PacketHelper helper2;
     static OpenvSwitchDatabaseConnection ovsdb;
-    static PacketHelper helper;
     static MidolmanMgmt mgmt;
 
     static Random rand = new Random(System.currentTimeMillis());
@@ -49,48 +47,25 @@ public class TunnelingTest {
         //Process p = Runtime.getRuntime().exec(
         //        "sudo -n ip tuntap del dev tapPort1 mode tap");
         //p.waitFor();
+        //p = Runtime.getRuntime().exec(
+        //        "sudo -n ip tuntap del dev tapPort2 mode tap");
+        //p.waitFor();
         if(ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
         if(ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
-        /*
-        try {
-            mgmt.deleteTenant("tenant30");
-            log.debug("deleted tenant30");
-        }
-        catch (Exception e) {
-        	log.error("failed to delete tenant30", e);
-        }
-        */
         String tenantName = "tenant" + rand.nextInt();
         tenant1 = new Tenant.Builder(mgmt).setName(tenantName).build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
-        tapPort = router1.addPort(ovsdb).setDestination("192.168.100.2")
-                .buildTap();
-        helper = new PacketHelper(tapPort.getInnerMAC(), "192.168.100.2");
-        internalPort1 = router1.addPort(ovsdb).setDestination("192.168.101.3").setOVSBridgeName("smoke-br2").setOVSBridgeController("tcp:127.0.0.1:6623")
-                .buildInternal();
+        tapPort1 = router1.addPort(ovsdb).setDestination("192.168.100.2")
+        		.setOVSBridgeName("smoke-br")
+        		.setOVSBridgeController("tcp:127.0.0.1:6623")
+        		.buildTap();
+        helper1 = new PacketHelper(tapPort1.getInnerMAC(), "192.168.100.2");
+        tapPort2 = router1.addPort(ovsdb).setDestination("192.168.101.3").setOVSBridgeName("smoke-br2").buildTap();
+        helper2 = new PacketHelper(tapPort2.getInnerMAC(), "192.168.101.3");
 
-        Process mmController = Runtime.getRuntime()
-                .exec("sudo /usr/lib/jvm/java-6-openjdk/jre/bin/java "
-                        + "-cp ./conf:/usr/share/midolman/midolmanj.jar "
-                        + "-Dmidolman.log.dir=. "
-                        + "-Dcom.sun.management.jmxremote "
-                        + "-Dcom.sun.management.jmxremote.local.only= "
-                        + "com.midokura.midolman.Midolman "
-                        + "-c ./conf/midolman2.conf");
-       /*
-        tenant2 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt()).build();
-        Router router2 = tenant2.addRouter().setName("rtr2").build();
-        internalPort2 = router2.addPort(ovsdb).setDestination("192.168.101.2")
-                .buildInternal();
-
-        rtrLink = router1.addRouterLink().setPeer(router2).
-                setLocalPrefix("192.168.100.0").setPeerPrefix("192.168.100.0").
-                build();*/
-        
-
-        Thread.sleep(120000);
+        Thread.sleep(1000);
     }
 
     @AfterClass
@@ -111,38 +86,36 @@ public class TunnelingTest {
         /* Ping my router's port, then ping the peer port. */
 
         // Note: the router port's own MAC is the tap's hwAddr.
-        MAC rtrMac = tapPort.getOuterMAC();
-        IntIPv4 rtrIp = IntIPv4.fromString("192.168.100.1");
+        IntIPv4 ip1 = IntIPv4.fromString("192.168.100.2");
+        IntIPv4 ip2 = IntIPv4.fromString("192.168.101.3");
+        IntIPv4 rtrIp2 = IntIPv4.fromString("192.168.101.1");
+        IntIPv4 rtrIp1 = IntIPv4.fromString("192.168.100.1");
+        
+        byte[] sent;
+        byte[] received;
 
-        byte[] request;
-        byte[] reply;
+        sent = helper1.makeIcmpEchoRequest(tapPort1.getOuterMAC(), ip2);
+        assertTrue(tapPort1.send(sent));
+        // Note: the virtual router ARPs before delivering the IPv4 packet.
+        received = tapPort2.recv();
+        helper2.checkArpRequest(received, tapPort2.getOuterMAC(), rtrIp2);
+        assertTrue(tapPort2.send(helper2.makeArpReply(tapPort2.getOuterMAC(), rtrIp2)));
+        // receive the icmp
+        received = tapPort2.recv();
+        Assert.assertEquals(sent.length, received.length);
+        sent = helper2.makeIcmpEchoRequest(tapPort2.getOuterMAC(), ip1);
+        assertTrue(tapPort2.send(sent));
+        // Note: the virtual router ARPs before delivering the IPv4 packet.
+        received = tapPort1.recv();
+        helper1.checkArpRequest(received, tapPort1.getOuterMAC(), rtrIp1);
+        assertTrue(tapPort1.send(helper1.makeArpReply(tapPort1.getOuterMAC(), rtrIp1)));
+        received = tapPort1.recv();
+        Assert.assertEquals(sent.length, received.length);
+        Arrays.fill(received, 0, 12, (byte)0);
+        Arrays.fill(sent, 0, 12, (byte)0);
+        Assert.assertArrayEquals(sent, received);
 
-        // First arp for router's mac.
-        request = helper.makeArpRequest(rtrIp);
-        assertTrue(tapPort.send(request));
-        reply = tapPort.recv();
-        helper.checkArpReply(reply, rtrMac, rtrIp);
-
-        // Ping router's port.
-        request = helper.makeIcmpEchoRequest(rtrMac, rtrIp);
-        assertTrue(tapPort.send(request));
-        // Note: Midolman's virtual router currently does not ARP before
-        // responding to ICMP echo requests addressed to its own port.
-        helper.checkIcmpEchoReply(request, tapPort.recv());
-
-        // Ping peer port.
-        IntIPv4 peerIp = IntIPv4.fromString("192.168.101.3");
-        request = helper.makeIcmpEchoRequest(rtrMac, peerIp);
-        assertTrue(tapPort.send(request));
-        // Note: the virtual router ARPs before delivering the packet.
-        byte[] arp = tapPort.recv();
-        helper.checkArpRequest(arp, rtrMac, rtrIp);
-        assertTrue(tapPort.send(helper.makeArpReply(rtrMac, rtrIp)));
-        // Finally, the icmp echo reply from the peer.
-        helper.checkIcmpEchoReply(request, tapPort.recv());
-
-        // No other packets arrive at the port.
-        assertNull(tapPort.recv());
+        assertNull(tapPort2.recv());
     }
 
 
