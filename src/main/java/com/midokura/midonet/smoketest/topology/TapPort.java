@@ -29,7 +29,7 @@ public class TapPort extends Port {
     MAC outerMac;
     static Random rand = new Random();
     byte[] unreadBytes;
-    int fd;
+    int fd = -1;
 
     TapPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
         super(mgmt, port, name);
@@ -41,6 +41,16 @@ public class TapPort extends Port {
         hwAddr = new MAC(hw_bytes);
         outerMac = MAC.fromString(Tap.getHwAddress(this.name));
         fd = Tap.openTap(name, true);
+    }
+
+    /*
+     * A hack to allow the programatic close of the fd since while it is opened by the JVM you it can't be open by the KVM and the VM are failing.
+     * @author mtoader@midokura.com
+     */
+    public void closeFd() {
+        if ( fd > 0 ) {
+            Tap.closeFD(fd);
+        }
     }
 
     public void sendICMP(String dstIp4) {

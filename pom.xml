@@ -208,6 +208,13 @@
             <name>mido-maven</name>
             <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
         </repository>
+
+        <repository>
+            <id>jsch-maven</id>
+            <name>Jsch maven repository</name>
+            <url>http://jsch.sf.net/maven2/</url>
+        </repository>
+
     </repositories>
 
     <dependencies>
@@ -215,7 +222,7 @@
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
-            <version>0.1.44</version>
+            <version>0.1.45</version>
         </dependency>
 
         <!--
