@@ -74,8 +74,8 @@ public class Setup implements Watcher {
     private static final String ZK_TEARDOWN = "zk_teardown";
     private static final String ZK_ADD_RULES = "zk_add_rules";
     private static final String ZK_DEL_RULES = "zk_del_rules";
-    private static final String OVS_SETUP = "zk_setup";
-    private static final String OVS_TEARDOWN = "zk_teardown";
+    private static final String OVS_SETUP = "ovs_setup";
+    private static final String OVS_TEARDOWN = "ovs_teardown";
     private static final String MIDONET_QDISC_CREATE = "midonet_qdisc_create";
     private static final String NOVA_QDISC_CREATE = "nova_qdisc_create";
     private static final String QDISC_DESTROY = "qdisc_destroy";
