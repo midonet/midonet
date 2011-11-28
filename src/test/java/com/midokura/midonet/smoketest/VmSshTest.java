@@ -49,7 +49,9 @@ public class VmSshTest {
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch", "127.0.0.1", 12344);
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                                         "127.0.0.1",
+                                                         12344);
         mgmt = new MockMidolmanMgmt(false);
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
@@ -57,17 +59,20 @@ public class VmSshTest {
         Router router = tenant.addRouter().setName("rtr1").build();
 
         tapPort = router.addPort(ovsdb)
-                .setDestination("192.168.100.2")
-                .setOVSPortName(tapPortName)
-                .buildTap();
+                      .setDestination("192.168.100.2")
+                      .setOVSPortName(tapPortName)
+                      .buildTap();
 
         internalPort = router.addPort(ovsdb)
-                .setDestination("192.168.100.3")
-                .buildInternal();
+                           .setDestination("192.168.100.3")
+                           .buildInternal();
 
-        newProcess(String.format("sudo -n route add -net 192.168.100.0/24 dev %s", internalPort.getName()))
-                .logOutput(log, "add_host_route")
-                .runAndWait();
+//        newProcess(String.format("sudo -n route add -net 192.168.100.0/24 " +
+//                                     "dev" +
+//                                     " %s", internalPort.getName()))
+        newProcess("sudo -n route add -net 192.168.100.0/24 via 192.168.100.3")
+            .logOutput(log, "add_host_route")
+            .runAndWait();
 
         tapPort.closeFd();
         Thread.sleep(1000);
@@ -76,9 +81,10 @@ public class VmSshTest {
     @AfterClass
     public static void tearDown() {
         // First clean up left-overs from previous incomplete tests.
-        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap", tapPortName))
-                .logOutput(log, "remove_old_tap")
-                .runAndWait();
+        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap",
+                                    tapPortName))
+            .logOutput(log, "remove_old_tap")
+            .runAndWait();
 
         ovsdb.delBridge("smoke-br");
 
@@ -90,30 +96,37 @@ public class VmSshTest {
 
     @Test
     public void test() throws IOException, InterruptedException {
-        LibvirtHandler handler = LibvirtHandler.forHypervisor(HypervisorType.Qemu);
+
+        LibvirtHandler handler =
+            LibvirtHandler.forHypervisor(HypervisorType.Qemu);
 
         handler.setTemplate("basic_template_x86_64");
 
         VMController vm =
-                handler.newDomain()
-                        .setDomainName("test_ssh_domain")
-                        .setHostName("test")
-                        .setNetworkDevice(tapPort.getName())
-                        .build();
+            handler.newDomain()
+                .setDomainName("test_ssh_domain")
+                .setHostName("test")
+                .setNetworkDevice(tapPort.getName())
+                .build();
 
         try {
             vm.startup();
 
+            log.info("Running remote hostname command.");
             // validate ssh to the 192.168.100.2 address
             String output =
-                    SshHelper.newRemoteCommand("hostname")
-                            .onHost("192.168.100.2")
-                            .withCredentials("ubuntu", "ubuntu")
-                            .runWithTimeout(60 * 1000); // 60 seconds
+                SshHelper.newRemoteCommand("hostname")
+                    .onHost("192.168.100.2")
+                    .withCredentials("ubuntu", "ubuntu")
+                    .runWithTimeout(60 * 1000); // 60 seconds
 
-            // validate that the hostname of the target VM matches the hostname that we configured for the vm
-            assertThat("The remote hostname command output should match the hostname we chosen for the vm",
-                    output.trim(), equalTo(vm.getHostName()));
+            log.info("Command output: {}", output.trim());
+
+            // validate that the hostname of the target VM matches the
+            // hostname that we configured for the vm
+            assertThat("The remote hostname command output should match the " +
+                           "hostname we chosen for the vm",
+                          output.trim(), equalTo(vm.getHostName()));
 
         } finally {
             vm.shutdown();
