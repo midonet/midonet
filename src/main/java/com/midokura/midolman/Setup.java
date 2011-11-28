@@ -2,7 +2,8 @@ package com.midokura.midolman;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -434,18 +435,35 @@ public class Setup implements Watcher {
         }
     }
 
+    protected static void sudoExec(String command)
+            throws IOException, InterruptedException {
+        log.info("Running \"{}\" with sudo", command);
+        Process p = new ProcessBuilder("sh", "-c",
+                        "sudo -n " + command + " < /dev/tty").start();
+        p.waitFor();
+        byte[] cmdOutput = new byte[10000];
+        byte[] cmdErrOutput = new byte[10000];
+        int errOutputLength = p.getErrorStream().read(cmdErrOutput);
+        int outputLength = p.getInputStream().read(cmdOutput);
+        if (errOutputLength > 0)
+            log.error("sudo error output: {}",
+                      new String(cmdErrOutput, 0, errOutputLength));
+        if (outputLength > 0)
+            log.info("sudo standard output: {}",
+                     new String(cmdOutput, 0, outputLength));
+    }
+
     protected void setupTrafficPriorityQdiscsMidonet()
-            throws IOException {
+            throws IOException, URISyntaxException, InterruptedException {
         int markValue = 0x00ACCABA;  // Midokura's OUI.
-        Runtime rt = Runtime.getRuntime();
         String iface = config.configurationAt("midolman")
                              .getString("control_interface", "eth0");
 
         // Add a prio qdisc to root, and have marked packets prioritized.
-        rt.exec("sudo -n tc qdisc add dev " + iface + " root handle 1: prio");
-        rt.exec("sudo -n tc filter add dev " + iface +
-                " parent 1: protocol ip prio 1 handle " + markValue +
-                " fw flowid 1:1");
+        sudoExec("tc qdisc add dev " + iface + " root handle 1: prio");
+        sudoExec("tc filter add dev " + iface +
+                 " parent 1: protocol ip prio 1 handle " + markValue +
+                 " fw flowid 1:1");
 
         // Add rules to mark ZooKeeper packets.
         String zkHosts = config.configurationAt("zookeeper")
@@ -467,72 +485,77 @@ public class Setup implements Watcher {
         // Add rules to mark Voldemort packets.
         String volHosts = config.configurationAt("voldemort")
                                 .getString("servers", "127.0.0.1:6666");
-        for (String volUrl : volHosts.split(",")) {
-            String[] hostport = volUrl.split(":/");
-            // "proto":""/""/"host":"port"
-            assert hostport.length == 5;
-            setupTrafficPriorityRule(hostport[3], hostport[4]);
+        for (String volUrlString : volHosts.split(",")) {
+            URI volUrl = new URI(volUrlString);
+            int port = volUrl.getPort();
+            setupTrafficPriorityRule(volUrl.getHost(), Integer.toString(port));
         }
 
     }
 
     protected void setupTrafficPriorityQdiscsNova()
-            throws IOException, ParseException {
+            throws IOException, InterruptedException, URISyntaxException {
         Options options = new Options();
         options.addOption("rabbit_host", true, "");
         options.addOption("sql_connection", true, "");
         options.addOption("vncproxy_url", true, "");
         options.addOption("ec2_url", true, "");
-        CommandLineParser parser = new GnuParser();
         FileReader confFile = new FileReader("/etc/nova/nova.conf");
         char[] confBytes = new char[5000];
         int confByteLength = confFile.read(confBytes);
         String[] allArgs = (new String(confBytes, 0, confByteLength)).split("\n");
-        CommandLine cl = parser.parse(options, allArgs);
+        for (String arg : allArgs) {
+            // RabbitMQ
+            if (arg.startsWith("--rabbit_host")) {
+                String[] flaghost = arg.split("=");
+                setupTrafficPriorityRule(flaghost[1], "5672");
+            }
 
-        // RabbitMQ
-        String rabbitHost = cl.getOptionValue("rabbit_host", "127.0.0.1");
-        setupTrafficPriorityRule(rabbitHost, "5672");
+            // mysql
+            if (arg.startsWith("--sql_connection")) {
+                String[] flagurl = arg.split("=");
+                URI mysqlUrl = new URI(flagurl[1]);
+                int port = mysqlUrl.getPort();
+                if (port == -1)
+                    port = 3306;
+                setupTrafficPriorityRule(mysqlUrl.getHost(), Integer.toString(port));
+            }
 
-        // mysql
-        URL mysqlUrl = new URL(
-            cl.getOptionValue("sql_connection",
-                              "mysql://root:midokura@127.0.0.1/nova_trunk"));
-        int port = mysqlUrl.getPort();
-        if (port == -1)
-            port = 3306;
-        setupTrafficPriorityRule(mysqlUrl.getHost(), Integer.toString(port));
+            // VNC
+            if (arg.startsWith("--sql_connection")) {
+                String[] flagurl = arg.split("=");
+                URI vncUrl = new URI(flagurl[1]);
+                int port = vncUrl.getPort();
+                if (port == -1)
+                    port = 6080;
+                setupTrafficPriorityRule(vncUrl.getHost(), Integer.toString(port));
+            }
 
-        // VNC
-        URL vncUrl = new URL(
-            cl.getOptionValue("vncproxy_url", "http://127.0.0.1:6080"));
-        port = vncUrl.getPort();
-        if (port == -1)
-            port = 6080;
-        setupTrafficPriorityRule(vncUrl.getHost(), Integer.toString(port));
-
-        // EC2
-        URL ec2Url = new URL(
-            cl.getOptionValue("ec2_url", "http://127.0.0.1:8773/services/Cloud"));
-        port = ec2Url.getPort();
-        if (port == -1)
-            port = 8773;
-        setupTrafficPriorityRule(ec2Url.getHost(), Integer.toString(port));
+            // EC2
+            if (arg.startsWith("--ec2_url")) {
+                String[] flagurl = arg.split("=");
+                URI ec2Url = new URI(flagurl[1]);
+                int port = ec2Url.getPort();
+                if (port == -1)
+                    port = 8773;
+                setupTrafficPriorityRule(ec2Url.getHost(), Integer.toString(port));
+            }
+        }
     }
 
     protected void removeTrafficPriorityQdiscs()
-            throws IOException {
+            throws IOException, InterruptedException {
         // Clear existing qdiscs
         String iface = config.configurationAt("midolman")
                              .getString("control_interface", "eth0");
-        Runtime.getRuntime().exec("sudo -n tc qdisc del dev " + iface + " root");
+        sudoExec("tc qdisc del dev " + iface + " root");
     }
 
     protected static void setupTrafficPriorityRule(String host, String port)
-            throws IOException {
+            throws IOException, InterruptedException {
         int markValue = 0x00ACCABA;  // Midokura's OUI.
-        Runtime.getRuntime().exec(
-                "sudo -n iptables -t mangle -A POSTROUTING -p tcp -m tcp -d " +
+        sudoExec(
+                "iptables -t mangle -A POSTROUTING -p tcp -m tcp -d " +
                 host + " --dport " + port + " -j MARK --set-mark " + markValue);
     }
 
