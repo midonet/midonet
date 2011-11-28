@@ -5,12 +5,7 @@ package com.midokura.midonet.smoketest.mocks;
 
 import java.net.URI;
 
-import com.midokura.midonet.smoketest.mgmt.DtoLogicalRouterPort;
-import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
-import com.midokura.midonet.smoketest.mgmt.DtoPeerRouterLink;
-import com.midokura.midonet.smoketest.mgmt.DtoRoute;
-import com.midokura.midonet.smoketest.mgmt.DtoRouter;
-import com.midokura.midonet.smoketest.mgmt.DtoTenant;
+import com.midokura.midonet.smoketest.mgmt.*;
 
 public interface MidolmanMgmt {
 
@@ -26,6 +21,8 @@ public interface MidolmanMgmt {
 
     DtoRoute addRoute(DtoRouter r, DtoRoute rt);
 
+    DtoBgp addBGP(DtoMaterializedRouterPort p, DtoBgp b);
+
     <T> T get(String path, Class<T> clazz);
 
     void delete(URI uri);
@@ -33,4 +30,6 @@ public interface MidolmanMgmt {
     DtoTenant[] getTenants();
 
     void deleteTenant(String string);
+
+    DtoAdRoute addBgpAdvertisedRoute(DtoBgp dtoBgp, DtoAdRoute dtpAdRoute);
 }

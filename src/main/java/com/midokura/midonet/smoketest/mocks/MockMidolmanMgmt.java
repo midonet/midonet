@@ -7,18 +7,11 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.midokura.midonet.smoketest.mgmt.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midonet.smoketest.mgmt.DtoAdmin;
-import com.midokura.midonet.smoketest.mgmt.DtoApplication;
-import com.midokura.midonet.smoketest.mgmt.DtoLogicalRouterPort;
-import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
-import com.midokura.midonet.smoketest.mgmt.DtoPeerRouterLink;
-import com.midokura.midonet.smoketest.mgmt.DtoRoute;
-import com.midokura.midonet.smoketest.mgmt.DtoRouter;
-import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -146,6 +139,19 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return get(uri, DtoRoute.class);
     }
 
+    @Override
+    public DtoBgp addBGP(DtoMaterializedRouterPort p, DtoBgp b) {
+        URI uri = post(p.getBgps(), b);
+        return get(uri, DtoBgp.class);
+    }
+
+    @Override
+    public DtoAdRoute addBgpAdvertisedRoute(DtoBgp bgp,
+                                            DtoAdRoute adRoute) {
+        URI uri = post(bgp.getAdRoutes(), adRoute);
+        return get(uri, DtoAdRoute.class);
+    }
+
     public DtoTenant[] getTenants() {
         return get(app.getTenant(), DtoTenant[].class);
     }
@@ -154,4 +160,5 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public void deleteTenant(String name) {
         delete(UriBuilder.fromUri(app.getTenant()).path(name).build());
     }
+
 }

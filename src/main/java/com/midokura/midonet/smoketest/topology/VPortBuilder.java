@@ -22,8 +22,9 @@ import com.midokura.midonet.smoketest.mgmt.DtoRouter;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class VPortBuilder {
-    private final static Logger log = LoggerFactory
-            .getLogger(VPortBuilder.class);
+
+    private final static Logger log = LoggerFactory.getLogger(VPortBuilder.class);
+
     private OpenvSwitchDatabaseConnection ovsdb;
     private MidolmanMgmt mgmt;
     private DtoRouter router;
