@@ -20,7 +20,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.zookeeper.CreateMode;
@@ -495,11 +494,6 @@ public class Setup implements Watcher {
 
     protected void setupTrafficPriorityQdiscsNova()
             throws IOException, InterruptedException, URISyntaxException {
-        Options options = new Options();
-        options.addOption("rabbit_host", true, "");
-        options.addOption("sql_connection", true, "");
-        options.addOption("vncproxy_url", true, "");
-        options.addOption("ec2_url", true, "");
         FileReader confFile = new FileReader("/etc/nova/nova.conf");
         char[] confBytes = new char[5000];
         int confByteLength = confFile.read(confBytes);
