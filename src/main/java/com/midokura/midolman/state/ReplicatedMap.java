@@ -237,7 +237,8 @@ public abstract class ReplicatedMap<K, V> {
 
     private String encodePath(K key, V value, int version) {
         StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(encodePath(key, value)).append(version);
+        strBuilder.append(encodePath(key, value)).append(
+                String.format("%010d", version));
         return strBuilder.toString();
     }
 

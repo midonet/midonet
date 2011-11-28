@@ -69,7 +69,8 @@ public class MockDirectory implements Directory {
             if (this.mode.isEphemeral())
                 throw new NoChildrenForEphemeralsException(path + '/' + name);
             if (mode.isSequential()) {
-                name = new StringBuilder(name).append(sequence++).toString();
+                name = new StringBuilder(name).append(
+                        String.format("%010d", sequence++)).toString();
             }
             String childPath = new StringBuilder(path).append("/").append(name)
                     .toString();
