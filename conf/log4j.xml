@@ -9,8 +9,10 @@
     </layout> 
   </appender>
   
-  <appender name="file" class="org.apache.log4j.FileAppender">
+  <appender name="file" class="org.apache.log4j.RollingFileAppender">
     <param name="file" value="${catalina.base}/logs/midolman-mgmt.log" />
+    <param name="MaxFileSize" value="100MB"/>
+    <param name="MaxBackupIndex" value="10"/>
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%-5p %d{yyyy.MM.dd HH:mm:ss,SSS} %c{1} - %M(%L) - %m%n"/> 
     </layout>
