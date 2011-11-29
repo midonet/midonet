@@ -24,7 +24,7 @@ import com.midokura.midonet.smoketest.topology.Tenant;
 
 import java.util.Random;
 
-public class SmokeTest2 {
+public class PingTest {
     static Tenant tenant1;
     static TapPort tapPort;
     static IntIPv4 rtrIp;
