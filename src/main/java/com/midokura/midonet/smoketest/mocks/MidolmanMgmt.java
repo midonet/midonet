@@ -32,4 +32,10 @@ public interface MidolmanMgmt {
     void deleteTenant(String string);
 
     DtoAdRoute addBgpAdvertisedRoute(DtoBgp dtoBgp, DtoAdRoute dtpAdRoute);
+
+    DtoRuleChain addRuleChain(DtoRouter router, DtoRuleChain chain);
+
+    DtoRuleChain getRuleChain(DtoRouter router, String name);
+
+    DtoRule addRule(DtoRuleChain chain, DtoRule rule);
 }

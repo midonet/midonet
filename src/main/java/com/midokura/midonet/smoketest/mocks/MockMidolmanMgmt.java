@@ -8,6 +8,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.midokura.midonet.smoketest.mgmt.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,4 +162,22 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         delete(UriBuilder.fromUri(app.getTenant()).path(name).build());
     }
 
+    @Override
+    public DtoRuleChain addRuleChain(DtoRouter router, DtoRuleChain chain) {
+        URI uri = post(router.getChains(), chain);
+        return get(uri, DtoRuleChain.class);
+    }
+
+    @Override
+    public DtoRuleChain getRuleChain(DtoRouter router, String name) {
+        URI uri = UriBuilder.fromUri(router.getUri()).path(
+                "/tables/nat/chains/" + name).build();
+        return get(uri, DtoRuleChain.class);
+    }
+
+    @Override
+    public DtoRule addRule(DtoRuleChain chain, DtoRule rule) {
+        URI uri = post(chain.getRules(), rule);
+        return get(uri, DtoRule.class);
+    }
 }

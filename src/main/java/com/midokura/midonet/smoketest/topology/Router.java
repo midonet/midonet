@@ -51,12 +51,25 @@ public class Router {
     }
 
     public void delete() {
-        
+
     }
 
-    public void addFloatingIp(IntIPv4 privAddr, IntIPv4 pubAddr, UUID id) {
-        // TODO Auto-generated method stub
-        
+    public void addFloatingIp(IntIPv4 privAddr, IntIPv4 pubAddr, UUID uplinkId) {
+        // Add a DNAT to the pre-routing chain.
+        RuleChain chain = getRuleChain(RuleChain.PRE_ROUTING);
+        chain.addRule().setDnat(privAddr, 0).setMatchNwDst(pubAddr, 32)
+                .setMatchInPort(uplinkId).build();
+        // Add a SNAT to the post-routing chain.
+        chain = getRuleChain(RuleChain.POST_ROUTING);
+        chain.addRule().setSnat(pubAddr, 0).setMatchNwSrc(privAddr, 32)
+                .setMatchOutPort(uplinkId).build();
     }
 
+    public RuleChain.Builder addRuleChain() {
+        return new RuleChain.Builder(mgmt, dto);
+    }
+
+    public RuleChain getRuleChain(String name) {
+        return new RuleChain(mgmt, mgmt.getRuleChain(dto, name));
+    }
 }
