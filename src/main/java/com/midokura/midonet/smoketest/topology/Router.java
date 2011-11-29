@@ -1,6 +1,9 @@
 package com.midokura.midonet.smoketest.topology;
 
+import java.util.UUID;
+
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
 import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
@@ -48,6 +51,11 @@ public class Router {
     }
 
     public void delete() {
+        
+    }
+
+    public void addFloatingIp(IntIPv4 privAddr, IntIPv4 pubAddr, UUID id) {
+        // TODO Auto-generated method stub
         
     }
 

@@ -181,4 +181,14 @@ public class TapPort extends Port {
     public MAC getOuterMAC() {
         return outerMac;
     }
+
+    public void down() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void remove() {
+        // TODO Auto-generated method stub
+        
+    }
 }

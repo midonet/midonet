@@ -4,20 +4,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.topology.Router;
@@ -25,11 +20,11 @@ import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
 
 public class TunnelingTest {
-
-    private final static Logger log = LoggerFactory.getLogger(SmokeTest2.class);
     static Tenant tenant1;
     static TapPort tapPort1;
     static TapPort tapPort2;
+    static IntIPv4 ip1;
+    static IntIPv4 ip2;
     static PacketHelper helper1;
     static PacketHelper helper2;
     static OpenvSwitchDatabaseConnection ovsdb;
@@ -53,68 +48,57 @@ public class TunnelingTest {
             ovsdb.delBridge("smoke-br");
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
-        String tenantName = "tenant" + rand.nextInt();
-        tenant1 = new Tenant.Builder(mgmt).setName(tenantName).build();
+
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
+                .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
-        tapPort1 = router1.addPort(ovsdb).setDestination("192.168.100.2")
-                .setOVSBridgeName("smoke-br").setOVSBridgeController(
-                        "tcp:127.0.0.1:6623").buildTap();
-        helper1 = new PacketHelper(tapPort1.getInnerMAC(), "192.168.100.2");
-        tapPort2 = router1.addPort(ovsdb).setDestination("192.168.101.3")
-                .setOVSBridgeName("smoke-br2").buildTap();
-        helper2 = new PacketHelper(tapPort2.getInnerMAC(), "192.168.101.3");
+
+        ip1 = IntIPv4.fromString("192.168.100.2");
+        tapPort1 = router1.addPort(ovsdb).setDestination(ip1.toString())
+                .buildTap();
+        helper1 = new PacketHelper(tapPort1.getInnerMAC(), ip1,
+                tapPort1.getOuterMAC(), IntIPv4.fromString("192.168.100.1"));
+
+        ip2 = IntIPv4.fromString("192.168.101.3");
+        tapPort2 = router1.addPort(ovsdb).setDestination(ip2.toString())
+                .setOVSBridgeName("smoke-br2")
+                .setOVSBridgeController("tcp:127.0.0.1:6623").buildTap();
+        helper2 = new PacketHelper(tapPort2.getInnerMAC(), ip2,
+                tapPort2.getOuterMAC(), IntIPv4.fromString("192.168.101.1"));
 
         Thread.sleep(1000);
     }
 
     @AfterClass
     public static void tearDown() {
-        // ovsdb.delBridge("smoke-br");
-        /*
-         * rtrLink.delete(); DtoTenant[] tenants = mgmt.getTenants(); for (int i
-         * = 0; i < tenants.length; i++) mgmt.delete(tenants[i].getUri());
-         */
-        // tenant1.delete();
-        // tenant2.delete();
+        ovsdb.delBridge("smoke-br");
+        ovsdb.delBridge("smoke-br2");
+        tapPort1.remove();
+        tapPort2.remove();
+        tenant1.delete();
     }
 
     @Test
     public void testPingTunnel() {
-        /* Ping my router's port, then ping the peer port. */
-
-        // Note: the router port's own MAC is the tap's hwAddr.
-        IntIPv4 ip1 = IntIPv4.fromString("192.168.100.2");
-        IntIPv4 ip2 = IntIPv4.fromString("192.168.101.3");
-        IntIPv4 rtrIp2 = IntIPv4.fromString("192.168.101.1");
-        IntIPv4 rtrIp1 = IntIPv4.fromString("192.168.100.1");
-
         byte[] sent;
-        byte[] received;
 
-        sent = helper1.makeIcmpEchoRequest(tapPort1.getOuterMAC(), ip2);
+        sent = helper1.makeIcmpEchoRequest(ip2);
         assertTrue(tapPort1.send(sent));
         // Note: the virtual router ARPs before delivering the IPv4 packet.
-        received = tapPort2.recv();
-        helper2.checkArpRequest(received, tapPort2.getOuterMAC(), rtrIp2);
-        assertTrue(tapPort2.send(helper2.makeArpReply(tapPort2.getOuterMAC(),
-                rtrIp2)));
+        helper2.checkArpRequest(tapPort2.recv());
+        assertTrue(tapPort2.send(helper2.makeArpReply()));
         // receive the icmp
-        received = tapPort2.recv();
-        Assert.assertEquals(sent.length, received.length);
-        sent = helper2.makeIcmpEchoRequest(tapPort2.getOuterMAC(), ip1);
+        helper2.checkIcmpEchoRequest(sent, tapPort2.recv());
+
+        sent = helper2.makeIcmpEchoRequest(ip1);
         assertTrue(tapPort2.send(sent));
         // Note: the virtual router ARPs before delivering the IPv4 packet.
-        received = tapPort1.recv();
-        helper1.checkArpRequest(received, tapPort1.getOuterMAC(), rtrIp1);
-        assertTrue(tapPort1.send(helper1.makeArpReply(tapPort1.getOuterMAC(),
-                rtrIp1)));
-        received = tapPort1.recv();
-        Assert.assertEquals(sent.length, received.length);
-        Arrays.fill(received, 0, 12, (byte) 0);
-        Arrays.fill(sent, 0, 12, (byte) 0);
-        Assert.assertArrayEquals(sent, received);
+        helper1.checkArpRequest(tapPort1.recv());
+        assertTrue(tapPort1.send(helper1.makeArpReply()));
+        // receive the icmp
+        helper1.checkIcmpEchoRequest(sent, tapPort1.recv());
 
+        assertNull(tapPort1.recv());
         assertNull(tapPort2.recv());
     }
-
 }

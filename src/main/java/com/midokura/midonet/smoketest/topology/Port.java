@@ -4,6 +4,8 @@
 
 package com.midokura.midonet.smoketest.topology;
 
+import java.util.UUID;
+
 import com.midokura.midonet.smoketest.mgmt.DtoBgp;
 import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
@@ -66,5 +68,9 @@ public class Port {
 
     public String getName() {
         return name;
+    }
+
+    public UUID getId() {
+        return port.getId();
     }
 }
