@@ -44,7 +44,7 @@ public class TestMockDirectory {
         int i = 0;
         while(i < 5) {
             String path = "/a/b/mySequentialNode";
-            String actualPath = dir.add(path, null, 
+            String actualPath = dir.add(path, null,
                     CreateMode.PERSISTENT_SEQUENTIAL);
             Assert.assertEquals(String.format("%s%010d", path, new Integer(i)),
                     actualPath);
