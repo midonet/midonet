@@ -176,7 +176,7 @@ public class MockDirectory implements Directory {
         if (!relativePath.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with '/'");
         }
-        String[] path = relativePath.split("/");
+        String[] path = relativePath.split("/", -1);
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot add the root node");
         Node parent = getNode(path, path.length - 1);
