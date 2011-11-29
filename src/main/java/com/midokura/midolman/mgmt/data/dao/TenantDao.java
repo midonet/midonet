@@ -14,6 +14,8 @@ public interface TenantDao {
 
     List<Tenant> list() throws StateAccessException;
 
+    Tenant getTenant(String id) throws StateAccessException;
+
     void delete(String id) throws StateAccessException;
 
     String create() throws StateAccessException;

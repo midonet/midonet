@@ -71,13 +71,14 @@ public class MainTest extends JerseyTest {
                 ClientResponse.class, tenant);
         URI tenantURI = response.getLocation();
         log.debug("tanant location: {}", tenantURI);
+        tenant = resource().uri(tenantURI).type(MediaType.APPLICATION_JSON)
+                .get(Tenant.class);
 
         // Add a router.
         Router router = new Router();
         String routerName = "router1";
         router.setName(routerName);
-        resource = resource().uri(
-                UriBuilder.fromUri(tenantURI).path("routers").build());
+        resource = resource().uri(tenant.getRouters());
         response = resource.type(MediaType.APPLICATION_JSON).post(
                 ClientResponse.class, router);
         URI routerURI = response.getLocation();
