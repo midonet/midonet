@@ -88,7 +88,7 @@ public class VPortBuilder {
         return this;
     }
 
-    private DtoMaterializedRouterPort buildVPort() {
+    public DtoMaterializedRouterPort buildVPort() {
         DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
         DtoRoute rt = new DtoRoute();
         rt.setDstNetworkAddr(p.getLocalNetworkAddress());
@@ -188,5 +188,17 @@ public class VPortBuilder {
         // ctlBuilder = ovsdb.addBridgeOpenflowController(
         // brName, "ptcp:6634");
         // ctlBuilder.build();
+    }
+
+    public VPortBuilder addLocalLink(String string, String string2, int i) {
+        return null;
+    }
+
+    public VPortBuilder addVpnServer(String string, String string2) {
+        return null;
+    }
+
+    public VPortBuilder addVpnClient(String string, String string2) {
+        return null;
     }
 }

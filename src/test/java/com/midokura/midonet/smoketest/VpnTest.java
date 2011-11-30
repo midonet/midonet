@@ -1,0 +1,108 @@
+package com.midokura.midonet.smoketest;
+
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.Random;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.topology.PeerRouterLink;
+import com.midokura.midonet.smoketest.topology.Router;
+import com.midokura.midonet.smoketest.topology.TapPort;
+import com.midokura.midonet.smoketest.topology.Tenant;
+
+public class VpnTest {
+    static Tenant tenant1;
+    static TapPort tapPort1;
+    static TapPort tapPort2;
+    static PeerRouterLink link;
+    static OpenvSwitchDatabaseConnection ovsdb;
+    static MidolmanMgmt mgmt;
+
+    @BeforeClass
+    public static void setUp() throws InterruptedException, IOException {
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                "127.0.0.1", 12344);
+        mgmt = new MockMidolmanMgmt(false);
+        if (ovsdb.hasBridge("smoke-br"))
+            ovsdb.delBridge("smoke-br");
+
+        Random rand = new Random(System.currentTimeMillis());
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
+                .build();
+
+        // Router 1 has a VMs on 10.0.0.0/24.
+        Router router1 = tenant1.addRouter().setName("rtr1").build();
+        // Here's a VM on router1.
+        TapPort tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
+                .buildTap();
+
+        // Router 2 has a VMs on 10.0.1.0/24.
+        Router router2 = tenant1.addRouter().setName("rtr2").build();
+        // Here's a VM on router1.
+        TapPort tapPort2 = router1.addPort(ovsdb).setDestination("10.0.1.4")
+                .buildTap();
+
+        // Link the two routers. Only "public" addresses should traverse the
+        // link between the routers. Router 1 owns public addresses in
+        // 192.168.0.0/24, and router 2 has addresses in 192.168.1.0/24.
+        link = router1.addRouterLink().setPeer(router2)
+                .setLocalPrefix("192.168.0.0").setPeerPrefix("192.168.1.0")
+                .build();
+
+        // Router 1 has a port that leads to 10.0.1.0/24 via a VPN
+        // and gateway (router2). 
+        router1.addPort(null).addLocalLink("169.254.0.1", "169.254.0.2", 30)
+                .setDestination("10.0.1.0")
+                .addVpnServer("192.168.0.5", "192.168.1.7").buildVPort();
+
+        // Router 2 has a port that leads to 10.0.1.0/24 via a VPN
+        // and gateway (router2). 
+        router2.addPort(null).addLocalLink("169.254.0.2", "169.254.0.1", 30)
+                .setDestination("10.0.0.0")
+                .addVpnClient("192.168.1.7", "192.168.0.5").buildVPort();
+
+        Thread.sleep(1000);
+    }
+
+    @Test
+    public void testPingOverVPN() {
+        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.11");
+        IntIPv4 rtr1 = IntIPv4.fromString("10.0.0.1");
+        IntIPv4 ip2 = IntIPv4.fromString("10.0.1.4");
+        IntIPv4 rtr2 = IntIPv4.fromString("10.0.1.1");
+        PacketHelper helper1 = new PacketHelper(tapPort1.getInnerMAC(), ip1,
+                tapPort1.getOuterMAC(), rtr1);
+        PacketHelper helper2 = new PacketHelper(tapPort2.getInnerMAC(), ip2,
+                tapPort2.getOuterMAC(), rtr2);
+        byte[] sent;
+
+        sent = helper1.makeIcmpEchoRequest(ip2);
+        assertTrue(tapPort1.send(sent));
+        // Note: the virtual router ARPs before delivering the IPv4 packet.
+        helper2.checkArpRequest(tapPort2.recv());
+        assertTrue(tapPort2.send(helper2.makeArpReply()));
+        // receive the icmp
+        helper2.checkIcmpEchoRequest(sent, tapPort2.recv());
+
+        sent = helper2.makeIcmpEchoRequest(ip1);
+        assertTrue(tapPort2.send(sent));
+        // Note: the virtual router ARPs before delivering the IPv4 packet.
+        helper1.checkArpRequest(tapPort1.recv());
+        assertTrue(tapPort1.send(helper1.makeArpReply()));
+        // receive the icmp
+        helper1.checkIcmpEchoRequest(sent, tapPort1.recv());
+
+        assertNull(tapPort1.recv());
+        assertNull(tapPort2.recv());
+
+    }
+
+}

@@ -24,10 +24,10 @@ public class PeerRouterLink {
             this.mgmt = mgmt;
             this.router = router;
             this.logPort = new DtoLogicalRouterPort();
-            logPort.setNetworkAddress("10.123.123.0");
+            logPort.setNetworkAddress("169.254.1.0");
             logPort.setNetworkLength(30);
-            logPort.setPortAddress("10.123.123.1");
-            logPort.setPeerPortAddress("10.123.123.2");
+            logPort.setPortAddress("169.254.1.1");
+            logPort.setPeerPortAddress("169.254.1.2");
         }
 
         public Builder setPeer(Router r) {
