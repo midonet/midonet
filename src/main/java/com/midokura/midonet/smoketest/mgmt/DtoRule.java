@@ -1,8 +1,15 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 package com.midokura.midonet.smoketest.mgmt;
 
 import java.net.URI;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class DtoRule {
     public static final String Accept = "accept";
     public static final String Continue = "continue";

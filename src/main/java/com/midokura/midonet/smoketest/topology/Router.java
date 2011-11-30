@@ -46,6 +46,18 @@ public class Router {
         return new VPortBuilder(ovsdb, mgmt, dto);
     }
 
+    public MidoPort.VMPortBuilder addVmPort() {
+        return new MidoPort.VMPortBuilder(mgmt, dto);
+    }
+
+    public MidoPort.GWPortBuilder addGwPort() {
+        return new MidoPort.GWPortBuilder(mgmt, dto);
+    }
+
+    public MidoPort.VPNPortBuilder addVpnPort() {
+        return new MidoPort.VPNPortBuilder(mgmt, dto);
+    }
+
     public PeerRouterLink.Builder addRouterLink() {
         return new PeerRouterLink.Builder(mgmt, dto);
     }

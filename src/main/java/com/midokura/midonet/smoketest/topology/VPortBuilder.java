@@ -189,16 +189,4 @@ public class VPortBuilder {
         // brName, "ptcp:6634");
         // ctlBuilder.build();
     }
-
-    public VPortBuilder addLocalLink(String string, String string2, int i) {
-        return null;
-    }
-
-    public VPortBuilder addVpnServer(String string, String string2) {
-        return null;
-    }
-
-    public VPortBuilder addVpnClient(String string, String string2) {
-        return null;
-    }
 }

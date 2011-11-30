@@ -1,8 +1,15 @@
 package com.midokura.midonet.smoketest.mgmt;
 
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 import java.net.URI;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class DtoRuleChain {
     private UUID id;
     private UUID routerId;

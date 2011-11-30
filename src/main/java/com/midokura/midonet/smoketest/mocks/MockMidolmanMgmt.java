@@ -180,4 +180,10 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         URI uri = post(chain.getRules(), rule);
         return get(uri, DtoRule.class);
     }
+
+    @Override
+    public DtoVpn addVpn(DtoMaterializedRouterPort p, DtoVpn vpn) {
+        URI uri = post(p.getVpns(), vpn);
+        return get(uri, DtoVpn.class);
+    }
 }

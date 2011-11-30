@@ -1,6 +1,11 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 package com.midokura.midonet.smoketest;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Random;
@@ -11,8 +16,10 @@ import org.junit.Test;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.topology.MidoPort;
 import com.midokura.midonet.smoketest.topology.PeerRouterLink;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
@@ -30,9 +37,7 @@ public class VpnTest {
     public static void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
-        mgmt = new MockMidolmanMgmt(false);
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
+        mgmt = new MockMidolmanMgmt(true);
 
         Random rand = new Random(System.currentTimeMillis());
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
@@ -41,14 +46,14 @@ public class VpnTest {
         // Router 1 has a VMs on 10.0.0.0/24.
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         // Here's a VM on router1.
-        TapPort tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
-                .buildTap();
+        //TapPort tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
+        //        .buildTap();
 
         // Router 2 has a VMs on 10.0.1.0/24.
         Router router2 = tenant1.addRouter().setName("rtr2").build();
         // Here's a VM on router1.
-        TapPort tapPort2 = router1.addPort(ovsdb).setDestination("10.0.1.4")
-                .buildTap();
+        //TapPort tapPort2 = router1.addPort(ovsdb).setDestination("10.0.1.4")
+        //        .buildTap();
 
         // Link the two routers. Only "public" addresses should traverse the
         // link between the routers. Router 1 owns public addresses in
@@ -58,16 +63,32 @@ public class VpnTest {
                 .build();
 
         // Router 1 has a port that leads to 10.0.1.0/24 via a VPN
-        // and gateway (router2). 
-        router1.addPort(null).addLocalLink("169.254.0.1", "169.254.0.2", 30)
-                .setDestination("10.0.1.0")
-                .addVpnServer("192.168.0.5", "192.168.1.7").buildVPort();
+        // and gateway (router2).
+        MidoPort p1 = router1
+                .addGwPort()
+                .setLocalLink(IntIPv4.fromString("169.254.0.1"),
+                        IntIPv4.fromString("169.254.0.2"))
+                .addRoute(IntIPv4.fromString("10.0.1.0")).build();
+        MidoPort vpn1 = router1.addVpnPort()
+                .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
+                .setLocalIp(IntIPv4.fromString("10.0.0.100"))
+                .setPrivatePortId(p1.port.getId()).build();
+        //router1.addFloatingIp(IntIPv4.fromString("10.0.0.100"),
+        //        IntIPv4.fromString("192.168.0.100"), vpn1.port.getId());
 
-        // Router 2 has a port that leads to 10.0.1.0/24 via a VPN
-        // and gateway (router2). 
-        router2.addPort(null).addLocalLink("169.254.0.2", "169.254.0.1", 30)
-                .setDestination("10.0.0.0")
-                .addVpnClient("192.168.1.7", "192.168.0.5").buildVPort();
+        // Router 2 has a port that leads to 10.0.0.0/24 via a VPN
+        // and gateway (router2).
+        MidoPort p2 = router2
+                .addGwPort()
+                .setLocalLink(IntIPv4.fromString("169.254.0.2"),
+                        IntIPv4.fromString("169.254.0.1"))
+                .addRoute(IntIPv4.fromString("10.0.0.0")).build();
+        MidoPort vpn2 = router1.addVpnPort()
+                .setVpnType(VpnType.OPENVPN_TCP_SERVER)
+                .setLocalIp(IntIPv4.fromString("10.0.1.99"))
+                .setPrivatePortId(p1.port.getId()).build();
+        //router1.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
+        //        IntIPv4.fromString("192.168.1.99"), vpn1.port.getId());
 
         Thread.sleep(1000);
     }
