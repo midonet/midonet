@@ -50,7 +50,7 @@ public class DomainController implements VMController {
         this.domain = locateDomain();
     }
 
-    protected DomainController(HypervisorType hypervisorType, Domain domain, String hostName) {
+    public DomainController(HypervisorType hypervisorType, Domain domain, String hostName) {
         this.hypervisorType = hypervisorType;
         this.domain = domain;
         this.hostName = hostName;
@@ -89,7 +89,7 @@ public class DomainController implements VMController {
         executeWithDomain(new DomainAwareExecutor<Void>() {
             @Override
             public Void execute(Domain domain) throws LibvirtException {
-                if ( domain.getInfo().state != DomainInfo.DomainState.VIR_DOMAIN_SHUTOFF ) {
+                if (domain.getInfo().state != DomainInfo.DomainState.VIR_DOMAIN_SHUTOFF) {
                     domain.destroy();
                 }
 
@@ -117,7 +117,9 @@ public class DomainController implements VMController {
         return executeWithDomain(new DomainAwareExecutor<String>() {
             @Override
             public String execute(Domain domain) throws LibvirtException {
-                String xmlDescription = domain.getXMLDesc(2 /*Domain.XMLFlags.VIR_DOMAIN_XML_INACTIVE*/);
+
+                /*Domain.XMLFlags.VIR_DOMAIN_XML_INACTIVE*/
+                String xmlDescription = domain.getXMLDesc(2);
 
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
@@ -127,15 +129,18 @@ public class DomainController implements VMController {
                     DocumentBuilder db = dbf.newDocumentBuilder();
 
                     //parse using builder to get DOM representation of the XML file
-                    Document dom = db.parse(new ByteArrayInputStream(
-                            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xmlDescription).getBytes("UTF-8")));
+                    Document dom = db.parse(
+                        new ByteArrayInputStream(
+                            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                xmlDescription).getBytes("UTF-8")));
 
                     XPathFactory xPathFactory = XPathFactory.newInstance();
 
                     XPath xPath = xPathFactory.newXPath();
-                    XPathExpression xPathExpression = xPath.compile("/domain/devices/interface/mac/@address");
-                    return xPathExpression.evaluate(dom);
+                    XPathExpression xPathExpression =
+                        xPath.compile("/domain/devices/interface/mac/@address");
 
+                    return xPathExpression.evaluate(dom);
                 } catch (ParserConfigurationException pce) {
                     pce.printStackTrace();
                 } catch (SAXException se) {

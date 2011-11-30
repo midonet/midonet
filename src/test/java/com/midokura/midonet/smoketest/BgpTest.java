@@ -1,6 +1,7 @@
 /*
 * Copyright 2011 Midokura Europe SARL
 */
+
 package com.midokura.midonet.smoketest;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -8,10 +9,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.topology.*;
-import com.midokura.midonet.smoketest.topology.AdRoute;
-import com.midokura.midonet.smoketest.topology.Bgp;
-import com.midokura.midonet.smoketest.topology.Router;
-import com.midokura.midonet.smoketest.topology.Tenant;
+import com.midokura.midonet.smoketest.vm.VMController;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,6 +32,8 @@ public class BgpTest {
     static InternalPort internalPort;
     static Bgp bgp;
     static MidolmanMgmt mgmt;
+
+    static VMController bgpPeerVm;
 
     static OpenvSwitchDatabaseConnection ovsdb;
 
@@ -62,6 +62,20 @@ public class BgpTest {
 
         AdRoute advertisedRoute = bgp.addAdvertisedRoute("14.128.23.0", 27);
 
+/*
+        LibvirtHandler libvirtHandler = LibvirtHandler.forHypervisor(HypervisorType.Qemu);
+
+        libvirtHandler.setTemplate("basic_template_x86_64");
+
+        bgpPeerVm = libvirtHandler.newBgpDomain()
+                .setDomainName("test_bgp")
+                .setHostName("bgppeer")
+                .setLocalAS(345)
+                .setPeerAS(543)
+                .setPeerIP("192.168.10.1")
+                .build();
+
+*/
         Thread.sleep(1000);
     }
 
@@ -78,6 +92,6 @@ public class BgpTest {
 
     @Test
     public void testBgpConfiguration() throws Exception {
-        int a = 10;
+//        int a = 10;
     }
 }
