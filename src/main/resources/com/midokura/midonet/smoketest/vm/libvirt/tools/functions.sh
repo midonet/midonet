@@ -50,13 +50,13 @@ function unmount_image() {
     rm -rf ${1}
 }
 
-function update_hostname() {
-    HOSTNAME=`cat ${2}/etc/hostname`
+function setup_hostname() {
+    HOSTNAME=`cat ${1}/etc/hostname`
     echo "Found machine hostname to be: ${HOSTNAME}"
-    echo "Changing it to: ${1}"
+    echo "Changing it to: ${2}"
 
-    sudo sed -i.bak -e "s/^${HOSTNAME}$/${1}/g" ${2}/etc/hostname
-    sudo sed -i.bak -e "s/^\([0-9\.]\+\) ${HOSTNAME}\.\([^ ]\+\) ${HOSTNAME}$/\1 ${1}.\2 ${1}/g" ${2}/etc/hosts
+    sudo sed -i.bak -e "s/^${HOSTNAME}$/${1}/g" ${1}/etc/hostname
+    sudo sed -i.bak -e "s/^\([0-9\.]\+\) ${HOSTNAME}\.\([^ ]\+\) ${HOSTNAME}$/\1 ${2}.\2 ${2}/g" ${1}/etc/hosts
 }
 
 function setup_quagga() {
@@ -97,4 +97,25 @@ ripd=no
 ripngd=no
 isisd=no
 _SMOKE_TEST_
+}
+
+function setup_network_config() {
+
+    echo "Forcing the eth0 device to fixed address configuration"
+    sudo tee ${1}/etc/network/interfaces >/dev/null <<_SMOKE_TEST_
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+    address ${2}
+    netmask ${3}
+    broadcast ${4}
+    gateway ${5}}
+<<_SMOKE_TEST_
 }

@@ -55,9 +55,15 @@ public class BgpTest {
                            .setDestination("192.168.100.3")
                            .buildInternal();
 
+        // the bgp machine builder will create a vm bound to a local tap and
+        // assign the following address 10.10.173.2/24
+        // we will create a tap device on the local machine with the
+        // 10.0.173.1/24 address so we can communicate with it
+
+
         Bgp bgp = internalPort.addBgp()
             .setLocalAs(65104)
-            .setPeer(23637, "180.214.47.65")
+            .setPeer(23637, "10.10.173.2")
             .build();
 
         AdRoute advertisedRoute = bgp.addAdvertisedRoute("14.128.23.0", 27);
