@@ -7,14 +7,27 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import com.midokura.midonet.smoketest.mgmt.*;
-
+import org.codehaus.jackson.map.SerializationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
+import com.midokura.midonet.smoketest.mgmt.DtoAdRoute;
+import com.midokura.midonet.smoketest.mgmt.DtoAdmin;
+import com.midokura.midonet.smoketest.mgmt.DtoApplication;
+import com.midokura.midonet.smoketest.mgmt.DtoBgp;
+import com.midokura.midonet.smoketest.mgmt.DtoLogicalRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midonet.smoketest.mgmt.DtoPeerRouterLink;
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
+import com.midokura.midonet.smoketest.mgmt.DtoRouter;
+import com.midokura.midonet.smoketest.mgmt.DtoRule;
+import com.midokura.midonet.smoketest.mgmt.DtoRuleChain;
+import com.midokura.midonet.smoketest.mgmt.DtoTenant;
+import com.midokura.midonet.smoketest.mgmt.DtoVpn;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
@@ -28,31 +41,43 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     DtoApplication app;
 
-    public MockMidolmanMgmt(boolean mockZK) {
-        super(new WebAppDescriptor.Builder(
+    private static WebAppDescriptor makeAppDescriptor(boolean mockZK) {
+        WebAppDescriptor ad = new WebAppDescriptor.Builder(
                 "com.midokura.midolman.mgmt.rest_api.resources",
                 "com.midokura.midolman.mgmt.rest_api.jaxrs",
                 "com.midokura.midolman.mgmt.data")
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
+                .initParam(ResourceConfig.FEATURE_TRACE, "true")
+                .initParam(ResourceConfig.FEATURE_TRACE_PER_REQUEST, "true")
+                .initParam(
+                        SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS.name(),
+                        "false")
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
                 .contextParam("version", "1.0")
-                .contextParam("datastore_service", mockZK ? 
-                        "com.midokura.midolman.mgmt.data.MockDaoFactory" :
-                        "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
+                .contextParam(
+                        "datastore_service",
+                        mockZK ? "com.midokura.midolman.mgmt.data.MockDaoFactory"
+                                : "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
                 .contextParam("zk_conn_string", "127.0.0.1:2181")
                 .contextParam("zk_timeout", "10000")
                 .contextParam("zk_root", "/test/midolman")
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
                 .contextListenerClass(ServletListener.class)
-                .contextPath("/test").build());
+                .contextPath("/test").build();
+        ad.getClientConfig().getClasses().add(JaxbContextResolver.class);
+        return ad;
+    }
+
+    public MockMidolmanMgmt(boolean mockZK) {
+        super(makeAppDescriptor(mockZK));
         // Initialize the directory structure.
         app = get("", DtoApplication.class);
         DtoAdmin admin = get(app.getAdmin(), DtoAdmin.class);
         post(admin.getInit(), null);
-        //resource().path("admin/init").type(MediaType.APPLICATION_JSON)
-        //        .post(ClientResponse.class).getLocation();
+        // resource().path("admin/init").type(MediaType.APPLICATION_JSON)
+        // .post(ClientResponse.class).getLocation();
     }
 
     private WebResource makeResource(String path) {
@@ -68,8 +93,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     private URI post(URI uri, Object entity) {
-        return resource().uri(uri)
-                .type(MediaType.APPLICATION_JSON)
+        return resource().uri(uri).type(MediaType.APPLICATION_JSON)
                 .post(ClientResponse.class, entity).getLocation();
     }
 
@@ -123,8 +147,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return resource().uri(router.getPeerRouters())
                 .type(MediaType.APPLICATION_JSON)
                 .post(DtoPeerRouterLink.class, logPort);
-        //URI uri = post(router.getPeerRouters(), logPort);
-        //return get(uri, DtoPeerRouterLink.class);
+        // URI uri = post(router.getPeerRouters(), logPort);
+        // return get(uri, DtoPeerRouterLink.class);
     }
 
     @Override
@@ -147,8 +171,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public DtoAdRoute addBgpAdvertisedRoute(DtoBgp bgp,
-                                            DtoAdRoute adRoute) {
+    public DtoAdRoute addBgpAdvertisedRoute(DtoBgp bgp, DtoAdRoute adRoute) {
         URI uri = post(bgp.getAdRoutes(), adRoute);
         return get(uri, DtoAdRoute.class);
     }
@@ -170,8 +193,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     @Override
     public DtoRuleChain getRuleChain(DtoRouter router, String name) {
-        URI uri = UriBuilder.fromUri(router.getUri()).path(
-                "/tables/nat/chains/" + name).build();
+        URI uri = UriBuilder.fromUri(router.getUri())
+                .path("/tables/nat/chains/" + name).build();
         return get(uri, DtoRuleChain.class);
     }
 

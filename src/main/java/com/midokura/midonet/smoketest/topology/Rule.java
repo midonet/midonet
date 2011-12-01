@@ -26,7 +26,7 @@ public class Rule {
             String[][][] target = new String[1][2][];
             target[0][0] = new String[] { dst.toString(), dst.toString() };
             String p = new Integer(port).toString();
-            target[0][1] = new String[] { p, p};
+            target[0][1] = new String[] { p, p };
             rule.setNatTargets(target);
             return this;
         }
@@ -37,7 +37,7 @@ public class Rule {
             String[][][] target = new String[1][2][];
             target[0][0] = new String[] { src.toString(), src.toString() };
             String p = new Integer(port).toString();
-            target[0][1] = new String[] { p, p};
+            target[0][1] = new String[] { p, p };
             rule.setNatTargets(target);
             return this;
         }
