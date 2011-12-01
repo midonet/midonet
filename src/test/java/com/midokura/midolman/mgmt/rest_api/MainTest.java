@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.Tenant;
+import com.midokura.midolman.mgmt.data.dto.TenantClient;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.mgmt.servlet.ServletListener;
 import com.sun.jersey.api.client.ClientResponse;
@@ -63,7 +63,7 @@ public class MainTest extends JerseyTest {
                 ClientResponse.class);
 
         // Add the tenant
-        Tenant tenant = new Tenant();
+        TenantClient tenant = new TenantClient();
         tenant.setId("tenant1");
 
         resource = resource().path("tenants");
@@ -72,7 +72,7 @@ public class MainTest extends JerseyTest {
         URI tenantURI = response.getLocation();
         log.debug("tanant location: {}", tenantURI);
         tenant = resource().uri(tenantURI).type(MediaType.APPLICATION_JSON)
-                .get(Tenant.class);
+                .get(TenantClient.class);
 
         // Add a router.
         Router router = new Router();
