@@ -7,6 +7,7 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
                 .contextListenerClass(ServletListener.class)
                 .contextPath("/test").build();
-        ad.getClientConfig().getClasses().add(JaxbContextResolver.class);
+        ad.getClientConfig().getSingletons().add(new JacksonJaxbJsonProvider());
         return ad;
     }
 

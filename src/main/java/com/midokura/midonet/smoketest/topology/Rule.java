@@ -18,6 +18,7 @@ public class Rule {
             this.mgmt = mgmt;
             this.chain = chain;
             this.rule = new DtoRule();
+            rule.setPosition(1);
         }
 
         public Builder setDnat(IntIPv4 dst, int port) {

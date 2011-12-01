@@ -88,7 +88,7 @@ public class VpnTest {
                 .setLocalIp(IntIPv4.fromString("10.0.1.99"))
                 .setPrivatePortId(p1.port.getId()).build();
         router1.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
-                IntIPv4.fromString("192.168.1.99"), vpn1.port.getId());
+                IntIPv4.fromString("192.168.1.99"), vpn2.port.getId());
 
         Thread.sleep(1000);
     }
