@@ -9,6 +9,7 @@ import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.DomainController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
 import com.midokura.tools.process.DrainTargets;
+import com.midokura.tools.process.ProcessHelper;
 import com.midokura.tools.process.ProcessOutputDrainer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -30,8 +31,7 @@ import java.net.URL;
  * Time: 12:15 PM
  */
 public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverlayDomainBuilder<Builder>>
-    extends AbstractBuilder<Builder, VMController>
-{
+    extends AbstractBuilder<Builder, VMController> {
     private final static Logger log = LoggerFactory.getLogger(AbstractOverlayDomainBuilder.class);
 
     private String domainName;
@@ -44,6 +44,8 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
 
     private LibvirtHandler.Configuration configuration;
     private HypervisorType hypervisorType;
+
+    private final String BASIC_RESOURCE_ROOT = "/com/midokura/midonet/smoketest/vm/libvirt";
 
     protected abstract Builder self();
 
@@ -88,7 +90,7 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
         };
 
         String targetWorkFolder = getConfiguration().getWorkFolderName();
-        String baseResourceUrl = "/com/midokura/midonet/smoketest/vm/libvirt/tools";
+        String TOOL_RESOURCES = BASIC_RESOURCE_ROOT + "/tools";
 
         try {
 
@@ -99,7 +101,7 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
                 targetFile.delete();
 
                 URL sourceResourceURL =
-                    getClass().getResource(baseResourceUrl + "/" + toolName);
+                    getClass().getResource(TOOL_RESOURCES + "/" + toolName);
 
                 if (sourceResourceURL != null) {
                     FileUtils.copyURLToFile(sourceResourceURL, targetFile);
@@ -228,8 +230,10 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
             return FileUtils.readFileToString(templFile);
         }
 
+        String TEMPLATE_RESOURCES = BASIC_RESOURCE_ROOT + "/templates";
+
         URL templateResource =
-            this.getClass().getResource("templates/" + this.templateName + ".xml");
+            this.getClass().getResource(TEMPLATE_RESOURCES + "/" + this.templateName + ".xml");
 
         if (templateResource != null) {
             log.info("Loading template name {} from classpath resource: {}",
@@ -254,21 +258,18 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
     }
 
     protected int executeToolBasedCommand(String toolScript, String toolCommandLine)
-        throws InterruptedException, IOException {
-        File toolScriptFile = new File(getConfiguration().getWorkFolderName(),
-            toolScript);
+        throws InterruptedException, IOException
+    {
 
-        Process process =
-            new ProcessBuilder()
-                .directory(new File(getConfiguration().getWorkFolderName()))
-                .command("/bin/bash", "-c", toolScriptFile.getAbsolutePath() + " " + toolCommandLine)
-                .redirectErrorStream(true)
-                .start();
+        File toolScriptFile =
+            new File(
+                getConfiguration().getWorkFolderName(),
+                toolScript);
 
-        new ProcessOutputDrainer(process)
-            .drainOutput(DrainTargets.slf4jTarget(log, "create_domain_overlay.sh"));
-
-        return process.waitFor();
+        return ProcessHelper
+            .newProcess("" + toolScriptFile.getAbsolutePath() + " " + toolCommandLine)
+            .logOutput(log, toolScript)
+            .runAndWait();
     }
 
     protected LibvirtHandler.Configuration getConfiguration() {

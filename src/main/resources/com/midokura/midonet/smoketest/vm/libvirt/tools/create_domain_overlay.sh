@@ -9,6 +9,8 @@ TARGET_FILE=$3
 
 . functions.sh
 
+sudo rm -f "${TARGET_FILE}"
+
 make_new_image "${BASE_IMAGE}" "${TARGET_FILE}"
 
 kill_nbd_client

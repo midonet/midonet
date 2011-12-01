@@ -76,10 +76,10 @@ password zebra
 router bgp ${2:-54321}
 
 ! IP address that quagga use.
-bgp router-id 192.168.0.1
+bgp router-id ${3:-10.10.173.1}
 
 ! The IP and AS of the peer.
-neighbor ${4:-192.168.0.2} remote-as ${3:-12345}
+neighbor ${5:-10.10.173.2} remote-as ${4:-12345}
 
 ! Network information that quagga advertises.
 network 10.2.0.0/24
@@ -116,6 +116,6 @@ iface eth0 inet static
     address ${2}
     netmask ${3}
     broadcast ${4}
-    gateway ${5}}
-<<_SMOKE_TEST_
+    gateway ${5}
+_SMOKE_TEST_
 }

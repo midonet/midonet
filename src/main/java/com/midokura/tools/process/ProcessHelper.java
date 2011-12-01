@@ -6,6 +6,7 @@ package com.midokura.tools.process;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -31,18 +32,22 @@ public class ProcessHelper {
             }
 
             @Override
-            public void runAndWait() {
+            public int runAndWait() {
                 try {
                     Process p = Runtime.getRuntime().exec(commandLine);
                     new ProcessOutputDrainer(p).drainOutput(DrainTargets.slf4jTarget(logger, stdMarker));
                     p.waitFor();
 
                     logger.debug("Process \"{}\" exited with code: {}", commandLine, p.exitValue());
+                    return p.exitValue();
+
                 } catch (IOException e) {
                     log.error(String.format("Error while launching command: \"%s\"", commandLine), e);
                 } catch (InterruptedException e) {
                     log.error(String.format("Error while launching command: \"%s\"", commandLine), e);
                 }
+
+                return -1;
             }
         };
     }
@@ -51,6 +56,6 @@ public class ProcessHelper {
 
         public RunnerConfiguration logOutput(Logger log, String marker);
 
-        public void runAndWait();
+        public int runAndWait();
     }
 }

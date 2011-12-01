@@ -40,7 +40,8 @@ public class OverlayDomainBuilder extends AbstractOverlayDomainBuilder<OverlayDo
 
         try {
 
-            int commandReturnCode = executeToolBasedCommand("create_domain_overlay.sh",
+            int commandReturnCode = executeToolBasedCommand(
+                "create_domain_overlay.sh",
                 getBaseImage() + " " + getHostName() + " " + ovlFile.getAbsolutePath());
 
             if (commandReturnCode == 0 ) {

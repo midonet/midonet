@@ -23,7 +23,7 @@ public class BgpOverlayDomainBuilder extends AbstractOverlayDomainBuilder<BgpOve
 
     int localAS;
     int peerAS;
-    String peerIP;
+//    String peerIP;
 
     public BgpOverlayDomainBuilder(HypervisorType hypervisorType, String connectUri,
                                    String baseImage, String templateName,
@@ -41,10 +41,10 @@ public class BgpOverlayDomainBuilder extends AbstractOverlayDomainBuilder<BgpOve
         return self();
     }
 
-    public BgpOverlayDomainBuilder setPeerIP(String peerIP) {
-        this.peerIP = peerIP;
-        return self();
-    }
+//    public BgpOverlayDomainBuilder setPeerIP(String peerIP) {
+//        this.peerIP = peerIP;
+//        return self();
+//    }
 
     @Override
     protected String buildOverlayImage() {
@@ -57,7 +57,7 @@ public class BgpOverlayDomainBuilder extends AbstractOverlayDomainBuilder<BgpOve
                 "create_bgp_overlay.sh",
                 getBaseImage() + " " +
                     getHostName() + " " + ovlFile.getAbsolutePath() + " " +
-                    localAS + " " + peerAS + " " + peerIP);
+                    localAS + " " + peerAS);
 
             if (commandReturnCode == 0) {
                 return ovlFile.getAbsolutePath();
