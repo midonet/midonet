@@ -37,7 +37,12 @@ public class VpnTest {
     public static void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
-        mgmt = new MockMidolmanMgmt(true);
+        mgmt = new MockMidolmanMgmt(false);
+        
+        if (ovsdb.hasBridge("smoke-br"))
+            ovsdb.delBridge("smoke-br");
+        
+        Thread.sleep(2000);
 
         Random rand = new Random(System.currentTimeMillis());
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
@@ -45,8 +50,6 @@ public class VpnTest {
 
         // Router 1 has a VMs on 10.0.0.0/24.
         Router router1 = tenant1.addRouter().setName("rtr1").build();
-        // Set a rule on router 1 to drop all traffic to 10.0.0.0/24
-        //router1.dropTrafficTo("10.0.0.0", 24);
         // Here's a VM on router1.
         TapPort tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
                 .buildTap();
@@ -75,6 +78,7 @@ public class VpnTest {
                 .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
                 .setLocalIp(IntIPv4.fromString("10.0.0.100"))
                 .setPrivatePortId(p1.port.getId()).build();
+                .setLayer4Port(12333)
         router1.addFloatingIp(IntIPv4.fromString("10.0.0.100"),
                 IntIPv4.fromString("192.168.0.100"), link.dto.getPortId());
 
@@ -88,11 +92,12 @@ public class VpnTest {
         MidoPort vpn2 = router1.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_SERVER)
                 .setLocalIp(IntIPv4.fromString("10.0.1.99"))
+                .setLayer4Port(12333)
                 .setPrivatePortId(p2.port.getId()).build();
         router1.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
                 IntIPv4.fromString("192.168.1.99"), link.dto.getPeerPortId());
 
-        Thread.sleep(1000);
+        Thread.sleep(600000);
     }
 
     @Test
