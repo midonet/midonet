@@ -51,13 +51,14 @@ public class VpnTest {
         // Router 1 has a VMs on 10.0.0.0/24.
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         // Here's a VM on router1.
-        TapPort tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
+        tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
                 .buildTap();
 
         // Router 2 has a VMs on 10.0.1.0/24.
         Router router2 = tenant1.addRouter().setName("rtr2").build();
-        // Here's a VM on router1.
-        TapPort tapPort2 = router1.addPort(ovsdb).setDestination("10.0.1.4")
+        // Here's a VM on router2.
+        tapPort2 = router2.addPort(ovsdb).setDestination("10.0.1.4")
+                .setOVSPortName("tapPort2")
                 .buildTap();
 
         // Link the two routers. Only "public" addresses should traverse the
@@ -77,8 +78,9 @@ public class VpnTest {
         MidoPort vpn1 = router1.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
                 .setLocalIp(IntIPv4.fromString("10.0.0.100"))
-                .setPrivatePortId(p1.port.getId()).build();
                 .setLayer4Port(12333)
+                .setPrivatePortId(p1.port.getId()).build();
+
         router1.addFloatingIp(IntIPv4.fromString("10.0.0.100"),
                 IntIPv4.fromString("192.168.0.100"), link.dto.getPortId());
 
@@ -89,15 +91,15 @@ public class VpnTest {
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))
                 .addRoute(IntIPv4.fromString("10.0.0.0")).build();
-        MidoPort vpn2 = router1.addVpnPort()
+        MidoPort vpn2 = router2.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_SERVER)
                 .setLocalIp(IntIPv4.fromString("10.0.1.99"))
                 .setLayer4Port(12333)
                 .setPrivatePortId(p2.port.getId()).build();
-        router1.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
+        router2.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
                 IntIPv4.fromString("192.168.1.99"), link.dto.getPeerPortId());
 
-        Thread.sleep(600000);
+        Thread.sleep(10000);
     }
 
     @Test
