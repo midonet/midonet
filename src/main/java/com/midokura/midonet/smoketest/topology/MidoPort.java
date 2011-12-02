@@ -154,6 +154,15 @@ public class MidoPort {
         public MidoPort build() {
             DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
             mgmt.addVpn(p, vpn);
+            DtoRoute rt = new DtoRoute();
+            rt.setDstNetworkAddr(port.getLocalNetworkAddress());
+            rt.setDstNetworkLength(port.getNetworkLength());
+            rt.setSrcNetworkAddr("0.0.0.0");
+            rt.setSrcNetworkLength(0);
+            rt.setType(DtoRoute.Normal);
+            rt.setNextHopPort(p.getId());
+            rt.setWeight(10);
+            rt = mgmt.addRoute(router, rt);
             return new MidoPort(mgmt, p);
         }
     }
