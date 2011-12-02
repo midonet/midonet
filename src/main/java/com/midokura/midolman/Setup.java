@@ -1,5 +1,9 @@
 package com.midokura.midolman;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,15 +67,18 @@ import com.midokura.midolman.state.ZkPathManager;
 public class Setup implements Watcher {
 
     static final Logger log = LoggerFactory.getLogger(Setup.class);
-    
+
     private static final String ZK_CREATE = "zk_create";
     private static final String ZK_DESTROY = "zk_destroy";
     private static final String ZK_SETUP = "zk_setup";
     private static final String ZK_TEARDOWN = "zk_teardown";
     private static final String ZK_ADD_RULES = "zk_add_rules";
     private static final String ZK_DEL_RULES = "zk_del_rules";
-    private static final String OVS_SETUP = "zk_setup";
-    private static final String OVS_TEARDOWN = "zk_teardown";
+    private static final String OVS_SETUP = "ovs_setup";
+    private static final String OVS_TEARDOWN = "ovs_teardown";
+    private static final String MIDONET_QDISC_CREATE = "midonet_qdisc_create";
+    private static final String NOVA_QDISC_CREATE = "nova_qdisc_create";
+    private static final String QDISC_DESTROY = "qdisc_destroy";
 
     private int disconnected_ttl_seconds;
     private ScheduledExecutorService executor;
@@ -118,6 +125,12 @@ public class Setup implements Watcher {
             ovsSetup();
         else if (command.equals(OVS_TEARDOWN))
             ovsTearDown();
+        else if (command.equals(MIDONET_QDISC_CREATE))
+            setupTrafficPriorityQdiscsMidonet();
+        else if (command.equals(NOVA_QDISC_CREATE))
+            setupTrafficPriorityQdiscsNova();
+        else if (command.equals(QDISC_DESTROY))
+            removeTrafficPriorityQdiscs();
         else
             System.out.println("Unrecognized command. Exiting.");
     }
@@ -247,7 +260,7 @@ public class Setup implements Watcher {
 
     /**
      * Destroy the base path and everything underneath.
-     * 
+     *
      * @throws Exception
      */
     private void zkDestroy() throws Exception {
@@ -293,7 +306,7 @@ public class Setup implements Watcher {
             portId = portMgr.create(portConfig);
             log.info("Created a router port with id {} that routes to {}",
                     portId.toString(), IPv4.fromIPv4Address(portNw));
-            
+
             Route rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId, 0, 10,
                     null, deviceId);
             routeMgr.create(rt);
@@ -303,7 +316,7 @@ public class Setup implements Watcher {
     /**
      * Remove everything from Midonet's top-level paths but leave those
      * directories.
-     * 
+     *
      * @throws Exception
      */
     private void zkTearDown() throws Exception {
@@ -335,9 +348,11 @@ public class Setup implements Watcher {
     }
 
     private void initZK() throws Exception {
-        zkConnection = new ZkConnection(config.configurationAt("zookeeper")
-                .getString("zookeeper_hosts", "127.0.0.1:2181"), config
-                .configurationAt("zookeeper").getInt("session_timeout", 30000),
+        String zkHosts = config.configurationAt("zookeeper")
+                               .getString("zookeeper_hosts", "127.0.0.1:2181");
+        zkConnection = new ZkConnection(zkHosts,
+                config.configurationAt("zookeeper")
+                      .getInt("session_timeout", 30000),
                 this);
 
         log.debug("about to ZkConnection.open()");
@@ -417,6 +432,125 @@ public class Setup implements Watcher {
         for (String path : paths) {
             rootDir.add(path, null, CreateMode.PERSISTENT);
         }
+    }
+
+    protected static void sudoExec(String command)
+            throws IOException, InterruptedException {
+        log.info("Running \"{}\" with sudo", command);
+        Process p = new ProcessBuilder("sh", "-c",
+                        "sudo -n " + command + " < /dev/tty").start();
+        p.waitFor();
+        byte[] cmdOutput = new byte[10000];
+        byte[] cmdErrOutput = new byte[10000];
+        int errOutputLength = p.getErrorStream().read(cmdErrOutput);
+        int outputLength = p.getInputStream().read(cmdOutput);
+        if (errOutputLength > 0)
+            log.error("sudo error output: {}",
+                      new String(cmdErrOutput, 0, errOutputLength));
+        if (outputLength > 0)
+            log.info("sudo standard output: {}",
+                     new String(cmdOutput, 0, outputLength));
+    }
+
+    protected void setupTrafficPriorityQdiscsMidonet()
+            throws IOException, URISyntaxException, InterruptedException {
+        int markValue = 0x00ACCABA;  // Midokura's OUI.
+        String iface = config.configurationAt("midolman")
+                             .getString("control_interface", "eth0");
+
+        // Add a prio qdisc to root, and have marked packets prioritized.
+        sudoExec("tc qdisc add dev " + iface + " root handle 1: prio");
+        sudoExec("tc filter add dev " + iface +
+                 " parent 1: protocol ip prio 1 handle " + markValue +
+                 " fw flowid 1:1");
+
+        // Add rules to mark ZooKeeper packets.
+        String zkHosts = config.configurationAt("zookeeper")
+                               .getString("zookeeper_hosts", "127.0.0.1:2181");
+        for (String zkServer : zkHosts.split(",")) {
+            String[] hostport = zkServer.split(":");
+            assert hostport.length == 2;
+            setupTrafficPriorityRule(hostport[0], hostport[1]);
+        }
+
+        // Add rules to mark memcached packets.
+        String mcHosts = config.configurationAt("memcache")
+                               .getString("memcache_hosts", "127.0.0.1:11211");
+        for (String mcServer : mcHosts.split(",")) {
+            String[] hostport = mcServer.split(":");
+            setupTrafficPriorityRule(hostport[0], hostport[1]);
+        }
+
+        // Add rules to mark Voldemort packets.
+        String volHosts = config.configurationAt("voldemort")
+                                .getString("servers", "127.0.0.1:6666");
+        for (String volUrlString : volHosts.split(",")) {
+            URI volUrl = new URI(volUrlString);
+            int port = volUrl.getPort();
+            setupTrafficPriorityRule(volUrl.getHost(), Integer.toString(port));
+        }
+
+    }
+
+    protected void setupTrafficPriorityQdiscsNova()
+            throws IOException, InterruptedException, URISyntaxException {
+        FileReader confFile = new FileReader("/etc/nova/nova.conf");
+        char[] confBytes = new char[5000];
+        int confByteLength = confFile.read(confBytes);
+        String[] allArgs = (new String(confBytes, 0, confByteLength)).split("\n");
+        for (String arg : allArgs) {
+            // RabbitMQ
+            if (arg.startsWith("--rabbit_host")) {
+                String[] flaghost = arg.split("=");
+                setupTrafficPriorityRule(flaghost[1], "5672");
+            }
+
+            // mysql
+            if (arg.startsWith("--sql_connection")) {
+                String[] flagurl = arg.split("=");
+                URI mysqlUrl = new URI(flagurl[1]);
+                int port = mysqlUrl.getPort();
+                if (port == -1)
+                    port = 3306;
+                setupTrafficPriorityRule(mysqlUrl.getHost(), Integer.toString(port));
+            }
+
+            // VNC
+            if (arg.startsWith("--sql_connection")) {
+                String[] flagurl = arg.split("=");
+                URI vncUrl = new URI(flagurl[1]);
+                int port = vncUrl.getPort();
+                if (port == -1)
+                    port = 6080;
+                setupTrafficPriorityRule(vncUrl.getHost(), Integer.toString(port));
+            }
+
+            // EC2
+            if (arg.startsWith("--ec2_url")) {
+                String[] flagurl = arg.split("=");
+                URI ec2Url = new URI(flagurl[1]);
+                int port = ec2Url.getPort();
+                if (port == -1)
+                    port = 8773;
+                setupTrafficPriorityRule(ec2Url.getHost(), Integer.toString(port));
+            }
+        }
+    }
+
+    protected void removeTrafficPriorityQdiscs()
+            throws IOException, InterruptedException {
+        // Clear existing qdiscs
+        String iface = config.configurationAt("midolman")
+                             .getString("control_interface", "eth0");
+        sudoExec("tc qdisc del dev " + iface + " root");
+    }
+
+    protected static void setupTrafficPriorityRule(String host, String port)
+            throws IOException, InterruptedException {
+        int markValue = 0x00ACCABA;  // Midokura's OUI.
+        sudoExec(
+                "iptables -t mangle -A POSTROUTING -p tcp -m tcp -d " +
+                host + " --dport " + port + " -j MARK --set-mark " + markValue);
     }
 
     public static void main(String[] args) {
