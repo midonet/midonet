@@ -5,6 +5,7 @@ import java.util.UUID;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
+import com.midokura.midonet.smoketest.mgmt.DtoRule;
 import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
@@ -83,5 +84,11 @@ public class Router {
 
     public RuleChain getRuleChain(String name) {
         return new RuleChain(mgmt, mgmt.getRuleChain(dto, name));
+    }
+
+    public void dropTrafficTo(String addr, int length) {
+        RuleChain chain = getRuleChain(RuleChain.PRE_ROUTING);
+        chain.addRule().setMatchNwDst(IntIPv4.fromString(addr), length)
+                .setSimpleType(DtoRule.Drop).build();
     }
 }

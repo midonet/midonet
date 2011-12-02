@@ -74,7 +74,7 @@ public class PeerRouterLink {
     }
 
     MidolmanMgmt mgmt;
-    DtoPeerRouterLink dto;
+    public DtoPeerRouterLink dto;
 
     public PeerRouterLink(MidolmanMgmt mgmt, DtoPeerRouterLink dto) {
         this.mgmt = mgmt;

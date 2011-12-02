@@ -21,6 +21,12 @@ public class Rule {
             rule.setPosition(1);
         }
 
+        public Builder setSimpleType(String type) {
+            rule.setFlowAction(type);
+            rule.setType(type);
+            return this;
+        }
+
         public Builder setDnat(IntIPv4 dst, int port) {
             rule.setType(DtoRule.DNAT);
             rule.setFlowAction(DtoRule.Accept);

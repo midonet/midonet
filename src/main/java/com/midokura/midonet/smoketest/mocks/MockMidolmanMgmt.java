@@ -202,7 +202,9 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public DtoRule addRule(DtoRuleChain chain, DtoRule rule) {
         URI uri = post(chain.getRules(), rule);
-        return get(uri, DtoRule.class);
+        // TODO(pino): return the entity from GET
+        //return get(uri, DtoRule.class);
+        return rule;
     }
 
     @Override
