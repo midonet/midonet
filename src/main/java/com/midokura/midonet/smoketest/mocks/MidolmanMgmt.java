@@ -40,4 +40,6 @@ public interface MidolmanMgmt {
     DtoRule addRule(DtoRuleChain chain, DtoRule rule);
 
     DtoVpn addVpn(DtoMaterializedRouterPort p, DtoVpn vpn);
+
+    DtoRoute[] getRoutes(DtoRouter router);
 }

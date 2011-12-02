@@ -4,11 +4,15 @@
 
 package com.midokura.midonet.smoketest.mgmt;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DtoRoute {
     public static final String Normal = "Normal";
     public static final String BlackHole = "BlackHole";

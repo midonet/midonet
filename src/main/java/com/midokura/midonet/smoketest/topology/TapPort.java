@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
+import com.midokura.tools.process.ProcessHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,8 @@ import com.midokura.midolman.util.Net;
 import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.utils.Tap;
+
+import static com.midokura.tools.process.ProcessHelper.newProcess;
 
 public class TapPort extends Port {
 
@@ -188,7 +191,8 @@ public class TapPort extends Port {
     }
 
     public void remove() {
-        // TODO Auto-generated method stub
-        
+        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap", getName()))
+            .logOutput(log, "remove_tap@" + getName())
+            .runAndWait();
     }
 }

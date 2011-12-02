@@ -7,6 +7,7 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
                 .contextListenerClass(ServletListener.class)
                 .contextPath("/test").build();
-        ad.getClientConfig().getSingletons().add(new JacksonJaxbJsonProvider());
+        ad.getClientConfig().getSingletons().add(new WildCardJacksonJaxbJsonProvider());
         return ad;
     }
 
@@ -211,5 +212,10 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public DtoVpn addVpn(DtoMaterializedRouterPort p, DtoVpn vpn) {
         URI uri = post(p.getVpns(), vpn);
         return get(uri, DtoVpn.class);
+    }
+
+    @Override
+    public DtoRoute[] getRoutes(DtoRouter router) {
+        return get(router.getRoutes(), DtoRoute[].class);
     }
 }

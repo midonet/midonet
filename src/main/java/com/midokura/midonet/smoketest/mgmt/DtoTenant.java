@@ -7,6 +7,7 @@ package com.midokura.midonet.smoketest.mgmt;
 import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement
 public class DtoTenant {
@@ -14,6 +15,7 @@ public class DtoTenant {
     private String id;
     private URI bridges;
     private URI routers;
+    @XmlTransient
     private URI uri;
 
     public String getId() {

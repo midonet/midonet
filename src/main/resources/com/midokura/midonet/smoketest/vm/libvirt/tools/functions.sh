@@ -82,7 +82,7 @@ bgp router-id ${3:-10.10.173.1}
 neighbor ${5:-10.10.173.2} remote-as ${4:-12345}
 
 ! Network information that quagga advertises.
-network 10.2.0.0/24
+network 10.173.0.0/24
 
 log file /var/log/quagga/bgpd.log
 _SMOKE_TEST_

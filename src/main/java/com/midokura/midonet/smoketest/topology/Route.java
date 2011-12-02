@@ -4,7 +4,32 @@
 
 package com.midokura.midonet.smoketest.topology;
 
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+
+import java.util.UUID;
+
 public class Route {
+
+    private MidolmanMgmt mgmt;
+    private DtoRoute dtoRoute;
+
+    public Route(MidolmanMgmt mgmt, DtoRoute dtoRoute) {
+        this.mgmt = mgmt;
+        this.dtoRoute = dtoRoute;
+    }
+
+    public UUID getId() {
+        return dtoRoute.getId();
+    }
+
+    public String getDstNetworkAddr() {
+        return dtoRoute.getDstNetworkAddr();
+    }
+
+    public int getDstNetworkLength() {
+        return dtoRoute.getDstNetworkLength();
+    }
 
     public static class Builder {
 
@@ -27,5 +52,4 @@ public class Route {
     public void delete() {
         
     }
-
 }

@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midonet.smoketest.mgmt.DtoRoute;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
 import com.midokura.midonet.smoketest.mgmt.DtoRule;
 import com.midokura.midonet.smoketest.mgmt.DtoTenant;
@@ -90,5 +91,16 @@ public class Router {
         RuleChain chain = getRuleChain(RuleChain.PRE_ROUTING);
         chain.addRule().setMatchNwDst(IntIPv4.fromString(addr), length)
                 .setSimpleType(DtoRule.Drop).build();
+    }
+
+    public Route[] getRoutes() {
+        DtoRoute[] dtoRoutes = mgmt.getRoutes(dto);
+
+        Route[] routes = new Route[dtoRoutes.length];
+        for (int i = 0, dtoRoutesLength = dtoRoutes.length; i < dtoRoutesLength; i++) {
+            routes[i] = new Route(mgmt, dtoRoutes[i]);
+        }
+
+        return routes;
     }
 }

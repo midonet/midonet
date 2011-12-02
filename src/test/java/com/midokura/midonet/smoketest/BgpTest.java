@@ -12,6 +12,8 @@ import com.midokura.midonet.smoketest.topology.*;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
+import com.midokura.tools.timed.Timed;
+import org.apache.log4j.pattern.BridgePatternParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -19,13 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-import static com.midokura.tools.process.ProcessHelper.newProcess;
+import static com.midokura.tools.timed.Timed.newTimedExecution;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@gmail.com>
@@ -38,6 +41,7 @@ public class BgpTest {
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
 
     static Tenant tenant;
+    static Router router;
     static TapPort bgpPort;
     static Bgp bgp;
     static MidolmanMgmt mgmt;
@@ -48,121 +52,77 @@ public class BgpTest {
 
     static String bgpPortPortName = "bgpPeerPort";
 
+    static String peerAdvertisedNetworkAddr = "10.173.0.0";
+    static int peerAdvertisedNetworkLength = 24;
+
     static NetworkInterface ethernetDevice;
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
 
-//        createPrivateBGPPeersNetworkDevice();
-
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-            "Open_vSwitch", "127.0.0.1", 12344);
-//
+                                                         "Open_vSwitch",
+                                                         "127.0.0.1", 12344);
+
         mgmt = new MockMidolmanMgmt(false);
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
 
-        Router router = tenant.addRouter().setName("rtr1").build();
+
+        router = tenant.addRouter().setName("rtr1").build();
 
         bgpPort = router.addPort(ovsdb)
-            .setNetworkLength(24)
-            .setDestination("10.10.173.1")
-            .setOVSPortName(bgpPortPortName)
-            .buildTap();
+                      .setDestination("10.10.173.1")
+                      .setOVSPortName(bgpPortPortName)
+                      .buildTap();
+
+        bgpPort.closeFd();
 
         Bgp bgp = bgpPort.addBgp()
-            .setLocalAs(543)
-            .setPeer(345, "10.10.173.2")
-            .build();
+                      .setLocalAs(543)
+                      .setPeer(345, "10.10.173.2")
+                      .build();
 
         AdRoute advertisedRoute = bgp.addAdvertisedRoute("14.128.23.0", 27);
 
-        LibvirtHandler libvirtHandler = LibvirtHandler.forHypervisor(HypervisorType.Qemu);
+        LibvirtHandler libvirtHandler = LibvirtHandler.forHypervisor
+                                                           (HypervisorType
+                                                                .Qemu);
 
         libvirtHandler.setTemplate("basic_template_x86_64");
 
         // the bgp machine builder will create a vm bound to a local tap and
         // assign the following address 10.10.173.2/24
-        // we will create a tap device on the local machine with the
-        // 10.0.173.1/24 address so we can communicate with it
-
+        // it will also configure the quagga daemons using the information
+        // provided here
+        // it will also set the advertized route to 10.173.0.0/24
         bgpPeerVm = libvirtHandler
-            .newBgpDomain()
-                .setDomainName("bgpPeer")
-                .setHostName("bgppeer")
-                .setNetworkDevice(bgpPort.getName())
-                .setLocalAS(345)
-                .setPeerAS(543)
-                .build();
-
-//        Thread.sleep(1000);
-    }
-
-    private static void createPrivateBGPPeersNetworkDevice() {
-        newProcess(
-            String.format("sudo -n ip tuntap add dev %s mode tap", bgpPort))
-            .logOutput(log, "dev_create@" + bgpPort)
-            .runAndWait();
-
-        newProcess(
-            String.format("sudo -n ip link set %s arp on mtu 1300 multicast off up", bgpPort))
-            .logOutput(log, "link_config@" + bgpPort)
-            .runAndWait();
-
-        newProcess(
-            String.format("sudo -n ip addr add 10.10.173.1/24 broadcast 10.10.173.255 dev %s ", bgpPort))
-            .logOutput(log, "addr_config@" + bgpPort)
-            .runAndWait();
-    }
-
-    private static void deletePrivateBGPPeersNetworkDevice() {
-        newProcess(
-            String.format("sudo -n ip tuntap del dev %s mode tap", bgpPort))
-            .logOutput(log, "dev_create@" + bgpPort)
-            .runAndWait();
-    }
-
-    private static NetworkInterface findLocalEthernetDeviceName() throws SocketException {
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+                        .newBgpDomain()
+                        .setDomainName("bgpPeer")
+                        .setHostName("bgppeer")
+                        .setNetworkDevice(bgpPort.getName())
+                        .setLocalAS(345)
+                        .setPeerAS(543)
+                        .build();
 
 
-        NetworkInterface localNetworkInterface = null;
-
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface netInterface =  interfaces.nextElement();
-
-            if ( netInterface.isLoopback() || netInterface.isVirtual()
-                || ! netInterface.getName().startsWith("eth"))
-            {
-                continue;
-            }
-
-            Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
-            while (addresses.hasMoreElements()) {
-
-                InetAddress inetAddress = addresses.nextElement();
-
-                if ( inetAddress instanceof Inet4Address )
-                {
-                    if ( localNetworkInterface == null ||
-                        localNetworkInterface.getName().compareTo(netInterface.getName()) > 0 )
-                    {
-                        localNetworkInterface = netInterface;
-                    }
-                }
-            }
-        }
-
-        return localNetworkInterface;
+        Thread.sleep(1000);
     }
 
     @AfterClass
     public static void tearDown() {
 
-/*
-        deletePrivateBGPPeersNetworkDevice();
+        bgpPeerVm.destroy();
 
-        if ( ovsdb.hasBridge("smoke-br") ) {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            //
+        }
+
+        bgpPort.remove();
+
+        if (ovsdb.hasBridge("smoke-br")) {
             ovsdb.delBridge("smoke-br");
         }
 
@@ -170,12 +130,62 @@ public class BgpTest {
             mgmt.deleteTenant("tenant1");
         } catch (Exception e) {
         }
-
-*/
     }
 
     @Test
     public void testBgpConfiguration() throws Exception {
-//        int a = 10;
+
+        assertNoPeerAdvertisedRouteIsRegistered(router.getRoutes());
+
+        bgpPeerVm.startup();
+
+        Timed.ExecutionResult<Boolean> result =
+            newTimedExecution()
+                .until(50 * 1000)
+                .waiting(500)
+                .execute(new Timed.Execution<Boolean>() {
+                    @Override
+                    public void _runOnce() throws Exception {
+                        if ( checkPeerAdRouteIsRegistered(router.getRoutes())) {
+                            setCompleted(true);
+                            setResult(Boolean.TRUE);
+                        }
+                    }
+                });
+        
+        assertThat(result, is(notNullValue()));
+        assertThat(result.completed(), equalTo(true));
+        assertThat(result.result(), is(notNullValue()));
+        assertThat(result.result(), equalTo(true));
+    }
+
+    private boolean checkPeerAdRouteIsRegistered(Route[] routes) {
+
+        int matchingRoutes = 0;
+        for (Route route : routes) {
+
+            if (route.getDstNetworkAddr().equals(peerAdvertisedNetworkAddr) &&
+                    route.getDstNetworkLength() ==
+                        peerAdvertisedNetworkLength) {
+                matchingRoutes++;
+            }
+        }
+
+        return matchingRoutes == 1;
+    }
+
+    private Map<UUID, Route> assertNoPeerAdvertisedRouteIsRegistered(Route[]
+                                                                         routes) {
+
+        Map<UUID, Route> routesMap = new HashMap<UUID, Route>();
+
+        for (Route route : routes) {
+            routesMap.put(route.getId(), route);
+
+            assertThat(route.getDstNetworkAddr(), not(equalTo(peerAdvertisedNetworkAddr)));
+            assertThat(route.getDstNetworkLength(), not(equalTo(peerAdvertisedNetworkLength)));
+        }
+
+        return routesMap;
     }
 }
