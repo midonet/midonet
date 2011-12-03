@@ -34,6 +34,7 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
+import com.midokura.midolman.packets.IntIPv4
 
 
 case class Request(socket: Socket, reqId: Int)
@@ -363,10 +364,8 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     // Add to router port's route if there is
                     // mapping. Ignored if not.
                     for (portUUID <- ribTypeToPortUUID.get(ribType)) {
-                        val dstPrefix = prefix(0) << 24 |
-                                        prefix(1) << 16 |
-                                        prefix(2) << 8  |
-                                        prefix(3)
+                        val dstPrefix = new IntIPv4(prefix).address
+
                         val portNode = portMgr.synchronized {
                             portMgr.get(UUID.fromString(portUUID))
                         }
