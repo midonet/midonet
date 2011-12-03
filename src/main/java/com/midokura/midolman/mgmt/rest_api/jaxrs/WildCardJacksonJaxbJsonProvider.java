@@ -8,6 +8,7 @@ package com.midokura.midolman.mgmt.rest_api.jaxrs;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.ext.Provider;
 
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
@@ -17,6 +18,7 @@ import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
  * @version 1.6 11 Nov 2011
  * @author Ryu Ishimoto
  */
+@Provider
 @Consumes(MediaType.WILDCARD)
 @Produces(MediaType.WILDCARD)
 public class WildCardJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
