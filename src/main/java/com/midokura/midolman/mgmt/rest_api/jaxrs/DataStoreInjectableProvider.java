@@ -29,10 +29,7 @@ public class DataStoreInjectableProvider extends
 
     DaoFactory daoFactory = null;
 
-    public DataStoreInjectableProvider() throws InvalidConfigException,
-            DaoInitializationException {
-        AppConfig config = AppConfig.getConfig();
-        this.daoFactory = DatastoreSelector.getDaoFactory(config);
+    public DataStoreInjectableProvider() {
     }
 
     @Override
@@ -40,18 +37,26 @@ public class DataStoreInjectableProvider extends
         return ComponentScope.Singleton;
     }
 
+    @Context AppConfig appConfig;
+
     @Override
     public DaoFactory getValue(HttpContext arg0) {
+        if ( daoFactory == null ) {
+            try {
+                daoFactory = DatastoreSelector.getDaoFactory(appConfig);
+            } catch (Exception e) {
+                throw new UnsupportedOperationException("Could not instantiate DaoFactory.", e);
+            }
+        }
+
         return daoFactory;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public Injectable getInjectable(ComponentContext arg0, Context arg1,
-            Type type) {
-        if (type.equals(DaoFactory.class)) {
+    public Injectable<DaoFactory> getInjectable(ComponentContext arg0, Context arg1, Type type) {
+        if ( type.equals(DaoFactory.class) )
             return this;
-        }
+
         return null;
     }
 

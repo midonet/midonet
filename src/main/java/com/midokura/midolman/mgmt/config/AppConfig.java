@@ -16,25 +16,10 @@ public class AppConfig {
     private final static String zkRootKey = "zk_root";
     private final static String zkMgmtRootKey = "zk_mgmt_root";
 
-    private static AppConfig config = null;
     private ServletContext ctx = null;
 
-    private AppConfig(ServletContext ctx) {
+    public AppConfig(ServletContext ctx) {
         this.ctx = ctx;
-    }
-
-    synchronized public static void init(ServletContext c) {
-        // This can only be called once. Throw an exception if already set.
-        if (config == null) {
-            config = new AppConfig(c);
-        } else {
-            throw new UnsupportedOperationException(
-                    "Config has already been initialized.");
-        }
-    }
-
-    public static AppConfig getConfig() {
-        return config;
     }
 
     public String getVersion() throws InvalidConfigException {
@@ -93,5 +78,4 @@ public class AppConfig {
         }
         return val;
     }
-
 }

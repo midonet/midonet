@@ -20,7 +20,6 @@ import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.TenantClient;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
-import com.midokura.midolman.mgmt.servlet.ServletListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -34,21 +33,20 @@ public class MainTest extends JerseyTest {
     private final static Logger log = LoggerFactory.getLogger(MainTest.class);
 
     public MainTest() {
-        super(new WebAppDescriptor.Builder(new String[] {
+        super(new WebAppDescriptor.Builder(
                 "com.midokura.midolman.mgmt.rest_api.resources",
                 "com.midokura.midolman.mgmt.rest_api.jaxrs",
-                "com.midokura.midolman.mgmt.data" })
+                "com.midokura.midolman.mgmt.data")
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(
-                        "com.sun.jersey.spi.container.ContainerRequestFilters",
-                        "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+                    "com.sun.jersey.spi.container.ContainerRequestFilters",
+                    "com.midokura.midolman.mgmt.auth.NoAuthFilter")
                 .contextParam("datastore_service",
-                        "com.midokura.midolman.mgmt.data.MockDaoFactory")
+                    "com.midokura.midolman.mgmt.data.MockDaoFactory")
                 .contextParam("zk_conn_string", "")
                 .contextParam("zk_timeout", "0")
                 .contextParam("zk_root", "/test/midolman")
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
-                .contextListenerClass(ServletListener.class)
                 .contextPath("/test").build());
     }
 
@@ -60,7 +58,7 @@ public class MainTest extends JerseyTest {
         // Init directory.
         resource = resource().path("admin/init");
         response = resource.type(MediaType.APPLICATION_JSON).post(
-                ClientResponse.class);
+            ClientResponse.class);
 
         // Add the tenant
         TenantClient tenant = new TenantClient();
@@ -68,11 +66,11 @@ public class MainTest extends JerseyTest {
 
         resource = resource().path("tenants");
         response = resource.type(MediaType.APPLICATION_JSON).post(
-                ClientResponse.class, tenant);
+            ClientResponse.class, tenant);
         URI tenantURI = response.getLocation();
         log.debug("tanant location: {}", tenantURI);
         tenant = resource().uri(tenantURI).type(MediaType.APPLICATION_JSON)
-                .get(TenantClient.class);
+            .get(TenantClient.class);
 
         // Add a router.
         Router router = new Router();
@@ -80,7 +78,7 @@ public class MainTest extends JerseyTest {
         router.setName(routerName);
         resource = resource().uri(tenant.getRouters());
         response = resource.type(MediaType.APPLICATION_JSON).post(
-                ClientResponse.class, router);
+            ClientResponse.class, router);
         URI routerURI = response.getLocation();
         log.debug("router location: {}", routerURI);
 
@@ -99,17 +97,17 @@ public class MainTest extends JerseyTest {
         port.setLocalNetworkAddress("180.214.47.64");
         port.setLocalNetworkLength(30);
         resource = resource().uri(
-                UriBuilder.fromUri(routerURI).path("ports").build());
+            UriBuilder.fromUri(routerURI).path("ports").build());
         log.debug("port JSON {}", port.toString());
         response = resource.type(MediaType.APPLICATION_JSON).post(
-                ClientResponse.class, port);
+            ClientResponse.class, port);
         URI portURI = response.getLocation();
         log.debug("port location: {}", portURI);
 
         // Get the port.
         resource = resource().uri(portURI);
         port = resource.type(MediaType.APPLICATION_JSON).get(
-                MaterializedRouterPort.class);
+            MaterializedRouterPort.class);
         log.debug("port address: {}", port.getPortAddress());
         assertEquals(port.getPortAddress(), portAddress);
 
@@ -118,9 +116,9 @@ public class MainTest extends JerseyTest {
         int vpnPort = 1234;
         vpn.setPort(vpnPort);
         resource = resource().uri(
-                UriBuilder.fromUri(portURI).path("vpns").build());
+            UriBuilder.fromUri(portURI).path("vpns").build());
         response = resource.type(MediaType.APPLICATION_JSON).post(
-                ClientResponse.class, vpn);
+            ClientResponse.class, vpn);
         URI vpnURI = response.getLocation();
         log.debug("vpn location: {}", vpnURI);
 
