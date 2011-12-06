@@ -4,12 +4,15 @@
 
 package com.midokura.midolman.layer3;
 
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.management.JMException;
+import javax.management.ObjectName;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -103,7 +106,7 @@ public class Network {
         }
     };
 
-    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws 
+    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws
             ZkStateSerializationException, StateAccessException {
         PortDirectory.RouterPortConfig rcfg = portIdToConfig.get(portId);
         if (null == rcfg)
@@ -114,11 +117,11 @@ public class Network {
     private PortDirectory.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
             throws ZkStateSerializationException, StateAccessException {
         log.debug("refreshPortConfig for {} watcher", portId.toString(), watcher);
-        
+
         if (null == watcher) {
             watcher = new PortWatcher(portId);
         }
-        
+
         ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId, watcher);
         PortConfig cfg = entry.value;
         if (!(cfg instanceof PortDirectory.RouterPortConfig))
@@ -142,8 +145,8 @@ public class Network {
             watcher.call(routerId);
     }
 
-    protected Router getRouter(UUID routerId) throws 
-            ZkStateSerializationException, StateAccessException {
+    protected Router getRouter(UUID routerId) throws
+            ZkStateSerializationException, StateAccessException, JMException {
         Router rtr = routers.get(routerId);
         if (null != rtr)
             return rtr;
@@ -160,11 +163,15 @@ public class Network {
         table.addWatcher(routerWatcher);
         rtr = new Router(routerId, ruleEngine, table, reactor);
         routers.put(routerId, rtr);
+        ObjectName oname =
+            new ObjectName("com.midokura.midolman.layer3:type=Router,name=" +
+                           routerId);
+        ManagementFactory.getPlatformMBeanServer().registerMBean(rtr, oname);
         return rtr;
     }
 
-    public Router getRouterByPort(UUID portId) throws 
-            ZkStateSerializationException, StateAccessException {
+    public Router getRouterByPort(UUID portId) throws
+            ZkStateSerializationException, StateAccessException, JMException {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
@@ -175,10 +182,11 @@ public class Network {
         return rtr;
     }
 
-    public void addPort(L3DevicePort port) throws 
-            ZkStateSerializationException, StateAccessException, KeeperException, InterruptedException {
+    public void addPort(L3DevicePort port) throws
+            ZkStateSerializationException, StateAccessException,
+            KeeperException, InterruptedException, JMException {
         log.debug("addPort: {}", port);
-        
+
         UUID routerId = port.getVirtualConfig().device_id;
         Router rtr = getRouter(routerId);
         rtr.addPort(port);
@@ -186,10 +194,11 @@ public class Network {
     }
 
     // This should only be called for materialized ports, not logical ports.
-    public void removePort(L3DevicePort port) throws 
-            ZkStateSerializationException, StateAccessException, KeeperException, InterruptedException {
+    public void removePort(L3DevicePort port) throws
+            ZkStateSerializationException, StateAccessException,
+            KeeperException, InterruptedException, JMException {
         log.debug("removePort: {}", port);
-        
+
         Router rtr = getRouter(port.getVirtualConfig().device_id);
         rtr.removePort(port);
         routersByPortId.remove(port.getId());
@@ -200,7 +209,7 @@ public class Network {
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb)
             throws ZkStateSerializationException {
         log.debug("getMacForIp: port {} in {}", portId, Net.convertIntAddressToString(nwAddr));
-        
+
         Router rtr;
         try {
             rtr = getRouterByPort(portId);
@@ -211,9 +220,11 @@ public class Network {
     }
 
     public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
-            throws ZkStateSerializationException, StateAccessException {
-        log.debug("process: fwdInfo {} traversedRouters {}", fwdInfo, traversedRouters);
-        
+            throws ZkStateSerializationException, StateAccessException,
+                   JMException {
+        log.debug("process: fwdInfo {} traversedRouters {}", fwdInfo,
+                  traversedRouters);
+
         traversedRouters.clear();
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
@@ -235,8 +246,8 @@ public class Network {
                     return;
                 }
                 if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
-                    PortDirectory.LogicalRouterPortConfig lcfg = PortDirectory.LogicalRouterPortConfig.class
-                            .cast(cfg);
+                    PortDirectory.LogicalRouterPortConfig lcfg = 
+                        PortDirectory.LogicalRouterPortConfig.class.cast(cfg);
                     rtr = getRouterByPort(lcfg.peer_uuid);
                     log.debug("Packet exited router on logical port to "
                             + "router {}", rtr.routerId.toString());

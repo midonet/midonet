@@ -49,7 +49,7 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-public class Router {
+public class Router implements RouterMBean {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
@@ -454,6 +454,15 @@ public class Router {
         port.send(ethReply.serialize());
     }
 
+    public String getArpCacheEntry(UUID portUuid, int ipAddress) {
+        log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        if (arpCache == null)
+            return null;
+        ArpCacheEntry entry = arpCache.get(new Integer(ipAddress));
+        return entry == null ? null : entry.toString();
+    }
+
     private void processArp(Ethernet etherPkt, UUID inPortId) {
         log.debug("processArp: etherPkt {} from port {}", etherPkt, inPortId);
         
@@ -600,6 +609,7 @@ public class Router {
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
         arpCache.put(spa, entry);
+        log.debug("Putting in ARP cache entry for {} on port {}", spa, inPortId);
         reactor.schedule(new ArpExpiration(spa, inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
         Map<Integer, List<Callback<MAC>>> cbLists = arpCallbackLists
