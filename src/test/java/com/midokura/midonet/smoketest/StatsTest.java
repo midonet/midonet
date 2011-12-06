@@ -7,35 +7,41 @@ package com.midokura.midonet.smoketest;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.openflow.AgFlowStats;
+import com.midokura.midonet.smoketest.openflow.FlowStats;
+import com.midokura.midonet.smoketest.openflow.PortStats;
+import com.midokura.midonet.smoketest.openflow.ServiceController;
 import com.midokura.midonet.smoketest.topology.InternalPort;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
 
-import java.util.Random;
-
 public class StatsTest {
     static Tenant tenant1;
     static TapPort tapPort1;
     static TapPort tapPort2;
+    static InternalPort peerPort;
     static IntIPv4 tapIp1;
     static IntIPv4 tapIp2;
     static IntIPv4 rtrIp;
-    static IntIPv4 intPortIp;
+    static IntIPv4 peerIp;
     static PacketHelper helper1;
     static PacketHelper helper2;
     static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
+    static ServiceController svcController;
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
@@ -54,7 +60,7 @@ public class StatsTest {
         rtrIp = IntIPv4.fromString("192.168.100.1");
         tapIp1 = IntIPv4.fromString("192.168.100.11");
         tapIp2 = IntIPv4.fromString("192.168.100.12");
-        intPortIp = IntIPv4.fromString("192.168.100.13");
+        peerIp = IntIPv4.fromString("192.168.100.13");
         tapPort1 = router1.addPort(ovsdb).setDestination(tapIp1.toString())
                 .buildTap();
         helper1 = new PacketHelper(tapPort1.getInnerMAC(), tapIp1,
@@ -65,9 +71,10 @@ public class StatsTest {
         helper2 = new PacketHelper(tapPort2.getInnerMAC(), tapIp2,
                 tapPort2.getOuterMAC(), rtrIp);
 
-        InternalPort internalPort = router1.addPort(ovsdb)
-                .setDestination(intPortIp.toString()).buildInternal();
+        peerPort = router1.addPort(ovsdb).setDestination(peerIp.toString())
+                .buildInternal();
 
+        svcController = new ServiceController();
         Thread.sleep(1000);
     }
 
@@ -83,32 +90,71 @@ public class StatsTest {
     public void test() {
         byte[] request;
 
-        // First arp for router's mac.
+        // Port stats for tapPort1
+        PortStats pStat1 = svcController.getPortStats(tapPort1.getPortNum());
+        // No packets received/transmitted/etc.
+        pStat1.expectRx(0).expectTx(0).expectRxDrop(0).expectTxDrop(0);
+        // Arp for router's mac.
         assertTrue(tapPort1.send(helper1.makeArpRequest()));
         helper1.checkArpReply(tapPort1.recv());
+        // Check updated port stats
+        pStat1.refresh().expectRx(1).expectTx(1).expectRxDrop(0)
+                .expectTxDrop(0);
 
-        // Ping internal port from tap1.
+        // Aggregate stats for flows whose destination ip is tap1.
+        AgFlowStats flowsTo1 = svcController.getAgFlowStats(new MidoMatch()
+                .setNetworkDestination(tapIp1.address, 32));
+        flowsTo1.expectFlowCount(0);
+
+        // Individual flows from tap1 to peerPort and back.
+        FlowStats flow1toPeer = svcController.getFlowStats(new MidoMatch()
+                .setNetworkSource(tapIp1.address, 32).setNetworkDestination(
+                        peerIp.address, 32));
+        flow1toPeer.expectNone();
+        FlowStats flowPeerTo1 = svcController.getFlowStats(new MidoMatch()
+                .setNetworkSource(peerIp.address, 32).setNetworkDestination(
+                        tapIp1.address, 32));
+        flowPeerTo1.expectNone();
+
+        // Send ICMP echo requests from tap1 to peer port. Peer is an interal
+        // port so the host OS will reply.
         for (int i = 0; i < 5; i++) {
-            request = helper1.makeIcmpEchoRequest(intPortIp);
+            request = helper1.makeIcmpEchoRequest(peerIp);
             assertTrue(tapPort1.send(request));
             if (0 == i) {
                 // The router ARPs before delivering the reply packet.
                 helper1.checkArpRequest(tapPort1.recv());
                 assertTrue(tapPort1.send(helper1.makeArpReply()));
             }
-            helper1.checkIcmpEchoReply(request, tapPort1.recv());
+            PacketHelper.checkIcmpEchoReply(request, tapPort1.recv());
         }
+        pStat1.refresh().expectRx(7).expectTx(7).expectRxDrop(0)
+                .expectTxDrop(0);
+        flow1toPeer.refresh().expectCount(5);
+        flowPeerTo1.refresh().expectCount(5);
+        flowsTo1.refresh().expectFlowCount(1).expectPktCount(5);
 
+        // Now send ICMP echo requests from tap2 to tap1. Don't answer them.
+        PortStats pStat2 = svcController.getPortStats(tapPort2.getPortNum());
+        pStat1.expectRx(0).expectTx(0).expectRxDrop(0).expectTxDrop(0);
         // Ping internal port from tap1.
         for (int i = 0; i < 5; i++) {
-            request = helper2.makeIcmpEchoRequest(intPortIp);
+            request = helper2.makeIcmpEchoRequest(tapIp1);
             assertTrue(tapPort2.send(request));
-            if (0 == i) {
-                // The router ARPs before delivering the reply packet.
-                helper2.checkArpRequest(tapPort2.recv());
-                assertTrue(tapPort2.send(helper2.makeArpReply()));
-            }
-            helper2.checkIcmpEchoReply(request, tapPort2.recv());
+            // Check that tap1 receives what was sent by tap2.
+            helper1.checkIcmpEchoRequest(request, tapPort1.recv());
         }
+        pStat2.refresh().expectRx(5).expectTx(0).expectRxDrop(0)
+                .expectTxDrop(0);
+        pStat1.refresh().expectRx(7).expectTx(12).expectRxDrop(0)
+                .expectTxDrop(0);
+        // No change to the flows between tap1 and peerPort.
+        flow1toPeer.refresh().expectCount(5);
+        flowPeerTo1.refresh().expectCount(5);
+        // The aggregate flow stats to tap1 have changed.
+        flowsTo1.refresh().expectFlowCount(2).expectPktCount(10);
+
+        // TODO: Get the table's statistics.
+        // TableStats table = svcController.getTableStats();
     }
 }

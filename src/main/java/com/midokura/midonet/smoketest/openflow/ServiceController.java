@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura Europe SARL
+ */
+
 package com.midokura.midonet.smoketest.openflow;
 
 import java.io.IOException;
@@ -25,17 +29,16 @@ public class ServiceController implements Controller, SelectListener {
     static final Logger log = LoggerFactory.getLogger(ServiceController.class);
 
     private ScheduledExecutorService executor;
-    private ControllerStub controllerStub;
+    private ControllerStubImpl controllerStub;
     private SelectLoop loop;
     private SocketChannel client;
     private Thread myThread;
 
-    public ServiceController(String host, int port) throws IOException {
+    public ServiceController() throws IOException {
         client = SocketChannel.open();
         client.configureBlocking(false);
-        boolean connected = client.connect(new java.net.InetSocketAddress(host,
-                port));
- 
+        client.connect(new java.net.InetSocketAddress("127.0.0.1", 6640));
+
         executor = Executors.newScheduledThreadPool(1);
         loop = new SelectLoop(executor);
         loop.register(client, SelectionKey.OP_CONNECT, this);
@@ -69,16 +72,10 @@ public class ServiceController implements Controller, SelectListener {
             client.finishConnect();
         }
         client.socket().setTcpNoDelay(true);
-        ControllerStubImpl controllerStubImpl = new ControllerStubImpl(client,
-                loop, this);
-        loop.register(client, SelectionKey.OP_READ, controllerStubImpl);
+        controllerStub = new ControllerStubImpl(client, loop, this);
+        loop.register(client, SelectionKey.OP_READ, controllerStub);
         loop.wakeup();
-        controllerStubImpl.start();
-    }
-
-    @Override
-    public void setControllerStub(ControllerStub controllerStub) {
-        this.controllerStub = controllerStub;
+        controllerStub.start();
     }
 
     @Override
@@ -112,6 +109,28 @@ public class ServiceController implements Controller, SelectListener {
     @Override
     public void onMessage(OFMessage m) {
         log.info("onMessage {}", m);
+    }
+
+    public PortStats getPortStats(short portNum) {
+        return new PortStats(portNum, this);
+    }
+
+    public FlowStats getFlowStats(OFMatch match) {
+        return new FlowStats(match, this);
+    }
+
+    public AgFlowStats getAgFlowStats(OFMatch match) {
+        return new AgFlowStats(match, this);
+    }
+
+    public TableStats getTableStats() {
+        return new TableStats(this);
+    }
+
+    @Override
+    public void setControllerStub(ControllerStub controllerStub) {
+        // TODO Auto-generated method stub
+
     }
 
 }
