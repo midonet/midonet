@@ -65,7 +65,7 @@ public class FloatingIpTest {
 
         IntIPv4 tapAddr2 = IntIPv4.fromString("192.168.66.3");
         tapPort2 = router1.addPort(ovsdb).setDestination(tapAddr2.toString())
-                .buildTap();
+                .setOVSPortName("tapPort2").buildTap();
         helper2 = new PacketHelper(tapPort1.getInnerMAC(), tapAddr2,
                 tapPort2.getOuterMAC(), rtrIp);
 
@@ -82,7 +82,7 @@ public class FloatingIpTest {
         // otherwise response packets from that port will go to the OS default
         // route (and not to Midonet).
         newProcess(
-                String.format("sudo -n route add -net 192.168.66.0/24 dev %s",
+                String.format("sudo -n ip route add 192.168.66.0/24 via 192.168.55.1",
                         internalPort.getName())).logOutput(log,
                 "add_host_route").runAndWait();
 
@@ -111,11 +111,11 @@ public class FloatingIpTest {
         helper1.checkIcmpEchoReply(request, tapPort1.recv());
 
         // ICMP echo request to the private IP from tapPort1.
-        request = helper1.makeIcmpEchoRequest(pubAddr);
+        request = helper1.makeIcmpEchoRequest(privAddr);
         assertTrue(tapPort1.send(request));
         // No arp request this time since our earlier reply was cached.
         // Note that the ICMP reply is from the floatingIP not privAddr.
-        helper1.checkIcmpEchoReply(request, tapPort1.recv(), privAddr);
+        helper1.checkIcmpEchoReply(request, tapPort1.recv(), pubAddr);
 
         // ICMP echo request to the private IP from tapPort2.
         request = helper2.makeIcmpEchoRequest(privAddr);
@@ -128,12 +128,12 @@ public class FloatingIpTest {
 
         // ICMP echo request to the floating IP from tapPort2.
         request = helper2.makeIcmpEchoRequest(pubAddr);
-        assertTrue(tapPort1.send(request));
+        assertTrue(tapPort2.send(request));
         // No arp request this time since our earlier reply was cached.
         // In addition, the floatingIP is not translated for packets entering
         // ports other than tapPort1. Since there's no route to the floatingIP
         // the router should return an ICMP !N.
-        helper1.checkIcmpError(tapPort1.recv(),
+        helper2.checkIcmpError(tapPort2.recv(),
                 ICMP.UNREACH_CODE.UNREACH_NET, rtrIp, request);
 
         // No other packets arrive at the tap ports.

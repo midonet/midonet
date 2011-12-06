@@ -185,14 +185,14 @@ public class PacketHelper {
         assertEquals(IPv4.ETHERTYPE, pktReply.getEtherType());
         IPv4 ipRequest = IPv4.class.cast(pktRequest.getPayload());
         IPv4 ipReply = IPv4.class.cast(pktReply.getPayload());
-        assertEquals(ipRequest.getDestinationAddress(),
-                ipReply.getSourceAddress());
+        assertEquals(ipRequest.getSourceAddress(),
+                ipReply.getDestinationAddress());
         if (null == srcIp)
-            assertEquals(ipRequest.getSourceAddress(),
-                    ipReply.getDestinationAddress());
+            assertEquals(ipRequest.getDestinationAddress(),
+                    ipReply.getSourceAddress());
         else
-            assertEquals(srcIp,
-                    ipReply.getDestinationAddress());
+            assertEquals(srcIp.address,
+                    ipReply.getSourceAddress());
         assertEquals(ICMP.PROTOCOL_NUMBER, ipRequest.getProtocol());
         assertEquals(ICMP.PROTOCOL_NUMBER, ipReply.getProtocol());
         ICMP icmpRequest = ICMP.class.cast(ipRequest.getPayload());
@@ -285,7 +285,7 @@ public class PacketHelper {
         ICMP icmp = ICMP.class.cast(ip.getPayload());
         assertTrue(icmp.isError());
         assertEquals(ICMP.TYPE_UNREACH, icmp.getType());
-        assertEquals(code, icmp.getCode());
+        assertEquals(code.toChar(), icmp.getCode());
         byte[] data = icmp.getData();
         byte[] expected = Arrays.copyOfRange(triggerPkt, 14,
                 14+data.length);
