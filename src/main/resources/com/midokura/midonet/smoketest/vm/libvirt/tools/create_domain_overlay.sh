@@ -11,15 +11,18 @@ TARGET_FILE=$3
 
 sudo rm -f "${TARGET_FILE}"
 
+
 make_new_image "${BASE_IMAGE}" "${TARGET_FILE}"
 
 kill_nbd_client
 
-mount_image "${TARGET_FILE}" mnt/image_${MACHINE_NAME}
+MOUNT_POINT=mnt/image_${MACHINE_NAME}
 
-update_hostname ${MACHINE_NAME} mnt/image_${MACHINE_NAME}
+mount_image "${TARGET_FILE}" ${MOUNT_POINT}
 
-unmount_image mnt/image_${MACHINE_NAME}
+setup_hostname ${MOUNT_POINT} ${MACHINE_NAME}
+
+unmount_image ${MOUNT_POINT}
 
 kill_nbd_client
 
