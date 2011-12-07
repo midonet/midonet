@@ -182,7 +182,9 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
     }
 
     private String createNetworkSpecification(String networkDevice) {
-        String defaultNetworkConfig = "   <interface type='network'>\n" +
+
+        String defaultNetworkConfig =
+            "   <interface type='network'>\n" +
             "      <source network='default'/>\n" +
             "    </interface>";
 
