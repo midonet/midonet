@@ -72,7 +72,7 @@ public class StatsTest {
                 tapPort1.getOuterMAC(), rtrIp);
 
         tapPort2 = router1.addPort(ovsdb).setDestination(tapIp2.toString())
-                .buildTap();
+                .setOVSPortName("tapPort2").buildTap();
         helper2 = new PacketHelper(tapPort2.getInnerMAC(), tapIp2,
                 tapPort2.getOuterMAC(), rtrIp);
 
