@@ -7,7 +7,7 @@ BASE_IMAGE=$1
 MACHINE_NAME=$2
 TARGET_FILE=$3
 
-. functions.sh
+. `dirname $0`/functions.sh
 
 sudo rm -f "${TARGET_FILE}"
 
