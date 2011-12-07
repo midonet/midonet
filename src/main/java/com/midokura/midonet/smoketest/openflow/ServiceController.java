@@ -44,10 +44,10 @@ public class ServiceController implements Controller, SelectListener {
     private SocketChannel client;
     private Thread myThread;
 
-    public ServiceController() throws IOException {
+    public ServiceController(int portNum) throws IOException {
         client = SocketChannel.open();
         client.configureBlocking(false);
-        client.connect(new java.net.InetSocketAddress("127.0.0.1", 6640));
+        client.connect(new java.net.InetSocketAddress("127.0.0.1", portNum));
 
         executor = Executors.newScheduledThreadPool(1);
         loop = new SelectLoop(executor);

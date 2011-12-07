@@ -16,6 +16,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openvswitch.ControllerBuilder;
+import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
@@ -77,7 +79,11 @@ public class StatsTest {
         peerPort = router1.addPort(ovsdb).setDestination(peerIp.toString())
                 .buildInternal();
 
-        svcController = new ServiceController();
+        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
+                "smoke-br", "ptcp:6640");
+        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
+        ctlBuilder.build();
+        svcController = new ServiceController(6640);
         Thread.sleep(1000);
     }
 
