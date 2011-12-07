@@ -10,13 +10,15 @@ import org.openflow.protocol.statistics.OFPortStatisticsReply;
 
 public class PortStats {
 
-    ServiceController controller;
     short portNum;
+    ServiceController controller;
     OFPortStatisticsReply stat;
 
-    public PortStats(short portNum, ServiceController controller) {
-        this.controller = controller;
+    public PortStats(short portNum, ServiceController controller,
+            OFPortStatisticsReply stat) {
         this.portNum = portNum;
+        this.controller = controller;
+        this.stat = stat;
     }
 
     public PortStats expectRx(int i) {
@@ -40,7 +42,7 @@ public class PortStats {
     }
 
     public PortStats refresh() {
+        stat = controller.getPortReply(portNum);
         return this;
     }
-
 }

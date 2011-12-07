@@ -14,9 +14,11 @@ public class AgFlowStats {
     ServiceController controller;
     OFAggregateStatisticsReply stat;
 
-    public AgFlowStats(OFMatch match, ServiceController controller) {
+    public AgFlowStats(OFMatch match, ServiceController controller,
+            OFAggregateStatisticsReply stat) {
         this.match = match;
         this.controller = controller;
+        this.stat = stat;
     }
 
     public AgFlowStats expectFlowCount(int i) {
@@ -30,7 +32,7 @@ public class AgFlowStats {
     }
 
     public AgFlowStats refresh() {
+        stat = controller.getAgReply(match);
         return this;
     }
-
 }

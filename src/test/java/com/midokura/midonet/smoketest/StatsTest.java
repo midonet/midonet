@@ -7,9 +7,11 @@ package com.midokura.midonet.smoketest;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -23,6 +25,7 @@ import com.midokura.midonet.smoketest.openflow.AgFlowStats;
 import com.midokura.midonet.smoketest.openflow.FlowStats;
 import com.midokura.midonet.smoketest.openflow.PortStats;
 import com.midokura.midonet.smoketest.openflow.ServiceController;
+import com.midokura.midonet.smoketest.openflow.TableStats;
 import com.midokura.midonet.smoketest.topology.InternalPort;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
@@ -107,14 +110,14 @@ public class StatsTest {
         flowsTo1.expectFlowCount(0);
 
         // Individual flows from tap1 to peerPort and back.
-        FlowStats flow1toPeer = svcController.getFlowStats(new MidoMatch()
-                .setNetworkSource(tapIp1.address, 32).setNetworkDestination(
-                        peerIp.address, 32));
-        flow1toPeer.expectNone();
-        FlowStats flowPeerTo1 = svcController.getFlowStats(new MidoMatch()
-                .setNetworkSource(peerIp.address, 32).setNetworkDestination(
-                        tapIp1.address, 32));
-        flowPeerTo1.expectNone();
+        MidoMatch match1ToPeer = new MidoMatch().setNetworkSource(
+                tapIp1.address, 32).setNetworkDestination(peerIp.address, 32);
+        List<FlowStats> fstats = svcController.getFlowStats(match1ToPeer);
+        Assert.assertEquals(0, fstats.size());
+        MidoMatch matchPeerTo1 = new MidoMatch().setNetworkSource(
+                peerIp.address, 32).setNetworkDestination(tapIp1.address, 32);
+        fstats = svcController.getFlowStats(matchPeerTo1);
+        Assert.assertEquals(0, fstats.size());
 
         // Send ICMP echo requests from tap1 to peer port. Peer is an interal
         // port so the host OS will reply.
@@ -130,9 +133,14 @@ public class StatsTest {
         }
         pStat1.refresh().expectRx(7).expectTx(7).expectRxDrop(0)
                 .expectTxDrop(0);
-        flow1toPeer.refresh().expectCount(5);
-        flowPeerTo1.refresh().expectCount(5);
-        flowsTo1.refresh().expectFlowCount(1).expectPktCount(5);
+        fstats = svcController.getFlowStats(match1ToPeer);
+        Assert.assertEquals(1, fstats.size());
+        FlowStats flow1toPeer = fstats.get(0);
+        flow1toPeer.expectCount(5);
+        fstats = svcController.getFlowStats(matchPeerTo1);
+        Assert.assertEquals(1, fstats.size());
+        FlowStats flowPeerTo1 = fstats.get(0);
+        flowPeerTo1.expectCount(5);
 
         // Now send ICMP echo requests from tap2 to tap1. Don't answer them.
         PortStats pStat2 = svcController.getPortStats(tapPort2.getPortNum());
@@ -149,12 +157,17 @@ public class StatsTest {
         pStat1.refresh().expectRx(7).expectTx(12).expectRxDrop(0)
                 .expectTxDrop(0);
         // No change to the flows between tap1 and peerPort.
-        flow1toPeer.refresh().expectCount(5);
-        flowPeerTo1.refresh().expectCount(5);
+        flow1toPeer.findSameInList(svcController.getFlowStats(match1ToPeer))
+                .expectCount(5);
+        flowPeerTo1.findSameInList(svcController.getFlowStats(matchPeerTo1))
+                .expectCount(5);
         // The aggregate flow stats to tap1 have changed.
         flowsTo1.refresh().expectFlowCount(2).expectPktCount(10);
 
-        // TODO: Get the table's statistics.
-        // TableStats table = svcController.getTableStats();
+        // Get table statistics.
+        List<TableStats> tableStats = svcController.getTableStats();
+        Assert.assertEquals(2, tableStats);
+        TableStats tStats = tableStats.get(0);
+        tStats.expectActive(4).expectLookups(10).expectMatches(6);
     }
 }

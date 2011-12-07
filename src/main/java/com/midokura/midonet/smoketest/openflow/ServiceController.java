@@ -7,6 +7,8 @@ package com.midokura.midonet.smoketest.openflow;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -14,7 +16,14 @@ import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.OFStatisticsReply;
+import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
+import org.openflow.protocol.statistics.OFFlowStatisticsReply;
+import org.openflow.protocol.statistics.OFPortStatisticsReply;
+import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFTableStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +36,7 @@ import com.midokura.midolman.openflow.ControllerStubImpl;
 public class ServiceController implements Controller, SelectListener {
 
     static final Logger log = LoggerFactory.getLogger(ServiceController.class);
+    static final byte ALL_TABLES = (byte)0xff;
 
     private ScheduledExecutorService executor;
     private ControllerStubImpl controllerStub;
@@ -111,26 +121,76 @@ public class ServiceController implements Controller, SelectListener {
         log.info("onMessage {}", m);
     }
 
-    public PortStats getPortStats(short portNum) {
-        return new PortStats(portNum, this);
+    OFPortStatisticsReply getPortReply(short portNum) {
+        int xid = controllerStub.sendPortStatsRequest(portNum);
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        assert (reply != null);
+        List<OFStatistics> stats = reply.getStatistics();
+        return stats.size() == 0 ? null :
+            OFPortStatisticsReply.class.cast(stats.get(0));
     }
 
-    public FlowStats getFlowStats(OFMatch match) {
-        return new FlowStats(match, this);
+    public PortStats getPortStats(short portNum) {
+        return new PortStats(portNum, this, getPortReply(portNum));
+    }
+
+    public List<PortStats> getPortStats() {
+        int xid = controllerStub.sendPortStatsRequest(OFPort.OFPP_NONE
+                .getValue());
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        assert (reply != null);
+        List<PortStats> result = new ArrayList<PortStats>();
+        for (OFStatistics stat : reply.getStatistics()) {
+            OFPortStatisticsReply pStat = OFPortStatisticsReply.class
+                    .cast(stat);
+            result.add(new PortStats(pStat.getPortNumber(), this, pStat));
+        }
+        return result;
+    }
+
+    public List<FlowStats> getFlowStats(OFMatch match) {
+        int xid = controllerStub.sendFlowStatsRequest(match, ALL_TABLES,
+                OFPort.OFPP_NONE.getValue());
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        assert (reply != null);
+        List<FlowStats> result = new ArrayList<FlowStats>();
+        for (OFStatistics stat : reply.getStatistics()) {
+            OFFlowStatisticsReply fStat = OFFlowStatisticsReply.class
+                    .cast(stat);
+            result.add(new FlowStats(fStat.getMatch(), this, fStat));
+        }
+        return result;
+    }
+
+    OFAggregateStatisticsReply getAgReply(OFMatch match) {
+        int xid = controllerStub.sendAggregateStatsRequest(match, ALL_TABLES,
+                OFPort.OFPP_NONE.getValue());
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        assert (reply != null);
+        List<OFStatistics> stats = reply.getStatistics();
+        return stats.size() == 0 ? null :
+            OFAggregateStatisticsReply.class.cast(stats.get(0));
     }
 
     public AgFlowStats getAgFlowStats(OFMatch match) {
-        return new AgFlowStats(match, this);
+        return new AgFlowStats(match, this, getAgReply(match));
     }
 
-    public TableStats getTableStats() {
-        return new TableStats(this);
+    public List<TableStats> getTableStats() {
+        int xid = controllerStub.sendTableStatsRequest();
+        OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
+        assert (reply != null);
+        List<TableStats> result = new ArrayList<TableStats>();
+        for (OFStatistics stat : reply.getStatistics()) {
+            OFTableStatistics tStat = OFTableStatistics.class.cast(stat);
+            result.add(new TableStats(tStat.getTableId(), this, tStat));
+        }
+        return result;
     }
 
     @Override
     public void setControllerStub(ControllerStub controllerStub) {
         // TODO Auto-generated method stub
-
     }
 
 }

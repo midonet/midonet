@@ -20,16 +20,43 @@ public class FlowStats {
     ServiceController controller;
     OFFlowStatisticsReply stat;
 
-    public FlowStats(OFMatch match, ServiceController controller) {
+    public FlowStats(OFMatch match, ServiceController controller,
+            OFFlowStatisticsReply stat) {
         this.match = match;
         this.controller = controller;
+        this.stat = stat;
     }
 
-    public void expectNone() {
-        Assert.assertNull(stat);
+    public final OFMatch getMatch() {
+        return match;
     }
 
-    public FlowStats refresh() {
+    /**
+     * Return the FlowStats from the list whose match field is equal to the one
+     * in 'this'. Assert. This is a convenience method that can be used like
+     * this:
+     * 
+     * <pre>
+     * {
+     *     OFMatch match; // initialize appropriately
+     *     List&lt;FlowStats&gt; stats = controller.getFlowStats(match);
+     *     FlowStat fStat = stats.get(0);
+     *     fStat.expectCount(4).expectOutput(1);
+     *     stats = controller.getFlowStats(match); // refresh stats from switch
+     *     fStat.findSameInList(stats).expectCount(5).expectOutput(1);
+     * }
+     * </pre>
+     * 
+     * @return The equivalent FlowStat from the list or 'this' if none is found
+     *         in the list. Assert.fail with a message if no equivalent is found
+     *         in the list.
+     */
+    public FlowStats findSameInList(List<FlowStats> stats) {
+        for (FlowStats fStat : stats) {
+            if (match.equals(fStat.match))
+                return fStat;
+        }
+        Assert.fail("Did not find a FlowStats with the same match.");
         return this;
     }
 
