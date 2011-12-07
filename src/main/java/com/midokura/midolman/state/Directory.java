@@ -36,4 +36,6 @@ public interface Directory {
 
     List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException;
+
+    long getSessionId();
 }

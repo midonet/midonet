@@ -299,4 +299,9 @@ public class MockDirectory implements Directory {
 
         return results;
     }
+
+    @Override
+    public long getSessionId() {
+        return 0;
+    }
 }

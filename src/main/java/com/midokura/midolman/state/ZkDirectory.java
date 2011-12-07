@@ -136,4 +136,9 @@ public class ZkDirectory implements Directory {
         // TODO Auto-generated method stub
 
     }
+
+    @Override
+    public long getSessionId() {
+        return zk.getSessionId();
+    }
 }
