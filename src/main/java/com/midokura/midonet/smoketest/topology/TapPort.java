@@ -191,10 +191,12 @@ public class TapPort extends Port {
     }
 
     public void remove() {
-        newProcess(
-                String.format("sudo -n ip tuntap del dev %s mode tap",
-                        getName())).logOutput(log, "remove_tap@" + getName())
-                .runAndWait();
+
+        closeFd();
+
+        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap",getName()))
+            .logOutput(log, "remove_tap@" + getName())
+            .runAndWait();
     }
 
     public short getPortNum() {
