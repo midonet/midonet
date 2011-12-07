@@ -8,7 +8,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
-import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +37,8 @@ import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestCo
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(MockMidolmanMgmt.class);
+    private final static Logger log = 
+        LoggerFactory.getLogger(MockMidolmanMgmt.class);
 
     DtoApplication app;
 
@@ -53,16 +52,17 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
                 .contextParam("version", "1.0")
-                .contextParam(
-                        "datastore_service",
-                        mockZK ? "com.midokura.midolman.mgmt.data.MockDaoFactory"
-                                : "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
+                .contextParam("datastore_service",
+                                 mockZK
+                                     ? "com.midokura.midolman.mgmt.data.MockDaoFactory"
+                                     : "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
                 .contextParam("zk_conn_string", "127.0.0.1:2181")
                 .contextParam("zk_timeout", "10000")
                 .contextParam("zk_root", "/test/midolman")
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
                 .contextPath("/test").build();
         ad.getClientConfig().getSingletons().add(new WildCardJacksonJaxbJsonProvider());
+
         return ad;
     }
 
@@ -74,6 +74,15 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         post(admin.getInit(), null);
         // resource().path("admin/init").type(MediaType.APPLICATION_JSON)
         // .post(ClientResponse.class).getLocation();
+    }
+
+    public void stop() {
+        log.info("Shutting down the WebApplication !");
+        try {
+            tearDown();
+        } catch (Exception e) {
+            log.error("While shutting down the mock manager:", e);
+        }
     }
 
     private WebResource makeResource(String path) {
