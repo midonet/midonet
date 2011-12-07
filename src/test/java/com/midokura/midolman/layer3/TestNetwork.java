@@ -7,6 +7,7 @@ package com.midokura.midolman.layer3;
 import java.lang.management.ManagementFactory;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -331,11 +332,19 @@ public class TestNetwork {
             Integer address = new Integer(0x0a020102);
             L3DevicePort devPort = devPorts.get(5);
             UUID portUuid = devPort.getId();
-            Object[] params = new Object[] { portUuid, address };
-            String[] signature = new String[] { "java.util.UUID", "int" };
-            Object rv = mbsc.invoke(oname, "getArpCacheEntry", params,
-                                    signature);
-            Assert.assertNull(rv);
+            Object[] ackParams = new Object[] { portUuid };
+            String[] ackSignature = new String[] { "java.util.UUID" };
+            Object[] aceParams = new Object[] { portUuid, address };
+            String[] aceSignature = new String[] { "java.util.UUID", "int" };
+            Object rv = mbsc.getAttribute(oname, "PortSet");
+            Object[] objArray = (Object[]) rv;
+            UUID[] portArray = (UUID[]) Arrays.copyOf(objArray, objArray.length,
+                                                      UUID[].class);
+            HashSet portSet = new HashSet(Arrays.asList(portArray));
+            Assert.assertTrue(portSet.contains(portUuid)); 
+            rv = mbsc.invoke(oname, "getArpCacheKeys", ackParams,
+                             ackSignature);
+            Assert.assertEquals(0, ((Object[])rv).length);
             // Construct an ARP reply for 0x0a020102 (10.2.1.2)
             MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
                                              (byte) 2, (byte) 3, (byte) 3 });
@@ -345,7 +354,13 @@ public class TestNetwork {
             ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
             Set<UUID> traversedRtrs = new HashSet<UUID>();
             network.process(fInfo, traversedRtrs);
-            rv = mbsc.invoke(oname, "getArpCacheEntry", params, signature);
+            rv = mbsc.invoke(oname, "getArpCacheKeys", ackParams,
+                             ackSignature);
+            objArray = (Object[]) rv;
+            Assert.assertEquals(1, objArray.length);
+            Assert.assertEquals(new Integer(0x0a020102), objArray[0]);
+            rv = mbsc.invoke(oname, "getArpCacheEntry", aceParams,
+                             aceSignature);
             Assert.assertTrue(((String)rv).startsWith(
                         "ArpCacheEntry [macAddr=0a:02:01:02:03:03"));
         } finally {

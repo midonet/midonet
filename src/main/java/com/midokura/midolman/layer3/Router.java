@@ -39,13 +39,13 @@ import com.midokura.midolman.util.Net;
  * routes; RuleEngine maintains the rule chains and applies their logic to
  * packets in the router; NatLeaseManager (in RuleEngine) manages NAT mappings
  * and ip:port reservations.
- * 
+ *
  * Router is directly responsible for three main tasks:
  * 1) Shepherding a packet through the pre-routing/routing/post-routing flow.
  * 2) Handling all ARP-related packets and maintaining ARP caches (per port).
  * 3) Populating the replicated routing table with routes to this router's
  *    ports that are materialized on the local host.
- * 
+ *
  * @version ?
  * @author Pino de Candia
  */
@@ -76,7 +76,7 @@ public class Router implements RouterMBean {
         // These fields are filled by the caller of Router.process():
         public UUID inPortId;
         public Ethernet pktIn;
-        public MidoMatch flowMatch; // (original) match of any eventual flows 
+        public MidoMatch flowMatch; // (original) match of any eventual flows
         public MidoMatch matchIn; // the match as it enters the router
 
         // These fields are filled by Router.process():
@@ -123,7 +123,7 @@ public class Router implements RouterMBean {
      * Router uses one instance of this class to get a callback when there are
      * changes to the routes of any local materialized ports. The callback
      * keeps mirrors those changes to the shared/replicated routing table.
-     * of any 
+     * of any
      */
     private class PortListener implements L3DevicePort.Listener {
         @Override
@@ -190,7 +190,7 @@ public class Router implements RouterMBean {
         this.reactor = reactor;
         this.loadBalancer = new DummyLoadBalancer(table);
     }
-    
+
     public String toString() {
         return routerId.toString();
     }
@@ -237,21 +237,21 @@ public class Router implements RouterMBean {
      * address is in the ARP cache, otherwise the callback is invoked
      * asynchronously when the address is resolved or the ARP request times out,
      * whichever comes first.
-     * 
+     *
      * @param portId
      * @param nwAddr
      * @param cb
      */
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb) {
         log.debug("getMacForIp: port {} ip {}", portId, Net.convertIntAddressToString(nwAddr));
-        
+
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
         L3DevicePort devPort = devicePorts.get(portId);
         String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
         if (null == arpCache || null == devPort) {
             log.warn("getMacForIp: {} cannot get mac for {} on port {} - port not local.",
                     new Object[] {this, nwAddrStr, portId});
-            
+
             throw new IllegalArgumentException(String.format("%s cannot get "
                     + "mac for %s on port %s - port not local.", this,
                     nwAddrStr, portId.toString()));
@@ -311,7 +311,7 @@ public class Router implements RouterMBean {
 
     public void process(ForwardInfo fwdInfo) {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
-        
+
         // Handle ARP first.
         if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
             processArp(fwdInfo.pktIn, fwdInfo.inPortId);
@@ -463,9 +463,18 @@ public class Router implements RouterMBean {
         return entry == null ? null : entry.toString();
     }
 
+    public Object[] getPortSet() {
+        return arpCaches.keySet().toArray();
+    }
+
+    public Object[] getArpCacheKeys(UUID portUuid) {
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        return arpCache == null ? null : arpCache.keySet().toArray();
+    }
+
     private void processArp(Ethernet etherPkt, UUID inPortId) {
         log.debug("processArp: etherPkt {} from port {}", etherPkt, inPortId);
-        
+
         if (!(etherPkt.getPayload() instanceof ARP)) {
             log.warn("{} ignoring packet with ARP ethertype but non-ARP "
                     + "payload.", this);
@@ -523,7 +532,7 @@ public class Router implements RouterMBean {
 
     private void processArpRequest(ARP arpPkt, L3DevicePort devPortIn) {
         log.debug("processArpRequest: arpPkt {} from port {}", arpPkt, devPortIn);
-        
+
         // If the request is for the ingress port's own address, it's for us.
         // Respond with the port's Mac address.
         // If the request is for an IP address which we emulate
@@ -556,26 +565,26 @@ public class Router implements RouterMBean {
         arp.setTargetHardwareAddress(arpPkt.getSenderHardwareAddress());
         arp.setTargetProtocolAddress(arpPkt.getSenderProtocolAddress());
         int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
-        
+
         log.debug("{} replying to ARP request from {} for {} with own mac {}",
                 new Object[] { this, IPv4.fromIPv4Address(spa),
                         IPv4.fromIPv4Address(tpa),
                         portMac});
-        
+
         // TODO(pino) logging.
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(portMac);
         pkt.setDestinationMACAddress(arpPkt.getSenderHardwareAddress());
         pkt.setEtherType(ARP.ETHERTYPE);
-        
+
         // Now send it from the port.
         devPortIn.send(pkt.serialize());
     }
 
     private void processArpReply(ARP arpPkt, L3DevicePort devPortIn) {
         log.debug("processArpReply: arpPkt {} from port {}", arpPkt, devPortIn);
-        
+
         // Verify that the reply was meant for us: tpa is the port's nw addr,
         // and tha is the port's mac.
         // TODO(pino): only a suggestion in the Python, I implemented it. OK?
@@ -618,7 +627,7 @@ public class Router implements RouterMBean {
             log.debug("processArpReply: cbLists is null");
             return;
         }
-        
+
         List<Callback<MAC>> cbList = cbLists.remove(spa);
         if (null != cbList)
             for (Callback<MAC> cb : cbList)
@@ -638,7 +647,7 @@ public class Router implements RouterMBean {
         @Override
         public void run() {
             log.debug("ArpExpiration.run: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
-            
+
             Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
             String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
             if (null == arpCache) {
@@ -688,7 +697,7 @@ public class Router implements RouterMBean {
         @Override
         public void run() {
             log.debug("ArpRetry.run: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
-            
+
             Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
             if (null == arpCache) {
                 // ARP cache is gone, probably because port went down.
@@ -717,7 +726,7 @@ public class Router implements RouterMBean {
 
     private void generateArpRequest(int nwAddr, UUID portId) {
         log.debug("generateArpRequest: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
-        
+
         L3DevicePort devPort = devicePorts.get(portId);
         if (null == devPort) {
             log.warn("{} generateArpRequest could not find device port for "
@@ -726,7 +735,7 @@ public class Router implements RouterMBean {
         }
         PortDirectory.MaterializedRouterPortConfig portConfig = devPort
                 .getVirtualConfig();
-        
+
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -744,7 +753,7 @@ public class Router implements RouterMBean {
         pkt.setSourceMACAddress(portMac);
         pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         pkt.setEtherType(ARP.ETHERTYPE);
-        
+
         // Now send it from the port.
         log.debug("generateArpRequest: sending {}", pkt);
         devPort.send(pkt.serialize());
@@ -757,7 +766,7 @@ public class Router implements RouterMBean {
 
     public void freeFlowResources(OFMatch match) {
         log.debug("freeFlowResources: match {}", match);
-        
+
         ruleEngine.freeFlowResources(match);
     }
 }
