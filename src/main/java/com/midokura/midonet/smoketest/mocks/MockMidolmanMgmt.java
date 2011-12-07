@@ -49,11 +49,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 "com.midokura.midolman.mgmt.rest_api.jaxrs",
                 "com.midokura.midolman.mgmt.data")
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
-                .initParam(ResourceConfig.FEATURE_TRACE, "true")
-                .initParam(ResourceConfig.FEATURE_TRACE_PER_REQUEST, "true")
-                .initParam(
-                        SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS.name(),
-                        "false")
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
@@ -66,7 +61,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextParam("zk_timeout", "10000")
                 .contextParam("zk_root", "/test/midolman")
                 .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
-                .contextListenerClass(ServletListener.class)
                 .contextPath("/test").build();
         ad.getClientConfig().getSingletons().add(new WildCardJacksonJaxbJsonProvider());
         return ad;
@@ -111,19 +105,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public void delete(URI uri) {
         resource().uri(uri).type(MediaType.APPLICATION_JSON).delete();
-    }
-
-    public static class ServletListener implements ServletContextListener {
-
-        @Override
-        public void contextDestroyed(ServletContextEvent ctx) {
-            // Do nothing
-        }
-
-        @Override
-        public void contextInitialized(ServletContextEvent ctx) {
-            AppConfig.init(ctx.getServletContext());
-        }
     }
 
     @Override
