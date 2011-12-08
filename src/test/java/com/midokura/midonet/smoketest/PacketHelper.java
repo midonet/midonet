@@ -131,8 +131,12 @@ public class PacketHelper {
 
     public static void checkArpRequest(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
             IntIPv4 nwDst) {
+
+        assertNotNull(recv);
+
         Ethernet pkt = new Ethernet();
         pkt.deserialize(recv, 0, recv.length);
+
         assertEquals(ARP.ETHERTYPE, pkt.getEtherType());
         assertEquals(dlSrc, pkt.getSourceMACAddress());
         assertEquals(MAC.fromString("ff:ff:ff:ff:ff:ff"),
@@ -164,9 +168,9 @@ public class PacketHelper {
     /**
      * Check that the ICMP echo reply matches the packet except it has the
      * specified src L3 address.
-     * @param recv
-     * @param outerMAC
-     * @param privAddr
+     * @param request
+     * @param reply
+     * @param srcIp
      */
     public static void checkIcmpEchoReply(byte[] request, byte[] reply,
             IntIPv4 srcIp) {
@@ -262,7 +266,9 @@ public class PacketHelper {
      * Check that we received an ICMP unreachable error of the specified type
      * from the specified address in reference to the specified packet.
      * @param recv
-     * @param unreachNet
+     * @param code
+     * @param srcIp
+     * @param triggerPkt
      */
     public void checkIcmpError(byte[] recv, UNREACH_CODE code,
             IntIPv4 srcIp, byte[] triggerPkt) {

@@ -4,6 +4,7 @@
 package com.midokura.midonet.smoketest.vm;
 
 import com.midokura.tools.process.DrainTargets;
+import com.midokura.tools.process.ProcessHelper;
 import com.midokura.tools.process.ProcessOutputDrainer;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -37,25 +38,41 @@ public class LibvirtTest extends AbstractLibvirtTest {
         String testDomainName = "testdomain51";
         String testHostname = "testvm";
 
-        VMController vmController = libvirtHandler.newDomain()
-                .setHostName(testHostname)
-                .setDomainName(testDomainName)
-//                .setNetworkDevice("tap1")
-                .build();
+        VMController vm = null;
+        try {
+            vm = libvirtHandler.newDomain()
+                    .setHostName(testHostname)
+                    .setDomainName(testDomainName)
+                    .build();
 
-        assertThat("The controller for the new VM should be properly created!", vmController, is(notNullValue()));
-        assertThat("The new domain should have the proper domain name", vmController.getDomainName(), equalTo(testDomainName));
-        assertThat("The new domain should have the proper host name", vmController.getHostName(), equalTo(testHostname));
-        assertThat("The VM should have a non null MAC address", vmController.getNetworkMacAddress(), is(notNullValue()));
-        assertThat("The VM should have a proper MAC address", vmController.getNetworkMacAddress(), matchesRegex("(?:[0-9a-f]{2}:){5}[0-9a-f]{2}"));
-        assertThat("The domain should not be running by default", vmController.isRunning(), equalTo(false));
+            assertThat("The controller for the new VM should be properly created!", 
+                          vm, is(notNullValue()));
 
-        // just destroy the domain
-        vmController.destroy();
+            assertThat("The new domain should have the proper domain name", 
+                          vm.getDomainName(), equalTo(testDomainName));
+
+            assertThat("The new domain should have the proper host name", 
+                          vm.getHostName(), equalTo(testHostname));
+
+            assertThat("The VM should have a non null MAC address", 
+                          vm.getNetworkMacAddress(), is(notNullValue()));
+
+            assertThat("The VM should have a proper MAC address", 
+                          vm.getNetworkMacAddress(), matchesRegex("(?:[0-9a-f]{2}:){5}[0-9a-f]{2}"));
+
+            assertThat("The domain should not be running by default", 
+                          vm.isRunning(), equalTo(false));
+        } finally {
+            if ( vm != null ) {
+                // just destroy the domain
+                vm.destroy();
+            }
+        }
     }
 
     @Test
     public void testStartupShutdown() throws Exception {
+
         if ( ! checkRuntimeConfiguration() ) {
             return;
         }
@@ -65,23 +82,32 @@ public class LibvirtTest extends AbstractLibvirtTest {
         String testDomainName = "testdomain52";
         String testHostname = "testvm";
 
-        VMController vmController = libvirtHandler.newDomain()
-                .setHostName(testHostname)
-                .setDomainName(testDomainName)
-//                .setNetworkDevice("tap1")
-                .build();
+        VMController vm =  null;
+        try {
+            vm = libvirtHandler.newDomain()
+                    .setHostName(testHostname)
+                    .setDomainName(testDomainName)
+    //                .setNetworkDevice("tap1")
+                    .build();
 
-        assertThat("The controller for the new VM should be properly created!", vmController, is(notNullValue()));
-        assertThat("The domain should not be running by default", vmController.isRunning(), equalTo(false));
+            assertThat("The controller for the new VM should be properly created!",
+                          vm, is(notNullValue()));
+            assertThat("The domain should not be running by default",
+                          vm.isRunning(), equalTo(false));
 
-        vmController.startup();
-        assertThat("The domain should be running after starting up", vmController.isRunning(), equalTo(true));
+            vm.startup();
+            assertThat("The domain should be running after starting up",
+                          vm.isRunning(), equalTo(true));
 
-        vmController.shutdown();
-        assertThat("The domain should not be running after shutdown", vmController.isRunning(), equalTo(false));
-
-        // just destroy the domain
-        vmController.destroy();
+            vm.shutdown();
+            assertThat("The domain should not be running after shutdown",
+                          vm.isRunning(), equalTo(false));
+        } finally {
+            if ( vm != null ) {
+                // just destroy the domain
+                vm.destroy();
+            }
+        }
     }
 
     @Test
@@ -94,38 +120,62 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         String testDomainName = "testdomain_";
         String testHostname = "testvm_";
+        
+        VMController firstVm = null;
+        VMController secondVm = null;
 
-        VMController firstVm = libvirtHandler.newDomain()
-                .setHostName(testHostname + "1")
-                .setDomainName(testDomainName + "1")
-                .build();
+        try {
+            firstVm = libvirtHandler.newDomain()
+                    .setHostName(testHostname + "1")
+                    .setDomainName(testDomainName + "1")
+                    .build();
 
-        assertThat("The controller for the first VM should be properly created!", firstVm, is(notNullValue()));
-        assertThat("The domain should not be running by default", firstVm.isRunning(), equalTo(false));
+            assertThat("The controller for the first VM should be properly created!",
+                          firstVm, is(notNullValue()));
 
-        VMController secondVm = libvirtHandler.newDomain()
-                .setHostName(testHostname + "2")
-                .setDomainName(testDomainName + "2")
-                .build();
+            assertThat("The domain should not be running by default",
+                          firstVm.isRunning(), equalTo(false));
 
-        assertThat("The controller for the second VM should be properly created!", secondVm, is(notNullValue()));
-        assertThat("The domain should not be running by default", secondVm.isRunning(), equalTo(false));
 
-        firstVm.startup();
-        assertThat("The domain should be running after starting up", firstVm.isRunning(), equalTo(true));
+            secondVm = libvirtHandler.newDomain()
+                    .setHostName(testHostname + "2")
+                    .setDomainName(testDomainName + "2")
+                    .build();
 
-        secondVm.startup();
-        assertThat("The domain should be running after starting up", secondVm.isRunning(), equalTo(true));
+            assertThat("The controller for the second VM should be properly created!",
+                          secondVm, is(notNullValue()));
 
-        firstVm.shutdown();
-        assertThat("The domain should not be running after shutdown", firstVm.isRunning(), equalTo(false));
+            assertThat("The domain should not be running by default",
+                          secondVm.isRunning(), equalTo(false));
 
-        secondVm.shutdown();
-        assertThat("The domain should not be running after shutdown", firstVm.isRunning(), equalTo(false));
+            firstVm.startup();
+            assertThat("The domain should be running after starting up", 
+                          firstVm.isRunning(), equalTo(true));
 
-        // just destroy the domain
-        firstVm.destroy();
-        secondVm.destroy();
+            secondVm.startup();
+            assertThat("The domain should be running after starting up", 
+                          secondVm.isRunning(), equalTo(true));
+
+            firstVm.shutdown();
+            assertThat("The domain should not be running after shutdown", 
+                          firstVm.isRunning(), equalTo(false));
+
+            secondVm.shutdown();
+            assertThat("The domain should not be running after shutdown", 
+                          firstVm.isRunning(), equalTo(false));
+        } finally {
+            // just destroy the domain
+            if ( firstVm != null ) {
+                firstVm.destroy();
+            }
+
+
+            if (secondVm != null) {
+                secondVm.destroy();
+            }
+
+        }
+
     }
 
     @Test
@@ -143,24 +193,31 @@ public class LibvirtTest extends AbstractLibvirtTest {
 
         libvirtHandler.setTemplate("basic_template_x86_64");
 
-        VMController vm =
-                libvirtHandler.newDomain()
-                    .setDomainName("test_tap_bind")
-                    .setNetworkDevice(portName)
-                    .build();
+        VMController vm = null;
         try {
+            
+            vm = libvirtHandler.newDomain()
+                .setDomainName("test_tap_bind")
+                .setNetworkDevice(portName)
+                .build();
+
             vm.startup();
-            assertThat("The domain should be running after starting up", vm.isRunning(), equalTo(true));
+            assertThat("The domain should be running after starting up",
+                          vm.isRunning(), equalTo(true));
         } finally {
-            vm.destroy();
+            if ( vm != null ) {
+                vm.destroy();
+            }
+
+            runCommandAndWait(
+                String.format("sudo -n ip tuntap del dev %s mode tap", portName));
         }
     }
 
     protected void runCommandAndWait(String command) throws Exception {
-        Process p = Runtime.getRuntime().exec(command);
-        new ProcessOutputDrainer(p, true).drainOutput(DrainTargets.slf4jTarget(log, command));
-        p.waitFor();
-
-        log.debug("\"{}\" returned: {}", command, p.exitValue());
+        ProcessHelper
+            .newProcess(command)
+            .logOutput(log, command)
+            .runAndWait();
     }
 }

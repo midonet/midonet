@@ -21,10 +21,15 @@ import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
-public class PingTest {
+public class PingTest extends AbstractSmokeTest {
+
+    private final static Logger log = LoggerFactory.getLogger(PingTest.class);
+
     static Tenant tenant1;
     static TapPort tapPort;
     static IntIPv4 rtrIp;
@@ -66,9 +71,14 @@ public class PingTest {
 
     @AfterClass
     public static void tearDown() {
+
+        removeTapPort(tapPort);
+        removeTenant(tenant1);
+        mgmt.stop();
+
         ovsdb.delBridge("smoke-br");
-        tapPort.remove();
-        tenant1.delete();
+
+        resetZooKeeperState(log);
     }
 
     @Test

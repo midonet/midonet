@@ -29,9 +29,11 @@ import com.midokura.midonet.smoketest.topology.Tenant;
 
 import java.util.Random;
 
-public class FloatingIpTest {
-    private final static Logger log = LoggerFactory
-            .getLogger(FloatingIpTest.class);
+public class FloatingIpTest extends AbstractSmokeTest {
+
+    private final static Logger log =
+        LoggerFactory.getLogger(FloatingIpTest.class);
+
     static Tenant tenant1;
     static TapPort tapPort1;
     static TapPort tapPort2;
@@ -92,9 +94,14 @@ public class FloatingIpTest {
     @AfterClass
     public static void tearDown() {
         ovsdb.delBridge("smoke-br");
-        tapPort1.remove();
-        tapPort2.remove();
-        tenant1.delete();
+
+        removeTapPort(tapPort1);
+        removeTapPort(tapPort2);
+        removeTenant(tenant1);
+
+        mgmt.stop();
+
+        resetZooKeeperState(log);
     }
 
     @Test

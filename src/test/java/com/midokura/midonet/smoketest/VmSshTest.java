@@ -1,6 +1,6 @@
 /*
-* Copyright 2011 Midokura Europe SARL
-*/
+ * Copyright 2011 Midokura Europe SARL
+ */
 package com.midokura.midonet.smoketest;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -14,6 +14,7 @@ import com.midokura.midonet.smoketest.topology.Tenant;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
+import com.midokura.tools.process.ProcessHelper;
 import com.midokura.tools.ssh.SshHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -33,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Date: 11/24/11
  * Time: 12:16 PM
  */
-public class VmSshTest {
+public class VmSshTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(VmSshTest.class);
 
@@ -81,17 +82,13 @@ public class VmSshTest {
     @AfterClass
     public static void tearDown() {
         // First clean up left-overs from previous incomplete tests.
-        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap",
-                                    tapPortName))
-            .logOutput(log, "remove_old_tap")
-            .runAndWait();
-
+        removeTapPort(tapPort);
         ovsdb.delBridge("smoke-br");
 
-        try {
-            mgmt.deleteTenant("tenant1");
-        } catch (Exception e) {
-        }
+        removeTenant(tenant);
+        mgmt.stop();
+
+        resetZooKeeperState(log);
     }
 
     @Test
@@ -112,7 +109,7 @@ public class VmSshTest {
         try {
             vm.startup();
 
-            log.info("Running remote hostname command.");
+            log.info("Running remote command to find the hostname.");
             // validate ssh to the 192.168.100.2 address
             String output =
                 SshHelper.newRemoteCommand("hostname")
@@ -125,12 +122,12 @@ public class VmSshTest {
             // validate that the hostname of the target VM matches the
             // hostname that we configured for the vm
             assertThat("The remote hostname command output should match the " +
-                           "hostname we chosen for the vm",
+                           "hostname we chose for the VM",
                           output.trim(), equalTo(vm.getHostName()));
 
         } finally {
-            vm.shutdown();
-            vm.destroy();
+//            vm.shutdown();
+//            vm.destroy();
         }
     }
 }

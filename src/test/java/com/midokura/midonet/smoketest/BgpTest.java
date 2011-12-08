@@ -1,6 +1,6 @@
 /*
-* Copyright 2011 Midokura Europe SARL
-*/
+ * Copyright 2011 Midokura Europe SARL
+ */
 
 package com.midokura.midonet.smoketest;
 
@@ -12,8 +12,8 @@ import com.midokura.midonet.smoketest.topology.*;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
+import com.midokura.tools.process.ProcessHelper;
 import com.midokura.tools.timed.Timed;
-import org.apache.log4j.pattern.BridgePatternParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,12 +31,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
+ * Author: Toader Mihai Claudiu <mtoader@midkura.com>
  * <p/>
  * Date: 11/28/11
  * Time: 1:34 PM
  */
-public class BgpTest {
+public class BgpTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
 
@@ -111,25 +111,27 @@ public class BgpTest {
 
     @AfterClass
     public static void tearDown() {
-
-        bgpPeerVm.destroy();
-
         try {
-            Thread.sleep(5000);
+            if ( bgpPeerVm != null ) {
+                bgpPeerVm.destroy();
+            }
+
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             //
         }
 
-        bgpPort.remove();
+        removeTapPort(bgpPort);
+
+        removeTenant(tenant);
+        mgmt.stop();
+
 
         if (ovsdb.hasBridge("smoke-br")) {
             ovsdb.delBridge("smoke-br");
         }
 
-        try {
-            mgmt.deleteTenant("tenant1");
-        } catch (Exception e) {
-        }
+        resetZooKeeperState(log);
     }
 
     @Test
@@ -153,10 +155,12 @@ public class BgpTest {
                     }
                 });
         
-        assertThat(result, is(notNullValue()));
-        assertThat(result.completed(), equalTo(true));
+        assertThat("The result object should not be null",
+                      result, is(notNullValue()));
+        assertThat("The wait for the new route should have completed successfully", result.completed());
+
         assertThat(result.result(), is(notNullValue()));
-        assertThat(result.result(), equalTo(true));
+        assertThat("The execution result should have been successull", result.result());
     }
 
     private boolean checkPeerAdRouteIsRegistered(Route[] routes) {

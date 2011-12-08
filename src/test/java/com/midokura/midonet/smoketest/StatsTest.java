@@ -32,8 +32,13 @@ import com.midokura.midonet.smoketest.topology.InternalPort;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class StatsTest {
+public class StatsTest extends AbstractSmokeTest {
+
+    private final static Logger log = LoggerFactory.getLogger(StatsTest.class);
+
     static Tenant tenant1;
     static TapPort tapPort1;
     static TapPort tapPort2;
@@ -90,9 +95,14 @@ public class StatsTest {
     @AfterClass
     public static void tearDown() {
         ovsdb.delBridge("smoke-br");
-        tapPort1.remove();
-        tapPort2.remove();
-        tenant1.delete();
+
+        removeTapPort(tapPort1);
+        removeTapPort(tapPort2);
+        removeTenant(tenant1);
+
+        mgmt.stop();
+
+        resetZooKeeperState(log);
     }
 
     @Test

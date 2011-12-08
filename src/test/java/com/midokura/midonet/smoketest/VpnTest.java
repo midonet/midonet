@@ -10,6 +10,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Random;
 
+import com.midokura.tools.process.ProcessHelper;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -24,8 +27,13 @@ import com.midokura.midonet.smoketest.topology.PeerRouterLink;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class VpnTest {
+public class VpnTest extends AbstractSmokeTest {
+
+    private final static Logger log = LoggerFactory.getLogger(VpnTest.class);
+
     static Tenant tenant1;
     static TapPort tapPort1;
     static TapPort tapPort2;
@@ -100,6 +108,18 @@ public class VpnTest {
                 IntIPv4.fromString("192.168.1.99"), link.dto.getPeerPortId());
 
         Thread.sleep(10000);
+    }
+
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        removeTapPort(tapPort1);
+        removeTapPort(tapPort2);
+        removeTenant(tenant1);
+
+        mgmt.stop();
+
+        resetZooKeeperState(log);
     }
 
     @Test

@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Random;
 
+import com.midokura.tools.process.ProcessHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,8 +19,13 @@ import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.topology.Router;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.Tenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class TunnelingTest {
+public class TunnelingTest extends AbstractSmokeTest {
+
+    private final static Logger log = LoggerFactory.getLogger(TunnelingTest.class);
+
     static Tenant tenant1;
     static TapPort tapPort1;
     static TapPort tapPort2;
@@ -35,7 +41,7 @@ public class TunnelingTest {
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                "127.0.0.1", 12344);
+                                                         "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         // First clean up left-overs from previous incomplete tests.
         // Process p = Runtime.getRuntime().exec(
@@ -50,21 +56,29 @@ public class TunnelingTest {
             ovsdb.delBridge("smoke-br2");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                .build();
+                      .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         ip1 = IntIPv4.fromString("192.168.100.2");
-        tapPort1 = router1.addPort(ovsdb).setDestination(ip1.toString())
-                .buildTap();
+        tapPort1 = router1.addPort(ovsdb)
+                       .setDestination(ip1.toString())
+                       .setOVSPortName("tapPort1")
+                       .buildTap();
+
         helper1 = new PacketHelper(tapPort1.getInnerMAC(), ip1,
-                tapPort1.getOuterMAC(), IntIPv4.fromString("192.168.100.1"));
+                                      tapPort1.getOuterMAC(),
+                                      IntIPv4.fromString("192.168.100.1"));
 
         ip2 = IntIPv4.fromString("192.168.101.3");
         tapPort2 = router1.addPort(ovsdb).setDestination(ip2.toString())
-                .setOVSBridgeName("smoke-br2")
-                .setOVSBridgeController("tcp:127.0.0.1:6623").buildTap();
+                       .setOVSPortName("tapPort2")
+                       .setOVSBridgeName("smoke-br2")
+                       .setOVSBridgeController("tcp:127.0.0.1:6623")
+                       .buildTap();
+
         helper2 = new PacketHelper(tapPort2.getInnerMAC(), ip2,
-                tapPort2.getOuterMAC(), IntIPv4.fromString("192.168.101.1"));
+                                      tapPort2.getOuterMAC(),
+                                      IntIPv4.fromString("192.168.101.1"));
 
         Thread.sleep(1000);
     }
@@ -73,9 +87,14 @@ public class TunnelingTest {
     public static void tearDown() {
         ovsdb.delBridge("smoke-br");
         ovsdb.delBridge("smoke-br2");
-        tapPort1.remove();
-        tapPort2.remove();
-        tenant1.delete();
+
+        removeTapPort(tapPort1);
+        removeTapPort(tapPort2);
+        removeTenant(tenant1);
+
+        mgmt.stop();
+
+        resetZooKeeperState(log);
     }
 
     @Test
