@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.management.JMException;
 
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -1231,6 +1232,10 @@ public class NetworkController extends AbstractController {
                         + " caught: \n{}",
                         new Object[] { match, rtrId, e.getStackTrace() });
             } catch (StateAccessException e) {
+                log.warn("freeFlowResources failed for match {} in router {} -"
+                        + " caught: \n{}",
+                        new Object[] { match, rtrId, e.getStackTrace() });
+            } catch (JMException e) {
                 log.warn("freeFlowResources failed for match {} in router {} -"
                         + " caught: \n{}",
                         new Object[] { match, rtrId, e.getStackTrace() });
