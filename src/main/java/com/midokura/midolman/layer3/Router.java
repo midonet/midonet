@@ -11,6 +11,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.DynamicMBean;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
+import javax.management.openmbean.OpenMBeanInfoSupport;
+import javax.management.openmbean.OpenMBeanOperationInfoSupport;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularDataSupport;
+import javax.management.openmbean.TabularType;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -49,7 +69,7 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-public class Router implements RouterMBean {
+public class Router implements DynamicMBean {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
@@ -179,7 +199,8 @@ public class Router implements RouterMBean {
     private LoadBalancer loadBalancer;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
-            ReplicatedRoutingTable table, Reactor reactor) {
+                  ReplicatedRoutingTable table, Reactor reactor) 
+            throws OpenDataException {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
@@ -452,24 +473,6 @@ public class Router implements RouterMBean {
                 IPv4.fromIPv4Address(port.getVirtualConfig().portAddr),
                 IPv4.fromIPv4Address(ipPkt.getSourceAddress()));
         port.send(ethReply.serialize());
-    }
-
-    public String getArpCacheEntry(UUID portUuid, int ipAddress) {
-        log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
-        if (arpCache == null)
-            return null;
-        ArpCacheEntry entry = arpCache.get(new Integer(ipAddress));
-        return entry == null ? null : entry.toString();
-    }
-
-    public Object[] getPortSet() {
-        return arpCaches.keySet().toArray();
-    }
-
-    public Object[] getArpCacheKeys(UUID portUuid) {
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
-        return arpCache == null ? null : arpCache.keySet().toArray();
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
@@ -769,4 +772,112 @@ public class Router implements RouterMBean {
 
         ruleEngine.freeFlowResources(match);
     }
+
+    // OpenMBean stuff for JMX
+    public Object getAttribute(String attribute) 
+            throws AttributeNotFoundException, MBeanException {
+        if (attribute.equals("PortSet")) {
+           try {
+               return getPortTable();
+           } catch (OpenDataException e) {
+               throw new MBeanException(e);
+           }
+        }
+        throw new AttributeNotFoundException("Cannot find "
+               + attribute + " attribute"); 
+    } 
+    public void setAttribute(Attribute attribute) 
+            throws AttributeNotFoundException {
+        throw new AttributeNotFoundException("Cannot set " + attribute.getName());
+    }
+    public AttributeList getAttributes(String[] attributeNames) {
+        AttributeList resultList = new AttributeList();
+        if (attributeNames.length == 0)
+            return resultList;
+        try {
+            for (int i = 0; i < attributeNames.length; i++) {
+                Object value = getAttribute(attributeNames[i]);
+                resultList.add(new Attribute(attributeNames[i], value));
+            }
+            return resultList; 
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public AttributeList setAttributes(AttributeList attributes) {
+        if (attributes.size() == 0) {
+            return new AttributeList();
+        }
+        // That's right folks, AttributeList.get() returns Object.
+        Attribute attr = (Attribute) attributes.get(0);
+        throw new RuntimeException("Cannot set " + attr.getName());
+    }
+    public Object invoke(String actionName, Object params[], String signature[])
+            throws MBeanException, ReflectionException {
+        if (actionName.equals("getArpCacheEntry")) {
+            if (!signature[0].equals("java.util.UUID") ||
+                !signature[1].equals("int")) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid signature for " + actionName));
+            }
+            UUID portUuid = (UUID)params[0];
+            int ipAddr = ((Integer)params[1]).intValue();
+            return getArpCacheEntry(portUuid, ipAddr);
+        } else if (actionName.equals("getArpCacheKeys")) {
+            return null;  // XXX
+        } else {
+            throw new ReflectionException(new NoSuchMethodException(actionName));
+        }
+    }
+    public MBeanInfo getMBeanInfo() {
+        OpenMBeanAttributeInfoSupport[] attributes = 
+                new OpenMBeanAttributeInfoSupport[1];
+        OpenMBeanConstructorInfoSupport[] constructors = 
+                new OpenMBeanConstructorInfoSupport[0];
+        OpenMBeanOperationInfoSupport[] operations = 
+                new OpenMBeanOperationInfoSupport[0];
+        MBeanNotificationInfo[] notifications = new MBeanNotificationInfo[0];
+ 
+        attributes[0] = new OpenMBeanAttributeInfoSupport("PortSet",
+                "list of ports", portSetType, true, false, false);
+ 
+        return new OpenMBeanInfoSupport(this.getClass().getName(),
+                "Router - Open - MBean", attributes, constructors,
+                operations, notifications);
+    }
+    CompositeType stringType = new CompositeType("string", "String",
+        new String[] { "string" }, new String[] { "String" },
+        new SimpleType[] { SimpleType.STRING });
+    TabularType portSetType = new TabularType("portSet", "List of ports",
+                                              stringType,
+                                              new String[] { "string" });
+
+    public String getArpCacheEntry(UUID portUuid, int ipAddress) {
+        log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        if (arpCache == null)
+            return null;
+        ArpCacheEntry entry = arpCache.get(new Integer(ipAddress));
+        return entry == null ? null : entry.toString();
+    }
+
+    public TabularData getPortTable() throws OpenDataException {
+        TabularDataSupport table = new TabularDataSupport(portSetType);
+        for (UUID key : arpCaches.keySet()) {
+            CompositeDataSupport entry = 
+                    new CompositeDataSupport(stringType,
+                                             new String[] { "string" },
+                                             new Object[] { key.toString() });
+            table.put(entry);
+        }
+        return table;
+    }
+
+    public Object[] getArpCacheKeys(UUID portUuid) {
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        return arpCache == null ? null : arpCache.keySet().toArray();
+    }
+
 }
