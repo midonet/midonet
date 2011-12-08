@@ -339,10 +339,10 @@ public class TestNetwork {
             Integer address = new Integer(0x0a020102);
             L3DevicePort devPort = devPorts.get(5);
             UUID portUuid = devPort.getId();
-            Object[] ackParams = new Object[] { portUuid };
-            String[] ackSignature = new String[] { "java.util.UUID" };
-            Object[] aceParams = new Object[] { portUuid, address };
-            String[] aceSignature = new String[] { "java.util.UUID", "int" };
+            Object[] ackParams = new Object[] { portUuid.toString() };
+            String[] ackSignature = new String[] { "java.lang.String" };
+            Object[] aceParams = new Object[] { portUuid.toString(), address };
+            String[] aceSignature = new String[] { "java.lang.String", "int" };
             TabularData table = (TabularData)mbsc.getAttribute(oname, "PortSet");
             log.debug("table is {}", table);
             Collection<CompositeData> portSet = 

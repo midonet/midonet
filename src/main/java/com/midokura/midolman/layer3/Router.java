@@ -27,6 +27,7 @@ import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
 import javax.management.openmbean.OpenMBeanInfoSupport;
 import javax.management.openmbean.OpenMBeanOperationInfoSupport;
+import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
@@ -818,7 +819,7 @@ public class Router implements DynamicMBean {
             throws MBeanException, ReflectionException {
         if (actionName.equals("getArpCacheEntry")) {
             if (signature.length != 2 ||
-                !signature[0].equals("java.util.UUID") ||
+                !signature[0].equals("java.lang.String") ||
                 !signature[1].equals("int")) {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid signature for " + actionName));
@@ -827,12 +828,12 @@ public class Router implements DynamicMBean {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid parameter list for " + actionName));
             }
-            UUID portUuid = (UUID)params[0];
+            UUID portUuid = UUID.fromString((String)params[0]);
             int ipAddr = ((Integer)params[1]).intValue();
             return getArpCacheEntry(portUuid, ipAddr);
         } else if (actionName.equals("getArpCacheKeys")) {
             if (signature.length != 1 ||
-                !signature[0].equals("java.util.UUID")) {
+                !signature[0].equals("java.lang.String")) {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid signature for " + actionName));
             }
@@ -840,7 +841,7 @@ public class Router implements DynamicMBean {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid parameter list for " + actionName));
             }
-            UUID portUuid = (UUID)params[0];
+            UUID portUuid = UUID.fromString((String)params[0]);
             try {
                 return getArpCacheKeyTable(portUuid);
             } catch (OpenDataException e) {
@@ -848,7 +849,7 @@ public class Router implements DynamicMBean {
             }
         } else if (actionName.equals("getArpCacheTable")) {
             if (signature.length != 1 ||
-                !signature[0].equals("java.util.UUID")) {
+                !signature[0].equals("java.lang.String")) {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid signature for " + actionName));
             }
@@ -856,7 +857,7 @@ public class Router implements DynamicMBean {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid parameter list for " + actionName));
             }
-            UUID portUuid = (UUID)params[0];
+            UUID portUuid = UUID.fromString((String)params[0]);
             try {
                 return getArpCacheTable(portUuid);
             } catch (OpenDataException e) {
@@ -872,11 +873,31 @@ public class Router implements DynamicMBean {
         OpenMBeanConstructorInfoSupport[] constructors = 
                 new OpenMBeanConstructorInfoSupport[0];
         OpenMBeanOperationInfoSupport[] operations = 
-                new OpenMBeanOperationInfoSupport[0];
+                new OpenMBeanOperationInfoSupport[3];
         MBeanNotificationInfo[] notifications = new MBeanNotificationInfo[0];
+        OpenMBeanParameterInfoSupport[] ackSignature =
+                new OpenMBeanParameterInfoSupport[1];
+        OpenMBeanParameterInfoSupport[] aceSignature =
+                new OpenMBeanParameterInfoSupport[2];
+        
+        ackSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
+                                "Port UUID", SimpleType.STRING);
+        aceSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
+                                "Port UUID", SimpleType.STRING);
+        aceSignature[1] = new OpenMBeanParameterInfoSupport("ipAddr",
+                                "IP number", SimpleType.INTEGER);
  
         attributes[0] = new OpenMBeanAttributeInfoSupport("PortSet",
                 "list of ports", portSetType, true, false, false);
+        operations[0] = new OpenMBeanOperationInfoSupport("getArpCacheKeys",
+                "keys of the ARP cache", ackSignature, intListType,
+                OpenMBeanOperationInfoSupport.INFO);
+        operations[1] = new OpenMBeanOperationInfoSupport("getArpCacheTable",
+                "the ARP cache (as a table)", ackSignature, intStrListType,
+                OpenMBeanOperationInfoSupport.INFO);
+        operations[2] = new OpenMBeanOperationInfoSupport("getArpCacheEntry",
+                "an entry in the ARP cache", aceSignature, SimpleType.STRING,
+                OpenMBeanOperationInfoSupport.INFO);
  
         return new OpenMBeanInfoSupport(this.getClass().getName(),
                 "Router - Open - MBean", attributes, constructors,
