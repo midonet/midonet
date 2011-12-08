@@ -784,7 +784,8 @@ public class NetworkController extends AbstractController {
         // If packet was unbuffered, we need to explicitly send it otherwise the
         // flow won't be applied to it.
         if (bufferId == ControllerStub.UNBUFFERED_ID)
-            controllerStub.sendPacketOut(bufferId, (short)inPort, actions, data);
+            controllerStub.sendPacketOut(bufferId, OFPort.OFPP_NONE.getValue(),
+                    actions, data);
     }
 
     private class LocalPktArpCallback implements Callback<MAC> {
@@ -1095,7 +1096,7 @@ public class NetworkController extends AbstractController {
         actions.add(action);
         log.debug("sendUnbufferedPacketFromPort {}", ethPkt);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
-                OFPort.OFPP_CONTROLLER.getValue(), actions, ethPkt.serialize());
+                OFPort.OFPP_NONE.getValue(), actions, ethPkt.serialize());
     }
 
     /**

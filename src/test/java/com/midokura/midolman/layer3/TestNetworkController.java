@@ -422,7 +422,7 @@ public class TestNetworkController {
                 (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
                 IPv4.class.cast(eth.getPayload()),
                 new MAC(phyPort.getHardwareAddress()), mac, 0x0a000001,
@@ -461,7 +461,7 @@ public class TestNetworkController {
                 (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
         checkICMP(ICMP.TYPE_UNREACH,
                 ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toChar(),
                 IPv4.class.cast(eth.getPayload()),
@@ -541,7 +541,7 @@ public class TestNetworkController {
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(1);
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(phyPortIn.getPortNumber(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
         Assert.assertTrue(Arrays.equals(data, pkt.data));
         Assert.assertEquals(3, pkt.actions.size());
         for (int i = 0; i < 3; i++)
@@ -586,7 +586,7 @@ public class TestNetworkController {
         MockControllerStub.Packet sentPacket = controllerStub.sentPackets
                 .get(0);
         Assert.assertEquals(999, sentPacket.bufferId);
-        Assert.assertEquals(-1, sentPacket.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), sentPacket.inPort);
         // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -630,7 +630,7 @@ public class TestNetworkController {
         MockControllerStub.Packet sentPacket = controllerStub.sentPackets
                 .get(0);
         Assert.assertEquals(37654, sentPacket.bufferId);
-        Assert.assertEquals(-1, sentPacket.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), sentPacket.inPort);
         // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -681,7 +681,7 @@ public class TestNetworkController {
         MockControllerStub.Packet sentPacket = controllerStub.sentPackets
                 .get(0);
         Assert.assertEquals(22333, sentPacket.bufferId);
-        Assert.assertEquals(-1, sentPacket.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), sentPacket.inPort);
         // TODO: Check sentPacket.actions
 
         // A flow was installed.
@@ -732,7 +732,7 @@ public class TestNetworkController {
         ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
         // The ICMP's source address is that of router2's logical port.
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
                 IPv4.class.cast(eth.getPayload()),
@@ -1060,7 +1060,7 @@ public class TestNetworkController {
         ofAction = new OFActionOutput(inPortNum, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
 
         dlHeaders = NetworkController.getDlHeadersForTunnel(
                 NetworkController.ICMP_TUNNEL, portNumToIntId.get(21),
@@ -1131,7 +1131,7 @@ public class TestNetworkController {
         ofAction = new OFActionOutput(tunnelPort, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
 
         dlHeaders = NetworkController.getDlHeadersForTunnel(
                 NetworkController.ICMP_TUNNEL,
@@ -1196,7 +1196,7 @@ public class TestNetworkController {
         ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_CONTROLLER.getValue(), pkt.inPort);
+        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
         // The network source address is that of the port on router2 that
         // generated the ICMP (the logical port): 0xc0a80102.
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
