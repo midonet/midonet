@@ -11,6 +11,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.DynamicMBean;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
+import javax.management.openmbean.OpenMBeanInfoSupport;
+import javax.management.openmbean.OpenMBeanOperationInfoSupport;
+import javax.management.openmbean.OpenMBeanParameterInfoSupport;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularDataSupport;
+import javax.management.openmbean.TabularType;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -39,17 +60,17 @@ import com.midokura.midolman.util.Net;
  * routes; RuleEngine maintains the rule chains and applies their logic to
  * packets in the router; NatLeaseManager (in RuleEngine) manages NAT mappings
  * and ip:port reservations.
- * 
+ *
  * Router is directly responsible for three main tasks:
  * 1) Shepherding a packet through the pre-routing/routing/post-routing flow.
  * 2) Handling all ARP-related packets and maintaining ARP caches (per port).
  * 3) Populating the replicated routing table with routes to this router's
  *    ports that are materialized on the local host.
- * 
+ *
  * @version ?
  * @author Pino de Candia
  */
-public class Router {
+public class Router implements DynamicMBean {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
@@ -76,7 +97,7 @@ public class Router {
         // These fields are filled by the caller of Router.process():
         public UUID inPortId;
         public Ethernet pktIn;
-        public MidoMatch flowMatch; // (original) match of any eventual flows 
+        public MidoMatch flowMatch; // (original) match of any eventual flows
         public MidoMatch matchIn; // the match as it enters the router
 
         // These fields are filled by Router.process():
@@ -123,7 +144,7 @@ public class Router {
      * Router uses one instance of this class to get a callback when there are
      * changes to the routes of any local materialized ports. The callback
      * keeps mirrors those changes to the shared/replicated routing table.
-     * of any 
+     * of any
      */
     private class PortListener implements L3DevicePort.Listener {
         @Override
@@ -179,7 +200,8 @@ public class Router {
     private LoadBalancer loadBalancer;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
-            ReplicatedRoutingTable table, Reactor reactor) {
+                  ReplicatedRoutingTable table, Reactor reactor)
+            throws OpenDataException {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
@@ -190,7 +212,7 @@ public class Router {
         this.reactor = reactor;
         this.loadBalancer = new DummyLoadBalancer(table);
     }
-    
+
     public String toString() {
         return routerId.toString();
     }
@@ -237,21 +259,21 @@ public class Router {
      * address is in the ARP cache, otherwise the callback is invoked
      * asynchronously when the address is resolved or the ARP request times out,
      * whichever comes first.
-     * 
+     *
      * @param portId
      * @param nwAddr
      * @param cb
      */
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb) {
         log.debug("getMacForIp: port {} ip {}", portId, Net.convertIntAddressToString(nwAddr));
-        
+
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
         L3DevicePort devPort = devicePorts.get(portId);
         String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
         if (null == arpCache || null == devPort) {
             log.warn("getMacForIp: {} cannot get mac for {} on port {} - port not local.",
                     new Object[] {this, nwAddrStr, portId});
-            
+
             throw new IllegalArgumentException(String.format("%s cannot get "
                     + "mac for %s on port %s - port not local.", this,
                     nwAddrStr, portId.toString()));
@@ -311,7 +333,7 @@ public class Router {
 
     public void process(ForwardInfo fwdInfo) {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
-        
+
         // Handle ARP first.
         if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
             processArp(fwdInfo.pktIn, fwdInfo.inPortId);
@@ -456,7 +478,7 @@ public class Router {
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
         log.debug("processArp: etherPkt {} from port {}", etherPkt, inPortId);
-        
+
         if (!(etherPkt.getPayload() instanceof ARP)) {
             log.warn("{} ignoring packet with ARP ethertype but non-ARP "
                     + "payload.", this);
@@ -514,7 +536,7 @@ public class Router {
 
     private void processArpRequest(ARP arpPkt, L3DevicePort devPortIn) {
         log.debug("processArpRequest: arpPkt {} from port {}", arpPkt, devPortIn);
-        
+
         // If the request is for the ingress port's own address, it's for us.
         // Respond with the port's Mac address.
         // If the request is for an IP address which we emulate
@@ -547,26 +569,26 @@ public class Router {
         arp.setTargetHardwareAddress(arpPkt.getSenderHardwareAddress());
         arp.setTargetProtocolAddress(arpPkt.getSenderProtocolAddress());
         int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
-        
+
         log.debug("{} replying to ARP request from {} for {} with own mac {}",
                 new Object[] { this, IPv4.fromIPv4Address(spa),
                         IPv4.fromIPv4Address(tpa),
                         portMac});
-        
+
         // TODO(pino) logging.
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(portMac);
         pkt.setDestinationMACAddress(arpPkt.getSenderHardwareAddress());
         pkt.setEtherType(ARP.ETHERTYPE);
-        
+
         // Now send it from the port.
         devPortIn.send(pkt.serialize());
     }
 
     private void processArpReply(ARP arpPkt, L3DevicePort devPortIn) {
         log.debug("processArpReply: arpPkt {} from port {}", arpPkt, devPortIn);
-        
+
         // Verify that the reply was meant for us: tpa is the port's nw addr,
         // and tha is the port's mac.
         // TODO(pino): only a suggestion in the Python, I implemented it. OK?
@@ -600,6 +622,7 @@ public class Router {
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
         arpCache.put(spa, entry);
+        log.debug("Putting in ARP cache entry for {} on port {}", spa, inPortId);
         reactor.schedule(new ArpExpiration(spa, inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
         Map<Integer, List<Callback<MAC>>> cbLists = arpCallbackLists
@@ -608,7 +631,7 @@ public class Router {
             log.debug("processArpReply: cbLists is null");
             return;
         }
-        
+
         List<Callback<MAC>> cbList = cbLists.remove(spa);
         if (null != cbList)
             for (Callback<MAC> cb : cbList)
@@ -628,7 +651,7 @@ public class Router {
         @Override
         public void run() {
             log.debug("ArpExpiration.run: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
-            
+
             Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
             String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
             if (null == arpCache) {
@@ -678,7 +701,7 @@ public class Router {
         @Override
         public void run() {
             log.debug("ArpRetry.run: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
-            
+
             Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
             if (null == arpCache) {
                 // ARP cache is gone, probably because port went down.
@@ -707,7 +730,7 @@ public class Router {
 
     private void generateArpRequest(int nwAddr, UUID portId) {
         log.debug("generateArpRequest: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
-        
+
         L3DevicePort devPort = devicePorts.get(portId);
         if (null == devPort) {
             log.warn("{} generateArpRequest could not find device port for "
@@ -716,7 +739,7 @@ public class Router {
         }
         PortDirectory.MaterializedRouterPortConfig portConfig = devPort
                 .getVirtualConfig();
-        
+
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -734,7 +757,7 @@ public class Router {
         pkt.setSourceMACAddress(portMac);
         pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         pkt.setEtherType(ARP.ETHERTYPE);
-        
+
         // Now send it from the port.
         log.debug("generateArpRequest: sending {}", pkt);
         devPort.send(pkt.serialize());
@@ -747,7 +770,213 @@ public class Router {
 
     public void freeFlowResources(OFMatch match) {
         log.debug("freeFlowResources: match {}", match);
-        
+
         ruleEngine.freeFlowResources(match);
+    }
+
+    // OpenMBean stuff for JMX
+    // TODO: Replace this crap with something sane, like Thrift.
+    public Object getAttribute(String attribute)
+            throws AttributeNotFoundException, MBeanException {
+        if (attribute.equals("PortSet")) {
+           try {
+               return getPortTable();
+           } catch (OpenDataException e) {
+               throw new MBeanException(e);
+           }
+        }
+        throw new AttributeNotFoundException("Cannot find "
+               + attribute + " attribute");
+    }
+    public void setAttribute(Attribute attribute)
+            throws AttributeNotFoundException {
+        throw new AttributeNotFoundException("Cannot set " + attribute.getName());
+    }
+    public AttributeList getAttributes(String[] attributeNames) {
+        AttributeList resultList = new AttributeList();
+        if (attributeNames.length == 0)
+            return resultList;
+        try {
+            for (int i = 0; i < attributeNames.length; i++) {
+                Object value = getAttribute(attributeNames[i]);
+                resultList.add(new Attribute(attributeNames[i], value));
+            }
+            return resultList;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public AttributeList setAttributes(AttributeList attributes) {
+        if (attributes.size() == 0) {
+            return new AttributeList();
+        }
+        // That's right folks, AttributeList.get() returns Object.
+        Attribute attr = (Attribute) attributes.get(0);
+        throw new RuntimeException("Cannot set " + attr.getName());
+    }
+    public Object invoke(String actionName, Object params[], String signature[])
+            throws MBeanException, ReflectionException {
+        if (actionName.equals("getArpCacheEntry")) {
+            if (signature.length != 2 ||
+                !signature[0].equals("java.lang.String") ||
+                !signature[1].equals("int")) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid signature for " + actionName));
+            }
+            if (params.length != 2) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid parameter list for " + actionName));
+            }
+            UUID portUuid = UUID.fromString((String)params[0]);
+            int ipAddr = ((Integer)params[1]).intValue();
+            return getArpCacheEntry(portUuid, ipAddr);
+        } else if (actionName.equals("getArpCacheKeys")) {
+            if (signature.length != 1 ||
+                !signature[0].equals("java.lang.String")) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid signature for " + actionName));
+            }
+            if (params.length != 1) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid parameter list for " + actionName));
+            }
+            UUID portUuid = UUID.fromString((String)params[0]);
+            try {
+                return getArpCacheKeyTable(portUuid);
+            } catch (OpenDataException e) {
+                throw new MBeanException(e);
+            }
+        } else if (actionName.equals("getArpCacheTable")) {
+            if (signature.length != 1 ||
+                !signature[0].equals("java.lang.String")) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid signature for " + actionName));
+            }
+            if (params.length != 1) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid parameter list for " + actionName));
+            }
+            UUID portUuid = UUID.fromString((String)params[0]);
+            try {
+                return getArpCacheTable(portUuid);
+            } catch (OpenDataException e) {
+                throw new MBeanException(e);
+            }
+        } else {
+            throw new ReflectionException(new NoSuchMethodException(actionName));
+        }
+    }
+    public MBeanInfo getMBeanInfo() {
+        OpenMBeanAttributeInfoSupport[] attributes =
+                new OpenMBeanAttributeInfoSupport[1];
+        OpenMBeanConstructorInfoSupport[] constructors =
+                new OpenMBeanConstructorInfoSupport[0];
+        OpenMBeanOperationInfoSupport[] operations =
+                new OpenMBeanOperationInfoSupport[3];
+        MBeanNotificationInfo[] notifications = new MBeanNotificationInfo[0];
+        OpenMBeanParameterInfoSupport[] ackSignature =
+                new OpenMBeanParameterInfoSupport[1];
+        OpenMBeanParameterInfoSupport[] aceSignature =
+                new OpenMBeanParameterInfoSupport[2];
+
+        ackSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
+                                "Port UUID", SimpleType.STRING);
+        aceSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
+                                "Port UUID", SimpleType.STRING);
+        aceSignature[1] = new OpenMBeanParameterInfoSupport("ipAddr",
+                                "IP number", SimpleType.INTEGER);
+
+        attributes[0] = new OpenMBeanAttributeInfoSupport("PortSet",
+                "list of ports", portSetType, true, false, false);
+        operations[0] = new OpenMBeanOperationInfoSupport("getArpCacheKeys",
+                "keys of the ARP cache", ackSignature, intListType,
+                OpenMBeanOperationInfoSupport.INFO);
+        operations[1] = new OpenMBeanOperationInfoSupport("getArpCacheTable",
+                "the ARP cache (as a table)", ackSignature, intStrListType,
+                OpenMBeanOperationInfoSupport.INFO);
+        operations[2] = new OpenMBeanOperationInfoSupport("getArpCacheEntry",
+                "an entry in the ARP cache", aceSignature, SimpleType.STRING,
+                OpenMBeanOperationInfoSupport.INFO);
+
+        return new OpenMBeanInfoSupport(this.getClass().getName(),
+                "Router - Open - MBean", attributes, constructors,
+                operations, notifications);
+    }
+    CompositeType stringType = new CompositeType("string", "String",
+        new String[] { "string" }, new String[] { "String" },
+        new SimpleType[] { SimpleType.STRING });
+    TabularType portSetType = new TabularType("portSet", "List of ports",
+                                              stringType,
+                                              new String[] { "string" });
+    CompositeType intType = new CompositeType("int", "Integer",
+        new String[] { "int" }, new String[] { "Integer" },
+        new SimpleType[] { SimpleType.INTEGER });
+    TabularType intListType = new TabularType("intList", "List of integers",
+                                              intType,
+                                              new String[] { "int" });
+    CompositeType intStrType = new CompositeType("int-string",
+        "Integer+String tuple",
+        new String[] { "int", "string" }, new String[] { "Integer", "String" },
+        new SimpleType[] { SimpleType.INTEGER, SimpleType.STRING });
+    TabularType intStrListType = new TabularType("intStrList",
+                                              "Integer to String Map",
+                                              intStrType,
+                                              new String[] { "int", "string" });
+
+    public String getArpCacheEntry(UUID portUuid, int ipAddress) {
+        log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        if (arpCache == null)
+            return null;
+        ArpCacheEntry entry = arpCache.get(new Integer(ipAddress));
+        return entry == null ? null : entry.toString();
+    }
+
+    public TabularData getPortTable() throws OpenDataException {
+        TabularDataSupport table = new TabularDataSupport(portSetType);
+        for (UUID key : arpCaches.keySet()) {
+            CompositeDataSupport entry =
+                    new CompositeDataSupport(stringType,
+                                             new String[] { "string" },
+                                             new Object[] { key.toString() });
+            table.put(entry);
+        }
+        return table;
+    }
+
+    public TabularData getArpCacheKeyTable(UUID portUuid)
+            throws OpenDataException {
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        if (arpCache == null)
+            return null;
+        TabularDataSupport table = new TabularDataSupport(intListType);
+        for (Integer i : arpCache.keySet()) {
+            CompositeDataSupport entry =
+                new CompositeDataSupport(intType,
+                                         new String[] { "int" },
+                                         new Object[] { i });
+            table.put(entry);
+        }
+        return table;
+    }
+
+    public TabularData getArpCacheTable(UUID portUuid)
+            throws OpenDataException {
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        if (arpCache == null)
+            return null;
+        TabularDataSupport table = new TabularDataSupport(intStrListType);
+        for (Map.Entry<Integer, ArpCacheEntry> entry : arpCache.entrySet()) {
+            String arpEntry = entry.getValue().toString();
+            CompositeDataSupport row =
+                new CompositeDataSupport(intStrType,
+                                         new String[] { "int", "string" },
+                                         new Object[] { entry.getKey(),
+                                                        arpEntry });
+            table.put(row);
+        }
+        return table;
     }
 }

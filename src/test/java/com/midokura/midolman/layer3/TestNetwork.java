@@ -4,12 +4,25 @@
 
 package com.midokura.midolman.layer3;
 
+import java.lang.management.ManagementFactory;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXConnectorServer;
+import javax.management.remote.JMXConnectorServerFactory;
+import javax.management.remote.JMXServiceURL;
 
 import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
@@ -18,6 +31,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
@@ -45,6 +60,8 @@ import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 
 public class TestNetwork {
+
+    private static final Logger log = LoggerFactory.getLogger(TestNetwork.class);
 
     private Network network;
     private List<L3DevicePort> devPorts;
@@ -81,12 +98,14 @@ public class TestNetwork {
                         basePath), reactor, createCache());
 
         /*
-         * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16
-         * 2) router1 handles traffic to 10.1.0.0/16 3) router2 handles traffic
-         * to 10.2.0.0/16 4) router0 and router1 are connected via logical
-         * ports. 5) router0 and router2 are connected via logical ports 6)
-         * router0 is the default next hop for router1 and router2 7) router0
-         * has a single uplink to the global internet.
+         * Create 3 routers such that:
+         *   1) router0 handles traffic to 10.0.0.0/16
+         *   2) router1 handles traffic to 10.1.0.0/16
+         *   3) router2 handles traffic to 10.2.0.0/16
+         *   4) router0 and router1 are connected via logical ports.
+         *   5) router0 and router2 are connected via logical ports.
+         *   6) router0 is the default next hop for router1 and router2
+         *   7) router0 has a single uplink to the global internet.
          */
         Route rt;
         PortDirectory.MaterializedRouterPortConfig portConfig;
@@ -155,7 +174,7 @@ public class TestNetwork {
                 10, null, routerIds.get(2));
         routeMgr.create(rt);
 
-        // Finally, instead of giving router0 an uplink. Add a route that
+        // Finally, instead of giving router0 an uplink, add a route that
         // drops anything that isn't going to router0's local or logical ports.
         rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2,
                 null, routerIds.get(0));
@@ -176,7 +195,7 @@ public class TestNetwork {
 
     @Test
     public void testOneRouterBlackhole() throws StateAccessException,
-            ZkStateSerializationException, IOException {
+            ZkStateSerializationException, IOException, JMException {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -194,7 +213,7 @@ public class TestNetwork {
 
     @Test
     public void testOneRouterReject() throws ZkStateSerializationException,
-            StateAccessException, IOException {
+            StateAccessException, IOException, JMException {
         // Send a packet to router0's first materialized port to a destination
         // that's rejected.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -212,7 +231,7 @@ public class TestNetwork {
 
     @Test
     public void testOneRouterForward() throws StateAccessException,
-            ZkStateSerializationException, IOException {
+            ZkStateSerializationException, IOException, JMException {
         // Send a packet to router0's first materialized port to a destination
         // reachable from its second materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -232,7 +251,7 @@ public class TestNetwork {
 
     @Test
     public void testTwoRoutersForward() throws StateAccessException,
-            ZkStateSerializationException, IOException {
+            ZkStateSerializationException, IOException, JMException {
         // Send a packet to router1's first materialized port to a destination
         // reachable from router0's first materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -253,7 +272,7 @@ public class TestNetwork {
 
     @Test
     public void testThreeRoutersForward() throws StateAccessException,
-            ZkStateSerializationException, IOException {
+            ZkStateSerializationException, IOException, JMException {
         // Send a packet to router1's second materialized port to a destination
         // reachable from router2's second materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -297,6 +316,80 @@ public class TestNetwork {
     @Test
     public void testPortConfigChanges() {
 
+    }
+
+    @Test
+    public void testJmxConnection()
+            throws JMException, IOException, ZkStateSerializationException,
+                   StateAccessException {
+        JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://");
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        JMXConnectorServer cs =
+                JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
+        cs.start();
+        JMXConnector cc = null;
+        try {
+            JMXServiceURL addr = cs.getAddress();
+            cc = JMXConnectorFactory.connect(addr);
+            MBeanServerConnection mbsc = cc.getMBeanServerConnection();
+            ObjectName oname =
+                new ObjectName("com.midokura.midolman.layer3:type=Router,name="
+                               + routerIds.get(2));
+            Integer address = new Integer(0x0a020102);
+            L3DevicePort devPort = devPorts.get(5);
+            UUID portUuid = devPort.getId();
+            Object[] ackParams = new Object[] { portUuid.toString() };
+            String[] ackSignature = new String[] { "java.lang.String" };
+            Object[] aceParams = new Object[] { portUuid.toString(), address };
+            String[] aceSignature = new String[] { "java.lang.String", "int" };
+            TabularData table = (TabularData)mbsc.getAttribute(oname, "PortSet");
+            log.debug("table is {}", table);
+            Collection<CompositeData> portSet =
+                        (Collection<CompositeData>)table.values();
+            log.debug("portUuid {}", portUuid);
+            boolean foundPort = false;
+            for (CompositeData port : portSet) {
+                log.debug("portSet entry {}", port.get("string"));
+                if (port.get("string").equals(portUuid.toString()))
+                    foundPort = true;
+            }
+            Assert.assertTrue(foundPort);
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
+                                             ackParams, ackSignature);
+            Assert.assertEquals(0, table.size());
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable",
+                                             ackParams, ackSignature);
+            Assert.assertEquals(0, table.size());
+            // Construct an ARP reply for 0x0a020102 (10.2.1.2)
+            MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
+                                             (byte) 2, (byte) 3, (byte) 3 });
+            Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
+                        devPort.getMacAddr(), 0x0a020102,
+                        devPort.getVirtualConfig().portAddr);
+            ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
+            Set<UUID> traversedRtrs = new HashSet<UUID>();
+            network.process(fInfo, traversedRtrs);
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
+                                             ackParams, ackSignature);
+            Assert.assertEquals(1, table.size());
+            CompositeData ipAddr = (CompositeData)table.values().toArray()[0];
+            Assert.assertEquals(new Integer(0x0a020102), ipAddr.get("int"));
+            Object rv = mbsc.invoke(oname, "getArpCacheEntry", aceParams,
+                             aceSignature);
+            Assert.assertTrue(((String)rv).startsWith(
+                        "ArpCacheEntry [macAddr=0a:02:01:02:03:03"));
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable",
+                                             ackParams, ackSignature);
+            Assert.assertEquals(1, table.size());
+            ipAddr = (CompositeData)table.values().toArray()[0];
+            Assert.assertEquals(new Integer(0x0a020102), ipAddr.get("int"));
+            Assert.assertTrue(((String)ipAddr.get("string")).startsWith(
+                        "ArpCacheEntry [macAddr=0a:02:01:02:03:03"));
+        } finally {
+            if (cc != null)
+                cc.close();
+            cs.stop();
+        }
     }
 
 }
