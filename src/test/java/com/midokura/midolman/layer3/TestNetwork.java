@@ -358,6 +358,9 @@ public class TestNetwork {
             table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys", 
                                              ackParams, ackSignature);
             Assert.assertEquals(0, table.size());
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable", 
+                                             ackParams, ackSignature);
+            Assert.assertEquals(0, table.size());
             // Construct an ARP reply for 0x0a020102 (10.2.1.2)
             MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
                                              (byte) 2, (byte) 3, (byte) 3 });
@@ -375,6 +378,13 @@ public class TestNetwork {
             Object rv = mbsc.invoke(oname, "getArpCacheEntry", aceParams,
                              aceSignature);
             Assert.assertTrue(((String)rv).startsWith(
+                        "ArpCacheEntry [macAddr=0a:02:01:02:03:03"));
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable", 
+                                             ackParams, ackSignature);
+            Assert.assertEquals(1, table.size());
+            ipAddr = (CompositeData)table.values().toArray()[0];
+            Assert.assertEquals(new Integer(0x0a020102), ipAddr.get("int"));
+            Assert.assertTrue(((String)ipAddr.get("string")).startsWith(
                         "ArpCacheEntry [macAddr=0a:02:01:02:03:03"));
         } finally {
             if (cc != null)
