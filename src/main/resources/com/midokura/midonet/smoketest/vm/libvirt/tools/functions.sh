@@ -55,7 +55,7 @@ function setup_hostname() {
     echo "Found machine hostname to be: ${HOSTNAME}"
     echo "Changing it to: ${2}"
 
-    sudo sed -i.bak -e "s/^${HOSTNAME}$/${1}/g" ${1}/etc/hostname
+    sudo sed -i.bak -e "s/^${HOSTNAME}$/${2}/g" ${1}/etc/hostname
     sudo sed -i.bak -e "s/^\([0-9\.]\+\) ${HOSTNAME}\.\([^ ]\+\) ${HOSTNAME}$/\1 ${2}.\2 ${2}/g" ${1}/etc/hosts
 }
 
