@@ -200,7 +200,7 @@ public class Router implements DynamicMBean {
     private LoadBalancer loadBalancer;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
-                  ReplicatedRoutingTable table, Reactor reactor) 
+                  ReplicatedRoutingTable table, Reactor reactor)
             throws OpenDataException {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
@@ -775,7 +775,7 @@ public class Router implements DynamicMBean {
     }
 
     // OpenMBean stuff for JMX
-    public Object getAttribute(String attribute) 
+    public Object getAttribute(String attribute)
             throws AttributeNotFoundException, MBeanException {
         if (attribute.equals("PortSet")) {
            try {
@@ -785,9 +785,9 @@ public class Router implements DynamicMBean {
            }
         }
         throw new AttributeNotFoundException("Cannot find "
-               + attribute + " attribute"); 
-    } 
-    public void setAttribute(Attribute attribute) 
+               + attribute + " attribute");
+    }
+    public void setAttribute(Attribute attribute)
             throws AttributeNotFoundException {
         throw new AttributeNotFoundException("Cannot set " + attribute.getName());
     }
@@ -800,7 +800,7 @@ public class Router implements DynamicMBean {
                 Object value = getAttribute(attributeNames[i]);
                 resultList.add(new Attribute(attributeNames[i], value));
             }
-            return resultList; 
+            return resultList;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -868,25 +868,25 @@ public class Router implements DynamicMBean {
         }
     }
     public MBeanInfo getMBeanInfo() {
-        OpenMBeanAttributeInfoSupport[] attributes = 
+        OpenMBeanAttributeInfoSupport[] attributes =
                 new OpenMBeanAttributeInfoSupport[1];
-        OpenMBeanConstructorInfoSupport[] constructors = 
+        OpenMBeanConstructorInfoSupport[] constructors =
                 new OpenMBeanConstructorInfoSupport[0];
-        OpenMBeanOperationInfoSupport[] operations = 
+        OpenMBeanOperationInfoSupport[] operations =
                 new OpenMBeanOperationInfoSupport[3];
         MBeanNotificationInfo[] notifications = new MBeanNotificationInfo[0];
         OpenMBeanParameterInfoSupport[] ackSignature =
                 new OpenMBeanParameterInfoSupport[1];
         OpenMBeanParameterInfoSupport[] aceSignature =
                 new OpenMBeanParameterInfoSupport[2];
-        
+
         ackSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
                                 "Port UUID", SimpleType.STRING);
         aceSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
                                 "Port UUID", SimpleType.STRING);
         aceSignature[1] = new OpenMBeanParameterInfoSupport("ipAddr",
                                 "IP number", SimpleType.INTEGER);
- 
+
         attributes[0] = new OpenMBeanAttributeInfoSupport("PortSet",
                 "list of ports", portSetType, true, false, false);
         operations[0] = new OpenMBeanOperationInfoSupport("getArpCacheKeys",
@@ -898,7 +898,7 @@ public class Router implements DynamicMBean {
         operations[2] = new OpenMBeanOperationInfoSupport("getArpCacheEntry",
                 "an entry in the ARP cache", aceSignature, SimpleType.STRING,
                 OpenMBeanOperationInfoSupport.INFO);
- 
+
         return new OpenMBeanInfoSupport(this.getClass().getName(),
                 "Router - Open - MBean", attributes, constructors,
                 operations, notifications);
@@ -915,11 +915,11 @@ public class Router implements DynamicMBean {
     TabularType intListType = new TabularType("intList", "List of integers",
                                               intType,
                                               new String[] { "int" });
-    CompositeType intStrType = new CompositeType("int-string", 
+    CompositeType intStrType = new CompositeType("int-string",
         "Integer+String tuple",
         new String[] { "int", "string" }, new String[] { "Integer", "String" },
         new SimpleType[] { SimpleType.INTEGER, SimpleType.STRING });
-    TabularType intStrListType = new TabularType("intStrList", 
+    TabularType intStrListType = new TabularType("intStrList",
                                               "Integer to String Map",
                                               intStrType,
                                               new String[] { "int", "string" });
@@ -936,7 +936,7 @@ public class Router implements DynamicMBean {
     public TabularData getPortTable() throws OpenDataException {
         TabularDataSupport table = new TabularDataSupport(portSetType);
         for (UUID key : arpCaches.keySet()) {
-            CompositeDataSupport entry = 
+            CompositeDataSupport entry =
                     new CompositeDataSupport(stringType,
                                              new String[] { "string" },
                                              new Object[] { key.toString() });
@@ -945,7 +945,7 @@ public class Router implements DynamicMBean {
         return table;
     }
 
-    public TabularData getArpCacheKeyTable(UUID portUuid) 
+    public TabularData getArpCacheKeyTable(UUID portUuid)
             throws OpenDataException {
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
         if (arpCache == null)
@@ -961,7 +961,7 @@ public class Router implements DynamicMBean {
         return table;
     }
 
-    public TabularData getArpCacheTable(UUID portUuid) 
+    public TabularData getArpCacheTable(UUID portUuid)
             throws OpenDataException {
         Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
         if (arpCache == null)
@@ -972,7 +972,7 @@ public class Router implements DynamicMBean {
             CompositeDataSupport row =
                 new CompositeDataSupport(intStrType,
                                          new String[] { "int", "string" },
-                                         new Object[] { entry.getKey(), 
+                                         new Object[] { entry.getKey(),
                                                         arpEntry });
             table.put(row);
         }

@@ -345,7 +345,7 @@ public class TestNetwork {
             String[] aceSignature = new String[] { "java.lang.String", "int" };
             TabularData table = (TabularData)mbsc.getAttribute(oname, "PortSet");
             log.debug("table is {}", table);
-            Collection<CompositeData> portSet = 
+            Collection<CompositeData> portSet =
                         (Collection<CompositeData>)table.values();
             log.debug("portUuid {}", portUuid);
             boolean foundPort = false;
@@ -355,10 +355,10 @@ public class TestNetwork {
                     foundPort = true;
             }
             Assert.assertTrue(foundPort);
-            table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys", 
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
                                              ackParams, ackSignature);
             Assert.assertEquals(0, table.size());
-            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable", 
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable",
                                              ackParams, ackSignature);
             Assert.assertEquals(0, table.size());
             // Construct an ARP reply for 0x0a020102 (10.2.1.2)
@@ -370,7 +370,7 @@ public class TestNetwork {
             ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
             Set<UUID> traversedRtrs = new HashSet<UUID>();
             network.process(fInfo, traversedRtrs);
-            table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys", 
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
                                              ackParams, ackSignature);
             Assert.assertEquals(1, table.size());
             CompositeData ipAddr = (CompositeData)table.values().toArray()[0];
@@ -379,7 +379,7 @@ public class TestNetwork {
                              aceSignature);
             Assert.assertTrue(((String)rv).startsWith(
                         "ArpCacheEntry [macAddr=0a:02:01:02:03:03"));
-            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable", 
+            table = (TabularData)mbsc.invoke(oname, "getArpCacheTable",
                                              ackParams, ackSignature);
             Assert.assertEquals(1, table.size());
             ipAddr = (CompositeData)table.values().toArray()[0];
