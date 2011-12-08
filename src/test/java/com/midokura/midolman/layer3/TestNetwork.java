@@ -7,7 +7,6 @@ package com.midokura.midolman.layer3;
 import java.lang.management.ManagementFactory;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

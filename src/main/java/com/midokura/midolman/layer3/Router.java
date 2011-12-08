@@ -775,6 +775,7 @@ public class Router implements DynamicMBean {
     }
 
     // OpenMBean stuff for JMX
+    // TODO: Replace this crap with something sane, like Thrift.
     public Object getAttribute(String attribute)
             throws AttributeNotFoundException, MBeanException {
         if (attribute.equals("PortSet")) {
