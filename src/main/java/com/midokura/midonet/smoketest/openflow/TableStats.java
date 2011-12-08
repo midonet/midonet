@@ -13,10 +13,10 @@ import org.openflow.protocol.statistics.OFTableStatistics;
 public class TableStats {
 
     byte tableId;
-    ServiceController controller;
+    OpenFlowStats controller;
     OFTableStatistics stat;
 
-    public TableStats(byte tableId, ServiceController controller,
+    public TableStats(byte tableId, OpenFlowStats controller,
             OFTableStatistics stat) {
         this.tableId = tableId;
         this.controller = controller;

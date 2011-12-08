@@ -33,7 +33,7 @@ public class TapPort extends Port {
     byte[] unreadBytes;
     int fd = -1;
 
-    TapPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
+    public TapPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
         super(mgmt, port, name);
         // Create a random MAC address that will be used as hw_src for packets
         // written to the underlying tap.

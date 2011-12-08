@@ -11,10 +11,10 @@ import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
 
 public class AgFlowStats {
     OFMatch match;
-    ServiceController controller;
+    OpenFlowStats controller;
     OFAggregateStatisticsReply stat;
 
-    public AgFlowStats(OFMatch match, ServiceController controller,
+    public AgFlowStats(OFMatch match, OpenFlowStats controller,
             OFAggregateStatisticsReply stat) {
         this.match = match;
         this.controller = controller;

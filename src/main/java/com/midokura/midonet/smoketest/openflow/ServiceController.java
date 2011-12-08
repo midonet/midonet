@@ -33,7 +33,8 @@ import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 
-public class ServiceController implements Controller, SelectListener {
+public class ServiceController implements Controller, OpenFlowStats,
+        SelectListener {
 
     static final Logger log = LoggerFactory.getLogger(ServiceController.class);
     static final byte ALL_TABLES = (byte)0xff;
@@ -121,7 +122,8 @@ public class ServiceController implements Controller, SelectListener {
         log.info("onMessage {}", m);
     }
 
-    OFPortStatisticsReply getPortReply(short portNum) {
+    @Override
+    public OFPortStatisticsReply getPortReply(short portNum) {
         int xid = controllerStub.sendPortStatsRequest(portNum);
         OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
         assert (reply != null);
@@ -130,10 +132,12 @@ public class ServiceController implements Controller, SelectListener {
             OFPortStatisticsReply.class.cast(stats.get(0));
     }
 
+    @Override
     public PortStats getPortStats(short portNum) {
         return new PortStats(portNum, this, getPortReply(portNum));
     }
 
+    @Override
     public List<PortStats> getPortStats() {
         int xid = controllerStub.sendPortStatsRequest(OFPort.OFPP_NONE
                 .getValue());
@@ -148,6 +152,7 @@ public class ServiceController implements Controller, SelectListener {
         return result;
     }
 
+    @Override
     public List<FlowStats> getFlowStats(OFMatch match) {
         int xid = controllerStub.sendFlowStatsRequest(match, ALL_TABLES,
                 OFPort.OFPP_NONE.getValue());
@@ -162,7 +167,8 @@ public class ServiceController implements Controller, SelectListener {
         return result;
     }
 
-    OFAggregateStatisticsReply getAgReply(OFMatch match) {
+    @Override
+    public OFAggregateStatisticsReply getAgReply(OFMatch match) {
         int xid = controllerStub.sendAggregateStatsRequest(match, ALL_TABLES,
                 OFPort.OFPP_NONE.getValue());
         OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
@@ -172,10 +178,12 @@ public class ServiceController implements Controller, SelectListener {
             OFAggregateStatisticsReply.class.cast(stats.get(0));
     }
 
+    @Override
     public AgFlowStats getAgFlowStats(OFMatch match) {
         return new AgFlowStats(match, this, getAgReply(match));
     }
 
+    @Override
     public List<TableStats> getTableStats() {
         int xid = controllerStub.sendTableStatsRequest();
         OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);

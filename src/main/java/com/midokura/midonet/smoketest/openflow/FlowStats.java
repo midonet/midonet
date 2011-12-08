@@ -17,10 +17,10 @@ import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 
 public class FlowStats {
     OFMatch match;
-    ServiceController controller;
+    OpenFlowStats controller;
     OFFlowStatisticsReply stat;
 
-    public FlowStats(OFMatch match, ServiceController controller,
+    public FlowStats(OFMatch match, OpenFlowStats controller,
             OFFlowStatisticsReply stat) {
         this.match = match;
         this.controller = controller;

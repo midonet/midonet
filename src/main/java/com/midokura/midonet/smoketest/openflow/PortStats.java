@@ -11,10 +11,10 @@ import org.openflow.protocol.statistics.OFPortStatisticsReply;
 public class PortStats {
 
     short portNum;
-    ServiceController controller;
+    OpenFlowStats controller;
     OFPortStatisticsReply stat;
 
-    public PortStats(short portNum, ServiceController controller,
+    public PortStats(short portNum, OpenFlowStats controller,
             OFPortStatisticsReply stat) {
         this.portNum = portNum;
         this.controller = controller;
