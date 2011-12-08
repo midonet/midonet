@@ -817,16 +817,35 @@ public class Router implements DynamicMBean {
     public Object invoke(String actionName, Object params[], String signature[])
             throws MBeanException, ReflectionException {
         if (actionName.equals("getArpCacheEntry")) {
-            if (!signature[0].equals("java.util.UUID") ||
+            if (signature.length != 2 ||
+                !signature[0].equals("java.util.UUID") ||
                 !signature[1].equals("int")) {
                 throw new ReflectionException(new IllegalArgumentException(
                         "Invalid signature for " + actionName));
+            }
+            if (params.length != 2) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid parameter list for " + actionName));
             }
             UUID portUuid = (UUID)params[0];
             int ipAddr = ((Integer)params[1]).intValue();
             return getArpCacheEntry(portUuid, ipAddr);
         } else if (actionName.equals("getArpCacheKeys")) {
-            return null;  // XXX
+            if (signature.length != 1 ||
+                !signature[0].equals("java.util.UUID")) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid signature for " + actionName));
+            }
+            if (params.length != 1) {
+                throw new ReflectionException(new IllegalArgumentException(
+                        "Invalid parameter list for " + actionName));
+            }
+            UUID portUuid = (UUID)params[0];
+            try {
+                return getArpCacheKeyTable(portUuid);
+            } catch (OpenDataException e) {
+                throw new MBeanException(e);
+            }
         } else {
             throw new ReflectionException(new NoSuchMethodException(actionName));
         }
@@ -853,6 +872,12 @@ public class Router implements DynamicMBean {
     TabularType portSetType = new TabularType("portSet", "List of ports",
                                               stringType,
                                               new String[] { "string" });
+    CompositeType intType = new CompositeType("int", "Integer",
+        new String[] { "int" }, new String[] { "Integer" },
+        new SimpleType[] { SimpleType.INTEGER });
+    TabularType intListType = new TabularType("intList", "List of integers",
+                                              intType,
+                                              new String[] { "int" });
 
     public String getArpCacheEntry(UUID portUuid, int ipAddress) {
         log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
@@ -880,4 +905,19 @@ public class Router implements DynamicMBean {
         return arpCache == null ? null : arpCache.keySet().toArray();
     }
 
+    public TabularData getArpCacheKeyTable(UUID portUuid) 
+            throws OpenDataException {
+        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
+        if (arpCache == null)
+            return null;
+        TabularDataSupport table = new TabularDataSupport(intListType);
+        for (Integer i : arpCache.keySet()) {
+            CompositeDataSupport entry =
+                new CompositeDataSupport(intType,
+                                         new String[] { "int" },
+                                         new Object[] { i });
+            table.put(entry);
+        }
+        return table;
+    }
 }
