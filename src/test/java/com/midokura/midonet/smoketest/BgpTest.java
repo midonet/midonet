@@ -160,7 +160,7 @@ public class BgpTest extends AbstractSmokeTest {
         assertThat("The wait for the new route should have completed successfully", result.completed());
 
         assertThat(result.result(), is(notNullValue()));
-        assertThat("The execution result should have been successull", result.result());
+        assertThat("The execution result should have been successful", result.result());
     }
 
     private boolean checkPeerAdRouteIsRegistered(Route[] routes) {

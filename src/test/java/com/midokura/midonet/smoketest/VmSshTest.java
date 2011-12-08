@@ -83,10 +83,10 @@ public class VmSshTest extends AbstractSmokeTest {
     public static void tearDown() {
         // First clean up left-overs from previous incomplete tests.
         removeTapPort(tapPort);
-        ovsdb.delBridge("smoke-br");
-
         removeTenant(tenant);
         mgmt.stop();
+
+        ovsdb.delBridge("smoke-br");
 
         resetZooKeeperState(log);
     }
@@ -126,8 +126,8 @@ public class VmSshTest extends AbstractSmokeTest {
                           output.trim(), equalTo(vm.getHostName()));
 
         } finally {
-//            vm.shutdown();
-//            vm.destroy();
+            vm.shutdown();
+            vm.destroy();
         }
     }
 }
