@@ -92,7 +92,7 @@ public class VoldemortTester {
         for (int j = 0; j < instances; j++)
             writer.write(String.format(clusterXMLServerFormat,
                     j,
-                    8081 + j,
+                    8181 + j,
                     16666 + 2 * j,
                     16667 + 2 * j,
                     2 * j,
@@ -143,10 +143,12 @@ public class VoldemortTester {
     }
 
     private void tearDownServer(int i) {
-        if (servers[i].isStarted())
+        if (servers[i] != null && servers[i].isStarted())
             servers[i].stop();
 
-        deleteDirectory(tmpDirs[i]);
+        if (tmpDirs[i] != null) {
+            deleteDirectory(tmpDirs[i]);
+        }
     }
 
     /**
@@ -219,6 +221,7 @@ public class VoldemortTester {
             + "socket.enable=true\n"
             + "jmx.enable=false\n"
             + "enable.nio.connector=true\n"
+            + "enable.verbose.logging=false\n"
             + "request.format=vp3\n"
             + "slop.store.engine=amnesic\n"
             + "storage.configs=com.midokura.midolman.voldemort.AmnesicStorageConfiguration\n";
