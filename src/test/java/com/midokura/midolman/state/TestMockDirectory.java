@@ -122,7 +122,7 @@ public class TestMockDirectory {
     }
 
     @Test
-    public void testGetChildrenWatcher() throws NoNodeException, 
+    public void testGetChildrenWatcher() throws NoNodeException,
             NodeExistsException, NoChildrenForEphemeralsException, NotEmptyException {
         dir.add("/a", "a".getBytes(), CreateMode.PERSISTENT);
         dir.add("/a/b", "ab".getBytes(), CreateMode.PERSISTENT);
@@ -187,13 +187,13 @@ public class TestMockDirectory {
     }
 
     @Test(expected=NoNodeException.class)
-    public void testNoNode() throws 
+    public void testNoNode() throws
         NodeExistsException, NoChildrenForEphemeralsException, NoNodeException {
         dir.add("/one/two", "pino".getBytes(), CreateMode.PERSISTENT);
     }
 
     @Test(expected=NodeExistsException.class)
-    public void testNodeExists() throws 
+    public void testNodeExists() throws
         NodeExistsException, NoChildrenForEphemeralsException, NoNodeException {
         String path = "/somenode";
         try {
@@ -209,5 +209,17 @@ public class TestMockDirectory {
         NoNodeException, NodeExistsException, NoChildrenForEphemeralsException {
         dir.add("/one", "pino".getBytes(), CreateMode.EPHEMERAL);
         dir.add("/one/two", "jacob".getBytes(), CreateMode.PERSISTENT);
+    }
+
+    @Test
+    public void testGetNodeWithNullData() {
+        String path = "/nodeWithNullData";
+        try {
+            dir.add(path, null, CreateMode.PERSISTENT);
+            Assert.assertNull(dir.get(path, null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
     }
 }
