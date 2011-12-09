@@ -88,6 +88,9 @@ public class MockDirectory implements Directory {
         byte[] getData(Runnable watcher) {
             if (watcher != null)
                 dataWatchers.add(watcher);
+            if (data == null) {
+                return null;
+            }
             return data.clone();
         }
 

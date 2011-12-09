@@ -243,7 +243,7 @@ public class OpenVpnPortService implements PortService {
                 String.format(
                     "sudo ip addr add %s/%d dev %s",
                     Net.convertIntAddressToString(portConfig.localNwAddr),
-                    portConfig.localNwLength, portName));
+                    portConfig.nwLength, portName));
             log.debug("configurePort: ran ip addr");
 
             // Add a rule and a route that transports packets from the
