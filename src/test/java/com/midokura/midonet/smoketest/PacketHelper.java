@@ -29,11 +29,11 @@ public class PacketHelper {
     MAC gwMac;
     IntIPv4 gwIp;
 
-    public PacketHelper(MAC mac, IntIPv4 ip, MAC gwMac, IntIPv4 gwIp) {
+    public PacketHelper(MAC mac, IntIPv4 ip, MAC peerMac, IntIPv4 peerIp) {
         this.epMac = mac;
         this.epIp = ip;
-        this.gwMac = gwMac;
-        this.gwIp = gwIp;
+        this.gwMac = peerMac;
+        this.gwIp = peerIp;
     }
 
     /**

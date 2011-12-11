@@ -13,11 +13,16 @@ public interface MidolmanMgmt {
 
     DtoRouter addRouter(DtoTenant t, DtoRouter r);
 
+    DtoBridge addBridge(DtoTenant t, DtoBridge b);
+
     DtoPeerRouterLink linkRouterToPeer(DtoRouter router,
             DtoLogicalRouterPort logPort);
 
     DtoMaterializedRouterPort addRouterPort(DtoRouter r,
             DtoMaterializedRouterPort p);
+
+    DtoPort addBridgePort(DtoBridge b,
+            DtoPort p);
 
     DtoRoute addRoute(DtoRouter r, DtoRoute rt);
 

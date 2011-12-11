@@ -151,6 +151,11 @@ public class MidoPort {
             return this;
         }
 
+        public VPNPortBuilder setRemoteIp(String remoteIp) {
+            vpn.setRemoteIp(remoteIp);
+            return this;
+        }
+
         public MidoPort build() {
             DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
             mgmt.addVpn(p, vpn);

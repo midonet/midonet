@@ -4,31 +4,21 @@
 
 package com.midokura.midonet.smoketest;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Random;
-
-import com.midokura.tools.process.ProcessHelper;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.smoketest.topology.MidoPort;
-import com.midokura.midonet.smoketest.topology.PeerRouterLink;
-import com.midokura.midonet.smoketest.topology.Router;
-import com.midokura.midonet.smoketest.topology.TapPort;
-import com.midokura.midonet.smoketest.topology.Tenant;
+import com.midokura.midonet.smoketest.topology.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Random;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class VpnTest extends AbstractSmokeTest {
 
@@ -78,15 +68,17 @@ public class VpnTest extends AbstractSmokeTest {
 
         // Router 1 has a port that leads to 10.0.1.0/24 via a VPN
         // and gateway (router2).
+        // p1 private port of the VPN
         MidoPort p1 = router1
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
-                        IntIPv4.fromString("169.254.0.2"))
+                        IntIPv4.fromString("169.254.0.2"))  // virtual path created by the vpn
                 .addRoute(IntIPv4.fromString("10.0.1.0")).build();
         MidoPort vpn1 = router1.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
                 .setLocalIp(IntIPv4.fromString("10.0.0.100"))
                 .setLayer4Port(12333)
+                .setRemoteIp("192.168.1.99")
                 .setPrivatePortId(p1.port.getId()).build();
 
         router1.addFloatingIp(IntIPv4.fromString("10.0.0.100"),
@@ -107,9 +99,8 @@ public class VpnTest extends AbstractSmokeTest {
         router2.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
                 IntIPv4.fromString("192.168.1.99"), link.dto.getPeerPortId());
 
-        Thread.sleep(10000);
+        Thread.sleep(20000);
     }
-
 
     @AfterClass
     public static void tearDown() throws Exception {

@@ -6,6 +6,7 @@ package com.midokura.midonet.smoketest.topology;
 
 import java.io.IOException;
 
+import com.midokura.midonet.smoketest.mgmt.DtoBridge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ public class VPortBuilder {
     private OpenvSwitchDatabaseConnection ovsdb;
     private MidolmanMgmt mgmt;
     private DtoRouter router;
+    private DtoBridge bridge;
     private DtoMaterializedRouterPort port;
     private String ovsBridgeName;
     private String ovsBridgeController;
@@ -38,6 +40,18 @@ public class VPortBuilder {
         this.ovsdb = ovsdb;
         this.mgmt = mgmt;
         this.router = router;
+        port = new DtoMaterializedRouterPort();
+        port.setLocalNetworkLength(32);
+        port.setNetworkLength(24);
+        this.ovsBridgeName = "smoke-br";
+        this.ovsBridgeController = "tcp:127.0.0.1:6633";
+    }
+
+    VPortBuilder(OpenvSwitchDatabaseConnection ovsdb, MidolmanMgmt mgmt,
+                 DtoBridge bridge) {
+        this.ovsdb = ovsdb;
+        this.mgmt = mgmt;
+        this.bridge = bridge;
         port = new DtoMaterializedRouterPort();
         port.setLocalNetworkLength(32);
         port.setNetworkLength(24);
@@ -101,6 +115,7 @@ public class VPortBuilder {
         rt = mgmt.addRoute(router, rt);
         return p;
     }
+
 
     public TapPort buildTap() {
         DtoMaterializedRouterPort vport = buildVPort();

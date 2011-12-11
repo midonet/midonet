@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.VpnZkManager;
 
 @XmlRootElement
@@ -18,6 +19,7 @@ public class DtoVpn {
     private int port;
     private UUID publicPortId;
     private UUID privatePortId;
+    private String remoteIp;
     private VpnZkManager.VpnType vpnType;
 
     public URI getUri() {
@@ -58,6 +60,14 @@ public class DtoVpn {
 
     public void setPrivatePortId(UUID privatePortId) {
         this.privatePortId = privatePortId;
+    }
+
+    public String getRemoteIp() {
+        return remoteIp;
+    }
+
+    public void setRemoteIp(String remoteIp) {
+        this.remoteIp = remoteIp;
     }
 
     public VpnZkManager.VpnType getVpnType() {

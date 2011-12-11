@@ -50,6 +50,9 @@ public class Tenant {
         return new Router.Builder(mgmt, dto);
     }
 
+    public Bridge.Builder addBridge() {
+        return new Bridge.Builder(mgmt, dto);
+    }
     public void delete() {
         mgmt.delete(dto.getUri());
     }

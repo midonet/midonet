@@ -1,0 +1,107 @@
+package com.midokura.midonet.smoketest;
+
+import static com.midokura.tools.process.ProcessHelper.newProcess;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midonet.smoketest.topology.TapPort;
+
+public class IPTableTest {
+    private final static Logger log = LoggerFactory.getLogger(IPTableTest.class);
+    static TapPort tapPort1;
+    static TapPort tapPort2;
+    static IntIPv4 fakeIp1;
+    static IntIPv4 fakeIp2;
+    static PacketHelper helper1;
+    static PacketHelper helper2; 
+    
+    @BeforeClass
+    public static void setUp() throws InterruptedException, IOException {
+
+        /*
+        newProcess("sudo -n ip tuntap add dev p1 mode tap")
+        .logOutput(log, "add_tap1")
+        .runAndWait();
+    
+        newProcess("sudo -n ip tuntap add dev p2 mode tap")
+        .logOutput(log, "add_tap2")
+        .runAndWait();
+        
+        newProcess("sudo -n ip link set dev p1 arp on multicast off up")
+        .logOutput(log, "set_link_up_p1")
+        .runAndWait();
+        
+        newProcess("sudo -n ip link set dev p2 arp on multicast off up")
+        .logOutput(log, "set_link_up_p2")
+        .runAndWait();
+        
+        newProcess("sudo -n ip addr add 10.3.4.5/24 dev p1")
+        .logOutput(log, "set_addr_p1")
+        .runAndWait();
+        
+        newProcess("sudo -n ip addr add 10.3.3.6/24 dev p2")
+        .logOutput(log, "set_addr_p2")
+        .runAndWait();
+             
+        newProcess("sudo -n iptables -t nat -p tcp -A POSTROUTING -s 10.3.4.5 -d 10.3.4.6 -j SNAT --to 10.3.3.5")
+        .logOutput(log, "snat_p1")
+        .runAndWait();
+        
+        newProcess("sudo -n iptables -t nat -p tcp -A PREROUTING -s 10.3.3.5 -d 10.3.4.6 -j DNAT --to 10.3.3.6")
+        .logOutput(log, "dnat_p2")
+        .runAndWait();
+        
+        */
+        tapPort1 = new TapPort(null, null, "p1");
+        tapPort2 = new TapPort(null, null, "p2");
+       /*
+        newProcess(String.format("sudo -n ip neigh add 10.3.4.6 lladdr %s dev p1", tapPort2.getOuterMAC()))
+        .logOutput(log, "dnat_p2")
+        .runAndWait();
+        
+        newProcess(String.format("sudo -n ip neigh add 10.3.3.5 lladdr %s dev p2", tapPort1.getOuterMAC()))
+        .logOutput(log, "dnat_p2")
+        .runAndWait();
+        
+*/
+
+        helper1 = new PacketHelper(tapPort2.getOuterMAC(), IntIPv4.fromString("10.3.4.6"),
+                tapPort1.getOuterMAC(), IntIPv4.fromString("10.3.3.5"));
+
+        helper2 = new PacketHelper(tapPort1.getOuterMAC(), IntIPv4.fromString("10.3.3.5"),
+                tapPort2.getOuterMAC(), IntIPv4.fromString("10.3.4.6"));
+        
+        Thread.sleep(1000);
+    }
+        
+
+
+    @Test
+    public void test() {
+        
+        // Send a SYN packet
+        //newProcess(String.format("sudo mz p1 -t tcp 'flags=syn,sp=123,dp=12230' -A 10.3.4.5 -B 10.3.4.6 -P 'ciao amica tap2'"))
+        newProcess(String.format("ping -c 1 -I p1 10.3.4.6"))
+        .logOutput(log, "mz_p1")
+        .runAndWait();
+        //ping funziona
+        byte[] received = tapPort1.recv();
+        //helper1.checkTcp(received, 123, 12230);
+        assertTrue(tapPort2.send(received));
+        // We should get a FIN packet back.
+        received = tapPort2.recv();
+       // helper2.checkTcp(received, 12230, 123);
+        assertTrue(tapPort1.send(received));
+
+        assertNull(tapPort1.recv());
+        assertNull(tapPort2.recv());
+    }
+}
