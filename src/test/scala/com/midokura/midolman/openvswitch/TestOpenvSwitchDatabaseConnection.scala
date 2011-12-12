@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
+import com.midokura.midolman.util.Sudo
 
 import scala.collection.JavaConversions._
 
@@ -40,6 +41,7 @@ object TestOpenvSwitchDatabaseConnection
     @AfterClass def finalizeTest() { disconnectFromOVSDB }
 
     @BeforeClass def initializeTest() { 
+        log.debug("Connecting to OVSDB.")
         connectToOVSDB
         log.debug("Successfully connected to OVSDB.")
 
@@ -169,31 +171,26 @@ class TestOpenvSwitchDatabaseConnection {
                 assertFalse(ovsdb.hasPort(portName))
             }
             // Skip tests if a user don't have sudo access w/o password.
-            val cmd = Runtime.getRuntime().exec("sudo -n pwd")
-            cmd.waitFor
-            assumeTrue(cmd.exitValue == 0)
+            var cmdExitValue = Sudo.sudoExec("true");
+            assumeTrue(cmdExitValue == 0)
             // Test adding a tap interface created with ip command.
             try {
                 log.debug("Add tap port {} with ip command", portName)
-                var ipCmd = Runtime.getRuntime().exec(
-                    "sudo -n ip tuntap add dev %s mode tap".format(portName))
-                ipCmd.waitFor
-                assertEquals(ipCmd.exitValue, 0)
-                ipCmd = Runtime.getRuntime().exec(
-                    "sudo -n ip link set dev %s arp on mtu 1300 multicast off up"
+                cmdExitValue = Sudo.sudoExec(
+                    "ip tuntap add dev %s mode tap".format(portName))
+                assertEquals(cmdExitValue, 0)
+                cmdExitValue = Sudo.sudoExec(
+                    "ip link set dev %s arp on mtu 1300 multicast off up"
                     .format(portName));
-                ipCmd.waitFor
-                assertEquals(ipCmd.exitValue, 0)
+                assertEquals(cmdExitValue, 0)
                 val pb = ovsdb.addTapPort(bridgeName, portName)
                 pb.build
                 assertTrue(ovsdb.hasPort(portName))
             } finally {
                 ovsdb.delPort(portName)
                 log.debug("Delete tap port {} with ip command", portName)
-                val ipCmd = Runtime.getRuntime().exec(
-                    "sudo -n ip link del %s".format(portName))
-                ipCmd.waitFor
-                assertEquals(ipCmd.exitValue, 0)
+                cmdExitValue = Sudo.sudoExec("ip link del %s".format(portName))
+                assertEquals(cmdExitValue, 0)
                 assertFalse(ovsdb.hasPort(portName))
             }
             try {
@@ -206,25 +203,22 @@ class TestOpenvSwitchDatabaseConnection {
             }
             try {
                 log.debug("Add tap port {} with ip command", portName)
-                var ipCmd = Runtime.getRuntime().exec(
-                    "sudo -n ip tuntap add dev %s mode tap".format(portName))
-                ipCmd.waitFor
-                assertEquals(ipCmd.exitValue, 0)
-                ipCmd = Runtime.getRuntime().exec(
-                    "sudo -n ip link set dev %s arp on mtu 1300 multicast off up"
+                cmdExitValue = Sudo.sudoExec(
+                    "ip tuntap add dev %s mode tap".format(portName))
+                assertEquals(cmdExitValue, 0)
+                cmdExitValue = Sudo.sudoExec(
+                    "ip link set dev %s arp on mtu 1300 multicast off up"
                     .format(portName));
-                ipCmd.waitFor
-                assertEquals(ipCmd.exitValue, 0)
+                assertEquals(cmdExitValue, 0)
                 val pb = ovsdb.addTapPort(bridgeId, portName)
                 pb.build
                 assertTrue(ovsdb.hasPort(portName))
             } finally {
                 ovsdb.delPort(portName)
                 log.debug("Delete tap port {} with ip command", portName)
-                val ipCmd = Runtime.getRuntime().exec(
-                    "sudo -n ip link del %s".format(portName))
-                ipCmd.waitFor
-                assertEquals(ipCmd.exitValue, 0)
+                cmdExitValue = Sudo.sudoExec(
+                    "ip link del %s".format(portName))
+                assertEquals(cmdExitValue, 0)
                 assertFalse(ovsdb.hasPort(portName))
             }
         }
