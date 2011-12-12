@@ -99,7 +99,7 @@ class VpnPortAgent(val sessionId: Long, val datapathId: Long,
             service.start(vpnId)
         } catch {
             case e: Exception => {
-                log.error("Couldn't start VPN port service")
+                log.error("Couldn't start VPN port service", e)
                 vpnMgr.unlock(vpnId)
                 throw e
             }
@@ -152,9 +152,9 @@ class VpnPortAgent(val sessionId: Long, val datapathId: Long,
                                     log.debug("watcher: addVpn")
                                     addVpn(vpnId, vpn)
                                 } catch {
-                                    case _ => {
+                                    case e: Exception => {
                                         log.error(
-                                            "watcher: couldn't add VPN")
+                                            "watcher: couldn't add VPN", e)
                                     }
                                 }
                             }
@@ -162,7 +162,7 @@ class VpnPortAgent(val sessionId: Long, val datapathId: Long,
                     })
                 }
             } catch {
-                case _ => { log.error("handleVpn") }
+                case e: Exception => { log.error("handleVpn", e) }
             }
         }
 
