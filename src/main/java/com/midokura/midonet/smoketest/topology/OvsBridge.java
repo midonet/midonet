@@ -16,28 +16,28 @@ public class OvsBridge {
     String bridgeName;
     private String ovsBridgeController;
 
-    public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName, String ovsBridgeController) {
+    public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName, UUID bridgeId, String ovsBridgeController) {
 
         this.ovsdb = ovsdb;
         this.bridgeName = bridgeName;
         this.ovsBridgeController = ovsBridgeController;
-        startBridge();
+        startBridge(bridgeId);
     }
 
-    public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName) {
+    public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName, UUID bridgeId) {
         this.ovsdb = ovsdb;
         this.bridgeName = bridgeName;
         this.ovsBridgeController = "tcp:127.0.0.1:6633";
-        startBridge();
+        startBridge(bridgeId);
     }
 
-    void startBridge()
+    void startBridge(UUID bridgeId)
     {
         if (ovsdb.hasBridge(bridgeName))
             return;
         BridgeBuilder brBuilder = ovsdb.addBridge(bridgeName);
         brBuilder.externalId("midolman-vnet",
-                "01234567-0123-0123-aaaa-0123456789ab");
+                bridgeId.toString());
         brBuilder.failMode(BridgeFailMode.SECURE);
         brBuilder.otherConfig("hwaddr", "02:aa:bb:11:22:33");
         brBuilder.build();

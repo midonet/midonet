@@ -55,12 +55,15 @@ public class BridgeTest {
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
 
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:12334");
+
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
                 .build();
         bridge1 = tenant1.addBridge().setName("br1").build();
+
+        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());
+        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(), "tcp:127.0.0.1:6623");
+
 
         ip1 = IntIPv4.fromString("192.168.100.2");
         bPort1 = bridge1.addPort();

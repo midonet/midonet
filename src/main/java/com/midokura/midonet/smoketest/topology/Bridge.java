@@ -11,6 +11,8 @@ import com.midokura.midonet.smoketest.mgmt.DtoPort;
 import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
+import java.util.UUID;
+
 public class Bridge {
 
     public static class Builder {
@@ -50,6 +52,11 @@ public class Bridge {
         DtoPort port = new DtoPort();
         return new BridgePort(dto,mgmt.addBridgePort(dto, port));
     }
+
+    public UUID getId(){
+        return dto.getId();
+    }
+
     public void delete() {
 
     }
