@@ -7,17 +7,15 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.packets.IntIPv4;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-
-import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 public class VpnZkManager extends ZkManager {
 
@@ -28,13 +26,22 @@ public class VpnZkManager extends ZkManager {
     public static final class VpnConfig {
         public UUID publicPortId;
         public UUID privatePortId;
+        public String remoteIp;
         public VpnType vpnType;
         public int port;
 
         public VpnConfig(UUID publicPortId, UUID privatePortId,
-                         VpnType vpnType, int port) {
+                         String remoteIp, VpnType vpnType, int port) {
             this.publicPortId = publicPortId;
             this.privatePortId = privatePortId;
+            // check if it's a valid IP
+            if (remoteIp != null)
+                IntIPv4.fromString(remoteIp);
+            else {
+                if( vpnType == VpnType.OPENVPN_CLIENT || vpnType == VpnType.OPENVPN_TCP_CLIENT )
+                    throw new IllegalArgumentException("Vpn client: remote address is null!");
+            }
+            this.remoteIp = remoteIp;
             this.vpnType = vpnType;
             this.port = port;
         }
@@ -48,10 +55,8 @@ public class VpnZkManager extends ZkManager {
     /**
      * VpnZkManager constructor.
      *
-     * @param zk
-     *            Zookeeper object.
-     * @param basePath
-     *            Directory to set as the base.
+     * @param zk       Zookeeper object.
+     * @param basePath Directory to set as the base.
      */
     public VpnZkManager(Directory zk, String basePath) {
         super(zk, basePath);
@@ -69,15 +74,14 @@ public class VpnZkManager extends ZkManager {
             throw new ZkStateSerializationException(
                     "Could not serialize VpnConfig", e, VpnConfig.class);
         }
-
         ops.add(
-            Op.create(pathManager.getPortVpnPath(vpnNode.value.publicPortId,
-                                                 vpnNode.key),
-                      null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                Op.create(pathManager.getPortVpnPath(vpnNode.value.publicPortId,
+                        vpnNode.key),
+                        null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(
-            Op.create(pathManager.getPortVpnPath(vpnNode.value.privatePortId,
-                                                 vpnNode.key),
-                      null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                Op.create(pathManager.getPortVpnPath(vpnNode.value.privatePortId,
+                        vpnNode.key),
+                        null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
