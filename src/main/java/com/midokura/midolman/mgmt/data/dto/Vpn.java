@@ -29,6 +29,7 @@ public class Vpn extends UriResource {
     private int port;
     private UUID publicPortId = null;
     private UUID privatePortId = null;
+    private String remoteIp;
     private VpnZkManager.VpnType vpnType;
 
     /**
@@ -115,6 +116,22 @@ public class Vpn extends UriResource {
         this.privatePortId = privatePortId;
     }
 
+     /**
+     * Get remote IP.
+     *
+     * @return IntIPv4.
+     */
+    public String getRemoteIp() {
+        return remoteIp;
+    }
+     /**
+     * Set remote IP.
+     * @param remoteIp
+     *            Remote IP.
+     */
+    public void setRemoteIp(String remoteIp) {
+        this.remoteIp = remoteIp;
+    }
     /**
      * Get VPN type.
      *
@@ -136,7 +153,7 @@ public class Vpn extends UriResource {
 
     public VpnConfig toConfig() {
         return new VpnConfig(this.getPublicPortId(), this.getPrivatePortId(),
-                             this.vpnType, this.getPort());
+                             this.getRemoteIp(), this.vpnType, this.getPort());
 
     }
 
@@ -145,6 +162,7 @@ public class Vpn extends UriResource {
         b.setPort(config.port);
         b.setPublicPortId(config.publicPortId);
         b.setPrivatePortId(config.privatePortId);
+        b.setRemoteIp(config.remoteIp);
         b.setVpnType(config.vpnType);
         b.setId(id);
         return b;
