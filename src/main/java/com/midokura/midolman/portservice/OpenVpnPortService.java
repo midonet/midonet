@@ -35,6 +35,7 @@ import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.Sudo;
 
 public class OpenVpnPortService implements PortService {
 
@@ -100,10 +101,7 @@ public class OpenVpnPortService implements PortService {
             log.info("delete port {}", portName);
             ovsdb.delPort(portName);
             try {
-                Process ipCmd = Runtime.getRuntime().exec(
-                    String.format(
-                        "sudo ip link del %s", portName));
-                ipCmd.waitFor();
+                Sudo.sudoExec(String.format("ip link del %s", portName));
                 log.debug("clear: ran ip link");
             } catch (InterruptedException e) {
                 log.warn("clear", e);
@@ -116,8 +114,7 @@ public class OpenVpnPortService implements PortService {
         // killall openvpn processes.
         log.info("killall openvpn");
         try {
-            Process kill = Runtime.getRuntime().exec("sudo killall openvpn");
-            kill.waitFor();
+            Sudo.sudoExec("killall openvpn");
         } catch (InterruptedException e) {
             log.warn("clear", e);
         } catch (IOException e) {
@@ -165,10 +162,8 @@ public class OpenVpnPortService implements PortService {
             portBuilder = ovsdb.addInternalPort(datapathId, portName);
         } else if (vpn.privatePortId.equals(portId)) {
             try {
-                Process ipCmd = Runtime.getRuntime().exec(
-                    String.format(
-                        "sudo ip tuntap add dev %s mode tap", portName));
-                ipCmd.waitFor();
+                Sudo.sudoExec(String.format(
+                        "ip tuntap add dev %s mode tap", portName));
                 log.debug("addPort: ran ip tuntap");
             } catch (InterruptedException e) {
                 log.warn("addPort", e);
@@ -199,12 +194,13 @@ public class OpenVpnPortService implements PortService {
 
         // Bring the port up.
         try {
-            Process ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip link set dev %s arp on mtu 1300 multicast off up",
+            Sudo.sudoExec(String.format(
+                    "ip link set dev %s arp on mtu 1300 multicast off up",
                     portName));
             log.debug("addPort: ran ip link");
         } catch (IOException e) {
+            log.warn("addPort", e);
+        } catch (InterruptedException e) {
             log.warn("addPort", e);
         }
         // TODO(yoshi): instead of simply keep incrementing, create a map
@@ -226,7 +222,7 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void configurePort(UUID portId, String portName)
-        throws StateAccessException, IOException {
+        throws StateAccessException, IOException, InterruptedException {
         PortConfig config = portMgr.get(portId).value;
         if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
             throw new RuntimeException(
@@ -239,34 +235,29 @@ public class OpenVpnPortService implements PortService {
         VpnConfig vpn = vpnNode.value;
         if (vpn.publicPortId.equals(portId)) {
             // Set IP address of the port.
-            Process ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip addr add %s/%d dev %s",
+            Sudo.sudoExec(String.format(
+                    "ip addr add %s/%d dev %s",
                     Net.convertIntAddressToString(portConfig.localNwAddr),
                     portConfig.nwLength, portName));
             log.debug("configurePort: ran ip addr");
 
             // Add a rule and a route that transports packets from the
             // internal port to the gateway (the controller).
-            ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip rule add from %s table %d",
+            try {
+                Sudo.sudoExec(String.format(
+                    "ip rule add from %s table %d",
                     Net.convertIntAddressToString(portConfig.localNwAddr),
                     OPENVPN_RULE_TABLE));
-            try {
-                ipCmd.waitFor();
             } catch (InterruptedException e) {
                 log.warn("configurePort", e);
             }
             log.debug("configurePort: ran ip rule");
 
-            ipCmd = Runtime.getRuntime().exec(
-                String.format(
+            try {
+                Sudo.sudoExec(String.format(
                     "sudo ip route add default via %s table %d",
                     Net.convertIntAddressToString(portConfig.portAddr),
                     OPENVPN_RULE_TABLE));
-            try {
-                ipCmd.waitFor();
             } catch (InterruptedException e) {
                 log.warn("configurePort", e);
             }
@@ -276,7 +267,7 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void configurePort(UUID portId)
-        throws StateAccessException, IOException {
+        throws StateAccessException, IOException, InterruptedException {
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
             externalIdKey, portId.toString());
         if (portNames.size() != 1) {
@@ -299,10 +290,7 @@ public class OpenVpnPortService implements PortService {
             log.info("delete port {}", portName);
             ovsdb.delPort(portName);
             try {
-                Process ipCmd = Runtime.getRuntime().exec(
-                    String.format(
-                        "sudo ip link del %s", portName));
-                ipCmd.waitFor();
+                Sudo.sudoExec(String.format("ip link del %s", portName));
                 log.debug("delPort: ran ip link");
             } catch (InterruptedException e) {
                 log.warn("delPort", e);

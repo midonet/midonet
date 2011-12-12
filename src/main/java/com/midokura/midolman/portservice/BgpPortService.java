@@ -37,6 +37,7 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.Sudo;
 
 public class BgpPortService implements PortService {
 
@@ -177,15 +178,14 @@ public class BgpPortService implements PortService {
 
     @Override
     public void configurePort(UUID portId, String portName)
-        throws StateAccessException, IOException {
+        throws StateAccessException, IOException, InterruptedException {
         log.debug("configurePort: {} {}", portId, portName);
 
         // Turn on ARP and link up the interface.
         // mtu 1300 is to avoid ovs dropping packets.
         // TODO(yoshi): Make MTU variable configurable.
-        Process ipLinkCommand = Runtime.getRuntime().exec(
-            String.format(
-                "sudo ip link set dev %s arp on mtu 1300 multicast off up",
+        Sudo.sudoExec(String.format(
+                "ip link set dev %s arp on mtu 1300 multicast off up",
                 portName));
 
         log.debug("configurePort: ran ip link");
@@ -199,9 +199,8 @@ public class BgpPortService implements PortService {
         PortDirectory.MaterializedRouterPortConfig portConfig =
             PortDirectory.MaterializedRouterPortConfig.class.cast(config);
         // Give the interface the address in vport configuration.
-        Process ipAddrCommand = Runtime.getRuntime().exec(
-            String.format(
-                "sudo ip addr add %s/%d dev %s",
+        Sudo.sudoExec(String.format(
+                "ip addr add %s/%d dev %s",
                 Net.convertIntAddressToString(portConfig.portAddr),
                 portConfig.nwLength, portName));
 
@@ -210,7 +209,7 @@ public class BgpPortService implements PortService {
 
     @Override
     public void configurePort(UUID portId)
-        throws StateAccessException, IOException {
+        throws StateAccessException, IOException, InterruptedException {
         for (String portName : this.getPorts(portId)) {
             configurePort(portId, portName);
         }
@@ -260,11 +259,10 @@ public class BgpPortService implements PortService {
                                            localAddr, remoteAddr,
                                            BGP_TCP_PORT, BGP_TCP_PORT);
             if (!this.run) {
-                Process kill = Runtime.getRuntime().exec("sudo killall bgpd");
                 try {
-                    kill.waitFor();
+                    Sudo.sudoExec("killall bgpd");
                 } catch (InterruptedException e) {
-                    log.warn("start", e);
+                    log.warn("exception killing bgpd: ", e);
                 }
                 zebra.start();
 
@@ -277,8 +275,10 @@ public class BgpPortService implements PortService {
                         // Calling killall because bgpdProcess.destroy()
                         // doesn't seem to work.
                         try {
-                            Runtime.getRuntime().exec("sudo killall bgpd");
+                            Sudo.sudoExec("killall bgpd");
                         } catch (IOException e) {
+                            log.warn("killall bgpd", e);
+                        } catch (InterruptedException e) {
                             log.warn("killall bgpd", e);
                         }
                     }

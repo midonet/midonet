@@ -31,10 +31,10 @@ public interface PortService {
     public UUID getRemotePort(String portName);
 
     public void configurePort(UUID portId, String portName)
-        throws IOException, StateAccessException;
+        throws IOException, StateAccessException, InterruptedException;
 
     public void configurePort(UUID portId)
-        throws IOException, StateAccessException;
+        throws IOException, StateAccessException, InterruptedException;
 
     public void delPort(UUID portId);
 
