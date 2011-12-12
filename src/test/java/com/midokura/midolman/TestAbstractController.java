@@ -514,7 +514,6 @@ public class TestAbstractController {
         MAC dstMac = MAC.fromString("01:00:5e:00:00:fb");
         int srcIP = Net.convertStringAddressToInt("112.140.32.93");
         int dstIP = Net.convertStringAddressToInt("224.0.0.251");
-        //byte diffServ = (byte)0xC0;
 
         assertEquals(60*2, frameHexDump.length());
         byte[] pktData = new byte[60];
