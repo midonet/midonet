@@ -180,7 +180,7 @@ public class ControllerTrampoline implements Controller {
                 // Create VPN port agent for OpenVPN.
                 VpnZkManager vpnMgr = new VpnZkManager(directory, basePath);
                 OpenVpnPortService openVpnSvc =
-                    new OpenVpnPortService(reactor, ovsdb,
+                    new OpenVpnPortService(ovsdb,
                                            externalIdKey, "midolman_port_service",
                                            portMgr, vpnMgr);
                 openVpnSvc.clear();
