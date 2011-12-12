@@ -20,114 +20,128 @@ public class MidoMatch extends OFMatch {
         // this.wildcards correctly set to OFPFW_ALL in OFMatch's ctor
     }
 
-    public OFMatch setDataLayerDestination(MAC dataLayerDestination) {
+    public MidoMatch setDataLayerDestination(MAC dataLayerDestination) {
         return setDataLayerDestination(dataLayerDestination.getAddress());
     }
 
     @Override
-    public OFMatch setDataLayerDestination(byte[] dataLayerDestination) {
+    public MidoMatch setDataLayerDestination(byte[] dataLayerDestination) {
         wildcards &= ~OFPFW_DL_DST;
-        return super.setDataLayerDestination(dataLayerDestination);
+        super.setDataLayerDestination(dataLayerDestination);
+        return this;
     }
 
     @Override
-    public OFMatch setDataLayerDestination(String mac) {
+    public MidoMatch setDataLayerDestination(String mac) {
         wildcards &= ~OFPFW_DL_DST;
-        return super.setDataLayerDestination(mac);
+        super.setDataLayerDestination(mac);
+        return this;
     }
 
-    public OFMatch setDataLayerSource(MAC dataLayerSource) {
+    public MidoMatch setDataLayerSource(MAC dataLayerSource) {
         return setDataLayerSource(dataLayerSource.getAddress());
     }
 
     @Override
-    public OFMatch setDataLayerSource(byte[] dataLayerSource) {
+    public MidoMatch setDataLayerSource(byte[] dataLayerSource) {
         wildcards &= ~OFPFW_DL_SRC;
-        return super.setDataLayerSource(dataLayerSource);
+        super.setDataLayerSource(dataLayerSource);
+        return this;
     }
 
     @Override
-    public OFMatch setDataLayerSource(String mac) {
+    public MidoMatch setDataLayerSource(String mac) {
         wildcards &= ~OFPFW_DL_SRC;
-        return super.setDataLayerSource(mac);
+        super.setDataLayerSource(mac);
+        return this;
     }
 
     @Override
-    public OFMatch setDataLayerType(short dataLayerType) {
+    public MidoMatch setDataLayerType(short dataLayerType) {
         wildcards &= ~OFPFW_DL_TYPE;
-        return super.setDataLayerType(dataLayerType);
+        super.setDataLayerType(dataLayerType);
+        return this;
     }
 
     @Override
-    public OFMatch setDataLayerVirtualLan(short dataLayerVirtualLan) {
+    public MidoMatch setDataLayerVirtualLan(short dataLayerVirtualLan) {
         wildcards &= ~OFPFW_DL_VLAN;
-        return super.setDataLayerVirtualLan(dataLayerVirtualLan);
+        super.setDataLayerVirtualLan(dataLayerVirtualLan);
+        return this;
     }
 
     @Override
-    public OFMatch setDataLayerVirtualLanPriorityCodePoint(byte pcp) {
+    public MidoMatch setDataLayerVirtualLanPriorityCodePoint(byte pcp) {
         wildcards &= ~OFPFW_DL_VLAN_PCP;
-        return super.setDataLayerVirtualLanPriorityCodePoint(pcp);
+        super.setDataLayerVirtualLanPriorityCodePoint(pcp);
+        return this;
     }
 
     @Override
-    public OFMatch setInputPort(short inputPort) {
+    public MidoMatch setInputPort(short inputPort) {
         wildcards &= ~OFPFW_IN_PORT;
-        return super.setInputPort(inputPort);
+        super.setInputPort(inputPort);
+        return this;
     }
 
-    public OFMatch setNetworkDestination(int networkDestination,
+    public MidoMatch setNetworkDestination(int networkDestination,
             int prefixLength) {
         setNetworkDestinationPrefixLength(prefixLength);
-        return super.setNetworkDestination(networkDestination);
+        super.setNetworkDestination(networkDestination);
+        return this;
     }
 
     @Override
-    public OFMatch setNetworkDestination(int networkDestination) {
+    public MidoMatch setNetworkDestination(int networkDestination) {
         return setNetworkDestination(networkDestination, 32);
     }
 
-    public OFMatch setNetworkSource(int networkSource, int prefixLength) {
+    public MidoMatch setNetworkSource(int networkSource, int prefixLength) {
         setNetworkSourcePrefixLength(prefixLength);
-        return super.setNetworkSource(networkSource);
+        super.setNetworkSource(networkSource);
+        return this;
     }
 
     @Override
-    public OFMatch setNetworkSource(int networkSource) {
+    public MidoMatch setNetworkSource(int networkSource) {
         return setNetworkSource(networkSource, 32);
     }
 
     @Override
-    public OFMatch setNetworkProtocol(byte networkProtocol) {
+    public MidoMatch setNetworkProtocol(byte networkProtocol) {
         wildcards &= ~OFPFW_NW_PROTO;
-        return super.setNetworkProtocol(networkProtocol);
+        super.setNetworkProtocol(networkProtocol);
+        return this;
     }
 
     @Override
-    public OFMatch setNetworkTypeOfService(byte networkTypeOfService) {
+    public MidoMatch setNetworkTypeOfService(byte networkTypeOfService) {
         wildcards &= ~OFPFW_NW_TOS;
-        return super.setNetworkTypeOfService(networkTypeOfService);
+        super.setNetworkTypeOfService(networkTypeOfService);
+        return this;
     }
 
     @Override
-    public OFMatch setTransportDestination(short transportDestination) {
+    public MidoMatch setTransportDestination(short transportDestination) {
         wildcards &= ~OFPFW_TP_DST;
-        return super.setTransportDestination(transportDestination);
+        super.setTransportDestination(transportDestination);
+        return this;
     }
 
     @Override
-    public OFMatch setTransportSource(short transportSource) {
+    public MidoMatch setTransportSource(short transportSource) {
         wildcards &= ~OFPFW_TP_SRC;
-        return super.setTransportSource(transportSource);
+        super.setTransportSource(transportSource);
+        return this;
     }
 
-    public OFMatch setNetworkSourcePrefixLength(int prefixLen) {
+    public MidoMatch setNetworkSourcePrefixLength(int prefixLen) {
         wildcards = (wildcards & ~OFPFW_NW_SRC_MASK)
                 | ((32 - prefixLen) << OFPFW_NW_SRC_SHIFT);
         return this;
     }
 
-    public OFMatch setNetworkDestinationPrefixLength(int prefixLen) {
+    public MidoMatch setNetworkDestinationPrefixLength(int prefixLen) {
         wildcards = (wildcards & ~OFPFW_NW_DST_MASK)
                 | ((32 - prefixLen) << OFPFW_NW_DST_SHIFT);
         return this;
