@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Random;
 
-import com.midokura.tools.process.ProcessHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -88,8 +87,8 @@ public class TunnelingTest extends AbstractSmokeTest {
         ovsdb.delBridge("smoke-br");
         ovsdb.delBridge("smoke-br2");
 
-        removeTapPort(tapPort1);
-        removeTapPort(tapPort2);
+        removePort(tapPort1);
+        removePort(tapPort2);
         removeTenant(tenant1);
 
         mgmt.stop();

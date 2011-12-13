@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
+import com.midokura.midonet.smoketest.topology.InternalPort;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,6 +33,7 @@ public class PingTest extends AbstractSmokeTest {
 
     static Tenant tenant1;
     static TapPort tapPort;
+    static InternalPort internalPort;
     static IntIPv4 rtrIp;
     static IntIPv4 peerIp;
     static OpenvSwitchDatabaseConnection ovsdb;
@@ -63,7 +65,10 @@ public class PingTest extends AbstractSmokeTest {
                 tapPort.getOuterMAC(), rtrIp);
 
         peerIp = IntIPv4.fromString("192.168.100.3");
-        router1.addPort(ovsdb).setDestination(peerIp.toString())
+        internalPort =
+            router1
+                .addPort(ovsdb)
+                .setDestination(peerIp.toString())
                 .buildInternal();
 
         Thread.sleep(1000);
@@ -71,12 +76,13 @@ public class PingTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() {
-
-        removeTapPort(tapPort);
-        removeTenant(tenant1);
-        mgmt.stop();
-
         ovsdb.delBridge("smoke-br");
+
+        removePort(internalPort);
+        removePort(tapPort);
+        removeTenant(tenant1);
+
+        mgmt.stop();
 
         resetZooKeeperState(log);
     }

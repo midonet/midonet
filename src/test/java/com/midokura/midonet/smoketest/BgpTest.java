@@ -12,7 +12,6 @@ import com.midokura.midonet.smoketest.topology.*;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.process.ProcessHelper;
 import com.midokura.tools.timed.Timed;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -121,7 +120,7 @@ public class BgpTest extends AbstractSmokeTest {
             //
         }
 
-        removeTapPort(bgpPort);
+        removePort(bgpPort);
 
         removeTenant(tenant);
         mgmt.stop();

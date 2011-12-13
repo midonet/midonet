@@ -14,7 +14,6 @@ import com.midokura.midonet.smoketest.topology.Tenant;
 import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.process.ProcessHelper;
 import com.midokura.tools.ssh.SshHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -82,7 +81,7 @@ public class VmSshTest extends AbstractSmokeTest {
     @AfterClass
     public static void tearDown() {
         // First clean up left-overs from previous incomplete tests.
-        removeTapPort(tapPort);
+        removePort(tapPort);
         removeTenant(tenant);
         mgmt.stop();
 
@@ -109,6 +108,7 @@ public class VmSshTest extends AbstractSmokeTest {
         try {
             vm.startup();
 
+            assertThat("The Machine should have been started", vm.isRunning());
             log.info("Running remote command to find the hostname.");
             // validate ssh to the 192.168.100.2 address
             String output =

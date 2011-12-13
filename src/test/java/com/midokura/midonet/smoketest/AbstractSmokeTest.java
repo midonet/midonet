@@ -3,6 +3,8 @@
  */
 package com.midokura.midonet.smoketest;
 
+import com.midokura.midonet.smoketest.topology.InternalPort;
+import com.midokura.midonet.smoketest.topology.Port;
 import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.TapWrapper;
 import com.midokura.midonet.smoketest.topology.Tenant;
@@ -22,9 +24,9 @@ public abstract class AbstractSmokeTest {
         LoggerFactory.getLogger(AbstractSmokeTest.class);
 
 
-    protected static void removeTapPort(TapPort port) {
+    protected static void removePort(Port port) {
         if (port != null) {
-            port.remove();
+            port.delete();
         }
     }
 

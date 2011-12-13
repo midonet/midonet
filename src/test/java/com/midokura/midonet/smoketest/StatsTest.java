@@ -97,8 +97,8 @@ public class StatsTest extends AbstractSmokeTest {
     public static void tearDown() {
         ovsdb.delBridge("smoke-br");
 
-        removeTapPort(tapPort1);
-        removeTapPort(tapPort2);
+        removePort(tapPort1);
+        removePort(tapPort2);
         removeTenant(tenant1);
 
         mgmt.stop();

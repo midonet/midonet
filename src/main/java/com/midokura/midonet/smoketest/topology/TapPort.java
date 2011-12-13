@@ -190,9 +190,11 @@ public class TapPort extends Port {
 
     }
 
-    public void remove() {
+    public void delete() {
 
         closeFd();
+
+        super.delete();
 
         newProcess(String.format("sudo -n ip tuntap del dev %s mode tap",getName()))
             .logOutput(log, "remove_tap@" + getName())

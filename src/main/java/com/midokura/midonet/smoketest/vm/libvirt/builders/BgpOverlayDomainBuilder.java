@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
+ * Author: Toader Mihai Claudiu <mtoader@midokura.com>
  * <p/>
  * Date: 11/30/11
  * Time: 11:12 AM

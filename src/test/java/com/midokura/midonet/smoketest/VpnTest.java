@@ -107,8 +107,8 @@ public class VpnTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        removeTapPort(tapPort1);
-        removeTapPort(tapPort2);
+        removePort(tapPort1);
+        removePort(tapPort2);
         removeTenant(tenant1);
 
         mgmt.stop();
