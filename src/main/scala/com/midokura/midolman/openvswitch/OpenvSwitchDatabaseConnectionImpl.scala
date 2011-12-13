@@ -528,6 +528,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     "wrong id in JSON-RPC result: %s".format(responseId))
             val errorValue = response.get("error")
             log.warn("error: {}", errorValue)
+            if (errorValue == null) {
+                log.warn("(null) errorValue from a response of {}", response)
+            }
             if (errorValue != null && !errorValue.isNull) {
                 log.warn("doJsonRpc: error from server: ", errorValue.toString)
                 throw new OVSDBException(
