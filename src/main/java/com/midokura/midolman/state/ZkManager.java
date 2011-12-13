@@ -11,28 +11,32 @@ import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midolman.util.Serializer;
 
 /**
  * Abstract base class for ZkManagers.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
-public abstract class ZkManager {
+public class ZkManager {
 
+    private final static Logger log = LoggerFactory.getLogger(ZkManager.class);
     protected ZkPathManager pathManager = null;
     protected Directory zk = null;
 
     /**
      * Constructor.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -43,19 +47,17 @@ public abstract class ZkManager {
         this.zk = zk;
     }
 
-    protected <T> byte[] serialize(T obj) throws IOException {
+    public <T> byte[] serialize(T obj) throws IOException {
         Serializer<T> s = new JSONSerializer<T>();
         return s.objToBytes(obj);
     }
 
-    protected <T> T deserialize(byte[] obj, Class<T> clazz)
-            throws IOException {
+    public <T> T deserialize(byte[] obj, Class<T> clazz) throws IOException {
         Serializer<T> s = new JSONSerializer<T>();
         return s.bytesToObj(obj, clazz);
     }
 
-    protected Directory getSubDirectory(String path)
-            throws StateAccessException {
+    public Directory getSubDirectory(String path) throws StateAccessException {
         try {
             return zk.getSubDirectory(path);
         } catch (NoNodeException e) {
@@ -69,7 +71,7 @@ public abstract class ZkManager {
         }
     }
 
-    protected boolean exists(String path) throws StateAccessException {
+    public boolean exists(String path) throws StateAccessException {
         try {
             return zk.has(path);
         } catch (KeeperException e) {
@@ -83,7 +85,7 @@ public abstract class ZkManager {
         }
     }
 
-    protected String addPersistent_safe(String path, byte[] data)
+    public String addPersistent_safe(String path, byte[] data)
             throws StateAccessException {
         try {
             return zk.add(path, data, CreateMode.PERSISTENT);
@@ -105,7 +107,7 @@ public abstract class ZkManager {
         }
     }
 
-    protected String addPersistent(String path, byte[] data)
+    public String addPersistent(String path, byte[] data)
             throws StateAccessException {
         try {
             return zk.add(path, data, CreateMode.PERSISTENT);
@@ -128,7 +130,7 @@ public abstract class ZkManager {
         }
     }
 
-    protected String addEphemeral(String path, byte[] data)
+    public String addEphemeral(String path, byte[] data)
             throws StateAccessException {
         try {
             return zk.add(path, null, CreateMode.EPHEMERAL);
@@ -151,7 +153,7 @@ public abstract class ZkManager {
         }
     }
 
-    protected String addPersistentSequential(String path, byte[] data)
+    public String addPersistentSequential(String path, byte[] data)
             throws StateAccessException {
         try {
             return zk.add(path + "/", data, CreateMode.PERSISTENT_SEQUENTIAL);
@@ -174,11 +176,11 @@ public abstract class ZkManager {
         }
     }
 
-    protected byte[] get(String path) throws StateAccessException {
+    public byte[] get(String path) throws StateAccessException {
         return get(path, null);
     }
 
-    protected byte[] get(String path, Runnable watcher)
+    public byte[] get(String path, Runnable watcher)
             throws StateAccessException {
         try {
             return zk.get(path, watcher);
@@ -197,11 +199,11 @@ public abstract class ZkManager {
         }
     }
 
-    protected Set<String> getChildren(String path) throws StateAccessException {
+    public Set<String> getChildren(String path) throws StateAccessException {
         return getChildren(path, null);
     }
 
-    protected Set<String> getChildren(String path, Runnable watcher)
+    public Set<String> getChildren(String path, Runnable watcher)
             throws StateAccessException {
         Set<String> children = null;
         try {
@@ -222,7 +224,7 @@ public abstract class ZkManager {
         return children;
     }
 
-    protected List<OpResult> multi(List<Op> ops) throws StateAccessException {
+    public List<OpResult> multi(List<Op> ops) throws StateAccessException {
         try {
             return this.zk.multi(ops);
         } catch (NodeExistsException e) {
@@ -271,7 +273,7 @@ public abstract class ZkManager {
         return message;
     }
 
-    protected void update(String path, byte[] data) throws StateAccessException {
+    public void update(String path, byte[] data) throws StateAccessException {
         try {
             // Update any version for now.
             zk.update(path, data);
@@ -288,5 +290,21 @@ public abstract class ZkManager {
                     "ZooKeeper thread interrupted while updating the path "
                             + path + ": " + e.getMessage(), e);
         }
+    }
+
+    public Op getPersistentCreateOp(String path, byte[] data) {
+        log.debug("ZkManager.getPersistentCreateOp entered: path={}", path);
+        return Op
+                .create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
+    public Op getDeleteOp(String path) {
+        log.debug("ZkManager.getDeleteOp entered: path={}", path);
+        return Op.delete(path, -1);
+    }
+
+    public Op getSetDataOp(String path, byte[] data) {
+        log.debug("ZkManager.getDeleteOp entered: path={}", path);
+        return Op.setData(path, data, -1);
     }
 }
