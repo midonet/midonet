@@ -64,6 +64,7 @@ import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.Sudo;
 
 public class Setup implements Watcher {
 
@@ -439,24 +440,6 @@ public class Setup implements Watcher {
         }
     }
 
-    protected static void sudoExec(String command)
-            throws IOException, InterruptedException {
-        log.info("Running \"{}\" with sudo", command);
-        Process p = new ProcessBuilder("sh", "-c",
-                        "sudo -n " + command + " < /dev/tty").start();
-        p.waitFor();
-        byte[] cmdOutput = new byte[10000];
-        byte[] cmdErrOutput = new byte[10000];
-        int errOutputLength = p.getErrorStream().read(cmdErrOutput);
-        int outputLength = p.getInputStream().read(cmdOutput);
-        if (errOutputLength > 0)
-            log.error("sudo error output: {}",
-                      new String(cmdErrOutput, 0, errOutputLength));
-        if (outputLength > 0)
-            log.info("sudo standard output: {}",
-                     new String(cmdOutput, 0, outputLength));
-    }
-
     protected void setupTrafficPriorityQdiscsMidonet()
             throws IOException, URISyntaxException, InterruptedException {
         int markValue = 0x00ACCABA;  // Midokura's OUI.
@@ -464,8 +447,8 @@ public class Setup implements Watcher {
                              .getString("control_interface", "eth0");
 
         // Add a prio qdisc to root, and have marked packets prioritized.
-        sudoExec("tc qdisc add dev " + iface + " root handle 1: prio");
-        sudoExec("tc filter add dev " + iface +
+        Sudo.sudoExec("tc qdisc add dev " + iface + " root handle 1: prio");
+        Sudo.sudoExec("tc filter add dev " + iface +
                  " parent 1: protocol ip prio 1 handle " + markValue +
                  " fw flowid 1:1");
 
@@ -547,13 +530,13 @@ public class Setup implements Watcher {
         // Clear existing qdiscs
         String iface = config.configurationAt("midolman")
                              .getString("control_interface", "eth0");
-        sudoExec("tc qdisc del dev " + iface + " root");
+        Sudo.sudoExec("tc qdisc del dev " + iface + " root");
     }
 
     protected static void setupTrafficPriorityRule(String host, String port)
             throws IOException, InterruptedException {
         int markValue = 0x00ACCABA;  // Midokura's OUI.
-        sudoExec(
+        Sudo.sudoExec(
                 "iptables -t mangle -A POSTROUTING -p tcp -m tcp -d " +
                 host + " --dport " + port + " -j MARK --set-mark " + markValue);
     }
