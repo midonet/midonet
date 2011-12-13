@@ -38,13 +38,13 @@ public class ZkMgmtManager extends ZkManager {
     }
 
     @Override
-    protected <T> byte[] serialize(T obj) throws IOException {
+    public <T> byte[] serialize(T obj) throws IOException {
         Serializer<T> s = new JsonJaxbSerializer<T>();
         return s.objToBytes(obj);
     }
 
     @Override
-    protected <T> T deserialize(byte[] obj, Class<T> clazz) throws IOException {
+    public <T> T deserialize(byte[] obj, Class<T> clazz) throws IOException {
         Serializer<T> s = new JsonJaxbSerializer<T>();
         return s.bytesToObj(obj, clazz);
     }
