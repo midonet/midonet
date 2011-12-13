@@ -39,7 +39,7 @@ import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 
 public abstract class AbstractController
-        implements Controller, AbstractControllerMXBean {
+        implements Controller {
 
     private final static Logger log =
                         LoggerFactory.getLogger(AbstractController.class);
