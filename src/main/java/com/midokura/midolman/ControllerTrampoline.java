@@ -267,15 +267,15 @@ public class ControllerTrampoline implements Controller {
             controllerStub = null;
             newController.onConnectionMade();
 
-            ObjectName on = new ObjectName("com.midokura.midolman:type=Controller,name=" + deviceId);
-            ManagementFactory.getPlatformMBeanServer().registerMBean(newController, on);
+            //ObjectName on = new ObjectName("com.midokura.midolman:type=Controller,name=" + deviceId);
+            //ManagementFactory.getPlatformMBeanServer().registerMBean(newController, on);
 
         } catch (KeeperException e) {
             log.warn("ZK error", e);
         } catch (IOException e) {
             log.warn("IO error", e);
-        } catch (JMException e) {
-            log.warn("JMX error", e);
+        //} catch (JMException e) {
+        //    log.warn("JMX error", e);
         }
     }
 
