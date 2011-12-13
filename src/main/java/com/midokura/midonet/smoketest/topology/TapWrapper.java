@@ -11,6 +11,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
+import static com.midokura.tools.process.ProcessHelper.newProcess;
+
 /**
  * Copyright 2011 Midokura Europe SARL
  * User: rossella rossella@midokura.com
@@ -175,7 +177,11 @@ public class TapWrapper {
     }
 
     public void remove() {
-        // TODO Auto-generated method stub
+        closeFd();
+
+        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap",getName()))
+                .logOutput(log, "remove_tap@" + getName())
+                .runAndWait();
 
     }
 }

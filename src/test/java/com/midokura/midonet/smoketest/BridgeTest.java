@@ -7,20 +7,23 @@ package com.midokura.midonet.smoketest;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midonet.smoketest.topology.*;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.topology.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-public class BridgeTest {
+public class BridgeTest extends AbstractSmokeTest {
+
+    private final static Logger log = LoggerFactory.getLogger(BridgeTest.class);
 
     static Tenant tenant1;
     static IntIPv4 ip1;
@@ -28,7 +31,6 @@ public class BridgeTest {
     static IntIPv4 ip3;
     static PacketHelper helper1_3;
     static PacketHelper helper3_1;
-    static PacketHelper helper3;
     static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
     static BridgePort bPort1;
@@ -55,8 +57,6 @@ public class BridgeTest {
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
 
-
-
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
                 .build();
         bridge1 = tenant1.addBridge().setName("br1").build();
@@ -64,22 +64,20 @@ public class BridgeTest {
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());
         ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(), "tcp:127.0.0.1:6623");
 
-
         ip1 = IntIPv4.fromString("192.168.100.2");
         bPort1 = bridge1.addPort();
         tap1 = new TapWrapper("tap1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
-
         ip2 = IntIPv4.fromString("192.168.100.3");
         bPort2 = bridge1.addPort();
         tap2 = new TapWrapper("tap2");
-        ovsBridge1.addSystemPort(bPort2.getId(),tap2.getName());
+        ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
         ip3 = IntIPv4.fromString("192.168.100.4");
         bPort3 = bridge1.addPort();
         tap3 = new TapWrapper("tap3");
-        ovsBridge2.addSystemPort(bPort3.getId(),tap3.getName());
+        ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
         helper1_3 = new PacketHelper(tap1.getHwAddr(), ip1,
                 tap3.getHwAddr(), ip3);
@@ -91,7 +89,17 @@ public class BridgeTest {
 
     @AfterClass
     public static void tearDown() {
-        // TODO (rossella): delete
+        ovsdb.delBridge("smoke-br");
+        ovsdb.delBridge("smoke-br2");
+
+        removeTapWrapper(tap1);
+        removeTapWrapper(tap2);
+        removeTapWrapper(tap3);
+        removeTenant(tenant1);
+
+        mgmt.stop();
+
+        resetZooKeeperState(log);
     }
 
     @Test
@@ -101,25 +109,21 @@ public class BridgeTest {
 
         sent = helper1_3.makeIcmpEchoRequest(ip3);
         assertTrue(tap1.send(sent));
-        // Note: the virtual router ARPs before delivering the IPv4 packet.
-        helper3_1.checkArpRequest(tap3.recv());
-        assertTrue(tap3.send(helper3_1.makeArpReply()));
-        // receive the icmp
+
+        // Receive the icmp, Mac1 hasn't been learnt so the icmp will be delivered to all the port
         helper3_1.checkIcmpEchoRequest(sent, tap3.recv());
+        helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
 
         sent = helper3_1.makeIcmpEchoRequest(ip1);
         assertTrue(tap3.send(sent));
-        // Note: the virtual router ARPs before delivering the IPv4 packet.
-       // helper1_3.checkArpRequest(tapPort1.recv());
-       // assertTrue(tap1.send(helper1_3.makeArpReply()));
-        // receive the icmp
+        // Mac1 was learnt, so the message will be sent only to tap1
         helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
 
 
-        // VM moves
+        // VM moves, sending from Mac3 Ip3 using tap2
         sent = helper3_1.makeIcmpEchoRequest(ip1);
         assertTrue(tap2.send(sent));
-        helper1_3.checkIcmpEchoRequest(sent,tap1.recv());
+        helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
 
         sent = helper1_3.makeIcmpEchoRequest(ip3);
         assertTrue(tap1.send(sent));

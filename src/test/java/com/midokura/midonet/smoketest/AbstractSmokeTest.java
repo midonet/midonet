@@ -4,6 +4,7 @@
 package com.midokura.midonet.smoketest;
 
 import com.midokura.midonet.smoketest.topology.TapPort;
+import com.midokura.midonet.smoketest.topology.TapWrapper;
 import com.midokura.midonet.smoketest.topology.Tenant;
 import com.midokura.tools.process.ProcessHelper;
 import org.slf4j.Logger;
@@ -24,6 +25,12 @@ public abstract class AbstractSmokeTest {
     protected static void removeTapPort(TapPort port) {
         if (port != null) {
             port.remove();
+        }
+    }
+
+    protected static void removeTapWrapper(TapWrapper tap) {
+        if (tap != null) {
+            tap.remove();
         }
     }
 
