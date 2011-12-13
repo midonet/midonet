@@ -6,7 +6,7 @@
     <groupId>com.midokura</groupId>
     <artifactId>midolmanj</artifactId>
     <packaging>jar</packaging>
-    <version>11.12-SNAPSHOT</version>
+    <version>11.12</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
