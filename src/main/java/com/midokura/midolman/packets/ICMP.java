@@ -48,9 +48,9 @@ public class ICMP extends BasePacket {
     }
 
     public boolean isError() {
-        return TYPE_UNREACH == code || TYPE_SOURCE_QUENCH == code ||
-                TYPE_REDIRECT == code || TYPE_TIME_EXCEEDED == code ||
-                TYPE_PARAMETER_PROBLEM == code;
+        return TYPE_UNREACH == type || TYPE_SOURCE_QUENCH == type ||
+                TYPE_REDIRECT == type || TYPE_TIME_EXCEEDED == type ||
+                TYPE_PARAMETER_PROBLEM == type;
     }
 
     public char getType() {

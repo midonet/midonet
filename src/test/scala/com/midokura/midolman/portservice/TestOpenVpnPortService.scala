@@ -105,7 +105,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
         priPortId = portMgr.create(priPortConfig)
 
         // Create a vpn config.
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
     }

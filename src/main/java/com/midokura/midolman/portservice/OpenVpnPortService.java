@@ -39,19 +39,20 @@ import com.midokura.midolman.util.Net;
 public class OpenVpnPortService implements PortService {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OpenVpnPortService.class);
+            .getLogger(OpenVpnPortService.class);
     private static String logDir;
 
     public static final String SERVICE_EXT_ID = "openvpn";
     private static final String VPN_PORT_NAME = "midovpn";
-    private static final int OPENVPN_RULE_TABLE = 7777;
     private static final String[] OPENVPN_CMD = {
-        "/usr/sbin/openvpn", "--mode", "p2p", "--dev-type", "tap"};
+            "/usr/sbin/openvpn", "--mode", "p2p", "--dev-type", "tap"};
     private static final String OPENVPN_OPT_AUTH = "--auth";
     private static final String OPENVPN_OPT_DEV = "--dev";
     private static final String OPENVPN_OPT_ADDR = "--local";
     private static final String OPENVPN_OPT_PROTO = "--proto";
     private static final String OPENVPN_OPT_TCP_SERVER = "tcp-server";
+    private static final String OPENVPN_OPT_TCP_CLIENT = "tcp-client";
+    private static final String OPENVPN_OPT_REMOTE = "--remote";
     private static final String OPENVPN_OPT_PORT = "--port";
     private static final String OPENVPN_OPT_LOG = "--log";
     private static final String OPENVPN_OPT_SYSLOG = "--syslog";
@@ -95,14 +96,14 @@ public class OpenVpnPortService implements PortService {
         // Delete all openvpn ports.
         // TODO(yoshi): use delete port if possible.
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
-            portServiceExtIdKey, SERVICE_EXT_ID);
+                portServiceExtIdKey, SERVICE_EXT_ID);
         for (String portName : portNames) {
             log.info("delete port {}", portName);
             ovsdb.delPort(portName);
             try {
                 Process ipCmd = Runtime.getRuntime().exec(
-                    String.format(
-                        "sudo ip link del %s", portName));
+                        String.format(
+                                "sudo ip link del %s", portName));
                 ipCmd.waitFor();
                 log.debug("clear: ran ip link");
             } catch (InterruptedException e) {
@@ -137,10 +138,10 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void addPort(long datapathId, UUID portId, MAC mac)
-        throws StateAccessException {
+            throws StateAccessException {
         // Check if the port is already created.
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
-            externalIdKey, portId.toString());
+                externalIdKey, portId.toString());
         if (!portNames.isEmpty()) {
             return;
         }
@@ -149,14 +150,14 @@ public class OpenVpnPortService implements PortService {
         // The length of interface names are limited to 16 bytes.
         if (portName.length() > 16) {
             throw new RuntimeException(
-                "The name of the vpn private port is too long");
+                    "The name of the vpn private port is too long");
         }
 
         log.info("Add {} port {} to datapath {}",
-                 new Object[] {SERVICE_EXT_ID, portName, datapathId});
+                new Object[]{SERVICE_EXT_ID, portName, datapathId});
 
         // Using the vpn configs at the head is sufficient to setup ports.
-        List<ZkNodeEntry<UUID, VpnConfig>> vpnNodes= vpnMgr.list(portId);
+        List<ZkNodeEntry<UUID, VpnConfig>> vpnNodes = vpnMgr.list(portId);
         ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnNodes.get(0);
         VpnConfig vpn = vpnNode.value;
 
@@ -166,8 +167,8 @@ public class OpenVpnPortService implements PortService {
         } else if (vpn.privatePortId.equals(portId)) {
             try {
                 Process ipCmd = Runtime.getRuntime().exec(
-                    String.format(
-                        "sudo ip tuntap add dev %s mode tap", portName));
+                        String.format(
+                                "sudo ip tuntap add dev %s mode tap", portName));
                 ipCmd.waitFor();
                 log.debug("addPort: ran ip tuntap");
             } catch (InterruptedException e) {
@@ -178,8 +179,8 @@ public class OpenVpnPortService implements PortService {
             portBuilder = ovsdb.addSystemPort(datapathId, portName);
         } else {
             throw new RuntimeException(
-                "Invalid port " + portId.toString() + "for vpn " +
-                vpnNode.key.toString());
+                    "Invalid port " + portId.toString() + "for vpn " +
+                            vpnNode.key.toString());
         }
         // All the vpn ports are usual materialized router ports with
         // midolman-vnet.
@@ -200,9 +201,9 @@ public class OpenVpnPortService implements PortService {
         // Bring the port up.
         try {
             Process ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip link set dev %s arp on mtu 1300 multicast off up",
-                    portName));
+                    String.format(
+                            "sudo ip link set dev %s arp on mtu 1300 multicast off up",
+                            portName));
             log.debug("addPort: ran ip link");
         } catch (IOException e) {
             log.warn("addPort", e);
@@ -215,7 +216,7 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void addPort(long datapathId, UUID portId)
-        throws StateAccessException {
+            throws StateAccessException {
         addPort(datapathId, portId, null);
     }
 
@@ -226,33 +227,42 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void configurePort(UUID portId, String portName)
-        throws StateAccessException, IOException {
+            throws StateAccessException, IOException {
         PortConfig config = portMgr.get(portId).value;
         if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
             throw new RuntimeException(
-                "Target port isn't a MaterializedRouterPortConfig.");
+                    "Target port isn't a MaterializedRouterPortConfig.");
         }
         PortDirectory.MaterializedRouterPortConfig portConfig =
-            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+                PortDirectory.MaterializedRouterPortConfig.class.cast(config);
 
         ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnMgr.list(portId).get(0);
         VpnConfig vpn = vpnNode.value;
         if (vpn.publicPortId.equals(portId)) {
             // Set IP address of the port.
             Process ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip addr add %s/%d dev %s",
-                    Net.convertIntAddressToString(portConfig.localNwAddr),
-                    portConfig.nwLength, portName));
+                    String.format(
+                            "sudo ip addr add %s/%d dev %s",
+                            Net.convertIntAddressToString(portConfig.localNwAddr),
+                            portConfig.nwLength, portName));
             log.debug("configurePort: ran ip addr");
+
+            // We need different table number if we want to run different vpns on the same machine.
+            // In the table just one entry will be written, that is the defaut gateway
+            // We use & 0xfff to truncate the int, I didn't find what's the maximum number
+            // allowed for tables but till 12bit it's ok
+            // TODO(rossella) delete the policy-based-rounting table during the clean up, agree a
+            // good strategy
+            int tableNr = portId.hashCode() & 0xfff;
 
             // Add a rule and a route that transports packets from the
             // internal port to the gateway (the controller).
             ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip rule add from %s table %d",
-                    Net.convertIntAddressToString(portConfig.localNwAddr),
-                    OPENVPN_RULE_TABLE));
+
+                    String.format(
+                            "sudo ip rule add from %s table %d",
+                            Net.convertIntAddressToString(portConfig.localNwAddr),
+                            tableNr));
             try {
                 ipCmd.waitFor();
             } catch (InterruptedException e) {
@@ -261,10 +271,11 @@ public class OpenVpnPortService implements PortService {
             log.debug("configurePort: ran ip rule");
 
             ipCmd = Runtime.getRuntime().exec(
-                String.format(
-                    "sudo ip route add default via %s table %d",
-                    Net.convertIntAddressToString(portConfig.portAddr),
-                    OPENVPN_RULE_TABLE));
+
+                    String.format(
+                            "sudo ip route add default via %s table %d",
+                            Net.convertIntAddressToString(portConfig.portAddr),
+                            tableNr));
             try {
                 ipCmd.waitFor();
             } catch (InterruptedException e) {
@@ -276,9 +287,9 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void configurePort(UUID portId)
-        throws StateAccessException, IOException {
+            throws StateAccessException, IOException {
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
-            externalIdKey, portId.toString());
+                externalIdKey, portId.toString());
         if (portNames.size() != 1) {
             throw new RuntimeException("Ports with same portId found.");
         }
@@ -294,14 +305,14 @@ public class OpenVpnPortService implements PortService {
     public void delPort(UUID portId) {
         // TODO(yoshi): delete ip rules if the port is a public port.
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
-            externalIdKey, portId.toString());
+                externalIdKey, portId.toString());
         for (String portName : portNames) {
             log.info("delete port {}", portName);
             ovsdb.delPort(portName);
             try {
                 Process ipCmd = Runtime.getRuntime().exec(
-                    String.format(
-                        "sudo ip link del %s", portName));
+                        String.format(
+                                "sudo ip link del %s", portName));
                 ipCmd.waitFor();
                 log.debug("delPort: ran ip link");
             } catch (InterruptedException e) {
@@ -314,13 +325,13 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void start(long datapathId, short localPortNum, short remotePortNum)
-        throws StateAccessException, IOException {
+            throws StateAccessException, IOException {
         throw new RuntimeException("not implemented");
     }
 
     @Override
     public void start(UUID serviceId)
-        throws StateAccessException, IOException {
+            throws StateAccessException, IOException {
         ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnMgr.get(serviceId);
         UUID vpnId = vpnNode.key;
         VpnConfig vpn = vpnNode.value;
@@ -328,17 +339,17 @@ public class OpenVpnPortService implements PortService {
         PortConfig config = portMgr.get(vpn.publicPortId).value;
         if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
             throw new RuntimeException(
-                "Public port isn't a MaterializedRouterPortConfig.");
+                    "Public port isn't a MaterializedRouterPortConfig.");
         }
         PortDirectory.MaterializedRouterPortConfig publicPort =
-            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+                PortDirectory.MaterializedRouterPortConfig.class.cast(config);
         String publicPortAddr = Net.convertIntAddressToString(
-            publicPort.localNwAddr);
+                publicPort.localNwAddr);
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
-            externalIdKey, vpn.publicPortId.toString());
+                externalIdKey, vpn.publicPortId.toString());
         if (portNames.size() != 1) {
             throw new RuntimeException(
-                "Ports with same portId found.");
+                    "Ports with same portId found.");
         }
         String publicPortName = null;
         for (String portName : portNames) {
@@ -348,24 +359,24 @@ public class OpenVpnPortService implements PortService {
         config = portMgr.get(vpn.privatePortId).value;
         if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
             throw new RuntimeException(
-                "Private port isn't a MaterializedRouterPortConfig.");
+                    "Private port isn't a MaterializedRouterPortConfig.");
         }
         PortDirectory.MaterializedRouterPortConfig privatePort =
-            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+                PortDirectory.MaterializedRouterPortConfig.class.cast(config);
         portNames = ovsdb.getPortNamesByExternalId(
-            externalIdKey, vpn.privatePortId.toString());
+                externalIdKey, vpn.privatePortId.toString());
         if (portNames.size() != 1) {
             throw new RuntimeException(
-                "Ports with same portId found.");
+                    "Ports with same portId found.");
         }
         String privatePortName = null;
         for (String portName : portNames) {
             privatePortName = portName;
         }
 
-        log.info("lauch openvpn: public port {} private {} address {} port {}",
-                 new Object[] {vpn.publicPortId, vpn.privatePortId,
-                               publicPortAddr, vpn.port});
+        log.info("launch openvpn: public port {} private {} address {} port {}",
+                new Object[]{vpn.publicPortId, vpn.privatePortId,
+                        publicPortAddr, vpn.port});
 
         List<String> openvpnCmd = new ArrayList(Arrays.asList(OPENVPN_CMD));
         openvpnCmd.add(OPENVPN_OPT_AUTH);
@@ -373,23 +384,32 @@ public class OpenVpnPortService implements PortService {
         openvpnCmd.add("none");
         openvpnCmd.add(OPENVPN_OPT_DEV);
         openvpnCmd.add(privatePortName);
+
+        // TODO(yoshi): add "--verb n" depending on log level.
+        openvpnCmd.add(OPENVPN_OPT_PROTO);
+        if (vpn.vpnType == VpnType.OPENVPN_TCP_SERVER) {
+            openvpnCmd.add(OPENVPN_OPT_TCP_SERVER);
+        } else if (vpn.vpnType == VpnType.OPENVPN_TCP_CLIENT || vpn.vpnType == VpnType.OPENVPN_CLIENT) {
+            openvpnCmd.add(OPENVPN_OPT_TCP_CLIENT);
+            // add remote if specified
+            if (vpn.remoteIp != null) {
+                openvpnCmd.add(OPENVPN_OPT_REMOTE);
+                openvpnCmd.add(vpn.remoteIp.toString());
+            } else {
+                log.error("vpn client, invalid remote IP");
+            }
+        }
         openvpnCmd.add(OPENVPN_OPT_ADDR);
         openvpnCmd.add(publicPortAddr);
         openvpnCmd.add(OPENVPN_OPT_PORT);
         openvpnCmd.add(Integer.toString(vpn.port));
-        // TODO(yoshi): add "--verb n" depending on log level.
-
-        if (vpn.vpnType == VpnType.OPENVPN_TCP_SERVER) {
-            openvpnCmd.add(OPENVPN_OPT_PROTO);
-            openvpnCmd.add(OPENVPN_OPT_TCP_SERVER);
-        }
         if (logDir != null) {
             openvpnCmd.add(OPENVPN_OPT_LOG);
             openvpnCmd.add(logDir + "/" + publicPortName + ".log");
         } else {
             // redirect log output to syslog with publicPortName.
             log.info("openvpn's log is redirected to syslog {}",
-                     publicPortName);
+                    publicPortName);
             openvpnCmd.add(OPENVPN_OPT_LOG);
             openvpnCmd.add(publicPortName);
         }

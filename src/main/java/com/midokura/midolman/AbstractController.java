@@ -170,11 +170,10 @@ public abstract class AbstractController
                                     byte[] data);
 
     private void _addVirtualPort(int num, String name, MAC addr, UUID uuid) {
-        log.info("_addVirtualPort num:{} name:{} addr:{} id:{}", new Object[] {
-                num, name, addr, uuid });
+        log.info("_addVirtualPort num:{} name:{} addr:{} id:{}",
+                new Object[] { num, name, addr, uuid });
         portNumToUuid.put(num, uuid);
         portUuidToNumberMap.put(uuid, num);
-        // TODO(pino, jacob): do we really need to check for null publicIp?
         try {
             portLocMap.put(uuid, publicIp);
         } catch (KeeperException e) {
@@ -223,55 +222,76 @@ public abstract class AbstractController
         int portNum = portDesc.getPortNumber() & 0xffff;
         String name = portDesc.getName();
         MAC addr = new MAC(portDesc.getHardwareAddress());
-        log.info("onPortStatus: num:{} name:{} reason:{}", new Object[] {
-                portNum, name, reason });
+        log.info("onPortStatus: num:{} name:{} reason:{}",
+                new Object[] { portNum, name, reason });
 
-        // There are three uses/kinds of ports:
-        // 1) Virtual ports - have an external id.
-        // 2) Service ports - associated with vports, different external id.
-        // 3) Tunnel ports
-        // Treat each type differently.
+        // OpenFlow ports (ports on the OF-compliant switch) are used in one of
+        // three ways:
+        //
+        // 1) Virtual ports - the OF port maps to a port in the virtual
+        // topology. Any packet that is received by the OF port is considered
+        // to be received by the virtual port and therefore enters a virtual
+        // device. Virtual ports can be recognized thanks to an 'externalId'
+        // in the Open vSwitch configuration whose key is 'midolman-vnet' and
+        // whose value is a UUID.
+        //
+        // 2) Tunnel ports - the OF port is the switch's tunnel (currently GRE
+        // only) to one remote server. The remote server address is encoded in
+        // the tunnel port's name. The tunnel must connect to another OF switch
+        // (OVS datapath) that has the same externalId (e.g. by using the same
+        // GRE key). Tunnel ports are recognized by their naming pattern and
+        // the lack of any 'externalId'.
+        //
+        // 3)Service ports - the OF port is used by a process on the host OS
+        // to implement a protocol or feature (e.g BGP). The port is managed by
+        // a PortService and has no equivalence in the virtual topology. Think
+        // of the port as being part of the internal software of one of the
+        // virtual devices. Service ports are recognized thanks to an OVS
+        // 'externalId' whose key is 'midolman_port_id' and whose value is a
+        // virtual port UUID.
+        // 
+        // OF ports that are not recognized as one of these three types are
+        // ignored by the controller and packets received on them are dropped.
 
-        // It's a virtual port if it has a uuid.
+        // Does it have a virtual port external id in OVSDB?
         UUID uuid = getPortUuidFromOvsdb(datapathId, portNum);
-        // Is it a tunnel?
+        // Does its name match the tunnel naming pattern?
         IntIPv4 peerIp = null;
         if (isGREPortOfKey(name))
             peerIp = peerIpOfGrePortName(name);
-        // It's a service port if the service port uuid is set.
+        // Does it have a service port external id in OVSDB?
         UUID svcId = getServicePortUuidFromOvsdb(datapathId, portNum);
 
         // The three port types are mutually exclusive
-        if(null != uuid && peerIp != null)
-            log.error("onPortStatus num:{} seems to be a tunnel to {} but " +
-                    "has a virtual port id {}", new Object[] { portNum, peerIp,
-                    uuid });
-        if(null != uuid && null != svcId)
-            log.error("onPortStatus num:{} has both a virtual port id {} " +
-                    "and a service port id {}", new Object[] { portNum, uuid,
-                    svcId});
-        if(null != svcId && peerIp != null)
-            log.error("onPortStatus num:{} seems to be a tunnel to {} but " +
-                    "has a service port uuid {}", new Object[] { portNum,
-                    peerIp, svcId });
+        if (null != uuid && peerIp != null)
+            log.error("onPortStatus num:{} seems to be a tunnel to {} but "
+                    + "has a virtual port id {}",
+                    new Object[] { portNum, peerIp, uuid });
+        if (null != uuid && null != svcId)
+            log.error("onPortStatus num:{} has both a virtual port id {} "
+                    + "and a service port id {}",
+                    new Object[] { portNum, uuid, svcId });
+        if (null != svcId && peerIp != null)
+            log.error("onPortStatus num:{} seems to be a tunnel to {} but "
+                    + "has a service port uuid {}",
+                    new Object[] { portNum, peerIp, svcId });
 
         if (reason.equals(OFPortReason.OFPPR_ADD)) {
             boolean portDown = (portDesc.getConfig() & portDownFlag) != 0;
             // If it's a service port - don't care whether it's up.
             if (null != svcId)
                 addServicePort(portNum, name, svcId);
-            else if(portDown) {
+            else if (portDown) {
                 log.info("onPortStatus num:{} is down, don't notify subclass",
                         portNum);
                 downPorts.add(portNum);
-            }
-            else if(null != uuid)
+            } else if (null != uuid)
                 _addVirtualPort(portNum, name, addr, uuid);
-            else if(peerIp != null)
+            else if (peerIp != null)
                 _addTunnelPort(portNum, peerIp);
             else
-                log.error("onPortStatus unrecognized port type - not service" +
-                          "port, nor virtual port, nor tunnel");
+                log.error("onPortStatus unrecognized port type - not service"
+                        + "port, nor virtual port, nor tunnel");
         } else if(reason.equals(OFPortReason.OFPPR_DELETE)) {
             // Remove any flows which have this port as the in-port.
             deleteFlowsByInPort(portNum);
@@ -280,13 +300,13 @@ public abstract class AbstractController
             // It's a tunnel or virtual port.
             else if (downPorts.contains(portNum))
                 downPorts.remove(portNum);
-            else if(null != uuid)
+            else if (null != uuid)
                 _deleteVirtualPort(portNum, uuid);
-            else if(peerIp != null)
+            else if (peerIp != null)
                 _deleteTunnelPort(portNum);
             else
-                log.error("onPortStatus unrecognized port type - not service" +
-                        "port, nor virtual port, nor tunnel");
+                log.error("onPortStatus unrecognized port type - not service"
+                        + "port, nor virtual port, nor tunnel");
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
             // If it's a service port do nothing.
             // TODO(pino, yoshi): handle service port changes.
@@ -326,7 +346,7 @@ public abstract class AbstractController
             if (null != oldId && !oldId.equals(uuid))
                 _deleteVirtualPort(portNum, oldId);
             // Does the port have a new or different uuid?
-            if (uuid != null && (null == oldId || !oldId.equals(uuid)))
+            if (uuid != null && !uuid.equals(oldId))
                 _addVirtualPort(portNum, name, addr, uuid);
 
             // Was the port previously a tunnel port?
@@ -334,8 +354,7 @@ public abstract class AbstractController
             if (null != oldPeerIp && !oldPeerIp.equals(peerIp))
                 _deleteTunnelPort(portNum);
             // Is the port a new tunnel or did its name change?
-            if (peerIp != null && (null == oldPeerIp ||
-                    !oldPeerIp.equals(peerIp)))
+            if (peerIp != null && !peerIp.equals(oldPeerIp))
                 _addTunnelPort(portNum, peerIp);
         } else {
             log.error("Unknown OFPortReason update: {}", reason);
@@ -363,7 +382,7 @@ public abstract class AbstractController
     protected abstract void deleteServicePort(int num, String name, UUID vId);
 
     /**
-     * Tunnel ports are added regardless of whether they are up.
+     * Tunnel ports are added only if they are actually up.
      * @param num
      * @param peerIP
      */
@@ -440,11 +459,11 @@ public abstract class AbstractController
          */
 
         log.info("PortLocationUpdate: {} moved from {} to {}",
-            new Object[] { portUuid, oldAddr, newAddr });
+                new Object[] { portUuid, oldAddr, newAddr });
         if (newAddr != null && !newAddr.equals(publicIp)) {
             String grePortName = makeGREPortName(newAddr);
             log.info("Requesting tunnel from {} to {} with name {}",
-                     new Object[] { publicIp, newAddr, grePortName });
+                    new Object[] { publicIp, newAddr, grePortName });
 
             if (publicIp == null) {
                 log.error("Trying to make tunnel without a public IP.");

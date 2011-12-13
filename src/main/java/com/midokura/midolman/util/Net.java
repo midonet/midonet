@@ -71,10 +71,18 @@ public class Net {
     public static int convertStringAddressToInt(String address) {
         String[] addrArray = address.split("\\.");
         int num = 0;
+        if (addrArray.length != 4)
+            throw new IllegalArgumentException("Specified IPv4 address must" +
+                    "contain 4 sets of numerical digits separated by periods");
         for (int i = 0; i < addrArray.length; i++) {
+            int addr = Integer.parseInt(addrArray[i]);
+            if (addr < 0 || addr > 255) {
+                throw new IllegalArgumentException("Specified IPv4 address must" +
+                        "contain 4 sets of numerical digits separated by periods");
+            }
             // Shift one octet to the left.
             num <<= 8;
-            num += (Integer.parseInt(addrArray[i]) & 0xff);
+            num += addr & 0xff;
         }
         return num;
     }

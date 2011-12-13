@@ -890,9 +890,30 @@ public class TestNetworkController {
         eth.setSourceMACAddress(MAC.fromString("02:a1:b2:c3:d4:e5"));
         eth.setDestinationMACAddress(MAC.fromString("02:a1:b2:c3:d4:e6"));
         // ICMP errors can't trigger ICMP errors.
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, null));
+        Assert.assertFalse(networkCtrl.canSendICMP(eth, dstPortId));
+
+        // Make an ICMP echo request. Verify it can trigger ICMP errors.
+        icmp = new ICMP();
+        short id = -12345;
+        short seq = -20202;
+        byte[] data = new byte[] { (byte) 0xaa, (byte) 0xbb, (byte) 0xcc,
+                (byte) 0xdd, (byte) 0xee, (byte) 0xff };
+        icmp.setEchoRequest(id, seq, data);
+        ip = new IPv4();
+        ip.setPayload(icmp);
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
+        // The ping can come from anywhere if one of the next hops is a
+        int senderIP = Net.convertStringAddressToInt("10.0.2.13");
+        ip.setSourceAddress(senderIP);
+        ip.setDestinationAddress(Net.convertStringAddressToInt("10.0.2.1"));
+        eth = new Ethernet();
+        eth.setPayload(ip);
+        eth.setEtherType(IPv4.ETHERTYPE);
+        eth.setDestinationMACAddress(MAC.fromString("02:cd:ef:01:23:45"));
+        eth.setSourceMACAddress(MAC.fromString("02:cd:ef:01:23:46"));
         Assert.assertTrue(networkCtrl.canSendICMP(eth, null));
         Assert.assertTrue(networkCtrl.canSendICMP(eth, dstPortId));
-
     }
 
     @Test

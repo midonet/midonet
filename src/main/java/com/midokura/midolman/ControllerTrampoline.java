@@ -1,18 +1,28 @@
 /*
  * Copyright 2011 Midokura KK
  */
-
 package com.midokura.midolman;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.UUID;
-
-import javax.management.JMException;
-import javax.management.ObjectName;
+import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.openflow.Controller;
+import com.midokura.midolman.openflow.ControllerStub;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.portservice.BgpPortService;
+import com.midokura.midolman.portservice.NullPortService;
+import com.midokura.midolman.portservice.OpenVpnPortService;
+import com.midokura.midolman.portservice.PortService;
+import com.midokura.midolman.portservice.VpnPortAgent;
+import com.midokura.midolman.quagga.BgpVtyConnection;
+import com.midokura.midolman.quagga.ZebraServer;
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.VpnZkManager.VpnType;
+import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.MemcacheCache;
+import com.midokura.midolman.util.VoldemortCache;
+import com.midokura.midolman.voldemort.AmnesicStorageConfiguration;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
@@ -26,43 +36,19 @@ import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer3.NetworkController;
-import com.midokura.midolman.openflow.Controller;
-import com.midokura.midolman.openflow.ControllerStub;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.portservice.BgpPortService;
-import com.midokura.midolman.portservice.OpenVpnPortService;
-import com.midokura.midolman.portservice.PortService;
-import com.midokura.midolman.portservice.VpnPortAgent;
-import com.midokura.midolman.quagga.BgpVtyConnection;
-import com.midokura.midolman.quagga.ZebraServer;
-import com.midokura.midolman.state.AdRouteZkManager;
-import com.midokura.midolman.state.BgpZkManager;
-import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.VpnZkManager;
-import com.midokura.midolman.state.VpnZkManager.VpnType;
-import com.midokura.midolman.state.ZkDirectory;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.MemcacheCache;
-import com.midokura.midolman.util.VoldemortCache;
-import com.midokura.midolman.voldemort.AmnesicStorageConfiguration;
+import javax.management.JMException;
+import javax.management.ObjectName;
+import java.io.File;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.UUID;
 
 public class ControllerTrampoline implements Controller {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(ControllerTrampoline.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(ControllerTrampoline.class);
 
     public static final int CACHE_EXPIRATION_SECONDS = 60;
 
@@ -86,14 +72,14 @@ public class ControllerTrampoline implements Controller {
         this.ovsdb = ovsdb;
         this.directory = directory;
         this.reactor = reactor;
-        basePath = config.configurationAt("midolman").
-                getString("midolman_root_key");
+        this.basePath = config.configurationAt("midolman")
+                              .getString("midolman_root_key");
+
         this.pathMgr = new ZkPathManager(basePath);
-
-        externalIdKey = config.configurationAt("openvswitch").getString(
-                "midolman_ext_id_key", "midolman-vnet");
-
         this.bridgeMgr = new BridgeZkManager(directory, basePath);
+
+        externalIdKey = config.configurationAt("openvswitch")
+                              .getString("midolman_ext_id_key", "midolman-vnet");
     }
 
     @Override
@@ -110,22 +96,21 @@ public class ControllerTrampoline implements Controller {
         String cacheType = config.getString("cache.type", "memcache");
 
         if (cacheType.equals("voldemort")) {
-            long voldemortLifetimeMilliseconds =
-                    config.configurationAt("voldemort")
-                    .getLong("lifetime_millis",
-                            AmnesicStorageConfiguration.DEFAULT_LIFETIME);
+            long voldemortLifetimeMilliseconds = config.configurationAt("voldemort")
+                .getLong("lifetime_millis",
+                         AmnesicStorageConfiguration.DEFAULT_LIFETIME);
 
             int voldemortLifetime =
                     (int)(voldemortLifetimeMilliseconds / 1000);
 
-            String voldemortStore =
-                    config.configurationAt("voldemort").getString("store");
+            String voldemortStore = config.configurationAt("voldemort")
+                                          .getString("store");
 
             String[] voldemortHosts = config.configurationAt("voldemort")
-                    .getString("servers").split(",");
+                                            .getString("servers").split(",");
 
             return new VoldemortCache(voldemortStore, voldemortLifetime,
-                    Arrays.asList(voldemortHosts));
+                                      Arrays.asList(voldemortHosts));
         } else if (cacheType.equals("memcache")) {
             // set log4j logging for spymemcached client
             Properties props = System.getProperties();
@@ -133,7 +118,7 @@ public class ControllerTrampoline implements Controller {
             System.setProperties(props);
 
             String memcacheHosts = config.configurationAt("memcache")
-                    .getString("memcache_hosts");
+                                         .getString("memcache_hosts");
 
             return new MemcacheCache(memcacheHosts, CACHE_EXPIRATION_SECONDS);
         } else {
@@ -174,52 +159,43 @@ public class ControllerTrampoline implements Controller {
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
 
-                long idleFlowExpireMillis =
-                         config.configurationAt("openflow")
-                               .getLong("flow_idle_expire_millis");
-                IntIPv4 localNwAddr = IntIPv4.fromString(
-                        config.configurationAt("openflow")
-                            .getString("public_ip_address"));
+                long idleFlowExpireMillis = config.configurationAt("openflow")
+                                                  .getLong("flow_idle_expire_millis");
+
+                IntIPv4 localNwAddr =
+                    IntIPv4.fromString(config.configurationAt("openflow")
+                                             .getString("public_ip_address"));
 
                 Cache cache = createCache();
 
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
                 BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
-                AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory,
-                        basePath);
+                AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
 
-                File socketFile = new File("/var/run/quagga/zserv.api");
-                File socketDir = socketFile.getParentFile();
-                if (!socketDir.exists()) {
-                    socketDir.mkdirs();
-                    // Set permission to let quagga daemons write.
-                    socketDir.setWritable(true, false);
-                }
-                AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
-                AFUNIXSocketAddress address =
-                    new AFUNIXSocketAddress(socketFile);
-                socketFile.delete();
-                ZebraServer zebra = new ZebraServer(server, address, portMgr,
-                                                    routeMgr, ovsdb);
-                PortService service = new BgpPortService(reactor,
-                    ovsdb, "midolman_port_id", "midolman_port_service",
-                    portMgr, routeMgr, bgpMgr, adRouteMgr, zebra,
-                    new BgpVtyConnection("localhost", 2605, "zebra",
-                                         bgpMgr, adRouteMgr));
+                PortService bgpPortService =
+                    initializeBgpPortService(reactor, ovsdb,
+                                             portMgr, routeMgr, bgpMgr, adRouteMgr);
 
                 // Create VPN port agent for OpenVPN.
                 VpnZkManager vpnMgr = new VpnZkManager(directory, basePath);
-                OpenVpnPortService openVpnSvc = new OpenVpnPortService(
-                    ovsdb, externalIdKey, "midolman_port_service", portMgr,
-                    vpnMgr);
+                OpenVpnPortService openVpnSvc =
+                    new OpenVpnPortService(ovsdb,
+                                           externalIdKey, "midolman_port_service",
+                                           portMgr, vpnMgr);
                 openVpnSvc.clear();
-                long sessionId = directory.getSessionId();
-                VpnPortAgent vpnAgent = new VpnPortAgent(sessionId, datapathId,
-                                                         vpnMgr);
+                long sessionId = 0;
+                if (directory instanceof ZkDirectory) {
+                    ZkDirectory zkDir = ZkDirectory.class.cast(directory);
+                    sessionId = zkDir.zk.getSessionId();
+                }
+
+                VpnPortAgent vpnAgent =
+                    new VpnPortAgent(sessionId, datapathId, vpnMgr);
+
                 vpnAgent.setPortService(VpnType.OPENVPN_SERVER, openVpnSvc);
-                vpnAgent.setPortService(VpnType.OPENVPN_TCP_SERVER,
-                                        openVpnSvc);
+                vpnAgent.setPortService(VpnType.OPENVPN_TCP_SERVER, openVpnSvc);
+                vpnAgent.setPortService(VpnType.OPENVPN_TCP_CLIENT, openVpnSvc);
                 vpnAgent.start();
 
                 newController = new NetworkController(
@@ -238,7 +214,7 @@ public class ControllerTrampoline implements Controller {
                         reactor,
                         cache,
                         externalIdKey,
-                        service);
+                        bgpPortService);
             } else {
                 BridgeConfig bridgeConfig;
                 try {
@@ -255,25 +231,23 @@ public class ControllerTrampoline implements Controller {
                             pathMgr.getBridgePortLocationsPath(deviceId));
 
                 PortToIntNwAddrMap portLocationMap =
-                        new PortToIntNwAddrMap(portLocationDirectory);
+                    new PortToIntNwAddrMap(portLocationDirectory);
 
                 Directory macPortDir =
                     directory.getSubDirectory(
                             pathMgr.getBridgeMacPortsPath(deviceId));
                 MacPortMap macPortMap = new MacPortMap(macPortDir);
 
-                long idleFlowExpireMillis =
-                         config.configurationAt("openflow")
-                               .getLong("flow_idle_expire_millis");
-                long flowExpireMillis =
-                         config.configurationAt("openflow")
-                               .getLong("flow_expire_millis");
-                long macPortTimeoutMillis =
-                         config.configurationAt("bridge")
-                               .getLong("mac_port_mapping_expire_millis");
-                IntIPv4 localNwAddr = IntIPv4.fromString(
-                        config.configurationAt("openflow")
-                            .getString("public_ip_address"));
+                long idleFlowExpireMillis = config.configurationAt("openflow")
+                                                  .getLong("flow_idle_expire_millis");
+                long flowExpireMillis = config.configurationAt("openflow")
+                                              .getLong("flow_expire_millis");
+                long macPortTimeoutMillis = config.configurationAt("bridge")
+                                                  .getLong("mac_port_mapping_expire_millis");
+
+                IntIPv4 localNwAddr =
+                    IntIPv4.fromString(config.configurationAt("openflow")
+                                             .getString("public_ip_address"));
 
                 newController = new BridgeController(
                         datapathId,
@@ -303,6 +277,56 @@ public class ControllerTrampoline implements Controller {
         } catch (JMException e) {
             log.warn("JMX error", e);
         }
+    }
+
+    private PortService initializeBgpPortService(Reactor reactor,
+                                                 OpenvSwitchDatabaseConnection ovsdb,
+                                                 PortZkManager portMgr,
+                                                 RouteZkManager routeMgr,
+                                                 BgpZkManager bgpMgr,
+                                                 AdRouteZkManager adRouteMgr)
+        throws IOException {
+        boolean canStartWithoutBgp = config.configurationAt("midolman")
+                                           .getBoolean("disable_bgp_on_failure", false);
+
+        AFUNIXServerSocket server;
+        AFUNIXSocketAddress address;
+
+        try {
+            File socketFile = new File("/var/run/quagga/zserv.api");
+            File socketDir = socketFile.getParentFile();
+            if (!socketDir.exists()) {
+                socketDir.mkdirs();
+                // Set permission to let quagga daemons write.
+                socketDir.setWritable(true, false);
+            }
+            server = AFUNIXServerSocket.newInstance();
+            address = new AFUNIXSocketAddress(socketFile);
+            socketFile.delete();
+        } catch (IOException e) {
+            if (canStartWithoutBgp) {
+                log.error("Exception while creating zebra zocket. " +
+                              "Midolman will start without bgp support !", e);
+
+                return new NullPortService();
+            }
+
+            throw e;
+        }
+
+        ZebraServer zebraServer =
+            new ZebraServer(server, address, portMgr, routeMgr, ovsdb);
+
+        BgpVtyConnection vtyConnection =
+            new BgpVtyConnection("localhost", 2605, "zebra", bgpMgr, adRouteMgr);
+
+        PortService bgpPortService =
+            new BgpPortService(reactor, ovsdb,
+                               "midolman_port_id", "midolman_port_service",
+                               portMgr, routeMgr, bgpMgr, adRouteMgr,
+                               zebraServer, vtyConnection);
+
+        return bgpPortService;
     }
 
     @Override

@@ -229,22 +229,48 @@ public class ZkManager {
             return this.zk.multi(ops);
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
-                    "ZooKeeper error occurred while executing multi path "
-                            + e.getMessage(), e);
+                getMultiErrorMessage("ZooKeeper error occurred while " +
+                                         "executing multi ops.", ops, e),
+                e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
-                    "ZooKeeper error occurred while executing multi path "
-                            + e.getMessage(), e);
+                getMultiErrorMessage("ZooKeeper error occurred while " +
+                                         "executing multi ops.", ops, e), e);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while executing multi ops. "
-                            + e.getMessage(), e);
+                getMultiErrorMessage("ZooKeeper error occurred while " +
+                                         "executing multi ops.", ops, e), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while executing multi ops.",
                     e);
-
         }
+    }
+
+    private String getMultiErrorMessage(String message, List<Op> ops,
+                                        KeeperException ex)
+    {
+        message += ex.getMessage();
+        List<OpResult> results = ex.getResults();
+        if ( results == null ) {
+            return message;
+        }
+
+        for (int i = 0, resultsSize = results.size(); i < resultsSize; i++) {
+            OpResult result = results.get(i);
+            Op operation = ops.get(i);
+
+            if  (result instanceof OpResult.ErrorResult) {
+                OpResult.ErrorResult errorResult = (OpResult.ErrorResult) result;
+
+                if ( errorResult.getErr() != 0 ) {
+                    message += "\r\n\t\t" + operation.getPath()
+                        + " failed with error code: " + errorResult.getErr();
+                }
+            }
+        }
+
+        return message;
     }
 
     public void update(String path, byte[] data) throws StateAccessException {

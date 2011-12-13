@@ -186,10 +186,6 @@ public class TestBridgeController {
         ovsdb.setPortExternalId(dp_id, 0, "midonet", portUuids[0].toString());
         ovsdb.setPortExternalId(dp_id, 1, "midonet", portUuids[1].toString());
         ovsdb.setPortExternalId(dp_id, 2, "midonet", portUuids[2].toString());
-        ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();
-        portList.add(phyPorts[0]);
-        portList.add(phyPorts[1]);
-        portList.add(phyPorts[2]);
 
         // Configuration for the Manager.
         String configString = 
@@ -282,13 +278,14 @@ public class TestBridgeController {
 
         OFFeaturesReply features = new OFFeaturesReply();
         // Start with an empty port list.
-        features.setPorts(new ArrayList<OFPhysicalPort>());
+        ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();
+        features.setPorts(portList);
         controllerStub.setFeatures(features);
         controller.onConnectionMade();
 
-        features.setPorts(portList);
         // Populate phyPorts and add to controller.
         for (int i = 0; i < 8; i++) {
+            portList.add(phyPorts[i]);
             phyPorts[i].setPortNumber((short)i);
             phyPorts[i].setHardwareAddress(macList[i].getAddress());
             // First three ports are local.  The rest are tunneled.

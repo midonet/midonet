@@ -103,7 +103,7 @@ class TestVpnPortAgent {
     @Test
     def testStart() {
         log.debug("testStart")
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnAgent.start
@@ -118,7 +118,7 @@ class TestVpnPortAgent {
     @Test
     def testStartLock() {
         log.debug("testStartLock")
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnMgr.lock(vpnId, sessionId)
@@ -135,7 +135,7 @@ class TestVpnPortAgent {
     @Test
     def testStartAfterDelete() {
         log.debug("testStartAfterDelete")
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnMgr.lock(vpnId, sessionId)
@@ -151,7 +151,7 @@ class TestVpnPortAgent {
     @Test(expected = classOf[StateAccessException])
     def testLockAfterStart() {
         log.debug("testLockAfterStart")
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnAgent.start
@@ -170,7 +170,7 @@ class TestVpnPortAgent {
     @Test
     def testDelete() {
         log.debug("testDelete")
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnAgent.start
@@ -185,7 +185,7 @@ class TestVpnPortAgent {
     @Test
     def testDeleteAfterUnlock() {
         log.debug("testDeleteAfterUnlock")
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnMgr.lock(vpnId, sessionId)
@@ -203,7 +203,7 @@ class TestVpnPortAgent {
     def testSetPortService() {
         log.debug("testSetPortService")
         vpnAgent.setPortService(VpnType.OPENVPN_TCP_SERVER, portService)
-        vpnConfig = new VpnConfig(pubPortId, priPortId,
+        vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_TCP_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         vpnAgent.start
