@@ -5,7 +5,7 @@
   <groupId>com.midokura</groupId>
   <artifactId>midolmanj-mgmt</artifactId>
   <packaging>war</packaging>
-  <version>11.12-SNAPSHOT</version>
+  <version>11.12</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <powermock.version>1.4.10</powermock.version>
