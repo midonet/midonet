@@ -304,9 +304,15 @@ public abstract class AbstractController
                 _deleteVirtualPort(portNum, uuid);
             else if (peerIp != null)
                 _deleteTunnelPort(portNum);
-            else
-                log.error("onPortStatus unrecognized port type - not service"
-                        + "port, nor virtual port, nor tunnel");
+            else {
+                UUID oldUUID = portNumToUuid.get(portNum);
+                if (oldUUID != null) {
+                    _deleteVirtualPort(portNum, oldUUID);
+                } else {
+                    log.error("onPortStatus unrecognized port type - " +
+                          "not service port, nor virtual port, nor tunnel");
+                }
+            }
         } else if (reason.equals(OFPortReason.OFPPR_MODIFY)) {
             // If it's a service port do nothing.
             // TODO(pino, yoshi): handle service port changes.
