@@ -507,14 +507,14 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 response = queue.take
                 if (response.get("id").getValueAsText == OVSDBConnectionLostId)
                     throw new OVSDBException(
-                        "The connection between OVSDB has been lost.")
+                        "The connection to OVSDB has been lost.")
                 responseId = response.get("id").getValueAsInt
             } catch {
                 case e: InterruptedException => {
                     stop
                     log.warn("doJsonRpc", e)
                     throw new OVSDBException(
-                        "It took too long time to take response")
+                        "It took too long to get a response from OVSDB")
                 }
                 case e: NullPointerException => {
                     stop
@@ -1836,7 +1836,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 }
             for {
                 portUUID <- portUUIDs
-                portUUIDVal = portUUID.get(1) if portUUIDVal !=  null
+                portUUIDVal = portUUID.get(1) if portUUIDVal != null
             } {
                 val portRow = select(
                     TablePort, whereUUIDEquals(portUUID.get(1).getTextValue),
