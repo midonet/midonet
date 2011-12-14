@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+
+import java.io.IOException;
 import java.net.URI;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
@@ -55,7 +57,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         DtoAdmin admin = get(app.getAdmin(), DtoAdmin.class);
         post(admin.getInit(), null);
         // Start Midolmanj controllers
-        MidolmanLauncher.start();
+        try {
+            MidolmanLauncher.start();
+        } catch (IOException e) {
+            log.error("Error starting Midolmanj controllers: {}", e);
+        }
     }
 
     public void stop() {
