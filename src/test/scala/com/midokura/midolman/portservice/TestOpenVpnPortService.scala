@@ -187,6 +187,7 @@ class TestOpenVpnPortService {
         portService.addPort(0, null)
     }
 
+    // TODO(yoshi): Fix this for varying table nums so it can be un-@Ignored.
     @Test @Ignore
     def testConfigurePort() {
         log.debug("testConfigurePort")
@@ -231,6 +232,8 @@ class TestOpenVpnPortService {
         portService.clear
     }
 
+    // TODO(yoshi): Fix this for varying table nums so it can be un-@Ignored.
+    // TODO(yoshi): Wrap the operation expected to throw in a try/catch.
     @Test(expected = classOf[RuntimeException]) @Ignore
     def testStart() {
         try {
