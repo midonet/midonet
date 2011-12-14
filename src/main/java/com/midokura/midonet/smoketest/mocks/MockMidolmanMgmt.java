@@ -2,6 +2,7 @@ package com.midokura.midonet.smoketest.mocks;
 
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midonet.smoketest.mgmt.*;
+import com.midokura.midonet.smoketest.utils.MidolmanLauncher;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -39,8 +40,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                                      : "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
                 .contextParam("zk_conn_string", "127.0.0.1:2181")
                 .contextParam("zk_timeout", "10000")
-                .contextParam("zk_root", "/test/midolman")
-                .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
+                .contextParam("zk_root", "/smoketest/midolman")
+                .contextParam("zk_mgmt_root", "/smoketest/midolman-mgmt")
                 .contextPath("/test").build();
         ad.getClientConfig().getSingletons().add(new WildCardJacksonJaxbJsonProvider());
 
@@ -53,8 +54,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         app = get("", DtoApplication.class);
         DtoAdmin admin = get(app.getAdmin(), DtoAdmin.class);
         post(admin.getInit(), null);
-        // resource().path("admin/init").type(MediaType.APPLICATION_JSON)
-        // .post(ClientResponse.class).getLocation();
+        // Start Midolmanj controllers
+        MidolmanLauncher.start();
     }
 
     public void stop() {

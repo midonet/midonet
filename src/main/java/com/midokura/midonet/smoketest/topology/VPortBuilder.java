@@ -44,7 +44,7 @@ public class VPortBuilder {
         port.setLocalNetworkLength(32);
         port.setNetworkLength(24);
         this.ovsBridgeName = "smoke-br";
-        this.ovsBridgeController = "tcp:127.0.0.1:6633";
+        this.ovsBridgeController = "tcp:127.0.0.1:6655";
     }
 
     VPortBuilder(OpenvSwitchDatabaseConnection ovsdb, MidolmanMgmt mgmt,
