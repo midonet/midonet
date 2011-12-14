@@ -100,7 +100,7 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>0.9-SNAPSHOT</version>
+        <version>0.9</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -306,7 +306,7 @@
     <dependency>
       <groupId>com.midokura</groupId>
       <artifactId>midolmanj</artifactId>
-      <version>11.12-SNAPSHOT</version>
+      <version>11.12</version>
     </dependency>
   </dependencies>
 </project>
