@@ -72,10 +72,10 @@ public class FloatingIpTest extends AbstractSmokeTest {
                 tapPort2.getOuterMAC(), rtrIp);
 
         // The internal port has private address 192.168.55.5; floating ip
-        // 10.0.0.5 is mapped to 192.168.55.5. Treat tapPort1 as the uplink:
+        // 10.0.173.5 is mapped to 192.168.55.5. Treat tapPort1 as the uplink:
         // only packets that go via the uplink use the the floatingIP.
         privAddr = IntIPv4.fromString("192.168.55.5");
-        pubAddr = IntIPv4.fromString("10.0.0.5");
+        pubAddr = IntIPv4.fromString("10.0.173.5");
         InternalPort internalPort = router1.addPort(ovsdb)
                 .setDestination(privAddr.toString()).buildInternal();
         router1.addFloatingIp(privAddr, pubAddr, tapPort1.getId());

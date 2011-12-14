@@ -57,14 +57,14 @@ public class PingTest extends AbstractSmokeTest {
         tenant1 = new Tenant.Builder(mgmt).setName(tenantName).build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
-        IntIPv4 tapIp = IntIPv4.fromString("192.168.100.2");
-        rtrIp = IntIPv4.fromString("192.168.100.1");
+        IntIPv4 tapIp = IntIPv4.fromString("192.168.231.2");
+        rtrIp = IntIPv4.fromString("192.168.231.1");
         tapPort = router1.addPort(ovsdb).setDestination(tapIp.toString())
                 .buildTap();
         helper = new PacketHelper(tapPort.getInnerMAC(), tapIp,
                 tapPort.getOuterMAC(), rtrIp);
 
-        peerIp = IntIPv4.fromString("192.168.100.3");
+        peerIp = IntIPv4.fromString("192.168.231.3");
         internalPort =
             router1
                 .addPort(ovsdb)

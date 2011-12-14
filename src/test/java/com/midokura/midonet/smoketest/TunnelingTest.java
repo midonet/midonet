@@ -58,7 +58,7 @@ public class TunnelingTest extends AbstractSmokeTest {
                       .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
-        ip1 = IntIPv4.fromString("192.168.100.2");
+        ip1 = IntIPv4.fromString("192.168.231.2");
         tapPort1 = router1.addPort(ovsdb)
                        .setDestination(ip1.toString())
                        .setOVSPortName("tapPort1")
@@ -66,18 +66,18 @@ public class TunnelingTest extends AbstractSmokeTest {
 
         helper1 = new PacketHelper(tapPort1.getInnerMAC(), ip1,
                                       tapPort1.getOuterMAC(),
-                                      IntIPv4.fromString("192.168.100.1"));
+                                      IntIPv4.fromString("192.168.231.1"));
 
-        ip2 = IntIPv4.fromString("192.168.101.3");
+        ip2 = IntIPv4.fromString("192.168.232.3");
         tapPort2 = router1.addPort(ovsdb).setDestination(ip2.toString())
                        .setOVSPortName("tapPort2")
                        .setOVSBridgeName("smoke-br2")
-                       .setOVSBridgeController("tcp:127.0.0.1:6623")
+                       .setOVSBridgeController("tcp:127.0.0.1:6657")
                        .buildTap();
 
         helper2 = new PacketHelper(tapPort2.getInnerMAC(), ip2,
                                       tapPort2.getOuterMAC(),
-                                      IntIPv4.fromString("192.168.101.1"));
+                                      IntIPv4.fromString("192.168.232.1"));
 
         Thread.sleep(1000);
     }

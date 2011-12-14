@@ -49,58 +49,58 @@ public class VpnTest extends AbstractSmokeTest {
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
                 .build();
 
-        // Router 1 has a VMs on 10.0.0.0/24.
+        // Router 1 has VMs on 10.0.231.0/24.
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         // Here's a VM on router1.
-        tapPort1 = router1.addPort(ovsdb).setDestination("10.0.0.11")
+        tapPort1 = router1.addPort(ovsdb).setDestination("10.0.231.11")
                 .buildTap();
 
-        // Router 2 has a VMs on 10.0.1.0/24.
+        // Router 2 has VMs on 10.0.232.0/24.
         Router router2 = tenant1.addRouter().setName("rtr2").build();
         // Here's a VM on router2.
-        tapPort2 = router2.addPort(ovsdb).setDestination("10.0.1.4")
+        tapPort2 = router2.addPort(ovsdb).setDestination("10.0.232.4")
                 .setOVSPortName("tapPort2")
                 .buildTap();
 
         // Link the two routers. Only "public" addresses should traverse the
         // link between the routers. Router 1 owns public addresses in
-        // 192.168.0.0/24, and router 2 has addresses in 192.168.1.0/24.
+        // 192.168.231.0/24, and router 2 has addresses in 192.168.232.0/24.
         link = router1.addRouterLink().setPeer(router2)
-                .setLocalPrefix("192.168.0.0").setPeerPrefix("192.168.1.0")
+                .setLocalPrefix("192.168.231.0").setPeerPrefix("192.168.232.0")
                 .build();
 
-        // Router 1 has a port that leads to 10.0.1.0/24 via a VPN
+        // Router 1 has a port that leads to 10.0.232.0/24 via a VPN
         // and gateway (router2).
         // p1 private port of the VPN
         MidoPort p1 = router1
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
                         IntIPv4.fromString("169.254.0.2"))  // virtual path created by the vpn
-                .addRoute(IntIPv4.fromString("10.0.1.0")).build();
+                .addRoute(IntIPv4.fromString("10.0.232.0")).build();
         MidoPort vpn1 = router1.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
-                .setLocalIp(IntIPv4.fromString("10.0.0.100"))
+                .setLocalIp(IntIPv4.fromString("10.0.231.100"))
                 .setLayer4Port(12333)
-                .setRemoteIp("192.168.1.99")
+                .setRemoteIp("192.168.232.99")
                 .setPrivatePortId(p1.port.getId()).build();
 
-        router1.addFloatingIp(IntIPv4.fromString("10.0.0.100"),
-                IntIPv4.fromString("192.168.0.100"), link.dto.getPortId());
+        router1.addFloatingIp(IntIPv4.fromString("10.0.231.100"),
+                IntIPv4.fromString("192.168.231.100"), link.dto.getPortId());
 
-        // Router 2 has a port that leads to 10.0.0.0/24 via a VPN
+        // Router 2 has a port that leads to 10.0.231.0/24 via a VPN
         // and gateway (router2).
         MidoPort p2 = router2
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))
-                .addRoute(IntIPv4.fromString("10.0.0.0")).build();
+                .addRoute(IntIPv4.fromString("10.0.231.0")).build();
         MidoPort vpn2 = router2.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_SERVER)
-                .setLocalIp(IntIPv4.fromString("10.0.1.99"))
+                .setLocalIp(IntIPv4.fromString("10.0.232.99"))
                 .setLayer4Port(12333)
                 .setPrivatePortId(p2.port.getId()).build();
-        router2.addFloatingIp(IntIPv4.fromString("10.0.1.99"),
-                IntIPv4.fromString("192.168.1.99"), link.dto.getPeerPortId());
+        router2.addFloatingIp(IntIPv4.fromString("10.0.232.99"),
+                IntIPv4.fromString("192.168.232.99"), link.dto.getPeerPortId());
 
         Thread.sleep(20000);
     }
@@ -118,10 +118,10 @@ public class VpnTest extends AbstractSmokeTest {
 
     @Test
     public void testPingOverVPN() {
-        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.11");
-        IntIPv4 rtr1 = IntIPv4.fromString("10.0.0.1");
-        IntIPv4 ip2 = IntIPv4.fromString("10.0.1.4");
-        IntIPv4 rtr2 = IntIPv4.fromString("10.0.1.1");
+        IntIPv4 ip1 = IntIPv4.fromString("10.0.231.11");
+        IntIPv4 rtr1 = IntIPv4.fromString("10.0.231.1");
+        IntIPv4 ip2 = IntIPv4.fromString("10.0.232.4");
+        IntIPv4 rtr2 = IntIPv4.fromString("10.0.232.1");
         PacketHelper helper1 = new PacketHelper(tapPort1.getInnerMAC(), ip1,
                 tapPort1.getOuterMAC(), rtr1);
         PacketHelper helper2 = new PacketHelper(tapPort2.getInnerMAC(), ip2,

@@ -59,20 +59,20 @@ public class VmSshTest extends AbstractSmokeTest {
         Router router = tenant.addRouter().setName("rtr1").build();
 
         tapPort = router.addPort(ovsdb)
-                      .setDestination("192.168.100.2")
+                      .setDestination("192.168.231.2")
                       .setOVSPortName(tapPortName)
                       .buildTap();
 
         internalPort = router.addPort(ovsdb)
-                           .setDestination("192.168.100.3")
+                           .setDestination("192.168.231.3")
                            .buildInternal();
 
-//        newProcess(String.format("sudo -n route add -net 192.168.100.0/24 " +
+//        newProcess(String.format("sudo -n route add -net 192.168.231.0/24 " +
 //                                     "dev" +
 //                                     " %s", internalPort.getName()))
-        newProcess("sudo -n route add -net 192.168.100.0/24 via 192.168.100.3")
-            .logOutput(log, "add_host_route")
-            .runAndWait();
+//        newProcess("sudo -n route add -net 192.168.231.0/24 via 192.168.231.3")
+//            .logOutput(log, "add_host_route")
+//            .runAndWait();
 
         tapPort.closeFd();
         Thread.sleep(1000);
@@ -110,10 +110,10 @@ public class VmSshTest extends AbstractSmokeTest {
 
             assertThat("The Machine should have been started", vm.isRunning());
             log.info("Running remote command to find the hostname.");
-            // validate ssh to the 192.168.100.2 address
+            // validate ssh to the 192.168.231.2 address
             String output =
                 SshHelper.newRemoteCommand("hostname")
-                    .onHost("192.168.100.2")
+                    .onHost("192.168.231.2")
                     .withCredentials("ubuntu", "ubuntu")
                     .runWithTimeout(60 * 1000); // 60 seconds
 

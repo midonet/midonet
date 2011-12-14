@@ -62,19 +62,19 @@ public class BridgeTest extends AbstractSmokeTest {
         bridge1 = tenant1.addBridge().setName("br1").build();
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(), "tcp:127.0.0.1:6623");
+        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(), "tcp:127.0.0.1:6657");
 
-        ip1 = IntIPv4.fromString("192.168.100.2");
+        ip1 = IntIPv4.fromString("192.168.231.2");
         bPort1 = bridge1.addPort();
         tap1 = new TapWrapper("tap1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
-        ip2 = IntIPv4.fromString("192.168.100.3");
+        ip2 = IntIPv4.fromString("192.168.231.3");
         bPort2 = bridge1.addPort();
         tap2 = new TapWrapper("tap2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
-        ip3 = IntIPv4.fromString("192.168.100.4");
+        ip3 = IntIPv4.fromString("192.168.231.4");
         bPort3 = bridge1.addPort();
         tap3 = new TapWrapper("tap3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
