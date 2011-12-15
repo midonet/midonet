@@ -4,6 +4,9 @@
 
 package com.midokura.midonet.smoketest.utils;
 
+import com.midokura.tools.process.DrainTargets;
+import com.midokura.tools.process.ProcessOutputDrainer;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +42,9 @@ public class MidolmanLauncher {
         cmd.set(6, conf1);
         ProcessBuilder pb = new ProcessBuilder(cmd);
         m1 = pb.start();
+        new ProcessOutputDrainer(m1, false)
+            .drainOutput(DrainTargets.noneTarget(), false);
+
         // Start MM2
         cmd = new ArrayList<String>(Arrays.asList(MIDOLMANJ_CMD));
         // Start MM1
@@ -46,6 +52,9 @@ public class MidolmanLauncher {
         cmd.set(6, conf2);
         pb = new ProcessBuilder(cmd);
         m2 = pb.start();
+
+        new ProcessOutputDrainer(m2, false)
+            .drainOutput(DrainTargets.noneTarget(), false);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {

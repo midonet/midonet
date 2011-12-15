@@ -30,6 +30,10 @@ public class ProcessOutputDrainer {
     }
 
     public void drainOutput(DrainTarget drainTarget) {
+        drainOutput(drainTarget, true);
+    }
+
+    public void drainOutput(DrainTarget drainTarget, boolean wait) {
         
         Thread stdoutThread = new Thread(new InputStreamDrainer(process.getInputStream(), drainTarget, true));
         stdoutThread.start();
@@ -40,13 +44,15 @@ public class ProcessOutputDrainer {
             stderrThread = new Thread(new InputStreamDrainer(process.getErrorStream(), drainTarget, false));
             stderrThread.start();
         }
-        try {
-            stdoutThread.join();
-            if ( stderrThread != null ) {
-                stderrThread.join();
+        if ( wait ) {
+            try {
+                stdoutThread.join();
+                if ( stderrThread != null ) {
+                    stderrThread.join();
+                }
+            } catch (InterruptedException e) {
+                //
             }
-        } catch (InterruptedException e) {
-            //
         }
     }
 

@@ -4,6 +4,7 @@
 
 package com.midokura.midonet.smoketest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -71,7 +72,7 @@ public class PingTest extends AbstractSmokeTest {
                 .setDestination(peerIp.toString())
                 .buildInternal();
 
-        Thread.sleep(1000);
+        Thread.sleep(10*1000);
     }
 
     @AfterClass
@@ -97,17 +98,17 @@ public class PingTest extends AbstractSmokeTest {
 
         // Ping router's port.
         request = helper.makeIcmpEchoRequest(rtrIp);
-        assertTrue(tapPort.send(request));
+        assertThat("The tap should have sent the packet", tapPort.send(request));
         // Note: Midolman's virtual router currently does not ARP before
         // responding to ICMP echo requests addressed to its own port.
         helper.checkIcmpEchoReply(request, tapPort.recv());
 
         // Ping peer port.
         request = helper.makeIcmpEchoRequest(peerIp);
-        assertTrue(tapPort.send(request));
+        assertThat("The tap should have sent the packet again", tapPort.send(request));
         // Note: the virtual router ARPs before delivering the reply packet.
         helper.checkArpRequest(tapPort.recv());
-        assertTrue(tapPort.send(helper.makeArpReply()));
+        assertThat("The tap should have sent the packet again", tapPort.send(helper.makeArpReply()));
         // Finally, the icmp echo reply from the peer.
         helper.checkIcmpEchoReply(request, tapPort.recv());
 
