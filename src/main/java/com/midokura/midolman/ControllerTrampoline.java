@@ -286,11 +286,20 @@ public class ControllerTrampoline implements Controller {
                                                  BgpZkManager bgpMgr,
                                                  AdRouteZkManager adRouteMgr)
         throws IOException {
-        boolean canStartWithoutBgp = config.configurationAt("midolman")
-                                           .getBoolean("disable_bgp_on_failure", false);
 
-        AFUNIXServerSocket server;
-        AFUNIXSocketAddress address;
+        // The internal BGP daemon is started only when a switch connects
+        // to midolmanj. In a two midolman daemons setup the order in which the
+        // switch would connect is essentially random.
+        // As such the only way to truly decide which of the daemons
+        // (since it can be only one given the quagga package limitations)
+        // has the BGP functionality enabled is to force it in the configuration file.
+        boolean bgpEnabled = config.configurationAt("midolman")
+                                           .getBoolean("enable_bgp", true);
+
+        if (!bgpEnabled) {
+            log.info("BGP disabled by configuration.");
+            return new NullPortService();
+        }
 
         try {
             File socketFile = new File("/var/run/quagga/zserv.api");
@@ -300,33 +309,30 @@ public class ControllerTrampoline implements Controller {
                 // Set permission to let quagga daemons write.
                 socketDir.setWritable(true, false);
             }
-            server = AFUNIXServerSocket.newInstance();
-            address = new AFUNIXSocketAddress(socketFile);
-            socketFile.delete();
+
+            if (socketFile.exists())
+                socketFile.delete();
+
+            AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
+            AFUNIXSocketAddress address = new AFUNIXSocketAddress(socketFile);
+
+            ZebraServer zebraServer =
+                new ZebraServer(server, address, portMgr, routeMgr, ovsdb);
+
+            BgpVtyConnection vtyConnection =
+                new BgpVtyConnection("localhost", 2605, "zebra", bgpMgr, adRouteMgr);
+
+            PortService bgpPortService =
+                new BgpPortService(reactor, ovsdb,
+                                   "midolman_port_id", "midolman_port_service",
+                                   portMgr, routeMgr, bgpMgr, adRouteMgr,
+                                   zebraServer, vtyConnection);
+
+            return bgpPortService;
         } catch (IOException e) {
-            if (canStartWithoutBgp) {
-                log.error("Exception while creating zebra zocket. " +
-                              "Midolman will start without bgp support !", e);
-
-                return new NullPortService();
-            }
-
-            throw e;
+            log.error("Exception while starting up the BGP port service", e);
+            return new NullPortService();
         }
-
-        ZebraServer zebraServer =
-            new ZebraServer(server, address, portMgr, routeMgr, ovsdb);
-
-        BgpVtyConnection vtyConnection =
-            new BgpVtyConnection("localhost", 2605, "zebra", bgpMgr, adRouteMgr);
-
-        PortService bgpPortService =
-            new BgpPortService(reactor, ovsdb,
-                               "midolman_port_id", "midolman_port_service",
-                               portMgr, routeMgr, bgpMgr, adRouteMgr,
-                               zebraServer, vtyConnection);
-
-        return bgpPortService;
     }
 
     @Override
