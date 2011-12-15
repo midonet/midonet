@@ -13,7 +13,7 @@ import javax.ws.rs.ext.Provider;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
 /**
- * JacksonJaxbJsonProvider that consumes and produces wildcard media types.
+ * A ConfiguredJacksonJaxbJsonProvider that consumes and produces wildcard media types.
  *
  * @version 1.6 11 Nov 2011
  * @author Ryu Ishimoto
@@ -21,5 +21,5 @@ import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 @Provider
 @Consumes(MediaType.WILDCARD)
 @Produces(MediaType.WILDCARD)
-public class WildCardJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
+public class WildCardJacksonJaxbJsonProvider extends ConfiguredJacksonJaxbJsonProvider {
 }
