@@ -3,6 +3,7 @@ package com.midokura.midolman;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
@@ -93,8 +95,14 @@ public class L3DevicePort {
     }
 
     private void updatePortConfig() throws Exception {
-        ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId,
-                portWatcher);
+        ZkNodeEntry<UUID, PortConfig> entry = null;
+        try {
+            entry = portMgr.get(portId, portWatcher);
+        } catch (NoStatePathException e) {
+            // if we get a NoStatePathException it means the someone removed
+            // the port completely
+            return;
+        }
         PortConfig cfg = entry.value;
         if (!(cfg instanceof PortDirectory.MaterializedRouterPortConfig))
             throw new Exception("L3DevicePort's virtual configuration isn't "
@@ -114,7 +122,6 @@ public class L3DevicePort {
             try {
                 updateRoutes();
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 log.warn("RoutesWatcher.run", e);
             }
         }
@@ -122,10 +129,17 @@ public class L3DevicePort {
 
     private void updateRoutes() throws StateAccessException,
             ZkStateSerializationException {
-        log.debug("updaetRoutes");
-        
-        List<ZkNodeEntry<UUID, Route>> entries = routeMgr.listPortRoutes(
-                portId, routesWatcher);
+        log.debug("updateRoutes");
+
+        List<ZkNodeEntry<UUID, Route>> entries = Collections.emptyList();
+
+        try {
+            entries = routeMgr.listPortRoutes(portId, routesWatcher);
+        } catch (NoStatePathException e) {
+            // if we get a NoStatePathException it means the someone removed
+            // the port routes
+        }
+
         Set<Route> routes = new HashSet<Route>();
         for (ZkNodeEntry<UUID, Route> entry : entries)
             routes.add(entry.value);
