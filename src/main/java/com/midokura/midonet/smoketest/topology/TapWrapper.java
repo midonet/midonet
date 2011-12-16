@@ -1,17 +1,16 @@
 package com.midokura.midonet.smoketest.topology;
 
 import com.midokura.midolman.packets.*;
-import com.midokura.midolman.util.Net;
 import com.midokura.midonet.smoketest.utils.Tap;
+import static com.midokura.tools.process.ProcessHelper.newProcess;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Random;
 
-import static com.midokura.tools.process.ProcessHelper.newProcess;
 
 /**
  * Copyright 2011 Midokura Europe SARL
@@ -21,7 +20,6 @@ import static com.midokura.tools.process.ProcessHelper.newProcess;
  */
 public class TapWrapper {
     private final static Logger log = LoggerFactory.getLogger(TapPort.class);
-    static Random rand = new Random();
 
     String name;
     MAC hwAddr;
@@ -33,24 +31,17 @@ public class TapWrapper {
         this.name = name;
 
         // Create Tap
-        try {
-            Process p = Runtime.getRuntime().exec(
-                    String.format("sudo -n ip tuntap add dev %s mode tap",
-                            name));
-            p.waitFor();
-            log.debug("\"sudo -n ip tuntap add dev {} mode tap\" returned: {}",
-                    name, p.exitValue());
-            p = Runtime.getRuntime().exec(
-                    String.format("sudo -n ip link set dev %s arp off multicast off up", name));
-            p.waitFor();
-            log.debug("\"sudo -n ip link set dev {} up\" exited with: {}",
-                    name, p.exitValue());
-        } catch (InterruptedException e) {
-            log.error("InterruptedException {}", e);
-        } catch (IOException e) {
-            log.error("IOException {}", e);
-        }
-        fd = Tap.openTap(name, true);
+        newProcess(
+                String.format("sudo -n ip tuntap add dev %s mode tap",name))
+            .logOutput(log, "create_tap")
+            .runAndWait();
+
+        newProcess(
+                String.format("sudo -n ip link set dev %s arp off multicast off up", name))
+            .logOutput(log, "create_tap")
+            .runAndWait();
+
+        fd = Tap.openTap(name, true).fd;
     }
 
     public String getName() {
@@ -62,7 +53,7 @@ public class TapWrapper {
     }
 
     public void setHwAddr(MAC hwAddr) {
-        Tap.setHwAddress(this.name, fd, hwAddr.toString());
+        Tap.setHwAddress(fd, this.name, hwAddr.toString());
     }
 
     /*

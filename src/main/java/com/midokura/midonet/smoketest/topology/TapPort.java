@@ -42,7 +42,7 @@ public class TapPort extends Port {
         hw_bytes[0] = (byte) 02;
         hwAddr = new MAC(hw_bytes);
         outerMac = MAC.fromString(Tap.getHwAddress(this.name));
-        fd = Tap.openTap(name, true);
+        fd = Tap.openTap(name, true).fd;
     }
 
     /*
