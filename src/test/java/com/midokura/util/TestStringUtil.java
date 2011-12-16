@@ -64,4 +64,20 @@ public class TestStringUtil {
         StringUtil.join(null, '/');
     }
 
+    @Test
+    public void testNullOrEmpty() throws Exception {
+
+        boolean result = StringUtil.isNullOrEmpty(null);
+        Assert.assertTrue(result);
+
+        result = StringUtil.isNullOrEmpty("");
+        Assert.assertTrue(result);
+
+        result = StringUtil.isNullOrEmpty("foo");
+        Assert.assertFalse(result);
+
+        result = StringUtil.isNullOrEmpty(" ");
+        Assert.assertFalse(result);
+    }
+
 }

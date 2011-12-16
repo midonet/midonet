@@ -47,6 +47,17 @@ public class StringUtil {
         return sb.deleteCharAt(sb.length() - 1).toString();
     }
 
+    /**
+     * Checks whether the string is null or empty.
+     *
+     * @param str
+     *            String to check.
+     * @return True if the string is either null or empty.
+     */
+    public static boolean isNullOrEmpty(String str) {
+        return (str == null || str.equals(""));
+    }
+
     private StringUtil() {
     }
 }
