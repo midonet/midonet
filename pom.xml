@@ -316,6 +316,11 @@
     </dependency>
     <dependency>
       <groupId>com.midokura</groupId>
+      <artifactId>midokura-util</artifactId>
+      <version>12.06-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.midokura</groupId>
       <artifactId>midolmanj</artifactId>
       <version>12.06-SNAPSHOT</version>
     </dependency>
