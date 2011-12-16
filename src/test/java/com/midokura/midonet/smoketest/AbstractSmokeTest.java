@@ -38,7 +38,7 @@ public abstract class AbstractSmokeTest {
 
     protected static void resetZooKeeperState(Logger log) {
         ProcessHelper
-            .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr /test/midolman-mgmt")
+            .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr /smoketest/midolman-mgmt")
             .logOutput(log, "cleaning_zk")
             .runAndWait();
     }
