@@ -15,15 +15,20 @@ import com.midokura.midonet.smoketest.vm.HypervisorType;
 import com.midokura.midonet.smoketest.vm.VMController;
 import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
 import com.midokura.tools.ssh.SshHelper;
+
+import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.IOUtils;
 
+import java.io.File;
 import java.io.IOException;
 
 import static com.midokura.tools.process.ProcessHelper.newProcess;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -45,13 +50,14 @@ public class VmSshTest extends AbstractSmokeTest {
     static OpenvSwitchDatabaseConnection ovsdb;
 
     static String tapPortName = "tapPort1";
+    static VMController vm;
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                         "127.0.0.1",
-                                                         12344);
+                                                      "127.0.0.1",
+                                                      12344);
         mgmt = new MockMidolmanMgmt(false);
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
@@ -76,34 +82,33 @@ public class VmSshTest extends AbstractSmokeTest {
 
         tapPort.closeFd();
         Thread.sleep(1000);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        // First clean up left-overs from previous incomplete tests.
-        removePort(tapPort);
-        removeTenant(tenant);
-        mgmt.stop();
-
-        ovsdb.delBridge("smoke-br");
-
-        resetZooKeeperState(log);
-    }
-
-    @Test
-    public void test() throws IOException, InterruptedException {
 
         LibvirtHandler handler =
             LibvirtHandler.forHypervisor(HypervisorType.Qemu);
 
         handler.setTemplate("basic_template_x86_64");
 
-        VMController vm =
-            handler.newDomain()
-                .setDomainName("test_ssh_domain")
-                .setHostName("test")
-                .setNetworkDevice(tapPort.getName())
-                .build();
+        vm = handler.newDomain()
+                    .setDomainName("test_ssh_domain")
+                    .setHostName("test")
+                    .setNetworkDevice(tapPort.getName())
+                    .build();
+
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        ovsdb.delBridge("smoke-br");
+
+        removePort(tapPort);
+        removeTenant(tenant);
+        mgmt.stop();
+
+        resetZooKeeperState(log);
+    }
+
+    @Test
+    public void testSshRemoteCommand() throws IOException, InterruptedException {
 
         try {
             vm.startup();
@@ -123,11 +128,61 @@ public class VmSshTest extends AbstractSmokeTest {
             // hostname that we configured for the vm
             assertThat("The remote hostname command output should match the " +
                            "hostname we chose for the VM",
-                          output.trim(), equalTo(vm.getHostName()));
+                       output.trim(), equalTo(vm.getHostName()));
 
         } finally {
             vm.shutdown();
-            vm.destroy();
+        }
+    }
+
+    @Test
+    public void testScp() throws IOException, InterruptedException {
+
+        try {
+            vm.startup();
+
+            assertThat("The Machine should have been started", vm.isRunning());
+
+            String output =
+                SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
+                         .onHost("192.168.231.2")
+                         .withCredentials("ubuntu", "ubuntu")
+                         .runWithTimeout(60 * 1000); // 60 seconds
+            
+            assertThat("There should not by any content in the target test_file.txt", 
+                       output, equalTo(""));
+
+            File localFile = File.createTempFile("smoke-ssh-test", null);
+            localFile.deleteOnExit();
+
+            FileUtils.writeStringToFile(localFile, "Hannibal");
+
+            SshHelper.copyFileTo(localFile.getAbsolutePath(), "test_file.txt")
+                     .onHost("192.168.231.2")
+                     .withCredentials("ubuntu", "ubuntu")
+                     .runWithTimeout(60 * 1000); // 60 seconds
+
+            output =
+                SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
+                         .onHost("192.168.231.2")
+                         .withCredentials("ubuntu", "ubuntu")
+                         .runWithTimeout(60 * 1000); // 60 seconds
+
+            assertThat("The remote file should have our content.",
+                       output, equalTo("Hannibal"));
+
+            File newLocalFile = File.createTempFile("smoke-ssh-test", null);
+            SshHelper.copyFileFrom(newLocalFile.getAbsolutePath(), "test_file.txt")
+                     .onHost("192.168.231.2")
+                     .withCredentials("ubuntu", "ubuntu")
+                     .runWithTimeout(60 * 1000); // 60 seconds
+
+            output = FileUtils.readFileToString(newLocalFile);
+            assertThat("The remote copy to local file should have succeeded. The file content check failed.",
+                       output, equalTo("Hannibal"));
+
+        } finally {
+            vm.shutdown();
         }
     }
 }
