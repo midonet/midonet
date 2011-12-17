@@ -84,7 +84,7 @@ public class BridgeTest extends AbstractSmokeTest {
         helper3_1 = new PacketHelper(tap3.getHwAddr(), ip3,
                 tap1.getHwAddr(), ip1);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
     @AfterClass
