@@ -27,7 +27,7 @@ public class OvsBridge {
     public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName, UUID bridgeId) {
         this.ovsdb = ovsdb;
         this.bridgeName = bridgeName;
-        this.ovsBridgeController = "tcp:127.0.0.1:6633";
+        this.ovsBridgeController = "tcp:127.0.0.1:6655";
         startBridge(bridgeId);
     }
 
