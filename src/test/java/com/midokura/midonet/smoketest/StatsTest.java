@@ -67,10 +67,10 @@ public class StatsTest extends AbstractSmokeTest {
         tenant1 = new Tenant.Builder(mgmt).setName(tenantName).build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
-        rtrIp = IntIPv4.fromString("192.168.100.1");
-        tapIp1 = IntIPv4.fromString("192.168.100.11");
-        tapIp2 = IntIPv4.fromString("192.168.100.12");
-        peerIp = IntIPv4.fromString("192.168.100.13");
+        rtrIp = IntIPv4.fromString("192.168.231.1");
+        tapIp1 = IntIPv4.fromString("192.168.231.11");
+        tapIp2 = IntIPv4.fromString("192.168.231.12");
+        peerIp = IntIPv4.fromString("192.168.231.13");
         tapPort1 = router1.addPort(ovsdb).setDestination(tapIp1.toString())
                 .buildTap();
         helper1 = new PacketHelper(tapPort1.getInnerMAC(), tapIp1,
