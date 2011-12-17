@@ -107,6 +107,8 @@ public class VpnTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
+        ovsdb.delBridge("smoke-br");
+
         removePort(tapPort1);
         removePort(tapPort2);
         removeTenant(tenant1);
