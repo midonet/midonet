@@ -5,6 +5,9 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.AbstractDaoFactory;
@@ -33,32 +36,74 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkManagerProxy;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConnection;
 
+/**
+ * ZooKeeper DAO factory class.
+ *
+ * @version 1.6 15 Nov 2011
+ * @author Ryu Ishimoto
+ */
 public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
-    private ZkConnection zk = null;
-    private String rootPath = null;
-    private String rootMgmtPath = null;
+    private final static Logger log = LoggerFactory
+            .getLogger(ZooKeeperDaoFactory.class);
+    protected Directory directory = null;
+    protected final String rootPath;
+    protected final String rootMgmtPath;
+    protected final String connStr;
+    protected final int timeout;
 
-    public ZooKeeperDaoFactory(AppConfig config) {
+    /**
+     * Constructor
+     *
+     * @param config
+     *            AppConfig object to initialize ZooKeeperDaoFactory.
+     * @throws DaoInitializationException
+     *             Initialization error.
+     */
+    public ZooKeeperDaoFactory(AppConfig config)
+            throws DaoInitializationException {
         super(config);
-    }
-
-    @Override
-    public void initialize() throws DaoInitializationException {
         try {
-            rootPath = config.getZkRootPath();
-            rootMgmtPath = config.getZkMgmtRootPath();
-            zk = new ZkConnection(config.getZkConnectionString(),
-                    config.getZkTimeout(), null);
-            zk.open();
+            this.rootPath = config.getZkRootPath();
+            this.rootMgmtPath = config.getZkMgmtRootPath();
+            this.connStr = config.getZkConnectionString();
+            this.timeout = config.getZkTimeout();
         } catch (InvalidConfigException e) {
             throw new DaoInitializationException("Invalid configurations", e);
-        } catch (Exception e) {
-            throw new DaoInitializationException("Failed to open ZK connecion",
-                    e);
         }
+    }
+
+    /**
+     * Get the Directory object. Override this method to use a mock Directory.
+     *
+     * @return Directory object.
+     * @throws DaoInitializationException
+     *             DAO initialization error.
+     */
+    synchronized public Directory getDirectory() throws StateAccessException {
+        log.debug(
+                "ZooKeeperDaoFactory.getDirectory entered: (directory==null)? {}",
+                (directory == null));
+
+        if (directory == null) {
+            ZkConnection zk = null;
+            try {
+                zk = new ZkConnection(connStr, timeout, null);
+                zk.open();
+            } catch (Exception e) {
+                throw new StateAccessException("Failed to open ZK connecion", e);
+            }
+            directory = zk.getRootDirectory();
+        }
+
+        log.debug(
+                "ZooKeeperDaoFactory.getDirectory exiting: (directory==null)? {}",
+                (directory == null));
+        return directory;
     }
 
     /**
@@ -69,112 +114,81 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     }
 
     /**
-     * @param rootPath
-     *            the rootPath to set
-     */
-    public void setRootPath(String rootPath) {
-        this.rootPath = rootPath;
-    }
-
-    /**
      * @return the rootMgmtPath
      */
     public String getRootMgmtPath() {
         return rootMgmtPath;
     }
 
-    /**
-     * @param rootMgmtPath
-     *            the rootMgmtPath to set
-     */
-    public void setRootMgmtPath(String rootMgmtPath) {
-        this.rootMgmtPath = rootMgmtPath;
-    }
-
-    /**
-     * @return the zk
-     */
-    public ZkConnection getZk() {
-        return zk;
-    }
-
-    /**
-     * @param zk
-     *            the zk to set
-     */
-    public void setZk(ZkConnection zk) {
-        this.zk = zk;
-    }
-
     @Override
-    public AdminDao getAdminDao() {
-        return new AdminZkManager(zk.getRootDirectory(), this.rootPath,
+    public AdminDao getAdminDao() throws StateAccessException {
+        return new AdminZkManager(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public AdRouteDao getAdRouteDao() {
-        return new AdRouteZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public AdRouteDao getAdRouteDao() throws StateAccessException {
+        return new AdRouteZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public BgpDao getBgpDao() {
-        return new BgpZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public BgpDao getBgpDao() throws StateAccessException {
+        return new BgpZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public BridgeDao getBridgeDao() {
-        return new BridgeZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public BridgeDao getBridgeDao() throws StateAccessException {
+        return new BridgeZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public ChainDao getChainDao() {
-        return new ChainZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public ChainDao getChainDao() throws StateAccessException {
+        return new ChainZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public PortDao getPortDao() {
-        return new PortZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public PortDao getPortDao() throws StateAccessException {
+        return new PortZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public RouteDao getRouteDao() {
-        return new RouteZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public RouteDao getRouteDao() throws StateAccessException {
+        return new RouteZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public RouterDao getRouterDao() {
-        return new RouterZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public RouterDao getRouterDao() throws StateAccessException {
+        return new RouterZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public RuleDao getRuleDao() {
-        return new RuleZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public RuleDao getRuleDao() throws StateAccessException {
+        return new RuleZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public TenantDao getTenantDao() {
-        return new TenantZkManager(zk.getRootDirectory(), this.rootPath,
+    public TenantDao getTenantDao() throws StateAccessException {
+        return new TenantZkManager(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public VifDao getVifDao() {
-        return new VifZkManager(zk.getRootDirectory(), this.rootPath,
+    public VifDao getVifDao() throws StateAccessException {
+        return new VifZkManager(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 
     @Override
-    public VpnDao getVpnDao() {
-        return new VpnZkManagerProxy(zk.getRootDirectory(), this.rootPath,
+    public VpnDao getVpnDao() throws StateAccessException {
+        return new VpnZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
     }
 }

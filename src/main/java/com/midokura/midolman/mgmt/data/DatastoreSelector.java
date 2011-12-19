@@ -11,8 +11,25 @@ import java.lang.reflect.InvocationTargetException;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 
+/**
+ * DAO factory selector.
+ *
+ * @version 1.6 15 Nov 2011
+ * @author Ryu Ishimoto
+ */
 public class DatastoreSelector {
 
+    /**
+     * Get the DAO factory class specified in the configuration file.
+     *
+     * @param config
+     *            AppConfig object where the DAO factory class is specified.
+     * @return DaoFactory class
+     * @throws DaoInitializationException
+     *             Initialization error.
+     * @throws InvalidConfigException
+     *             Configuration error.
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static DaoFactory getDaoFactory(AppConfig config)
             throws DaoInitializationException, InvalidConfigException {
@@ -61,7 +78,6 @@ public class DatastoreSelector {
                     "AbstractDaoFactory constructor threw an exception.", e);
         }
 
-        factory.initialize();
         return factory;
     }
 }
