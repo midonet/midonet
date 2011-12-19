@@ -65,9 +65,7 @@ public class FlowStats {
         return this;
     }
 
-    public FlowStats expectOutputAction(UUID id) {
-        // TODO: get the port number corresponding to this id.
-        int portNum = 0;
+    public FlowStats expectOutputAction(short portNum) {
         List<OFAction> actions = stat.getActions();
         Assert.assertTrue(actions.size() > 0);
         OFAction act = actions.get(actions.size() - 1);
