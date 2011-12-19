@@ -118,7 +118,7 @@ public class StatsTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
         byte[] request;
         short portNum1 = (Short)ovsdb.getPortNumsByPortName(tapPort1.getName()).head();
         short portNum2 = (Short)ovsdb.getPortNumsByPortName(tapPort2.getName()).head();
@@ -151,7 +151,6 @@ public class StatsTest extends AbstractSmokeTest {
 
         // Send ICMP echo requests from tap1 to peer port. Peer is an interal
         // port so the host OS will reply.
-        System.out.println("Starting pings tap1->peer " + System.currentTimeMillis());
         for (int i = 0; i < 5; i++) {
             request = helper1.makeIcmpEchoRequest(peerIp);
             assertTrue(tapPort1.send(request));
@@ -162,7 +161,8 @@ public class StatsTest extends AbstractSmokeTest {
             }
             PacketHelper.checkIcmpEchoReply(request, tapPort1.recv());
         }
-        System.out.println("Finished pings tap1->peer " + System.currentTimeMillis());
+        // Sleep to give OVS a chance to update its stats.
+        Thread.sleep(1000);
         pStat1.refresh().expectRx(7).expectTx(7).expectRxDrop(0)
                 .expectTxDrop(0);
         fstats = svcController.getFlowStats(match1ToPeer);
@@ -178,31 +178,40 @@ public class StatsTest extends AbstractSmokeTest {
         PortStats pStat2 = svcController.getPortStats(portNum2);
         pStat2.expectRx(0).expectTx(0).expectRxDrop(0).expectTxDrop(0);
         // Ping internal port from tap1.
-        System.out.println("Starting pings tap1->tap2 " + System.currentTimeMillis());
         for (int i = 0; i < 5; i++) {
             request = helper2.makeIcmpEchoRequest(tapIp1);
             assertTrue(tapPort2.send(request));
             // Check that tap1 receives what was sent by tap2.
             helper1.checkIcmpEchoRequest(request, tapPort1.recv());
         }
-        System.out.println("Starting pings tap1->tap2 " + System.currentTimeMillis());
+        // Sleep to give OVS a chance to update its stats.
+        Thread.sleep(1000);
         pStat2.refresh().expectRx(5).expectTx(0).expectRxDrop(0)
                 .expectTxDrop(0);
         pStat1.refresh().expectRx(7).expectTx(12).expectRxDrop(0)
                 .expectTxDrop(0);
         // No change to the flows between tap1 and peerPort.
-        //flow1toPeer.findSameInList(svcController.getFlowStats(match1ToPeer))
-        //        .expectCount(5);
-        //flowPeerTo1.findSameInList(svcController.getFlowStats(matchPeerTo1))
-        //        .expectCount(5);
-        // The aggregate flow stats to tap1 have changed.
+        flow1toPeer.findSameInList(svcController.getFlowStats(match1ToPeer))
+                .expectCount(5);
+        flowPeerTo1.findSameInList(svcController.getFlowStats(matchPeerTo1))
+                .expectCount(5);
+        // There's a new flow from tap 2 to 1.
+        fstats = svcController.getFlowStats(new MidoMatch().setNetworkSource(
+                tapIp2.address, 32).setNetworkDestination(tapIp1.address, 32));
+        assertEquals(1, fstats.size());
+        FlowStats flow2to1 = fstats.get(0);
+        flow2to1.expectCount(5);
+        // The aggregate flow stats to tap1 now include counts for PeerTo1 And 2To1.
         flowsTo1.refresh().expectFlowCount(2).expectPktCount(10);
 
         // Get table statistics.
         List<TableStats> tableStats = svcController.getTableStats();
-        System.out.println("Found " + tableStats.size() + " tables.");
-        //Assert.assertEquals(2, tableStats);
+        assertEquals(1, tableStats.size());
         TableStats tStats = tableStats.get(0);
-        tStats.expectActive(1).expectLookups(4).expectMatches(4);
+        // Expect: 1) 6 flows (1->Peer, Peer->1, 2->1, +3 per-port DHCP flows);
+        // 2) 19 lookups (ARP request+reply from both tap1 and
+        //    intPort1 + 5 ICMPs from each of 1->Peer, Peer->1 and 2->1);
+        // 3) 12 matches (all ICMPs matched except first in each flow).
+        tStats.expectActive(6).expectLookups(19).expectMatches(12);
     }
 }
