@@ -47,10 +47,15 @@ public class OvsBridge {
         ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
         ctlBuilder.build();
     }
+
     public void addSystemPort(UUID id, String tapName)
     {
         PortBuilder pBuilder = ovsdb.addSystemPort(bridgeName, tapName);
         pBuilder.externalId("midolman-vnet", id.toString());
         pBuilder.build();
+    }
+
+    public void deletePort(String tapName) {
+        ovsdb.delPort(tapName);
     }
 }

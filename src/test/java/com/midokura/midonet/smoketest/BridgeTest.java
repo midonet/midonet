@@ -4,11 +4,16 @@
 
 package com.midokura.midonet.smoketest;
 
+import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openvswitch.ControllerBuilder;
+import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.openflow.FlowStats;
+import com.midokura.midonet.smoketest.openflow.ServiceController;
 import com.midokura.midonet.smoketest.topology.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -16,8 +21,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -110,7 +119,8 @@ public class BridgeTest extends AbstractSmokeTest {
         sent = helper1_3.makeIcmpEchoRequest(ip3);
         assertTrue(tap1.send(sent));
 
-        // Receive the icmp, Mac1 hasn't been learnt so the icmp will be delivered to all the port
+        // Receive the icmp, Mac3 hasn't been learnt so the icmp will be
+        // delivered to all the ports.
         helper3_1.checkIcmpEchoRequest(sent, tap3.recv());
         helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
 
@@ -118,7 +128,6 @@ public class BridgeTest extends AbstractSmokeTest {
         assertTrue(tap3.send(sent));
         // Mac1 was learnt, so the message will be sent only to tap1
         helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
-
 
         // VM moves, sending from Mac3 Ip3 using tap2
         sent = helper3_1.makeIcmpEchoRequest(ip1);
@@ -131,6 +140,61 @@ public class BridgeTest extends AbstractSmokeTest {
 
         assertNull(tap3.recv());
         assertNull(tap1.recv());
+    }
 
+    @Test
+    public void testPortDelete() throws InterruptedException, IOException {
+        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
+                "smoke-br", "ptcp:6640");
+        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
+        ctlBuilder.build();
+        Thread.sleep(1000);
+        ServiceController svcController = new ServiceController(6640);
+        Thread.sleep(5000);
+
+        // Send broadcast from Mac1/port1.
+        byte[] pkt = PacketHelper.makeArpRequest(tap1.getHwAddr(), ip1, ip2);
+        assertTrue(tap1.send(pkt));
+        assertArrayEquals(pkt, tap2.recv());
+        assertArrayEquals(pkt, tap3.recv());
+
+        // There should now be one flow that outputs to ports 2 and 3.
+        Thread.sleep(1000);
+        MidoMatch match1 = new MidoMatch().setDataLayerSource(tap1.getHwAddr());
+        List<FlowStats> fstats = svcController.getFlowStats(match1);
+        assertEquals(1, fstats.size());
+        FlowStats flow1 = fstats.get(0);
+        flow1.expectCount(1).expectOutputAction(bPort2.getId())
+                .expectOutputAction(bPort3.getId());
+
+        // Send broadcast from Mac2/port2.
+        pkt = PacketHelper.makeArpRequest(tap2.getHwAddr(), ip2, ip3);
+        assertTrue(tap2.send(pkt));
+        assertArrayEquals(pkt, tap1.recv());
+        assertArrayEquals(pkt, tap3.recv());
+
+        // There should now be one flow that outputs to ports 1 and 3.
+        Thread.sleep(1000);
+        MidoMatch match2 = new MidoMatch().setDataLayerSource(tap2.getHwAddr());
+        fstats = svcController.getFlowStats(match2);
+        assertEquals(1, fstats.size());
+        FlowStats flow2 = fstats.get(0);
+        flow2.expectCount(1).expectOutputAction(bPort1.getId())
+                .expectOutputAction(bPort3.getId());
+
+        // The first flow should not have changed.
+        flow1.findSameInList(svcController.getFlowStats(match1))
+                .expectCount(1).expectOutputAction(bPort2.getId())
+                .expectOutputAction(bPort3.getId());
+
+        // Now, delete the second OVS port. It is a destination of flow1 and
+        // the origin of flow2 - so expect both flows to be removed.
+        ovsBridge1.deletePort(tap2.getName());
+        Thread.sleep(500);
+        assertEquals(0, svcController.getFlowStats(match1).size());
+        assertEquals(0, svcController.getFlowStats(match2).size());
+
+        // Re-add he second OVS port to leave things as we found them.
+        ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
     }
 }
