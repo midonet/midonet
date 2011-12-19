@@ -146,7 +146,7 @@ public class BgpTest extends AbstractSmokeTest {
 
         Timed.ExecutionResult<Boolean> result =
             newTimedExecution()
-                .until(50 * 1000)
+                .until(100 * 1000)
                 .waiting(500)
                 .execute(new Timed.Execution<Boolean>() {
                     @Override
