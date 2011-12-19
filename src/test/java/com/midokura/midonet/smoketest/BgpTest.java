@@ -59,9 +59,13 @@ public class BgpTest extends AbstractSmokeTest {
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-                                                         "Open_vSwitch",
-                                                         "127.0.0.1", 12344);
+        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                                      "127.0.0.1", 12344);
+
+        if (ovsdb.hasBridge("smoke-br"))
+            ovsdb.delBridge("smoke-br");
+        if (ovsdb.hasBridge("smoke-br2"))
+            ovsdb.delBridge("smoke-br2");
 
         mgmt = new MockMidolmanMgmt(false);
 
@@ -156,7 +160,9 @@ public class BgpTest extends AbstractSmokeTest {
         
         assertThat("The result object should not be null",
                       result, is(notNullValue()));
-        assertThat("The wait for the new route should have completed successfully", result.completed());
+
+        assertThat("The wait for the new route should have completed successfully",
+                   result.completed());
 
         assertThat(result.result(), is(notNullValue()));
         assertThat("The execution result should have been successful", result.result());
