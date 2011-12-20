@@ -389,6 +389,50 @@ public interface OpenvSwitchDatabaseConnection {
     Set<String> getPortNamesByExternalId(String key, String value);
 
     /**
+     * Get the port number associated with the given port name.
+     *
+     * @param portName the port name to lookup
+     * @return the set of the port numbers
+     */
+    Set<Short> getPortNumsByPortName(String portName);
+
+    /**
+     * Get the UUID of the port associated with the given port name.
+     *
+     * @param portName the name of the port to lookup
+     * @return the UUID of the port
+     */
+    String getPortUUID(String portName);
+
+    /**
+     * Get the number of the port associated with the given UUID.
+     *
+     * @param portUuid the UUID of the port to lookup
+     * @return the port number
+     */
+    short getPortNumByUUID(String portUuid);
+
+
+    /**
+     * Get the number of the port which interface is associated with the given
+     * UUID.
+     *
+     * @param ifUuid the UUID of the interface associated with the port to
+     *               lookup
+     * @return the port number
+     */
+    short getPortNumByInterfaceUUID(String ifUuid);
+
+    /**
+     * Get the queue number associated with the given UUID.
+     *
+     * @param qosUUID the UUID of the QoS which contains the queue
+     * @param queueUUID the UUID of the queue to lookup
+     * @return the queue number
+     */
+    int getQueueNumByQueueUUID(String qosUUID, String queueUUID);
+
+    /**
      * Close the connection.
      */
     void close();

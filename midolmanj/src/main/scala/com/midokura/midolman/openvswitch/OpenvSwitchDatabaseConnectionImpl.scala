@@ -27,6 +27,7 @@ import com.fasterxml.jackson.module.scala.ScalaModule
 import org.codehaus.jackson.{JsonNode, JsonFactory, JsonGenerator, JsonParser}
 import org.codehaus.jackson.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode}
 import org.codehaus.jackson.map.ObjectMapper
+import org.openflow.protocol.OFPort
 import org.slf4j.LoggerFactory
 
 import OpenvSwitchDatabaseConsts._
@@ -2235,6 +2236,99 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     /**
+     * Get the port numbers which are associated with a given UUID.
+     *
+     * @param portUUID The UUID to lookup.
+     * @return The list of port numbers which are associated with the UUID.
+     */
+    override def getPortNumByUUID(portUUID: String): Short = {
+        val portRows = select(TablePort, whereUUIDEquals(portUUID),
+                              List(ColumnUUID, ColumnInterfaces))
+        if (portRows.isEmpty)
+            throw new NotFoundException("no port with UUID " + portUUID)
+        for (portRow <- portRows) {
+            val ifs: JsonNode = portRow.get(ColumnInterfaces)
+            assume(ifs != null, "Invalid JSON object.")
+            val ifUUIDs: List[JsonNode] =
+                if  (ifs.get(0).getTextValue == "uuid")
+                    List(ifs)
+                else
+                    ifs.getElements.toList
+            for {
+                _ifUUID <- ifUUIDs
+                ifUUID = _ifUUID.get(1).getTextValue if ifUUID != null
+            } return getPortNumByInterfaceUUID(ifUUID)
+        }
+        return OFPort.OFPP_NONE.getValue
+    }
+
+    /**
+     * Get the port numbers which are associated with a given UUID.
+     *
+     * @param portName The name of the port to lookup.
+     * @return The list of port numbers which are associated with the UUID.
+     */
+    override def getPortNumsByPortName(
+            portName: String): java.util.Set[java.lang.Short] = {
+        var portNums: ListBuffer[Short] = ListBuffer()
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                              List(ColumnUUID, ColumnInterfaces))
+        if (portRows.isEmpty)
+            throw new NotFoundException("no port with name " + portName)
+        for (portRow <- portRows) {
+            val ifs: JsonNode = portRow.get(ColumnInterfaces)
+            assume(ifs != null, "Invalid JSON object.")
+            val ifUUIDs: List[JsonNode] =
+                if  (ifs.get(0).getTextValue == "uuid")
+                    List(ifs)
+                else
+                    ifs.getElements.toList
+            for {
+                _ifUUID <- ifUUIDs
+                ifUUID = _ifUUID.get(1).getTextValue if ifUUID != null
+            } portNums += getPortNumByInterfaceUUID(ifUUID)
+        }
+        return mutable.Set(portNums.map((x) => (x: java.lang.Short)) : _*)
+    }
+
+    /**
+     * Get the port number which is associated with a given UUID.
+     *
+     * @param ifUUID The UUID of the interface associated with the port to
+     *        lookup.
+     * @return The port number which are associated with the UUID.
+     */
+    def getPortNumByInterfaceUUID(ifUUID: String): Short = {
+        val ifRows = select(TableInterface, whereUUIDEquals(ifUUID),
+                            List(ColumnUUID, ColumnOfPort))
+        if (ifRows.isEmpty)
+            throw new NotFoundException("no port with id " + ifUUID)
+        for (ifRow <- ifRows) {
+            val ofPort = ifRow.get(ColumnOfPort).getValueAsInt
+            return ofPort.toShort
+        }
+        return OFPort.OFPP_NONE.getValue
+    }
+
+    /**
+     * Get an UUID associated with a given port name.
+     *
+     * @param portName The name of the port to get.
+     * @return The UUID string of the port associated with the given name.
+     */
+    def getPortUUID(portName: String): String = {
+        val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
+                              List(ColumnUUID))
+        if (portRows.isEmpty)
+            throw new NotFoundException("no port with name " + portName)
+        for { portRow <- portRows
+             _uuid = portRow.get(ColumnUUID) if _uuid != null
+             portUUID = _uuid.get(1) if portUUID != null
+        } return portUUID.getValueAsText
+        return ""
+    }
+
+    /**
      * Get the set of QoSs' UUIDs that are associated a given external ID
      * key-value pair.
      *
@@ -2268,6 +2362,30 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             _uuid = row.get(ColumnUUID) if _uuid != null
             qosUUID = _uuid.get(1) if qosUUID != null
         } yield qosUUID.getTextValue).toList: _*)
+    }
+
+    /**
+     * Get a queue number that is associated a given the UUID of the queue
+     *
+     * @param queueUUID The UUID of the queue.
+     * @return The queue number of the queue.
+     */
+    override def getQueueNumByQueueUUID(qosUUID: String,
+                                        queueUUID: String): Int = {
+        val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
+                          List(ColumnUUID, ColumnQueues))
+        if (qosRows.isEmpty)
+            throw new NotFoundException("no qos with UUID " + qosUUID)
+        for {
+            qosRow <- qosRows if qosRow != null
+            val queues: Map[String, JsonNode] =
+                ovsMapToMap(qosRow.get(ColumnQueues)) if queues != null
+        } {
+            // filter by the UUID and get the key which means the port number
+            return queues.filter(
+                    _._2.get(1).getValueAsText == queueUUID).head._1.toInt
+        }
+        return -1
     }
 
    /**

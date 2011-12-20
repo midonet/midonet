@@ -467,6 +467,31 @@ public class MockOpenvSwitchDatabaseConnection implements
     }
 
     @Override
+    public Set<Short> getPortNumsByPortName(String portName) {
+        return null;  // TODO Auto-generated method stub
+    }
+
+    @Override
+    public String getPortUUID(String portName) {
+        return null;  // TODO Auto-generated method stub
+    }
+
+    @Override
+    public short getPortNumByUUID(String portUuid) {
+        return 0;  // TODO Auto-generated method stub
+    }
+
+    @Override
+    public short getPortNumByInterfaceUUID(String ifUuid) {
+        return 0;  // TODO Auto-generated method stub
+    }
+
+    @Override
+    public int getQueueNumByQueueUUID(String qosUUID, String queueUUID) {
+        return 0;  // TODO Auto-generated method stub
+    }
+
+    @Override
     public void close() {
         // TODO Auto-generated method stub
     }
