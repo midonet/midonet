@@ -28,16 +28,6 @@ import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 public class ApplicationResource {
 
     /**
-     * Admin resource locator.
-     *
-     * @returns AdminResource object to handle sub-resource requests.
-     */
-    @Path(UriManager.ADMIN)
-    public AdminResource getAdminResource() {
-        return new AdminResource();
-    }
-
-    /**
      * Tenant resource locator.
      *
      * @returns TenantResource object to handle sub-resource requests.

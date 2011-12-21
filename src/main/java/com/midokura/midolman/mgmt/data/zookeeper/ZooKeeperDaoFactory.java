@@ -13,7 +13,7 @@ import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.AbstractDaoFactory;
 import com.midokura.midolman.mgmt.data.DaoInitializationException;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
-import com.midokura.midolman.mgmt.data.dao.AdminDao;
+import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
@@ -25,7 +25,7 @@ import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.AdRouteZkManagerProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.AdminZkManager;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.ApplicationZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkManagerProxy;
@@ -36,9 +36,13 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkManagerProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkManagerProxy;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkPathManager;
 
 /**
  * ZooKeeper DAO factory class.
@@ -121,15 +125,19 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     }
 
     @Override
-    public AdminDao getAdminDao() throws StateAccessException {
-        return new AdminZkManager(getDirectory(), this.rootPath,
-                this.rootMgmtPath);
-    }
-
-    @Override
     public AdRouteDao getAdRouteDao() throws StateAccessException {
         return new AdRouteZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.midokura.midolman.mgmt.data.DaoFactory#getApplicationDao()
+     */
+    @Override
+    public ApplicationDao getApplicationDao() throws StateAccessException {
+        return new ApplicationZkDao(getZkDao(), getPathService());
     }
 
     @Override
@@ -148,6 +156,18 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     public ChainDao getChainDao() throws StateAccessException {
         return new ChainZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
+    }
+
+    private PathBuilder getPathBuilder() {
+        return new PathBuilder(rootMgmtPath);
+    }
+
+    private ZkPathManager getPathManager() {
+        return new ZkPathManager(rootPath);
+    }
+
+    private PathService getPathService() {
+        return new PathService(getPathManager(), getPathBuilder());
     }
 
     @Override
@@ -190,5 +210,9 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     public VpnDao getVpnDao() throws StateAccessException {
         return new VpnZkManagerProxy(getDirectory(), this.rootPath,
                 this.rootMgmtPath);
+    }
+
+    private ZkManager getZkDao() throws StateAccessException {
+        return new ZkManager(getDirectory(), getRootPath());
     }
 }

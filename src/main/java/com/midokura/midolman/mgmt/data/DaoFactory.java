@@ -6,7 +6,7 @@
 package com.midokura.midolman.mgmt.data;
 
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
-import com.midokura.midolman.mgmt.data.dao.AdminDao;
+import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
@@ -28,13 +28,13 @@ import com.midokura.midolman.state.StateAccessException;
 public interface DaoFactory {
 
     /**
-     * Get Admin DAO
+     * Get Application DAO
      *
-     * @return AdminDao object
+     * @return ApplicationDao object
      * @throws StateAccessException
      *             Data access error.
      */
-    AdminDao getAdminDao() throws StateAccessException;
+    ApplicationDao getApplicationDao() throws StateAccessException;
 
     /**
      * Get ad route DAO

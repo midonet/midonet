@@ -55,13 +55,6 @@ public class Application extends UriResource {
     }
 
     /**
-     * @return the admin URI
-     */
-    public URI getAdmin() {
-        return UriManager.getAdmin(getBaseUri());
-    }
-
-    /**
      * @return the VIFs URI
      */
     public URI getVifs() {

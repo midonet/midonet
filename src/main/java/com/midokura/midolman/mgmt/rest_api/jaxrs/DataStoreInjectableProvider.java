@@ -11,21 +11,17 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.DaoInitializationException;
 import com.midokura.midolman.mgmt.data.DatastoreSelector;
-import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.core.spi.component.ComponentContext;
 import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
 import com.sun.jersey.spi.inject.Injectable;
 import com.sun.jersey.spi.inject.InjectableProvider;
 
 @Provider
-public class DataStoreInjectableProvider extends
-        AbstractHttpContextInjectable<DaoFactory> implements
-        InjectableProvider<Context, Type> {
+public class DataStoreInjectableProvider implements
+        InjectableProvider<Context, Type>, Injectable<DaoFactory> {
 
     DaoFactory daoFactory = null;
 
@@ -37,15 +33,17 @@ public class DataStoreInjectableProvider extends
         return ComponentScope.Singleton;
     }
 
-    @Context AppConfig appConfig;
+    @Context
+    AppConfig appConfig;
 
     @Override
-    public DaoFactory getValue(HttpContext arg0) {
-        if ( daoFactory == null ) {
+    public DaoFactory getValue() {
+        if (daoFactory == null) {
             try {
                 daoFactory = DatastoreSelector.getDaoFactory(appConfig);
-            } catch (Exception e) {
-                throw new UnsupportedOperationException("Could not instantiate DaoFactory.", e);
+            } catch (DaoInitializationException e) {
+                throw new UnsupportedOperationException(
+                        "Could not instantiate and initialize DaoFactory.", e);
             }
         }
 
@@ -53,11 +51,11 @@ public class DataStoreInjectableProvider extends
     }
 
     @Override
-    public Injectable<DaoFactory> getInjectable(ComponentContext arg0, Context arg1, Type type) {
-        if ( type.equals(DaoFactory.class) )
+    public Injectable<DaoFactory> getInjectable(ComponentContext arg0,
+            Context arg1, Type type) {
+        if (type.equals(DaoFactory.class))
             return this;
 
         return null;
     }
-
 }

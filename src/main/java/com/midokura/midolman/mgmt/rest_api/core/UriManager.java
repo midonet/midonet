@@ -13,8 +13,6 @@ import javax.ws.rs.core.UriBuilder;
 public class UriManager {
 
     public static final String ROOT = "/";
-    public static final String ADMIN = "/admin";
-    public static final String INIT = "/init";
     public static final String TENANTS = "/tenants";
     public static final String ROUTERS = "/routers";
     public static final String BRIDGES = "/bridges";
@@ -30,14 +28,6 @@ public class UriManager {
 
     public static URI getRoot(URI baseUri) {
         return UriBuilder.fromUri(baseUri).path(ROOT).build();
-    }
-
-    public static URI getAdmin(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(ADMIN).build();
-    }
-
-    public static URI getInit(URI baseUri) {
-        return UriBuilder.fromUri(getAdmin(baseUri)).path(INIT).build();
     }
 
     public static URI getTenants(URI baseUri) {

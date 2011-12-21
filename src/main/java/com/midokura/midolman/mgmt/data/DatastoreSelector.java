@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
+import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * DAO factory selector.
@@ -27,20 +29,21 @@ public class DatastoreSelector {
      * @return DaoFactory class
      * @throws DaoInitializationException
      *             Initialization error.
-     * @throws InvalidConfigException
-     *             Configuration error.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static DaoFactory getDaoFactory(AppConfig config)
-            throws DaoInitializationException, InvalidConfigException {
+            throws DaoInitializationException {
 
         Class clazz = null;
 
         try {
             clazz = Class.forName(config.getDataStoreClassName());
+        } catch (InvalidConfigException e) {
+            throw new DaoInitializationException(
+                    "Could not get class name from config", e);
         } catch (ClassNotFoundException e) {
             throw new DaoInitializationException(
-                    "Could not find class from config", e);
+                    "Could not find class defined in config", e);
         }
 
         Class[] argsClass = new Class[] { AppConfig.class };
@@ -76,6 +79,17 @@ public class DatastoreSelector {
         } catch (InvocationTargetException e) {
             throw new DaoInitializationException(
                     "AbstractDaoFactory constructor threw an exception.", e);
+        }
+
+        // Since this should only get called once, let the application
+        // initialize its data store here.
+        try {
+            ApplicationDao dao = factory.getApplicationDao();
+            dao.initialize();
+        } catch (StateAccessException e) {
+            throw new DaoInitializationException(
+                    "Datastore could not be initialized due to data access error.",
+                    e);
         }
 
         return factory;
