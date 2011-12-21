@@ -58,9 +58,6 @@
     <filter-name>keystone_auth</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  <listener>
-    <listener-class>com.midokura.midolman.mgmt.servlet.ServletListener</listener-class>
-  </listener>
   <servlet>
     <servlet-name>jersey_servlet</servlet-name>
     <servlet-class>
