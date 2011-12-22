@@ -344,20 +344,30 @@ public class TestAbstractController {
                           controller.virtualPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(37));
         assertNull(portLocMap.get(port1uuid));
-        assertEquals(1, stub.deletedFlows.size());
-        assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT, 
+        // There should be 2 delete flow_mods, one with 37 as input port,
+        // the other with 37 as output port.
+        assertEquals(2, stub.deletedFlows.size());
+        assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT,
                      stub.deletedFlows.get(0).match.getWildcards());
         assertEquals(37, stub.deletedFlows.get(0).match.getInputPort());
+        assertEquals(OFMatch.OFPFW_ALL,
+                     stub.deletedFlows.get(1).match.getWildcards());
+        assertEquals(37, stub.deletedFlows.get(1).outPort);
         assertEquals(port2peer, controller.peerOfTunnelPortNum(47));
         controller.onPortStatus(port2, OFPortReason.OFPPR_DELETE);
         assertArrayEquals(new IntIPv4[] { port2peer },
                           controller.tunnelPortsRemoved.toArray());
         assertFalse(controller.portNumToUuid.containsKey(47));
         assertNull(controller.peerOfTunnelPortNum(47));
-        assertEquals(2, stub.deletedFlows.size());
-        assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT, 
-                     stub.deletedFlows.get(1).match.getWildcards());
-        assertEquals(47, stub.deletedFlows.get(1).match.getInputPort());
+        // There should be 2 more delete flow_mods, one with 47 as input port,
+        // the other with 47 as output port.
+        assertEquals(4, stub.deletedFlows.size());
+        assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_IN_PORT,
+                     stub.deletedFlows.get(2).match.getWildcards());
+        assertEquals(47, stub.deletedFlows.get(2).match.getInputPort());
+        assertEquals(OFMatch.OFPFW_ALL,
+                     stub.deletedFlows.get(3).match.getWildcards());
+        assertEquals(47, stub.deletedFlows.get(3).outPort);
     }
 
     @Test

@@ -194,6 +194,7 @@ public abstract class AbstractController
 
     private void _deleteVirtualPort(int portNum, UUID uuid) {
         log.info("_deleteVirtualPort num:{} id:{}", portNum, uuid);
+        deleteFlowsByPort(portNum);
         // First notify the subclass then update the maps.
         deleteVirtualPort(portNum, uuid);
         portNumToUuid.remove(portNum);
@@ -208,6 +209,7 @@ public abstract class AbstractController
     }
 
     private void _deleteTunnelPort(int portNum) {
+        deleteFlowsByPort(portNum);
         IntIPv4 peerIp = tunnelPortNumToPeerIp.get(portNum);
         log.info("_deleteTunnelPort num:{} to peer:{}", portNum, peerIp);
         // First notify the subclass then update the maps.
@@ -290,13 +292,13 @@ public abstract class AbstractController
             else if (peerIp != null)
                 _addTunnelPort(portNum, peerIp);
             else
-                log.error("onPortStatus unrecognized port type - not service"
+                log.error("onPortStatus unrecognized port type - not service "
                         + "port, nor virtual port, nor tunnel");
         } else if(reason.equals(OFPortReason.OFPPR_DELETE)) {
-            // Remove any flows which have this port as the in-port.
-            deleteFlowsByInPort(portNum);
-            if (null != svcId)
+            if (null != svcId) {
                 deleteServicePort(portNum, name, svcId);
+                deleteFlowsByPort(portNum);
+            }
             // It's a tunnel or virtual port.
             else if (downPorts.contains(portNum))
                 downPorts.remove(portNum);
@@ -565,9 +567,13 @@ public abstract class AbstractController
         return peerIpToTunnelPortNum.get(peerIP);
     }
 
-    protected void deleteFlowsByInPort(int portNum) {
+    protected void deleteFlowsByPort(int portNum) {
+        // First delete flows that have this port as the inPort.
         MidoMatch match = new MidoMatch();
         match.setInputPort((short) portNum);
         controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
+        // Then delete flows with an output action directed at this port.
+        controllerStub.sendFlowModDelete(new MidoMatch(), false, (short)0,
+                (short)portNum);
     }
 }
