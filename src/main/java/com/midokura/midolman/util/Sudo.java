@@ -3,8 +3,8 @@
 // Wrapper for managing sudo shelling.
 package com.midokura.midolman.util;
 
-import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -19,17 +19,16 @@ public class Sudo {
         boolean _hasControllingTTY = false;
 
         try {
-            File ttyFile = new File("/dev/tty");
-            if (ttyFile.exists() && ttyFile.canRead()) {
-                // just try to open the file;
-                FileInputStream fileInputStream = new FileInputStream(ttyFile);
-                fileInputStream.close();
+            // just try to open /dev/tty as a stream
+            FileInputStream fileInputStream = new FileInputStream("/dev/tty");
+            fileInputStream.close();
 
-                // since nothing bad happened until here we know that we can
-                // open the /dev/tty device (which implies that we have a
-                // controlling terminal
-                _hasControllingTTY = true;
-            }
+            // since nothing bad happened until here we know that we can
+            // open the /dev/tty device (which implies that we have a
+            // controlling terminal
+            _hasControllingTTY = true;
+        } catch (FileNotFoundException ex) {
+            // when there is no controlling TTY this exception will be thrown.
         } catch (Exception e) {
             log.error("Exception while testing for controlling TTY.", e);
         }
