@@ -188,7 +188,7 @@ public class VifResource {
             log.error("Unhandled error", e);
             throw new UnknownRestApiException(e);
         }
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**
