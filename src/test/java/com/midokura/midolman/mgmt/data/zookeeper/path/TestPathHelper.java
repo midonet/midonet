@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -91,5 +93,15 @@ public class TestPathHelper {
     @Test(expected = IllegalArgumentException.class)
     public void testGetSubPathsBadPathInput() throws Exception {
         PathHelper.getSubPaths("foo/bar/baz");
+    }
+
+    @Test(expected = NoSuchMethodException.class)
+    public void testNoInstantiation() throws SecurityException,
+            NoSuchMethodException, IllegalArgumentException,
+            InstantiationException, IllegalAccessException,
+            InvocationTargetException {
+        Constructor<PathBuilder> constructor = PathBuilder.class
+                .getDeclaredConstructor();
+        constructor.newInstance();
     }
 }
