@@ -17,6 +17,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import org.openflow.protocol.OFBarrierReply;
 import org.openflow.protocol.OFBarrierRequest;
@@ -58,7 +59,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     private final static Logger log = LoggerFactory.getLogger(ControllerStubImpl.class);
     private final static int FLOW_REQUEST_BODY_LENGTH = 44;
     private final static int PORT_QUEUE_REQUEST_BODY_LENGTH = 8;
-    private final static String OPENFLOW_CONNECTION_LOST = "connection_lost";
+    private final static int POLLING_DEADLINE_MSEC = 300;
 
     protected Controller controller;
 
@@ -126,15 +127,13 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
            log.debug("statsReplies: {}", statsReplies.toString());
            BlockingQueue<OFStatisticsReply> replyQueue = statsReplies.get(xid);
            log.debug("Waiting for the response...");
-           reply = replyQueue.take();
+           reply = replyQueue.poll(
+                   POLLING_DEADLINE_MSEC, TimeUnit.MILLISECONDS);
            log.debug("reply: {}", reply);
-           if (isDisconnected(reply)) {
-               log.error("The connection to the datapath has been lost.");
-               throw new OpenFlowError(
-                       "The connection to the datapath has been lost.");
+           if (reply != null) {
+               statsReplies.remove(xid);
+               log.debug("Succeeded to retrieve statistics data.");
            }
-           statsReplies.remove(xid);
-           log.debug("Succeeded to retrieve statistics data.");
            return reply;
        } catch (InterruptedException e) {
            log.error("Error on getStatisticsReply: {}", e);
@@ -242,17 +241,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }
     }
 
-    private boolean isDisconnected(OFStatisticsReply reply) {
-        if (reply.getStatisticType() == OFStatisticsType.DESC) {
-            List<OFStatistics> statsReplies = reply.getStatistics();
-            OFDescriptionStatistics poison =
-                    (OFDescriptionStatistics) statsReplies.get(0);
-            return (poison.getSoftwareDescription().equals(
-                    OPENFLOW_CONNECTION_LOST));
-        }
-        return false;
-    }
-
     private int sendStatsRequest(final OFStatistics statsRequest,
                                  final OFStatisticsType statsType) {
         List<OFStatistics> statsRequests = new ArrayList<OFStatistics>();
@@ -325,22 +313,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         try {
             stream.flush();
         } catch (IOException e) {
-            BlockingQueue<OFStatisticsReply> replyQueue =
-                    statsReplies.get(xid);
-            // Poison object which represents the disconnection from the OpenFlow
-            // socket.
-            OFDescriptionStatistics poison = new OFDescriptionStatistics();
-            poison.setSoftwareDescription(OPENFLOW_CONNECTION_LOST);
-            OFStatisticsReply poisonReply = new OFStatisticsReply();
-            List<OFStatistics> replyList = new ArrayList<OFStatistics>(1);
-            replyList.add(poison);
-            poisonReply.setStatistics(replyList);
-            try {
-                replyQueue.put(poisonReply);
-            } catch (InterruptedException ex) {
-                log.error("The reply queue inside reply lists is broken.");
-                Thread.currentThread().interrupt();
-            }
+            log.warn("sendStatsRequest", e);
         }
         log.debug("sent OFPT_STATS_REQUEST message with length {}.",
                 request.getLengthU());
