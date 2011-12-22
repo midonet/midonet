@@ -79,4 +79,6 @@ public class PathHelper {
         return getSubPaths(path, false);
     }
 
+    private PathHelper() {
+    }
 }
