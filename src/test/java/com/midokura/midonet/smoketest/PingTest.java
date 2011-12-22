@@ -109,7 +109,7 @@ public class PingTest extends AbstractSmokeTest {
         ovsBridge.remove();
         tap1.remove();
         tap2.remove();
-        tenant1.delete();
+        //tenant1.delete();
         mgmt.stop();
 
         resetZooKeeperState(log);
@@ -117,6 +117,7 @@ public class PingTest extends AbstractSmokeTest {
 
     @Test
     public void test() {
+        synchronized(mgmt) {
         byte[] request;
 
         // First arp for router's mac.
@@ -143,20 +144,21 @@ public class PingTest extends AbstractSmokeTest {
 
         // No other packets arrive at the port.
         assertNull(tap1.recv());
+        } // end synchronized(mgmt)
     }
 
     @Test
     public void testPortDelete() throws InterruptedException {
-        short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
-
+        synchronized(mgmt) {
         // Remove/re-add the two tap ports to remove all flows.
         ovsBridge.deletePort(tap1.getName());
         ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
         ovsBridge.deletePort(tap1.getName());
         ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
 
+        short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
         // Sleep to let OVS update its stats.
         Thread.sleep(1000);
 
@@ -166,17 +168,32 @@ public class PingTest extends AbstractSmokeTest {
         List<FlowStats> fstats = svcController.getFlowStats(icmpMatch);
         assertEquals(0, fstats.size());
 
-        // Send ICMPs from p1 and p2 to internal port p3.
+        // Send ICMPs from p1 to internal port p3.
         byte[] ping1_3 = helper1.makeIcmpEchoRequest(ip3);
         assertThat("The tap should have sent the packet", tap1.send(ping1_3));
+        // Note: the virtual router ARPs before delivering the reply packet.
+        helper1.checkArpRequest(tap1.recv());
+        assertThat("The tap should have sent the ARP reply",
+                tap1.send(helper1.makeArpReply()));
+        // Finally, the icmp echo reply from the peer.
+        PacketHelper.checkIcmpEchoReply(ping1_3, tap1.recv());
+
+        // Send ICMPs from p2 to internal port p3.
         byte[] ping2_3 = helper2.makeIcmpEchoRequest(ip3);
         assertThat("The tap should have sent the packet", tap2.send(ping2_3));
+        // Note: the virtual router ARPs before delivering the reply packet.
+        helper2.checkArpRequest(tap2.recv());
+        assertThat("The tap should have sent the ARP reply",
+                tap2.send(helper2.makeArpReply()));
+        // Finally, the icmp echo reply from the peer.
+        PacketHelper.checkIcmpEchoReply(ping2_3, tap2.recv());
+
         // Sleep to let OVS update its stats.
         Thread.sleep(1000);
 
         // Now there should be 4 ICMP flows
         fstats = svcController.getFlowStats(icmpMatch);
-        assertEquals(1, fstats.size());
+        assertEquals(4, fstats.size());
 
         // Verify that there are flows: 1->3, 3->1, 2->3, 3->2.
         fstats = svcController.getFlowStats(new MidoMatch().setNetworkSource(
@@ -216,14 +233,15 @@ public class PingTest extends AbstractSmokeTest {
                 .expectCount(2).expectOutputAction(num1);
         flow2_3.findSameInList(svcController.getFlowStats(flow2_3.getMatch()))
                 .expectCount(2).expectOutputAction(num3);
-        flow3_2.findSameInList(svcController.getFlowStats(flow3_1.getMatch()))
+        flow3_2.findSameInList(svcController.getFlowStats(flow3_2.getMatch()))
                 .expectCount(2).expectOutputAction(num2);
 
         // Now remove p3 and verify that all flows are removed since they
         // are ingress or egress at p3.
         ovsBridge.deletePort("pingTestInt");
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         fstats = svcController.getFlowStats(icmpMatch);
         assertEquals(0, fstats.size());
+        } // end synchronized(mgmt)
     }
 }

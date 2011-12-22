@@ -119,7 +119,7 @@ public class BridgeTest extends AbstractSmokeTest {
 
     @Test
     public void testPingOverBridge() {
-
+        synchronized(mgmt) {
         byte[] sent;
 
         sent = helper1_3.makeIcmpEchoRequest(ip3);
@@ -146,10 +146,12 @@ public class BridgeTest extends AbstractSmokeTest {
 
         assertNull(tap3.recv());
         assertNull(tap1.recv());
+        } // end synchronized(mgmt)
     }
 
     @Test
     public void testPortDelete() throws InterruptedException {
+        synchronized(mgmt) {
         // Use different MAC addrs from other tests (unlearned MACs).
         MAC mac1 = MAC.fromString("02:00:00:00:aa:01");
         MAC mac2 = MAC.fromString("02:00:00:00:aa:02");
@@ -194,5 +196,6 @@ public class BridgeTest extends AbstractSmokeTest {
 
         // Re-add the OVS port to leave things as we found them.
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
+        } // end synchronized(mgmt)
     }
 }
