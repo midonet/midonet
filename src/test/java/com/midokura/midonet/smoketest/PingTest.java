@@ -5,7 +5,6 @@
 package com.midokura.midonet.smoketest;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -17,13 +16,10 @@ import java.util.Random;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openflow.protocol.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.openvswitch.ControllerBuilder;
-import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
@@ -32,7 +28,6 @@ import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.openflow.FlowStats;
 import com.midokura.midonet.smoketest.openflow.ServiceController;
-import com.midokura.midonet.smoketest.topology.InternalPort;
 import com.midokura.midonet.smoketest.topology.MidoPort;
 import com.midokura.midonet.smoketest.topology.OvsBridge;
 import com.midokura.midonet.smoketest.topology.Router;
