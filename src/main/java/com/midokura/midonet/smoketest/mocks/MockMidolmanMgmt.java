@@ -54,8 +54,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         super(makeAppDescriptor(mockZK));
         // Initialize the directory structure.
         app = get("", DtoApplication.class);
-        DtoAdmin admin = get(app.getAdmin(), DtoAdmin.class);
-        post(admin.getInit(), null);
         // Start Midolmanj controllers
         try {
             MidolmanLauncher.start();
