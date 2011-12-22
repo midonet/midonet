@@ -60,12 +60,11 @@ public class DatastoreSelector {
                     e);
         }
 
-        AbstractDaoFactory factory = null;
+        DaoFactory factory = null;
         Object[] args = new Object[] { config };
         try {
 
-            factory = (AbstractDaoFactory) dataStoreConstructor
-                    .newInstance(args);
+            factory = (DaoFactory) dataStoreConstructor.newInstance(args);
         } catch (InstantiationException e) {
             throw new DaoInitializationException(
                     "Class specified in the config cannot be instantiated", e);
