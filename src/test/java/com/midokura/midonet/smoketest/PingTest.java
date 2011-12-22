@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.ControllerBuilder;
 import com.midokura.midolman.openvswitch.ControllerConnectionMode;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
@@ -54,7 +53,7 @@ public class PingTest extends AbstractSmokeTest {
     static MidoPort p3;
     static TapWrapper tap1;
     static TapWrapper tap2;
-    static OpenvSwitchDatabaseConnection ovsdb;
+    static OpenvSwitchDatabaseConnectionImpl ovsdb;
     static PacketHelper helper1;
     static PacketHelper helper2;
     static MidolmanMgmt mgmt;
@@ -148,9 +147,9 @@ public class PingTest extends AbstractSmokeTest {
 
     @Test
     public void testPortDelete() throws InterruptedException {
-        short num1 = (Short) ovsdb.getPortNumsByPortName(tap1.getName()).head();
-        short num2 = (Short) ovsdb.getPortNumsByPortName(tap2.getName()).head();
-        short num3 = (Short) ovsdb.getPortNumsByPortName("pingTestInt").head();
+        short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
 
         // Remove/re-add the two tap ports to remove all flows.
         ovsBridge.deletePort(tap1.getName());

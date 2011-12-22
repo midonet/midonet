@@ -120,8 +120,10 @@ public class StatsTest extends AbstractSmokeTest {
     @Test
     public void test() throws InterruptedException {
         byte[] request;
-        short portNum1 = (Short)ovsdb.getPortNumsByPortName(tapPort1.getName()).head();
-        short portNum2 = (Short)ovsdb.getPortNumsByPortName(tapPort2.getName()).head();
+        short portNum1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(
+                tapPort1.getName()));
+        short portNum2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(
+                tapPort2.getName()));
 
         // Port stats for tapPort1
         PortStats pStat1 = svcController.getPortStats(portNum1);

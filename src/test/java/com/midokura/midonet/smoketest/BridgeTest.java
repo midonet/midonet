@@ -99,7 +99,7 @@ public class BridgeTest extends AbstractSmokeTest {
         ovsBridge1.addServiceController(6640);
         Thread.sleep(1000);
         svcController = new ServiceController(6640);
-        Thread.sleep(5000);
+        Thread.sleep(10 * 1000);
     }
 
     @AfterClass
@@ -178,8 +178,8 @@ public class BridgeTest extends AbstractSmokeTest {
         fstats = svcController.getFlowStats(match2);
         assertEquals(1, fstats.size());
         FlowStats flow2 = fstats.get(0);
-        short portNum1 = (Short) ovsdb.getPortNumsByPortName(tap1.getName())
-                .head();
+        short portNum1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(
+                tap1.getName()));
         flow2.expectCount(1).expectOutputAction(portNum1);
 
         // The first flow should not have changed.
