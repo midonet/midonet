@@ -114,7 +114,7 @@ public class TestPathBuilder {
 
         // Router
         result = builder.getRouterPath(uuid);
-        expected = root + "/"  + PathBuilder.ROUTERS_PATH + "/" + uuid;
+        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
         // Router routers
@@ -139,6 +139,34 @@ public class TestPathBuilder {
         result = builder.getRouterTablePath(uuid, testName);
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
                 + PathBuilder.TABLES_PATH + "/" + testName;
+        Assert.assertEquals(expected, result);
+
+        // Router table chains
+        result = builder.getRouterTableChainsPath(uuid, testName);
+        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
+                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.CHAINS_PATH;
+        Assert.assertEquals(expected, result);
+
+        // Router table chain
+        result = builder.getRouterTableChainPath(uuid, testName, uuid);
+        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
+                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.CHAINS_PATH + "/" + uuid;
+        Assert.assertEquals(expected, result);
+
+        // Router table chain names
+        result = builder.getRouterTableChainNamesPath(uuid, testName);
+        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
+                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.CHAIN_NAMES_PATH;
+        Assert.assertEquals(expected, result);
+
+        // Router table chain name
+        result = builder.getRouterTableChainNamePath(uuid, testName, testName);
+        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
+                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.CHAIN_NAMES_PATH + "/" + testName;
         Assert.assertEquals(expected, result);
 
         // Bridges
