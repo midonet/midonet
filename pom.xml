@@ -18,6 +18,36 @@
     <defaultGoal>package</defaultGoal>
     <plugins>
       <plugin>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>2.1.1</version>
+          <configuration>
+              <failOnMissingWebXml>false</failOnMissingWebXml>
+          </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml"/>
+                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml.sample"/>
+                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml"/>
+                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml.sample"/>
+                <copy file="src/main/webapp/WEB-INF/web.xml.sample"
+                      tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml"/>
+                <copy file="conf/log4j.xml.sample"
+                      tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
@@ -126,14 +156,6 @@
                     <prefix>/etc/tomcat6/Catalina/localhost</prefix>
                   </mapper>
                 </data>
-                <data>
-                  <src>${project.basedir}/conf/log4j.xml</src>
-                  <type>file</type>
-                  <mapper>
-                    <type>perm</type>
-                    <prefix>/usr/share/midolmanj-mgmt/WEB-INF/classes</prefix>
-                  </mapper>
-                </data>
               </dataSet>
             </configuration>
           </execution>
@@ -158,7 +180,7 @@
       <name>mido-maven</name>
       <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
     </pluginRepository>
-    <!-- pluginRepository> <id>maven.java.net</id> <name>Java.net Maven2 
+    <!-- pluginRepository> <id>maven.java.net</id> <name>Java.net Maven2
       Repository</name> <url>http://download.java.net/maven/2</url> </pluginRepository -->
   </pluginRepositories>
   <repositories>
@@ -167,8 +189,8 @@
       <name>mido-maven</name>
       <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
     </repository>
-    <!-- repository> <id>maven2-repository.dev.java.net</id> <name>Java.net 
-      Repository for Maven</name> <url>http://download.java.net/maven/2/</url> 
+    <!-- repository> <id>maven2-repository.dev.java.net</id> <name>Java.net
+      Repository for Maven</name> <url>http://download.java.net/maven/2/</url>
       <layout>default</layout> </repository -->
     <!-- TODO: Move this to mido-maven -->
     <repository>
