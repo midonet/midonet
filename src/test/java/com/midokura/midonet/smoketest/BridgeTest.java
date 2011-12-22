@@ -52,11 +52,11 @@ public class BridgeTest extends AbstractSmokeTest {
     static TapWrapper tap3;
     static OvsBridge ovsBridge1;
     static OvsBridge ovsBridge2;
-
+    static ServiceController svcController;
     static Random rand = new Random(System.currentTimeMillis());
 
     @BeforeClass
-    public static void setUp() throws InterruptedException {
+    public static void setUp() throws InterruptedException, IOException {
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
@@ -72,7 +72,8 @@ public class BridgeTest extends AbstractSmokeTest {
         bridge1 = tenant1.addBridge().setName("br1").build();
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(), "tcp:127.0.0.1:6657");
+        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(),
+                "tcp:127.0.0.1:6657");
 
         ip1 = IntIPv4.fromString("192.168.231.2");
         bPort1 = bridge1.addPort();
@@ -89,11 +90,15 @@ public class BridgeTest extends AbstractSmokeTest {
         tap3 = new TapWrapper("tap3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
-        helper1_3 = new PacketHelper(tap1.getHwAddr(), ip1,
-                tap3.getHwAddr(), ip3);
-        helper3_1 = new PacketHelper(tap3.getHwAddr(), ip3,
-                tap1.getHwAddr(), ip1);
+        helper1_3 = new PacketHelper(tap1.getHwAddr(), ip1, tap3.getHwAddr(),
+                ip3);
+        helper3_1 = new PacketHelper(tap3.getHwAddr(), ip3, tap1.getHwAddr(),
+                ip1);
 
+        // Add a service controller to OVS bridge 1.
+        ovsBridge1.addServiceController(6640);
+        Thread.sleep(1000);
+        svcController = new ServiceController(6640);
         Thread.sleep(5000);
     }
 
@@ -144,22 +149,15 @@ public class BridgeTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testPortDelete() throws InterruptedException, IOException {
-        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
-                "smoke-br", "ptcp:6640");
-        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
-        ctlBuilder.build();
-        Thread.sleep(1000);
-        ServiceController svcController = new ServiceController(6640);
-        Thread.sleep(5000);
-
+    public void testPortDelete() throws InterruptedException {
+        // Use different MAC addrs from other tests (unlearned MACs).
         MAC mac1 = MAC.fromString("02:00:00:00:aa:01");
         MAC mac2 = MAC.fromString("02:00:00:00:aa:02");
         // Send broadcast from Mac1/port1.
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         assertTrue(tap1.send(pkt));
         assertArrayEquals(pkt, tap2.recv());
-        //assertArrayEquals(pkt, tap3.recv());
+        // assertArrayEquals(pkt, tap3.recv());
 
         // There should now be one flow that outputs to ALL.
         Thread.sleep(1000);
@@ -180,12 +178,12 @@ public class BridgeTest extends AbstractSmokeTest {
         fstats = svcController.getFlowStats(match2);
         assertEquals(1, fstats.size());
         FlowStats flow2 = fstats.get(0);
-        short portNum1 = (Short)ovsdb.getPortNumsByPortName(tap1.getName()).head();
+        short portNum1 = (Short) ovsdb.getPortNumsByPortName(tap1.getName())
+                .head();
         flow2.expectCount(1).expectOutputAction(portNum1);
 
         // The first flow should not have changed.
-        flow1.findSameInList(svcController.getFlowStats(match1))
-                .expectCount(1);
+        flow1.findSameInList(svcController.getFlowStats(match1)).expectCount(1);
 
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
