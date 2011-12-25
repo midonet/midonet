@@ -16,6 +16,7 @@ import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -154,7 +155,8 @@ public class ChainOpPathBuilder {
      *            ID of the chain.
      * @return Op for router table chain create.
      */
-    public Op getRouterTableChainCreateOp(UUID routerId, String table, UUID id) {
+    public Op getRouterTableChainCreateOp(UUID routerId, ChainTable table,
+            UUID id) {
         log.debug("ChainOpPathBuilder.getRouterTableChainCreateOp entered: routerId="
                 + routerId + ", table=" + table + ", id=" + id);
 
@@ -176,7 +178,8 @@ public class ChainOpPathBuilder {
      *            ID of the chain.
      * @return Op for router table chain delete.
      */
-    public Op getRouterTableChainDeleteOp(UUID routerId, String table, UUID id) {
+    public Op getRouterTableChainDeleteOp(UUID routerId, ChainTable table,
+            UUID id) {
         log.debug("ChainOpPathBuilder.getRouterTableChainDeleteOp entered: routerId="
                 + routerId + ", table=" + table + ",id=" + id);
 
@@ -200,7 +203,7 @@ public class ChainOpPathBuilder {
      *            ChainNameMgmtConfig object to add to the path.
      * @return Op for router table chain name create.
      */
-    public Op getRouterTableChainNameCreateOp(UUID routerId, String table,
+    public Op getRouterTableChainNameCreateOp(UUID routerId, ChainTable table,
             String name, ChainNameMgmtConfig config)
             throws ZkStateSerializationException {
         log.debug("ChainOpPathBuilder.getRouterTableChainNameCreateOp entered: routerId="
@@ -226,7 +229,7 @@ public class ChainOpPathBuilder {
      *            Name of the chain.
      * @return Op for router table chain name delete.
      */
-    public Op getRouterTableChainNameDeleteOp(UUID routerId, String table,
+    public Op getRouterTableChainNameDeleteOp(UUID routerId, ChainTable table,
             String name) {
         log.debug("ChainOpPathBuilder.getRouterTableChainNameDeleteOp entered: routerId="
                 + routerId + ", table=" + table + ", name=" + name);

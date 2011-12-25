@@ -11,6 +11,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+
 public class TestPathBuilder {
 
     @Test
@@ -136,36 +138,37 @@ public class TestPathBuilder {
         Assert.assertEquals(expected, result);
 
         // Router table
-        result = builder.getRouterTablePath(uuid, testName);
+        result = builder.getRouterTablePath(uuid, ChainTable.NAT);
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.TABLES_PATH + "/" + testName;
+                + PathBuilder.TABLES_PATH + "/" + ChainTable.NAT;
         Assert.assertEquals(expected, result);
 
         // Router table chains
-        result = builder.getRouterTableChainsPath(uuid, testName);
+        result = builder.getRouterTableChainsPath(uuid, ChainTable.NAT);
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.TABLES_PATH + "/" + ChainTable.NAT + "/"
                 + PathBuilder.CHAINS_PATH;
         Assert.assertEquals(expected, result);
 
         // Router table chain
-        result = builder.getRouterTableChainPath(uuid, testName, uuid);
+        result = builder.getRouterTableChainPath(uuid, ChainTable.NAT, uuid);
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.TABLES_PATH + "/" + ChainTable.NAT + "/"
                 + PathBuilder.CHAINS_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
         // Router table chain names
-        result = builder.getRouterTableChainNamesPath(uuid, testName);
+        result = builder.getRouterTableChainNamesPath(uuid, ChainTable.NAT);
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.TABLES_PATH + "/" + ChainTable.NAT + "/"
                 + PathBuilder.CHAIN_NAMES_PATH;
         Assert.assertEquals(expected, result);
 
         // Router table chain name
-        result = builder.getRouterTableChainNamePath(uuid, testName, testName);
+        result = builder.getRouterTableChainNamePath(uuid, ChainTable.NAT,
+                testName);
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.TABLES_PATH + "/" + testName + "/"
+                + PathBuilder.TABLES_PATH + "/" + ChainTable.NAT + "/"
                 + PathBuilder.CHAIN_NAMES_PATH + "/" + testName;
         Assert.assertEquals(expected, result);
 

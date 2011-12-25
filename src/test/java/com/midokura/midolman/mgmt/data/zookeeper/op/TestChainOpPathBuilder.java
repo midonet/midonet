@@ -15,6 +15,7 @@ import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -29,7 +30,6 @@ public class TestChainOpPathBuilder {
     private ChainOpPathBuilder builder = null;
     private final static UUID dummyId = UUID.randomUUID();
     private final static UUID dummyRouterId = UUID.randomUUID();
-    private final static String dummyTable = "foo";
     private final static String dummyChain = "bar";
     private final static ChainConfig dummyConfig = new ChainConfig();
     private final static ChainMgmtConfig dummyMgmtConfig = new ChainMgmtConfig();
@@ -109,9 +109,10 @@ public class TestChainOpPathBuilder {
     public void TestGetRouterTableChainCreateOpSuccess() throws Exception {
         Mockito.when(
                 pathBuilderMock.getRouterTableChainPath(dummyRouterId,
-                        dummyTable, dummyId)).thenReturn(dummyPath);
+                        ChainTable.NAT, dummyId)).thenReturn(dummyPath);
 
-        builder.getRouterTableChainCreateOp(dummyRouterId, dummyTable, dummyId);
+        builder.getRouterTableChainCreateOp(dummyRouterId, ChainTable.NAT,
+                dummyId);
 
         Mockito.verify(zkDaoMock, Mockito.times(1)).getPersistentCreateOp(
                 dummyPath, null);
@@ -121,9 +122,10 @@ public class TestChainOpPathBuilder {
     public void TestGetRouterTableChainDeleteOpSuccess() throws Exception {
         Mockito.when(
                 pathBuilderMock.getRouterTableChainPath(dummyRouterId,
-                        dummyTable, dummyId)).thenReturn(dummyPath);
+                        ChainTable.NAT, dummyId)).thenReturn(dummyPath);
 
-        builder.getRouterTableChainDeleteOp(dummyRouterId, dummyTable, dummyId);
+        builder.getRouterTableChainDeleteOp(dummyRouterId, ChainTable.NAT,
+                dummyId);
 
         Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);
     }
@@ -132,11 +134,11 @@ public class TestChainOpPathBuilder {
     public void TestGetRouterTableChainNameCreateOpSuccess() throws Exception {
         Mockito.when(
                 pathBuilderMock.getRouterTableChainNamePath(dummyId,
-                        dummyTable, dummyChain)).thenReturn(dummyPath);
+                        ChainTable.NAT, dummyChain)).thenReturn(dummyPath);
         Mockito.when(serializerMock.serialize(dummyNameConfig)).thenReturn(
                 dummyBytes);
 
-        builder.getRouterTableChainNameCreateOp(dummyId, dummyTable,
+        builder.getRouterTableChainNameCreateOp(dummyId, ChainTable.NAT,
                 dummyChain, dummyNameConfig);
 
         Mockito.verify(zkDaoMock, Mockito.times(1)).getPersistentCreateOp(
@@ -148,7 +150,7 @@ public class TestChainOpPathBuilder {
             throws Exception {
         Mockito.doThrow(ZkStateSerializationException.class)
                 .when(serializerMock).serialize(dummyNameConfig);
-        builder.getRouterTableChainNameCreateOp(dummyId, dummyTable,
+        builder.getRouterTableChainNameCreateOp(dummyId, ChainTable.NAT,
                 dummyChain, dummyNameConfig);
     }
 
@@ -156,9 +158,9 @@ public class TestChainOpPathBuilder {
     public void TestGetRouterTableChainNameDeleteOpSuccess() throws Exception {
         Mockito.when(
                 pathBuilderMock.getRouterTableChainNamePath(dummyRouterId,
-                        dummyTable, dummyChain)).thenReturn(dummyPath);
+                        ChainTable.NAT, dummyChain)).thenReturn(dummyPath);
 
-        builder.getRouterTableChainNameDeleteOp(dummyRouterId, dummyTable,
+        builder.getRouterTableChainNameDeleteOp(dummyRouterId, ChainTable.NAT,
                 dummyChain);
 
         Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);

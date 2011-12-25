@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.data.zookeeper.path;
 
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+
 /**
  * This class was created to have all state classes share the Zk path
  * information.
@@ -165,8 +167,8 @@ public class PathBuilder {
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chain-names/chainName
      */
-    public String getRouterTableChainNamePath(UUID routerId, String tableName,
-            String chainName) {
+    public String getRouterTableChainNamePath(UUID routerId,
+            ChainTable tableName, String chainName) {
         return new StringBuilder(getRouterTableChainNamesPath(routerId,
                 tableName)).append("/").append(chainName).toString();
     }
@@ -178,7 +180,8 @@ public class PathBuilder {
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chain-names
      */
-    public String getRouterTableChainNamesPath(UUID routerId, String tableName) {
+    public String getRouterTableChainNamesPath(UUID routerId,
+            ChainTable tableName) {
         return new StringBuilder(getRouterTablePath(routerId, tableName))
                 .append("/").append(CHAIN_NAMES_PATH).toString();
     }
@@ -190,7 +193,7 @@ public class PathBuilder {
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chains/chainId
      */
-    public String getRouterTableChainPath(UUID routerId, String tableName,
+    public String getRouterTableChainPath(UUID routerId, ChainTable tableName,
             UUID chainId) {
         return new StringBuilder(getRouterTableChainsPath(routerId, tableName))
                 .append("/").append(chainId).toString();
@@ -203,7 +206,7 @@ public class PathBuilder {
      *            Router UUID
      * @return /routers/routerId/tables/tableName/chains
      */
-    public String getRouterTableChainsPath(UUID id, String tableName) {
+    public String getRouterTableChainsPath(UUID id, ChainTable tableName) {
         return new StringBuilder(getRouterTablePath(id, tableName)).append("/")
                 .append(CHAINS_PATH).toString();
     }
@@ -215,7 +218,7 @@ public class PathBuilder {
      *            Router UUID
      * @return /routers/routerId/tables/table_name
      */
-    public String getRouterTablePath(UUID id, String tableName) {
+    public String getRouterTablePath(UUID id, ChainTable tableName) {
         return new StringBuilder(getRouterTablesPath(id)).append("/")
                 .append(tableName).toString();
     }
