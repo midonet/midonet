@@ -66,6 +66,11 @@ public class TestChainOpPathBuilder {
         builder.getChainCreateOp(dummyId, dummyMgmtConfig);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetChainCreateOpBadInputError() throws Exception {
+        builder.getChainCreateOp(null, null);
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void TestGetChainCreateOpsSuccess() throws Exception {
@@ -82,6 +87,11 @@ public class TestChainOpPathBuilder {
         builder.getChainCreateOps(dummyId, dummyConfig);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetChainCreateOpsBadInputError() throws Exception {
+        builder.getChainCreateOps(null, null);
+    }
+
     @Test
     public void TestGetChainDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getChainPath(dummyId)).thenReturn(
@@ -90,6 +100,11 @@ public class TestChainOpPathBuilder {
         builder.getChainDeleteOp(dummyId);
 
         Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetChainDeleteOpBadInput() throws Exception {
+        builder.getChainDeleteOp(null);
     }
 
     @Test
@@ -103,6 +118,11 @@ public class TestChainOpPathBuilder {
         Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
                 .prepareChainDelete(dummyId);
         builder.getChainDeleteOps(dummyId);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetChainDeleteOpsBadInputError() throws Exception {
+        builder.getChainDeleteOps(null);
     }
 
     @Test
@@ -130,6 +150,11 @@ public class TestChainOpPathBuilder {
         Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetRouterTableChainDeleteOpBadInput() throws Exception {
+        builder.getRouterTableChainDeleteOp(null, null, null);
+    }
+
     @Test
     public void TestGetRouterTableChainNameCreateOpSuccess() throws Exception {
         Mockito.when(
@@ -154,6 +179,12 @@ public class TestChainOpPathBuilder {
                 dummyChain, dummyNameConfig);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetRouterTableChainNameCreateOpBadInputError()
+            throws Exception {
+        builder.getRouterTableChainNameCreateOp(null, null, null, null);
+    }
+
     @Test
     public void TestGetRouterTableChainNameDeleteOpSuccess() throws Exception {
         Mockito.when(
@@ -164,5 +195,11 @@ public class TestChainOpPathBuilder {
                 dummyChain);
 
         Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetRouterTableChainNameDeleteOpBadInputError()
+            throws Exception {
+        builder.getRouterTableChainNameDeleteOp(null, null, null);
     }
 }

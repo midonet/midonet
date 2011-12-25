@@ -65,6 +65,9 @@ public class ChainOpPathBuilder {
      */
     public Op getChainCreateOp(UUID id, ChainMgmtConfig config)
             throws ZkStateSerializationException {
+        if (id == null || config == null) {
+            throw new IllegalArgumentException("ID and config cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getChainCreateOp entered: id={}", id);
 
         String path = pathBuilder.getChainPath(id);
@@ -92,6 +95,9 @@ public class ChainOpPathBuilder {
      */
     public List<Op> getChainCreateOps(UUID id, ChainConfig config)
             throws StateAccessException {
+        if (id == null || config == null) {
+            throw new IllegalArgumentException("ID and config cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getChainCreateOps entered: id=" + id
                 + ", name=" + config.name + ", routerId=" + config.routerId);
 
@@ -112,6 +118,9 @@ public class ChainOpPathBuilder {
      * @return Op for chain delete.
      */
     public Op getChainDeleteOp(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getChainDeleteOp entered: id={}", id);
 
         String path = pathBuilder.getChainPath(id);
@@ -135,6 +144,9 @@ public class ChainOpPathBuilder {
      *             Data access error.
      */
     public List<Op> getChainDeleteOps(UUID id) throws StateAccessException {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getChainDeleteOps entered: id={}", id);
 
         List<Op> ops = zkDao.prepareChainDelete(id);
@@ -180,6 +192,10 @@ public class ChainOpPathBuilder {
      */
     public Op getRouterTableChainDeleteOp(UUID routerId, ChainTable table,
             UUID id) {
+        if (routerId == null || id == null || table == null) {
+            throw new IllegalArgumentException(
+                    "Table, ID and routerId cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getRouterTableChainDeleteOp entered: routerId="
                 + routerId + ", table=" + table + ",id=" + id);
 
@@ -206,6 +222,10 @@ public class ChainOpPathBuilder {
     public Op getRouterTableChainNameCreateOp(UUID routerId, ChainTable table,
             String name, ChainNameMgmtConfig config)
             throws ZkStateSerializationException {
+        if (routerId == null || name == null || table == null || config == null) {
+            throw new IllegalArgumentException(
+                    "Table, config, name and routerId cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getRouterTableChainNameCreateOp entered: routerId="
                 + routerId + ", table=" + table + ", name=" + name);
 
@@ -231,6 +251,10 @@ public class ChainOpPathBuilder {
      */
     public Op getRouterTableChainNameDeleteOp(UUID routerId, ChainTable table,
             String name) {
+        if (routerId == null || name == null || table == null) {
+            throw new IllegalArgumentException(
+                    "Table, name and routerId cannot be null");
+        }
         log.debug("ChainOpPathBuilder.getRouterTableChainNameDeleteOp entered: routerId="
                 + routerId + ", table=" + table + ", name=" + name);
 
