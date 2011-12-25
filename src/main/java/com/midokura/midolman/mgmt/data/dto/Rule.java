@@ -84,6 +84,51 @@ public class Rule extends UriResource {
     private int position = 1;
 
     /**
+     * Default construtor
+     */
+    public Rule() {
+        super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the rule
+     * @param zkRule
+     *            com.midokura.midolman.rules.Rule object
+     */
+    public Rule(UUID id, com.midokura.midolman.rules.Rule zkRule) {
+        this.chainId = zkRule.chainId;
+        setFromCondition(zkRule.getCondition());
+        if (zkRule instanceof LiteralRule) {
+            this.type = Rule.getActionString(zkRule.action);
+        } else if (zkRule instanceof ForwardNatRule) {
+            String[][][] targets = Rule
+                    .makeNatTargetStrings(((ForwardNatRule) zkRule)
+                            .getNatTargets());
+            this.natTargets = targets;
+            this.flowAction = Rule.getActionString(zkRule.action);
+            if (((NatRule) zkRule).dnat) {
+                this.type = Rule.DNAT;
+            } else {
+                this.type = Rule.SNAT;
+            }
+        } else if (zkRule instanceof ReverseNatRule) {
+            if (((NatRule) zkRule).dnat) {
+                this.type = Rule.DNAT;
+            } else {
+                this.type = Rule.SNAT;
+            }
+            this.flowAction = Rule.getActionString(zkRule.action);
+        } else {
+            // TODO: how about JumpToChain UUID??
+            this.jumpChainName = ((JumpRule) zkRule).jumpToChain;
+        }
+        this.id = id;
+    }
+
+    /**
      * @return the id
      */
     public UUID getId() {
@@ -681,40 +726,9 @@ public class Rule extends UriResource {
         this.setTpSrcStart(c.tpSrcStart);
     }
 
-    public static Rule createRule(UUID id,
-            com.midokura.midolman.rules.Rule zkRule) {
-        Rule rule = new Rule();
-        rule.setChainId(zkRule.chainId);
-        rule.setFromCondition(zkRule.getCondition());
-        if (zkRule instanceof LiteralRule) {
-            rule.setType(Rule.getActionString(zkRule.action));
-        } else if (zkRule instanceof ForwardNatRule) {
-            String[][][] targets = Rule
-                    .makeNatTargetStrings(((ForwardNatRule) zkRule)
-                            .getNatTargets());
-            rule.setNatTargets(targets);
-            rule.setFlowAction(Rule.getActionString(zkRule.action));
-            if (((NatRule) zkRule).dnat) {
-                rule.setType(Rule.DNAT);
-            } else {
-                rule.setType(Rule.SNAT);
-            }
-        } else if (zkRule instanceof ReverseNatRule) {
-            if (((NatRule) zkRule).dnat) {
-                rule.setType(Rule.DNAT);
-            } else {
-                rule.setType(Rule.SNAT);
-            }
-            rule.setFlowAction(Rule.getActionString(zkRule.action));
-        } else {
-            // TODO: how about JumpToChain UUID??
-            rule.setJumpChainName(((JumpRule) zkRule).jumpToChain);
-        }
-        rule.setId(id);
-        return rule;
-    }
-
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see java.lang.Object#toString()
      */
     @Override

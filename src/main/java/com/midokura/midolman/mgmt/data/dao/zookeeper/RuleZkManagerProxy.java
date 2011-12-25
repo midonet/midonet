@@ -76,7 +76,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
      */
     @Override
     public Rule get(UUID id) throws StateAccessException {
-        return Rule.createRule(id, zkManager.get(id).value);
+        return new Rule(id, zkManager.get(id).value);
     }
 
     /**
@@ -96,7 +96,7 @@ public class RuleZkManagerProxy extends ZkMgmtManager implements RuleDao,
         List<ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule>> entries = zkManager
                 .list(chainId);
         for (ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule> entry : entries) {
-            rules.add(Rule.createRule(entry.key, entry.value));
+            rules.add(new Rule(entry.key, entry.value));
         }
         return rules;
     }
