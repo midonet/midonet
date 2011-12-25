@@ -1,0 +1,186 @@
+/*
+ * @(#)TestChainZkDao        1.6 11/12/25
+ *
+ * Copyright 2011 Midokura KK
+ */
+package com.midokura.midolman.mgmt.data.dao.zookeeper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
+
+public class TestChainZkDao {
+
+    private ChainZkManager zkDaoMock = null;
+    private PathBuilder pathBuilderMock = null;
+    private ChainSerializer serializerMock = null;
+    private ChainZkDao dao = null;
+    private final static String dummyPath = "/foo";
+    private final static byte[] dummyBytes = { 1, 2, 3 };
+    private final static ChainConfig dummyConfig = new ChainConfig();
+    private final static ChainMgmtConfig dummyMgmtConfig = new ChainMgmtConfig();
+    private final static ChainNameMgmtConfig dummyNameConfig = new ChainNameMgmtConfig();
+    private static Set<String> dummyIds = null;
+    static {
+        dummyIds = new TreeSet<String>();
+        dummyIds.add("foo");
+        dummyIds.add("bar");
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        zkDaoMock = Mockito.mock(ChainZkManager.class);
+        pathBuilderMock = Mockito.mock(PathBuilder.class);
+        serializerMock = Mockito.mock(ChainSerializer.class);
+        dao = new ChainZkDao(zkDaoMock, pathBuilderMock, serializerMock);
+    }
+
+    @Test
+    public void TestGetMgmtDataSuccess() throws Exception {
+        UUID id = UUID.randomUUID();
+        Mockito.when(pathBuilderMock.getChainPath(id)).thenReturn(dummyPath);
+        Mockito.when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
+        Mockito.when(serializerMock.deserialize(dummyBytes)).thenReturn(
+                dummyMgmtConfig);
+
+        ChainMgmtConfig config = dao.getMgmtData(id);
+
+        Assert.assertEquals(dummyMgmtConfig, config);
+    }
+
+    @Test(expected = StateAccessException.class)
+    public void TestGetMgmtDataDataAccessError() throws Exception {
+        Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
+                .get(Mockito.anyString());
+        dao.getMgmtData(UUID.randomUUID());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetMgmtDataDataBadInput() throws Exception {
+        dao.getMgmtData(null);
+    }
+
+    @Test
+    public void TestGetNameDataSuccess() throws Exception {
+        UUID routerId = UUID.randomUUID();
+        String chainName = "foo";
+        Mockito.when(
+                pathBuilderMock.getRouterTableChainNamePath(routerId,
+                        ChainTable.NAT, chainName)).thenReturn(dummyPath);
+        Mockito.when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
+        Mockito.when(serializerMock.deserializeName(dummyBytes)).thenReturn(
+                dummyNameConfig);
+
+        ChainNameMgmtConfig config = dao.getNameData(routerId, ChainTable.NAT,
+                chainName);
+
+        Assert.assertEquals(dummyNameConfig, config);
+    }
+
+    @Test(expected = StateAccessException.class)
+    public void TestGetNameDataDataAccessError() throws Exception {
+        Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
+                .get(Mockito.anyString());
+        dao.getNameData(UUID.randomUUID(), ChainTable.NAT, "foo");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetNameDataDataBadInput() throws Exception {
+        dao.getNameData(null, null, null);
+    }
+
+    @Test
+    public void TestGetDataSuccess() throws Exception {
+        UUID id = UUID.randomUUID();
+        Mockito.when(zkDaoMock.get(id)).thenReturn(
+                new ZkNodeEntry<UUID, ChainConfig>(id, dummyConfig));
+
+        ChainConfig config = dao.getData(id);
+
+        Assert.assertEquals(dummyConfig, config);
+    }
+
+    @Test(expected = StateAccessException.class)
+    public void TestGetDataDataAccessError() throws Exception {
+        Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
+                .get(Mockito.any(UUID.class));
+        dao.getData(UUID.randomUUID());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetDataDataBadInput() throws Exception {
+        dao.getData(null);
+    }
+
+    @Test
+    public void TestGetIdsSuccess() throws Exception {
+        UUID routerId = UUID.randomUUID();
+        Mockito.when(
+                pathBuilderMock.getRouterTableChainsPath(routerId,
+                        ChainTable.NAT)).thenReturn(dummyPath);
+        Mockito.when(zkDaoMock.getChildren(dummyPath, null)).thenReturn(
+                dummyIds);
+
+        Set<String> ids = dao.getIds(routerId, ChainTable.NAT);
+
+        Assert.assertArrayEquals(dummyIds.toArray(), ids.toArray());
+    }
+
+    @Test(expected = StateAccessException.class)
+    public void TestGetIdsDataAccessError() throws Exception {
+        Mockito.doThrow(StateAccessException.class)
+                .when(zkDaoMock)
+                .getChildren(Mockito.anyString(),
+                        (Runnable) Mockito.anyObject());
+        dao.getIds(UUID.randomUUID(), ChainTable.NAT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestGetIdsBadInput() throws Exception {
+        dao.getIds(null, null);
+    }
+
+    @Test
+    public void TestMultiSuccess() throws Exception {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
+        ops.add(Op.delete(dummyPath, -1));
+        ops.add(Op.setData(dummyPath, dummyBytes, -1));
+        dao.multi(ops);
+        Mockito.verify(zkDaoMock, Mockito.times(1)).multi(ops);
+    }
+
+    @Test(expected = StateAccessException.class)
+    public void TestMultiDataAccessError() throws Exception {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
+        ops.add(Op.delete(dummyPath, -1));
+        ops.add(Op.setData(dummyPath, dummyBytes, -1));
+        Mockito.doThrow(StateAccessException.class).when(zkDaoMock).multi(ops);
+        dao.multi(ops);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void TestMultiBadInput() throws Exception {
+        dao.multi(null);
+    }
+}
