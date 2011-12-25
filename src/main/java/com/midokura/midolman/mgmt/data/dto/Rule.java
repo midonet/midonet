@@ -713,4 +713,17 @@ public class Rule extends UriResource {
         rule.setId(id);
         return rule;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + " chainId=" + chainId + ", type=" + type
+                + ", jumpChainId=" + jumpChainId + ", jumpChainName="
+                + jumpChainName + ", flowAction=" + flowAction + ", position="
+                + position + ", nwSrcAddress=" + nwSrcAddress
+                + ", nwSrcLength=" + nwSrcLength + ", nwDstAddress="
+                + nwDstAddress + ", nwDstLength=" + nwDstLength;
+    }
 }
