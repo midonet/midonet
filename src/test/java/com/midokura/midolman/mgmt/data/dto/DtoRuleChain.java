@@ -9,12 +9,14 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+
 @XmlRootElement
 public class DtoRuleChain {
     private UUID id;
     private UUID routerId;
     private String name;
-    private String table;
+    private ChainTable table;
     private URI rules;
 
     public UUID getId() {
@@ -41,11 +43,11 @@ public class DtoRuleChain {
         this.name = name;
     }
 
-    public String getTable() {
+    public ChainTable getTable() {
         return table;
     }
 
-    public void setTable(String table) {
+    public void setTable(ChainTable table) {
         this.table = table;
     }
 

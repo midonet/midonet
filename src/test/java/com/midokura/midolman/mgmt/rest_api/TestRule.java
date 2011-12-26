@@ -27,6 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.DtoTenant;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -88,7 +89,7 @@ public class TestRule extends JerseyTest {
         // Create a chain
         DtoRuleChain ruleChain = new DtoRuleChain();
         ruleChain.setName("foo_chain");
-        ruleChain.setTable("nat");
+        ruleChain.setTable(ChainTable.NAT);
 
         URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
         response = resource().uri(routerChainUri).type(APPLICATION_CHAIN_JSON).post(ClientResponse.class, ruleChain);

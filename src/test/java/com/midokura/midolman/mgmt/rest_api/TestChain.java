@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dto.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.DtoTenant;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -86,7 +87,7 @@ public class TestChain extends JerseyTest {
         DtoRuleChain ruleChain = new DtoRuleChain();
 
         ruleChain.setName("foo_chain");
-        ruleChain.setTable("nat");
+        ruleChain.setTable(ChainTable.NAT);
 
 
         // Create a chain

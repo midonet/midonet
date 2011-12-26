@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
@@ -27,7 +28,7 @@ public class Chain extends UriResource {
     private UUID id = null;
     private UUID routerId = null;
     private String name = null;
-    private String table = null;
+    private ChainTable table = null;
 
     /**
      * @return the id
@@ -77,7 +78,7 @@ public class Chain extends UriResource {
     /**
      * @return the table
      */
-    public String getTable() {
+    public ChainTable getTable() {
         return table;
     }
 
@@ -85,7 +86,7 @@ public class Chain extends UriResource {
      * @param table
      *            the table to set
      */
-    public void setTable(String table) {
+    public void setTable(ChainTable table) {
         this.table = table;
     }
 

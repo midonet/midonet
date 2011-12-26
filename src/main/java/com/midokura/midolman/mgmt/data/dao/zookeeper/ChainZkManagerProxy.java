@@ -24,6 +24,7 @@ import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
@@ -138,7 +139,8 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         // Add a pre-routing chain entry
         String preRoutingChainPath = mgmtPathManager.getChainPath(preRoutingId);
         log.debug("Preparing to create: " + preRoutingChainPath);
-        ChainMgmtConfig preRoutingMgmtConfig = new ChainMgmtConfig(NAT_TABLE);
+        ChainMgmtConfig preRoutingMgmtConfig = new ChainMgmtConfig(
+                ChainTable.NAT);
         try {
             ops.add(Op.create(preRoutingChainPath,
                     serialize(preRoutingMgmtConfig), Ids.OPEN_ACL_UNSAFE,
@@ -153,7 +155,8 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         String postRoutingChainPath = mgmtPathManager
                 .getChainPath(postRoutingId);
         log.debug("Preparing to create: " + postRoutingChainPath);
-        ChainMgmtConfig postRoutingMgmtConfig = new ChainMgmtConfig(NAT_TABLE);
+        ChainMgmtConfig postRoutingMgmtConfig = new ChainMgmtConfig(
+                ChainTable.NAT);
         try {
             ops.add(Op.create(postRoutingChainPath,
                     serialize(postRoutingMgmtConfig), Ids.OPEN_ACL_UNSAFE,
@@ -229,14 +232,10 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
                     "Cannot create a bulit-in chain name " + chain.getName());
         }
 
-        if (!isBuiltInTableName(chain.getTable())) {
-            throw new IllegalArgumentException("Unknown table name: "
-                    + chain.getTable());
-        }
-
         // Make sure that no chain with the same name exists.
         String namePath = mgmtPathManager.getRouterTableChainNamePath(
-                chain.getRouterId(), chain.getTable(), chain.getName());
+                chain.getRouterId(), chain.getTable().toString(),
+                chain.getName());
         if (exists(namePath)) {
             throw new IllegalArgumentException(
                     "A chain with the same name already exists for this table.");
@@ -245,8 +244,9 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         List<Op> ops = new ArrayList<Op>();
 
         // Create under router table.
-        String routerTableChainPath = mgmtPathManager.getRouterTableChainPath(
-                chain.getRouterId(), chain.getTable(), chain.getId());
+        String routerTableChainPath = mgmtPathManager
+                .getRouterTableChainPath(chain.getRouterId(), chain.getTable()
+                        .toString(), chain.getId());
         log.debug("Preparing to create: " + routerTableChainPath);
         ops.add(Op.create(routerTableChainPath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
@@ -311,11 +311,6 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
                         "Cannot delete a bulit-in chain name "
                                 + chain.getName());
             }
-
-            if (!isBuiltInTableName(chain.getTable())) {
-                throw new IllegalArgumentException("Unknown table name: "
-                        + chain.getTable());
-            }
         }
 
         List<Op> ops = new ArrayList<Op>();
@@ -335,14 +330,15 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
 
         // Delete the name index.
         String routerTableChainNamePath = mgmtPathManager
-                .getRouterTableChainNamePath(chain.getRouterId(),
-                        chain.getTable(), chain.getName());
+                .getRouterTableChainNamePath(chain.getRouterId(), chain
+                        .getTable().toString(), chain.getName());
         log.debug("Preparing to delete: " + routerTableChainNamePath);
         ops.add(Op.delete(routerTableChainNamePath, -1));
 
         // Delete from the table.
-        String routerTableChainPath = mgmtPathManager.getRouterTableChainPath(
-                chain.getRouterId(), chain.getTable(), chain.getId());
+        String routerTableChainPath = mgmtPathManager
+                .getRouterTableChainPath(chain.getRouterId(), chain.getTable()
+                        .toString(), chain.getId());
         log.debug("Preparing to delete: " + routerTableChainPath);
         ops.add(Op.delete(routerTableChainPath, -1));
 

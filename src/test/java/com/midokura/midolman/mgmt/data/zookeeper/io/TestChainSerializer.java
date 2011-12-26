@@ -66,14 +66,14 @@ public class TestChainSerializer {
 
     @Test
     public void testSerializeGoodInput() throws Exception {
-        ChainMgmtConfig config = new ChainMgmtConfig(ChainTable.NAT.toString());
+        ChainMgmtConfig config = new ChainMgmtConfig(ChainTable.NAT);
         serializer.serialize(config);
         Mockito.verify(serializerMock, Mockito.times(1)).objToBytes(config);
     }
 
     @Test(expected = ZkStateSerializationException.class)
     public void testSerializeBadInput() throws Exception {
-        ChainMgmtConfig config = new ChainMgmtConfig(ChainTable.NAT.toString());
+        ChainMgmtConfig config = new ChainMgmtConfig(ChainTable.NAT);
         Mockito.when(serializerMock.objToBytes(config)).thenThrow(
                 new IOException());
         serializer.serialize(config);

@@ -7,16 +7,18 @@ package com.midokura.midolman.mgmt.data.dto.config;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public class ChainMgmtConfig {
     public ChainMgmtConfig() {
         super();
     }
 
-    public ChainMgmtConfig(String table) {
+    public ChainMgmtConfig(ChainTable table) {
         super();
         this.table = table;
     }
 
-    public String table;
+    public ChainTable table;
 }
