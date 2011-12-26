@@ -156,4 +156,16 @@ public class Chain extends UriResource {
     public ChainNameMgmtConfig toNameMgmtConfig() {
         return new ChainNameMgmtConfig(this.getId());
     }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + " routerId=" + routerId + ", table=" + table
+                + ", name=" + name;
+    }
+
 }
