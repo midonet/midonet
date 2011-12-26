@@ -407,7 +407,7 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
                     "Could not serialize ChainMgmtConfig", e,
                     ChainMgmtConfig.class);
         }
-        return Chain.createChain(id, config.value, mgmtConfig);
+        return new Chain(id, config.value, mgmtConfig);
     }
 
     @Override

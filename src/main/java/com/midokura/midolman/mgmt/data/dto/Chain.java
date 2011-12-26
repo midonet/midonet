@@ -31,6 +31,46 @@ public class Chain extends UriResource {
     private ChainTable table = null;
 
     /**
+     * Default constructor
+     */
+    public Chain() {
+        super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the chain
+     * @param config
+     *            ChainConfig object
+     * @param mgmtConfig
+     *            ChainMgmtConfig object
+     */
+    public Chain(UUID id, ChainConfig config, ChainMgmtConfig mgmtConfig) {
+        this(id, config.routerId, mgmtConfig.table, config.name);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the chain
+     * @param routerId
+     *            Router ID
+     * @param table
+     *            Chain table
+     * @param name
+     *            Chain name
+     */
+    public Chain(UUID id, UUID routerId, ChainTable table, String name) {
+        this.id = id;
+        this.routerId = routerId;
+        this.table = table;
+        this.name = name;
+    }
+
+    /**
      * @return the id
      */
     public UUID getId() {
@@ -115,15 +155,5 @@ public class Chain extends UriResource {
 
     public ChainNameMgmtConfig toNameMgmtConfig() {
         return new ChainNameMgmtConfig(this.getId());
-    }
-
-    public static Chain createChain(UUID id, ChainConfig config,
-            ChainMgmtConfig mgmtConfig) {
-        Chain chain = new Chain();
-        chain.setName(config.name);
-        chain.setRouterId(config.routerId);
-        chain.setTable(mgmtConfig.table);
-        chain.setId(id);
-        return chain;
     }
 }
