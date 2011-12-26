@@ -4,20 +4,12 @@
 
 package com.midokura.midonet.smoketest;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
-import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.smoketest.topology.*;
-import com.midokura.midonet.smoketest.vm.HypervisorType;
-import com.midokura.midonet.smoketest.vm.VMController;
-import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.timed.Timed;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.midokura.tools.timed.Timed.newTimedExecution;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -25,9 +17,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.midokura.tools.timed.Timed.newTimedExecution;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.topology.AdRoute;
+import com.midokura.midonet.smoketest.topology.Bgp;
+import com.midokura.midonet.smoketest.topology.MidoPort;
+import com.midokura.midonet.smoketest.topology.OvsBridge;
+import com.midokura.midonet.smoketest.topology.Route;
+import com.midokura.midonet.smoketest.topology.Router;
+import com.midokura.midonet.smoketest.topology.TapWrapper;
+import com.midokura.midonet.smoketest.topology.Tenant;
+import com.midokura.midonet.smoketest.vm.HypervisorType;
+import com.midokura.midonet.smoketest.vm.VMController;
+import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
+import com.midokura.tools.timed.Timed;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@midkura.com>
@@ -41,9 +53,10 @@ public class BgpTest extends AbstractSmokeTest {
 
     static Tenant tenant;
     static Router router;
-    static TapPort bgpPort;
+    static TapWrapper bgpPort;
     static Bgp bgp;
     static MidolmanMgmt mgmt;
+    static OvsBridge ovsBridge;
 
     static VMController bgpPeerVm;
 
@@ -64,27 +77,26 @@ public class BgpTest extends AbstractSmokeTest {
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
-        if (ovsdb.hasBridge("smoke-br2"))
-            ovsdb.delBridge("smoke-br2");
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
         mgmt = new MockMidolmanMgmt(false);
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
 
-
         router = tenant.addRouter().setName("rtr1").build();
 
-        bgpPort = router.addPort(ovsdb)
-                      .setDestination("10.10.173.1")
-                      .setOVSPortName(bgpPortPortName)
-                      .buildTap();
+        IntIPv4 ip1 = IntIPv4.fromString("10.10.173.1");
+        IntIPv4 ip2 = IntIPv4.fromString("10.10.173.2");
+        MidoPort p1 = router.addGwPort().setLocalLink(ip1, ip2).build();
+        bgpPort = new TapWrapper(bgpPortPortName);
+        ovsBridge.addSystemPort(p1.port.getId(), bgpPort.getName());
 
         bgpPort.closeFd();
 
-        Bgp bgp = bgpPort.addBgp()
-                      .setLocalAs(543)
-                      .setPeer(345, "10.10.173.2")
-                      .build();
+        Bgp bgp = p1.addBgp()
+                .setLocalAs(543)
+                .setPeer(345, ip2.toString())
+                .build();
 
         AdRoute advertisedRoute = bgp.addAdvertisedRoute("14.128.23.0", 27);
 
@@ -124,7 +136,7 @@ public class BgpTest extends AbstractSmokeTest {
             //
         }
 
-        removePort(bgpPort);
+        removeTapWrapper(bgpPort);
 
         removeTenant(tenant);
         mgmt.stop();

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midonet.smoketest.mgmt.DtoBgp;
 import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
 import com.midokura.midonet.smoketest.mgmt.DtoRoute;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
@@ -184,4 +185,38 @@ public class MidoPort {
         mgmt.delete(port.getUri());
     }
 
+    public Bgp.Builder addBgp() {
+
+        return new Bgp.Builder() {
+
+            int localAS;
+            int peerAS;
+            String peerAddress;
+
+            @Override
+            public Bgp.Builder setLocalAs(int localAS) {
+                this.localAS = localAS;
+                return this;
+            }
+
+            @Override
+            public Bgp.Builder setPeer(int peerAS, String peerAddress) {
+                this.peerAS = peerAS;
+                this.peerAddress = peerAddress;
+
+                return this;
+            }
+
+            @Override
+            public Bgp build() {
+                DtoBgp bgp = new DtoBgp();
+
+                bgp.setLocalAS(localAS);
+                bgp.setPeerAS(peerAS);
+                bgp.setPeerAddr(peerAddress);
+
+                return new Bgp(mgmt, mgmt.addBGP(port, bgp));
+            }
+        };
+    }
 }
