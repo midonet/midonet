@@ -4,10 +4,6 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import java.net.URI;
-
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.midokura.midonet.smoketest.mgmt.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 

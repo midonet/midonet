@@ -5,8 +5,6 @@
 package com.midokura.midonet.smoketest;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.openvswitch.ControllerBuilder;
-import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;

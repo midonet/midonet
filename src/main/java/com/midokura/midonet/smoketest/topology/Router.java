@@ -2,7 +2,6 @@ package com.midokura.midonet.smoketest.topology;
 
 import java.util.UUID;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.smoketest.mgmt.DtoRoute;
 import com.midokura.midonet.smoketest.mgmt.DtoRouter;
@@ -42,10 +41,6 @@ public class Router {
     Router(MidolmanMgmt mgmt, DtoRouter router) {
         this.mgmt = mgmt;
         this.dto = router;
-    }
-
-    public VPortBuilder addPort(OpenvSwitchDatabaseConnection ovsdb) {
-        return new VPortBuilder(ovsdb, mgmt, dto);
     }
 
     public MidoPort.VMPortBuilder addVmPort() {

@@ -7,7 +7,6 @@ import static com.midokura.tools.process.ProcessHelper.newProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -19,7 +18,7 @@ import java.util.Arrays;
  * Time: 1:03 PM
  */
 public class TapWrapper {
-    private final static Logger log = LoggerFactory.getLogger(TapPort.class);
+    private final static Logger log = LoggerFactory.getLogger(TapWrapper.class);
 
     String name;
     MAC hwAddr;

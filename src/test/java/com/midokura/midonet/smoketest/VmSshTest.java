@@ -3,18 +3,11 @@
  */
 package com.midokura.midonet.smoketest;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
-import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.smoketest.topology.InternalPort;
-import com.midokura.midonet.smoketest.topology.Router;
-import com.midokura.midonet.smoketest.topology.TapPort;
-import com.midokura.midonet.smoketest.topology.Tenant;
-import com.midokura.midonet.smoketest.vm.HypervisorType;
-import com.midokura.midonet.smoketest.vm.VMController;
-import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.ssh.SshHelper;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
@@ -22,15 +15,21 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.IOUtils;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.midokura.tools.process.ProcessHelper.newProcess;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.topology.MidoPort;
+import com.midokura.midonet.smoketest.topology.OvsBridge;
+import com.midokura.midonet.smoketest.topology.Router;
+import com.midokura.midonet.smoketest.topology.TapWrapper;
+import com.midokura.midonet.smoketest.topology.Tenant;
+import com.midokura.midonet.smoketest.vm.HypervisorType;
+import com.midokura.midonet.smoketest.vm.VMController;
+import com.midokura.midonet.smoketest.vm.libvirt.LibvirtHandler;
+import com.midokura.tools.ssh.SshHelper;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@gmail.com>
@@ -43,13 +42,14 @@ public class VmSshTest extends AbstractSmokeTest {
     private final static Logger log = LoggerFactory.getLogger(VmSshTest.class);
 
     static Tenant tenant;
-    static TapPort tapPort;
-    static InternalPort internalPort;
+    static TapWrapper tapPort;
+
     static MidolmanMgmt mgmt;
+    static OvsBridge ovsBridge;
 
     static OpenvSwitchDatabaseConnection ovsdb;
 
-    static String tapPortName = "tapPort1";
+    static String tapPortName = "vmSshTestTap1";
     static VMController vm;
 
     @BeforeClass
@@ -58,27 +58,23 @@ public class VmSshTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1",
                                                       12344);
+        if (ovsdb.hasBridge("smoke-br"))
+            ovsdb.delBridge("smoke-br");
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
         mgmt = new MockMidolmanMgmt(false);
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
 
         Router router = tenant.addRouter().setName("rtr1").build();
 
-        tapPort = router.addPort(ovsdb)
-                      .setDestination("192.168.231.2")
-                      .setOVSPortName(tapPortName)
-                      .buildTap();
+        IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
+        MidoPort p1 = router.addVmPort().setVMAddress(ip1).build();
+        tapPort = new TapWrapper(tapPortName);
+        ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
 
-        internalPort = router.addPort(ovsdb)
-                           .setDestination("192.168.231.3")
-                           .buildInternal();
-
-//        newProcess(String.format("sudo -n route add -net 192.168.231.0/24 " +
-//                                     "dev" +
-//                                     " %s", internalPort.getName()))
-//        newProcess("sudo -n route add -net 192.168.231.0/24 via 192.168.231.3")
-//            .logOutput(log, "add_host_route")
-//            .runAndWait();
+        IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
+        MidoPort p2 = router.addVmPort().setVMAddress(ip2).build();
+        ovsBridge.addInternalPort(p2.port.getId(), "vmSshTestInt", ip2, 24);
 
         tapPort.closeFd();
         Thread.sleep(1000);
@@ -100,7 +96,7 @@ public class VmSshTest extends AbstractSmokeTest {
     public static void tearDown() {
         ovsdb.delBridge("smoke-br");
 
-        removePort(tapPort);
+        removeTapWrapper(tapPort);
         removeTenant(tenant);
         mgmt.stop();
 

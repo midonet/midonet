@@ -9,86 +9,85 @@ import java.util.Random;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.smoketest.topology.MidoPort;
+import com.midokura.midonet.smoketest.topology.OvsBridge;
 import com.midokura.midonet.smoketest.topology.Router;
-import com.midokura.midonet.smoketest.topology.TapPort;
+import com.midokura.midonet.smoketest.topology.TapWrapper;
 import com.midokura.midonet.smoketest.topology.Tenant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TunnelingTest extends AbstractSmokeTest {
 
-    private final static Logger log = LoggerFactory.getLogger(TunnelingTest.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(TunnelingTest.class);
 
     static Tenant tenant1;
-    static TapPort tapPort1;
-    static TapPort tapPort2;
+    static TapWrapper tapPort1;
+    static TapWrapper tapPort2;
     static IntIPv4 ip1;
     static IntIPv4 ip2;
     static PacketHelper helper1;
     static PacketHelper helper2;
     static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
+    static OvsBridge ovsBridge1;
+    static OvsBridge ovsBridge2;
 
     static Random rand = new Random(System.currentTimeMillis());
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                         "127.0.0.1", 12344);
+                "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        // First clean up left-overs from previous incomplete tests.
-        // Process p = Runtime.getRuntime().exec(
-        // "sudo -n ip tuntap del dev tapPort1 mode tap");
-        // p.waitFor();
-        // p = Runtime.getRuntime().exec(
-        // "sudo -n ip tuntap del dev tapPort2 mode tap");
-        // p.waitFor();
+
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
 
+        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
+        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", OvsBridge.L3UUID,
+                "tcp:127.0.0.1:6657");
+
         tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                      .build();
+                .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         ip1 = IntIPv4.fromString("192.168.231.2");
-        tapPort1 = router1.addPort(ovsdb)
-                       .setDestination(ip1.toString())
-                       .setOVSPortName("tapPort1")
-                       .buildTap();
+        MidoPort p1 = router1.addVmPort().setVMAddress(ip1).build();
+        tapPort1 = new TapWrapper("tnlTestTap1");
+        ovsBridge1.addSystemPort(p1.port.getId(), tapPort1.getName());
 
-        helper1 = new PacketHelper(tapPort1.getInnerMAC(), ip1,
-                                      tapPort1.getOuterMAC(),
-                                      IntIPv4.fromString("192.168.231.1"));
+        helper1 = new PacketHelper(MAC.fromString("02:00:aa:33:00:01"), ip1,
+                tapPort1.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
 
         ip2 = IntIPv4.fromString("192.168.232.3");
-        tapPort2 = router1.addPort(ovsdb).setDestination(ip2.toString())
-                       .setOVSPortName("tapPort2")
-                       .setOVSBridgeName("smoke-br2")
-                       .setOVSBridgeController("tcp:127.0.0.1:6657")
-                       .buildTap();
+        MidoPort p2 = router1.addVmPort().setVMAddress(ip2).build();
+        tapPort2 = new TapWrapper("tnlTestTap2");
+        ovsBridge2.addSystemPort(p2.port.getId(), tapPort2.getName());
 
-        helper2 = new PacketHelper(tapPort2.getInnerMAC(), ip2,
-                                      tapPort2.getOuterMAC(),
-                                      IntIPv4.fromString("192.168.232.1"));
+        helper2 = new PacketHelper(MAC.fromString("02:00:aa:33:00:02"), ip2,
+                tapPort2.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
 
         Thread.sleep(1000);
     }
 
     @AfterClass
     public static void tearDown() {
-        ovsdb.delBridge("smoke-br");
-        ovsdb.delBridge("smoke-br2");
+        ovsBridge1.remove();
+        ovsBridge2.remove();
 
-        removePort(tapPort1);
-        removePort(tapPort2);
+        removeTapWrapper(tapPort1);
+        removeTapWrapper(tapPort2);
         removeTenant(tenant1);
 
         mgmt.stop();

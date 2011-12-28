@@ -20,10 +20,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractSmokeTest {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(AbstractSmokeTest.class);
-
-
     protected static void removePort(Port port) {
         if (port != null) {
             port.delete();
