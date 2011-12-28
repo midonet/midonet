@@ -14,12 +14,13 @@ import java.util.Random;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.openvswitch.ControllerBuilder;
-import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 import com.midokura.midonet.smoketest.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.smoketest.openflow.AgFlowStats;
@@ -28,21 +29,19 @@ import com.midokura.midonet.smoketest.openflow.OpenFlowStats;
 import com.midokura.midonet.smoketest.openflow.PortStats;
 import com.midokura.midonet.smoketest.openflow.ServiceController;
 import com.midokura.midonet.smoketest.openflow.TableStats;
-import com.midokura.midonet.smoketest.topology.InternalPort;
+import com.midokura.midonet.smoketest.topology.MidoPort;
+import com.midokura.midonet.smoketest.topology.OvsBridge;
 import com.midokura.midonet.smoketest.topology.Router;
-import com.midokura.midonet.smoketest.topology.TapPort;
+import com.midokura.midonet.smoketest.topology.TapWrapper;
 import com.midokura.midonet.smoketest.topology.Tenant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StatsTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(StatsTest.class);
 
     static Tenant tenant1;
-    static TapPort tapPort1;
-    static TapPort tapPort2;
-    static InternalPort peerPort;
+    static TapWrapper tapPort1;
+    static TapWrapper tapPort2;
     static IntIPv4 tapIp1;
     static IntIPv4 tapIp2;
     static IntIPv4 rtrIp;
@@ -52,6 +51,7 @@ public class StatsTest extends AbstractSmokeTest {
     static OpenvSwitchDatabaseConnectionImpl ovsdb;
     static MidolmanMgmt mgmt;
     static OpenFlowStats svcController;
+    static OvsBridge ovsBridge;
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
@@ -61,6 +61,10 @@ public class StatsTest extends AbstractSmokeTest {
         // First clean up left-overs from previous incomplete tests.
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
+        ovsBridge.addServiceController(6640);
+        Thread.sleep(1000);
+        svcController = new ServiceController(6640);
 
         Random rand = new Random(System.currentTimeMillis());
         String tenantName = "tenant" + rand.nextInt();
@@ -71,59 +75,45 @@ public class StatsTest extends AbstractSmokeTest {
         tapIp1 = IntIPv4.fromString("192.168.231.11");
         tapIp2 = IntIPv4.fromString("192.168.231.12");
         peerIp = IntIPv4.fromString("192.168.231.13");
-        tapPort1 = router1.addPort(ovsdb).setDestination(tapIp1.toString())
-                .buildTap();
-        helper1 = new PacketHelper(tapPort1.getInnerMAC(), tapIp1,
-                tapPort1.getOuterMAC(), rtrIp);
 
-        tapPort2 = router1.addPort(ovsdb).setDestination(tapIp2.toString())
-                .setOVSPortName("tapPort2").buildTap();
-        helper2 = new PacketHelper(tapPort2.getInnerMAC(), tapIp2,
-                tapPort2.getOuterMAC(), rtrIp);
+        MidoPort p1 = router1.addVmPort().setVMAddress(tapIp1).build();
+        tapPort1 = new TapWrapper("statsTestTap1");
+        ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
+        helper1 = new PacketHelper(MAC.fromString("02:00:bb:bb:00:01"), tapIp1,
+                tapPort1.getHwAddr(), rtrIp);
 
-        peerPort = router1.addPort(ovsdb).setDestination(peerIp.toString())
-                .buildInternal();
+        MidoPort p2 = router1.addVmPort().setVMAddress(tapIp2).build();
+        tapPort2 = new TapWrapper("statsTestTap2");
+        ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
+        helper2 = new PacketHelper(MAC.fromString("02:00:bb:bb:00:02"), tapIp2,
+                tapPort2.getHwAddr(), rtrIp);
 
-        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
-                "smoke-br", "ptcp:6640");
-        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
-        ctlBuilder.build();
-        Thread.sleep(1000);
-        svcController = new ServiceController(6640);
+        MidoPort p3 = router1.addVmPort().setVMAddress(peerIp).build();
+        ovsBridge.addInternalPort(p3.port.getId(), "statsTestInt", peerIp, 24);
+
         Thread.sleep(5000);
     }
 
     @AfterClass
     public static void tearDown() {
-        ovsdb.delBridge("smoke-br");
+        ovsBridge.remove();
 
-        removePort(tapPort1);
-        removePort(tapPort2);
+        removeTapWrapper(tapPort1);
+        removeTapWrapper(tapPort2);
         removeTenant(tenant1);
 
         mgmt.stop();
 
         resetZooKeeperState(log);
-
-        /*
-        ovsdb.delPort("tapPort1");
-        ovsdb.delPort("tapPort2");
-        ovsdb.delPort("intPort1");
-        Thread.sleep(2000);
-        tapPort1.remove();
-        tapPort2.remove();
-        ovsdb.delBridge("smoke-br");
-        tenant1.delete();
-        */
     }
 
     @Test
     public void test() throws InterruptedException {
         byte[] request;
-        short portNum1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(
-                tapPort1.getName()));
-        short portNum2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(
-                tapPort2.getName()));
+        short portNum1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tapPort1
+                .getName()));
+        short portNum2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tapPort2
+                .getName()));
 
         // Port stats for tapPort1
         PortStats pStat1 = svcController.getPortStats(portNum1);
@@ -203,7 +193,8 @@ public class StatsTest extends AbstractSmokeTest {
         assertEquals(1, fstats.size());
         FlowStats flow2to1 = fstats.get(0);
         flow2to1.expectCount(5);
-        // The aggregate flow stats to tap1 now include counts for PeerTo1 And 2To1.
+        // The aggregate flow stats to tap1 now include counts for PeerTo1 And
+        // 2To1.
         flowsTo1.refresh().expectFlowCount(2).expectPktCount(10);
 
         // Get table statistics.
@@ -212,7 +203,7 @@ public class StatsTest extends AbstractSmokeTest {
         TableStats tStats = tableStats.get(0);
         // Expect: 1) 6 flows (1->Peer, Peer->1, 2->1, +3 per-port DHCP flows);
         // 2) 19 lookups (ARP request+reply from both tap1 and
-        //    intPort1 + 5 ICMPs from each of 1->Peer, Peer->1 and 2->1);
+        // intPort1 + 5 ICMPs from each of 1->Peer, Peer->1 and 2->1);
         // 3) 12 matches (all ICMPs matched except first in each flow).
         tStats.expectActive(6).expectLookups(19).expectMatches(12);
     }
