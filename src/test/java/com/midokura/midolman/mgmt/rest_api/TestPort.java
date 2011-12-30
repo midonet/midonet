@@ -15,7 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
+import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.DtoMaterializedRouterPort;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -109,10 +111,15 @@ public class TestPort extends JerseyTest {
         // Create a router port.
         URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
         log.debug("routerPortUri: {} ", routerPortUri);
-        String requestBody = "{\"networkAddress\": \"10.0.0.0\", \"networkLength\": 24, " +
-        		"\"portAddress\":\"10.0.0.1\", \"localNetworkAddress\": \"10.0.0.2\", " +
-        		"\"localNetworkLength\": 32, \"vifId\":\"372b0040-12ae-11e1-be50-0800200c9a66\" }";
-        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, requestBody);
+        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
+        port.setNetworkAddress("10.0.0.0");
+        port.setNetworkLength(24);
+        port.setPortAddress("10.0.0.1");
+        port.setLocalNetworkAddress("10.0.0.2");
+        port.setLocalNetworkLength(32);
+        port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
+
+        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
         log.debug("location: {}", response.getLocation());
         assertEquals(201, response.getStatus());
 

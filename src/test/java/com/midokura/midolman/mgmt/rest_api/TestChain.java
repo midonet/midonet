@@ -16,6 +16,8 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -24,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dto.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.DtoTenant;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -71,11 +72,15 @@ public class TestChain extends JerseyTest {
 
         // Create a materialized router port.
         URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
-        log.debug("routerPortUri: {} ", routerPortUri);
-        String requestBody = "{\"networkAddress\": \"10.0.0.0\", \"networkLength\": 24, " +
-                "\"portAddress\":\"10.0.0.1\", \"localNetworkAddress\": \"10.0.0.2\", " +
-                "\"localNetworkLength\": 32, \"vifId\":\"372b0040-12ae-11e1-be50-0800200c9a66\" }";
-        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, requestBody);
+        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
+        port.setNetworkAddress("10.0.0.0");
+        port.setNetworkLength(24);
+        port.setPortAddress("10.0.0.1");
+        port.setLocalNetworkAddress("10.0.0.2");
+        port.setLocalNetworkLength(32);
+        port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
+
+        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
         assertEquals(201, response.getStatus());
         log.debug("location: {}", response.getLocation());
 
@@ -88,7 +93,6 @@ public class TestChain extends JerseyTest {
 
         ruleChain.setName("foo_chain");
         ruleChain.setTable(ChainTable.NAT);
-
 
         // Create a chain
         URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
