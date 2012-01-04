@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura Europe SARL
  */
 
-package com.midokura.midolman.mgmt.data.dto;
+package com.midokura.midolman.mgmt.data.dto.client;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

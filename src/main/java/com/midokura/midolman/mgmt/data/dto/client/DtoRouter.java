@@ -1,8 +1,8 @@
 /*
- * Copyright 2011 Midokura Japan
+ * Copyright 2011 Midokura Europe SARL
  */
 
-package com.midokura.midolman.mgmt.data.dto;
+package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
 import java.util.UUID;
@@ -10,12 +10,15 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class DtoBridge {
+public class DtoRouter {
     private UUID id;
     private String name;
     private String tenantId;
     private URI uri;
     private URI ports;
+    private URI chains;
+    private URI routes;
+    private URI peerRouters;
 
     public UUID getId() {
         return id;
@@ -55,6 +58,30 @@ public class DtoBridge {
 
     public void setPorts(URI ports) {
         this.ports = ports;
+    }
+
+    public URI getChains() {
+        return chains;
+    }
+
+    public void setChains(URI chains) {
+        this.chains = chains;
+    }
+
+    public URI getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(URI routes) {
+        this.routes = routes;
+    }
+
+    public URI getPeerRouters() {
+        return peerRouters;
+    }
+
+    public void setPeerRouters(URI peerRouters) {
+        this.peerRouters = peerRouters;
     }
 
 }

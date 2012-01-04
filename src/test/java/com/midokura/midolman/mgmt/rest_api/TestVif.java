@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.*;
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

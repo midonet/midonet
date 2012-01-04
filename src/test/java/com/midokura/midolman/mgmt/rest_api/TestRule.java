@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.*;
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import org.junit.Before;
 import org.junit.Test;

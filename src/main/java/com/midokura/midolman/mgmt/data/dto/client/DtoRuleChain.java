@@ -1,4 +1,4 @@
-package com.midokura.midolman.mgmt.data.dto;
+package com.midokura.midolman.mgmt.data.dto.client;
 
 /*
  * Copyright 2011 Midokura Europe SARL

@@ -16,16 +16,16 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;

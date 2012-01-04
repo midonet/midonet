@@ -5,7 +5,10 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import com.midokura.midolman.mgmt.data.dto.*;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.state.VpnZkManager;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;

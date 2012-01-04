@@ -5,7 +5,6 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ADMIN_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_AD_ROUTE_COLLECTION_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_AD_ROUTE_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BGP_JSON;
@@ -18,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.*;
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

@@ -21,9 +21,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.DtoPeerRouterLink;
-import com.midokura.midolman.mgmt.data.dto.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPeerRouterLink;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
