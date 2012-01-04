@@ -32,14 +32,6 @@ public class DtoApplication {
         this.uri = uri;
     }
 
-    public URI getAdmin() {
-        return admin;
-    }
-
-    public void setAdmin(URI admin) {
-        this.admin = admin;
-    }
-
     public URI getTenant() {
         return tenant;
     }
