@@ -8,8 +8,6 @@ package com.midokura.midolman.mgmt.rest_api.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.midokura.midolman.layer3.Router;
-
 /**
  * Enum for chain table
  *
@@ -24,6 +22,9 @@ public enum ChainTable {
     NAT("nat");
 
     private final String value;
+
+    private static final String PRE_ROUTING = "pre_routing";
+    private static final String POST_ROUTING = "post_routing";
 
     private ChainTable(String val) {
         this.value = val;
@@ -42,11 +43,10 @@ public enum ChainTable {
     /**
      * Built-in chain names.
      */
-    public final static Map<ChainTable, String[]> builtInNames;
+    public final static Map<ChainTable, String[]> builtInChains;
     static {
-        builtInNames = new HashMap<ChainTable, String[]>();
-        builtInNames.put(NAT, new String[] { Router.PRE_ROUTING,
-                Router.POST_ROUTING });
+        builtInChains = new HashMap<ChainTable, String[]>();
+        builtInChains.put(NAT, new String[] { PRE_ROUTING, POST_ROUTING });
     }
 
     /**
@@ -77,10 +77,10 @@ public enum ChainTable {
      *
      * @param table
      *            Table to get the names for.
-     * @return An array of names.
+     * @return An array of names of the built-in chains for a table.
      */
     public static String[] getBuiltInChainNames(ChainTable table) {
-        return builtInNames.get(table);
+        return builtInChains.get(table);
     }
 
     /**
