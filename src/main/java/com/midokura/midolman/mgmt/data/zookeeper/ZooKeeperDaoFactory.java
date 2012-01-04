@@ -85,8 +85,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
      * Get the Directory object. Override this method to use a mock Directory.
      *
      * @return Directory object.
-     * @throws DaoInitializationException
-     *             DAO initialization error.
+     * @throws StateAccessException
+     *             Data access error.
      */
     synchronized public Directory getDirectory() throws StateAccessException {
         log.debug(

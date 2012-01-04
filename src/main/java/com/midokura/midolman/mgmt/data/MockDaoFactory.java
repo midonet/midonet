@@ -12,7 +12,7 @@ import com.midokura.midolman.state.MockDirectory;
 
 // This test code is included under src/main/java because it can be useful
 // for in-memory testing in other projects that depend on midolmanj-mgmt.
-// Code under src/main/java is not included in the midolmanj-mgmt jar.
+// Code under src/test/java is not included in the midolmanj-mgmt jar.
 public class MockDaoFactory extends ZooKeeperDaoFactory {
 
     public MockDaoFactory(AppConfig config) throws DaoInitializationException {
