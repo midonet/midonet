@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.data.dto;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -29,6 +30,15 @@ public class DtoRoute {
     private int weight;
     private String attributes;
     private String type;
+    private URI uri;
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
 
     public UUID getId() {
         return id;

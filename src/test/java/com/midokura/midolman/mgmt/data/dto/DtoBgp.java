@@ -21,6 +21,15 @@ public class DtoBgp {
     private int peerAS;
     private String peerAddr = null;
     private URI adRoutes;
+    private URI uri;
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
 
     public UUID getId() {
         return id;

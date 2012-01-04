@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -13,6 +14,16 @@ public class DtoLogicalRouterPort extends DtoRouterPort {
     private String peerPortAddress = null;
     private UUID peerRouterId = null;
     private UUID peerId = null;
+
+    private URI uri;
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
 
     public String getPeerPortAddress() {
         return peerPortAddress;
