@@ -5,29 +5,24 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BGP_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BGP_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestBGP extends JerseyTest {
 
@@ -50,7 +45,6 @@ public class TestBGP extends JerseyTest {
     // This one also tests Create with given tenant ID string
     @Before
     public void before() {
-
         DtoTenant tenant = new DtoTenant();
         tenant.setId(testTenantName);
 
@@ -88,13 +82,10 @@ public class TestBGP extends JerseyTest {
         log.debug("location: {}", response.getLocation());
 
         testRouterPortId = FuncTest.getUuidFromLocation(response.getLocation());
-
-
     }
 
     @Test
     public void testCreateGetListDelete() {
-
         DtoBgp bgp = new DtoBgp();
         bgp.setLocalAS(55394);
         bgp.setPeerAS(65104);

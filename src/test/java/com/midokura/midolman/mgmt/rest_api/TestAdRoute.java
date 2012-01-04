@@ -5,27 +5,21 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_AD_ROUTE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_AD_ROUTE_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BGP_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.net.URI;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.*;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestAdRoute extends JerseyTest {
 
@@ -49,7 +43,6 @@ public class TestAdRoute extends JerseyTest {
 
     @Before
     public void before() {
-
         DtoTenant tenant = new DtoTenant();
         tenant.setId(testTenantName);
 
@@ -79,7 +72,7 @@ public class TestAdRoute extends JerseyTest {
         port.setLocalNetworkAddress("10.0.0.2");
         port.setLocalNetworkLength(32);
         port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
-        
+
         response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
         assertEquals(201, response.getStatus());
         log.debug("location: {}", response.getLocation());
@@ -102,13 +95,11 @@ public class TestAdRoute extends JerseyTest {
         bgp = response.getEntity(DtoBgp.class);
 
         adRoutesUri = bgp.getAdRoutes();
-        log.debug("adRoute {}",adRoutesUri);
-
+        log.debug("adRoute {}", adRoutesUri);
     }
 
     @Test
     public void testCreateGetListDelete() {
-
         DtoAdRoute adRoute = new DtoAdRoute();
         adRoute.setNwPrefix("14.128.23.0");
         adRoute.setPrefixLength(27);

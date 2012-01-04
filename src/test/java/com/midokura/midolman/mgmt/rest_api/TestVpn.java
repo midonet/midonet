@@ -5,6 +5,10 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.util.UUID;
+
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
@@ -17,10 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
-import java.util.UUID;
 
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
@@ -48,7 +48,6 @@ public class TestVpn extends JerseyTest {
 
     @Before
     public void before() {
-
         DtoTenant tenant = new DtoTenant();
         tenant.setId(testTenantName);
 
@@ -69,9 +68,7 @@ public class TestVpn extends JerseyTest {
         log.debug("router location: {}", response.getLocation());
         testRouterUri = response.getLocation();
 
-
         DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
-
         String portAddress = "180.214.47.66";
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(30);
@@ -109,7 +106,7 @@ public class TestVpn extends JerseyTest {
     }
 
     @Test
-    public void testCreateGetListDelete(){
+    public void testCreateGetListDelete() {
 
         // create a vpn entry
         DtoVpn vpn = new DtoVpn();
@@ -134,7 +131,7 @@ public class TestVpn extends JerseyTest {
         log.debug("vpn port: {}", vpn.getPort());
         assertEquals(200, response.getStatus());
         assertEquals(vpnPort, vpn.getPort());
-        
+
         //List vpns
         resource = resource().uri(
                 UriBuilder.fromUri(portUri).path("vpns").build());

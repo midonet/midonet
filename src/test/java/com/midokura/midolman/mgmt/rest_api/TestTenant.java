@@ -5,23 +5,21 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
-
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class TestTenant extends JerseyTest {
@@ -54,7 +52,6 @@ public class TestTenant extends JerseyTest {
 
     @Test
     public void testCreateWithEmptyBody() {
-
         resource = resource().path("tenants");
         response = resource.type(APPLICATION_TENANT_JSON).post(
                 ClientResponse.class, "{}");
@@ -70,13 +67,12 @@ public class TestTenant extends JerseyTest {
         try {
             UUID.fromString(idString);
         } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form." +  e);
+            Assert.fail("failed: returned tenant id doesn't conform to UUID form." + e);
         }
     }
 
     @Test
     public void testList() {
-
         resource = resource().path("tenants");
         response = resource.type(APPLICATION_TENANT_JSON).get(
                 ClientResponse.class);

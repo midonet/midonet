@@ -5,29 +5,23 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_RULE_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.*;
+import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestRule extends JerseyTest {
 
@@ -50,7 +44,6 @@ public class TestRule extends JerseyTest {
 
     @Before
     public void before() {
-
         DtoTenant tenant = new DtoTenant();
         tenant.setId(testTenantName);
 
@@ -103,15 +96,14 @@ public class TestRule extends JerseyTest {
 
     @Test
     public void testCreateGetListDelete() {
-
         DtoRule rule = new DtoRule();
         log.debug("type rule: {}", Rule.class);
-        UUID[] inPorts = new UUID[] {UUID.randomUUID()};
+        UUID[] inPorts = new UUID[]{UUID.randomUUID()};
         String[][][] natTargets = new String[2][2][];
-        natTargets[0][0] = new String[] { "192.168.100.1", "192.168.100.6" };
-        natTargets[0][1] = new String[] { "80", "8080" };
-        natTargets[1][0] = new String[] { "192.168.100.7", "192.168.100.10" };
-        natTargets[1][1] = new String[] { "8081", "8089" };
+        natTargets[0][0] = new String[]{"192.168.100.1", "192.168.100.6"};
+        natTargets[0][1] = new String[]{"80", "8080"};
+        natTargets[1][0] = new String[]{"192.168.100.7", "192.168.100.10"};
+        natTargets[1][1] = new String[]{"8081", "8089"};
 
         URI rulesUri = URI.create(ruleChainUri.toString() + "/rules");
         rule.setCondInvert(true);

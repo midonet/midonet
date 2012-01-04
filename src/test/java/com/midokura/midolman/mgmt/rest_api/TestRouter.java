@@ -5,21 +5,8 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.net.URI;
 import java.util.UUID;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoPeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
@@ -27,6 +14,15 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestRouter extends JerseyTest {
 
@@ -48,7 +44,6 @@ public class TestRouter extends JerseyTest {
     // This one also tests Create with given tenant ID string
     @Before
     public void before() {
-
         DtoTenant tenant = new DtoTenant();
         tenant.setId(testTenantName);
 
@@ -80,7 +75,6 @@ public class TestRouter extends JerseyTest {
 
     @Test
     public void testCreateWithEmptyBody() {
-
         resource = resource().path("tenants/" + testTenantName + "/routers");
         response = resource.type(APPLICATION_ROUTER_JSON).post(
                 ClientResponse.class, "{}");
@@ -96,7 +90,7 @@ public class TestRouter extends JerseyTest {
         try {
             UUID.fromString(idString);
         } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}" +  e);
+            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}" + e);
         }
     }
 
@@ -122,7 +116,7 @@ public class TestRouter extends JerseyTest {
         try {
             UUID.fromString(idString);
         } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}" +  e);
+            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}" + e);
         }
 
         router = resource().uri(routerUri).type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);
@@ -131,7 +125,6 @@ public class TestRouter extends JerseyTest {
         log.debug("bridge port: {}", router.getPorts());
         log.debug("bridge uri: {}", router.getUri());
     }
-
 
     @Test
     public void testGet() {
@@ -190,7 +183,7 @@ public class TestRouter extends JerseyTest {
               "{\"networkAddress\": \"10.0.0.0\", " +
               "\"networkLength\": 24,  \"portAddress\": \"10.0.0.1\", " +
               "\"peerPortAddress\": \"10.0.0.2\",\"peerRouterId\": " +
-              "\"" + anotherRouterId +  "\"}");
+              "\"" + anotherRouterId + "\"}");
         String body = response.getEntity(String.class);
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
@@ -208,7 +201,7 @@ public class TestRouter extends JerseyTest {
         assertEquals(200, response.getStatus());
 
         // Delete the link
-        response = resource().path("ports/"+ link.getPortId()).type(APPLICATION_PORT_JSON).get(ClientResponse.class);
+        response = resource().path("ports/" + link.getPortId()).type(APPLICATION_PORT_JSON).get(ClientResponse.class);
         body = response.getEntity(String.class);
         log.debug("body: {}", body);
         // Delete the link
