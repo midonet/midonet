@@ -72,8 +72,7 @@ public class ChainZkDao {
         byte[] data = zkDao.get(path);
         ChainMgmtConfig config = serializer.deserialize(data);
 
-        log.debug("ChainZkDao.getMgmtData exiting: path=" + path + ", config="
-                + config);
+        log.debug("ChainZkDao.getMgmtData exiting: path=" + path);
         return config;
     }
 
@@ -100,8 +99,7 @@ public class ChainZkDao {
         byte[] data = zkDao.get(path);
         ChainNameMgmtConfig config = serializer.deserializeName(data);
 
-        log.debug("ChainZkDao.getNameData exiting: path=" + path + ", config="
-                + config);
+        log.debug("ChainZkDao.getNameData exiting: path=" + path);
         return config;
     }
 
@@ -119,8 +117,10 @@ public class ChainZkDao {
             throw new IllegalArgumentException("ID cannot be null");
         }
         log.debug("ChainZkDao.getData entered: id=" + id);
+
         ZkNodeEntry<UUID, ChainConfig> config = zkDao.get(id);
-        log.debug("ChainZkDao.getData exiting: name=" + config.value.name);
+
+        log.debug("ChainZkDao.getData exiting");
         return config.value;
     }
 
