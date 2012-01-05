@@ -1,0 +1,192 @@
+/*
+ * @(#)PortOpPathBuilder        1.6 12/1/6
+ *
+ * Copyright 2012 Midokura KK
+ */
+package com.midokura.midolman.mgmt.data.zookeeper.op;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.zookeeper.Op;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.PortSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
+
+/**
+ * Class to build Op for the port paths.
+ *
+ * @version 1.6 6 Jan 2012
+ * @author Ryu Ishimoto
+ */
+public class PortOpPathBuilder {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(PortOpPathBuilder.class);
+    private final PathBuilder pathBuilder;
+    private final PortSerializer serializer;
+    private final PortZkManager zkDao;
+
+    /**
+     * Constructor
+     *
+     * @param zkDao
+     *            ZkManager object to access ZK data.
+     * @param pathBuilder
+     *            PathBuilder object to get path data.
+     * @param serializer
+     *            PortSerializer object.
+     */
+    public PortOpPathBuilder(PortZkManager zkDao, PathBuilder pathBuilder,
+            PortSerializer serializer) {
+        this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
+        this.serializer = serializer;
+    }
+
+    /**
+     * Get the port update Op object.
+     *
+     * @param id
+     *            ID of the port.
+     * @param config
+     *            PortMgmtConfig object to set.
+     * @return Op for router update.
+     */
+    public Op getPortSetDataOp(UUID id, PortMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("PortOpPathBuilder.getPortSetDataOp entered: id=" + id
+                + " config=" + config);
+
+        String path = pathBuilder.getPortPath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getSetDataOp(path, data);
+
+        log.debug("PortOpPathBuilder.getPortSetDataOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get a list of Ops to link ports.
+     *
+     * @param id
+     *            ID of the port
+     * @param config
+     *            PortConfig object representing the port.
+     * @param peerId
+     *            ID of the peer port.
+     * @param peerConfig
+     *            PortConfig object representing the peer port.
+     * @return A list of Op.
+     * @throws ZkStateSerializationException
+     *             Serialization error.
+     */
+    public List<Op> getPortLinkCreateOps(UUID id, PortConfig config,
+            UUID peerId, PortConfig peerConfig)
+            throws ZkStateSerializationException {
+        log.debug("PortOpPathBuilder.getPortLinkCreateOps entered: id=" + id
+                + ", peerId=" + peerId);
+
+        ZkNodeEntry<UUID, PortConfig> port = new ZkNodeEntry<UUID, PortConfig>(
+                id, config);
+        ZkNodeEntry<UUID, PortConfig> peerPort = new ZkNodeEntry<UUID, PortConfig>(
+                peerId, peerConfig);
+
+        List<Op> ops = zkDao.preparePortCreateLink(port, peerPort);
+
+        log.debug("PortOpPathBuilder.getPortLinkCreateOps exiting: ops count="
+                + ops.size());
+        return ops;
+    }
+
+    /**
+     * Get the port create Op object.
+     *
+     * @param id
+     *            ID of the port.
+     * @param config
+     *            PortMgmtConfig object to create.
+     * @return Op for port create.
+     */
+    public Op getPortCreateOp(UUID id, PortMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("PortOpPathBuilder.getPortCreateOp entered: id=" + id
+                + " config=" + config);
+
+        String path = pathBuilder.getPortPath(id);
+        byte[] data = null;
+        if (config != null) {
+            data = serializer.serialize(config);
+        }
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("PortOpPathBuilder.getPortCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Gets a list of Op objects to create a port in Midolman side.
+     *
+     * @param id
+     *            ID of the port
+     * @param config
+     *            PortConfig object to create.
+     * @return List of Op objects.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public List<Op> getPortCreateOps(UUID id, PortConfig config)
+            throws StateAccessException {
+        log.debug("PortOpPathBuilder.getPortCreateOps entered: id=" + id);
+
+        List<Op> ops = zkDao.preparePortCreate(id, config);
+
+        log.debug("PortOpPathBuilder.getPortCreateOps exiting: ops count="
+                + ops.size());
+        return ops;
+    }
+
+    /**
+     * Get the port delete Op object.
+     *
+     * @param id
+     *            ID of the port.
+     * @return Op for port delete.
+     */
+    public Op getPortDeleteOp(UUID id) {
+        log.debug("PortOpPathBuilder.getPortDeleteOp entered: id={}", id);
+
+        String path = pathBuilder.getPortPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("PortOpPathBuilder.getPortDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Gets a list of Op objects to delete a Port in Midolman side.
+     *
+     * @param id
+     *            ID of the port
+     * @return List of Op objects.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public List<Op> getPortDeleteOps(UUID id) throws StateAccessException {
+        log.debug("PortOpPathBuilder.getPortDeleteOps entered: id={}", id);
+
+        List<Op> ops = zkDao.preparePortDelete(id);
+
+        log.debug("PortOpPathBuilder.getPortDeleteOps exiting: ops count={}",
+                ops.size());
+        return ops;
+    }
+}
