@@ -117,8 +117,9 @@ public class TestPortZkDao {
         Set<UUID> ids = dao.getRouterPortIds(routerId);
 
         Assert.assertEquals(dummyNodes.size(), ids.size());
-        Assert.assertEquals(dummyNodes.get(0).key, ids.toArray()[0]);
-        Assert.assertEquals(dummyNodes.get(1).key, ids.toArray()[1]);
+        for (ZkNodeEntry<UUID, PortConfig> node : dummyNodes) {
+            Assert.assertTrue(ids.contains(node.key));
+        }
     }
 
     @Test
@@ -129,8 +130,9 @@ public class TestPortZkDao {
         Set<UUID> ids = dao.getBridgePortIds(bridgeId);
 
         Assert.assertEquals(dummyNodes.size(), ids.size());
-        Assert.assertEquals(dummyNodes.get(0).key, ids.toArray()[0]);
-        Assert.assertEquals(dummyNodes.get(1).key, ids.toArray()[1]);
+        for (ZkNodeEntry<UUID, PortConfig> node : dummyNodes) {
+            Assert.assertTrue(ids.contains(node.key));
+        }
     }
 
     @Test
