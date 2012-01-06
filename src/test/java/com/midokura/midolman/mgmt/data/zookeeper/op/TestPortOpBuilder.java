@@ -19,6 +19,7 @@ import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
@@ -26,6 +27,7 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 public class TestPortOpBuilder {
 
     private PortOpPathBuilder pathBuilderMock = null;
+    private PortZkDao zkDaoMock = null;
     private PortOpBuilder builder = null;
     private static final Op dummyCreateOp0 = Op.create("/foo",
             new byte[] { 0 }, null, CreateMode.PERSISTENT);
@@ -54,7 +56,8 @@ public class TestPortOpBuilder {
     @Before
     public void setUp() throws Exception {
         this.pathBuilderMock = mock(PortOpPathBuilder.class);
-        this.builder = new PortOpBuilder(this.pathBuilderMock);
+        this.zkDaoMock = mock(PortZkDao.class);
+        this.builder = new PortOpBuilder(this.pathBuilderMock, this.zkDaoMock);
     }
 
     @Test
@@ -169,4 +172,41 @@ public class TestPortOpBuilder {
         Assert.assertEquals(1, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.get(0));
     }
+
+    @Test
+    public void TestBuildPlugSuccess() throws Exception {
+        UUID id = UUID.randomUUID();
+        UUID vifId = UUID.randomUUID();
+        PortMgmtConfig mgmtConfig = new PortMgmtConfig();
+
+        // Mock the path builder
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
+        when(pathBuilderMock.getPortSetDataOp(id, mgmtConfig)).thenReturn(
+                dummyCreateOp0);
+
+        List<Op> ops = builder.buildPlug(id, vifId);
+
+        Assert.assertEquals(1, ops.size());
+        Assert.assertEquals(dummyCreateOp0, ops.get(0));
+        Assert.assertEquals(vifId, mgmtConfig.vifId);
+    }
+
+    @Test
+    public void TestBuildUnPlugSuccess() throws Exception {
+        UUID id = UUID.randomUUID();
+        PortMgmtConfig mgmtConfig = new PortMgmtConfig();
+        mgmtConfig.vifId = UUID.randomUUID();
+
+        // Mock the path builder
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
+        when(pathBuilderMock.getPortSetDataOp(id, mgmtConfig)).thenReturn(
+                dummyCreateOp0);
+
+        List<Op> ops = builder.buildPlug(id, null);
+
+        Assert.assertEquals(1, ops.size());
+        Assert.assertEquals(dummyCreateOp0, ops.get(0));
+        Assert.assertNull(mgmtConfig.vifId);
+    }
+
 }

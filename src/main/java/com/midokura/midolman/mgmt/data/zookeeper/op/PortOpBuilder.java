@@ -13,6 +13,7 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -28,15 +29,19 @@ public class PortOpBuilder {
     private final static Logger log = LoggerFactory
             .getLogger(PortOpBuilder.class);
     private final PortOpPathBuilder pathBuilder;
+    private final PortZkDao zkDao;
 
     /**
      * Constructor
      *
      * @param pathBuilder
      *            PortOpPathBuilder object
+     * @param zkDao
+     *            PortZkDao object
      */
-    public PortOpBuilder(PortOpPathBuilder pathBuilder) {
+    public PortOpBuilder(PortOpPathBuilder pathBuilder, PortZkDao zkDao) {
         this.pathBuilder = pathBuilder;
+        this.zkDao = zkDao;
     }
 
     /**
@@ -174,6 +179,31 @@ public class PortOpBuilder {
         ops.add(pathBuilder.getPortSetDataOp(id, mgmtConfig));
 
         log.debug("PortOpBuilder.buildUpdate exiting: ops count={}", ops.size());
+        return ops;
+    }
+
+    /**
+     * Builds operations to handle the VIF plug event for the port side.
+     * If VIF ID is set to null, it means unplugging.
+     *
+     * @param id
+     *            port ID
+     * @param vifId
+     *            VIF ID
+     * @return Op list
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public List<Op> buildPlug(UUID id, UUID vifId) throws StateAccessException {
+        log.debug("PortOpBuilder.buildPlug entered: id=" + id + ", vifId="
+                + vifId);
+
+        List<Op> ops = new ArrayList<Op>();
+        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
+        mgmtConfig.vifId = vifId;
+        ops.addAll(buildUpdate(id, mgmtConfig));
+
+        log.debug("PortOpBuilder.buildPlug exiting: ops count={}", ops.size());
         return ops;
     }
 }
