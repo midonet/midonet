@@ -81,12 +81,12 @@ public class PortZkDao {
      *             Data access error.
      */
     public PortConfig getData(UUID id) throws StateAccessException {
-        log.debug("PortPathDao.getData entered: id={}", id);
+        log.debug("PortZkDao.getData entered: id={}", id);
 
         ZkNodeEntry<UUID, PortConfig> node = zkDao.get(id);
         PortConfig config = node.value;
 
-        log.debug("PortPathDao.getData exiting");
+        log.debug("PortZkDao.getData exiting");
         return config;
     }
 
@@ -100,13 +100,13 @@ public class PortZkDao {
      *             Data access error.
      */
     public PortMgmtConfig getMgmtData(UUID id) throws StateAccessException {
-        log.debug("PortPathDao.getMgmtData entered: id={}", id);
+        log.debug("PortZkDao.getMgmtData entered: id={}", id);
 
         String path = pathBuilder.getPortPath(id);
         byte[] data = zkDao.get(path);
         PortMgmtConfig config = serializer.deserialize(data);
 
-        log.debug("PortPathDao.getMgmtData exiting: path=" + path);
+        log.debug("PortZkDao.getMgmtData exiting: path=" + path);
         return config;
     }
 
@@ -121,7 +121,7 @@ public class PortZkDao {
      */
     public Set<UUID> getRouterPortIds(UUID routerId)
             throws StateAccessException {
-        log.debug("PortPathDao.getRouterPortIds entered: routerId={}", routerId);
+        log.debug("PortZkDao.getRouterPortIds entered: routerId={}", routerId);
 
         Set<UUID> ids = new TreeSet<UUID>();
         List<ZkNodeEntry<UUID, PortConfig>> nodes = zkDao
@@ -130,7 +130,7 @@ public class PortZkDao {
             ids.add(node.key);
         }
 
-        log.debug("PortPathDao.getRouterPortIds exiting: ids count="
+        log.debug("PortZkDao.getRouterPortIds exiting: ids count="
                 + ids.size());
         return ids;
     }
@@ -146,7 +146,7 @@ public class PortZkDao {
      */
     public Set<UUID> getBridgePortIds(UUID bridgeId)
             throws StateAccessException {
-        log.debug("PortPathDao.getBridgePortIds entered: bridgeId={}", bridgeId);
+        log.debug("PortZkDao.getBridgePortIds entered: bridgeId={}", bridgeId);
 
         Set<UUID> ids = new TreeSet<UUID>();
         List<ZkNodeEntry<UUID, PortConfig>> nodes = zkDao
@@ -155,7 +155,7 @@ public class PortZkDao {
             ids.add(node.key);
         }
 
-        log.debug("PortPathDao.getBridgePortIds exiting: ids count="
+        log.debug("PortZkDao.getBridgePortIds exiting: ids count="
                 + ids.size());
         return ids;
     }

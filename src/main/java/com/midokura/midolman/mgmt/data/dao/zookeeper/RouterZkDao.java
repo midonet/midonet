@@ -61,13 +61,13 @@ public class RouterZkDao {
      *             Data access error.
      */
     public RouterMgmtConfig getData(UUID id) throws StateAccessException {
-        log.debug("RouterPathDao.getData entered: id={}", id);
+        log.debug("RouterZkDao.getData entered: id={}", id);
 
         String path = pathBuilder.getRouterPath(id);
         byte[] data = zkDao.get(path);
         RouterMgmtConfig config = serializer.deserialize(data);
 
-        log.debug("RouterPathDao.getData exiting: path={}", path);
+        log.debug("RouterZkDao.getData exiting: path={}", path);
         return config;
     }
 
@@ -81,12 +81,12 @@ public class RouterZkDao {
      *             Data access error.
      */
     public Set<String> getIds(String tenantId) throws StateAccessException {
-        log.debug("RouterPathDao.getIds entered: tenantId={}", tenantId);
+        log.debug("RouterZkDao.getIds entered: tenantId={}", tenantId);
 
         String path = pathBuilder.getTenantRoutersPath(tenantId);
         Set<String> ids = zkDao.getChildren(path, null);
 
-        log.debug("RouterPathDao.getIds exiting: path=" + path + " ids count="
+        log.debug("RouterZkDao.getIds exiting: path=" + path + " ids count="
                 + ids.size());
         return ids;
     }
@@ -102,13 +102,13 @@ public class RouterZkDao {
      */
     public Set<String> getPeerRouterIds(UUID routerId)
             throws StateAccessException {
-        log.debug("RouterPathDao.getPeerRouterIds entered: routerId={}",
+        log.debug("RouterZkDao.getPeerRouterIds entered: routerId={}",
                 routerId);
 
         String path = pathBuilder.getRouterRoutersPath(routerId);
         Set<String> ids = zkDao.getChildren(path, null);
 
-        log.debug("RouterPathDao.getPeerRouterIds exiting: path=" + path
+        log.debug("RouterZkDao.getPeerRouterIds exiting: path=" + path
                 + " ids count=" + ids.size());
         return ids;
     }
@@ -126,14 +126,14 @@ public class RouterZkDao {
      */
     public PeerRouterConfig getRouterLinkData(UUID id, UUID peerId)
             throws StateAccessException {
-        log.debug("RouterPathDao.getRouterLinkData entered: id=" + id
+        log.debug("RouterZkDao.getRouterLinkData entered: id=" + id
                 + ", peerId=" + peerId);
 
         String path = pathBuilder.getRouterRouterPath(id, peerId);
         byte[] data = zkDao.get(path);
         PeerRouterConfig config = serializer.deserializePeer(data);
 
-        log.debug("RouterPathDao.getRouterLinkData exiting.");
+        log.debug("RouterZkDao.getRouterLinkData exiting.");
         return config;
     }
 
@@ -163,13 +163,13 @@ public class RouterZkDao {
      */
     public boolean routerLinkExists(UUID id, UUID peerId)
             throws StateAccessException {
-        log.debug("RouterPathDao.routerLinkExists entered: id=" + id
+        log.debug("RouterZkDao.routerLinkExists entered: id=" + id
                 + ", peerId=" + peerId);
 
         String path = pathBuilder.getRouterRouterPath(id, peerId);
         boolean exists = zkDao.exists(path);
 
-        log.debug("RouterPathDao.routerLinkExists exiting: exists=" + exists);
+        log.debug("RouterZkDao.routerLinkExists exiting: exists=" + exists);
         return exists;
     }
 

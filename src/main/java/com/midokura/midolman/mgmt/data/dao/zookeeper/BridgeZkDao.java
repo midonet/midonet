@@ -60,13 +60,13 @@ public class BridgeZkDao {
      *             Data access error.
      */
     public BridgeMgmtConfig getData(UUID id) throws StateAccessException {
-        log.debug("BridgePathDao.getData entered: id={}", id);
+        log.debug("BridgeZkDao.getData entered: id={}", id);
 
         String path = pathBuilder.getBridgePath(id);
         byte[] data = zkDao.get(path);
         BridgeMgmtConfig config = serializer.deserialize(data);
 
-        log.debug("BridgePathDao.getData exiting: path={}", path);
+        log.debug("BridgeZkDao.getData exiting: path={}", path);
         return config;
     }
 
@@ -80,12 +80,12 @@ public class BridgeZkDao {
      *             Data access error.
      */
     public Set<String> getIds(String tenantId) throws StateAccessException {
-        log.debug("BridgePathDao.getIds entered: tenantId={}", tenantId);
+        log.debug("BridgeZkDao.getIds entered: tenantId={}", tenantId);
 
         String path = pathBuilder.getTenantBridgesPath(tenantId);
         Set<String> ids = zkDao.getChildren(path, null);
 
-        log.debug("BridgePathDao.getIds exiting: path=" + path + " ids count="
+        log.debug("BridgeZkDao.getIds exiting: path=" + path + " ids count="
                 + ids.size());
         return ids;
     }

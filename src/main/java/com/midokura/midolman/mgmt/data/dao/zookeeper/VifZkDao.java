@@ -59,13 +59,13 @@ public class VifZkDao {
      *             Data access error.
      */
     public VifConfig getData(UUID id) throws StateAccessException {
-        log.debug("VifPathDao.getData entered: id={}", id);
+        log.debug("VifZkDao.getData entered: id={}", id);
 
         String path = pathBuilder.getVifPath(id);
         byte[] data = zkDao.get(path);
         VifConfig config = serializer.deserialize(data);
 
-        log.debug("VifPathDao.getData exiting: path={}", path);
+        log.debug("VifZkDao.getData exiting: path={}", path);
         return config;
     }
 
@@ -77,12 +77,12 @@ public class VifZkDao {
      *             Data access error.
      */
     public Set<String> getIds() throws StateAccessException {
-        log.debug("VifPathDao.getIds entered.");
+        log.debug("VifZkDao.getIds entered.");
 
         String path = pathBuilder.getVifsPath();
         Set<String> ids = zkDao.getChildren(path, null);
 
-        log.debug("VifPathDao.getIds exiting: path=" + path + " ids count="
+        log.debug("VifZkDao.getIds exiting: path=" + path + " ids count="
                 + ids.size());
         return ids;
     }
