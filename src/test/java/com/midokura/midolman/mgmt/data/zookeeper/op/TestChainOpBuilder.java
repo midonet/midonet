@@ -5,6 +5,12 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,9 +22,6 @@ import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.mockito.Mockito.*;
-
-import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
@@ -61,27 +64,27 @@ public class TestChainOpBuilder {
     @Test
     public void TestBuildCreateSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        UUID routerId = UUID.randomUUID();
-        String name = "foo";
+        ChainConfig config = new ChainConfig();
+        config.routerId = UUID.randomUUID();
+        config.name = "foo";
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
+        mgmtConfig.table = ChainTable.NAT;
+        ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
 
         // Mock the path builder
+        when(pathBuilderMock.getChainCreateOp(id, mgmtConfig)).thenReturn(
+                dummyCreateOp0);
         when(
-                pathBuilderMock.getChainCreateOp(any(UUID.class),
-                        any(ChainMgmtConfig.class))).thenReturn(dummyCreateOp0);
-        when(
-                pathBuilderMock.getRouterTableChainCreateOp(routerId,
+                pathBuilderMock.getRouterTableChainCreateOp(config.routerId,
                         ChainTable.NAT, id)).thenReturn(dummyCreateOp1);
         when(
                 pathBuilderMock.getRouterTableChainNameCreateOp(
-                        any(UUID.class), any(ChainTable.class), anyString(),
-                        any(ChainNameMgmtConfig.class))).thenReturn(
-                dummyCreateOp2);
-        when(
-                pathBuilderMock.getChainCreateOps(any(UUID.class),
-                        any(ChainConfig.class))).thenReturn(dummyCreateOps);
+                        config.routerId, ChainTable.NAT, config.name,
+                        nameConfig)).thenReturn(dummyCreateOp2);
+        when(pathBuilderMock.getChainCreateOps(id, config)).thenReturn(
+                dummyCreateOps);
 
-        Chain chain = new Chain(id, routerId, ChainTable.NAT, name);
-        List<Op> ops = builder.buildCreate(chain);
+        List<Op> ops = builder.buildCreate(id, config, mgmtConfig, nameConfig);
 
         Assert.assertEquals(6, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.get(0));
@@ -90,39 +93,6 @@ public class TestChainOpBuilder {
         Assert.assertEquals(dummyCreateOp0, ops.get(3));
         Assert.assertEquals(dummyCreateOp1, ops.get(4));
         Assert.assertEquals(dummyCreateOp2, ops.get(5));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void TestBuildCreateNullInput() throws Exception {
-        builder.buildCreate((Chain) null);
-    }
-
-    @Test
-    public void TestBuildCreateWithListSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        UUID routerId = UUID.randomUUID();
-        String name = "foo";
-        Chain chain = new Chain(id, routerId, ChainTable.NAT, name);
-
-        builder = spy(new ChainOpBuilder(this.pathBuilderMock));
-        doReturn(dummyCreateOps).when(builder).buildCreate(chain);
-
-        List<Chain> chains = new ArrayList<Chain>();
-        chains.add(chain);
-        chains.add(chain);
-        List<Op> ops = builder.buildCreate(chains);
-        Assert.assertEquals(6, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(dummyCreateOp0, ops.get(3));
-        Assert.assertEquals(dummyCreateOp1, ops.get(4));
-        Assert.assertEquals(dummyCreateOp2, ops.get(5));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void TestBuildCreateWithListNullInput() throws Exception {
-        builder.buildCreate((List<Chain>) null);
     }
 
     @Test
@@ -141,8 +111,8 @@ public class TestChainOpBuilder {
                         ChainTable.NAT, id)).thenReturn(dummyDeleteOp1);
         when(pathBuilderMock.getChainDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
-        Chain chain = new Chain(id, routerId, ChainTable.NAT, name);
-        List<Op> ops = builder.buildDelete(chain, true);
+        List<Op> ops = builder.buildDelete(id, routerId, ChainTable.NAT, name,
+                true);
         verify(pathBuilderMock, times(1)).getChainDeleteOps(id);
         Assert.assertEquals(6, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));
@@ -151,11 +121,6 @@ public class TestChainOpBuilder {
         Assert.assertEquals(dummyDeleteOp0, ops.get(3));
         Assert.assertEquals(dummyDeleteOp1, ops.get(4));
         Assert.assertEquals(dummyDeleteOp2, ops.get(5));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void TestBuildDeleteWithNullInput() throws Exception {
-        builder.buildDelete((Chain) null, true);
     }
 
     @Test
@@ -173,41 +138,13 @@ public class TestChainOpBuilder {
                         ChainTable.NAT, id)).thenReturn(dummyDeleteOp1);
         when(pathBuilderMock.getChainDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
-        Chain chain = new Chain(id, routerId, ChainTable.NAT, name);
-        List<Op> ops = builder.buildDelete(chain, false);
+        List<Op> ops = builder.buildDelete(id, routerId, ChainTable.NAT, name,
+                false);
         verify(pathBuilderMock, never()).getChainDeleteOps(id);
         Assert.assertEquals(3, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));
         Assert.assertEquals(dummyDeleteOp1, ops.get(1));
         Assert.assertEquals(dummyDeleteOp2, ops.get(2));
-    }
-
-    @Test
-    public void TestBuildDeleteWithListSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        UUID routerId = UUID.randomUUID();
-        String name = "foo";
-        Chain chain = new Chain(id, routerId, ChainTable.NAT, name);
-
-        builder = spy(new ChainOpBuilder(this.pathBuilderMock));
-        doReturn(dummyDeleteOps).when(builder).buildDelete(chain, true);
-
-        List<Chain> chains = new ArrayList<Chain>();
-        chains.add(chain);
-        chains.add(chain);
-        List<Op> ops = builder.buildDelete(chains, true);
-        Assert.assertEquals(6, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.get(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(1));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(2));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(3));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(4));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(5));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void TestBuildDeleteWithListNullInput() throws Exception {
-        builder.buildDelete((List<Chain>) null, true);
     }
 
 }
