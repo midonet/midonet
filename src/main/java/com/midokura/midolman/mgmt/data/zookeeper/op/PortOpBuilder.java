@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.data.zookeeper.op;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
@@ -183,8 +184,8 @@ public class PortOpBuilder {
     }
 
     /**
-     * Builds operations to handle the VIF plug event for the port side.
-     * If VIF ID is set to null, it means unplugging.
+     * Builds operations to handle the VIF plug event for the port side. If VIF
+     * ID is set to null, it means unplugging.
      *
      * @param id
      *            port ID
@@ -204,6 +205,32 @@ public class PortOpBuilder {
         ops.addAll(buildUpdate(id, mgmtConfig));
 
         log.debug("PortOpBuilder.buildPlug exiting: ops count={}", ops.size());
+        return ops;
+    }
+
+    /**
+     * Build Op list for bridge delete event.
+     *
+     * @param bridgeId
+     *            Bridge ID
+     * @return Op list
+     * @throws StateAccessException
+     *             Data error.
+     */
+    public List<Op> buildBridgePortsDelete(UUID bridgeId)
+            throws StateAccessException {
+        log.debug("PortOpBuilder.buildBridgePortsDelete entered: bridgeId={}",
+                bridgeId);
+
+        List<Op> ops = new ArrayList<Op>();
+
+        Set<UUID> ids = zkDao.getBridgePortIds(bridgeId);
+        for (UUID id : ids) {
+            ops.addAll(buildDelete(id, false));
+        }
+
+        log.debug("PortOpBuilder.buildBridgePortsDelete exiting: ops count={}",
+                ops.size());
         return ops;
     }
 }

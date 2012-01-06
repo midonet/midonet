@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import junit.framework.Assert;
@@ -51,6 +53,16 @@ public class TestPortOpBuilder {
         dummyDeleteOps.add(dummyDeleteOp0);
         dummyDeleteOps.add(dummyDeleteOp1);
         dummyDeleteOps.add(dummyDeleteOp2);
+    }
+    private static UUID dummyId0 = UUID.randomUUID();
+    private static UUID dummyId1 = UUID.randomUUID();
+    private static UUID dummyId2 = UUID.randomUUID();
+    private static Set<UUID> dummyIds = null;
+    static {
+        dummyIds = new TreeSet<UUID>();
+        dummyIds.add(dummyId0);
+        dummyIds.add(dummyId1);
+        dummyIds.add(dummyId2);
     }
 
     @Before
@@ -209,4 +221,24 @@ public class TestPortOpBuilder {
         Assert.assertNull(mgmtConfig.vifId);
     }
 
+    @Test
+    public void TestBuildBridgePortsDeleteSuccess() throws Exception {
+        UUID bridgeId = UUID.randomUUID();
+
+        // Mock the path builder
+        when(zkDaoMock.getBridgePortIds(bridgeId)).thenReturn(dummyIds);
+        when(pathBuilderMock.getPortDeleteOp(dummyId0)).thenReturn(
+                dummyDeleteOp0);
+        when(pathBuilderMock.getPortDeleteOp(dummyId1)).thenReturn(
+                dummyDeleteOp1);
+        when(pathBuilderMock.getPortDeleteOp(dummyId2)).thenReturn(
+                dummyDeleteOp2);
+
+        List<Op> ops = builder.buildBridgePortsDelete(bridgeId);
+
+        Assert.assertEquals(3, ops.size());
+        Assert.assertTrue(ops.contains(dummyDeleteOp0));
+        Assert.assertTrue(ops.contains(dummyDeleteOp1));
+        Assert.assertTrue(ops.contains(dummyDeleteOp2));
+    }
 }
