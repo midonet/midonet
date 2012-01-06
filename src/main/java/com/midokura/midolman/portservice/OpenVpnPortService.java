@@ -51,6 +51,7 @@ public class OpenVpnPortService implements PortService {
     private static final String OPENVPN_OPT_DEV = "--dev";
     private static final String OPENVPN_OPT_ADDR = "--local";
     private static final String OPENVPN_OPT_PROTO = "--proto";
+    private static final String OPENVPN_OPT_UDP = "udp";
     private static final String OPENVPN_OPT_TCP_SERVER = "tcp-server";
     private static final String OPENVPN_OPT_TCP_CLIENT = "tcp-client";
     private static final String OPENVPN_OPT_REMOTE = "--remote";
@@ -377,10 +378,17 @@ public class OpenVpnPortService implements PortService {
 
         // TODO(yoshi): add "--verb n" depending on log level.
         openvpnCmd.add(OPENVPN_OPT_PROTO);
-        if (vpn.vpnType == VpnType.OPENVPN_TCP_SERVER) {
+        if (vpn.vpnType == VpnType.OPENVPN_SERVER) {
+            openvpnCmd.add(OPENVPN_OPT_UDP);
+        } else if (vpn.vpnType == VpnType.OPENVPN_TCP_SERVER) {
             openvpnCmd.add(OPENVPN_OPT_TCP_SERVER);
-        } else if (vpn.vpnType == VpnType.OPENVPN_TCP_CLIENT || vpn.vpnType == VpnType.OPENVPN_CLIENT) {
-            openvpnCmd.add(OPENVPN_OPT_TCP_CLIENT);
+        } else if (vpn.vpnType == VpnType.OPENVPN_TCP_CLIENT ||
+                   vpn.vpnType == VpnType.OPENVPN_CLIENT) {
+            if (vpn.vpnType == VpnType.OPENVPN_TCP_CLIENT) {
+                openvpnCmd.add(OPENVPN_OPT_TCP_CLIENT);
+            } else if (vpn.vpnType == VpnType.OPENVPN_CLIENT) {
+                openvpnCmd.add(OPENVPN_OPT_UDP);
+            }
             // add remote if specified
             if (vpn.remoteIp != null) {
                 openvpnCmd.add(OPENVPN_OPT_REMOTE);
@@ -403,6 +411,7 @@ public class OpenVpnPortService implements PortService {
             openvpnCmd.add(OPENVPN_OPT_LOG);
             openvpnCmd.add(publicPortName);
         }
+        log.info("openvpn cmd: {}", openvpnCmd.toString());
         ProcessBuilder pb = new ProcessBuilder(openvpnCmd);
         Process p = pb.start();
         vpnIdToProcess.put(vpnId, p);

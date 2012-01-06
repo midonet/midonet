@@ -64,6 +64,8 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
 
     private final var vpnConfig: VpnConfig = _
     private final var vpnId: UUID = _
+    private final var vpnConfig2: VpnConfig = _
+    private final var vpnId2: UUID = _
 
     private def getRuleTableId(portId: UUID): Int = {
         portId.hashCode() & 0xfff
@@ -107,10 +109,14 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
             Net.convertStringAddressToInt(priPortNw), priPortNwLength, null)
         priPortId = portMgr.create(priPortConfig)
 
-        // Create a vpn config.
+        // Create an UDP server vpn config.
         vpnConfig = new VpnConfig(pubPortId, priPortId, null,
                                   VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
+        // Create a TCP server vpn config.
+        vpnConfig2 = new VpnConfig(pubPortId, priPortId, null,
+                                  VpnType.OPENVPN_TCP_SERVER, 1154)
+        vpnId2 = vpnMgr.create(vpnConfig2)
     }
 }
 
@@ -279,6 +285,57 @@ class TestOpenVpnPortService {
             // there is.
             ipCmdExitValue = Sudo.sudoExec(
                 "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+            assertTrue(ipCmdExitValue == 0)
+            ipCmdExitValue = Sudo.sudoExec(
+                "killall %s".format(portServiceExtId))
+            assertTrue(ipCmdExitValue == 0)
+
+            portService.clear
+        } catch {
+            case e: java.io.IOException =>
+                Console.println("IOException in testStart: " + e)
+                e.printStackTrace
+        }
+    }
+
+    @Test
+    def testStartTcpServer() {
+        try {
+            log.debug("testStartTcpServer")
+            // Skip tests if a user don't have sudo access w/o password.
+            var cmdExitValue = Sudo.sudoExec("ip link")
+            if (cmdExitValue != 0) {
+                log.warn("sudo w/o password is required to run this test.")
+            }
+            assumeTrue(cmdExitValue == 0)
+
+            portService.clear
+            assertFalse(ovsdb.hasPort(pubPortName))
+            portService.addPort(bridgeId, pubPortId, null)
+            assertTrue(ovsdb.hasPort(pubPortName))
+            assertFalse(ovsdb.hasPort(priPortName))
+            portService.addPort(bridgeId, priPortId, null)
+            assertTrue(ovsdb.hasPort(priPortName))
+            portService.configurePort(pubPortId, pubPortName)
+
+            var ipCmdExitValue = Sudo.sudoExec(
+                "killall %s".format(portServiceExtId))
+            assertTrue(ipCmdExitValue != 0)
+
+            portService.start(vpnId2)
+            val ruleTableId = getRuleTableId(pubPortId)
+            // Check expected route is added to the table. The command should
+            // succeed if it exists.
+            ipCmdExitValue = Sudo.sudoExec(
+                "ip route del table %d".format(ruleTableId))
+            assertTrue(ipCmdExitValue == 0)
+            // Check expected rule is added. The command should succeed if
+            // there is.
+            ipCmdExitValue = Sudo.sudoExec(
+                "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+            assertTrue(ipCmdExitValue == 0)
+            ipCmdExitValue = Sudo.sudoExec(
+                "killall %s".format(portServiceExtId))
             assertTrue(ipCmdExitValue == 0)
 
             portService.clear
