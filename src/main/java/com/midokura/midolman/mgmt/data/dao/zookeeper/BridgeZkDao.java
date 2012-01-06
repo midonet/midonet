@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.BridgeZkManager;
@@ -67,6 +68,28 @@ public class BridgeZkDao {
         BridgeMgmtConfig config = serializer.deserialize(data);
 
         log.debug("BridgeZkDao.getData exiting: path={}", path);
+        return config;
+    }
+
+    /**
+     * Get the name data for the given bridge.
+     *
+     * @param id
+     *            ID of the bridge.
+     * @return BridgeNameMgmtConfig stored in ZK.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public BridgeNameMgmtConfig getNameData(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("BridgeZkDao.getNameData entered: tenantId=" + tenantId
+                + ",name=" + name);
+
+        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
+        byte[] data = zkDao.get(path);
+        BridgeNameMgmtConfig config = serializer.deserializeName(data);
+
+        log.debug("BridgeZkDao.getNameData exiting: path=" + path);
         return config;
     }
 

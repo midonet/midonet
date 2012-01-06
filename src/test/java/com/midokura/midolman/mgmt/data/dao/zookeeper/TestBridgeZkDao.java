@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.BridgeZkManager;
@@ -36,6 +37,7 @@ public class TestBridgeZkDao {
     private final static String dummyPath = "/foo";
     private final static byte[] dummyBytes = { 1, 2, 3 };
     private final static BridgeMgmtConfig dummyMgmtConfig = new BridgeMgmtConfig();
+    private final static BridgeNameMgmtConfig dummyNameMgmtConfig = new BridgeNameMgmtConfig();
     private static Set<String> dummyIds = null;
     static {
         dummyIds = new TreeSet<String>();
@@ -62,6 +64,21 @@ public class TestBridgeZkDao {
         BridgeMgmtConfig config = dao.getData(id);
 
         Assert.assertEquals(dummyMgmtConfig, config);
+    }
+
+    @Test
+    public void TestGetNameDataSuccess() throws Exception {
+        String tenantId = "foo";
+        String name = "bar";
+        when(pathBuilderMock.getTenantBridgeNamePath(tenantId, name))
+                .thenReturn(dummyPath);
+        when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
+        when(serializerMock.deserializeName(dummyBytes)).thenReturn(
+                dummyNameMgmtConfig);
+
+        BridgeNameMgmtConfig config = dao.getNameData(tenantId, name);
+
+        Assert.assertEquals(dummyNameMgmtConfig, config);
     }
 
     @Test
