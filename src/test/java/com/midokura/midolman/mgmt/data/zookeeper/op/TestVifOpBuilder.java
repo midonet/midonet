@@ -19,10 +19,12 @@ import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.VifConfig;
 
 public class TestVifOpBuilder {
 
+    private VifZkDao zkDaoMock = null;
     private VifOpPathBuilder pathBuilderMock = null;
     private PortOpBuilder portOpBuilderMock = null;
     private VifOpBuilder builder = null;
@@ -52,10 +54,11 @@ public class TestVifOpBuilder {
 
     @Before
     public void setUp() throws Exception {
+        this.zkDaoMock = mock(VifZkDao.class);
         this.pathBuilderMock = mock(VifOpPathBuilder.class);
         this.portOpBuilderMock = mock(PortOpBuilder.class);
         this.builder = new VifOpBuilder(this.pathBuilderMock,
-                this.portOpBuilderMock);
+                this.portOpBuilderMock, this.zkDaoMock);
     }
 
     @Test
@@ -82,14 +85,16 @@ public class TestVifOpBuilder {
     @Test
     public void TestBuildDeleteSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        UUID portId = UUID.randomUUID();
+        VifConfig config = new VifConfig();
+        config.portId = UUID.randomUUID();
 
         // Mock the path builder
-        when(portOpBuilderMock.buildPlug(portId, null)).thenReturn(
+        when(zkDaoMock.getData(id)).thenReturn(config);
+        when(portOpBuilderMock.buildPlug(config.portId, null)).thenReturn(
                 dummyDeleteOps);
         when(pathBuilderMock.getVifDeleteOp(id)).thenReturn(dummyDeleteOp0);
 
-        List<Op> ops = builder.buildDelete(id, portId);
+        List<Op> ops = builder.buildDelete(id);
 
         Assert.assertEquals(4, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));

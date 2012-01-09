@@ -13,6 +13,7 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.VifConfig;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -26,6 +27,7 @@ public class VifOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(VifOpBuilder.class);
+    private final VifZkDao zkDao;
     private final VifOpPathBuilder pathBuilder;
     private final PortOpBuilder portOpBuilder;
 
@@ -36,11 +38,14 @@ public class VifOpBuilder {
      *            VifOpPathBuilder object
      * @param portOpBuilder
      *            PortOpBuilder object
+     * @param zkDao
+     *            VifZkDao object
      */
     public VifOpBuilder(VifOpPathBuilder pathBuilder,
-            PortOpBuilder portOpBuilder) {
+            PortOpBuilder portOpBuilder, VifZkDao zkDao) {
         this.pathBuilder = pathBuilder;
         this.portOpBuilder = portOpBuilder;
+        this.zkDao = zkDao;
     }
 
     /**
@@ -73,18 +78,17 @@ public class VifOpBuilder {
      *
      * @param id
      *            　ID of the VIF
-     * @param portId
-     *            ID of the port
      * @return Op list
      * @throws StateAccessException
      *             Data error.
      */
-    public List<Op> buildDelete(UUID id, UUID portId)
-            throws StateAccessException {
+    public List<Op> buildDelete(UUID id) throws StateAccessException {
         log.debug("VifOpBuilder.buildDelete entered: id={}", id);
 
+        VifConfig config = zkDao.getData(id);
+
         // Unplug!
-        List<Op> ops = portOpBuilder.buildPlug(portId, null);
+        List<Op> ops = portOpBuilder.buildPlug(config.portId, null);
         ops.add(pathBuilder.getVifDeleteOp(id));
 
         log.debug("VifOpBuilder.buildDelete exiting: ops count={}", ops.size());
