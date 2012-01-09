@@ -183,4 +183,26 @@ public class TestChainZkDao {
     public void TestMultiBadInput() throws Exception {
         dao.multi(null);
     }
+
+    @Test
+    public void TestConstructChainConfig() throws Exception {
+        UUID routerId = UUID.randomUUID();
+        String name = "foo";
+        ChainConfig config = dao.constructChainConfig(name, routerId);
+        Assert.assertEquals(routerId, config.routerId);
+        Assert.assertEquals(name, config.name);
+    }
+
+    @Test
+    public void TestConstructChainMgmtConfig() throws Exception {
+        ChainMgmtConfig config = dao.constructChainMgmtConfig(ChainTable.NAT);
+        Assert.assertEquals(ChainTable.NAT, config.table);
+    }
+
+    @Test
+    public void TestConstructChainNameMgmtConfig() throws Exception {
+        UUID id = UUID.randomUUID();
+        ChainNameMgmtConfig config = dao.constructChainNameMgmtConfig(id);
+        Assert.assertEquals(id, config.id);
+    }
 }

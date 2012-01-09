@@ -166,4 +166,40 @@ public class ChainZkDao {
         zkDao.multi(ops);
         log.debug("ChainZkDao.multi exiting.");
     }
+
+    /**
+     * Construct a new ChainConfig object.
+     *
+     * @param name
+     *            Name of the the chain
+     * @param routerId
+     *            Router ID
+     * @return ChainConfig object
+     */
+    public ChainConfig constructChainConfig(String name, UUID routerId) {
+        return new ChainConfig(name, routerId);
+    }
+
+    /**
+     * Construct a new ChainMgmtConfig object.
+     *
+     * @param table
+     *            ChainTable object
+     * @return ChainMgmtConfig object
+     */
+    public ChainMgmtConfig constructChainMgmtConfig(ChainTable table) {
+        return new ChainMgmtConfig(table);
+    }
+
+    /**
+     * Construct a new ChainNameMgmtConfig object.
+     *
+     * @param id
+     *            ID of the chain
+     * @return ChainNameMgmtConfig object
+     */
+    public ChainNameMgmtConfig constructChainNameMgmtConfig(UUID id) {
+        return new ChainNameMgmtConfig(id);
+    }
+
 }
