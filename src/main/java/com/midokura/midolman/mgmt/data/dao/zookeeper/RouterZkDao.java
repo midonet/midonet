@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
@@ -60,14 +61,36 @@ public class RouterZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public RouterMgmtConfig getData(UUID id) throws StateAccessException {
-        log.debug("RouterZkDao.getData entered: id={}", id);
+    public RouterMgmtConfig getMgmtData(UUID id) throws StateAccessException {
+        log.debug("RouterZkDao.getMgmtData entered: id={}", id);
 
         String path = pathBuilder.getRouterPath(id);
         byte[] data = zkDao.get(path);
         RouterMgmtConfig config = serializer.deserialize(data);
 
-        log.debug("RouterZkDao.getData exiting: path={}", path);
+        log.debug("RouterZkDao.getMgmtData exiting: path={}", path);
+        return config;
+    }
+
+    /**
+     * Get the name data for the given router.
+     *
+     * @param id
+     *            ID of the router.
+     * @return RouterNameMgmtConfig stored in ZK.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public RouterNameMgmtConfig getNameData(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("RouterZkDao.getNameData entered: tenantId=" + tenantId
+                + ",name=" + name);
+
+        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
+        byte[] data = zkDao.get(path);
+        RouterNameMgmtConfig config = serializer.deserializeName(data);
+
+        log.debug("RouterZkDao.getNameData exiting: path=" + path);
         return config;
     }
 
@@ -102,8 +125,7 @@ public class RouterZkDao {
      */
     public Set<String> getPeerRouterIds(UUID routerId)
             throws StateAccessException {
-        log.debug("RouterZkDao.getPeerRouterIds entered: routerId={}",
-                routerId);
+        log.debug("RouterZkDao.getPeerRouterIds entered: routerId={}", routerId);
 
         String path = pathBuilder.getRouterRoutersPath(routerId);
         Set<String> ids = zkDao.getChildren(path, null);
@@ -173,4 +195,17 @@ public class RouterZkDao {
         return exists;
     }
 
+    /**
+     * Construct a new PeerRouterConfig object
+     *
+     * @param portId
+     *            Port ID
+     * @param peerPortId
+     *            Peer port ID
+     * @return PeerRouterConfig object
+     */
+    public PeerRouterConfig constructPeerRouterConfig(UUID portId,
+            UUID peerPortId) {
+        return new PeerRouterConfig(portId, peerPortId);
+    }
 }

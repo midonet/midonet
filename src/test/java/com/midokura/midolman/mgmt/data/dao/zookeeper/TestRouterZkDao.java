@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
@@ -38,6 +39,7 @@ public class TestRouterZkDao {
     private final static byte[] dummyBytes = { 1, 2, 3 };
     private final static RouterMgmtConfig dummyMgmtConfig = new RouterMgmtConfig();
     private final static PeerRouterConfig dummyPeerConfig = new PeerRouterConfig();
+    private final static RouterNameMgmtConfig dummyNameMgmtConfig = new RouterNameMgmtConfig();
     private static Set<String> dummyIds = null;
     static {
         dummyIds = new TreeSet<String>();
@@ -61,9 +63,24 @@ public class TestRouterZkDao {
         when(serializerMock.deserialize(dummyBytes))
                 .thenReturn(dummyMgmtConfig);
 
-        RouterMgmtConfig config = dao.getData(id);
+        RouterMgmtConfig config = dao.getMgmtData(id);
 
         Assert.assertEquals(dummyMgmtConfig, config);
+    }
+
+    @Test
+    public void TestGetNameDataSuccess() throws Exception {
+        String tenantId = "foo";
+        String name = "bar";
+        when(pathBuilderMock.getTenantRouterNamePath(tenantId, name))
+                .thenReturn(dummyPath);
+        when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
+        when(serializerMock.deserializeName(dummyBytes)).thenReturn(
+                dummyNameMgmtConfig);
+
+        RouterNameMgmtConfig config = dao.getNameData(tenantId, name);
+
+        Assert.assertEquals(dummyNameMgmtConfig, config);
     }
 
     @Test
@@ -140,4 +157,15 @@ public class TestRouterZkDao {
 
         Assert.assertEquals(false, exists);
     }
+
+    @Test
+    public void TestConstructPeerRouterConfig() throws Exception {
+        UUID portId = UUID.randomUUID();
+        UUID peerPortId = UUID.randomUUID();
+        PeerRouterConfig config = dao.constructPeerRouterConfig(portId,
+                peerPortId);
+        Assert.assertEquals(portId, config.portId);
+        Assert.assertEquals(peerPortId, config.peerPortId);
+    }
+
 }
