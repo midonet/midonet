@@ -103,7 +103,7 @@ public class TestBridgeOpBuilder {
         mgmtConfig.name = "bar";
 
         // Mock the path builder
-        when(zkDaoMock.getData(id)).thenReturn(mgmtConfig);
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(pathBuilderMock.getBridgeDeleteOps(id)).thenReturn(dummyDeleteOps);
         when(portOpBuilderMock.buildBridgePortsDelete(id)).thenReturn(
                 dummyDeleteOps);
@@ -137,7 +137,7 @@ public class TestBridgeOpBuilder {
         mgmtConfig.name = "bar";
 
         // Mock the path builder
-        when(zkDaoMock.getData(id)).thenReturn(mgmtConfig);
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(portOpBuilderMock.buildBridgePortsDelete(id)).thenReturn(
                 dummyDeleteOps);
         when(
@@ -169,7 +169,7 @@ public class TestBridgeOpBuilder {
         BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
 
         // Mock the path builder
-        when(zkDaoMock.getData(id)).thenReturn(mgmtConfig);
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(zkDaoMock.getNameData(mgmtConfig.tenantId, mgmtConfig.name))
                 .thenReturn(nameConfig);
         when(

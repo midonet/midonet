@@ -61,7 +61,7 @@ public class TestBridgeZkDao {
         when(serializerMock.deserialize(dummyBytes))
                 .thenReturn(dummyMgmtConfig);
 
-        BridgeMgmtConfig config = dao.getData(id);
+        BridgeMgmtConfig config = dao.getMgmtData(id);
 
         Assert.assertEquals(dummyMgmtConfig, config);
     }

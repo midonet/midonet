@@ -60,7 +60,7 @@ public class BridgeZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public BridgeMgmtConfig getData(UUID id) throws StateAccessException {
+    public BridgeMgmtConfig getMgmtData(UUID id) throws StateAccessException {
         log.debug("BridgeZkDao.getData entered: id={}", id);
 
         String path = pathBuilder.getBridgePath(id);

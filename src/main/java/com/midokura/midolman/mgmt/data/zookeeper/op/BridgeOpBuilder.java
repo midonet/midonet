@@ -106,7 +106,7 @@ public class BridgeOpBuilder {
         log.debug("BridgeOpBuilder.buildDelete entered: id=" + id
                 + ", cascade=" + cascade);
 
-        BridgeMgmtConfig mgmtConfig = zkDao.getData(id);
+        BridgeMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -150,15 +150,15 @@ public class BridgeOpBuilder {
                 + name);
 
         List<Op> ops = new ArrayList<Op>();
-        BridgeMgmtConfig config = zkDao.getData(id);
+        BridgeMgmtConfig config = zkDao.getMgmtData(id);
+        BridgeNameMgmtConfig nameConfig = zkDao.getNameData(config.tenantId,
+                config.name);
 
         // Remove the name of this bridge
         ops.add(pathBuilder.getTenantBridgeNameDeleteOp(config.tenantId,
                 config.name));
 
         // Move NameConfig to the new name path.
-        BridgeNameMgmtConfig nameConfig = zkDao.getNameData(config.tenantId,
-                config.name);
         ops.add(pathBuilder.getTenantBridgeNameCreateOp(config.tenantId, name,
                 nameConfig));
 
