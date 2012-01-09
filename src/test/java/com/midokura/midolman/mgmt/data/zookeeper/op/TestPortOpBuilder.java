@@ -241,4 +241,25 @@ public class TestPortOpBuilder {
         Assert.assertTrue(ops.contains(dummyDeleteOp1));
         Assert.assertTrue(ops.contains(dummyDeleteOp2));
     }
+
+    @Test
+    public void TestBuildRouterPortsDeleteSuccess() throws Exception {
+        UUID routerId = UUID.randomUUID();
+
+        // Mock the path builder
+        when(zkDaoMock.getRouterPortIds(routerId)).thenReturn(dummyIds);
+        when(pathBuilderMock.getPortDeleteOp(dummyId0)).thenReturn(
+                dummyDeleteOp0);
+        when(pathBuilderMock.getPortDeleteOp(dummyId1)).thenReturn(
+                dummyDeleteOp1);
+        when(pathBuilderMock.getPortDeleteOp(dummyId2)).thenReturn(
+                dummyDeleteOp2);
+
+        List<Op> ops = builder.buildRouterPortsDelete(routerId);
+
+        Assert.assertEquals(3, ops.size());
+        Assert.assertTrue(ops.contains(dummyDeleteOp0));
+        Assert.assertTrue(ops.contains(dummyDeleteOp1));
+        Assert.assertTrue(ops.contains(dummyDeleteOp2));
+    }
 }

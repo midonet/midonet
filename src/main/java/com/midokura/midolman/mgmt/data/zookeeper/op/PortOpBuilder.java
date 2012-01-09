@@ -233,4 +233,30 @@ public class PortOpBuilder {
                 ops.size());
         return ops;
     }
+
+    /**
+     * Build Op list for router delete event.
+     *
+     * @param routerId
+     *            Router ID
+     * @return Op list
+     * @throws StateAccessException
+     *             Data error.
+     */
+    public List<Op> buildRouterPortsDelete(UUID routerId)
+            throws StateAccessException {
+        log.debug("PortOpBuilder.buildRouterPortsDelete entered: routerId={}",
+                routerId);
+
+        List<Op> ops = new ArrayList<Op>();
+
+        Set<UUID> ids = zkDao.getRouterPortIds(routerId);
+        for (UUID id : ids) {
+            ops.addAll(buildDelete(id, false));
+        }
+
+        log.debug("PortOpBuilder.buildRouterPortsDelete exiting: ops count={}",
+                ops.size());
+        return ops;
+    }
 }
