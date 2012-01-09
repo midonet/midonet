@@ -13,6 +13,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import junit.framework.Assert;
@@ -21,7 +23,9 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
@@ -29,6 +33,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 public class TestChainOpBuilder {
 
+    private ChainZkDao zkDaoMock = null;
     private ChainOpPathBuilder pathBuilderMock = null;
     private ChainOpBuilder builder = null;
     private static final Op dummyCreateOp0 = Op.create("/foo",
@@ -54,11 +59,22 @@ public class TestChainOpBuilder {
         dummyDeleteOps.add(dummyDeleteOp1);
         dummyDeleteOps.add(dummyDeleteOp2);
     }
+    private static String dummyId0 = UUID.randomUUID().toString();
+    private static String dummyId1 = UUID.randomUUID().toString();
+    private static String dummyId2 = UUID.randomUUID().toString();
+    private static Set<String> dummyIds = null;
+    static {
+        dummyIds = new TreeSet<String>();
+        dummyIds.add(dummyId0);
+        dummyIds.add(dummyId1);
+        dummyIds.add(dummyId2);
+    }
 
     @Before
     public void setUp() throws Exception {
+        this.zkDaoMock = mock(ChainZkDao.class);
         this.pathBuilderMock = mock(ChainOpPathBuilder.class);
-        this.builder = new ChainOpBuilder(this.pathBuilderMock);
+        this.builder = new ChainOpBuilder(this.pathBuilderMock, this.zkDaoMock);
     }
 
     @Test
@@ -98,21 +114,26 @@ public class TestChainOpBuilder {
     @Test
     public void TestBuildDeleteWithCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        UUID routerId = UUID.randomUUID();
-        String name = "foo";
+        ChainConfig config = new ChainConfig();
+        config.routerId = UUID.randomUUID();
+        config.name = "foo";
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
+        mgmtConfig.table = ChainTable.NAT;
 
         // Mock the path builder
+        when(zkDaoMock.getData(id)).thenReturn(config);
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(pathBuilderMock.getChainDeleteOps(id)).thenReturn(dummyDeleteOps);
         when(
-                pathBuilderMock.getRouterTableChainNameDeleteOp(routerId,
-                        ChainTable.NAT, name)).thenReturn(dummyDeleteOp0);
+                pathBuilderMock.getRouterTableChainNameDeleteOp(
+                        config.routerId, mgmtConfig.table, config.name))
+                .thenReturn(dummyDeleteOp0);
         when(
-                pathBuilderMock.getRouterTableChainDeleteOp(routerId,
-                        ChainTable.NAT, id)).thenReturn(dummyDeleteOp1);
+                pathBuilderMock.getRouterTableChainDeleteOp(config.routerId,
+                        mgmtConfig.table, id)).thenReturn(dummyDeleteOp1);
         when(pathBuilderMock.getChainDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
-        List<Op> ops = builder.buildDelete(id, routerId, ChainTable.NAT, name,
-                true);
+        List<Op> ops = builder.buildDelete(id, true);
         verify(pathBuilderMock, times(1)).getChainDeleteOps(id);
         Assert.assertEquals(6, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));
@@ -126,20 +147,25 @@ public class TestChainOpBuilder {
     @Test
     public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        UUID routerId = UUID.randomUUID();
-        String name = "foo";
+        ChainConfig config = new ChainConfig();
+        config.routerId = UUID.randomUUID();
+        config.name = "foo";
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
+        mgmtConfig.table = ChainTable.NAT;
 
         // Mock the path builder
+        when(zkDaoMock.getData(id)).thenReturn(config);
+        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(
-                pathBuilderMock.getRouterTableChainNameDeleteOp(routerId,
-                        ChainTable.NAT, name)).thenReturn(dummyDeleteOp0);
+                pathBuilderMock.getRouterTableChainNameDeleteOp(
+                        config.routerId, mgmtConfig.table, config.name))
+                .thenReturn(dummyDeleteOp0);
         when(
-                pathBuilderMock.getRouterTableChainDeleteOp(routerId,
-                        ChainTable.NAT, id)).thenReturn(dummyDeleteOp1);
+                pathBuilderMock.getRouterTableChainDeleteOp(config.routerId,
+                        mgmtConfig.table, id)).thenReturn(dummyDeleteOp1);
         when(pathBuilderMock.getChainDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
-        List<Op> ops = builder.buildDelete(id, routerId, ChainTable.NAT, name,
-                false);
+        List<Op> ops = builder.buildDelete(id, false);
         verify(pathBuilderMock, never()).getChainDeleteOps(id);
         Assert.assertEquals(3, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));
@@ -147,4 +173,56 @@ public class TestChainOpBuilder {
         Assert.assertEquals(dummyDeleteOp2, ops.get(2));
     }
 
+    @Test
+    public void TestBuildDeleteRouterChainsSuccess() throws Exception {
+        ChainConfig config = new ChainConfig();
+        config.routerId = UUID.randomUUID();
+        config.name = "foo";
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
+        mgmtConfig.table = ChainTable.NAT;
+
+        when(zkDaoMock.getIds(config.routerId, mgmtConfig.table)).thenReturn(
+                dummyIds);
+        when(zkDaoMock.getData(Mockito.any(UUID.class))).thenReturn(config);
+        when(zkDaoMock.getMgmtData(Mockito.any(UUID.class))).thenReturn(
+                mgmtConfig);
+
+        builder.buildDeleteRouterChains(config.routerId, ChainTable.NAT);
+
+        verify(pathBuilderMock, times(1)).getChainDeleteOps(
+                UUID.fromString(dummyId0));
+        verify(pathBuilderMock, times(1)).getChainDeleteOps(
+                UUID.fromString(dummyId1));
+        verify(pathBuilderMock, times(1)).getChainDeleteOps(
+                UUID.fromString(dummyId2));
+    }
+
+    @Test
+    public void TestBuildBuiltInChainsSuccess() throws Exception {
+
+        ChainConfig config = new ChainConfig();
+        config.routerId = UUID.randomUUID();
+        config.name = "foo";
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
+        mgmtConfig.table = ChainTable.NAT;
+        ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
+
+        when(
+                zkDaoMock.constructChainConfig(Mockito.anyString(),
+                        Mockito.any(UUID.class))).thenReturn(config);
+        when(zkDaoMock.constructChainMgmtConfig(Mockito.any(ChainTable.class)))
+                .thenReturn(mgmtConfig);
+        when(zkDaoMock.constructChainNameMgmtConfig(Mockito.any(UUID.class)))
+                .thenReturn(nameConfig);
+        builder.buildBuiltInChains(config.routerId, mgmtConfig.table);
+
+        // There should be two built-in chains
+        verify(pathBuilderMock, times(2)).getChainCreateOp(
+                Mockito.any(UUID.class), Mockito.any(ChainMgmtConfig.class));
+        verify(pathBuilderMock, times(2)).getChainCreateOps(
+                Mockito.any(UUID.class), Mockito.any(ChainConfig.class));
+        verify(pathBuilderMock, times(2)).getRouterTableChainNameCreateOp(
+                config.routerId, mgmtConfig.table, config.name, nameConfig);
+
+    }
 }
