@@ -72,7 +72,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements BgpDao,
     @Override
     public Bgp get(UUID id) throws StateAccessException {
         // TODO: Throw NotFound exception here.
-        return Bgp.createBgp(id, zkManager.get(id).value);
+        return new Bgp(id, zkManager.get(id).value);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements BgpDao,
         List<Bgp> bgps = new ArrayList<Bgp>();
         List<ZkNodeEntry<UUID, BgpConfig>> entries = zkManager.list(portId);
         for (ZkNodeEntry<UUID, BgpConfig> entry : entries) {
-            bgps.add(Bgp.createBgp(entry.key, entry.value));
+            bgps.add(new Bgp(entry.key, entry.value));
         }
         return bgps;
     }
@@ -96,5 +96,11 @@ public class BgpZkManagerProxy extends ZkMgmtManager implements BgpDao,
         OwnerQueryable manager = new PortZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(bgp.getPortId());
+    }
+
+    @Override
+    public Bgp getByAdRoute(UUID adRouteId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

@@ -31,6 +31,47 @@ public class Bgp extends UriResource {
     private UUID portId = null;
 
     /**
+     * Default constructor
+     */
+    public Bgp() {
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of BGP
+     * @param config
+     *            BgpConfig object.
+     */
+    public Bgp(UUID id, BgpConfig config) {
+        this(id, config.localAS, config.peerAddr.getHostAddress(),
+                config.peerAS, config.portId);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of BGP
+     * @param localAS
+     *            Local AS number
+     * @param peerAddr
+     *            Peer IP address
+     * @param peerAS
+     *            Peer AS number
+     * @param portId
+     *            Port ID
+     */
+    public Bgp(UUID id, int localAS, String peerAddr, int peerAS, UUID portId) {
+        this.id = id;
+        this.localAS = localAS;
+        this.peerAddr = peerAddr;
+        this.peerAS = peerAS;
+        this.portId = portId;
+    }
+
+    /**
      * Get BGP ID.
      *
      * @return BGP ID.
@@ -150,13 +191,15 @@ public class Bgp extends UriResource {
         }
     }
 
-    public static Bgp createBgp(UUID id, BgpConfig config) {
-        Bgp b = new Bgp();
-        b.setLocalAS(config.localAS);
-        b.setPeerAddr(config.peerAddr.getHostAddress());
-        b.setPeerAS(config.peerAS);
-        b.setPortId(config.portId);
-        b.setId(id);
-        return b;
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", localAS=" + localAS + ", peerAddr=" + peerAddr
+                + ", peerAS=" + peerAS + ", portId=" + portId;
     }
+
 }

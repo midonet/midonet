@@ -28,6 +28,7 @@ import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
+import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
@@ -154,8 +155,8 @@ public class AdRouteResource {
 
         private boolean isBgpOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getBgpDao();
-            return AuthManager.isOwner(context, q, bgpId);
+            BgpDao q = daoFactory.getBgpDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, bgpId);
         }
 
         /**

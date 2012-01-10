@@ -91,7 +91,7 @@ public class BgpResource {
 
         // Get a bgp for the given ID.
         BgpDao dao = daoFactory.getBgpDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own BGP.");
         }
 
@@ -129,7 +129,7 @@ public class BgpResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         BgpDao dao = daoFactory.getBgpDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own BGP.");
         }
 
