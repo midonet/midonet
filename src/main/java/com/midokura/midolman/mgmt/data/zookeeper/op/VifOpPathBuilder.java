@@ -49,11 +49,11 @@ public class VifOpPathBuilder {
     }
 
     /**
-     * Get the Vif bridge create Op object.
+     * Get the Vif create Op object.
      *
      * @param id
      *            ID of the Vif
-     * @return Op for Vif bridge create.
+     * @return Op for Vif create.
      * @throws ZkStateSerializationException
      */
     public Op getVifCreateOp(UUID id, VifConfig config)
