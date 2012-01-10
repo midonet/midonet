@@ -27,7 +27,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
  * @version 1.6 25 Oct 2011
  * @author Yoshi Tamura
  */
-public class VpnZkManagerProxy extends ZkMgmtManager implements VpnDao {
+public class VpnZkManagerProxy extends ZkMgmtManager implements VpnDao,
+        OwnerQueryable {
 
     private VpnZkManager zkManager = null;
 
@@ -70,7 +71,7 @@ public class VpnZkManagerProxy extends ZkMgmtManager implements VpnDao {
     @Override
     public Vpn get(UUID id) throws StateAccessException {
         // TODO: Throw NotFound exception here.
-        return Vpn.createVpn(id, zkManager.get(id).value);
+        return new Vpn(id, zkManager.get(id).value);
     }
 
     @Override
@@ -78,7 +79,7 @@ public class VpnZkManagerProxy extends ZkMgmtManager implements VpnDao {
         List<Vpn> vpns = new ArrayList<Vpn>();
         List<ZkNodeEntry<UUID, VpnConfig>> entries = zkManager.list(portId);
         for (ZkNodeEntry<UUID, VpnConfig> entry : entries) {
-            vpns.add(Vpn.createVpn(entry.key, entry.value));
+            vpns.add(new Vpn(entry.key, entry.value));
         }
         return vpns;
     }

@@ -8,8 +8,6 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
@@ -31,6 +29,29 @@ public class Vpn extends UriResource {
     private UUID privatePortId = null;
     private String remoteIp;
     private VpnZkManager.VpnType vpnType;
+
+    /**
+     * Constructor
+     */
+    public Vpn() {
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the VPN
+     * @param config
+     *            VpnConfig object
+     */
+    public Vpn(UUID id, VpnConfig config) {
+        this.port = config.port;
+        this.privatePortId = config.privatePortId;
+        this.publicPortId = config.publicPortId;
+        this.remoteIp = config.remoteIp;
+        this.vpnType = config.vpnType;
+        this.id = id;
+    }
 
     /**
      * Get VPN ID.
@@ -116,7 +137,7 @@ public class Vpn extends UriResource {
         this.privatePortId = privatePortId;
     }
 
-     /**
+    /**
      * Get remote IP.
      *
      * @return IntIPv4.
@@ -124,14 +145,17 @@ public class Vpn extends UriResource {
     public String getRemoteIp() {
         return remoteIp;
     }
-     /**
+
+    /**
      * Set remote IP.
+     *
      * @param remoteIp
      *            Remote IP.
      */
     public void setRemoteIp(String remoteIp) {
         this.remoteIp = remoteIp;
     }
+
     /**
      * Get VPN type.
      *
@@ -153,18 +177,18 @@ public class Vpn extends UriResource {
 
     public VpnConfig toConfig() {
         return new VpnConfig(this.getPublicPortId(), this.getPrivatePortId(),
-                             this.getRemoteIp(), this.vpnType, this.getPort());
+                this.getRemoteIp(), this.vpnType, this.getPort());
 
     }
 
-    public static Vpn createVpn(UUID id, VpnConfig config) {
-        Vpn b = new Vpn();
-        b.setPort(config.port);
-        b.setPublicPortId(config.publicPortId);
-        b.setPrivatePortId(config.privatePortId);
-        b.setRemoteIp(config.remoteIp);
-        b.setVpnType(config.vpnType);
-        b.setId(id);
-        return b;
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", vpnType=" + vpnType + ", port=" + port;
     }
+
 }
