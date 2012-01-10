@@ -43,6 +43,25 @@ public class TenantZkDao {
     }
 
     /**
+     * Checks whether a tenant exists with the given ID.
+     *
+     * @param id
+     *            Tenant ID
+     * @return True if tenant exists.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public boolean exists(String id) throws StateAccessException {
+        log.debug("TenantZkDao.exists entered: id={}", id);
+
+        String path = pathBuilder.getTenantPath(id);
+        boolean exists = zkDao.exists(path);
+
+        log.debug("TenantZkDao.exists exiting: exists=" + exists);
+        return exists;
+    }
+
+    /**
      * Get the data for the given tenant.
      *
      * @param id

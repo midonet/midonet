@@ -74,4 +74,26 @@ public class TestTenantZkDao {
         dao.multi(ops);
         verify(zkDaoMock, times(1)).multi(ops);
     }
+
+    @Test
+    public void TestExistsTrue() throws Exception {
+        String id = "foo";
+        when(pathBuilderMock.getTenantPath(id)).thenReturn(dummyPath);
+        when(zkDaoMock.exists(dummyPath)).thenReturn(true);
+
+        boolean exists = dao.exists(id);
+
+        Assert.assertEquals(true, exists);
+    }
+
+    @Test
+    public void TestExistsFalse() throws Exception {
+        String id = "foo";
+        when(pathBuilderMock.getTenantPath(id)).thenReturn(dummyPath);
+        when(zkDaoMock.exists(dummyPath)).thenReturn(false);
+
+        boolean exists = dao.exists(id);
+
+        Assert.assertEquals(false, exists);
+    }
 }

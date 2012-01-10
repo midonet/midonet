@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.data.zookeeper.op;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
@@ -167,6 +168,33 @@ public class BridgeOpBuilder {
         ops.add(pathBuilder.getBridgeSetDataOp(id, config));
 
         log.debug("BridgeOpBuilder.buildUpdate exiting: ops count={}",
+                ops.size());
+        return ops;
+    }
+
+    /**
+     * Build operations to delete all bridges for a tenant.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @return Op list
+     * @throws StateAccessException
+     *             Data error
+     */
+    public List<Op> buildTenantBridgesDelete(String tenantId)
+            throws StateAccessException {
+        log.debug(
+                "BridgeOpBuilder.buildTenantBridgesDelete entered: tenantId={}",
+                tenantId);
+
+        Set<String> ids = zkDao.getIds(tenantId);
+        List<Op> ops = new ArrayList<Op>();
+        for (String id : ids) {
+            ops.addAll(buildDelete(UUID.fromString(id), true));
+        }
+
+        log.debug(
+                "BridgeOpBuilder.buildTenantBridgesDelete exiting: ops count={}",
                 ops.size());
         return ops;
     }

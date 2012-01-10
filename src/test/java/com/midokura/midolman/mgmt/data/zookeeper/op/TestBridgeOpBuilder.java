@@ -5,11 +5,16 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import junit.framework.Assert;
@@ -52,6 +57,16 @@ public class TestBridgeOpBuilder {
         dummyDeleteOps.add(dummyDeleteOp0);
         dummyDeleteOps.add(dummyDeleteOp1);
         dummyDeleteOps.add(dummyDeleteOp2);
+    }
+    private static final String dummyId0 = UUID.randomUUID().toString();
+    private static final String dummyId1 = UUID.randomUUID().toString();
+    private static final String dummyId2 = UUID.randomUUID().toString();
+    private static Set<String> dummyIds = null;
+    static {
+        dummyIds = new TreeSet<String>();
+        dummyIds.add(dummyId0);
+        dummyIds.add(dummyId1);
+        dummyIds.add(dummyId2);
     }
 
     @Before
@@ -190,5 +205,29 @@ public class TestBridgeOpBuilder {
         Assert.assertEquals(dummyCreateOp1, ops.get(1));
         Assert.assertEquals(dummyCreateOp2, ops.get(2));
         Assert.assertEquals(name, mgmtConfig.name);
+    }
+
+    @Test
+    public void TestBuildTenantRoutersDeleteSuccess() throws Exception {
+        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
+        mgmtConfig.tenantId = "foo";
+        mgmtConfig.name = "bar";
+
+        when(zkDaoMock.getIds(mgmtConfig.tenantId)).thenReturn(dummyIds);
+        when(zkDaoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
+        builder.buildTenantBridgesDelete(mgmtConfig.tenantId);
+
+        verify(pathBuilderMock, times(1)).getBridgeDeleteOps(
+                UUID.fromString(dummyId0));
+        verify(pathBuilderMock, times(1)).getBridgeDeleteOps(
+                UUID.fromString(dummyId1));
+        verify(pathBuilderMock, times(1)).getBridgeDeleteOps(
+                UUID.fromString(dummyId2));
+        verify(pathBuilderMock, times(1)).getBridgeDeleteOp(
+                UUID.fromString(dummyId0));
+        verify(pathBuilderMock, times(1)).getBridgeDeleteOp(
+                UUID.fromString(dummyId1));
+        verify(pathBuilderMock, times(1)).getBridgeDeleteOp(
+                UUID.fromString(dummyId2));
     }
 }
