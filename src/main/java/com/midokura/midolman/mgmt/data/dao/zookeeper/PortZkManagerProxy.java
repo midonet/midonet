@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
+import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -203,13 +204,13 @@ public class PortZkManagerProxy extends ZkMgmtManager implements PortDao,
             ZkNodeEntry<UUID, PortConfig> node) {
         UUID id = mgmtNode.key;
         if (node.value instanceof PortDirectory.LogicalRouterPortConfig) {
-            return LogicalRouterPort.createPort(id,
+            return new LogicalRouterPort(id,
                     (PortDirectory.LogicalRouterPortConfig) node.value);
         } else if (node.value instanceof PortDirectory.MaterializedRouterPortConfig) {
-            return MaterializedRouterPort.createPort(id, mgmtNode.value,
+            return new MaterializedRouterPort(id, mgmtNode.value,
                     (PortDirectory.MaterializedRouterPortConfig) node.value);
         } else {
-            return Port.createPort(id, mgmtNode.value, node.value);
+            return new BridgePort(id, mgmtNode.value, node.value);
         }
     }
 
@@ -272,5 +273,23 @@ public class PortZkManagerProxy extends ZkMgmtManager implements PortDao,
                     pathManager.getBasePath(), mgmtPathManager.getBasePath());
             return dao.getOwner(port.getDeviceId());
         }
+    }
+
+    @Override
+    public Port getByAdRoute(UUID adRouteId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Port getByBgp(UUID bgpId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Port getByVpn(UUID vpnId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

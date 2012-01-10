@@ -17,6 +17,8 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 
 /**
@@ -28,8 +30,50 @@ import com.midokura.midolman.util.Net;
 @XmlRootElement
 public class MaterializedRouterPort extends RouterPort {
 
-    private String localNetworkAddress = null;
-    private int localNetworkLength;
+    protected String localNetworkAddress = null;
+    protected int localNetworkLength;
+
+    /**
+     * Constructor
+     */
+    public MaterializedRouterPort() {
+        super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the port
+     * @param mgmtConfig
+     *            PortMgmtConfig object
+     * @param config
+     *            MaterializedRouterPortConfig object
+     */
+    public MaterializedRouterPort(UUID id, PortMgmtConfig mgmtConfig,
+            MaterializedRouterPortConfig config) {
+        this(id, config.device_id, mgmtConfig.vifId);
+        this.localNetworkAddress = Net
+                .convertIntAddressToString(config.localNwAddr);
+        this.localNetworkLength = config.localNwLength;
+        this.networkAddress = Net.convertIntAddressToString(config.nwAddr);
+        this.networkLength = config.nwLength;
+        this.portAddress = Net.convertIntAddressToString(config.portAddr);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the port
+     * @param deviceId
+     *            ID of the router
+     * @param vifId
+     *            ID of the VIF.
+     */
+    public MaterializedRouterPort(UUID id, UUID deviceId, UUID vifId) {
+        super(id, deviceId, vifId);
+    }
 
     /**
      * @return the localNetworkAddress
@@ -91,30 +135,36 @@ public class MaterializedRouterPort extends RouterPort {
                 this.getLocalNetworkLength(), new HashSet<BGP>());
     }
 
-    /**
-     * Convert PortMgmtConfig and MaterializedRouterPortConfig objects to Port
-     * object.
+    /*
+     * (non-Javadoc)
      *
-     * @param id
-     *            ID of the object.
-     * @param mgmtConfig
-     *            PortMgmtConfig object.
-     * @param config
-     *            MaterializedRouterPortConfig object.
-     * @return Port object.
+     * @see com.midokura.midolman.mgmt.data.dto.Port#toZkNode()
      */
-    public static Port createPort(UUID id, PortMgmtConfig mgmtConfig,
-            PortDirectory.MaterializedRouterPortConfig config) {
-        MaterializedRouterPort port = new MaterializedRouterPort();
-        port.setDeviceId(config.device_id);
-        port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
-        port.setNetworkLength(config.nwLength);
-        port.setPortAddress(Net.convertIntAddressToString(config.portAddr));
-        port.setLocalNetworkAddress(Net
-                .convertIntAddressToString(config.localNwAddr));
-        port.setLocalNetworkLength(config.localNwLength);
-        port.setVifId(mgmtConfig.vifId);
-        port.setId(id);
-        return port;
+    @Override
+    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
+        return new ZkNodeEntry<UUID, PortConfig>(id, toConfig());
     }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
+     */
+    @Override
+    public PortType getType() {
+        return PortType.MATERIALIZED_ROUTER;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return super.toString() + ", localNetworkAddress="
+                + localNetworkAddress + ", localNetworkLength="
+                + localNetworkLength;
+    }
+
 }

@@ -28,6 +28,7 @@ import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.dto.Vif;
@@ -53,8 +54,8 @@ public class VifResource {
 
     private boolean isPortOwner(SecurityContext context, UUID portId,
             DaoFactory daoFactory) throws StateAccessException {
-        OwnerQueryable q = daoFactory.getPortDao();
-        return AuthManager.isOwner(context, q, portId);
+        PortDao q = daoFactory.getPortDao();
+        return AuthManager.isOwner(context, (OwnerQueryable) q, portId);
     }
 
     private boolean isPluggedToOwnPort(SecurityContext context, UUID vifId,

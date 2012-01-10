@@ -8,10 +8,13 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.util.HashSet;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 
@@ -21,14 +24,57 @@ import com.midokura.midolman.util.Net;
  * @version 1.6 18 Sept 2011
  * @author Ryu Ishimoto
  */
+@XmlRootElement
 public class LogicalRouterPort extends RouterPort {
 
-    private String peerPortAddress = null;
-    private UUID peerRouterId = null;
-    private UUID peerId = null;
+    /**
+     * Peer port ID address
+     */
+    protected String peerPortAddress = null;
 
+    /**
+     * Peer router ID
+     */
+    protected UUID peerRouterId = null;
+
+    /**
+     * Peer port ID
+     */
+    protected UUID peerId = null;
+
+    /**
+     * Constructor
+     */
     public LogicalRouterPort() {
         super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the port
+     * @param config
+     *            LogicalRouterPortConfig object
+     */
+    public LogicalRouterPort(UUID id, LogicalRouterPortConfig config) {
+        this(id, config.device_id);
+        this.networkAddress = Net.convertIntAddressToString(config.nwAddr);
+        this.networkLength = config.nwLength;
+        this.portAddress = Net.convertIntAddressToString(config.portAddr);
+        this.peerId = config.peer_uuid;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the port
+     * @param deviceId
+     *            Router ID
+     */
+    public LogicalRouterPort(UUID id, UUID deviceId) {
+        super(id, deviceId, null);
     }
 
     /**
@@ -76,6 +122,11 @@ public class LogicalRouterPort extends RouterPort {
         this.peerRouterId = peerRouterId;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.midokura.midolman.mgmt.data.dto.Port#toConfig()
+     */
     @Override
     public PortConfig toConfig() {
         return new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
@@ -85,6 +136,9 @@ public class LogicalRouterPort extends RouterPort {
                 this.getPeerId());
     }
 
+    /**
+     * @return PortConfig object of the peer.
+     */
     public PortConfig toPeerConfig() {
         return new PortDirectory.LogicalRouterPortConfig(
                 this.getPeerRouterId(), Net.convertStringAddressToInt(this
@@ -93,14 +147,23 @@ public class LogicalRouterPort extends RouterPort {
                 new HashSet<Route>(), this.getId());
     }
 
+    /**
+     * @return PeerRouterConfig object.
+     */
     public PeerRouterConfig toPeerRouterConfig() {
         return new PeerRouterConfig(this.getId(), this.getPeerId());
     }
 
+    /**
+     * @return the PeerRouterConfig object of the peer.
+     */
     public PeerRouterConfig toPeerPeerRouterConfig() {
         return new PeerRouterConfig(this.getPeerId(), this.getId());
     }
 
+    /**
+     * @return PeerRouterLink object for the peer.
+     */
     public PeerRouterLink toPeerRouterLink() {
         PeerRouterLink link = new PeerRouterLink();
         link.setPortId(this.getId());
@@ -110,25 +173,42 @@ public class LogicalRouterPort extends RouterPort {
         return link;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.midokura.midolman.mgmt.data.dto.Port#toZkNode()
+     */
     @Override
     public ZkNodeEntry<UUID, PortConfig> toZkNode() {
         return new ZkNodeEntry<UUID, PortConfig>(this.getId(), toConfig());
     }
 
+    /**
+     * @return ZkNodeEntry object for the peer port node.
+     */
     public ZkNodeEntry<UUID, PortConfig> toPeerZkNode() {
         return new ZkNodeEntry<UUID, PortConfig>(this.getPeerId(),
                 toPeerConfig());
     }
 
-    public static Port createPort(UUID id,
-            PortDirectory.LogicalRouterPortConfig config) {
-        LogicalRouterPort port = new LogicalRouterPort();
-        port.setDeviceId(config.device_id);
-        port.setNetworkAddress(Net.convertIntAddressToString(config.nwAddr));
-        port.setNetworkLength(config.nwLength);
-        port.setPortAddress(Net.convertIntAddressToString(config.portAddr));
-        port.setPeerId(config.peer_uuid);
-        port.setId(id);
-        return port;
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
+     */
+    @Override
+    public PortType getType() {
+        return PortType.LOGICAL_ROUTER;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return super.toString() + ", peerPortAddress=" + peerPortAddress
+                + ", peerRouterId=" + peerRouterId + ", peerId=" + peerId;
     }
 }

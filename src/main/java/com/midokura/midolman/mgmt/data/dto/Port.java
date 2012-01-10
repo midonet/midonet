@@ -8,12 +8,9 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
@@ -22,12 +19,45 @@ import com.midokura.midolman.state.ZkNodeEntry;
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
-@XmlRootElement
-public class Port extends UriResource {
 
-    private UUID id = null;
-    private UUID deviceId = null;
-    private UUID vifId = null;
+public abstract class Port extends UriResource {
+
+    /**
+     * Port ID
+     */
+    protected UUID id = null;
+
+    /**
+     * Device ID
+     */
+    protected UUID deviceId = null;
+
+    /**
+     * VIF ID
+     */
+    protected UUID vifId = null;
+
+    /**
+     * Default constructor
+     */
+    public Port() {
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            Port ID
+     * @param deviceId
+     *            Router or Bridge ID
+     * @param vifId
+     *            VIF ID
+     */
+    public Port(UUID id, UUID deviceId, UUID vifId) {
+        this.id = id;
+        this.deviceId = deviceId;
+        this.vifId = vifId;
+    }
 
     /**
      * Get port ID.
@@ -95,9 +125,7 @@ public class Port extends UriResource {
      *
      * @return PortConfig object.
      */
-    public PortConfig toConfig() {
-        return new PortDirectory.BridgePortConfig(this.getDeviceId());
-    }
+    public abstract PortConfig toConfig();
 
     /**
      * Convert this object to PortMgmtConfig object.
@@ -113,25 +141,21 @@ public class Port extends UriResource {
      *
      * @return ZkNodeEntry object.
      */
-    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
-        return new ZkNodeEntry<UUID, PortConfig>(this.id, toConfig());
-    }
+    public abstract ZkNodeEntry<UUID, PortConfig> toZkNode();
 
     /**
-     * Convert PortMgmtConfig object to Port object.
-     *
-     * @param id
-     *            ID of the object.
-     * @param config
-     *            PortMgmtConfig object.
-     * @return Port object.
+     * @return　The port type
      */
-    public static Port createPort(UUID id, PortMgmtConfig mgmtConfig,
-            PortConfig config) {
-        Port port = new Port();
-        port.setVifId(mgmtConfig.vifId);
-        port.setDeviceId(config.device_id);
-        port.setId(id);
-        return port;
+    public abstract PortType getType();
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", deviceId=" + deviceId + ", vifId=" + vifId;
     }
+
 }

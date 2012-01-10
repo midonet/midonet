@@ -157,7 +157,7 @@ public class VpnResource {
         private boolean isPortOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
             PortDao q = daoFactory.getPortDao();
-            return AuthManager.isOwner(context, q, portId);
+            return AuthManager.isOwner(context, (OwnerQueryable) q, portId);
         }
 
         /**

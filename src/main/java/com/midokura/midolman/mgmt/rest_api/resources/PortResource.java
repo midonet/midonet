@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
+import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
@@ -103,7 +104,7 @@ public class PortResource {
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         PortDao dao = daoFactory.getPortDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own port.");
         }
 
@@ -141,7 +142,7 @@ public class PortResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         PortDao dao = daoFactory.getPortDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only delete your own port.");
         }
 
@@ -200,7 +201,7 @@ public class PortResource {
         @POST
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(Port port, @Context UriInfo uriInfo,
+        public Response create(BridgePort port, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory)
                 throws StateAccessException, UnauthorizedException {
 

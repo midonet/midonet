@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
@@ -166,8 +167,8 @@ public class BgpResource {
 
         private boolean isPortOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getPortDao();
-            return AuthManager.isOwner(context, q, portId);
+            PortDao q = daoFactory.getPortDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, portId);
         }
 
         /**

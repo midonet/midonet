@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.util.UUID;
+
 /**
  * Data transfer class for router port.
  *
@@ -13,9 +15,41 @@ package com.midokura.midolman.mgmt.data.dto;
  */
 public abstract class RouterPort extends Port {
 
-    private String networkAddress = null;
-    private int networkLength;
-    private String portAddress = null;
+    /**
+     * Network IP address
+     */
+    protected String networkAddress = null;
+
+    /**
+     * Network IP address length
+     */
+    protected int networkLength;
+
+    /**
+     * Port IP address
+     */
+    protected String portAddress = null;
+
+    /**
+     * Constructor
+     */
+    public RouterPort() {
+        super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the port
+     * @param deviceId
+     *            ID of the router
+     * @param vifId
+     *            ID of the VIF
+     */
+    public RouterPort(UUID id, UUID deviceId, UUID vifId) {
+        super(id, deviceId, vifId);
+    }
 
     /**
      * @return the networkAddress
@@ -61,4 +95,17 @@ public abstract class RouterPort extends Port {
     public void setPortAddress(String portAddress) {
         this.portAddress = portAddress;
     }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return super.toString() + ", networkAddress=" + networkAddress
+                + ", networkLength=" + networkLength + ", portAddress="
+                + portAddress;
+    }
+
 }
