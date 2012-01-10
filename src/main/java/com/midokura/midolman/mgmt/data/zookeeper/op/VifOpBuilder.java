@@ -5,93 +5,83 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.VifConfig;
-import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.mgmt.data.zookeeper.io.VifSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
- * VIF Op builder.
+ * Class to build Op for the VIF paths.
  *
- * @version 1.6 6 Jan 2012
+ * @version 1.6 6 Jan 2011
  * @author Ryu Ishimoto
  */
 public class VifOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(VifOpBuilder.class);
-    private final VifZkDao zkDao;
-    private final VifOpPathBuilder pathBuilder;
-    private final PortOpBuilder portOpBuilder;
+    private final ZkManager zkDao;
+    private final VifSerializer serializer;
+    private final PathBuilder pathBuilder;
 
     /**
      * Constructor
      *
-     * @param pathBuilder
-     *            VifOpPathBuilder object
-     * @param portOpBuilder
-     *            PortOpBuilder object
      * @param zkDao
-     *            VifZkDao object
+     *            ZkManager object to access ZK data.
+     * @param pathBuilder
+     *            PathBuilder object to get path data.
+     * @param serializer
+     *            VifSerializer object to serialize the data.
      */
-    public VifOpBuilder(VifOpPathBuilder pathBuilder,
-            PortOpBuilder portOpBuilder, VifZkDao zkDao) {
-        this.pathBuilder = pathBuilder;
-        this.portOpBuilder = portOpBuilder;
+    public VifOpBuilder(ZkManager zkDao, PathBuilder pathBuilder,
+            VifSerializer serializer) {
         this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
+        this.serializer = serializer;
     }
 
     /**
-     * Build list of Op objects to create and plug a vif
+     * Get the Vif create Op object.
      *
      * @param id
-     *            ID of VIF
-     * @param config
-     *            VifConfig object
-     * @return Op list
-     * @throws StateAccessException
-     *             Data error.
+     *            ID of the Vif
+     * @return Op for Vif create.
+     * @throws ZkStateSerializationException
      */
-    public List<Op> buildCreate(UUID id, VifConfig config)
-            throws StateAccessException {
-        log.debug("VifOpBuilder.buildCreate entered: id={}", id);
+    public Op getVifCreateOp(UUID id, VifConfig config)
+            throws ZkStateSerializationException {
+        log.debug("VifOpBuilder.getVifCreateOp entered: id={}", id);
 
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(pathBuilder.getVifCreateOp(id, config));
+        String path = pathBuilder.getVifPath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
 
-        // Plug!
-        ops.addAll(portOpBuilder.buildPlug(config.portId, id));
-
-        log.debug("VifOpBuilder.buildCreate exiting: ops count={}", ops.size());
-        return ops;
+        log.debug("VifOpBuilder.getVifCreateOp exiting.");
+        return op;
     }
 
     /**
-     * Build list of Op objects to delete and unplugs a vif
+     * Get the Vif delete Op object.
      *
      * @param id
-     *            　ID of the VIF
-     * @return Op list
-     * @throws StateAccessException
-     *             Data error.
+     *            ID of the Vif
+     * @return Op for Vif delete.
      */
-    public List<Op> buildDelete(UUID id) throws StateAccessException {
-        log.debug("VifOpBuilder.buildDelete entered: id={}", id);
+    public Op getVifDeleteOp(UUID id) {
+        log.debug("VifOpBuilder.getVifDeleteOp entered: id={}", id);
 
-        VifConfig config = zkDao.getData(id);
+        String path = pathBuilder.getVifPath(id);
+        Op op = zkDao.getDeleteOp(path);
 
-        // Unplug!
-        List<Op> ops = portOpBuilder.buildPlug(config.portId, null);
-        ops.add(pathBuilder.getVifDeleteOp(id));
-
-        log.debug("VifOpBuilder.buildDelete exiting: ops count={}", ops.size());
-        return ops;
+        log.debug("VifOpBuilder.getVifDeleteOp exiting.");
+        return op;
     }
 }

@@ -5,22 +5,24 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.PortSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
- * Port Op builder.
+ * Class to build Op for the port paths.
  *
  * @version 1.6 6 Jan 2012
  * @author Ryu Ishimoto
@@ -29,233 +31,161 @@ public class PortOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortOpBuilder.class);
-    private final PortOpPathBuilder pathBuilder;
-    private final PortZkDao zkDao;
+    private final PathBuilder pathBuilder;
+    private final PortSerializer serializer;
+    private final PortZkManager zkDao;
 
     /**
      * Constructor
      *
-     * @param pathBuilder
-     *            PortOpPathBuilder object
      * @param zkDao
-     *            PortZkDao object
+     *            ZkManager object to access ZK data.
+     * @param pathBuilder
+     *            PathBuilder object to get path data.
+     * @param serializer
+     *            PortSerializer object.
      */
-    public PortOpBuilder(PortOpPathBuilder pathBuilder, PortZkDao zkDao) {
-        this.pathBuilder = pathBuilder;
+    public PortOpBuilder(PortZkManager zkDao, PathBuilder pathBuilder,
+            PortSerializer serializer) {
         this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
+        this.serializer = serializer;
     }
 
     /**
-     * Build list of Op objects to create a port link
+     * Get the port update Op object.
+     *
+     * @param id
+     *            ID of the port.
+     * @param config
+     *            PortMgmtConfig object to set.
+     * @return Op for router update.
+     */
+    public Op getPortSetDataOp(UUID id, PortMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("PortOpBuilder.getPortSetDataOp entered: id=" + id
+                + " config=" + config);
+
+        String path = pathBuilder.getPortPath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getSetDataOp(path, data);
+
+        log.debug("PortOpBuilder.getPortSetDataOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get a list of Ops to link ports.
      *
      * @param id
      *            ID of the port
      * @param config
-     *            PortConfig object
+     *            PortConfig object representing the port.
      * @param peerId
-     *            ID of the peer port
+     *            ID of the peer port.
      * @param peerConfig
-     *            PortConfig of the peer port
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
+     *            PortConfig object representing the peer port.
+     * @return A list of Op.
+     * @throws ZkStateSerializationException
+     *             Serialization error.
      */
-    public List<Op> buildCreateLink(UUID id, PortConfig config, UUID peerId,
-            PortConfig peerConfig) throws StateAccessException {
-        log.debug("PortOpBuilder.buildCreate entered: id=" + id + ", peerId="
-                + peerId);
+    public List<Op> getPortLinkCreateOps(UUID id, PortConfig config,
+            UUID peerId, PortConfig peerConfig)
+            throws ZkStateSerializationException {
+        log.debug("PortOpBuilder.getPortLinkCreateOps entered: id=" + id
+                + ", peerId=" + peerId);
 
-        List<Op> ops = new ArrayList<Op>();
+        ZkNodeEntry<UUID, PortConfig> port = new ZkNodeEntry<UUID, PortConfig>(
+                id, config);
+        ZkNodeEntry<UUID, PortConfig> peerPort = new ZkNodeEntry<UUID, PortConfig>(
+                peerId, peerConfig);
 
-        ops.add(pathBuilder.getPortCreateOp(id, null));
-        ops.add(pathBuilder.getPortCreateOp(peerId, null));
+        List<Op> ops = zkDao.preparePortCreateLink(port, peerPort);
 
-        ops.addAll(pathBuilder.getPortLinkCreateOps(id, config, peerId,
-                peerConfig));
-
-        log.debug("PortOpBuilder.buildCreate exiting: ops count={}", ops.size());
+        log.debug("PortOpBuilder.getPortLinkCreateOps exiting: ops count="
+                + ops.size());
         return ops;
     }
 
     /**
-     * Build list of Op objects to create a port
+     * Get the port create Op object.
+     *
+     * @param id
+     *            ID of the port.
+     * @param config
+     *            PortMgmtConfig object to create.
+     * @return Op for port create.
+     */
+    public Op getPortCreateOp(UUID id, PortMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("PortOpBuilder.getPortCreateOp entered: id=" + id
+                + " config=" + config);
+
+        String path = pathBuilder.getPortPath(id);
+        byte[] data = null;
+        if (config != null) {
+            data = serializer.serialize(config);
+        }
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("PortOpBuilder.getPortCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Gets a list of Op objects to create a port in Midolman side.
      *
      * @param id
      *            ID of the port
      * @param config
-     *            PortConfig object
-     * @param mgmtConfig
-     *            PortMgmtConfig object
-     * @return List of Op objects
+     *            PortConfig object to create.
+     * @return List of Op objects.
      * @throws StateAccessException
      *             Data access error.
      */
-    public List<Op> buildCreate(UUID id, PortConfig config,
-            PortMgmtConfig mgmtConfig) throws StateAccessException {
-        log.debug("PortOpBuilder.buildCreate entered: id={}", id);
+    public List<Op> getPortCreateOps(UUID id, PortConfig config)
+            throws StateAccessException {
+        log.debug("PortOpBuilder.getPortCreateOps entered: id=" + id);
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = zkDao.preparePortCreate(id, config);
 
-        // Create PortMgmtConfig
-        ops.add(pathBuilder.getPortCreateOp(id, mgmtConfig));
-
-        // Create PortConfig
-        ops.addAll(pathBuilder.getPortCreateOps(id, config));
-
-        log.debug("PortOpBuilder.buildCreate exiting: ops count={}", ops.size());
+        log.debug("PortOpBuilder.getPortCreateOps exiting: ops count="
+                + ops.size());
         return ops;
     }
 
     /**
-     * Build list of Op objects to delete a port link
+     * Get the port delete Op object.
+     *
+     * @param id
+     *            ID of the port.
+     * @return Op for port delete.
+     */
+    public Op getPortDeleteOp(UUID id) {
+        log.debug("PortOpBuilder.getPortDeleteOp entered: id={}", id);
+
+        String path = pathBuilder.getPortPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("PortOpBuilder.getPortDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Gets a list of Op objects to delete a Port in Midolman side.
      *
      * @param id
      *            ID of the port
-     * @param peerId
-     *            ID of the peer port
-     * @return List of Op objects
+     * @return List of Op objects.
      * @throws StateAccessException
      *             Data access error.
      */
-    public List<Op> buildDeleteLink(UUID id, UUID peerId)
-            throws StateAccessException {
-        log.debug("PortOpBuilder.buildDelete exiting: id=" + id + ", peerId="
-                + peerId);
+    public List<Op> getPortDeleteOps(UUID id) throws StateAccessException {
+        log.debug("PortOpBuilder.getPortDeleteOps entered: id={}", id);
 
-        List<Op> ops = new ArrayList<Op>();
-        ops.addAll(pathBuilder.getPortDeleteOps(id));
-        ops.add(pathBuilder.getPortDeleteOp(peerId));
-        ops.add(pathBuilder.getPortDeleteOp(id));
+        List<Op> ops = zkDao.preparePortDelete(id);
 
-        log.debug("PortOpBuilder.buildDelete exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to delete a port
-     *
-     * @param id
-     *            ID of the port
-     * @param cascade
-     *            True to delete the midolman side
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public List<Op> buildDelete(UUID id, boolean cascade)
-            throws StateAccessException {
-        log.debug("PortOpBuilder.buildDelete exiting: id=" + id + ", cascade="
-                + cascade);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        if (cascade) {
-            // Delete PortConfig
-            ops.addAll(pathBuilder.getPortDeleteOps(id));
-        }
-
-        // Delete PortMgmtConfig
-        ops.add(pathBuilder.getPortDeleteOp(id));
-
-        log.debug("PortOpBuilder.buildDelete exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to update a port
-     *
-     * @param id
-     *            ID of the port
-     * @param mgmtConfig
-     *            PortMgmtConfig pbject
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildUpdate(UUID id, PortMgmtConfig mgmtConfig)
-            throws StateAccessException {
-        log.debug("PortOpBuilder.buildUpdate entered: id={}", id);
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(pathBuilder.getPortSetDataOp(id, mgmtConfig));
-
-        log.debug("PortOpBuilder.buildUpdate exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
-     * Builds operations to handle the VIF plug event for the port side. If VIF
-     * ID is set to null, it means unplugging.
-     *
-     * @param id
-     *            port ID
-     * @param vifId
-     *            VIF ID
-     * @return Op list
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public List<Op> buildPlug(UUID id, UUID vifId) throws StateAccessException {
-        log.debug("PortOpBuilder.buildPlug entered: id=" + id + ", vifId="
-                + vifId);
-
-        List<Op> ops = new ArrayList<Op>();
-        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-        mgmtConfig.vifId = vifId;
-        ops.addAll(buildUpdate(id, mgmtConfig));
-
-        log.debug("PortOpBuilder.buildPlug exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
-     * Build Op list for bridge delete event.
-     *
-     * @param bridgeId
-     *            Bridge ID
-     * @return Op list
-     * @throws StateAccessException
-     *             Data error.
-     */
-    public List<Op> buildBridgePortsDelete(UUID bridgeId)
-            throws StateAccessException {
-        log.debug("PortOpBuilder.buildBridgePortsDelete entered: bridgeId={}",
-                bridgeId);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        Set<UUID> ids = zkDao.getBridgePortIds(bridgeId);
-        for (UUID id : ids) {
-            ops.addAll(buildDelete(id, false));
-        }
-
-        log.debug("PortOpBuilder.buildBridgePortsDelete exiting: ops count={}",
-                ops.size());
-        return ops;
-    }
-
-    /**
-     * Build Op list for router delete event.
-     *
-     * @param routerId
-     *            Router ID
-     * @return Op list
-     * @throws StateAccessException
-     *             Data error.
-     */
-    public List<Op> buildRouterPortsDelete(UUID routerId)
-            throws StateAccessException {
-        log.debug("PortOpBuilder.buildRouterPortsDelete entered: routerId={}",
-                routerId);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        Set<UUID> ids = zkDao.getRouterPortIds(routerId);
-        for (UUID id : ids) {
-            ops.addAll(buildDelete(id, false));
-        }
-
-        log.debug("PortOpBuilder.buildRouterPortsDelete exiting: ops count={}",
+        log.debug("PortOpBuilder.getPortDeleteOps exiting: ops count={}",
                 ops.size());
         return ops;
     }

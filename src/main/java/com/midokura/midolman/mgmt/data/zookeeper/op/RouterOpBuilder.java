@@ -5,25 +5,25 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
-import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
- * Router Op builder.
+ * Class to build Op for the router paths.
  *
  * @version 1.6 6 Jan 2012
  * @author Ryu Ishimoto
@@ -32,284 +32,433 @@ public class RouterOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouterOpBuilder.class);
-    private final RouterOpPathBuilder pathBuilder;
-    private final PortOpBuilder portOpBuilder;
-    private final ChainOpBuilder chainOpBuilder;
-    private final RouterZkDao zkDao;
+    private final RouterSerializer serializer;
+    private final PathBuilder pathBuilder;
+    private final RouterZkManager zkDao;
 
     /**
      * Constructor
      *
-     * @param pathBuilder
-     *            RouterOpPathBuilder object.
-     * @param chainOpBuilder
-     *            ChainOpBuilder object
-     * @param portOpBuilder
-     *            PortOpBuilder object.
      * @param zkDao
-     *            RouterZkDao object.
+     *            ZkManager object to access ZK data.
+     * @param pathBuilder
+     *            PathBuilder object to get path data.
+     * @param serializer
+     *            RouterSerializer object.
      */
-    public RouterOpBuilder(RouterOpPathBuilder pathBuilder,
-            ChainOpBuilder chainOpBuilder, PortOpBuilder portOpBuilder,
-            RouterZkDao zkDao) {
-        this.pathBuilder = pathBuilder;
-        this.chainOpBuilder = chainOpBuilder;
-        this.portOpBuilder = portOpBuilder;
+    public RouterOpBuilder(RouterZkManager zkDao, PathBuilder pathBuilder,
+            RouterSerializer serializer) {
         this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
+        this.serializer = serializer;
     }
 
     /**
-     * Build list of Op objects to create a router
+     * Get the router create Op object.
      *
      * @param id
-     *            Router Id
-     * @param mgmtConfig
-     *            RouterMgmtConfig object
-     * @param nameConfig
-     *            RouterNameMgmtConfig object
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
+     *            ID of the router.
+     * @param config
+     *            RouterMgmtConfig object to create.
+     * @return Op for router create.
      */
-    public List<Op> buildCreate(UUID id, RouterMgmtConfig mgmtConfig,
-            RouterNameMgmtConfig nameConfig) throws StateAccessException {
+    public Op getRouterCreateOp(UUID id, RouterMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("RouterOpBuilder.getRouterCreateOp entered: id=" + id
+                + " config=" + config);
 
-        List<Op> ops = new ArrayList<Op>();
+        String path = pathBuilder.getRouterPath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
 
-        ops.add(pathBuilder.getRouterCreateOp(id, mgmtConfig));
-
-        // link
-        ops.add(pathBuilder.getRouterRoutersCreateOp(id));
-
-        // tables
-        ops.add(pathBuilder.getRouterTablesCreateOp(id));
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-
-            // table
-            ops.add(pathBuilder.getRouterTableCreateOp(id, chainTable));
-
-            // chains
-            ops.add(pathBuilder.getRouterTableChainsCreateOp(id, chainTable));
-
-            // chain names
-            ops.add(pathBuilder
-                    .getRouterTableChainNamesCreateOp(id, chainTable));
-
-            // Build the actual chains
-            ops.addAll(chainOpBuilder.buildBuiltInChains(id, chainTable));
-        }
-
-        // tenant
-        ops.add(pathBuilder.getTenantRouterCreateOp(mgmtConfig.tenantId, id));
-
-        // name
-        ops.add(pathBuilder.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
-                mgmtConfig.name, nameConfig));
-
-        ops.addAll(pathBuilder.getRouterCreateOps(id));
-
-        return ops;
+        log.debug("RouterOpBuilder.getRouterCreateOp exiting.");
+        return op;
     }
 
     /**
-     * Build list of Op objects to delete a router
-     *
-     * @param id
-     *            Router ID to delete
-     * @param cascade
-     *            Delete midolman data if set to true.
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildDelete(UUID id, boolean cascade)
-            throws StateAccessException {
-        log.debug("RouterOpBuilder.buildDelete entered: id=" + id
-                + ", cascade=" + cascade);
-
-        RouterMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Midolman
-        if (cascade) {
-            ops.addAll(pathBuilder.getRouterDeleteOps(id));
-        }
-
-        // Ports
-        ops.addAll(portOpBuilder.buildRouterPortsDelete(id));
-
-        // name
-        ops.add(pathBuilder.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,
-                mgmtConfig.name));
-
-        // tenant
-        ops.add(pathBuilder.getTenantRouterDeleteOp(mgmtConfig.tenantId, id));
-
-        // tables
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-
-            // Delete all the chains for this table
-            ops.addAll(chainOpBuilder.buildDeleteRouterChains(id, chainTable));
-
-            // chain names
-            ops.add(pathBuilder
-                    .getRouterTableChainNamesDeleteOp(id, chainTable));
-
-            // chains
-            ops.add(pathBuilder.getRouterTableChainsDeleteOp(id, chainTable));
-
-            // table
-            ops.add(pathBuilder.getRouterTableDeleteOp(id, chainTable));
-
-        }
-
-        // tables
-        ops.add(pathBuilder.getRouterTablesDeleteOp(id));
-
-        // link
-        ops.add(pathBuilder.getRouterRoutersDeleteOp(id));
-
-        // root
-        ops.add(pathBuilder.getRouterDeleteOp(id));
-
-        log.debug("RouterOpBuilder.buildDelete exiting: ops count={}",
-                ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to update a router
+     * Gets a list of Op objects to create a router in Midolman side.
      *
      * @param id
      *            ID of the router
-     * @param name
-     *            Name of the router
-     * @return List of Op objects
+     * @return List of Op objects.
      * @throws StateAccessException
-     *             Data access error
+     *             Data access error.
      */
-    public List<Op> buildUpdate(UUID id, String name)
-            throws StateAccessException {
-        log.debug("RouterOpBuilder.buildUpdate entered: id=" + id + ",name="
-                + name);
-
-        RouterMgmtConfig config = zkDao.getMgmtData(id);
-        RouterNameMgmtConfig nameConfig = zkDao.getNameData(config.tenantId,
-                config.name);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Remove the name of this router
-        ops.add(pathBuilder.getTenantRouterNameDeleteOp(config.tenantId,
-                config.name));
-
-        // Add the new name.
-        ops.add(pathBuilder.getTenantRouterNameCreateOp(config.tenantId, name,
-                nameConfig));
-
-        // Update router
-        config.name = name;
-        ops.add(pathBuilder.getRouterSetDataOp(id, config));
-
-        log.debug("RouterOpBuilder.buildUpdate exiting: ops count={}",
-                ops.size());
+    public List<Op> getRouterCreateOps(UUID id) throws StateAccessException {
+        log.debug("RouterOpBuilder.getRouterCreateOps entered: id=" + id);
+        List<Op> ops = zkDao.prepareRouterCreate(id);
+        log.debug("RouterOpBuilder.getRouterCreateOps exiting: ops count="
+                + ops.size());
         return ops;
     }
 
     /**
-     * Build list of Op objects to link routers
-     *
-     * @param ID
-     *            Port ID
-     * @param config
-     *            PortConfig object
-     * @param peerPortId
-     *            Peer port ID
-     * @param peerConfig
-     *            Peer PortConfig object
-     *
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildLink(UUID portId, PortConfig config, UUID peerPortId,
-            PortConfig peerConfig) throws StateAccessException {
-        log.debug("RouterOpBuilder.buildLink entered: portId=" + portId
-                + ",peerPortId=" + peerPortId + ",routerId=" + config.device_id
-                + ",peerRouterId=" + peerConfig.device_id);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(pathBuilder.getRouterRouterCreateOp(config.device_id,
-                peerConfig.device_id,
-                zkDao.constructPeerRouterConfig(portId, peerPortId)));
-
-        ops.add(pathBuilder.getRouterRouterCreateOp(peerConfig.device_id,
-                config.device_id,
-                zkDao.constructPeerRouterConfig(peerPortId, portId)));
-
-        // Create the port entries.
-        ops.addAll(portOpBuilder.buildCreateLink(portId, config, peerPortId,
-                peerConfig));
-
-        log.debug("RouterOpBuilder.buildLink exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to unlink routers
+     * Get the router delete Op object.
      *
      * @param id
-     *            Router ID
-     * @param peerId
-     *            Peer router ID
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
+     *            ID of the router.
+     * @return Op for router delete.
      */
-    public List<Op> buildUnlink(UUID id, UUID peerId)
-            throws StateAccessException {
-        log.debug("RouterOpBuilder.buildUnLink entered: id=" + id + ",peerId="
-                + peerId);
+    public Op getRouterDeleteOp(UUID id) {
+        log.debug("RouterOpBuilder.getRouterDeleteOp entered: id={}", id);
 
-        PeerRouterConfig config = zkDao.getRouterLinkData(id, peerId);
-        List<Op> ops = new ArrayList<Op>();
+        String path = pathBuilder.getRouterPath(id);
+        Op op = zkDao.getDeleteOp(path);
 
-        ops.addAll(portOpBuilder.buildDeleteLink(config.portId,
-                config.peerPortId));
-        ops.add(pathBuilder.getRouterRouterDeleteOp(peerId, id));
-        ops.add(pathBuilder.getRouterRouterDeleteOp(id, peerId));
+        log.debug("RouterOpBuilder.getRouterDeleteOp exiting.");
+        return op;
+    }
 
-        log.debug("RouterOpBuilder.buildUnLink exiting: ops count={}",
+    /**
+     * Gets a list of Op objects to delete a Router in Midolman side.
+     *
+     * @param id
+     *            ID of the router
+     * @return List of Op objects.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public List<Op> getRouterDeleteOps(UUID id) throws StateAccessException {
+        log.debug("RouterOpBuilder.getRouterDeleteOps entered: id={}", id);
+
+        RouterZkManager routerZkDao = zkDao;
+        List<Op> ops = routerZkDao.prepareRouterDelete(id);
+
+        log.debug(
+                "RouterOpBuilder.getRouterDeleteOps exiting: ops count={}",
                 ops.size());
         return ops;
     }
 
     /**
-     * Build operations to delete all routers for a tenant.
+     * Get the router link create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for router link create.
+     */
+    public Op getRouterRoutersCreateOp(UUID id) {
+        log.debug(
+                "RouterOpBuilder.getRouterRoutersCreateOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getRouterRoutersPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("RouterOpBuilder.getRouterRoutersCreateOp exiting.");
+        return op;
+    }
+
+    public Op getRouterRouterCreateOp(UUID id, UUID peerId,
+            PeerRouterConfig config) throws ZkStateSerializationException {
+        log.debug("RouterOpBuilder.getRouterRouterCreateOp entered: id="
+                + id + ", peerId=" + peerId + ", config=", config);
+
+        String path = pathBuilder.getRouterRouterPath(id, peerId);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("RouterOpBuilder.getRouterRouterCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the routers link delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for router link delete..
+     */
+    public Op getRouterRoutersDeleteOp(UUID id) {
+        log.debug(
+                "RouterOpBuilder.getRouterRoutersDeleteOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getRouterRoutersPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router link delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for router link delete..
+     */
+    public Op getRouterRouterDeleteOp(UUID id, UUID peerRouterId) {
+        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp entered: id="
+                + id + ", peer=" + peerRouterId);
+
+        String path = pathBuilder.getRouterRouterPath(id, peerRouterId);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router update Op object.
+     *
+     * @param id
+     *            ID of the router.
+     * @param config
+     *            RouterMgmtConfig object to set.
+     * @return Op for router update.
+     */
+    public Op getRouterSetDataOp(UUID id, RouterMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("RouterOpBuilder.getRouterSetDataOp entered: id=" + id
+                + " config=" + config);
+
+        String path = pathBuilder.getRouterPath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getSetDataOp(path, data);
+
+        log.debug("RouterOpBuilder.getRouterSetDataOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router table chain names create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value to create.
+     * @return Op for router table chain names create.
+     */
+    public Op getRouterTableChainNamesCreateOp(UUID id, ChainTable table) {
+        log.debug("RouterOpBuilder.getRouterTableChainNamesCreateOp entered: id="
+                + id + ", table=" + table);
+
+        String path = pathBuilder.getRouterTableChainNamesPath(id, table);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("RouterOpBuilder.getRouterTableChainNamesCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router table chain names delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value to delete.
+     * @return Op for router table chain names delete.
+     */
+    public Op getRouterTableChainNamesDeleteOp(UUID id, ChainTable table) {
+        log.debug("RouterOpBuilder.getRouterTableChainNamesDeleteOp entered: id="
+                + id + ", table=" + table);
+
+        String path = pathBuilder.getRouterTableChainNamesPath(id, table);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getRouterTableChainNamesDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router table chains create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value to create.
+     * @return Op for router table chains create.
+     */
+    public Op getRouterTableChainsCreateOp(UUID id, ChainTable table) {
+        log.debug("RouterOpBuilder.getRouterTableChainsCreateOp entered: id="
+                + id + ", table=" + table);
+
+        String path = pathBuilder.getRouterTableChainsPath(id, table);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("RouterOpBuilder.getRouterTableChainsCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router table chains delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value to delete.
+     * @return Op for router table chains delete.
+     */
+    public Op getRouterTableChainsDeleteOp(UUID id, ChainTable table) {
+        log.debug("RouterOpBuilder.getRouterTableChainsDeleteOp entered: id="
+                + id + ", table=" + table);
+
+        String path = pathBuilder.getRouterTableChainsPath(id, table);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getRouterTableChainsDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router chain table create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value to create.
+     * @return Op for router table create.
+     */
+    public Op getRouterTableCreateOp(UUID id, ChainTable table) {
+        log.debug("RouterOpBuilder.getRouterTableCreateOp entered: id="
+                + id + ", table=" + table);
+
+        String path = pathBuilder.getRouterTablePath(id, table);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("RouterOpBuilder.getRouterTableCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router chain table delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value to delete.
+     * @return Op for router table delete.
+     */
+    public Op getRouterTableDeleteOp(UUID id, ChainTable table) {
+        log.debug("RouterOpBuilder.getRouterTableDeleteOp entered: id="
+                + id + ", table=" + table);
+
+        String path = pathBuilder.getRouterTablePath(id, table);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getRouterTableDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router tables create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for router tables create.
+     */
+    public Op getRouterTablesCreateOp(UUID id) {
+        log.debug("RouterOpBuilder.getRouterTablesCreateOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getRouterTablesPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("RouterOpBuilder.getRouterTablesCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router tables Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for router tables delete.
+     */
+    public Op getRouterTablesDeleteOp(UUID id) {
+        log.debug("RouterOpBuilder.getRouterTablesDeleteOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getRouterTablesPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getRouterTablesDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router create Op object.
      *
      * @param tenantId
      *            ID of the tenant
-     * @return Op list
-     * @throws StateAccessException
-     *             Data error
+     * @param id
+     *            ID of the router.
+     * @return Op for tenant router create.
      */
-    public List<Op> buildTenantRoutersDelete(String tenantId)
-            throws StateAccessException {
-        log.debug(
-                "RouterOpBuilder.buildTenantRoutersDelete entered: tenantId={}",
-                tenantId);
+    public Op getTenantRouterCreateOp(String tenantId, UUID id) {
+        log.debug("RouterOpBuilder.getTenantRouterCreateOp entered: tenantId="
+                + tenantId + ", id=" + id);
 
-        Set<String> ids = zkDao.getIds(tenantId);
-        List<Op> ops = new ArrayList<Op>();
-        for (String id : ids) {
-            ops.addAll(buildDelete(UUID.fromString(id), true));
-        }
+        String path = pathBuilder.getTenantRouterPath(tenantId, id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
 
-        log.debug(
-                "RouterOpBuilder.buildTenantRoutersDelete exiting: ops count={}",
-                ops.size());
-        return ops;
+        log.debug("RouterOpBuilder.getTenantRouterCreateOp exiting.");
+        return op;
     }
+
+    /**
+     * Get the tenant router delete Op object.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param id
+     *            ID of the router.
+     * @return Op for tenant router delete.
+     */
+    public Op getTenantRouterDeleteOp(String tenantId, UUID id) {
+        log.debug("RouterOpBuilder.getTenantRouterDeleteOp entered: tenantId="
+                + tenantId + ", id=" + id);
+
+        String path = pathBuilder.getTenantRouterPath(tenantId, id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getTenantRouterDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router name create Op object.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param name
+     *            name of the router
+     * @param config
+     *            RouterMgmtConfig object to set.
+     * @return Op for tenant router name create.
+     */
+    public Op getTenantRouterNameCreateOp(String tenantId, String name,
+            RouterNameMgmtConfig config) throws ZkStateSerializationException {
+        log.debug("RouterOpBuilder.getTenantRouterNameCreateOp entered: tenantId="
+                + tenantId + ", name=" + name + ", config=" + config);
+
+        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("RouterOpBuilder.getTenantRouterNameCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router name delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @param name
+     *            name of the router
+     * @return Op for tenant router name delete.
+     */
+    public Op getTenantRouterNameDeleteOp(String tenantId, String name) {
+        log.debug("RouterOpBuilder.getTenantRouterNameDeleteOp entered: tenantId="
+                + tenantId + ", name=" + name);
+
+        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("RouterOpBuilder.getTenantRouterNameDeleteOp exiting.");
+        return op;
+    }
+
 }

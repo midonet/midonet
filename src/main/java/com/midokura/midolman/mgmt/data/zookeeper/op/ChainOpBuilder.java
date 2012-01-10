@@ -1,191 +1,268 @@
 /*
- * @(#)ChainOpBuilder        1.6 11/12/26
+ * @(#)ChainOpBuilder        1.6 11/12/25
  *
  * Copyright 2011 Midokura KK
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
- * Chain Op builder.
+ * Class to build Op for the chain paths.
  *
- * @version 1.6 26 Dec 2011
+ * @version 1.6 25 Dec 2011
  * @author Ryu Ishimoto
  */
 public class ChainOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(ChainOpBuilder.class);
-    private final ChainOpPathBuilder pathBuilder;
-    private final ChainZkDao zkDao;
+    private final PathBuilder pathBuilder;
+    private final ChainSerializer serializer;
+    private final ChainZkManager zkDao;
 
     /**
      * Constructor
      *
      * @param zkDao
-     *            Chain DAO.
+     *            ChainZkManager object
      * @param pathBuilder
-     *            Chain DAO pathBuilder.
+     *            PathBuilder object
+     * @param serializer
+     *            ChainSerializer object
      */
-    public ChainOpBuilder(ChainOpPathBuilder pathBuilder, ChainZkDao zkDao) {
-        this.pathBuilder = pathBuilder;
+    public ChainOpBuilder(ChainZkManager zkDao, PathBuilder pathBuilder,
+            ChainSerializer serializer) {
         this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
+        this.serializer = serializer;
     }
 
     /**
-     * Build list of Op objects to create a chain
+     * Get the chain create Op object.
+     *
+     * @param id
+     *            ID of the chain.
+     * @param config
+     *            ChainMgmtConfig object to add to the path.
+     * @return Op for chain create.
+     */
+    public Op getChainCreateOp(UUID id, ChainMgmtConfig config)
+            throws ZkStateSerializationException {
+        if (id == null || config == null) {
+            throw new IllegalArgumentException("ID and config cannot be null");
+        }
+        log.debug("ChainOpBuilder.getChainCreateOp entered: id={}", id);
+
+        String path = pathBuilder.getChainPath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("ChainOpBuilder.getChainCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Gets a list of Op objects to create a chain in Midolman side. This is a
+     * hack until refactoring is finished in Midolman side. When the Midolman
+     * side is refactored, we no longer need this method, and instead let the
+     * ChainOpService chain the handlers of Midolman Chain OpBuilders
+     * appropriately.
      *
      * @param id
      *            ID of the chain
      * @param config
-     *            ChainConfig object
-     * @param mgmtConfig
-     *            ChainMgmtConfig object
-     * @param nameConfig
-     *            ChainNameMgmtConfig object
+     *            ChainConfig object to create.
      * @return List of Op objects.
      * @throws StateAccessException
+     *             Data access error.
      */
-    public List<Op> buildCreate(UUID id, ChainConfig config,
-            ChainMgmtConfig mgmtConfig, ChainNameMgmtConfig nameConfig)
+    public List<Op> getChainCreateOps(UUID id, ChainConfig config)
             throws StateAccessException {
-        log.debug("ChainOpBuilder.buildCreate entered: id={}", id);
-        List<Op> ops = new ArrayList<Op>();
+        if (id == null || config == null) {
+            throw new IllegalArgumentException("ID and config cannot be null");
+        }
+        log.debug("ChainOpBuilder.getChainCreateOps entered: id=" + id
+                + ", name=" + config.name + ", routerId=" + config.routerId);
 
-        // Root
-        ops.add(pathBuilder.getChainCreateOp(id, mgmtConfig));
+        ZkNodeEntry<UUID, ChainConfig> chainNode = new ZkNodeEntry<UUID, ChainConfig>(
+                id, config);
+        List<Op> ops = zkDao.prepareChainCreate(chainNode);
 
-        // Router/Chain ID
-        ops.add(pathBuilder.getRouterTableChainCreateOp(config.routerId,
-                mgmtConfig.table, id));
-
-        // Router/Chain name
-        ops.add(pathBuilder.getRouterTableChainNameCreateOp(config.routerId,
-                mgmtConfig.table, config.name, nameConfig));
-
-        // Cascade
-        ops.addAll(pathBuilder.getChainCreateOps(id, config));
-
-        log.debug("ChainOpBuilder.buildCreate exiting: ops count={}",
-                ops.size());
+        log.debug("ChainOpBuilder.getChainCreateOps exiting: ops count="
+                + ops.size());
         return ops;
     }
 
     /**
-     * Build list of Op objects to delete a chain
+     * Get the chain delete Op object.
+     *
+     * @param id
+     *            ID of the chain.
+     * @return Op for chain delete.
+     */
+    public Op getChainDeleteOp(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
+        log.debug("ChainOpBuilder.getChainDeleteOp entered: id={}", id);
+
+        String path = pathBuilder.getChainPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("ChainOpBuilder.getChainDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Gets a list of Op objects to delete a Chain in Midolman side. This is a
+     * hack until refactoring is finished in Midolman side. When the Midolman
+     * side is refactored, we no longer need this method, and instead let the
+     * ChainOpService chain the handlers of Midolman Chain OpBuilders
+     * appropriately.
      *
      * @param id
      *            ID of the chain
-     * @param cascade
-     *            True to update Midolman side
-     * @return List of Op objects
+     * @return List of Op objects.
+     * @throws StateAccessException
+     *             Data access error.
      */
-    public List<Op> buildDelete(UUID id, boolean cascade)
-            throws StateAccessException {
-        log.debug("ChainOpBuilder.buildDelete entered: id=" + id + ", cascade="
-                + cascade);
-
-        ChainConfig config = zkDao.getData(id);
-        ChainMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Cascade
-        if (cascade) {
-            ops.addAll(pathBuilder.getChainDeleteOps(id));
+    public List<Op> getChainDeleteOps(UUID id) throws StateAccessException {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
         }
+        log.debug("ChainOpBuilder.getChainDeleteOps entered: id={}", id);
 
-        // Router/Chain name
-        ops.add(pathBuilder.getRouterTableChainNameDeleteOp(config.routerId,
-                mgmtConfig.table, config.name));
+        List<Op> ops = zkDao.prepareChainDelete(id);
 
-        // Router/Chain ID
-        ops.add(pathBuilder.getRouterTableChainDeleteOp(config.routerId,
-                mgmtConfig.table, id));
-
-        // Root
-        ops.add(pathBuilder.getChainDeleteOp(id));
-
-        log.debug("ChainOpBuilder.buildDelete exiting: ops count={}",
+        log.debug("ChainOpBuilder.getChainDeleteOps exiting: ops count={}",
                 ops.size());
         return ops;
     }
 
     /**
-     * Ops to delete all the router chains.
+     * Get the tenant router create Op object.
      *
      * @param routerId
      *            ID of the router
      * @param table
-     *            Chain table
-     * @return List of Op to delete
-     * @throws StateAccessException
-     *             Data error
+     *            ChainTable value.
+     * @param id
+     *            ID of the chain.
+     * @return Op for router table chain create.
      */
-    public List<Op> buildDeleteRouterChains(UUID routerId, ChainTable table)
-            throws StateAccessException {
-        log.debug("ChainOpBuilder.buildDeleteRouterChains entered: routerId="
-                + routerId + ",table=" + table);
+    public Op getRouterTableChainCreateOp(UUID routerId, ChainTable table,
+            UUID id) {
+        log.debug("ChainOpBuilder.getRouterTableChainCreateOp entered: routerId="
+                + routerId + ", table=" + table + ", id=" + id);
 
-        List<Op> ops = new ArrayList<Op>();
-        Set<String> ids = zkDao.getIds(routerId, table);
-        for (String id : ids) {
-            ops.addAll(buildDelete(UUID.fromString(id), true));
-        }
+        String path = pathBuilder.getRouterTableChainPath(routerId, table, id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
 
-        log.debug(
-                "ChainOpBuilder.buildDeleteRouterChains exiting: ops count={}",
-                ops.size());
-        return ops;
+        log.debug("ChainOpBuilder.getRouterTableChainCreateOp exiting.");
+        return op;
     }
 
     /**
-     * Get Ops to create built-in chains for a router.
+     * Get the tenant router delete Op object.
      *
      * @param routerId
      *            ID of the router
      * @param table
-     *            ChainTable object
-     * @return List of Op
-     * @throws StateAccessException
-     *             Data error
+     *            ChainTable value.
+     * @param id
+     *            ID of the chain.
+     * @return Op for router table chain delete.
      */
-    public List<Op> buildBuiltInChains(UUID routerId, ChainTable table)
-            throws StateAccessException {
-        log.debug("ChainOpBuilder.buildBuiltInChains entered: routerId="
-                + routerId + ",table=" + table);
-
-        List<Op> ops = new ArrayList<Op>();
-        String[] builtInChains = ChainTable.getBuiltInChainNames(table);
-        for (String name : builtInChains) {
-            UUID id = UUID.randomUUID();
-            ChainConfig chainConfig = zkDao
-                    .constructChainConfig(name, routerId);
-            ChainMgmtConfig chainMgmtConfig = zkDao
-                    .constructChainMgmtConfig(table);
-            ChainNameMgmtConfig chainNameConfig = zkDao
-                    .constructChainNameMgmtConfig(id);
-            ops.addAll(buildCreate(id, chainConfig, chainMgmtConfig,
-                    chainNameConfig));
+    public Op getRouterTableChainDeleteOp(UUID routerId, ChainTable table,
+            UUID id) {
+        if (routerId == null || id == null || table == null) {
+            throw new IllegalArgumentException(
+                    "Table, ID and routerId cannot be null");
         }
+        log.debug("ChainOpBuilder.getRouterTableChainDeleteOp entered: routerId="
+                + routerId + ", table=" + table + ",id=" + id);
 
-        log.debug("ChainOpBuilder.buildBuiltInChains exiting: ops count={}",
-                ops.size());
-        return ops;
+        String path = pathBuilder.getRouterTableChainPath(routerId, table, id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("ChainOpBuilder.getRouterTableChainDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router table chain name create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value.
+     * @param name
+     *            Name of the chain.
+     * @param config
+     *            ChainNameMgmtConfig object to add to the path.
+     * @return Op for router table chain name create.
+     */
+    public Op getRouterTableChainNameCreateOp(UUID routerId, ChainTable table,
+            String name, ChainNameMgmtConfig config)
+            throws ZkStateSerializationException {
+        if (routerId == null || name == null || table == null || config == null) {
+            throw new IllegalArgumentException(
+                    "Table, config, name and routerId cannot be null");
+        }
+        log.debug("ChainOpBuilder.getRouterTableChainNameCreateOp entered: routerId="
+                + routerId + ", table=" + table + ", name=" + name);
+
+        String path = pathBuilder.getRouterTableChainNamePath(routerId, table,
+                name);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("ChainOpBuilder.getRouterTableChainNameCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the router table chain name delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @param table
+     *            ChainTable value.
+     * @param name
+     *            Name of the chain.
+     * @return Op for router table chain name delete.
+     */
+    public Op getRouterTableChainNameDeleteOp(UUID routerId, ChainTable table,
+            String name) {
+        if (routerId == null || name == null || table == null) {
+            throw new IllegalArgumentException(
+                    "Table, name and routerId cannot be null");
+        }
+        log.debug("ChainOpBuilder.getRouterTableChainNameDeleteOp entered: routerId="
+                + routerId + ", table=" + table + ", name=" + name);
+
+        String path = pathBuilder.getRouterTableChainNamePath(routerId, table,
+                name);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("ChainOpBuilder.getRouterTableChainNameDeleteOp exiting.");
+        return op;
     }
 }

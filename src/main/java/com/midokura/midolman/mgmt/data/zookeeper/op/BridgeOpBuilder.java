@@ -5,197 +5,241 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
- * Bridge Op builder.
+ * Class to build Op for the bridge paths.
  *
- * @version 1.6 6 Jan 2012
+ * @version 1.6 6 Jan 2011
  * @author Ryu Ishimoto
  */
 public class BridgeOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeOpBuilder.class);
-    private final BridgeOpPathBuilder pathBuilder;
-    private final PortOpBuilder portOpBuilder;
-    private final BridgeZkDao zkDao;
+    private final BridgeSerializer serializer;
+    private final PathBuilder pathBuilder;
+    private final BridgeZkManager zkDao;
 
     /**
      * Constructor
      *
-     * @param pathBuilder
-     *            BridgeOpPathBuilder object.
-     * @param portOpBuilder
-     *            PortOpBuilder object.
      * @param zkDao
-     *            BridgeZkDao object.
+     *            ZkManager object to access ZK data.
+     * @param pathBuilder
+     *            PathBuilder object to get path data.
+     * @param serializer
+     *            BridgeSerializer object.
      */
-    public BridgeOpBuilder(BridgeOpPathBuilder pathBuilder,
-            PortOpBuilder portOpBuilder, BridgeZkDao zkDao) {
-        this.pathBuilder = pathBuilder;
-        this.portOpBuilder = portOpBuilder;
+    public BridgeOpBuilder(BridgeZkManager zkDao, PathBuilder pathBuilder,
+            BridgeSerializer serializer) {
         this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
+        this.serializer = serializer;
     }
 
     /**
-     * Build list of Op objects to create a bridge
+     * Get the bridge create Op object.
      *
      * @param id
-     *            ID of the bridge
+     *            ID of the bridge.
      * @param config
-     *            BridgeConfig object
-     * @param mgmtConfig
-     *            BridgeMgmtConfig object
-     * @param nameConfig
-     *            BridgeNameMgmtConfig object
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
+     *            BridgeMgmtConfig object to create.
+     * @return Op for bridge create.
      */
-    public List<Op> buildCreate(UUID id, BridgeConfig config,
-            BridgeMgmtConfig mgmtConfig, BridgeNameMgmtConfig nameConfig)
-            throws StateAccessException {
-        log.debug("BridgeOpBuilder.buildCreate entered: id={}", id);
+    public Op getBridgeCreateOp(UUID id, BridgeMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("BridgeOpBuilder.getBridgeCreateOp entered: id=" + id
+                + " config=" + config);
 
-        List<Op> ops = new ArrayList<Op>();
+        String path = pathBuilder.getBridgePath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
 
-        // Create the root bridge path
-        ops.add(pathBuilder.getBridgeCreateOp(id, mgmtConfig));
-
-        // Add the bridge under tenant.
-        ops.add(pathBuilder.getTenantBridgeCreateOp(mgmtConfig.tenantId, id));
-
-        // Add the bridge name.
-        ops.add(pathBuilder.getTenantBridgeNameCreateOp(mgmtConfig.tenantId,
-                mgmtConfig.name, nameConfig));
-
-        // Create Midolman data
-        ops.addAll(pathBuilder.getBridgeCreateOps(id, config));
-
-        log.debug("BridgeOpBuilder.buildCreate exiting: ops count={}",
-                ops.size());
-        return ops;
+        log.debug("BridgeOpBuilder.getBridgeCreateOp exiting.");
+        return op;
     }
 
     /**
-     * Build list of Op objects to delete a bridge
-     *
-     * @param id
-     *            ID of the port
-     * @param cascade
-     *            True if cascade delete
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data error.
-     */
-    public List<Op> buildDelete(UUID id, boolean cascade)
-            throws StateAccessException {
-        log.debug("BridgeOpBuilder.buildDelete entered: id=" + id
-                + ", cascade=" + cascade);
-
-        BridgeMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Delete the Midolman side.
-        if (cascade) {
-            ops.addAll(pathBuilder.getBridgeDeleteOps(id));
-        }
-
-        // Delete the ports
-        ops.addAll(portOpBuilder.buildBridgePortsDelete(id));
-
-        // Delete the tenant bridge name
-        ops.add(pathBuilder.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,
-                mgmtConfig.name));
-
-        // Delete the tenant bridge
-        ops.add(pathBuilder.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id));
-
-        // Delete the root bridge path.
-        ops.add(pathBuilder.getBridgeDeleteOp(id));
-
-        log.debug("BridgeOpBuilder.buildDelete exiting: ops count={}",
-                ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to update a bridge
+     * Gets a list of Op objects to create a Bridge in Midolman side.
      *
      * @param id
      *            ID of the bridge
-     * @param name
-     *            Name of the bridge
-     * @return Op list
+     * @param bridge
+     *            BridgeConfig object
+     * @return List of Op objects.
      * @throws StateAccessException
-     *             Data error.
+     *             Data access error.
      */
-    public List<Op> buildUpdate(UUID id, String name)
+    public List<Op> getBridgeCreateOps(UUID id, BridgeConfig bridge)
             throws StateAccessException {
-        log.debug("BridgeOpBuilder.buildUpdate entered: id=" + id + ", name="
-                + name);
+        log.debug("BridgeOpBuilder.getBridgeCreateOps entered: id=" + id);
+        List<Op> ops = zkDao.prepareBridgeCreate(id, bridge);
+        log.debug("BridgeOpBuilder.getBridgeCreateOps exiting: ops count="
+                + ops.size());
+        return ops;
+    }
 
-        List<Op> ops = new ArrayList<Op>();
-        BridgeMgmtConfig config = zkDao.getMgmtData(id);
-        BridgeNameMgmtConfig nameConfig = zkDao.getNameData(config.tenantId,
-                config.name);
+    /**
+     * Get the bridge delete Op object.
+     *
+     * @param id
+     *            ID of the bridge.
+     * @return Op for bridge delete.
+     */
+    public Op getBridgeDeleteOp(UUID id) {
+        log.debug("BridgeOpBuilder.getBridgeDeleteOp entered: id={}", id);
 
-        // Remove the name of this bridge
-        ops.add(pathBuilder.getTenantBridgeNameDeleteOp(config.tenantId,
-                config.name));
+        String path = pathBuilder.getBridgePath(id);
+        Op op = zkDao.getDeleteOp(path);
 
-        // Move NameConfig to the new name path.
-        ops.add(pathBuilder.getTenantBridgeNameCreateOp(config.tenantId, name,
-                nameConfig));
+        log.debug("BridgeOpBuilder.getBridgeDeleteOp exiting.");
+        return op;
+    }
 
-        // Update bridge
-        config.name = name;
-        ops.add(pathBuilder.getBridgeSetDataOp(id, config));
+    /**
+     * Gets a list of Op objects to delete a Bridge in Midolman side.
+     *
+     * @param id
+     *            ID of the bridge
+     * @return List of Op objects.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public List<Op> getBridgeDeleteOps(UUID id) throws StateAccessException {
+        log.debug("BridgeOpBuilder.getBridgeDeleteOps entered: id={}", id);
 
-        log.debug("BridgeOpBuilder.buildUpdate exiting: ops count={}",
+        BridgeZkManager bridgeZkDao = zkDao;
+        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = bridgeZkDao.get(id);
+        List<Op> ops = bridgeZkDao.prepareBridgeDelete(bridgeNode);
+
+        log.debug(
+                "BridgeOpBuilder.getBridgeDeleteOps exiting: ops count={}",
                 ops.size());
         return ops;
     }
 
     /**
-     * Build operations to delete all bridges for a tenant.
+     * Get the bridge update Op object.
+     *
+     * @param id
+     *            ID of the bridge.
+     * @param config
+     *            BridgeMgmtConfig object to set.
+     * @return Op for bridge update.
+     * @throws ZkStateSerializationException
+     *             Serialization error.
+     */
+    public Op getBridgeSetDataOp(UUID id, BridgeMgmtConfig config)
+            throws ZkStateSerializationException {
+        log.debug("BridgeOpBuilder.getBridgeSetDataOp entered: id=" + id
+                + " config=" + config);
+
+        String path = pathBuilder.getBridgePath(id);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getSetDataOp(path, data);
+
+        log.debug("BridgeOpBuilder.getBridgeSetDataOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant bridge create Op object.
      *
      * @param tenantId
      *            ID of the tenant
-     * @return Op list
-     * @throws StateAccessException
-     *             Data error
+     * @param id
+     *            ID of the bridge.
+     * @return Op for tenant bridge create.
      */
-    public List<Op> buildTenantBridgesDelete(String tenantId)
-            throws StateAccessException {
-        log.debug(
-                "BridgeOpBuilder.buildTenantBridgesDelete entered: tenantId={}",
-                tenantId);
+    public Op getTenantBridgeCreateOp(String tenantId, UUID id) {
+        log.debug("BridgeOpBuilder.getTenantBridgeCreateOp entered: tenantId="
+                + tenantId + ", id=" + id);
 
-        Set<String> ids = zkDao.getIds(tenantId);
-        List<Op> ops = new ArrayList<Op>();
-        for (String id : ids) {
-            ops.addAll(buildDelete(UUID.fromString(id), true));
-        }
+        String path = pathBuilder.getTenantBridgePath(tenantId, id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
 
-        log.debug(
-                "BridgeOpBuilder.buildTenantBridgesDelete exiting: ops count={}",
-                ops.size());
-        return ops;
+        log.debug("BridgeOpBuilder.getTenantBridgeCreateOp exiting.");
+        return op;
     }
+
+    /**
+     * Get the tenant bridge delete Op object.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param id
+     *            ID of the bridge.
+     * @return Op for tenant bridge delete.
+     */
+    public Op getTenantBridgeDeleteOp(String tenantId, UUID id) {
+        log.debug("BridgeOpBuilder.getTenantBridgeDeleteOp entered: tenantId="
+                + tenantId + ", id=" + id);
+
+        String path = pathBuilder.getTenantBridgePath(tenantId, id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("BridgeOpBuilder.getTenantBridgeDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant bridge name create Op object.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param name
+     *            name of the bridge
+     * @param config
+     *            BridgeMgmtConfig object to set.
+     * @return Op for tenant bridge name create.
+     */
+    public Op getTenantBridgeNameCreateOp(String tenantId, String name,
+            BridgeNameMgmtConfig config) throws ZkStateSerializationException {
+        log.debug("BridgeOpBuilder.getTenantBridgeNameCreateOp entered: tenantId="
+                + tenantId + ", name=" + name + ", config=" + config);
+
+        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
+        byte[] data = serializer.serialize(config);
+        Op op = zkDao.getPersistentCreateOp(path, data);
+
+        log.debug("BridgeOpBuilder.getTenantBridgeNameCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant bridge name delete Op object.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param name
+     *            name of the bridge
+     * @return Op for tenant bridge name delete.
+     */
+    public Op getTenantBridgeNameDeleteOp(String tenantId, String name) {
+        log.debug("BridgeOpBuilder.getTenantBridgeNameDeleteOp entered: tenantId="
+                + tenantId + ", name=" + name);
+
+        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("BridgeOpBuilder.getTenantBridgeNameDeleteOp exiting.");
+        return op;
+    }
+
 }

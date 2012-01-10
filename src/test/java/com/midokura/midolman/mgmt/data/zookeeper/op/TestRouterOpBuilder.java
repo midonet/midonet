@@ -5,350 +5,257 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.RouterZkManager;
 
 public class TestRouterOpBuilder {
 
-    private RouterOpPathBuilder pathBuilderMock = null;
-    private RouterZkDao zkDaoMock = null;
-    private PortOpBuilder portOpBuilderMock = null;
-    private ChainOpBuilder chainOpBuilderMock = null;
+    private RouterZkManager zkDaoMock = null;
+    private PathBuilder pathBuilderMock = null;
+    private RouterSerializer serializerMock = null;
     private RouterOpBuilder builder = null;
-    private static final Op dummyCreateOp0 = Op.create("/foo",
-            new byte[] { 0 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp1 = Op.create("/bar",
-            new byte[] { 1 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp2 = Op.create("/baz",
-            new byte[] { 2 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyDeleteOp0 = Op.delete("/foo", -1);;
-    private static final Op dummyDeleteOp1 = Op.delete("/bar", -1);
-    private static final Op dummyDeleteOp2 = Op.delete("/baz", -1);
-    private static List<Op> dummyCreateOps = null;
-    static {
-        dummyCreateOps = new ArrayList<Op>();
-        dummyCreateOps.add(dummyCreateOp0);
-        dummyCreateOps.add(dummyCreateOp1);
-        dummyCreateOps.add(dummyCreateOp2);
-    }
-    private static List<Op> dummyDeleteOps = null;
-    static {
-        dummyDeleteOps = new ArrayList<Op>();
-        dummyDeleteOps.add(dummyDeleteOp0);
-        dummyDeleteOps.add(dummyDeleteOp1);
-        dummyDeleteOps.add(dummyDeleteOp2);
-    }
-    private static final String dummyId0 = UUID.randomUUID().toString();
-    private static final String dummyId1 = UUID.randomUUID().toString();
-    private static final String dummyId2 = UUID.randomUUID().toString();
-    private static Set<String> dummyIds = null;
-    static {
-        dummyIds = new TreeSet<String>();
-        dummyIds.add(dummyId0);
-        dummyIds.add(dummyId1);
-        dummyIds.add(dummyId2);
-    }
+    private final static UUID dummyId = UUID.randomUUID();
+    private final static UUID dummyPeerId = UUID.randomUUID();
+    private final static String dummyTenantId = "foo";
+    private final static String dummyRouterName = "bar";
+    private final static RouterMgmtConfig dummyMgmtConfig = new RouterMgmtConfig();
+    private final static RouterNameMgmtConfig dummyNameMgmtConfig = new RouterNameMgmtConfig();
+    private final static PeerRouterConfig dummyPeerConfig = new PeerRouterConfig();
+    private final static String dummyPath = "/foo";
+    private final static byte[] dummyBytes = { 1, 2, 3 };
 
     @Before
     public void setUp() throws Exception {
-        this.pathBuilderMock = mock(RouterOpPathBuilder.class);
-        this.portOpBuilderMock = mock(PortOpBuilder.class);
-        this.chainOpBuilderMock = mock(ChainOpBuilder.class);
-        this.zkDaoMock = mock(RouterZkDao.class);
-        this.builder = new RouterOpBuilder(this.pathBuilderMock,
-                this.chainOpBuilderMock, this.portOpBuilderMock, this.zkDaoMock);
+        zkDaoMock = mock(RouterZkManager.class);
+        pathBuilderMock = mock(PathBuilder.class);
+        serializerMock = mock(RouterSerializer.class);
+        builder = new RouterOpBuilder(zkDaoMock, pathBuilderMock,
+                serializerMock);
     }
 
     @Test
-    public void TestBuildCreateRouterSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
-        RouterNameMgmtConfig nameConfig = new RouterNameMgmtConfig();
+    public void TestCreateOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterPath(dummyId)).thenReturn(dummyPath);
+        when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
-        // Mock the path builder
-        when(pathBuilderMock.getRouterCreateOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp0);
-        when(pathBuilderMock.getRouterRoutersCreateOp(id)).thenReturn(
-                dummyCreateOp1);
-        when(pathBuilderMock.getRouterTablesCreateOp(id)).thenReturn(
-                dummyCreateOp2);
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-            when(pathBuilderMock.getRouterTableCreateOp(id, chainTable))
-                    .thenReturn(dummyCreateOp0);
-            when(pathBuilderMock.getRouterTableChainsCreateOp(id, chainTable))
-                    .thenReturn(dummyCreateOp1);
-            when(
-                    pathBuilderMock.getRouterTableChainNamesCreateOp(id,
-                            chainTable)).thenReturn(dummyCreateOp2);
-            when(chainOpBuilderMock.buildBuiltInChains(id, chainTable))
-                    .thenReturn(dummyCreateOps);
-        }
+        builder.getRouterCreateOp(dummyId, dummyMgmtConfig);
 
-        when(pathBuilderMock.getTenantRouterCreateOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyCreateOp0);
+        verify(zkDaoMock, times(1))
+                .getPersistentCreateOp(dummyPath, dummyBytes);
+    }
+
+    @Test
+    public void TestGetRouterCreateOpsSuccess() throws Exception {
+        builder.getRouterCreateOps(dummyId);
+        verify(zkDaoMock, times(1)).prepareRouterCreate(dummyId);
+    }
+
+    @Test
+    public void TestGetRouterDeleteOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterPath(dummyId)).thenReturn(dummyPath);
+
+        builder.getRouterDeleteOp(dummyId);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestGetRouterDeleteOpsSuccess() throws Exception {
+        builder.getRouterDeleteOps(dummyId);
+        verify(zkDaoMock, times(1)).prepareRouterDelete(dummyId);
+    }
+
+    @Test
+    public void TestCreateRouterLinkOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterRouterPath(dummyId, dummyPeerId))
+                .thenReturn(dummyPath);
+
+        builder.getRouterRouterCreateOp(dummyId, dummyPeerId, dummyPeerConfig);
+
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
+    }
+
+    @Test
+    public void TestDeleteRouterLinkOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterRouterPath(dummyId, dummyPeerId))
+                .thenReturn(dummyPath);
+
+        builder.getRouterRouterDeleteOp(dummyId, dummyPeerId);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestCreateRouterLinksOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterRoutersPath(dummyId)).thenReturn(
+                dummyPath);
+
+        builder.getRouterRoutersCreateOp(dummyId);
+
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
+    }
+
+    @Test
+    public void TestDeleteRouterLinksOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterRoutersPath(dummyId)).thenReturn(
+                dummyPath);
+
+        builder.getRouterRoutersDeleteOp(dummyId);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestSetDataOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterPath(dummyId)).thenReturn(dummyPath);
+        when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
+
+        builder.getRouterSetDataOp(dummyId, dummyMgmtConfig);
+
+        verify(zkDaoMock, times(1)).getSetDataOp(dummyPath, dummyBytes);
+    }
+
+    @Test
+    public void TestCreateTableChainNamesOpSuccess() throws Exception {
         when(
-                pathBuilderMock.getTenantRouterNameCreateOp(
-                        mgmtConfig.tenantId, mgmtConfig.name, nameConfig))
-                .thenReturn(dummyCreateOp1);
-        when(pathBuilderMock.getRouterCreateOps(id)).thenReturn(dummyCreateOps);
+                pathBuilderMock.getRouterTableChainNamesPath(dummyId,
+                        ChainTable.NAT)).thenReturn(dummyPath);
 
-        List<Op> ops = builder.buildCreate(id, mgmtConfig, nameConfig);
+        builder.getRouterTableChainNamesCreateOp(dummyId, ChainTable.NAT);
 
-        int chainNum = ChainTable.class.getEnumConstants().length;
-        int chainOpNum = chainNum * 6;
-        Assert.assertEquals(8 + chainOpNum, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp1, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp2, ops.remove(0));
-        for (int i = 0; i < chainNum; i++) {
-            Assert.assertEquals(dummyCreateOp0, ops.remove(0));
-            Assert.assertEquals(dummyCreateOp1, ops.remove(0));
-            Assert.assertEquals(dummyCreateOp2, ops.remove(0));
-            Assert.assertEquals(dummyCreateOp0, ops.remove(0));
-            Assert.assertEquals(dummyCreateOp1, ops.remove(0));
-            Assert.assertEquals(dummyCreateOp2, ops.remove(0));
-        }
-        Assert.assertEquals(dummyCreateOp0, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp1, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp0, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp1, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp2, ops.remove(0));
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
     }
 
     @Test
-    public void TestBuildDeleteWithCascadeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
-
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(pathBuilderMock.getRouterDeleteOps(id)).thenReturn(dummyDeleteOps);
-        when(portOpBuilderMock.buildRouterPortsDelete(id)).thenReturn(
-                dummyDeleteOps);
+    public void TestDeleteTableChainNamesOpSuccess() throws Exception {
         when(
-                pathBuilderMock.getTenantRouterNameDeleteOp(
-                        mgmtConfig.tenantId, mgmtConfig.name)).thenReturn(
-                dummyDeleteOp0);
-        when(pathBuilderMock.getTenantRouterDeleteOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyDeleteOp1);
+                pathBuilderMock.getRouterTableChainNamesPath(dummyId,
+                        ChainTable.NAT)).thenReturn(dummyPath);
 
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-            when(chainOpBuilderMock.buildDeleteRouterChains(id, chainTable))
-                    .thenReturn(dummyDeleteOps);
-            when(
-                    pathBuilderMock.getRouterTableChainNamesDeleteOp(id,
-                            chainTable)).thenReturn(dummyDeleteOp0);
-            when(pathBuilderMock.getRouterTableChainsDeleteOp(id, chainTable))
-                    .thenReturn(dummyDeleteOp1);
-            when(pathBuilderMock.getRouterTableDeleteOp(id, chainTable))
-                    .thenReturn(dummyDeleteOp2);
-        }
+        builder.getRouterTableChainNamesDeleteOp(dummyId, ChainTable.NAT);
 
-        when(pathBuilderMock.getRouterTablesDeleteOp(id)).thenReturn(
-                dummyDeleteOp0);
-        when(pathBuilderMock.getRouterRoutersDeleteOp(id)).thenReturn(
-                dummyDeleteOp1);
-        when(pathBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp2);
-
-        List<Op> ops = builder.buildDelete(id, true);
-
-        int chainNum = ChainTable.class.getEnumConstants().length;
-        int chainOpNum = chainNum * 6;
-        Assert.assertEquals(11 + chainOpNum, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        for (int i = 0; i < chainNum; i++) {
-            Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-        }
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
     }
 
     @Test
-    public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
+    public void TestCreateTableChainsOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterTableChainsPath(dummyId, ChainTable.NAT))
+                .thenReturn(dummyPath);
 
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(portOpBuilderMock.buildRouterPortsDelete(id)).thenReturn(
-                dummyDeleteOps);
+        builder.getRouterTableChainsCreateOp(dummyId, ChainTable.NAT);
+
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
+    }
+
+    @Test
+    public void TestDeleteTableChainsOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterTableChainsPath(dummyId, ChainTable.NAT))
+                .thenReturn(dummyPath);
+
+        builder.getRouterTableChainsDeleteOp(dummyId, ChainTable.NAT);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestCreateTableOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterTablePath(dummyId, ChainTable.NAT))
+                .thenReturn(dummyPath);
+
+        builder.getRouterTableCreateOp(dummyId, ChainTable.NAT);
+
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
+    }
+
+    @Test
+    public void TestDeleteTableOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterTablePath(dummyId, ChainTable.NAT))
+                .thenReturn(dummyPath);
+
+        builder.getRouterTableDeleteOp(dummyId, ChainTable.NAT);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestCreateTablesOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterTablesPath(dummyId))
+                .thenReturn(dummyPath);
+
+        builder.getRouterTablesCreateOp(dummyId);
+
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
+    }
+
+    @Test
+    public void TestDeleteTablesOpSuccess() throws Exception {
+        when(pathBuilderMock.getRouterTablesPath(dummyId))
+                .thenReturn(dummyPath);
+
+        builder.getRouterTablesDeleteOp(dummyId);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestCreateTenantRouterOpSuccess() throws Exception {
+        when(pathBuilderMock.getTenantRouterPath(dummyTenantId, dummyId))
+                .thenReturn(dummyPath);
+
+        builder.getTenantRouterCreateOp(dummyTenantId, dummyId);
+
+        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
+    }
+
+    @Test
+    public void TestDeleteTenantRouterOpSuccess() throws Exception {
+        when(pathBuilderMock.getTenantRouterPath(dummyTenantId, dummyId))
+                .thenReturn(dummyPath);
+
+        builder.getTenantRouterDeleteOp(dummyTenantId, dummyId);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestCreateTenantRouterNameOpSuccess() throws Exception {
         when(
-                pathBuilderMock.getTenantRouterNameDeleteOp(
-                        mgmtConfig.tenantId, mgmtConfig.name)).thenReturn(
-                dummyDeleteOp0);
-        when(pathBuilderMock.getTenantRouterDeleteOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyDeleteOp1);
+                pathBuilderMock.getTenantRouterNamePath(dummyTenantId,
+                        dummyRouterName)).thenReturn(dummyPath);
+        when(serializerMock.serialize(dummyNameMgmtConfig)).thenReturn(
+                dummyBytes);
 
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-            when(chainOpBuilderMock.buildDeleteRouterChains(id, chainTable))
-                    .thenReturn(dummyDeleteOps);
-            when(
-                    pathBuilderMock.getRouterTableChainNamesDeleteOp(id,
-                            chainTable)).thenReturn(dummyDeleteOp0);
-            when(pathBuilderMock.getRouterTableChainsDeleteOp(id, chainTable))
-                    .thenReturn(dummyDeleteOp1);
-            when(pathBuilderMock.getRouterTableDeleteOp(id, chainTable))
-                    .thenReturn(dummyDeleteOp2);
-        }
+        builder.getTenantRouterNameCreateOp(dummyTenantId, dummyRouterName,
+                dummyNameMgmtConfig);
 
-        when(pathBuilderMock.getRouterTablesDeleteOp(id)).thenReturn(
-                dummyDeleteOp0);
-        when(pathBuilderMock.getRouterRoutersDeleteOp(id)).thenReturn(
-                dummyDeleteOp1);
-        when(pathBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp2);
-
-        List<Op> ops = builder.buildDelete(id, false);
-
-        int chainNum = ChainTable.class.getEnumConstants().length;
-        int chainOpNum = chainNum * 6;
-        Assert.assertEquals(8 + chainOpNum, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        for (int i = 0; i < chainNum; i++) {
-            Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-            Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-        }
-        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
+        verify(zkDaoMock, times(1))
+                .getPersistentCreateOp(dummyPath, dummyBytes);
     }
 
     @Test
-    public void TestBuildUpdateSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        String name = "foo";
-        RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
-        mgmtConfig.tenantId = "bar";
-        mgmtConfig.name = "baz";
-        RouterNameMgmtConfig nameConfig = new RouterNameMgmtConfig();
-
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(zkDaoMock.getNameData(mgmtConfig.tenantId, mgmtConfig.name))
-                .thenReturn(nameConfig);
+    public void TestDeleteTenantRouterNameOpSuccess() throws Exception {
         when(
-                pathBuilderMock.getTenantRouterNameDeleteOp(
-                        mgmtConfig.tenantId, mgmtConfig.name)).thenReturn(
-                dummyCreateOp0);
-        when(
-                pathBuilderMock.getTenantRouterNameCreateOp(
-                        mgmtConfig.tenantId, name, nameConfig)).thenReturn(
-                dummyCreateOp1);
-        when(pathBuilderMock.getRouterSetDataOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp2);
+                pathBuilderMock.getTenantRouterNamePath(dummyTenantId,
+                        dummyRouterName)).thenReturn(dummyPath);
 
-        List<Op> ops = builder.buildUpdate(id, name);
+        builder.getTenantRouterNameDeleteOp(dummyTenantId, dummyRouterName);
 
-        Assert.assertEquals(3, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(name, mgmtConfig.name);
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
     }
 
-    @Test
-    public void TestBuildLinkSuccess() throws Exception {
-        UUID portId = UUID.randomUUID();
-        PortConfig config = new LogicalRouterPortConfig();
-        UUID peerPortId = UUID.randomUUID();
-        PortConfig peerConfig = new LogicalRouterPortConfig();
-
-        builder.buildLink(portId, config, peerPortId, peerConfig);
-
-        verify(portOpBuilderMock, times(1)).buildCreateLink(portId, config,
-                peerPortId, peerConfig);
-    }
-
-    @Test
-    public void TestBuildUnlinkSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        UUID peerId = UUID.randomUUID();
-        PeerRouterConfig config = new PeerRouterConfig();
-        config.portId = UUID.randomUUID();
-        config.peerPortId = UUID.randomUUID();
-
-        when(zkDaoMock.getRouterLinkData(id, peerId)).thenReturn(config);
-
-        builder.buildUnlink(id, peerId);
-
-        verify(portOpBuilderMock, times(1)).buildDeleteLink(config.portId,
-                config.peerPortId);
-        verify(pathBuilderMock, times(1)).getRouterRouterDeleteOp(id, peerId);
-        verify(pathBuilderMock, times(1)).getRouterRouterDeleteOp(peerId, id);
-    }
-
-    @Test
-    public void TestBuildTenantRoutersDeleteSuccess() throws Exception {
-        RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
-
-        when(zkDaoMock.getIds(mgmtConfig.tenantId)).thenReturn(dummyIds);
-        when(zkDaoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
-        builder.buildTenantRoutersDelete(mgmtConfig.tenantId);
-
-        verify(pathBuilderMock, times(1)).getRouterDeleteOps(
-                UUID.fromString(dummyId0));
-        verify(pathBuilderMock, times(1)).getRouterDeleteOps(
-                UUID.fromString(dummyId1));
-        verify(pathBuilderMock, times(1)).getRouterDeleteOps(
-                UUID.fromString(dummyId2));
-        verify(pathBuilderMock, times(1)).getRouterDeleteOp(
-                UUID.fromString(dummyId0));
-        verify(pathBuilderMock, times(1)).getRouterDeleteOp(
-                UUID.fromString(dummyId1));
-        verify(pathBuilderMock, times(1)).getRouterDeleteOp(
-                UUID.fromString(dummyId2));
-    }
 }

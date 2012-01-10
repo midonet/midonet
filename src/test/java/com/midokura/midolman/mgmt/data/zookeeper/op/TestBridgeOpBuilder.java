@@ -11,223 +11,131 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.ZkNodeEntry;
 
 public class TestBridgeOpBuilder {
 
-    private BridgeOpPathBuilder pathBuilderMock = null;
-    private BridgeZkDao zkDaoMock = null;
-    private PortOpBuilder portOpBuilderMock = null;
+    private BridgeZkManager zkDaoMock = null;
+    private PathBuilder pathBuilderMock = null;
+    private BridgeSerializer serializerMock = null;
     private BridgeOpBuilder builder = null;
-    private static final Op dummyCreateOp0 = Op.create("/foo",
-            new byte[] { 0 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp1 = Op.create("/bar",
-            new byte[] { 1 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp2 = Op.create("/baz",
-            new byte[] { 2 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyDeleteOp0 = Op.delete("/foo", -1);;
-    private static final Op dummyDeleteOp1 = Op.delete("/bar", -1);
-    private static final Op dummyDeleteOp2 = Op.delete("/baz", -1);
-    private static List<Op> dummyCreateOps = null;
-    static {
-        dummyCreateOps = new ArrayList<Op>();
-        dummyCreateOps.add(dummyCreateOp0);
-        dummyCreateOps.add(dummyCreateOp1);
-        dummyCreateOps.add(dummyCreateOp2);
-    }
-    private static List<Op> dummyDeleteOps = null;
-    static {
-        dummyDeleteOps = new ArrayList<Op>();
-        dummyDeleteOps.add(dummyDeleteOp0);
-        dummyDeleteOps.add(dummyDeleteOp1);
-        dummyDeleteOps.add(dummyDeleteOp2);
-    }
-    private static final String dummyId0 = UUID.randomUUID().toString();
-    private static final String dummyId1 = UUID.randomUUID().toString();
-    private static final String dummyId2 = UUID.randomUUID().toString();
-    private static Set<String> dummyIds = null;
-    static {
-        dummyIds = new TreeSet<String>();
-        dummyIds.add(dummyId0);
-        dummyIds.add(dummyId1);
-        dummyIds.add(dummyId2);
-    }
+    private final static UUID dummyId = UUID.randomUUID();
+    private final static String dummyTenantId = "foo";
+    private final static String dummyBridgeName = "bar";
+    private final static BridgeConfig dummyConfig = null;
+    private final static BridgeMgmtConfig dummyMgmtConfig = new BridgeMgmtConfig();
+    private final static BridgeNameMgmtConfig dummyNameMgmtConfig = new BridgeNameMgmtConfig();
+    private final static String dummyPath = "/foo";
+    private final static byte[] dummyBytes = { 1, 2, 3 };
 
     @Before
     public void setUp() throws Exception {
-        this.pathBuilderMock = mock(BridgeOpPathBuilder.class);
-        this.portOpBuilderMock = mock(PortOpBuilder.class);
-        this.zkDaoMock = mock(BridgeZkDao.class);
-        this.builder = new BridgeOpBuilder(this.pathBuilderMock,
-                this.portOpBuilderMock, this.zkDaoMock);
+        zkDaoMock = mock(BridgeZkManager.class);
+        pathBuilderMock = mock(PathBuilder.class);
+        serializerMock = mock(BridgeSerializer.class);
+        builder = new BridgeOpBuilder(zkDaoMock, pathBuilderMock,
+                serializerMock);
     }
 
     @Test
-    public void TestBuildCreateBridgeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        BridgeConfig config = new BridgeConfig();
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
-        BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
+    public void TestCreateOpSuccess() throws Exception {
+        when(pathBuilderMock.getBridgePath(dummyId)).thenReturn(dummyPath);
+        when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
-        // Mock the path builder
-        when(pathBuilderMock.getBridgeCreateOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp0);
-        when(pathBuilderMock.getTenantBridgeCreateOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyCreateOp1);
-        when(
-                pathBuilderMock.getTenantBridgeNameCreateOp(
-                        mgmtConfig.tenantId, mgmtConfig.name, nameConfig))
-                .thenReturn(dummyCreateOp2);
-        when(pathBuilderMock.getBridgeCreateOps(id, config)).thenReturn(
-                dummyCreateOps);
+        builder.getBridgeCreateOp(dummyId, dummyMgmtConfig);
 
-        List<Op> ops = builder.buildCreate(id, config, mgmtConfig, nameConfig);
-
-        Assert.assertEquals(6, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(dummyCreateOp0, ops.get(3));
-        Assert.assertEquals(dummyCreateOp1, ops.get(4));
-        Assert.assertEquals(dummyCreateOp2, ops.get(5));
+        verify(zkDaoMock, times(1))
+                .getPersistentCreateOp(dummyPath, dummyBytes);
     }
 
     @Test
-    public void TestBuildDeleteWithCascadeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
-
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(pathBuilderMock.getBridgeDeleteOps(id)).thenReturn(dummyDeleteOps);
-        when(portOpBuilderMock.buildBridgePortsDelete(id)).thenReturn(
-                dummyDeleteOps);
-        when(
-                pathBuilderMock.getTenantBridgeNameDeleteOp(
-                        mgmtConfig.tenantId, mgmtConfig.name)).thenReturn(
-                dummyDeleteOp0);
-        when(pathBuilderMock.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyDeleteOp1);
-        when(pathBuilderMock.getBridgeDeleteOp(id)).thenReturn(dummyDeleteOp2);
-
-        List<Op> ops = builder.buildDelete(id, true);
-
-        Assert.assertEquals(9, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.get(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(1));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(2));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(3));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(4));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(5));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(6));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(7));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(8));
+    public void TestGetBridgeCreateOpsSuccess() throws Exception {
+        builder.getBridgeCreateOps(dummyId, dummyConfig);
+        verify(zkDaoMock, times(1)).prepareBridgeCreate(dummyId, dummyConfig);
     }
 
     @Test
-    public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
+    public void TestGetBridgeDeleteOpSuccess() throws Exception {
+        when(pathBuilderMock.getBridgePath(dummyId)).thenReturn(dummyPath);
 
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(portOpBuilderMock.buildBridgePortsDelete(id)).thenReturn(
-                dummyDeleteOps);
-        when(
-                pathBuilderMock.getTenantBridgeNameDeleteOp(
-                        mgmtConfig.tenantId, mgmtConfig.name)).thenReturn(
-                dummyDeleteOp0);
-        when(pathBuilderMock.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyDeleteOp1);
-        when(pathBuilderMock.getBridgeDeleteOp(id)).thenReturn(dummyDeleteOp2);
+        builder.getBridgeDeleteOp(dummyId);
 
-        List<Op> ops = builder.buildDelete(id, false);
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
 
-        Assert.assertEquals(6, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.get(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(1));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(2));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(3));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(4));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(5));
+    @SuppressWarnings("unchecked")
+    @Test
+    public void TestGetBridgeDeleteOpsSuccess() throws Exception {
+        builder.getBridgeDeleteOps(dummyId);
+        verify(zkDaoMock, times(1)).prepareBridgeDelete(any(ZkNodeEntry.class));
     }
 
     @Test
-    public void TestBuildUpdateSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        String name = "foo";
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "bar";
-        mgmtConfig.name = "baz";
-        BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
+    public void TestSetDataOpSuccess() throws Exception {
+        when(pathBuilderMock.getBridgePath(dummyId)).thenReturn(dummyPath);
+        when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(zkDaoMock.getNameData(mgmtConfig.tenantId, mgmtConfig.name))
-                .thenReturn(nameConfig);
-        when(
-                pathBuilderMock.getTenantBridgeNameDeleteOp(
-                        mgmtConfig.tenantId, mgmtConfig.name)).thenReturn(
-                dummyCreateOp0);
-        when(
-                pathBuilderMock.getTenantBridgeNameCreateOp(
-                        mgmtConfig.tenantId, name, nameConfig)).thenReturn(
-                dummyCreateOp1);
-        when(pathBuilderMock.getBridgeSetDataOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp2);
+        builder.getBridgeSetDataOp(dummyId, dummyMgmtConfig);
 
-        List<Op> ops = builder.buildUpdate(id, name);
-
-        Assert.assertEquals(3, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(name, mgmtConfig.name);
+        verify(zkDaoMock, times(1)).getSetDataOp(dummyPath, dummyBytes);
     }
 
     @Test
-    public void TestBuildTenantRoutersDeleteSuccess() throws Exception {
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
+    public void TestCreateTenantBridgeOpSuccess() throws Exception {
+        when(pathBuilderMock.getTenantBridgePath(dummyTenantId, dummyId))
+                .thenReturn(dummyPath);
 
-        when(zkDaoMock.getIds(mgmtConfig.tenantId)).thenReturn(dummyIds);
-        when(zkDaoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
-        builder.buildTenantBridgesDelete(mgmtConfig.tenantId);
+        builder.getTenantBridgeCreateOp(dummyTenantId, dummyId);
 
-        verify(pathBuilderMock, times(1)).getBridgeDeleteOps(
-                UUID.fromString(dummyId0));
-        verify(pathBuilderMock, times(1)).getBridgeDeleteOps(
-                UUID.fromString(dummyId1));
-        verify(pathBuilderMock, times(1)).getBridgeDeleteOps(
-                UUID.fromString(dummyId2));
-        verify(pathBuilderMock, times(1)).getBridgeDeleteOp(
-                UUID.fromString(dummyId0));
-        verify(pathBuilderMock, times(1)).getBridgeDeleteOp(
-                UUID.fromString(dummyId1));
-        verify(pathBuilderMock, times(1)).getBridgeDeleteOp(
-                UUID.fromString(dummyId2));
+        verify(zkDaoMock, times(1))
+                .getPersistentCreateOp(dummyPath, null);
     }
+
+    @Test
+    public void TestDeleteTenantBridgeOpSuccess() throws Exception {
+        when(pathBuilderMock.getTenantBridgePath(dummyTenantId, dummyId))
+                .thenReturn(dummyPath);
+
+        builder.getTenantBridgeDeleteOp(dummyTenantId, dummyId);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
+    @Test
+    public void TestCreateTenantBridgeNameOpSuccess() throws Exception {
+        when(
+                pathBuilderMock.getTenantBridgeNamePath(dummyTenantId,
+                        dummyBridgeName)).thenReturn(dummyPath);
+        when(serializerMock.serialize(dummyNameMgmtConfig)).thenReturn(
+                dummyBytes);
+
+        builder.getTenantBridgeNameCreateOp(dummyTenantId, dummyBridgeName,
+                dummyNameMgmtConfig);
+
+        verify(zkDaoMock, times(1))
+                .getPersistentCreateOp(dummyPath, dummyBytes);
+    }
+
+    @Test
+    public void TestDeleteTenantBridgeNameOpSuccess() throws Exception {
+        when(
+                pathBuilderMock.getTenantBridgeNamePath(dummyTenantId,
+                        dummyBridgeName)).thenReturn(dummyPath);
+
+        builder.getTenantBridgeNameDeleteOp(dummyTenantId, dummyBridgeName);
+
+        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
+    }
+
 }

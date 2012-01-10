@@ -1,110 +1,227 @@
 /*
- * @(#)TenantOpBuilder        1.6 12/1/8
+ * @(#)TenantOpBuilder        1.6 12/1/6
  *
  * Copyright 2012 Midokura KK
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
-import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.ZkManager;
 
 /**
- * Tenant Op builder.
+ * Class to build Op for the tenant paths.
  *
- * @version 1.6 8 Jan 2012
+ * @version 1.6 6 Jan 2011
  * @author Ryu Ishimoto
  */
 public class TenantOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(TenantOpBuilder.class);
-    private final TenantZkDao zkDao;
-    private final TenantOpPathBuilder pathBuilder;
-    private final BridgeOpBuilder bridgeOpBuilder;
-    private final RouterOpBuilder routerOpBuilder;
+    private final ZkManager zkDao;
+    private final PathBuilder pathBuilder;
 
     /**
      * Constructor
      *
-     * @param pathBuilder
-     *            TenantOpPathBuilder object
-     * @param bridgeOpBuilder
-     *            BridgeOpBuilder object
-     * @param routerOpBuilder
-     *            RouterOpBuilder object
      * @param zkDao
-     *            Tenant DAO.
+     *            ZkManager object to access ZK data.
+     * @param pathBuilder
+     *            PathBuilder object to get path data.
      */
-    public TenantOpBuilder(TenantOpPathBuilder pathBuilder,
-            BridgeOpBuilder bridgeOpBuilder, RouterOpBuilder routerOpBuilder,
-            TenantZkDao zkDao) {
-        this.pathBuilder = pathBuilder;
-        this.bridgeOpBuilder = bridgeOpBuilder;
-        this.routerOpBuilder = routerOpBuilder;
+    public TenantOpBuilder(ZkManager zkDao, PathBuilder pathBuilder) {
         this.zkDao = zkDao;
+        this.pathBuilder = pathBuilder;
     }
 
     /**
-     * Build list of Op objects to create a tenant
+     * Get the tenant bridge create Op object.
      *
      * @param id
-     *            Tenant ID
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
+     *            ID of the tenant
+     * @return Op for tenant bridge create.
      */
-    public List<Op> buildCreate(String id) throws StateAccessException {
-        log.debug("TenantOpBuilder.buildCreate entered: id={}", id);
+    public Op getTenantBridgesCreateOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantBridgesCreateOp entered: id={}",
+                id);
 
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(pathBuilder.getTenantCreateOp(id));
-        ops.add(pathBuilder.getTenantBridgesCreateOp(id));
-        ops.add(pathBuilder.getTenantRoutersCreateOp(id));
-        ops.add(pathBuilder.getTenantBridgeNamesCreateOp(id));
-        ops.add(pathBuilder.getTenantRouterNamesCreateOp(id));
+        String path = pathBuilder.getTenantBridgesPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
 
-        log.debug("TenantOpBuilder.buildCreate exiting: ops count={}",
-                ops.size());
-        return ops;
+        log.debug("TenantOpBuilder.getTenantBridgesCreateOp exiting.");
+        return op;
     }
 
     /**
-     * Build list of Op objects to delete a tenant
+     * Get the tenant bridge delete Op object.
      *
      * @param id
-     *            Tenant ID
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
+     *            ID of the tenant
+     * @return Op for tenant bridge delete.
      */
-    public List<Op> buildDelete(String id) throws StateAccessException {
-        log.debug("TenantOpBuilder.buildDelete entered: id={}", id);
+    public Op getTenantBridgesDeleteOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantBridgesDeleteOp entered: id={}",
+                id);
 
-        if (!zkDao.exists(id)) {
-            throw new NoStatePathException("Tenant " + id + " does not exist");
-        }
+        String path = pathBuilder.getTenantBridgesPath(id);
+        Op op = zkDao.getDeleteOp(path);
 
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.addAll(routerOpBuilder.buildTenantRoutersDelete(id));
-        ops.addAll(bridgeOpBuilder.buildTenantBridgesDelete(id));
-
-        ops.add(pathBuilder.getTenantRouterNamesDeleteOp(id));
-        ops.add(pathBuilder.getTenantBridgeNamesDeleteOp(id));
-        ops.add(pathBuilder.getTenantRoutersDeleteOp(id));
-        ops.add(pathBuilder.getTenantBridgesDeleteOp(id));
-        ops.add(pathBuilder.getTenantDeleteOp(id));
-
-        log.debug("TenantOpBuilder.buildDelete exiting: ops count={}",
-                ops.size());
-        return ops;
+        log.debug("TenantOpBuilder.getTenantBridgesDeleteOp exiting.");
+        return op;
     }
+
+    /**
+     * Get the tenant bridge name create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant bridge name create.
+     */
+    public Op getTenantBridgeNamesCreateOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantBridgeNamesCreateOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getTenantBridgeNamesPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("TenantOpBuilder.getTenantBridgeNamesCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant bridge name delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant bridge name delete.
+     */
+    public Op getTenantBridgeNamesDeleteOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantBridgeNamesDeleteOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getTenantBridgeNamesPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("TenantOpBuilder.getTenantBridgeNamesDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant create.
+     */
+    public Op getTenantCreateOp(String id) {
+        log.debug("TenantOpBuilder.getTenantCreateOp entered: id={}", id);
+
+        String path = pathBuilder.getTenantPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("TenantOpBuilder.getTenantCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant delete.
+     */
+    public Op getTenantDeleteOp(String id) {
+        log.debug("TenantOpBuilder.getTenantDeleteOp entered: id={}", id);
+
+        String path = pathBuilder.getTenantPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("TenantOpBuilder.getTenantBridgeDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant router create.
+     */
+    public Op getTenantRoutersCreateOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantRoutersCreateOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getTenantRoutersPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("TenantOpBuilder.getTenantRoutersCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant router delete.
+     */
+    public Op getTenantRoutersDeleteOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantRoutersDeleteOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getTenantRoutersPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("TenantOpBuilder.getTenantRoutersDeleteOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router name create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant router name create.
+     */
+    public Op getTenantRouterNamesCreateOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantRouterNamesCreateOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getTenantRouterNamesPath(id);
+        Op op = zkDao.getPersistentCreateOp(path, null);
+
+        log.debug("TenantOpBuilder.getTenantRouterNamesCreateOp exiting.");
+        return op;
+    }
+
+    /**
+     * Get the tenant router name delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant router name delete.
+     */
+    public Op getTenantRouterNamesDeleteOp(String id) {
+        log.debug(
+                "TenantOpBuilder.getTenantRouterNamesDeleteOp entered: id={}",
+                id);
+
+        String path = pathBuilder.getTenantRouterNamesPath(id);
+        Op op = zkDao.getDeleteOp(path);
+
+        log.debug("TenantOpBuilder.getTenantRouterNamesDeleteOp exiting.");
+        return op;
+    }
+
 }
