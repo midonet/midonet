@@ -30,6 +30,44 @@ public class AdRoute extends UriResource {
     private UUID bgpId = null;
 
     /**
+     * Constructor
+     */
+    public AdRoute() {
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of ad route
+     * @param config
+     *            AdRouteConfig object
+     */
+    public AdRoute(UUID id, AdRouteConfig config) {
+        this(id, config.nwPrefix.getHostAddress(), config.prefixLength,
+                config.bgpId);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of ad route
+     * @param nwPrefix
+     *            Network IP prefix
+     * @param prefixLength
+     *            Network IP prefix length
+     * @param bgpId
+     *            BGP ID
+     */
+    public AdRoute(UUID id, String nwPrefix, byte prefixLength, UUID bgpId) {
+        this.id = id;
+        this.nwPrefix = nwPrefix;
+        this.prefixLength = prefixLength;
+        this.bgpId = bgpId;
+    }
+
+    /**
      * Get AdRoute ID.
      *
      * @return AdRoute ID.
@@ -124,12 +162,14 @@ public class AdRoute extends UriResource {
         }
     }
 
-    public static AdRoute createAdRoute(UUID id, AdRouteConfig config) {
-        AdRoute adRoute = new AdRoute();
-        adRoute.setNwPrefix(config.nwPrefix.getHostAddress());
-        adRoute.setPrefixLength(config.prefixLength);
-        adRoute.setBgpId(config.bgpId);
-        adRoute.setId(id);
-        return adRoute;
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", nwPrefix=" + nwPrefix + ", prefixLength="
+                + prefixLength + ", bgp=" + bgpId;
     }
 }

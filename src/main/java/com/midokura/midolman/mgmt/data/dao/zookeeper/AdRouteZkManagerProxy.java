@@ -25,7 +25,8 @@ import com.midokura.midolman.state.ZkNodeEntry;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao {
+public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao,
+        OwnerQueryable {
 
     private AdRouteZkManager zkManager = null;
 
@@ -62,7 +63,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao {
      */
     @Override
     public AdRoute get(UUID id) throws StateAccessException {
-        return AdRoute.createAdRoute(id, zkManager.get(id).value);
+        return new AdRoute(id, zkManager.get(id).value);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class AdRouteZkManagerProxy extends ZkMgmtManager implements AdRouteDao {
         List<ZkNodeEntry<UUID, AdRouteConfig>> entries = null;
         entries = zkManager.list(bgpId);
         for (ZkNodeEntry<UUID, AdRouteConfig> entry : entries) {
-            adRoutes.add(AdRoute.createAdRoute(entry.key, entry.value));
+            adRoutes.add(new AdRoute(entry.key, entry.value));
         }
         return adRoutes;
     }

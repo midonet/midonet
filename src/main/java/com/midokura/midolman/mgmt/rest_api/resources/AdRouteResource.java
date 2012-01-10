@@ -77,7 +77,7 @@ public class AdRouteResource {
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
         AdRouteDao dao = daoFactory.getAdRouteDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException(
                     "Can only see your own advertised route.");
         }
@@ -116,7 +116,7 @@ public class AdRouteResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         AdRouteDao dao = daoFactory.getAdRouteDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException(
                     "Can only delete your own advertised route.");
         }

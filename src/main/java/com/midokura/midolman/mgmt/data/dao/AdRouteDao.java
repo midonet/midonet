@@ -11,7 +11,7 @@ import java.util.UUID;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.StateAccessException;
 
-public interface AdRouteDao extends OwnerQueryable {
+public interface AdRouteDao {
 
     UUID create(AdRoute adRoute) throws StateAccessException;
 
