@@ -3,13 +3,14 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.mgmt.auth;
+package com.midokura.midolman.mgmt.rest_api.jaxrs;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.dto.ErrorEntity;
 
 @Provider
