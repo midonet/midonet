@@ -31,6 +31,7 @@ import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
@@ -87,7 +88,7 @@ public class ChainResource {
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
         ChainDao dao = daoFactory.getChainDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own chain.");
         }
 
@@ -125,7 +126,7 @@ public class ChainResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         ChainDao dao = daoFactory.getChainDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException(
                     "Can only delete your own advertised route.");
         }
@@ -171,7 +172,7 @@ public class ChainResource {
          */
         @Path("/{name}" + UriManager.CHAINS)
         public RouterTableChainResource getChainTableResource(
-                @PathParam("name") String name) {
+                @PathParam("name") ChainTable name) {
             return new RouterTableChainResource(routerId, name);
         }
     }
@@ -182,7 +183,7 @@ public class ChainResource {
     public static class RouterTableChainResource {
 
         private UUID routerId = null;
-        private String table = null;
+        private ChainTable table = null;
 
         /**
          * Constructor
@@ -192,7 +193,7 @@ public class ChainResource {
          * @param table
          *            Chain table name.
          */
-        public RouterTableChainResource(UUID routerId, String table) {
+        public RouterTableChainResource(UUID routerId, ChainTable table) {
             this.routerId = routerId;
             this.table = table;
         }
@@ -231,7 +232,7 @@ public class ChainResource {
             ChainDao dao = daoFactory.getChainDao();
             List<Chain> chains = null;
             try {
-                chains = dao.listTableChains(routerId, table);
+                chains = dao.list(routerId, table);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;

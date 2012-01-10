@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
@@ -149,8 +150,8 @@ public class RuleResource {
 
         private boolean isChainOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getChainDao();
-            return AuthManager.isOwner(context, q, chainId);
+            ChainDao q = daoFactory.getChainDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, chainId);
         }
 
         /**

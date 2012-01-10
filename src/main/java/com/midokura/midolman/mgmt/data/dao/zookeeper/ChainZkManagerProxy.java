@@ -354,33 +354,10 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
     }
 
     @Override
-    public List<Chain> listTableChains(UUID routerId, String table)
-            throws StateAccessException {
-        List<Chain> result = new ArrayList<Chain>();
-        Set<String> ids = getChildren(mgmtPathManager.getRouterTableChainsPath(
-                routerId, table));
-        for (String id : ids) {
-            // For now, get each one.
-            result.add(get(UUID.fromString(id)));
-        }
-        return result;
-    }
-
-    @Override
-    public List<Chain> listNatChains(UUID routerId) throws StateAccessException {
-        return listTableChains(routerId, NAT_TABLE);
-    }
-
-    @Override
-    public List<Chain> list(UUID routerId) throws StateAccessException {
-        return listNatChains(routerId);
-    }
-
-    @Override
-    public Chain get(UUID routerId, String table, String name)
+    public Chain get(UUID routerId, ChainTable table, String name)
             throws StateAccessException {
         String namePath = mgmtPathManager.getRouterTableChainNamePath(routerId,
-                table.toLowerCase(), name.toLowerCase());
+                table.toString().toLowerCase(), name.toLowerCase());
         byte[] data = get(namePath);
         ChainNameMgmtConfig nameConfig = null;
         try {
@@ -421,5 +398,44 @@ public class ChainZkManagerProxy extends ZkMgmtManager implements ChainDao,
         OwnerQueryable manager = new RouterZkManagerProxy(zk,
                 pathManager.getBasePath(), mgmtPathManager.getBasePath());
         return manager.getOwner(chain.getRouterId());
+    }
+
+    @Override
+    public List<Chain> generateBuiltInChains(UUID routerId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Chain getByRule(UUID ruleId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public List<Chain> listTableChains(UUID routerId, String table)
+            throws StateAccessException {
+        List<Chain> result = new ArrayList<Chain>();
+        Set<String> ids = getChildren(mgmtPathManager.getRouterTableChainsPath(
+                routerId, table));
+        for (String id : ids) {
+            // For now, get each one.
+            result.add(get(UUID.fromString(id)));
+        }
+        return result;
+    }
+
+    public List<Chain> listNatChains(UUID routerId) throws StateAccessException {
+        return listTableChains(routerId, NAT_TABLE);
+    }
+
+    @Override
+    public List<Chain> list(UUID routerId) throws StateAccessException {
+        return listNatChains(routerId);
+    }
+
+    @Override
+    public List<Chain> list(UUID routerId, ChainTable table)
+            throws StateAccessException {
+        return listTableChains(routerId, table.toString());
     }
 }
