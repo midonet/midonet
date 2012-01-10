@@ -424,6 +424,7 @@ public class OpenVpnPortService implements PortService {
             return;
         }
         Process p = vpnIdToProcess.remove(serviceId);
+        log.info("stop openvpn process for serviceId {}", serviceId);
         p.destroy();
     }
 }
