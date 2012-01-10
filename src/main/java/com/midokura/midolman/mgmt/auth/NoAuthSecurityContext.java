@@ -1,5 +1,5 @@
 /*
- * @(#)NoAuthorizer        1.6 11/11/15
+ * @(#)NoAuthSecurityContext        1.6 11/11/15
  *
  * Copyright 2011 Midokura KK
  */
@@ -11,14 +11,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-public class NoAuthorizer implements SecurityContext {
+public class NoAuthSecurityContext implements SecurityContext {
 
     private Principal principal = null;
 
     @Context
     UriInfo uriInfo;
 
-    public NoAuthorizer() {
+    public NoAuthSecurityContext() {
         principal = new Principal() {
             @Override
             public String getName() {
@@ -42,17 +42,8 @@ public class NoAuthorizer implements SecurityContext {
         return true;
     }
 
-    // public void setTenantUser(TenantUser tenantUser) {
-    // this.tenantUser = tenantUser;
-    // }
-
-    // public TenantUser getTenantUser() {
-    // return tenantUser;
-    // }
-
     @Override
     public String getAuthenticationScheme() {
-        // return "Keystone";
         return "Mock";
     }
 }

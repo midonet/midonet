@@ -18,7 +18,7 @@ public class NoAuthFilter implements ContainerRequestFilter {
 
     @Override
     public ContainerRequest filter(ContainerRequest req) {
-        req.setSecurityContext(new NoAuthorizer());
+        req.setSecurityContext(new NoAuthSecurityContext());
         return req;
     }
 }

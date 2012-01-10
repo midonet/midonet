@@ -20,7 +20,7 @@ public class KeystoneAuthFilter implements ContainerRequestFilter {
     public ContainerRequest filter(ContainerRequest req) {
         TenantUser tu = (TenantUser) hsr
                 .getAttribute("com.midokura.midolman.mgmt.auth.TenantUser");
-        req.setSecurityContext(new Authorizer(tu));
+        req.setSecurityContext(new TenantUserSecurityContext(tu));
         return req;
     }
 }
