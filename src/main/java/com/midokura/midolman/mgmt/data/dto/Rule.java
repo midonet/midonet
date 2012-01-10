@@ -733,7 +733,7 @@ public class Rule extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + " chainId=" + chainId + ", type=" + type
+        return "id=" + id + ", chainId=" + chainId + ", type=" + type
                 + ", jumpChainId=" + jumpChainId + ", jumpChainName="
                 + jumpChainName + ", flowAction=" + flowAction + ", position="
                 + position + ", nwSrcAddress=" + nwSrcAddress

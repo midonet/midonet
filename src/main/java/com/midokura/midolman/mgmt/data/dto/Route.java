@@ -40,6 +40,40 @@ public class Route extends UriResource {
     private String type;
 
     /**
+     * Constructor
+     */
+    public Route() {
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            Route ID
+     * @param rt
+     *            com.midokura.midolman.layer3.Route object
+     */
+    public Route(UUID id, com.midokura.midolman.layer3.Route rt) {
+        this.id = id;
+        this.dstNetworkAddr = Net.convertIntAddressToString(rt.dstNetworkAddr);
+        this.dstNetworkLength = rt.dstNetworkLength;
+        this.nextHopGateway = Net.convertIntAddressToString(rt.nextHopGateway);
+        this.nextHopPort = rt.nextHopPort;
+        this.srcNetworkAddr = Net.convertIntAddressToString(rt.srcNetworkAddr);
+        this.srcNetworkLength = rt.srcNetworkLength;
+        this.weight = rt.weight;
+        this.routerId = rt.routerId;
+        this.attributes = rt.attributes;
+        if (rt.nextHop == NextHop.BLACKHOLE) {
+            this.type = Route.BlackHole;
+        } else if (rt.nextHop == NextHop.REJECT) {
+            this.type = Route.Reject;
+        } else {
+            this.type = Route.Normal;
+        }
+    }
+
+    /**
      * @return the id
      */
     public UUID getId() {
@@ -236,29 +270,18 @@ public class Route extends UriResource {
                 this.getAttributes(), this.getRouterId());
     }
 
-    public static Route createRoute(UUID id,
-            com.midokura.midolman.layer3.Route rt) {
-        Route route = new Route();
-        route.setDstNetworkAddr(Net
-                .convertIntAddressToString(rt.dstNetworkAddr));
-        route.setDstNetworkLength(rt.dstNetworkLength);
-        route.setNextHopGateway(Net
-                .convertIntAddressToString(rt.nextHopGateway));
-        route.setNextHopPort(rt.nextHopPort);
-        route.setSrcNetworkAddr(Net
-                .convertIntAddressToString(rt.srcNetworkAddr));
-        route.setSrcNetworkLength(rt.srcNetworkLength);
-        route.setWeight(rt.weight);
-        route.setRouterId(rt.routerId);
-        route.setAttributes(rt.attributes);
-        if (rt.nextHop == NextHop.BLACKHOLE) {
-            route.setType(Route.BlackHole);
-        } else if (rt.nextHop == NextHop.REJECT) {
-            route.setType(Route.Reject);
-        } else {
-            route.setType(Route.Normal);
-        }
-        route.setId(id);
-        return route;
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + " routerId=" + routerId + ", type=" + type
+                + ", srcNetworkAddr=" + srcNetworkAddr + ", srcNetworkLength="
+                + srcNetworkLength + ", dstNetworkAddr=" + dstNetworkAddr
+                + ", dstNetworkLength=" + dstNetworkLength + ", nextHopPort="
+                + nextHopPort + ", nextHopGateway=" + nextHopGateway
+                + ", weight=" + weight + ", attributes=" + attributes;
     }
 }

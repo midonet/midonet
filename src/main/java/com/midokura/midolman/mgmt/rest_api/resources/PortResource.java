@@ -36,7 +36,6 @@ import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
-import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.PortRouteResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -65,18 +64,6 @@ public class PortResource {
     @Path("/{id}" + UriManager.BGP)
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
         return new PortBgpResource(id);
-    }
-
-    /**
-     * Port resource locator for routes.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @returns PortRouteResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + UriManager.ROUTES)
-    public PortRouteResource getRouteResource(@PathParam("id") UUID id) {
-        return new PortRouteResource(id);
     }
 
     /**

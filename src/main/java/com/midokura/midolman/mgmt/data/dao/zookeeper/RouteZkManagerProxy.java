@@ -59,16 +59,16 @@ public class RouteZkManagerProxy extends ZkMgmtManager implements RouteDao,
      */
     @Override
     public Route get(UUID id) throws StateAccessException {
-        return Route.createRoute(id, zkManager.get(id).value);
+        return new Route(id, zkManager.get(id).value);
     }
 
     private List<Route> generateRouteList(
             List<ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route>> routes) {
         List<Route> routeList = new ArrayList<Route>();
         for (ZkNodeEntry<UUID, com.midokura.midolman.layer3.Route> entry : routes) {
-            Route router = Route.createRoute(entry.key, entry.value);
-            router.setId(entry.key);
-            routeList.add(router);
+            Route route = new Route(entry.key, entry.value);
+            route.setId(entry.key);
+            routeList.add(route);
         }
         return routeList;
     }
@@ -85,11 +85,6 @@ public class RouteZkManagerProxy extends ZkMgmtManager implements RouteDao,
     @Override
     public List<Route> list(UUID routerId) throws StateAccessException {
         return generateRouteList(zkManager.list(routerId));
-    }
-
-    @Override
-    public List<Route> listByPort(UUID portId) throws StateAccessException {
-        return generateRouteList(zkManager.listPortRoutes(portId));
     }
 
     @Override

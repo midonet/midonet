@@ -78,7 +78,7 @@ public class RouteResource {
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
         RouteDao dao = daoFactory.getRouteDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own route.");
         }
 
@@ -116,7 +116,7 @@ public class RouteResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         RouteDao dao = daoFactory.getRouteDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only delete your own route.");
         }
 
@@ -247,60 +247,5 @@ public class RouteResource {
             return Response.created(
                     UriManager.getRoute(uriInfo.getBaseUri(), id)).build();
         }
-    }
-
-    /**
-     * Sub-resource class for port's route.
-     */
-    public static class PortRouteResource {
-
-        private UUID portId = null;
-
-        /**
-         * Constructor
-         *
-         * @param portId
-         *            ID of a port.
-         */
-        PortRouteResource(UUID portId) {
-            this.portId = portId;
-        }
-
-        private boolean isPortOwner(SecurityContext context,
-                DaoFactory daoFactory) throws StateAccessException,
-                ZkStateSerializationException {
-            OwnerQueryable q = daoFactory.getPortDao();
-            return AuthManager.isOwner(context, q, portId);
-        }
-
-        /**
-         * Return a list of routes.
-         *
-         * @return A list of Route objects.
-         * @throws StateAccessException
-         * @throws UnauthorizedException
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public List<Route> list(@Context SecurityContext context,
-                @Context DaoFactory daoFactory) throws StateAccessException,
-                UnauthorizedException {
-
-            if (!isPortOwner(context, daoFactory)) {
-                throw new UnauthorizedException("Can only see your own routes.");
-            }
-
-            RouteDao dao = daoFactory.getRouteDao();
-            try {
-                return dao.listByPort(portId);
-            } catch (StateAccessException e) {
-                log.error("Error accessing data", e);
-                throw e;
-            } catch (Exception e) {
-                log.error("Unhandled error", e);
-                throw new UnknownRestApiException(e);
-            }
-        }
-
     }
 }
