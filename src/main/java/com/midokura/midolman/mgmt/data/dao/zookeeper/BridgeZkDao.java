@@ -17,8 +17,8 @@ import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
 
 /**
  * Proxy class to access ZooKeeper for bridge data.
@@ -30,7 +30,7 @@ public class BridgeZkDao {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkDao.class);
-    private final BridgeZkManager zkDao;
+    private final ZkManager zkDao;
     private final PathBuilder pathBuilder;
     private final BridgeSerializer serializer;
 
@@ -38,13 +38,13 @@ public class BridgeZkDao {
      * Constructor
      *
      * @param zkDao
-     *            BridgeZkManager object to access ZK data.
+     *            ZkManager object to access ZK data.
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
      *            BridgeSerializer object.
      */
-    public BridgeZkDao(BridgeZkManager zkDao, PathBuilder pathBuilder,
+    public BridgeZkDao(ZkManager zkDao, PathBuilder pathBuilder,
             BridgeSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;

@@ -18,8 +18,8 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
 
 /**
  * Proxy class to access ZooKeeper for router data.
@@ -31,7 +31,7 @@ public class RouterZkDao {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkDao.class);
-    private final RouterZkManager zkDao;
+    private final ZkManager zkDao;
     private final PathBuilder pathBuilder;
     private final RouterSerializer serializer;
 
@@ -39,13 +39,13 @@ public class RouterZkDao {
      * Constructor
      *
      * @param zkDao
-     *            RouterZkManager object to access ZK data.
+     *            ZkManager object to access ZK data.
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
      *            RouterSerializer object.
      */
-    public RouterZkDao(RouterZkManager zkDao, PathBuilder pathBuilder,
+    public RouterZkDao(ZkManager zkDao, PathBuilder pathBuilder,
             RouterSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
