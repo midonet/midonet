@@ -22,10 +22,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.ZkManager;
 
 public class TestTenantZkDao {
 
-    private TenantZkManager zkDaoMock = null;
+    private ZkManager zkDaoMock = null;
     private PathBuilder pathBuilderMock = null;
     private TenantZkDao dao = null;
     private final static String dummyPath = "/foo";
@@ -39,7 +40,7 @@ public class TestTenantZkDao {
 
     @Before
     public void setUp() throws Exception {
-        zkDaoMock = mock(TenantZkManager.class);
+        zkDaoMock = mock(ZkManager.class);
         pathBuilderMock = mock(PathBuilder.class);
         dao = new TenantZkDao(zkDaoMock, pathBuilderMock);
     }
