@@ -13,7 +13,6 @@ import javax.ws.rs.ext.Provider;
 import com.midokura.midolman.mgmt.auth.AuthChecker;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.DaoInitializationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.sun.jersey.core.spi.component.ComponentContext;
 import com.sun.jersey.core.spi.component.ComponentScope;

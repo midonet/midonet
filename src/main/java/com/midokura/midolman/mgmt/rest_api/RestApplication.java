@@ -10,6 +10,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import com.midokura.midolman.mgmt.rest_api.jaxrs.AuthInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ConfigInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.InvalidStateOperationExceptionMapper;
@@ -46,6 +47,7 @@ public class RestApplication extends Application {
         set.add(ApplicationResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
+        set.add(AuthInjectableProvider.class);
         set.add(UnauthorizedExceptionMapper.class);
         set.add(DataStoreInjectableProvider.class);
         set.add(ConfigInjectableProvider.class);
