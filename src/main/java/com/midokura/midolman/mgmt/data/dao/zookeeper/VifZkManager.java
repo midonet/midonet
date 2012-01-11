@@ -126,7 +126,7 @@ public class VifZkManager extends ZkMgmtManager implements VifDao,
                     "Could not deserialize VIF " + id + " to VifConfig", e,
                     VifConfig.class);
         }
-        return Vif.createVif(id, config);
+        return new Vif(id, config.portId);
     }
 
     @Override

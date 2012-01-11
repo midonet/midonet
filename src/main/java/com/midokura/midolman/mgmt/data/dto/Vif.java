@@ -26,6 +26,25 @@ public class Vif extends UriResource {
     private UUID portId;
 
     /**
+     * Constructor
+     */
+    public Vif() {
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the VIF
+     * @param portId
+     *            Port I
+     */
+    public Vif(UUID id, UUID portId) {
+        this.id = id;
+        this.portId = portId;
+    }
+
+    /**
      * @return the id
      */
     public UUID getId() {
@@ -63,16 +82,25 @@ public class Vif extends UriResource {
         return UriManager.getVif(getBaseUri(), id);
     }
 
+    /**
+     * Convert to VifConfig object.
+     *
+     * @return VifConfig object.
+     */
     public VifConfig toConfig() {
         VifConfig c = new VifConfig();
         c.portId = this.portId;
         return c;
     }
 
-    public static Vif createVif(UUID id, VifConfig c) {
-        Vif v = new Vif();
-        v.setId(id);
-        v.setPortId(c.portId);
-        return v;
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", portId=" + portId;
     }
+
 }

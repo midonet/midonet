@@ -61,7 +61,7 @@ public class VifResource {
     private boolean isPluggedToOwnPort(SecurityContext context, UUID vifId,
             DaoFactory daoFactory) throws StateAccessException {
         VifDao q = daoFactory.getVifDao();
-        return AuthManager.isOwner(context, q, vifId);
+        return AuthManager.isOwner(context, (OwnerQueryable) q, vifId);
     }
 
     /**
