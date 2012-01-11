@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkManager;
 import com.midokura.midolman.mgmt.data.dto.config.VifConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.VifSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
@@ -30,7 +29,7 @@ public class TestVifOpBuilder {
 
     @Before
     public void setUp() throws Exception {
-        zkDaoMock = Mockito.mock(VifZkManager.class);
+        zkDaoMock = Mockito.mock(ZkManager.class);
         pathBuilderMock = Mockito.mock(PathBuilder.class);
         serializerMock = Mockito.mock(VifSerializer.class);
         builder = new VifOpBuilder(zkDaoMock, pathBuilderMock,
