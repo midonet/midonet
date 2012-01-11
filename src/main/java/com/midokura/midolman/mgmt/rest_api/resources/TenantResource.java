@@ -23,7 +23,8 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.auth.AuthManager;
+import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
@@ -32,8 +33,6 @@ import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
-import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
-import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -52,15 +51,91 @@ public class TenantResource {
             .getLogger(TenantResource.class);
 
     /**
-     * Router resource locator for tenants.
+     * Handler for creating a tenant.
+     *
+     * @param tenant
+     *            Tenant object.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @param authorizer
+     *            Authorizer object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
+     * @returns Response object with 201 status code set if successful.
+     */
+    @POST
+    @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
+            MediaType.APPLICATION_JSON })
+    public Response create(Tenant tenant, @Context SecurityContext context,
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
+            @Context Authorizer authorizer) throws StateAccessException,
+            UnauthorizedException {
+
+        if (!authorizer.isAdmin(context)) {
+            throw new UnauthorizedException("Not authorized to create tenant.");
+        }
+
+        TenantDao dao = daoFactory.getTenantDao();
+        String id = null;
+        try {
+            id = dao.create(tenant);
+        } catch (StateAccessException e) {
+            log.error("StateAccessException error.");
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error.");
+            throw new UnknownRestApiException(e);
+        }
+        return Response.created(UriManager.getTenant(uriInfo.getBaseUri(), id))
+                .build();
+    }
+
+    /**
+     * Handler for deleting a tenant.
      *
      * @param id
      *            Tenant ID from the request.
-     * @returns TenantRouterResource object to handle sub-resource requests.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @param authorizer
+     *            Authorizer object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @throws UnauthorizedException
+     *             Authentication/authorization error.
      */
-    @Path("/{id}" + UriManager.ROUTERS)
-    public TenantRouterResource getRouterResource(@PathParam("id") String id) {
-        return new TenantRouterResource(id);
+    @DELETE
+    @Path("{id}")
+    public void delete(@PathParam("id") String id,
+            @Context SecurityContext context, @Context DaoFactory daoFactory,
+            @Context Authorizer authorizer) throws StateAccessException,
+            UnauthorizedException {
+
+        if (!authorizer.isAdmin(context)) {
+            throw new UnauthorizedException("Not authorized to delete tenant.");
+        }
+
+        TenantDao dao = daoFactory.getTenantDao();
+        try {
+            dao.delete(id);
+        } catch (NoStatePathException e) {
+            // Deleting a non-existing record is OK.
+            log.warn("The resource does not exist", e);
+        } catch (StateAccessException e) {
+            log.error("StateAccessException error.");
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error.");
+            throw new UnknownRestApiException(e);
+        }
     }
 
     /**
@@ -76,6 +151,18 @@ public class TenantResource {
     }
 
     /**
+     * Router resource locator for tenants.
+     *
+     * @param id
+     *            Tenant ID from the request.
+     * @returns TenantRouterResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + UriManager.ROUTERS)
+    public TenantRouterResource getRouterResource(@PathParam("id") String id) {
+        return new TenantRouterResource(id);
+    }
+
+    /**
      * Handler for listing all the tenants.
      *
      * @param context
@@ -84,6 +171,8 @@ public class TenantResource {
      *            Object that holds the request URI data.
      * @param daoFactory
      *            Data access factory object.
+     * @param authorizer
+     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @throws UnauthorizedException
@@ -94,10 +183,12 @@ public class TenantResource {
     @Produces({ VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Tenant> list(@Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
-            throws UnauthorizedException, StateAccessException {
-        if (!AuthManager.isAdmin(context)) {
-            throw new UnauthorizedException("Must be an admin to list tenants.");
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
+            @Context Authorizer authorizer) throws UnauthorizedException,
+            StateAccessException {
+
+        if (!authorizer.isAdmin(context)) {
+            throw new UnauthorizedException("Not authorized to view tenants.");
         }
 
         TenantDao dao = daoFactory.getTenantDao();
@@ -105,10 +196,10 @@ public class TenantResource {
         try {
             tenants = dao.list();
         } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
+            log.error("StateAccessException error.");
             throw e;
         } catch (Exception e) {
-            log.error("Unhandled error", e);
+            log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
 
@@ -116,87 +207,6 @@ public class TenantResource {
             resource.setBaseUri(uriInfo.getBaseUri());
         }
         return tenants;
-    }
-
-    /**
-     * Handler for deleting a tenant.
-     *
-     * @param id
-     *            Tenant ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @throws StateAccessException
-     *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
-     */
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") String id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory)
-            throws StateAccessException, UnauthorizedException {
-        if (!AuthManager.isAdmin(context)) {
-            throw new UnauthorizedException(
-                    "Must be an admin to delete a tenant.");
-        }
-
-        TenantDao dao = daoFactory.getTenantDao();
-        try {
-            dao.delete(id);
-        } catch (NoStatePathException e) {
-            // Deleting a non-existing record is OK.
-            log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-    }
-
-    /**
-     * Handler for creating a tenant.
-     *
-     * @param tenant
-     *            Tenant object.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @throws StateAccessException
-     *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
-     * @returns Response object with 201 status code set if successful.
-     */
-    @POST
-    @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
-            MediaType.APPLICATION_JSON })
-    public Response create(Tenant tenant, @Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
-            throws StateAccessException, UnauthorizedException {
-        if (!AuthManager.isAdmin(context)) {
-            throw new UnauthorizedException("Must be admin to create tenant.");
-        }
-
-        TenantDao dao = daoFactory.getTenantDao();
-        String id = null;
-        try {
-            id = dao.create(tenant);
-        } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
-        }
-        return Response.created(UriManager.getTenant(uriInfo.getBaseUri(), id))
-                .build();
     }
 
     /**
@@ -210,6 +220,8 @@ public class TenantResource {
      *            Object that holds the request URI data.
      * @param daoFactory
      *            Data access factory object.
+     * @param authorizer
+     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @throws UnauthorizedException
@@ -222,12 +234,12 @@ public class TenantResource {
             MediaType.APPLICATION_JSON })
     public Tenant get(@PathParam("id") String id,
             @Context SecurityContext context, @Context UriInfo uriInfo,
-            @Context DaoFactory daoFactory) throws UnauthorizedException,
-            StateAccessException {
+            @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+            throws UnauthorizedException, StateAccessException {
         TenantDao dao = daoFactory.getTenantDao();
-        if (!AuthManager.isAdmin(context)
-                && !context.getUserPrincipal().getName().equals(id)) {
-            throw new UnauthorizedException("Can only see your own tenant.");
+
+        if (!authorizer.tenantAuthorized(context, AuthAction.READ, id)) {
+            throw new UnauthorizedException("Not authorized to view tenants.");
         }
 
         Tenant tenant = null;

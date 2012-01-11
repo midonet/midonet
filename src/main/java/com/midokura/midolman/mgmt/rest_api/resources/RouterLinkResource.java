@@ -1,7 +1,7 @@
 /*
- * @(#)VifResource        1.6 11/09/24
+ * @(#)RouterLinkResource        1.6 12/1/11
  *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -28,36 +28,42 @@ import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.VifDao;
+import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
+import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.data.dto.Vif;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
-import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Root resource class for VIFs.
- *
- * @version 1.6 24 Sept 2011
- * @author Ryu Ishimoto
+ * Sub-resource class for router's peer router.
  */
-public class VifResource {
-    /*
-     * Implements REST API endpoints for VIFs.
-     */
+public class RouterLinkResource {
 
     private final static Logger log = LoggerFactory
-            .getLogger(VifResource.class);
+            .getLogger(RouterLinkResource.class);
+    private UUID routerId = null;
 
     /**
-     * Handler to create a VIF.
+     * Constructor
      *
-     * @param context
-     *            Object that holds the security data.
+     * @param routerId
+     *            ID of a router.
+     */
+    public RouterLinkResource(UUID routerId) {
+        this.routerId = routerId;
+    }
+
+    /**
+     * Handler for creating a router to router link.
+     *
+     * @param port
+     *            LogicalRouterPort object.
      * @param uriInfo
      *            Object that holds the request URI data.
+     * @param context
+     *            Object that holds the security data.
      * @param daoFactory
      *            Data access factory object.
      * @param authorizer
@@ -66,28 +72,29 @@ public class VifResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @returns Response object with 201 status code set if successful.
+     * @returns Response object with 201 status code set if successful. Body is
+     *          set to PeerRouterLink.
      */
     @POST
-    @Consumes({ VendorMediaType.APPLICATION_VIF_JSON,
+    @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(Vif vif, @Context UriInfo uriInfo,
+    @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
+            MediaType.APPLICATION_JSON })
+    public Response create(LogicalRouterPort port, @Context UriInfo uriInfo,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
-        if (vif.getPortId() == null) {
-            throw new IllegalArgumentException("Port ID is missing");
-        }
 
-        VifDao dao = daoFactory.getVifDao();
-        UUID id = null;
+        RouterLinkDao dao = daoFactory.getRouterLinkDao();
+        port.setDeviceId(routerId);
+        PeerRouterLink peerRouter = null;
         try {
-            if (!authorizer.vifAuthorized(context, AuthAction.WRITE,
-                    vif.getPortId())) {
+            if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
+                    port.getDeviceId(), port.getPeerRouterId())) {
                 throw new UnauthorizedException(
-                        "Not authorized to plug VIF to this port.");
+                        "Not authorized to link these routers.");
             }
-            id = dao.create(vif);
+            peerRouter = dao.create(port);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -98,15 +105,16 @@ public class VifResource {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
-        return Response.created(UriManager.getVif(uriInfo.getBaseUri(), id))
-                .build();
+
+        peerRouter.setBaseUri(uriInfo.getBaseUri());
+        return Response.created(peerRouter.getUri()).entity(peerRouter).build();
     }
 
     /**
-     * Handler to deleting a VIF.
+     * Handler to deleting a router link.
      *
-     * @param id
-     *            VIF ID from the request.
+     * @param peerId
+     *            Peer router ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param daoFactory
@@ -120,23 +128,19 @@ public class VifResource {
      */
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
+    public void delete(@PathParam("id") UUID peerId,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
-        VifDao dao = daoFactory.getVifDao();
+        RouterLinkDao dao = daoFactory.getRouterLinkDao();
         try {
-            Vif vif = dao.get(id);
-            if (!authorizer.vifAuthorized(context, AuthAction.WRITE,
-                    vif.getPortId())) {
+            if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
+                    routerId, peerId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to unplug VIF to this port.");
+                        "Not authorized to unlink these routers.");
             }
-            dao.delete(id);
-        } catch (NoStatePathException e) {
-            // Deleting a non-existing record is OK.
-            log.warn("The resource does not exist", e);
+            dao.delete(routerId, peerId);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -150,10 +154,10 @@ public class VifResource {
     }
 
     /**
-     * Handler to getting a VIF.
+     * Handler to getting a router to router link.
      *
      * @param id
-     *            VIF ID from the request.
+     *            Peer router ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param uriInfo
@@ -166,26 +170,25 @@ public class VifResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A VIF object.
+     * @return A PeerRouterLink object.
      */
     @GET
     @Path("{id}")
-    @Produces({ VendorMediaType.APPLICATION_VIF_JSON,
+    @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
             MediaType.APPLICATION_JSON })
-    public Vif get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+    public PeerRouterLink get(@PathParam("id") UUID id,
+            @Context SecurityContext context, @Context UriInfo uriInfo,
+            @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+            throws StateAccessException, UnauthorizedException {
 
-        VifDao dao = daoFactory.getVifDao();
-        Vif vif = null;
+        RouterLinkDao dao = daoFactory.getRouterLinkDao();
+        PeerRouterLink link = null;
         try {
-            vif = dao.get(id);
-            if (!authorizer.portAuthorized(context, AuthAction.READ,
-                    vif.getPortId())) {
+            if (!authorizer.routeAuthorized(context, AuthAction.READ, routerId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to view this VIF.");
+                        "Not authorized to view this router link.");
             }
+            link = dao.get(routerId, id);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -196,12 +199,12 @@ public class VifResource {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
-        vif.setBaseUri(uriInfo.getBaseUri());
-        return vif;
+        link.setBaseUri(uriInfo.getBaseUri());
+        return link;
     }
 
     /**
-     * Handler to list VIFs.
+     * Handler to list router links.
      *
      * @param context
      *            Object that holds the security data.
@@ -215,24 +218,24 @@ public class VifResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of VIF objects.
+     * @return A list of PeerRouterLink objects.
      */
     @GET
-    @Produces({ VendorMediaType.APPLICATION_VIF_COLLECTION_JSON,
+    @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public List<Vif> list(@Context SecurityContext context,
+    public List<PeerRouterLink> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
-        VifDao dao = daoFactory.getVifDao();
-        List<Vif> vifs = null;
+        RouterLinkDao dao = daoFactory.getRouterLinkDao();
+        List<PeerRouterLink> links = null;
         try {
-            if (!authorizer.isAdmin(context)) {
+            if (!authorizer.routeAuthorized(context, AuthAction.READ, routerId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to view all VIFs.");
+                        "Not authorized to view these router links.");
             }
-            vifs = dao.list();
+            links = dao.list(routerId);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -244,9 +247,10 @@ public class VifResource {
             throw new UnknownRestApiException(e);
         }
 
-        for (UriResource resource : vifs) {
+        for (UriResource resource : links) {
             resource.setBaseUri(uriInfo.getBaseUri());
         }
-        return vifs;
+        return links;
     }
+
 }

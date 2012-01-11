@@ -1,19 +1,20 @@
 /*
- * @(#)BgpResource        1.6 11/09/05
+ * @(#)PortBgpResource        1.6 12/1/11
  *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
+import java.util.List;
 import java.util.UUID;
 
-import javax.ws.rs.DELETE;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -26,31 +27,39 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
-import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Root resource class for bgps.
- *
- * @version 1.6 11 Sept 2011
- * @author Yoshi Tamura
+ * Sub-resource class for port's BGP.
  */
-public class BgpResource {
-    /*
-     * Implements REST API end points for bgps.
-     */
+public class PortBgpResource {
+
+    private final UUID portId;
 
     private final static Logger log = LoggerFactory
-            .getLogger(BgpResource.class);
+            .getLogger(PortBgpResource.class);
 
     /**
-     * Handler to deleting BGP.
+     * Constructor
      *
-     * @param id
-     *            BGP ID from the request.
+     * @param portId
+     *            ID of a port.
+     */
+    public PortBgpResource(UUID portId) {
+        this.portId = portId;
+    }
+
+    /**
+     * Handler for creating BGP.
+     *
+     * @param chain
+     *            BGP object.
+     * @param uriInfo
+     *            Object that holds the request URI data.
      * @param context
      *            Object that holds the security data.
      * @param daoFactory
@@ -61,24 +70,25 @@ public class BgpResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
+     * @returns Response object with 201 status code set if successful.
      */
-    @DELETE
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
+    @POST
+    @Consumes({ VendorMediaType.APPLICATION_BGP_JSON,
+            MediaType.APPLICATION_JSON })
+    public Response create(Bgp bgp, @Context UriInfo uriInfo,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
         BgpDao dao = daoFactory.getBgpDao();
+        bgp.setPortId(portId);
+        UUID id = null;
         try {
-            if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, id)) {
+            if (!authorizer.portAuthorized(context, AuthAction.WRITE, portId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to delete this BGP.");
+                        "Not authorized to add BGP to this port.");
             }
-            dao.delete(id);
-        } catch (NoStatePathException e) {
-            // Deleting a non-existing record is OK.
-            log.warn("The resource does not exist", e);
+            id = dao.create(bgp);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -89,13 +99,14 @@ public class BgpResource {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
+
+        return Response.created(UriManager.getBgp(uriInfo.getBaseUri(), id))
+                .build();
     }
 
     /**
-     * Handler to getting BGP.
+     * Handler to getting a list of BGPs.
      *
-     * @param id
-     *            BGP ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param uriInfo
@@ -108,25 +119,24 @@ public class BgpResource {
      *             Data access error.
      * @throws UnauthorizedException
      *             Authentication/authorization error.
-     * @return A BGP object.
+     * @return A list of BGP objects.
      */
     @GET
-    @Path("{id}")
-    @Produces({ VendorMediaType.APPLICATION_BGP_JSON,
+    @Produces({ VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public Bgp get(@PathParam("id") UUID id, @Context SecurityContext context,
+    public List<Bgp> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
         BgpDao dao = daoFactory.getBgpDao();
-        Bgp bgp = null;
+        List<Bgp> bgps = null;
         try {
-            if (!authorizer.bgpAuthorized(context, AuthAction.READ, id)) {
+            if (!authorizer.portAuthorized(context, AuthAction.READ, portId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to view this BGP.");
+                        "Not authorized to view these BGPs.");
             }
-            bgp = dao.get(id);
+            bgps = dao.list(portId);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -137,19 +147,9 @@ public class BgpResource {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
-        bgp.setBaseUri(uriInfo.getBaseUri());
-        return bgp;
-    }
-
-    /**
-     * Advertising route resource locator for chains.
-     *
-     * @param id
-     *            BGP ID from the request.
-     * @returns BgpAdRouteResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + UriManager.AD_ROUTES)
-    public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
-        return new BgpAdRouteResource(id);
+        for (UriResource resource : bgps) {
+            resource.setBaseUri(uriInfo.getBaseUri());
+        }
+        return bgps;
     }
 }
