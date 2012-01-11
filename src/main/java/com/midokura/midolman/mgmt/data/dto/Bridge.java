@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 
 /**
  * Class representing Virtual Bridge.
@@ -26,6 +27,42 @@ public class Bridge extends UriResource {
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
+
+    /**
+     * Constructor.
+     */
+    public Bridge() {
+        this(null, null, null);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the bridge
+     * @param config
+     *            BridgeMgmtConfig object.
+     */
+    public Bridge(UUID id, BridgeMgmtConfig config) {
+        this(id, config.name, config.tenantId);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the bridge.
+     * @param name
+     *            Name of the bridge.
+     * @param tenantId
+     *            ID of the tenant that owns the bridge.
+     */
+    public Bridge(UUID id, String name, String tenantId) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.tenantId = tenantId;
+    }
 
     /**
      * Get bridge ID.
@@ -100,6 +137,15 @@ public class Bridge extends UriResource {
     }
 
     /**
+     * Convert this object to BridgeConfig object
+     *
+     * @return BridgeConfig object
+     */
+    public BridgeConfig toConfig() {
+        return new BridgeConfig();
+    }
+
+    /**
      * Convert this object to BridgeMgmtConfig object.
      *
      * @return BridgeMgmtConfig object.
@@ -109,28 +155,21 @@ public class Bridge extends UriResource {
     }
 
     /**
-     * Convert BridgeMgmtConfig object to Bridge object.
-     *
-     * @param id
-     *            ID of the object.
-     * @param config
-     *            BridgeMgmtConfig object.
-     * @return Bridge object.
-     */
-    public static Bridge createBridge(UUID id, BridgeMgmtConfig config) {
-        Bridge b = new Bridge();
-        b.setName(config.name);
-        b.setTenantId(config.tenantId);
-        b.setId(id);
-        return b;
-    }
-
-    /**
      * Convert this object to BridgeNameMgmtConfig object.
      *
      * @return BridgeNameMgmtConfig object.
      */
     public BridgeNameMgmtConfig toNameMgmtConfig() {
         return new BridgeNameMgmtConfig(this.getId());
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", name=" + name + ", tenantId=" + tenantId;
     }
 }

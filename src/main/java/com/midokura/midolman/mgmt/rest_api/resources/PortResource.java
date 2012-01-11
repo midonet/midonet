@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
@@ -179,8 +180,8 @@ public class PortResource {
 
         private boolean isBridgeOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getBridgeDao();
-            return AuthManager.isOwner(context, q, bridgeId);
+            BridgeDao q = daoFactory.getBridgeDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, bridgeId);
         }
 
         /**

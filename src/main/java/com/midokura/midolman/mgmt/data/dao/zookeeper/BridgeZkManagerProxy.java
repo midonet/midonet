@@ -184,7 +184,7 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements BridgeDao,
                     "Serialization error occurred while getting the bridge with UUID "
                             + id, e, BridgeMgmtConfig.class);
         }
-        return Bridge.createBridge(id, config);
+        return new Bridge(id, config.name, config.tenantId);
     }
 
     @Override
@@ -213,5 +213,11 @@ public class BridgeZkManagerProxy extends ZkMgmtManager implements BridgeDao,
     @Override
     public String getOwner(UUID id) throws StateAccessException {
         return get(id).getTenantId();
+    }
+
+    @Override
+    public Bridge getByPort(UUID portId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

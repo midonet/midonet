@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
@@ -90,7 +91,7 @@ public class BridgeResource {
             @Context DaoFactory daoFactory) throws StateAccessException,
             UnauthorizedException {
         BridgeDao dao = daoFactory.getBridgeDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own bridge.");
         }
 
@@ -135,7 +136,7 @@ public class BridgeResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         BridgeDao dao = daoFactory.getBridgeDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable)dao, id)) {
             throw new UnauthorizedException("Can only update your own bridge.");
         }
 
@@ -172,7 +173,7 @@ public class BridgeResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         BridgeDao dao = daoFactory.getBridgeDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable)dao, id)) {
             throw new UnauthorizedException("Can only update your own bridge.");
         }
 
