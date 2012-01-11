@@ -64,8 +64,7 @@ public class RouterOpBuilder {
      */
     public Op getRouterCreateOp(UUID id, RouterMgmtConfig config)
             throws ZkStateSerializationException {
-        log.debug("RouterOpBuilder.getRouterCreateOp entered: id=" + id
-                + " config=" + config);
+        log.debug("RouterOpBuilder.getRouterCreateOp entered: id={}", id);
 
         String path = pathBuilder.getRouterPath(id);
         byte[] data = serializer.serialize(config);
@@ -124,8 +123,7 @@ public class RouterOpBuilder {
         RouterZkManager routerZkDao = zkDao;
         List<Op> ops = routerZkDao.prepareRouterDelete(id);
 
-        log.debug(
-                "RouterOpBuilder.getRouterDeleteOps exiting: ops count={}",
+        log.debug("RouterOpBuilder.getRouterDeleteOps exiting: ops count={}",
                 ops.size());
         return ops;
     }
@@ -138,9 +136,7 @@ public class RouterOpBuilder {
      * @return Op for router link create.
      */
     public Op getRouterRoutersCreateOp(UUID id) {
-        log.debug(
-                "RouterOpBuilder.getRouterRoutersCreateOp entered: id={}",
-                id);
+        log.debug("RouterOpBuilder.getRouterRoutersCreateOp entered: id={}", id);
 
         String path = pathBuilder.getRouterRoutersPath(id);
         Op op = zkDao.getPersistentCreateOp(path, null);
@@ -151,8 +147,8 @@ public class RouterOpBuilder {
 
     public Op getRouterRouterCreateOp(UUID id, UUID peerId,
             PeerRouterConfig config) throws ZkStateSerializationException {
-        log.debug("RouterOpBuilder.getRouterRouterCreateOp entered: id="
-                + id + ", peerId=" + peerId + ", config=", config);
+        log.debug("RouterOpBuilder.getRouterRouterCreateOp entered: id=" + id
+                + ", peerId=" + peerId);
 
         String path = pathBuilder.getRouterRouterPath(id, peerId);
         byte[] data = serializer.serialize(config);
@@ -170,9 +166,7 @@ public class RouterOpBuilder {
      * @return Op for router link delete..
      */
     public Op getRouterRoutersDeleteOp(UUID id) {
-        log.debug(
-                "RouterOpBuilder.getRouterRoutersDeleteOp entered: id={}",
-                id);
+        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp entered: id={}", id);
 
         String path = pathBuilder.getRouterRoutersPath(id);
         Op op = zkDao.getDeleteOp(path);
@@ -189,8 +183,8 @@ public class RouterOpBuilder {
      * @return Op for router link delete..
      */
     public Op getRouterRouterDeleteOp(UUID id, UUID peerRouterId) {
-        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp entered: id="
-                + id + ", peer=" + peerRouterId);
+        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp entered: id=" + id
+                + ", peer=" + peerRouterId);
 
         String path = pathBuilder.getRouterRouterPath(id, peerRouterId);
         Op op = zkDao.getDeleteOp(path);
@@ -210,8 +204,7 @@ public class RouterOpBuilder {
      */
     public Op getRouterSetDataOp(UUID id, RouterMgmtConfig config)
             throws ZkStateSerializationException {
-        log.debug("RouterOpBuilder.getRouterSetDataOp entered: id=" + id
-                + " config=" + config);
+        log.debug("RouterOpBuilder.getRouterSetDataOp entered: id={}", id);
 
         String path = pathBuilder.getRouterPath(id);
         byte[] data = serializer.serialize(config);
@@ -311,8 +304,8 @@ public class RouterOpBuilder {
      * @return Op for router table create.
      */
     public Op getRouterTableCreateOp(UUID id, ChainTable table) {
-        log.debug("RouterOpBuilder.getRouterTableCreateOp entered: id="
-                + id + ", table=" + table);
+        log.debug("RouterOpBuilder.getRouterTableCreateOp entered: id=" + id
+                + ", table=" + table);
 
         String path = pathBuilder.getRouterTablePath(id, table);
         Op op = zkDao.getPersistentCreateOp(path, null);
@@ -331,8 +324,8 @@ public class RouterOpBuilder {
      * @return Op for router table delete.
      */
     public Op getRouterTableDeleteOp(UUID id, ChainTable table) {
-        log.debug("RouterOpBuilder.getRouterTableDeleteOp entered: id="
-                + id + ", table=" + table);
+        log.debug("RouterOpBuilder.getRouterTableDeleteOp entered: id=" + id
+                + ", table=" + table);
 
         String path = pathBuilder.getRouterTablePath(id, table);
         Op op = zkDao.getDeleteOp(path);
@@ -349,8 +342,7 @@ public class RouterOpBuilder {
      * @return Op for router tables create.
      */
     public Op getRouterTablesCreateOp(UUID id) {
-        log.debug("RouterOpBuilder.getRouterTablesCreateOp entered: id={}",
-                id);
+        log.debug("RouterOpBuilder.getRouterTablesCreateOp entered: id={}", id);
 
         String path = pathBuilder.getRouterTablesPath(id);
         Op op = zkDao.getPersistentCreateOp(path, null);
@@ -367,8 +359,7 @@ public class RouterOpBuilder {
      * @return Op for router tables delete.
      */
     public Op getRouterTablesDeleteOp(UUID id) {
-        log.debug("RouterOpBuilder.getRouterTablesDeleteOp entered: id={}",
-                id);
+        log.debug("RouterOpBuilder.getRouterTablesDeleteOp entered: id={}", id);
 
         String path = pathBuilder.getRouterTablesPath(id);
         Op op = zkDao.getDeleteOp(path);
@@ -431,7 +422,7 @@ public class RouterOpBuilder {
     public Op getTenantRouterNameCreateOp(String tenantId, String name,
             RouterNameMgmtConfig config) throws ZkStateSerializationException {
         log.debug("RouterOpBuilder.getTenantRouterNameCreateOp entered: tenantId="
-                + tenantId + ", name=" + name + ", config=" + config);
+                + tenantId + ", name=" + name);
 
         String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
         byte[] data = serializer.serialize(config);

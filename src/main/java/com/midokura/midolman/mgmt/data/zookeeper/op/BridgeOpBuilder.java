@@ -64,8 +64,7 @@ public class BridgeOpBuilder {
      */
     public Op getBridgeCreateOp(UUID id, BridgeMgmtConfig config)
             throws ZkStateSerializationException {
-        log.debug("BridgeOpBuilder.getBridgeCreateOp entered: id=" + id
-                + " config=" + config);
+        log.debug("BridgeOpBuilder.getBridgeCreateOp entered: id={}", id);
 
         String path = pathBuilder.getBridgePath(id);
         byte[] data = serializer.serialize(config);
@@ -128,8 +127,7 @@ public class BridgeOpBuilder {
         ZkNodeEntry<UUID, BridgeConfig> bridgeNode = bridgeZkDao.get(id);
         List<Op> ops = bridgeZkDao.prepareBridgeDelete(bridgeNode);
 
-        log.debug(
-                "BridgeOpBuilder.getBridgeDeleteOps exiting: ops count={}",
+        log.debug("BridgeOpBuilder.getBridgeDeleteOps exiting: ops count={}",
                 ops.size());
         return ops;
     }
@@ -212,7 +210,7 @@ public class BridgeOpBuilder {
     public Op getTenantBridgeNameCreateOp(String tenantId, String name,
             BridgeNameMgmtConfig config) throws ZkStateSerializationException {
         log.debug("BridgeOpBuilder.getTenantBridgeNameCreateOp entered: tenantId="
-                + tenantId + ", name=" + name + ", config=" + config);
+                + tenantId + ", name=" + name);
 
         String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
         byte[] data = serializer.serialize(config);
