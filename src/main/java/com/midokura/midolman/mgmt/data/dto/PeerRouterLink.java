@@ -28,6 +28,48 @@ public class PeerRouterLink extends UriResource {
     private UUID peerRouterId = null;
 
     /**
+     * Constructor
+     */
+    public PeerRouterLink() {
+        super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param config
+     *            PeerRouterConfig object
+     * @param routerId
+     *            ID of the router
+     * @param peerRouterId
+     *            ID of the peer router.
+     */
+    public PeerRouterLink(PeerRouterConfig config, UUID routerId,
+            UUID peerRouterId) {
+        this(config.portId, config.peerPortId, routerId, peerRouterId);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param portId
+     *            ID of the port
+     * @param peerPortId
+     *            ID of the peer port
+     * @param routerId
+     *            ID of the router
+     * @param peerRouterId
+     *            ID of the peer router.
+     */
+    public PeerRouterLink(UUID portId, UUID peerPortId, UUID routerId,
+            UUID peerRouterId) {
+        this.portId = portId;
+        this.peerPortId = peerPortId;
+        this.routerId = routerId;
+        this.peerRouterId = peerRouterId;
+    }
+
+    /**
      * @return the portId
      */
     public UUID getPortId() {
@@ -95,14 +137,33 @@ public class PeerRouterLink extends UriResource {
         return UriManager.getRouterLink(getBaseUri(), routerId, peerRouterId);
     }
 
+    /**
+     * @return PeerRouterConfig object
+     */
     public PeerRouterConfig toConfig() {
         return new PeerRouterConfig(portId, peerPortId);
     }
 
-    public static PeerRouterLink createPeerRouterLink(PeerRouterConfig config) {
-        PeerRouterLink link = new PeerRouterLink();
-        link.setPortId(config.portId);
-        link.setPeerPortId(config.peerPortId);
-        return link;
+    /**
+     * Convert to LogicalRouterPort object
+     *
+     * @return LogicalRouterPort object
+     */
+    public LogicalRouterPort toLogicalRouterPort() {
+        LogicalRouterPort port = new LogicalRouterPort(portId, routerId);
+        port.setPeerId(peerPortId);
+        port.setPeerRouterId(peerRouterId);
+        return port;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "portId=" + portId + ", peerPortId=" + peerPortId
+                + ", routerId=" + routerId + ", peerRouterId=" + peerRouterId;
     }
 }

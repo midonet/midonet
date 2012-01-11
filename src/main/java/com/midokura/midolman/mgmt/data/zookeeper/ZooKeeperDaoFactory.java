@@ -20,6 +20,7 @@ import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
+import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
@@ -214,5 +215,11 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private ZkManager getZkDao() throws StateAccessException {
         return new ZkManager(getDirectory(), getRootPath());
+    }
+
+    @Override
+    public RouterLinkDao getRouterLinkDao() throws StateAccessException {
+        return new RouterZkManagerProxy(getDirectory(), this.rootPath,
+                this.rootMgmtPath);
     }
 }

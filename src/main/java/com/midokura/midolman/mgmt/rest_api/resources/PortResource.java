@@ -30,6 +30,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
+import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -292,8 +293,8 @@ public class PortResource {
 
         private boolean isRouterOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getRouterDao();
-            return AuthManager.isOwner(context, q, routerId);
+            RouterDao q = daoFactory.getRouterDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, routerId);
         }
 
         /**

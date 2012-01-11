@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
+import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
@@ -36,7 +37,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.ShortUUID;
 
 public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
-        OwnerQueryable {
+        RouterLinkDao, OwnerQueryable {
 
     private RouterZkManager zkManager = null;
     private final static Logger log = LoggerFactory
@@ -153,7 +154,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
         List<Op> ops = new ArrayList<Op>();
 
         // Get the peer info
-        PeerRouterLink link = getPeerRouterLink(routerId, peerRouterId);
+        PeerRouterLink link = get(routerId, peerRouterId);
         String path = mgmtPathManager.getRouterRouterPath(routerId,
                 peerRouterId);
         log.debug("Preparing to delete: " + path);
@@ -282,7 +283,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
     }
 
     @Override
-    public PeerRouterLink createLink(LogicalRouterPort port)
+    public PeerRouterLink create(LogicalRouterPort port)
             throws StateAccessException {
         // Check that they are not currently linked.
         if (exists(mgmtPathManager.getRouterRouterPath(port.getDeviceId(),
@@ -299,7 +300,7 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
     }
 
     @Override
-    public void deleteLink(UUID routerId, UUID peerRouterId)
+    public void delete(UUID routerId, UUID peerRouterId)
             throws StateAccessException {
         if (!exists(mgmtPathManager.getRouterRouterPath(routerId, peerRouterId))) {
             throw new IllegalArgumentException(
@@ -320,19 +321,19 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
                     "Could not deserialize router " + id
                             + " to RouterMgmtConfig", e, RouterMgmtConfig.class);
         }
-        return Router.createRouter(id, config);
+        return new Router(id, config);
     }
 
     @Override
-    public PeerRouterLink getPeerRouterLink(UUID routerId, UUID peerRouterId)
+    public PeerRouterLink get(UUID routerId, UUID peerRouterId)
             throws StateAccessException {
         byte[] data = get(
                 mgmtPathManager.getRouterRouterPath(routerId, peerRouterId),
                 null);
         PeerRouterLink link = null;
         try {
-            link = PeerRouterLink.createPeerRouterLink(deserialize(data,
-                    PeerRouterConfig.class));
+            PeerRouterConfig config = deserialize(data, PeerRouterConfig.class);
+            link = new PeerRouterLink(config, routerId, peerRouterId);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not deserialize peer router " + routerId
@@ -344,13 +345,12 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
     }
 
     @Override
-    public List<PeerRouterLink> listPeerRouterLinks(UUID id)
-            throws StateAccessException {
+    public List<PeerRouterLink> list(UUID id) throws StateAccessException {
         List<PeerRouterLink> result = new ArrayList<PeerRouterLink>();
         Set<String> routerIds = getChildren(
                 mgmtPathManager.getRouterRoutersPath(id), null);
         for (String routerId : routerIds) {
-            result.add(getPeerRouterLink(id, UUID.fromString(routerId)));
+            result.add(get(id, UUID.fromString(routerId)));
         }
         return result;
     }
@@ -383,4 +383,45 @@ public class RouterZkManagerProxy extends ZkMgmtManager implements RouterDao,
         return get(id).getTenantId();
     }
 
+    @Override
+    public Router getByAdRoute(UUID adRouteId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Router getByBgp(UUID bgpId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Router getByChain(UUID chainId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Router getByPort(UUID portId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Router getByRoute(UUID routeId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Router getByRule(UUID ruleId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Router getByVpn(UUID vpnId) throws StateAccessException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

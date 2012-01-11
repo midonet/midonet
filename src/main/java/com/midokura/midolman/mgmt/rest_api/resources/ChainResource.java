@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
+import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
@@ -200,8 +201,8 @@ public class ChainResource {
 
         private boolean isRouterOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getRouterDao();
-            return AuthManager.isOwner(context, q, routerId);
+            RouterDao q = daoFactory.getRouterDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, routerId);
         }
 
         /**
@@ -310,8 +311,8 @@ public class ChainResource {
 
         private boolean isRouterOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException {
-            OwnerQueryable q = daoFactory.getRouterDao();
-            return AuthManager.isOwner(context, q, routerId);
+            RouterDao q = daoFactory.getRouterDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, routerId);
         }
 
         /**

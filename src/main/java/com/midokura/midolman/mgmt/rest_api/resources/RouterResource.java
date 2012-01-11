@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.auth.AuthManager;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
+import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.Router;
@@ -143,7 +145,7 @@ public class RouterResource {
             @Context DaoFactory daoFactory) throws UnauthorizedException,
             StateAccessException {
         RouterDao dao = daoFactory.getRouterDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only see your own router.");
         }
 
@@ -187,7 +189,7 @@ public class RouterResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         RouterDao dao = daoFactory.getRouterDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only update your own router.");
         }
 
@@ -225,7 +227,7 @@ public class RouterResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory)
             throws StateAccessException, UnauthorizedException {
         RouterDao dao = daoFactory.getRouterDao();
-        if (!AuthManager.isOwner(context, dao, id)) {
+        if (!AuthManager.isOwner(context, (OwnerQueryable) dao, id)) {
             throw new UnauthorizedException("Can only update your own router.");
         }
 
@@ -400,12 +402,12 @@ public class RouterResource {
                         "Must be a service provider to link routers.");
             }
 
-            RouterDao dao = daoFactory.getRouterDao();
+            RouterLinkDao dao = daoFactory.getRouterLinkDao();
             port.setDeviceId(routerId);
 
             PeerRouterLink peerRouter = null;
             try {
-                peerRouter = dao.createLink(port);
+                peerRouter = dao.create(port);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -444,9 +446,9 @@ public class RouterResource {
                         "Must be a service provider to delete router link.");
             }
 
-            RouterDao dao = daoFactory.getRouterDao();
+            RouterLinkDao dao = daoFactory.getRouterLinkDao();
             try {
-                dao.deleteLink(routerId, peerId);
+                dao.delete(routerId, peerId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -482,15 +484,15 @@ public class RouterResource {
                 @Context DaoFactory daoFactory) throws StateAccessException,
                 UnauthorizedException {
 
-            RouterDao dao = daoFactory.getRouterDao();
-            if (!AuthManager.isOwner(context, dao , routerId)) {
+            RouterLinkDao dao = daoFactory.getRouterLinkDao();
+            if (!AuthManager.isOwner(context, (OwnerQueryable) dao, routerId)) {
                 throw new UnauthorizedException(
                         "Must be a owner to see the linked routers.");
             }
 
             PeerRouterLink link = null;
             try {
-                link = dao.getPeerRouterLink(routerId, id);
+                link = dao.get(routerId, id);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;
@@ -528,10 +530,10 @@ public class RouterResource {
                         "Must be a service provider to see the linked routers.");
             }
 
-            RouterDao dao = daoFactory.getRouterDao();
+            RouterLinkDao dao = daoFactory.getRouterLinkDao();
             List<PeerRouterLink> links = null;
             try {
-                links = dao.listPeerRouterLinks(routerId);
+                links = dao.list(routerId);
             } catch (StateAccessException e) {
                 log.error("Error accessing data", e);
                 throw e;

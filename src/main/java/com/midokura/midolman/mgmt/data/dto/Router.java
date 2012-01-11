@@ -28,6 +28,42 @@ public class Router extends UriResource {
     private String tenantId = null;
 
     /**
+     * Constructor.
+     */
+    public Router() {
+        this(null, null, null);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the router
+     * @param config
+     *            RouterMgmtConfig object.
+     */
+    public Router(UUID id, RouterMgmtConfig config) {
+        this(id, config.name, config.tenantId);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID of the router.
+     * @param name
+     *            Name of the router.
+     * @param tenantId
+     *            ID of the tenant that owns the router.
+     */
+    public Router(UUID id, String name, String tenantId) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.tenantId = tenantId;
+    }
+
+    /**
      * Get router ID.
      *
      * @return Router ID.
@@ -130,23 +166,6 @@ public class Router extends UriResource {
     }
 
     /**
-     * Convert RouterMgmtConfig object to Router object.
-     *
-     * @param id
-     *            ID of the object.
-     * @param config
-     *            RouterMgmtConfig object.
-     * @return Router object.
-     */
-    public static Router createRouter(UUID id, RouterMgmtConfig config) {
-        Router router = new Router();
-        router.setName(config.name);
-        router.setTenantId(config.tenantId);
-        router.setId(id);
-        return router;
-    }
-
-    /**
      * Convert this object to RouterNameMgmtConfig object.
      *
      * @return RouterNameMgmtConfig object.
@@ -154,4 +173,15 @@ public class Router extends UriResource {
     public RouterNameMgmtConfig toNameMgmtConfig() {
         return new RouterNameMgmtConfig(this.getId());
     }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id + ", name=" + name + ", tenantId=" + tenantId;
+    }
+
 }

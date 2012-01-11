@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.OwnerQueryable;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
+import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.UriManager;
@@ -154,8 +155,8 @@ public class RouteResource {
         private boolean isRouterOwner(SecurityContext context,
                 DaoFactory daoFactory) throws StateAccessException,
                 ZkStateSerializationException {
-            OwnerQueryable q = daoFactory.getRouterDao();
-            return AuthManager.isOwner(context, q, routerId);
+            RouterDao q = daoFactory.getRouterDao();
+            return AuthManager.isOwner(context, (OwnerQueryable) q, routerId);
         }
 
         /**
