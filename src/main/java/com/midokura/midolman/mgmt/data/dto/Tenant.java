@@ -23,6 +23,24 @@ public class Tenant extends UriResource {
     private String id = null;
 
     /**
+     * Constructor
+     */
+    public Tenant() {
+        this(null);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param id
+     *            ID to set for the Tenant object.
+     */
+    public Tenant(String id) {
+        super();
+        this.id = id;
+    }
+
+    /**
      * Get tenant ID.
      *
      * @return Tenant ID.
@@ -61,5 +79,15 @@ public class Tenant extends UriResource {
     @Override
     public URI getUri() {
         return UriManager.getTenant(getBaseUri(), id);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "id=" + id;
     }
 }

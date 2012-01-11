@@ -187,7 +187,7 @@ public class TenantResource {
         TenantDao dao = daoFactory.getTenantDao();
         String id = null;
         try {
-            id = dao.create(tenant.getId());
+            id = dao.create(tenant);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
@@ -225,14 +225,14 @@ public class TenantResource {
             @Context DaoFactory daoFactory) throws UnauthorizedException,
             StateAccessException {
         TenantDao dao = daoFactory.getTenantDao();
-        if (!AuthManager.isAdmin(context) &&
-                !context.getUserPrincipal().getName().equals(id)) {
+        if (!AuthManager.isAdmin(context)
+                && !context.getUserPrincipal().getName().equals(id)) {
             throw new UnauthorizedException("Can only see your own tenant.");
         }
 
         Tenant tenant = null;
         try {
-            tenant = dao.getTenant(id);
+            tenant = dao.get(id);
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
