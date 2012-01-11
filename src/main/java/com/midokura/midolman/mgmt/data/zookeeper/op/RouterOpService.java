@@ -76,6 +76,7 @@ public class RouterOpService {
 
         List<Op> ops = new ArrayList<Op>();
 
+        ops.addAll(opBuilder.getRouterCreateOps(id));
         ops.add(opBuilder.getRouterCreateOp(id, mgmtConfig));
 
         // link
@@ -92,8 +93,7 @@ public class RouterOpService {
             ops.add(opBuilder.getRouterTableChainsCreateOp(id, chainTable));
 
             // chain names
-            ops.add(opBuilder
-                    .getRouterTableChainNamesCreateOp(id, chainTable));
+            ops.add(opBuilder.getRouterTableChainNamesCreateOp(id, chainTable));
 
             // Build the actual chains
             ops.addAll(chainOpService.buildBuiltInChains(id, chainTable));
@@ -105,8 +105,6 @@ public class RouterOpService {
         // name
         ops.add(opBuilder.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
                 mgmtConfig.name, nameConfig));
-
-        ops.addAll(opBuilder.getRouterCreateOps(id));
 
         return ops;
     }
@@ -153,8 +151,7 @@ public class RouterOpService {
             ops.addAll(chainOpService.buildDeleteRouterChains(id, chainTable));
 
             // chain names
-            ops.add(opBuilder
-                    .getRouterTableChainNamesDeleteOp(id, chainTable));
+            ops.add(opBuilder.getRouterTableChainNamesDeleteOp(id, chainTable));
 
             // chains
             ops.add(opBuilder.getRouterTableChainsDeleteOp(id, chainTable));

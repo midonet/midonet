@@ -73,6 +73,9 @@ public class BridgeOpService {
 
         List<Op> ops = new ArrayList<Op>();
 
+        // Create Midolman data
+        ops.addAll(opBuilder.getBridgeCreateOps(id, config));
+
         // Create the root bridge path
         ops.add(opBuilder.getBridgeCreateOp(id, mgmtConfig));
 
@@ -82,9 +85,6 @@ public class BridgeOpService {
         // Add the bridge name.
         ops.add(opBuilder.getTenantBridgeNameCreateOp(mgmtConfig.tenantId,
                 mgmtConfig.name, nameConfig));
-
-        // Create Midolman data
-        ops.addAll(opBuilder.getBridgeCreateOps(id, config));
 
         log.debug("BridgeOpBuilder.buildCreate exiting: ops count={}",
                 ops.size());

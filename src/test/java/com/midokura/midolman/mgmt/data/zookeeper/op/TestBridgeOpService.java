@@ -88,6 +88,8 @@ public class TestBridgeOpService {
         BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
 
         // Mock the path builder
+        when(opBuilderMock.getBridgeCreateOps(id, config)).thenReturn(
+                dummyCreateOps);
         when(opBuilderMock.getBridgeCreateOp(id, mgmtConfig)).thenReturn(
                 dummyCreateOp0);
         when(opBuilderMock.getTenantBridgeCreateOp(mgmtConfig.tenantId, id))
@@ -96,8 +98,6 @@ public class TestBridgeOpService {
                 opBuilderMock.getTenantBridgeNameCreateOp(mgmtConfig.tenantId,
                         mgmtConfig.name, nameConfig))
                 .thenReturn(dummyCreateOp2);
-        when(opBuilderMock.getBridgeCreateOps(id, config)).thenReturn(
-                dummyCreateOps);
 
         List<Op> ops = service.buildCreate(id, config, mgmtConfig, nameConfig);
 
