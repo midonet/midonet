@@ -171,8 +171,8 @@ public interface Authorizable {
      * @throws StateAccessException
      *             Data access error.
      */
-    boolean ruleReadAuthorized(SecurityContext context, AuthAction action,
-            UUID id) throws StateAccessException;
+    boolean ruleAuthorized(SecurityContext context, AuthAction action, UUID id)
+            throws StateAccessException;
 
     /**
      * Check whether the given ID is the tenant in the context.
