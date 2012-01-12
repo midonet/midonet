@@ -16,7 +16,7 @@ public class AppConfig {
     private final static String zkRootKey = "zk_root";
     private final static String zkMgmtRootKey = "zk_mgmt_root";
 
-    private ServletContext ctx = null;
+    private final ServletContext ctx;
 
     public AppConfig(ServletContext ctx) {
         this.ctx = ctx;
