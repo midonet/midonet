@@ -15,11 +15,11 @@
         <module>midolmanj</module>
         <module>midolmanj-mgmt</module>
         <module>midokura-util</module>
-        <module>midonet-smoketest</module>
+        <!--<module>midonet-smoketest</module>-->
     </modules>
 
     <scm>
-        <connection>git://github.com:midokura/midolmanj.git</connection>
+        <connection>git://github.com:midokura/midonet.git</connection>
         <url>http://github.com/midokura/midonet</url>
     </scm>
 
@@ -63,11 +63,19 @@
     </distributionManagement>
 
     <repositories>
+
         <repository>
             <id>mido-maven</id>
             <name>mido-maven</name>
             <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
         </repository>
+
+        <repository>
+            <id>jsch-maven</id>
+            <name>Jsch maven repository</name>
+            <url>http://jsch.sf.net/maven2/</url>
+        </repository>
+
     </repositories>
 
 </project>

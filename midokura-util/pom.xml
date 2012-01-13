@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.midokura</groupId>
-    <artifactId>midokura-util</artifactId>
+    <parent>
+        <groupId>com.midokura</groupId>
+        <artifactId>midonet-parent</artifactId>
+        <version>12.06-SNAPSHOT</version>
+    </parent>
+
+    <groupId>${parent.groupId}</groupId>
+    <version>${parent.version}</version>
     <packaging>jar</packaging>
-    <version>12.06-SNAPSHOT</version>
+
+    <artifactId>midokura-util</artifactId>
+    <name>Midokura Java Utilities</name>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <scm>
-        <connection>git://github.com:midokura/midokura-util.git</connection>
-        <url>http://github.com/midokura/midokura-util</url>
-    </scm>
-
     <build>
         <defaultGoal>package</defaultGoal>
 
-
         <plugins>
-             <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -59,7 +63,7 @@
                 <configuration>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -68,42 +72,12 @@
         </plugins>
     </build>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>mido-maven</id>
-            <name>mido-maven</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
-        </pluginRepository>
-    </pluginRepositories>
-    
-    <distributionManagement>
-        <snapshotRepository>
-            <id>mido-maven-local-snapshots</id>
-            <name>mido-maven-local-snapshots</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-        
-        <repository>
-            <id>mido-maven-local-releases</id>
-            <name>mido-maven-local-releases</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
-        </repository>
-    </distributionManagement>
-
-    <repositories>
-	      <repository>
-	        <id>mido-maven</id>
-	        <name>mido-maven</name>
-	        <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
-	      </repository>
-    </repositories>
-
     <dependencies>
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.6</version>
-		</dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.6</version>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
