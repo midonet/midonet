@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.midokura</groupId>
+    <artifactId>midolmanj</artifactId>
+    <packaging>jar</packaging>
+    <version>12.06-SNAPSHOT</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <scm>
+        <connection>git://github.com:midokura/midolmanj.git</connection>
+        <url>http://github.com/midokura/midolmanj</url>
+    </scm>
+
+    <build>
+        <defaultGoal>package</defaultGoal>
+
+        <resources>
+            <!-- GIT COMMIT ID PLUGIN CONFIGURATION
+                 https://github.com/ktoso/maven-git-commit-id-plugin/ -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+                <version>2.3</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <version>2.15.0</version>
+                <executions>
+                    <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <arg>-make:transitive</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-dependencyfile</arg>
+                                <arg>${project.build.directory}/.scala_dependencies</arg>
+                            </args>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>scala-compile-tests</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                </configuration>
+                <version>2.3</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.midokura.midolman.Midolman</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <systemProperties>
+                        <property>
+                            <name>org.newsclub.net.unix.library.path</name>
+                            <value>${project.build.directory}/lib-native</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+              <artifactId>maven-resources-plugin</artifactId>
+              <version>2.5</version>
+              <executions>
+                <execution>
+                  <id>copy-resources</id>
+                  <phase>process-test-resources</phase>
+                  <goals>
+                    <goal>copy-resources</goal>
+                  </goals>
+                  <configuration>
+                    <outputDirectory>${project.build.directory}/lib-native</outputDirectory>
+                    <resources>          
+                      <resource>
+                        <directory>${project.basedir}/lib-native</directory>
+                      </resource>
+                    </resources>
+                  </configuration>            
+                </execution>
+              </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.vafer</groupId>
+                <artifactId>jdeb</artifactId>
+                <version>0.9-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <timestamped>true</timestamped>
+                            <dataSet>
+                                <data>
+                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/share/midolman</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/src/deb/init.d/midolmanj</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/init.d</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/conf</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/midolman</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/lib-native</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib64</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/src/deb/sudoers/midolman</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/sudoers.d</prefix>
+                                        <filemode>0440</filemode>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/src/deb/quagga/bgpd.conf</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/quagga</prefix>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <!-- GIT COMMIT ID PLUGIN CONFIGURATION
+                 https://github.com/ktoso/maven-git-commit-id-plugin/ -->
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>1.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                         </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <prefix>git</prefix>
+                    <dateFormat>yyyy-MMM-dd '@' HH:mm:ss z</dateFormat>
+                    <verbose>true</verbose>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <formats>
+                        <format>xml</format>
+                        <format>html</format>
+                    </formats>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>cobertura-maven-plugin</artifactId>
+            <version>2.5.1</version>
+          </plugin>
+        </plugins>
+    </reporting>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+        </pluginRepository>
+    </pluginRepositories>
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>mido-maven-local-snapshots</id>
+            <name>mido-maven-local-snapshots</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+        
+        <repository>
+            <id>mido-maven-local-releases</id>
+            <name>mido-maven-local-releases</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+              <repository>
+                <id>mido-maven</id>
+                <name>mido-maven</name>
+                <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+              </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>spy</groupId>
+            <artifactId>spymemcached</artifactId>
+            <version>2.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>voldemort</groupId>
+            <artifactId>voldemort</artifactId>
+            <version>0.90.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mortbay.jetty</groupId>
+                    <artifactId>jetty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jetty</artifactId>
+            <version>6.1.26</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>voldemort</groupId>
+            <artifactId>voldemort-test</artifactId>
+            <version>0.90.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.newsclub</groupId>
+            <artifactId>junixsocket</artifactId>
+            <version>1.3</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>jackson-module-scala</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>1.8.3</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.8.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openflow</groupId>
+            <artifactId>openflowj</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <classifier>mido</classifier>
+                <version>3.4.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jline</groupId>
+                    <artifactId>jline</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.jms</groupId>
+                    <artifactId>jms</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jdmk</groupId>
+                    <artifactId>jmxtools</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jmx</groupId>
+                    <artifactId>jmxri</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+                <dependency>
+                        <groupId>commons-configuration</groupId>
+                        <artifactId>commons-configuration</artifactId>
+                        <version>1.6</version>
+                </dependency>
+        
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.9.0-1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>midokura-util</artifactId>
+            <version>12.06-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
