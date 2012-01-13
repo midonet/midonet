@@ -47,7 +47,6 @@ public class RestApplication extends Application {
         set.add(ApplicationResource.class);
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
-        set.add(AuthInjectableProvider.class);
         set.add(UnauthorizedExceptionMapper.class);
         set.add(DataStoreInjectableProvider.class);
         set.add(ConfigInjectableProvider.class);
@@ -62,6 +61,7 @@ public class RestApplication extends Application {
     @Override
     public Set<Object> getSingletons() {
         HashSet<Object> singletons = new HashSet<Object>();
+        singletons.add(new AuthInjectableProvider());
         singletons.add(new WildCardJacksonJaxbJsonProvider());
         return singletons;
     }
