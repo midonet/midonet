@@ -1,0 +1,12 @@
+git.properties
+.classpath
+.project
+.settings
+target
+web.xml
+log4j.xml
+.idea/
+target/
+*.iml
+*.ipr
+*.iws
