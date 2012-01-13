@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.midokura</groupId>
+    <artifactId>midonet-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>12.06-SNAPSHOT</version>
+    <name>Midokura MidoNet aggregator project</name>
+
+    <modules>
+        <module>midolmanj</module>
+        <module>midolmanj-mgmt</module>
+        <module>midokura-util</module>
+        <module>midonet-smoketest</module>
+    </modules>
+
+    <scm>
+        <connection>git://github.com:midokura/midolmanj.git</connection>
+        <url>http://github.com/midokura/midonet</url>
+    </scm>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+        </pluginRepository>
+
+        <pluginRepository>
+            <id>apache.snapshots</id>
+            <name>Apache Snapshots</name>
+            <url>http://people.apache.org/repo/m2-snapshot-repository</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+
+    </pluginRepositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>mido-maven-local-snapshots</id>
+            <name>mido-maven-local-snapshots</name>
+            <url>
+                http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local
+            </url>
+        </snapshotRepository>
+
+        <repository>
+            <id>mido-maven-local-releases</id>
+            <name>mido-maven-local-releases</name>
+            <url>
+                http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local
+            </url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>mido-maven</id>
+            <name>mido-maven</name>
+            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
+        </repository>
+    </repositories>
+
+</project>
