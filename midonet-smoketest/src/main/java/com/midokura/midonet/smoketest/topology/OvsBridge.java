@@ -1,0 +1,106 @@
+package com.midokura.midonet.smoketest.topology;
+
+import static com.midokura.tools.process.ProcessHelper.newProcess;
+
+import java.io.IOException;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.openvswitch.BridgeBuilder;
+import com.midokura.midolman.openvswitch.BridgeFailMode;
+import com.midokura.midolman.openvswitch.ControllerBuilder;
+import com.midokura.midolman.openvswitch.ControllerConnectionMode;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.packets.IntIPv4;
+
+/**
+ * Copyright 2011 Midokura Europe SARL User: rossella rossella@midokura.com
+ * Date: 12/9/11 Time: 1:21 PM
+ */
+public class OvsBridge {
+
+    public final static UUID L3UUID = UUID
+            .fromString("01234567-0123-0123-aaaa-0123456789ab");
+    private final static Logger log = LoggerFactory.getLogger(OvsBridge.class);
+
+    OpenvSwitchDatabaseConnection ovsdb;
+    String bridgeName;
+    private String ovsBridgeController;
+
+    public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName,
+            UUID bridgeId, String ovsBridgeController) {
+
+        this.ovsdb = ovsdb;
+        this.bridgeName = bridgeName;
+        this.ovsBridgeController = ovsBridgeController;
+        startBridge(bridgeId);
+    }
+
+    public OvsBridge(OpenvSwitchDatabaseConnection ovsdb, String bridgeName,
+            UUID bridgeId) {
+        this.ovsdb = ovsdb;
+        this.bridgeName = bridgeName;
+        this.ovsBridgeController = "tcp:127.0.0.1:6655";
+        startBridge(bridgeId);
+    }
+
+    public void remove() {
+        ovsdb.delBridge(bridgeName);
+    }
+
+    void startBridge(UUID bridgeId) {
+        if (ovsdb.hasBridge(bridgeName))
+            return;
+        BridgeBuilder brBuilder = ovsdb.addBridge(bridgeName);
+        brBuilder.externalId("midolman-vnet", bridgeId.toString());
+        brBuilder.failMode(BridgeFailMode.SECURE);
+        brBuilder.otherConfig("hwaddr", "02:aa:bb:11:22:33");
+        brBuilder.build();
+        // Add the Midolman controller.
+        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
+                bridgeName, ovsBridgeController);
+        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
+        ctlBuilder.build();
+    }
+
+    public void addServiceController(int port) {
+        ControllerBuilder ctlBuilder = ovsdb.addBridgeOpenflowController(
+                bridgeName, new StringBuilder("ptcp:").append(port).toString());
+        ctlBuilder.connectionMode(ControllerConnectionMode.OUT_OF_BAND);
+        ctlBuilder.build();
+    }
+
+    public void addSystemPort(UUID id, String name) {
+        PortBuilder pBuilder = ovsdb.addSystemPort(bridgeName, name);
+        pBuilder.externalId("midolman-vnet", id.toString());
+        pBuilder.build();
+    }
+
+    public void addInternalPort(UUID id, String name, IntIPv4 ip, int nwLen) {
+        PortBuilder pBuilder = ovsdb.addInternalPort(bridgeName, name);
+        pBuilder.externalId("midolman-vnet", id.toString());
+        pBuilder.build();
+        try {
+            Thread.sleep(1000);
+            newProcess(
+                    new StringBuilder("sudo -n ip link set dev ").append(name)
+                            .append(" arp on mtu 1400 multicast off up")
+                            .toString()).logOutput(log, "int_port")
+                    .runAndWait();
+            newProcess(
+                    new StringBuilder("sudo -n ip addr add ")
+                            .append(ip.toString()).append("/").append(nwLen)
+                            .append(" dev ").append(name).toString())
+                    .logOutput(log, "int_port").runAndWait();
+        } catch (InterruptedException e) {
+            log.error("Error adding system port.", e);
+        }
+    }
+
+    public void deletePort(String name) {
+        ovsdb.delPort(name);
+    }
+}
