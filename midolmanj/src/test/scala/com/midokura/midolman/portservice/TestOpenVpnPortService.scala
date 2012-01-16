@@ -438,6 +438,8 @@ class TestOpenVpnPortService {
 
             portService.stop(vpnId)
             // Check openvpn process doesn't exist.
+            // Waiting 1sec to helps to destory the process.
+            Thread.sleep(1000)
             ipCmdExitValue = Sudo.sudoExec(
                 "killall %s".format(portServiceExtId))
             assertTrue(ipCmdExitValue != 0)
