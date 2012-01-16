@@ -78,7 +78,7 @@ public class TestChainOpService {
     }
 
     @Test
-    public void TestBuildCreateSuccess() throws Exception {
+    public void testBuildCreateSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = new ChainConfig();
         config.routerId = UUID.randomUUID();
@@ -112,7 +112,7 @@ public class TestChainOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = new ChainConfig();
         config.routerId = UUID.randomUUID();
@@ -145,7 +145,7 @@ public class TestChainOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = new ChainConfig();
         config.routerId = UUID.randomUUID();
@@ -174,7 +174,7 @@ public class TestChainOpService {
     }
 
     @Test
-    public void TestBuildDeleteRouterChainsSuccess() throws Exception {
+    public void testBuildDeleteRouterChainsSuccess() throws Exception {
         ChainConfig config = new ChainConfig();
         config.routerId = UUID.randomUUID();
         config.name = "foo";
@@ -198,7 +198,7 @@ public class TestChainOpService {
     }
 
     @Test
-    public void TestBuildBuiltInChainsSuccess() throws Exception {
+    public void testBuildBuiltInChainsSuccess() throws Exception {
 
         ChainConfig config = new ChainConfig();
         config.routerId = UUID.randomUUID();

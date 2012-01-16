@@ -46,7 +46,7 @@ public class TestTenantZkDao {
     }
 
     @Test
-    public void TestGetDataSuccess() throws Exception {
+    public void testGetDataSuccess() throws Exception {
         String id = "foo";
         when(pathBuilderMock.getTenantPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
@@ -57,7 +57,7 @@ public class TestTenantZkDao {
     }
 
     @Test
-    public void TestGetIdsSuccess() throws Exception {
+    public void testGetIdsSuccess() throws Exception {
         when(pathBuilderMock.getTenantsPath()).thenReturn(dummyPath);
         when(zkDaoMock.getChildren(dummyPath, null)).thenReturn(dummyIds);
 
@@ -67,7 +67,7 @@ public class TestTenantZkDao {
     }
 
     @Test
-    public void TestMultiSuccess() throws Exception {
+    public void testMultiSuccess() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));
@@ -77,7 +77,7 @@ public class TestTenantZkDao {
     }
 
     @Test
-    public void TestExistsTrue() throws Exception {
+    public void testExistsTrue() throws Exception {
         String id = "foo";
         when(pathBuilderMock.getTenantPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.exists(dummyPath)).thenReturn(true);
@@ -88,7 +88,7 @@ public class TestTenantZkDao {
     }
 
     @Test
-    public void TestExistsFalse() throws Exception {
+    public void testExistsFalse() throws Exception {
         String id = "foo";
         when(pathBuilderMock.getTenantPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.exists(dummyPath)).thenReturn(false);

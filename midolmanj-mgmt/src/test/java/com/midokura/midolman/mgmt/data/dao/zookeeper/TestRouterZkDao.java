@@ -56,7 +56,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestGetDataSuccess() throws Exception {
+    public void testGetDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getRouterPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
@@ -69,7 +69,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestGetNameDataSuccess() throws Exception {
+    public void testGetNameDataSuccess() throws Exception {
         String tenantId = "foo";
         String name = "bar";
         when(pathBuilderMock.getTenantRouterNamePath(tenantId, name))
@@ -84,7 +84,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestGetIdsSuccess() throws Exception {
+    public void testGetIdsSuccess() throws Exception {
         String tenantId = "foo";
         when(pathBuilderMock.getTenantRoutersPath(tenantId)).thenReturn(
                 dummyPath);
@@ -96,7 +96,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestGetPeerRouterIdsSuccess() throws Exception {
+    public void testGetPeerRouterIdsSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
         when(pathBuilderMock.getRouterRoutersPath(routerId)).thenReturn(
                 dummyPath);
@@ -108,7 +108,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestGetRouterLinkDataSuccess() throws Exception {
+    public void testGetRouterLinkDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
         when(pathBuilderMock.getRouterRouterPath(id, peerId)).thenReturn(
@@ -123,7 +123,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestMultiSuccess() throws Exception {
+    public void testMultiSuccess() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));
@@ -133,7 +133,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestRouterLinkExistsTrue() throws Exception {
+    public void testRouterLinkExistsTrue() throws Exception {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
         when(pathBuilderMock.getRouterRouterPath(id, peerId)).thenReturn(
@@ -146,7 +146,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestRouterLinkExistsFalse() throws Exception {
+    public void testRouterLinkExistsFalse() throws Exception {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
         when(pathBuilderMock.getRouterRouterPath(id, peerId)).thenReturn(
@@ -159,7 +159,7 @@ public class TestRouterZkDao {
     }
 
     @Test
-    public void TestConstructPeerRouterConfig() throws Exception {
+    public void testConstructPeerRouterConfig() throws Exception {
         UUID portId = UUID.randomUUID();
         UUID peerPortId = UUID.randomUUID();
         PeerRouterConfig config = dao.constructPeerRouterConfig(portId,

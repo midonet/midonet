@@ -40,7 +40,7 @@ public class TestPortOpBuilder {
     }
 
     @Test
-    public void TestSetDataOpSuccess() throws Exception {
+    public void testSetDataOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getPortPath(dummyId))
                 .thenReturn(dummyPath);
         Mockito.when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(
@@ -54,7 +54,7 @@ public class TestPortOpBuilder {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void TestLinkCreateOpSuccess() throws Exception {
+    public void testLinkCreateOpSuccess() throws Exception {
         // TODO: need a better test.
         builder.getPortLinkCreateOps(dummyId, dummyConfig, dummyId, dummyConfig);
         Mockito.verify(zkDaoMock, Mockito.times(1)).preparePortCreateLink(
@@ -62,7 +62,7 @@ public class TestPortOpBuilder {
     }
 
     @Test
-    public void TestCreateOpSuccess() throws Exception {
+    public void testCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getPortPath(dummyId))
                 .thenReturn(dummyPath);
         Mockito.when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(
@@ -75,14 +75,14 @@ public class TestPortOpBuilder {
     }
 
     @Test
-    public void TestGetPortCreateOpsSuccess() throws Exception {
+    public void testGetPortCreateOpsSuccess() throws Exception {
         builder.getPortCreateOps(dummyId, dummyConfig);
         Mockito.verify(zkDaoMock, Mockito.times(1)).preparePortCreate(dummyId,
                 dummyConfig);
     }
 
     @Test
-    public void TestGetPortDeleteOpSuccess() throws Exception {
+    public void testGetPortDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getPortPath(dummyId))
                 .thenReturn(dummyPath);
 
@@ -92,7 +92,7 @@ public class TestPortOpBuilder {
     }
 
     @Test
-    public void TestGetPortDeleteOpsSuccess() throws Exception {
+    public void testGetPortDeleteOpsSuccess() throws Exception {
         builder.getPortDeleteOps(dummyId);
         Mockito.verify(zkDaoMock, Mockito.times(1)).preparePortDelete(dummyId);
     }

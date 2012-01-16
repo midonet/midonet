@@ -54,7 +54,7 @@ public class TestBridgeZkDao {
     }
 
     @Test
-    public void TestGetDataSuccess() throws Exception {
+    public void testGetDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getBridgePath(id)).thenReturn(dummyPath);
         when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
@@ -67,7 +67,7 @@ public class TestBridgeZkDao {
     }
 
     @Test
-    public void TestGetNameDataSuccess() throws Exception {
+    public void testGetNameDataSuccess() throws Exception {
         String tenantId = "foo";
         String name = "bar";
         when(pathBuilderMock.getTenantBridgeNamePath(tenantId, name))
@@ -82,7 +82,7 @@ public class TestBridgeZkDao {
     }
 
     @Test
-    public void TestGetIdsSuccess() throws Exception {
+    public void testGetIdsSuccess() throws Exception {
         String tenantId = "foo";
         when(pathBuilderMock.getTenantBridgesPath(tenantId)).thenReturn(
                 dummyPath);
@@ -94,7 +94,7 @@ public class TestBridgeZkDao {
     }
 
     @Test
-    public void TestMultiSuccess() throws Exception {
+    public void testMultiSuccess() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));

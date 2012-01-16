@@ -84,7 +84,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildCreateRouterSuccess() throws Exception {
+    public void testBuildCreateRouterSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
         mgmtConfig.tenantId = "foo";
@@ -141,7 +141,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
         mgmtConfig.tenantId = "foo";
@@ -203,7 +203,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
         mgmtConfig.tenantId = "foo";
@@ -260,7 +260,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildUpdateSuccess() throws Exception {
+    public void testBuildUpdateSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         String name = "foo";
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
@@ -291,7 +291,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildLinkSuccess() throws Exception {
+    public void testBuildLinkSuccess() throws Exception {
         UUID portId = UUID.randomUUID();
         PortConfig config = new LogicalRouterPortConfig();
         UUID peerPortId = UUID.randomUUID();
@@ -304,7 +304,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildUnlinkSuccess() throws Exception {
+    public void testBuildUnlinkSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
         PeerRouterConfig config = new PeerRouterConfig();
@@ -322,7 +322,7 @@ public class TestRouterOpService {
     }
 
     @Test
-    public void TestBuildTenantRoutersDeleteSuccess() throws Exception {
+    public void testBuildTenantRoutersDeleteSuccess() throws Exception {
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
         mgmtConfig.tenantId = "foo";
         mgmtConfig.name = "bar";

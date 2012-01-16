@@ -64,7 +64,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestExistsTrue() throws Exception {
+    public void testExistsTrue() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getPortPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.exists(dummyPath)).thenReturn(true);
@@ -75,7 +75,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestExistsFalse() throws Exception {
+    public void testExistsFalse() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getPortPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.exists(dummyPath)).thenReturn(false);
@@ -86,7 +86,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestGetDataSuccess() throws Exception {
+    public void testGetDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         when(zkDaoMock.get(id)).thenReturn(
                 new ZkNodeEntry<UUID, PortConfig>(id, dummyConfig));
@@ -97,7 +97,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestGetMgmtDataSuccess() throws Exception {
+    public void testGetMgmtDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getPortPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
@@ -110,7 +110,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestGetRouterPortIdsSuccess() throws Exception {
+    public void testGetRouterPortIdsSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
         when(zkDaoMock.listRouterPorts(routerId)).thenReturn(dummyNodes);
 
@@ -123,7 +123,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestGetBridgePortIdsSuccess() throws Exception {
+    public void testGetBridgePortIdsSuccess() throws Exception {
         UUID bridgeId = UUID.randomUUID();
         when(zkDaoMock.listBridgePorts(bridgeId)).thenReturn(dummyNodes);
 
@@ -136,7 +136,7 @@ public class TestPortZkDao {
     }
 
     @Test
-    public void TestMultiSuccess() throws Exception {
+    public void testMultiSuccess() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));

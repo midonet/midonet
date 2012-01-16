@@ -49,7 +49,7 @@ public class TestBridgeOpBuilder {
     }
 
     @Test
-    public void TestCreateOpSuccess() throws Exception {
+    public void testCreateOpSuccess() throws Exception {
         when(pathBuilderMock.getBridgePath(dummyId)).thenReturn(dummyPath);
         when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
@@ -60,13 +60,13 @@ public class TestBridgeOpBuilder {
     }
 
     @Test
-    public void TestGetBridgeCreateOpsSuccess() throws Exception {
+    public void testGetBridgeCreateOpsSuccess() throws Exception {
         builder.getBridgeCreateOps(dummyId, dummyConfig);
         verify(zkDaoMock, times(1)).prepareBridgeCreate(dummyId, dummyConfig);
     }
 
     @Test
-    public void TestGetBridgeDeleteOpSuccess() throws Exception {
+    public void testGetBridgeDeleteOpSuccess() throws Exception {
         when(pathBuilderMock.getBridgePath(dummyId)).thenReturn(dummyPath);
 
         builder.getBridgeDeleteOp(dummyId);
@@ -76,13 +76,13 @@ public class TestBridgeOpBuilder {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void TestGetBridgeDeleteOpsSuccess() throws Exception {
+    public void testGetBridgeDeleteOpsSuccess() throws Exception {
         builder.getBridgeDeleteOps(dummyId);
         verify(zkDaoMock, times(1)).prepareBridgeDelete(any(ZkNodeEntry.class));
     }
 
     @Test
-    public void TestSetDataOpSuccess() throws Exception {
+    public void testSetDataOpSuccess() throws Exception {
         when(pathBuilderMock.getBridgePath(dummyId)).thenReturn(dummyPath);
         when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
@@ -92,7 +92,7 @@ public class TestBridgeOpBuilder {
     }
 
     @Test
-    public void TestCreateTenantBridgeOpSuccess() throws Exception {
+    public void testCreateTenantBridgeOpSuccess() throws Exception {
         when(pathBuilderMock.getTenantBridgePath(dummyTenantId, dummyId))
                 .thenReturn(dummyPath);
 
@@ -103,7 +103,7 @@ public class TestBridgeOpBuilder {
     }
 
     @Test
-    public void TestDeleteTenantBridgeOpSuccess() throws Exception {
+    public void testDeleteTenantBridgeOpSuccess() throws Exception {
         when(pathBuilderMock.getTenantBridgePath(dummyTenantId, dummyId))
                 .thenReturn(dummyPath);
 
@@ -113,7 +113,7 @@ public class TestBridgeOpBuilder {
     }
 
     @Test
-    public void TestCreateTenantBridgeNameOpSuccess() throws Exception {
+    public void testCreateTenantBridgeNameOpSuccess() throws Exception {
         when(
                 pathBuilderMock.getTenantBridgeNamePath(dummyTenantId,
                         dummyBridgeName)).thenReturn(dummyPath);
@@ -128,7 +128,7 @@ public class TestBridgeOpBuilder {
     }
 
     @Test
-    public void TestDeleteTenantBridgeNameOpSuccess() throws Exception {
+    public void testDeleteTenantBridgeNameOpSuccess() throws Exception {
         when(
                 pathBuilderMock.getTenantBridgeNamePath(dummyTenantId,
                         dummyBridgeName)).thenReturn(dummyPath);

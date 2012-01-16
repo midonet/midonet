@@ -62,7 +62,7 @@ public class TestVifOpService {
     }
 
     @Test
-    public void TestBuildCreatePortSuccess() throws Exception {
+    public void testBuildCreatePortSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         VifConfig config = new VifConfig();
         config.portId = UUID.randomUUID();
@@ -83,7 +83,7 @@ public class TestVifOpService {
     }
 
     @Test
-    public void TestBuildDeleteSuccess() throws Exception {
+    public void testBuildDeleteSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         VifConfig config = new VifConfig();
         config.portId = UUID.randomUUID();

@@ -49,7 +49,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateOpSuccess() throws Exception {
+    public void testCreateOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterPath(dummyId)).thenReturn(dummyPath);
         when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
@@ -60,13 +60,13 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestGetRouterCreateOpsSuccess() throws Exception {
+    public void testGetRouterCreateOpsSuccess() throws Exception {
         builder.getRouterCreateOps(dummyId);
         verify(zkDaoMock, times(1)).prepareRouterCreate(dummyId);
     }
 
     @Test
-    public void TestGetRouterDeleteOpSuccess() throws Exception {
+    public void testGetRouterDeleteOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterPath(dummyId)).thenReturn(dummyPath);
 
         builder.getRouterDeleteOp(dummyId);
@@ -75,13 +75,13 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestGetRouterDeleteOpsSuccess() throws Exception {
+    public void testGetRouterDeleteOpsSuccess() throws Exception {
         builder.getRouterDeleteOps(dummyId);
         verify(zkDaoMock, times(1)).prepareRouterDelete(dummyId);
     }
 
     @Test
-    public void TestCreateRouterLinkOpSuccess() throws Exception {
+    public void testCreateRouterLinkOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterRouterPath(dummyId, dummyPeerId))
                 .thenReturn(dummyPath);
 
@@ -91,7 +91,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteRouterLinkOpSuccess() throws Exception {
+    public void testDeleteRouterLinkOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterRouterPath(dummyId, dummyPeerId))
                 .thenReturn(dummyPath);
 
@@ -101,7 +101,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateRouterLinksOpSuccess() throws Exception {
+    public void testCreateRouterLinksOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterRoutersPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -111,7 +111,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteRouterLinksOpSuccess() throws Exception {
+    public void testDeleteRouterLinksOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterRoutersPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -121,7 +121,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestSetDataOpSuccess() throws Exception {
+    public void testSetDataOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterPath(dummyId)).thenReturn(dummyPath);
         when(serializerMock.serialize(dummyMgmtConfig)).thenReturn(dummyBytes);
 
@@ -131,7 +131,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateTableChainNamesOpSuccess() throws Exception {
+    public void testCreateTableChainNamesOpSuccess() throws Exception {
         when(
                 pathBuilderMock.getRouterTableChainNamesPath(dummyId,
                         ChainTable.NAT)).thenReturn(dummyPath);
@@ -142,7 +142,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteTableChainNamesOpSuccess() throws Exception {
+    public void testDeleteTableChainNamesOpSuccess() throws Exception {
         when(
                 pathBuilderMock.getRouterTableChainNamesPath(dummyId,
                         ChainTable.NAT)).thenReturn(dummyPath);
@@ -153,7 +153,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateTableChainsOpSuccess() throws Exception {
+    public void testCreateTableChainsOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterTableChainsPath(dummyId, ChainTable.NAT))
                 .thenReturn(dummyPath);
 
@@ -163,7 +163,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteTableChainsOpSuccess() throws Exception {
+    public void testDeleteTableChainsOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterTableChainsPath(dummyId, ChainTable.NAT))
                 .thenReturn(dummyPath);
 
@@ -173,7 +173,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateTableOpSuccess() throws Exception {
+    public void testCreateTableOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterTablePath(dummyId, ChainTable.NAT))
                 .thenReturn(dummyPath);
 
@@ -183,7 +183,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteTableOpSuccess() throws Exception {
+    public void testDeleteTableOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterTablePath(dummyId, ChainTable.NAT))
                 .thenReturn(dummyPath);
 
@@ -193,7 +193,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateTablesOpSuccess() throws Exception {
+    public void testCreateTablesOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterTablesPath(dummyId))
                 .thenReturn(dummyPath);
 
@@ -203,7 +203,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteTablesOpSuccess() throws Exception {
+    public void testDeleteTablesOpSuccess() throws Exception {
         when(pathBuilderMock.getRouterTablesPath(dummyId))
                 .thenReturn(dummyPath);
 
@@ -213,7 +213,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateTenantRouterOpSuccess() throws Exception {
+    public void testCreateTenantRouterOpSuccess() throws Exception {
         when(pathBuilderMock.getTenantRouterPath(dummyTenantId, dummyId))
                 .thenReturn(dummyPath);
 
@@ -223,7 +223,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteTenantRouterOpSuccess() throws Exception {
+    public void testDeleteTenantRouterOpSuccess() throws Exception {
         when(pathBuilderMock.getTenantRouterPath(dummyTenantId, dummyId))
                 .thenReturn(dummyPath);
 
@@ -233,7 +233,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestCreateTenantRouterNameOpSuccess() throws Exception {
+    public void testCreateTenantRouterNameOpSuccess() throws Exception {
         when(
                 pathBuilderMock.getTenantRouterNamePath(dummyTenantId,
                         dummyRouterName)).thenReturn(dummyPath);
@@ -248,7 +248,7 @@ public class TestRouterOpBuilder {
     }
 
     @Test
-    public void TestDeleteTenantRouterNameOpSuccess() throws Exception {
+    public void testDeleteTenantRouterNameOpSuccess() throws Exception {
         when(
                 pathBuilderMock.getTenantRouterNamePath(dummyTenantId,
                         dummyRouterName)).thenReturn(dummyPath);

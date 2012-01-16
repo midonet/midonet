@@ -79,7 +79,7 @@ public class TestBridgeOpService {
     }
 
     @Test
-    public void TestBuildCreateBridgeSuccess() throws Exception {
+    public void testBuildCreateBridgeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         BridgeConfig config = new BridgeConfig();
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
@@ -111,7 +111,7 @@ public class TestBridgeOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
         mgmtConfig.tenantId = "foo";
@@ -144,7 +144,7 @@ public class TestBridgeOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
         mgmtConfig.tenantId = "foo";
@@ -173,7 +173,7 @@ public class TestBridgeOpService {
     }
 
     @Test
-    public void TestBuildUpdateSuccess() throws Exception {
+    public void testBuildUpdateSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         String name = "foo";
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
@@ -204,7 +204,7 @@ public class TestBridgeOpService {
     }
 
     @Test
-    public void TestBuildTenantRoutersDeleteSuccess() throws Exception {
+    public void testBuildTenantRoutersDeleteSuccess() throws Exception {
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
         mgmtConfig.tenantId = "foo";
         mgmtConfig.name = "bar";

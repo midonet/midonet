@@ -73,7 +73,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildCreatePortLinkSuccess() throws Exception {
+    public void testBuildCreatePortLinkSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
         PortConfig config = new LogicalRouterPortConfig();
@@ -98,7 +98,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildCreatePortSuccess() throws Exception {
+    public void testBuildCreatePortSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         PortConfig config = new LogicalRouterPortConfig();
         PortMgmtConfig mgmtConfig = new PortMgmtConfig();
@@ -119,7 +119,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildDeleteLinkSuccess() throws Exception {
+    public void testBuildDeleteLinkSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
 
@@ -139,7 +139,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
 
         // Mock the path builder
@@ -156,7 +156,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildDeleteWithNoCascadeSuccess() throws Exception {
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
 
         // Mock the path builder
@@ -169,7 +169,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildUpdatePortSuccess() throws Exception {
+    public void testBuildUpdatePortSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         PortMgmtConfig mgmtConfig = new PortMgmtConfig();
 
@@ -184,7 +184,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildPlugSuccess() throws Exception {
+    public void testBuildPlugSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         UUID vifId = UUID.randomUUID();
         PortMgmtConfig mgmtConfig = new PortMgmtConfig();
@@ -202,7 +202,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildUnPlugSuccess() throws Exception {
+    public void testBuildUnPlugSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         PortMgmtConfig mgmtConfig = new PortMgmtConfig();
         mgmtConfig.vifId = UUID.randomUUID();
@@ -220,7 +220,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildBridgePortsDeleteSuccess() throws Exception {
+    public void testBuildBridgePortsDeleteSuccess() throws Exception {
         UUID bridgeId = UUID.randomUUID();
 
         // Mock the path builder
@@ -241,7 +241,7 @@ public class TestPortOpService {
     }
 
     @Test
-    public void TestBuildRouterPortsDeleteSuccess() throws Exception {
+    public void testBuildRouterPortsDeleteSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
 
         // Mock the path builder

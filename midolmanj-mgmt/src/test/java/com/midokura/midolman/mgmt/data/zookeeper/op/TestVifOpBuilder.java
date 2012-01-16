@@ -37,7 +37,7 @@ public class TestVifOpBuilder {
     }
 
     @Test
-    public void TestCreateOpSuccess() throws Exception {
+    public void testCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getVifPath(dummyId)).thenReturn(dummyPath);
         Mockito.when(serializerMock.serialize(dummyConfig)).thenReturn(
                 dummyBytes);
@@ -49,7 +49,7 @@ public class TestVifOpBuilder {
     }
 
     @Test
-    public void TestGetVifDeleteOpSuccess() throws Exception {
+    public void testGetVifDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getVifPath(dummyId)).thenReturn(dummyPath);
 
         builder.getVifDeleteOp(dummyId);

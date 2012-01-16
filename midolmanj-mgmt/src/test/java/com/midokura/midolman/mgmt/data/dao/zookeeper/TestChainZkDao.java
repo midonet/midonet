@@ -55,7 +55,7 @@ public class TestChainZkDao {
     }
 
     @Test
-    public void TestGetMgmtDataSuccess() throws Exception {
+    public void testGetMgmtDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         Mockito.when(pathBuilderMock.getChainPath(id)).thenReturn(dummyPath);
         Mockito.when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
@@ -68,19 +68,19 @@ public class TestChainZkDao {
     }
 
     @Test(expected = StateAccessException.class)
-    public void TestGetMgmtDataDataAccessError() throws Exception {
+    public void testGetMgmtDataDataAccessError() throws Exception {
         Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
                 .get(Mockito.anyString());
         dao.getMgmtData(UUID.randomUUID());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void TestGetMgmtDataDataBadInput() throws Exception {
+    public void testGetMgmtDataDataBadInput() throws Exception {
         dao.getMgmtData(null);
     }
 
     @Test
-    public void TestGetNameDataSuccess() throws Exception {
+    public void testGetNameDataSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
         String chainName = "foo";
         Mockito.when(
@@ -97,19 +97,19 @@ public class TestChainZkDao {
     }
 
     @Test(expected = StateAccessException.class)
-    public void TestGetNameDataDataAccessError() throws Exception {
+    public void testGetNameDataDataAccessError() throws Exception {
         Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
                 .get(Mockito.anyString());
         dao.getNameData(UUID.randomUUID(), ChainTable.NAT, "foo");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void TestGetNameDataDataBadInput() throws Exception {
+    public void testGetNameDataDataBadInput() throws Exception {
         dao.getNameData(null, null, null);
     }
 
     @Test
-    public void TestGetDataSuccess() throws Exception {
+    public void testGetDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         Mockito.when(zkDaoMock.get(id)).thenReturn(
                 new ZkNodeEntry<UUID, ChainConfig>(id, dummyConfig));
@@ -120,19 +120,19 @@ public class TestChainZkDao {
     }
 
     @Test(expected = StateAccessException.class)
-    public void TestGetDataDataAccessError() throws Exception {
+    public void testGetDataDataAccessError() throws Exception {
         Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
                 .get(Mockito.any(UUID.class));
         dao.getData(UUID.randomUUID());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void TestGetDataDataBadInput() throws Exception {
+    public void testGetDataDataBadInput() throws Exception {
         dao.getData(null);
     }
 
     @Test
-    public void TestGetIdsSuccess() throws Exception {
+    public void testGetIdsSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
         Mockito.when(
                 pathBuilderMock.getRouterTableChainsPath(routerId,
@@ -146,7 +146,7 @@ public class TestChainZkDao {
     }
 
     @Test(expected = StateAccessException.class)
-    public void TestGetIdsDataAccessError() throws Exception {
+    public void testGetIdsDataAccessError() throws Exception {
         Mockito.doThrow(StateAccessException.class)
                 .when(zkDaoMock)
                 .getChildren(Mockito.anyString(),
@@ -155,12 +155,12 @@ public class TestChainZkDao {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void TestGetIdsBadInput() throws Exception {
+    public void testGetIdsBadInput() throws Exception {
         dao.getIds(null, null);
     }
 
     @Test
-    public void TestMultiSuccess() throws Exception {
+    public void testMultiSuccess() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));
@@ -170,7 +170,7 @@ public class TestChainZkDao {
     }
 
     @Test(expected = StateAccessException.class)
-    public void TestMultiDataAccessError() throws Exception {
+    public void testMultiDataAccessError() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));
@@ -180,12 +180,12 @@ public class TestChainZkDao {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void TestMultiBadInput() throws Exception {
+    public void testMultiBadInput() throws Exception {
         dao.multi(null);
     }
 
     @Test
-    public void TestConstructChainConfig() throws Exception {
+    public void testConstructChainConfig() throws Exception {
         UUID routerId = UUID.randomUUID();
         String name = "foo";
         ChainConfig config = dao.constructChainConfig(name, routerId);
@@ -194,13 +194,13 @@ public class TestChainZkDao {
     }
 
     @Test
-    public void TestConstructChainMgmtConfig() throws Exception {
+    public void testConstructChainMgmtConfig() throws Exception {
         ChainMgmtConfig config = dao.constructChainMgmtConfig(ChainTable.NAT);
         Assert.assertEquals(ChainTable.NAT, config.table);
     }
 
     @Test
-    public void TestConstructChainNameMgmtConfig() throws Exception {
+    public void testConstructChainNameMgmtConfig() throws Exception {
         UUID id = UUID.randomUUID();
         ChainNameMgmtConfig config = dao.constructChainNameMgmtConfig(id);
         Assert.assertEquals(id, config.id);

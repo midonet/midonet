@@ -53,7 +53,7 @@ public class TestVifZkDao {
     }
 
     @Test
-    public void TestGetDataSuccess() throws Exception {
+    public void testGetDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getVifPath(id)).thenReturn(dummyPath);
         when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
@@ -65,7 +65,7 @@ public class TestVifZkDao {
     }
 
     @Test
-    public void TestGetIdsSuccess() throws Exception {
+    public void testGetIdsSuccess() throws Exception {
         when(pathBuilderMock.getVifsPath()).thenReturn(dummyPath);
         when(zkDaoMock.getChildren(dummyPath, null)).thenReturn(dummyIds);
 
@@ -75,7 +75,7 @@ public class TestVifZkDao {
     }
 
     @Test
-    public void TestMultiSuccess() throws Exception {
+    public void testMultiSuccess() throws Exception {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(dummyPath, dummyBytes, null, CreateMode.PERSISTENT));
         ops.add(Op.delete(dummyPath, -1));

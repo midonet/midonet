@@ -28,7 +28,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestBridgesCreateOpSuccess() throws Exception {
+    public void testBridgesCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantBridgesPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -39,7 +39,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestBridgesDeleteOpSuccess() throws Exception {
+    public void testBridgesDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantBridgesPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -49,7 +49,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestBridgeNamesCreateOpSuccess() throws Exception {
+    public void testBridgeNamesCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantBridgeNamesPath(dummyId))
                 .thenReturn(dummyPath);
 
@@ -60,7 +60,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestBridgeNamesDeleteOpSuccess() throws Exception {
+    public void testBridgeNamesDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantBridgeNamesPath(dummyId))
                 .thenReturn(dummyPath);
 
@@ -70,7 +70,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestCreateOpSuccess() throws Exception {
+    public void testCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -81,7 +81,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestDeleteOpSuccess() throws Exception {
+    public void testDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -91,7 +91,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestRoutersCreateOpSuccess() throws Exception {
+    public void testRoutersCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantRoutersPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -102,7 +102,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestRoutersDeleteOpSuccess() throws Exception {
+    public void testRoutersDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantRoutersPath(dummyId)).thenReturn(
                 dummyPath);
 
@@ -112,7 +112,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestRouterNamesCreateOpSuccess() throws Exception {
+    public void testRouterNamesCreateOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantRouterNamesPath(dummyId))
                 .thenReturn(dummyPath);
 
@@ -123,7 +123,7 @@ public class TestTenantOpBuilder {
     }
 
     @Test
-    public void TestRouterNamesDeleteOpSuccess() throws Exception {
+    public void testRouterNamesDeleteOpSuccess() throws Exception {
         Mockito.when(pathBuilderMock.getTenantRouterNamesPath(dummyId))
                 .thenReturn(dummyPath);
 

@@ -64,7 +64,7 @@ public class TestTenantOpService {
     }
 
     @Test
-    public void TestBuildCreateRouterSuccess() throws Exception {
+    public void testBuildCreateRouterSuccess() throws Exception {
         String id = "foo";
 
         // Mock the path builder
@@ -89,7 +89,7 @@ public class TestTenantOpService {
     }
 
     @Test
-    public void TestBuildDeleteSuccess() throws Exception {
+    public void testBuildDeleteSuccess() throws Exception {
         String id = "foo";
 
         // Mock the path builder
@@ -126,7 +126,7 @@ public class TestTenantOpService {
     }
 
     @Test(expected = NoStatePathException.class)
-    public void TestBuildDeleteDoesNotExist() throws Exception {
+    public void testBuildDeleteDoesNotExist() throws Exception {
         String id = "foo";
         when(zkDaoMock.exists(id)).thenReturn(false);
         service.buildDelete(id);
