@@ -23,18 +23,17 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 public class DataStoreInjectableProvider implements
         InjectableProvider<Context, Type>, Injectable<DaoFactory> {
 
+    private final AppConfig appConfig;
     DaoFactory daoFactory = null;
 
-    public DataStoreInjectableProvider() {
+    public DataStoreInjectableProvider(AppConfig appConfig) {
+        this.appConfig = appConfig;
     }
 
     @Override
     public ComponentScope getScope() {
         return ComponentScope.Singleton;
     }
-
-    @Context
-    AppConfig appConfig;
 
     @Override
     public DaoFactory getValue() {

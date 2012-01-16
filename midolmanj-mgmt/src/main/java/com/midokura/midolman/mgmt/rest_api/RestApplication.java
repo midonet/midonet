@@ -8,7 +8,9 @@ package com.midokura.midolman.mgmt.rest_api;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 
 import com.midokura.midolman.mgmt.rest_api.jaxrs.AuthInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ConfigInjectableProvider;
@@ -36,6 +38,9 @@ public class RestApplication extends Application {
     public RestApplication() {
     }
 
+    @Context
+    ServletContext servletContext;
+
     /**
      * Get a set of root resource and provider classes.
      *
@@ -48,8 +53,6 @@ public class RestApplication extends Application {
         set.add(StateAccessExceptionMapper.class);
         set.add(InvalidStateOperationExceptionMapper.class);
         set.add(UnauthorizedExceptionMapper.class);
-        set.add(DataStoreInjectableProvider.class);
-        set.add(ConfigInjectableProvider.class);
         return set;
     }
 
@@ -60,8 +63,17 @@ public class RestApplication extends Application {
      */
     @Override
     public Set<Object> getSingletons() {
+        ConfigInjectableProvider configProvider = new ConfigInjectableProvider(
+                servletContext);
+        DataStoreInjectableProvider dataStoreProvider = new DataStoreInjectableProvider(
+                configProvider.getValue());
+        AuthInjectableProvider authProvider = new AuthInjectableProvider(
+                dataStoreProvider.getValue());
+
         HashSet<Object> singletons = new HashSet<Object>();
-        singletons.add(new AuthInjectableProvider());
+        singletons.add(configProvider);
+        singletons.add(dataStoreProvider);
+        singletons.add(authProvider);
         singletons.add(new WildCardJacksonJaxbJsonProvider());
         return singletons;
     }

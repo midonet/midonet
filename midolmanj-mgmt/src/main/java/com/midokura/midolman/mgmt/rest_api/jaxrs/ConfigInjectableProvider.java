@@ -5,26 +5,25 @@
  */
 package com.midokura.midolman.mgmt.rest_api.jaxrs;
 
-import com.midokura.midolman.mgmt.config.AppConfig;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
+import java.lang.reflect.Type;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
-import java.lang.reflect.Type;
+
+import com.midokura.midolman.mgmt.config.AppConfig;
+import com.sun.jersey.core.spi.component.ComponentContext;
+import com.sun.jersey.core.spi.component.ComponentScope;
+import com.sun.jersey.spi.inject.Injectable;
+import com.sun.jersey.spi.inject.InjectableProvider;
 
 @Provider
 public class ConfigInjectableProvider
     implements InjectableProvider<Context, Type>, Injectable<AppConfig> {
 
-    AppConfig config = null;
+    private final AppConfig config;
 
-    public ConfigInjectableProvider(@Context ServletContext servletContext)
+    public ConfigInjectableProvider(ServletContext servletContext)
     {
         config = new AppConfig(servletContext);
     }

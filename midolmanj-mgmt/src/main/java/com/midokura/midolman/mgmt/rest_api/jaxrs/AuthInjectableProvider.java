@@ -30,7 +30,11 @@ public class AuthInjectableProvider implements
         InjectableProvider<Context, Type>, Injectable<Authorizer> {
 
     private Authorizer authorizer = null;
+    private final DaoFactory daoFactory;
 
+    public AuthInjectableProvider(DaoFactory daoFactory) {
+        this.daoFactory = daoFactory;
+    }
     /*
      * (non-Javadoc)
      *
@@ -58,9 +62,6 @@ public class AuthInjectableProvider implements
         return ComponentScope.Singleton;
     }
 
-    @Context
-    DaoFactory daoFactory;
-
     /*
      * (non-Javadoc)
      *
@@ -76,7 +77,6 @@ public class AuthInjectableProvider implements
                 // Probably should refactor this part in the future.
                 throw new RuntimeException("Could not initialize DAO.", e);
             }
-
         }
         return authorizer;
     }
