@@ -118,7 +118,7 @@ public class RuleResource {
         RuleDao dao = daoFactory.getRuleDao();
         Rule rule = null;
         try {
-            if (!authorizer.routeAuthorized(context, AuthAction.READ, id)) {
+            if (!authorizer.ruleAuthorized(context, AuthAction.READ, id)) {
                 throw new UnauthorizedException(
                         "Not authorized to view this rule.");
             }
