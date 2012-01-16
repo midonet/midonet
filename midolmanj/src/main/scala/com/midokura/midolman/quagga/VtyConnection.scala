@@ -59,22 +59,22 @@ abstract class VtyConnection(val addr: String, val port: Int,
         out.println(command)
     }
 
-    def recvMessage(): Iterator[String] = {
+    private def recvMessage(): Seq[String] = {
         var lines = new ListBuffer[String]()
         var line: String = null
         while ({line = in.readLine; line != null }) {
             lines.append(line)
             //println(line)
         }
-        return lines.iterator
+        return lines.toSeq
     }
 
-    def dropMessage() {
+    private def dropMessage() {
         // TODO(yoshi): handle exceptions
         in.readLine
     }
 
-    def openConnection() {
+    private def openConnection() {
         socket = new Socket(addr, port)
         out = new PrintWriter(socket.getOutputStream(), true)
         in = new BufferedReader(new InputStreamReader(socket.getInputStream),
@@ -92,14 +92,14 @@ abstract class VtyConnection(val addr: String, val port: Int,
         connected = true
     }
 
-    def closeConnection() {
+    private def closeConnection() {
         connected = false
         out.close
         in.close
     }
 
-    def doTransacation(messages: Iterator[String],
-                      isConfigure: Boolean): Iterator[String] = {
+    protected def doTransacation(messages: Seq[String],
+                      isConfigure: Boolean): Seq[String] = {
         openConnection
         if (isConfigure) {
             configureTerminal
@@ -121,14 +121,14 @@ abstract class VtyConnection(val addr: String, val port: Int,
         return response
     }
 
-    def isConnected(): Boolean = { return connected }
+    protected def isConnected(): Boolean = { return connected }
 
-    def enable() {
+    protected def enable() {
         sendMessage(Enable)
         dropMessage
     }
 
-    def disable() {
+    protected def disable() {
         sendMessage(Disable)
         dropMessage
     }
@@ -159,8 +159,11 @@ object BgpVtyConnection {
     private final val SetLocalNw = "bgp router-id %s"
     private final val SetPeer = "neighbor %s remote-as %d"
     private final val GetNetwork = "show ip bgp"
+    // The first regex ^[sdh\*>irSR]* expects the following status codes:
+    // s suppressed, d damped, h history, * valid, > best, i internal,
+    // r RIB-failure, S Stale, R Removed
     private final val GetNetworkRegex =
-        """\*> ([\d\./]*)\s*([\d\.]*)\s*[\d\.]*\s*([\d\.]*)\s*([\w]*)""".r
+        """^[sdh\*>irSR]*\s*([\d\./]*)\s*([\d\.]*)\s*[\d\.]*\s*([\d\.]*)\s*(.)$""".r
     private final val SetNetwork = "network %s/%d"
     private final val DeleteNetwork = "no network %s/%d"
 
@@ -177,7 +180,7 @@ trait BgpConnection {
     def deleteAs(as: Int)
     def setLocalNw(as: Int, localAddr: InetAddress)
     def setPeer(as: Int, peerAddr: InetAddress, peerAs: Int)
-    def getNetwork()
+    def getNetwork(): Seq[String]
     def setNetwork(as: Int, nwPrefix: String, prefixLength: Int)
     def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int)
 }
@@ -239,26 +242,14 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                 }
             }
 
-    private class PeerNetwork(val nwPrefix: String, val nextHop: String,
-                              val weight: Int, val path: String) {
-        override def toString(): String = {
-            val string = new ListBuffer[String]
-            string += this.nwPrefix
-            string += this.nextHop
-            string += this.weight.toString
-            string += this.path
-            return string.mkString(",")
-        }
-    }
-
     override def getAs(): Int = {
         val request = new ListBuffer[String]()
-        var response: Iterator[String] = null
+        var response: Seq[String] = null
 
         request += GetAs
 
         try {
-            response = doTransacation(request.iterator, false)
+            response = doTransacation(request.toSeq, false)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception =>
@@ -283,7 +274,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         request += SetAs.format(as)
 
         try {
-            doTransacation(request.iterator, true)
+            doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception =>
@@ -296,7 +287,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         request += DeleteAs.format(as)
 
         try {
-            doTransacation(request.iterator, true)
+            doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception =>
@@ -310,7 +301,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         request += SetLocalNw.format(localAddr.getHostAddress)
 
         try {
-            doTransacation(request.iterator, true)
+            doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception =>
@@ -324,7 +315,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         request += SetPeer.format(peerAddr.getHostAddress, peerAs)
 
         try {
-            doTransacation(request.iterator, true)
+            doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception =>
@@ -332,14 +323,14 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         }
     }
 
-    override def getNetwork() = {
+    def getPeerNetwork(): Seq[(String, String, String, String)] = {
         val request = new ListBuffer[String]()
-        var response: Iterator[String] = null
+        var response: Seq[String] = null
 
         request += GetNetwork
 
         try {
-            response = doTransacation(request.iterator, false)
+            response = doTransacation(request.toSeq, false)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => { 
@@ -347,20 +338,46 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             }
         }
 
-        if (response != null) {
-            var networks = new ListBuffer[PeerNetwork]()
-            for (item <- response) {
-                for (rmatch <- GetNetworkRegex.findFirstMatchIn(item)) {
-                    // TODO(yoshi): write comments
-                    val peerNetwork = new PeerNetwork(
-                        rmatch.group(1), rmatch.group(2),
-                        java.lang.Integer.parseInt(rmatch.group(3)),
-                        rmatch.group(4))
-                    log.info(peerNetwork.toString)
-                    networks += peerNetwork
-                }
+        var peerNetworks = new ListBuffer[(String, String, String, String)]()
+        for (item <- response) {
+            //log.debug("getPeerNetwork: item {}", item)
+            for (rmatch <- GetNetworkRegex.findFirstMatchIn(item)) {
+                val network = new ListBuffer[String]
+                // nwPrefix
+                network += rmatch.group(1)
+                // nextHop
+                network += rmatch.group(2)
+                // weight
+                network += rmatch.group(3)
+                // path
+                network += rmatch.group(4)
+
+                val peerNetwork = network.mkString(",")
+                log.debug("getPeerNetwork: peerNetwork {}", peerNetwork)
+                //peerNetworks += peerNetwork
+                peerNetworks += ((rmatch.group(1),  // nwPrefix
+                                  rmatch.group(2),  // nextHop
+                                  rmatch.group(3),  // weight
+                                  rmatch.group(4))) // path
             }
         }
+        return peerNetworks.toSeq
+    }
+
+    override def getNetwork(): Seq[String] = {
+        var networks = new ListBuffer[String]()
+        for (peerNetwork <- getPeerNetwork) {
+            // If the next hop is 0.0.0.0, it should be the network we're
+            // advertising.
+            if (peerNetwork._2.equals("0.0.0.0")) {
+                networks += peerNetwork._1
+                // NB: nwPrefix doesn't contain prefix length if Quagga can
+                // guess it by default. e.g. 192.168.X.0/24 will show up as
+                // 192.168.X.0 only, and 10.0.0.0/8 as 10.0.0.0 as well.
+                log.debug("getNetwork: {}", peerNetwork._1)
+            }
+        }
+        return networks.toSeq
     }
 
     override def setNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
@@ -369,7 +386,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         request += SetNetwork.format(nwPrefix, prefixLength)
 
         try {
-            doTransacation(request.iterator, true)
+            doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception =>
@@ -379,16 +396,18 @@ extends VtyConnection(addr, port, password) with BgpConnection {
 
     override def deleteNetwork(as: Int, nwPrefix: String,
                                prefixLength: Int) = {
-        val request = new ListBuffer[String]()
-        request += SetAs.format(as)
-        request += DeleteNetwork.format(nwPrefix, prefixLength)
+        if (getAs != 0) {
+            val request = new ListBuffer[String]()
+            request += SetAs.format(as)
+            request += DeleteNetwork.format(nwPrefix, prefixLength)
 
-        try {
-            doTransacation(request.iterator, true)
-        } catch {
-            // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed deleting advertising routes", e) }
+            try {
+                doTransacation(request.toSeq, true)
+            } catch {
+                // TODO(yoshi): finer exception handling.
+                case e: Exception =>
+                    { log.error("failed deleting advertising routes", e) }
+            }
         }
     }
 

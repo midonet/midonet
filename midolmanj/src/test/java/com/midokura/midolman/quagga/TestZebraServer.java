@@ -32,7 +32,7 @@ public class TestZebraServer {
         socketFile.delete();
         AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
         AFUNIXSocketAddress address = new AFUNIXSocketAddress(socketFile);
-        zebra = new ZebraServer(server, address, portMgr, routeMgr, ovsdb);
+        zebra = new ZebraServerImpl(server, address, portMgr, routeMgr, ovsdb);
     }
 
     @Test

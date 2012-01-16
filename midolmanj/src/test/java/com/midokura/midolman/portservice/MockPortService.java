@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
-import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.quagga.ZebraServer;
@@ -52,7 +52,7 @@ public class MockPortService implements PortService {
     protected String portIdExtIdKey;
     protected String portServiceExtIdKey;
 
-    protected NetworkController controller;
+    protected ServiceFlowController controller;
 
     protected PortZkManager portMgr;
     protected RouteZkManager routeMgr;
@@ -121,7 +121,7 @@ public class MockPortService implements PortService {
     }
 
     @Override
-    public void setController(NetworkController controller) {
+    public void setController(ServiceFlowController controller) {
         this.controller = controller;
     }
 
@@ -223,7 +223,7 @@ public class MockPortService implements PortService {
                     + "localPort {} remotePort {}", new Object[] {localPortNum,
                     remotePortNum, localAddr, remoteAddr, BGP_TCP_PORT,
                     BGP_TCP_PORT});
-            controller.setServicePortFlows(localPortNum, remotePortNum,
+            controller.setServiceFlows(localPortNum, remotePortNum,
                     localAddr, remoteAddr, BGP_TCP_PORT, BGP_TCP_PORT);
         }
     }

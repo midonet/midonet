@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.MAC;
@@ -54,7 +54,7 @@ public class BgpPortService implements PortService {
     protected String portIdExtIdKey;
     protected String portServiceExtIdKey;
 
-    protected NetworkController controller;
+    protected ServiceFlowController controller;
 
     protected PortZkManager portMgr;
     protected RouteZkManager routeMgr;
@@ -88,13 +88,24 @@ public class BgpPortService implements PortService {
         this.bgpd = bgpd;
     }
 
+    public BgpPortService(Reactor reactor, OpenvSwitchDatabaseConnection ovsdb,
+                          String portIdExtIdKey, String portServiceExtIdKey,
+                          PortZkManager portMgr, RouteZkManager routeMgr,
+                          BgpZkManager bgpMgr, AdRouteZkManager adRouteMgr,
+                          ZebraServer zebra, BgpConnection bgpd,
+                          ServiceFlowController controller) {
+        this(reactor, ovsdb, portIdExtIdKey, portServiceExtIdKey, portMgr,
+             routeMgr, bgpMgr, adRouteMgr, zebra, bgpd);
+        this.controller = controller;
+    }
+
     @Override
     public void clear() {
         throw new RuntimeException("not implemented");
     }
 
     @Override
-    public void setController(NetworkController controller) {
+    public void setController(ServiceFlowController controller) {
         this.controller = controller;
     }
 
@@ -255,9 +266,9 @@ public class BgpPortService implements PortService {
                                    new Object[] {localPortNum, remotePortNum,
                                    localAddr, remoteAddr,
                                    BGP_TCP_PORT, BGP_TCP_PORT});
-            controller.setServicePortFlows(localPortNum, remotePortNum,
-                                           localAddr, remoteAddr,
-                                           BGP_TCP_PORT, BGP_TCP_PORT);
+            assert(controller != null);
+            controller.setServiceFlows(localPortNum, remotePortNum, localAddr,
+                                       remoteAddr, BGP_TCP_PORT, BGP_TCP_PORT);
             if (!this.run) {
                 try {
                     Sudo.sudoExec("killall bgpd");

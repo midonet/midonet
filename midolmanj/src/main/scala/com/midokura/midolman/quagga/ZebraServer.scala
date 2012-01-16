@@ -40,7 +40,137 @@ import com.midokura.midolman.packets.IntIPv4
 case class Request(socket: Socket, reqId: Int)
 case class Response(reqId: Int)
 
+protected[quagga] object ZebraProtocol {
+    // IP constants.
+    final val AF_INET  = 2
+    final val AF_INET6 = 10
+    final val Ipv4MaxBytelen = 4
+    final val Ipv6MaxBytelen = 16
+
+    // Zebra protocol headers.
+    final val ZebraHeaderSize     = 6
+    final val ZebraHeaderMarker   = 255
+    final val ZebraHeaderVersion  = 1
+    final val ZebraMaxPayloadSize = (1 << 16) - 1
+
+    // Zebra message types.
+    final val ZebraInterfaceAdd              = 1
+    final val ZebraInterfaceDelete           = 2
+    final val ZebraInterfaceAddressAdd       = 3
+    final val ZebraInterfaceAddressDelete    = 4
+    final val ZebraInterfaceUp               = 5
+    final val ZebraInterfaceDown             = 6
+    final val ZebraIpv4RouteAdd              = 7
+    final val ZebraIpv4RouteDelete           = 8
+    final val ZebraIpv6RouteAdd              = 9
+    final val ZebraIpv6RouteDelete           = 10
+    final val ZebraRedistributeAdd           = 11
+    final val ZebraRedistributeDelete        = 12
+    final val ZebraRedistributeDefaultAdd    = 13
+    final val ZebraRedistributeDefaultDelete = 14
+    final val ZebraIpv4NextHopLookup         = 15
+    final val ZebraIpv6NextHopLookup         = 16
+    final val ZebraIpv4ImportLookup          = 17
+    final val ZebraIpv6ImportLookup          = 18
+    final val ZebraInterfaceRename           = 19
+    final val ZebraRouterIdAdd               = 20
+    final val ZebraRouterIdDelete            = 21
+    final val ZebraRouterIdUpdate            = 22
+    final val ZebraMessageMax                = 23
+
+    // Interface related constants.
+    final val InterfaceNameSize  = 20
+    final val InterfaceHwAddrMax = 20
+    final val MacAddrLength      = 6
+    final val ZebraInterfaceActive        = 0x01
+    final val ZebraInterfaceSub           = 0x02
+    final val ZebraInterfaceLinkdetection = 0x04
+
+    // Zebra message payload sizes.
+    // InterfaceNameSize + MacAddrLength + Long + Int * 6 + Byte
+    final val ZebraInterfaceAddSize =
+        (InterfaceNameSize + MacAddrLength + 8 + 4 * 6 + 1).toByte
+    // Ipv4MaxBytelen + Byte * 2
+    final val ZebraRouterIdUpdateSize = (Ipv4MaxBytelen + 1 * 2).toByte
+    // Ipv4MaxBytelen + Int * 2 + Byte * 3
+    final val ZebraInterfaceAddressAddSize = (Ipv4MaxBytelen +
+                                                      4 * 2 + 1 * 3).toByte
+
+    // c.f. /usr/include/net/if.h
+    final val IFF_UP	      = 0x1
+    final val IFF_BROADCAST   = 0x2
+    final val IFF_DEBUG	      = 0x4
+    final val IFF_LOOPBACK    = 0x8
+    final val IFF_POINTOPOINT = 0x10
+    final val IFF_NOTRAILERS  = 0x20
+    final val IFF_RUNNING     = 0x40
+    final val IFF_NOARP	      = 0x80
+    final val IFF_PROMISC     = 0x100
+    final val IFF_ALLMULTI    = 0x200
+    final val IFF_MASTER      = 0x400
+    final val IFF_SLAVE	      = 0x800
+    final val IFF_MULTICAST   = 0x1000
+    final val IFF_PORTSEL     = 0x2000
+    final val IFF_AUTOMEDIA   = 0x4000
+    final val IFF_DYNAMIC     = 0x8000
+
+    // Flags for connected address.
+    final val ZEBRA_IFA_SECONDARY = 0x01
+    final val ZEBRA_IFA_PEER      = 0x02
+
+    // Zebra IPv4 route message API.
+    final val ZAPIMessageNextHop  = 0x01
+    final val ZAPIMessageIfIndex  = 0x02
+    final val ZAPIMessageDistance = 0x04
+    final val ZAPIMessageMetric   = 0x08
+
+    // Zebra nexthop flags.
+    final val ZebraNexthopIfIndex     = 1
+    final val ZebraNextHopIfName      = 2
+    final val ZebraNextHopIpv4        = 3
+    final val ZebraNextHopIpv4IfIndex = 4
+    final val ZebraNextHopIpv4IfName  = 5
+    final val ZebraNextHopIpv6        = 6
+    final val ZebraNextHopIpv6IfIndex = 7
+    final val ZebraNextHopIpv6IfName  = 8
+    final val ZebraNextHopBlackhole   = 9
+
+    // Zebra route types.
+    final val ZebraRouteSystem  = 0
+    final val ZebraRouteKernel  = 1
+    final val ZebraRouteConnect = 2
+    final val ZebraRouteStatic  = 3
+    final val ZebraRouteRip     = 4
+    final val ZebraRouteRipng   = 5
+    final val ZebraRouteOspf    = 6
+    final val ZebraRouteOspf6   = 7
+    final val ZebraRouteIsis    = 8
+    final val ZebraRouteBgp     = 9
+    final val ZebraRouteHsls    = 10
+    final val ZebraRouteMax     = 11
+
+    final def sendHeader(out: DataOutputStream, message: Byte, length: Int) {
+        assert(ZebraHeaderSize + length <= ZebraMaxPayloadSize)
+
+        out.writeShort(ZebraHeaderSize + length)
+        out.writeByte(ZebraHeaderMarker)
+        out.writeByte(ZebraHeaderVersion)
+        out.writeShort(message)
+    }
+
+    final def recvHeader(in: DataInputStream): (Int, Int) = {
+        val length = in.readUnsignedShort
+        assert(length <= ZebraMaxPayloadSize)
+        val headerMarker = in.readByte
+        val version = in.readByte
+        val message = in.readUnsignedShort
+        return (message, length - ZebraHeaderSize)
+    }
+}
+
 object ZebraConnection {
+    import ZebraProtocol._
+
     // Midolman OpenvSwitch constants.
     // TODO(yoshi): get some values from config file.
     private final val OvsPortIdExtIdKey = "midolman_port_id"
@@ -49,48 +179,10 @@ object ZebraConnection {
     private final val OspfExtIdValue = "ospf"
     private final val RipfExtIdValue = "rip"
 
-
     // The mtu size 1300 to avoid ovs dropping packets.
     private final val MidolmanMTU = 1300
     // The weight of advertised routes.
     private final val AdvertisedWeight = 0
-
-    // IP constants.
-    private final val AF_INET  = 2
-    private final val AF_INET6 = 10
-    private final val Ipv4MaxBytelen = 4
-    private final val Ipv6MaxBytelen = 16
-
-    // Zebra protocol headers.
-    private final val ZebraHeaderSize     = 6
-    private final val ZebraHeaderMarker   = 255
-    private final val ZebraHeaderVersion  = 1
-    private final val ZebraMaxPayloadSize = (1 << 16) - 1
-
-    // Zebra message types.
-    private final val ZebraInterfaceAdd              = 1
-    private final val ZebraInterfaceDelete           = 2
-    private final val ZebraInterfaceAddressAdd       = 3
-    private final val ZebraInterfaceAddressDelete    = 4
-    private final val ZebraInterfaceUp               = 5
-    private final val ZebraInterfaceDown             = 6
-    private final val ZebraIpv4RouteAdd              = 7
-    private final val ZebraIpv4RouteDelete           = 8
-    private final val ZebraIpv6RouteAdd              = 9
-    private final val ZebraIpv6RouteDelete           = 10
-    private final val ZebraRedistributeAdd           = 11
-    private final val ZebraRedistributeDelete        = 12
-    private final val ZebraRedistributeDefaultAdd    = 13
-    private final val ZebraRedistributeDefaultDelete = 14
-    private final val ZebraIpv4NextHopLookup         = 15
-    private final val ZebraIpv6NextHopLookup         = 16
-    private final val ZebraIpv4ImportLookup          = 17
-    private final val ZebraIpv6ImportLookup          = 18
-    private final val ZebraInterfaceRename           = 19
-    private final val ZebraRouterIdAdd               = 20
-    private final val ZebraRouterIdDelete            = 21
-    private final val ZebraRouterIdUpdate            = 22
-    private final val ZebraMessageMax                = 23
 
     // Zebra message string table.
     private final val ZebraMessageTable = Map(
@@ -117,77 +209,6 @@ object ZebraConnection {
         ZebraRouterIdDelete -> "ZebraRouterIdDelete",
         ZebraRouterIdUpdate -> "ZebraRouterIdUpdate")
 
-    // Interface related constants.
-    private final val InterfaceNameSize  = 20
-    private final val InterfaceHwAddrMax = 20
-    private final val MacAddrLength      = 6
-    private final val ZebraInterfaceActive        = 0x01
-    private final val ZebraInterfaceSub           = 0x02
-    private final val ZebraInterfaceLinkdetection = 0x04
-
-    // Zebra message payload sizes.
-    // InterfaceNameSize + MacAddrLength + Long + Int * 6 + Byte
-    private final val ZebraInterfaceAddSize =
-        (InterfaceNameSize + MacAddrLength + 8 + 4 * 6 + 1).toByte
-    // Ipv4MaxBytelen + Byte * 2
-    private final val ZebraRouterIdUpdateSize = (Ipv4MaxBytelen + 1 * 2).toByte
-    // Ipv4MaxBytelen + Int * 2 + Byte * 3
-    private final val ZebraInterfaceAddressAddSize = (Ipv4MaxBytelen +
-                                                      4 * 2 + 1 * 3).toByte
-
-    // c.f. /usr/include/net/if.h
-    private final val IFF_UP	      = 0x1
-    private final val IFF_BROADCAST   = 0x2
-    private final val IFF_DEBUG	      = 0x4
-    private final val IFF_LOOPBACK    = 0x8
-    private final val IFF_POINTOPOINT = 0x10
-    private final val IFF_NOTRAILERS  = 0x20
-    private final val IFF_RUNNING     = 0x40
-    private final val IFF_NOARP	      = 0x80
-    private final val IFF_PROMISC     = 0x100
-    private final val IFF_ALLMULTI    = 0x200
-    private final val IFF_MASTER      = 0x400
-    private final val IFF_SLAVE	      = 0x800
-    private final val IFF_MULTICAST   = 0x1000
-    private final val IFF_PORTSEL     = 0x2000
-    private final val IFF_AUTOMEDIA   = 0x4000
-    private final val IFF_DYNAMIC     = 0x8000
-
-    // Flags for connected address.
-    private final val ZEBRA_IFA_SECONDARY = 0x01
-    private final val ZEBRA_IFA_PEER      = 0x02
-
-    // Zebra IPv4 route message API.
-    private final val ZAPIMessageNextHop  = 0x01
-    private final val ZAPIMessageIfIndex  = 0x02
-    private final val ZAPIMessageDistance = 0x04
-    private final val ZAPIMessageMetric   = 0x08
-
-    // Zebra nexthop flags.
-    private final val ZebraNexthopIfIndex     = 1
-    private final val ZebraNextHopIfName      = 2
-    private final val ZebraNextHopIpv4        = 3
-    private final val ZebraNextHopIpv4IfIndex = 4
-    private final val ZebraNextHopIpv4IfName  = 5
-    private final val ZebraNextHopIpv6        = 6
-    private final val ZebraNextHopIpv6IfIndex = 7
-    private final val ZebraNextHopIpv6IfName  = 8
-    private final val ZebraNextHopBlackhole   = 9
-
-    // Zebra route types.
-    private final val ZebraRouteSystem  = 0
-    private final val ZebraRouteKernel  = 1
-    private final val ZebraRouteConnect = 2
-    private final val ZebraRouteStatic  = 3
-    private final val ZebraRouteRip     = 4
-    private final val ZebraRouteRipng   = 5
-    private final val ZebraRouteOspf    = 6
-    private final val ZebraRouteOspf6   = 7
-    private final val ZebraRouteIsis    = 8
-    private final val ZebraRouteBgp     = 9
-    private final val ZebraRouteHsls    = 10
-    private final val ZebraRouteMax     = 11
-
     // Zebra route type string table.
     private final val ZebraRouteTypeTable = Map(
         ZebraRouteSystem -> "System",
@@ -209,6 +230,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                       val routeMgr: RouteZkManager,
                       val ovsdb: OpenvSwitchDatabaseConnection) extends Actor {
     import ZebraConnection._
+    import ZebraProtocol._
 
     private final val log = LoggerFactory.getLogger(this.getClass)
     
@@ -222,15 +244,6 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
 
     implicit def outputStreamWrapper(out: OutputStream) =
         new DataOutputStream(out)
-
-    def sendHeader(out: DataOutputStream, message: Byte, length: Int) {
-        assert(ZebraHeaderSize + length <= ZebraMaxPayloadSize)
-
-        out.writeShort(ZebraHeaderSize + length)
-        out.writeByte(ZebraHeaderMarker)
-        out.writeByte(ZebraHeaderVersion)
-        out.writeShort(message)
-    }
 
     def interfaceAdd(out: DataOutputStream) {
         val protocols = Array(BgpExtIdValue, OspfExtIdValue, RipfExtIdValue)
@@ -460,10 +473,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
 
     def handleRequest(in: DataInputStream, out: DataOutputStream, id: Int) {
         while (true) {
-            val us = in.readUnsignedShort
-            val header_marker = in.readByte
-            val version = in.readByte
-            val message = in.readUnsignedShort
+            val (message, _) = recvHeader(in)
 
             message match {
                 case ZebraInterfaceAdd =>
@@ -598,9 +608,15 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
     }
 }
 
-class ZebraServer(val server: ServerSocket, val address: SocketAddress,
-                  val portMgr: PortZkManager, val routeMgr: RouteZkManager,
-                  val ovsdb: OpenvSwitchDatabaseConnection) {
+trait ZebraServer {
+    def start()
+    def stop()
+}
+
+class ZebraServerImpl(val server: ServerSocket, val address: SocketAddress,
+                      val portMgr: PortZkManager, val routeMgr: RouteZkManager,
+                      val ovsdb: OpenvSwitchDatabaseConnection)
+extends ZebraServer {
 
     private final val log = LoggerFactory.getLogger(this.getClass)
     private var run = false
@@ -642,7 +658,7 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
     server.bind(address)
 
 
-    def start() {
+    override def start() {
         run = true
         log.info("start")
 
@@ -665,7 +681,7 @@ class ZebraServer(val server: ServerSocket, val address: SocketAddress,
         }
     }
 
-    def stop() {
+    override def stop() {
         log.info("stop")
         run = false
         server.close

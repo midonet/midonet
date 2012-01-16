@@ -16,6 +16,7 @@ import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
+import com.midokura.midolman.quagga.ZebraServerImpl;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
@@ -317,7 +318,7 @@ public class ControllerTrampoline implements Controller {
             AFUNIXSocketAddress address = new AFUNIXSocketAddress(socketFile);
 
             ZebraServer zebraServer =
-                new ZebraServer(server, address, portMgr, routeMgr, ovsdb);
+                new ZebraServerImpl(server, address, portMgr, routeMgr, ovsdb);
 
             BgpVtyConnection vtyConnection =
                 new BgpVtyConnection("localhost", 2605, "zebra", bgpMgr, adRouteMgr);

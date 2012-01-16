@@ -416,6 +416,7 @@ public class Setup implements Watcher {
     private static List<String> getTopLevelPaths(String basePath) {
         ZkPathManager pathMgr = new ZkPathManager(basePath);
         List<String> paths = new ArrayList<String>();
+        paths.add(pathMgr.getAdRoutesPath());
         paths.add(pathMgr.getBgpPath());
         paths.add(pathMgr.getBridgesPath());
         paths.add(pathMgr.getChainsPath());

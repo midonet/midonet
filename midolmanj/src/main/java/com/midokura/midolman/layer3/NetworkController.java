@@ -68,7 +68,8 @@ import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 
-public class NetworkController extends AbstractController {
+public class NetworkController extends AbstractController
+    implements ServiceFlowController {
 
     private static final Logger log = LoggerFactory
             .getLogger(NetworkController.class);
@@ -1243,7 +1244,8 @@ public class NetworkController extends AbstractController {
         }
     }
 
-    public void setServicePortFlows(short localPortNum, short remotePortNum,
+    @Override
+    public void setServiceFlows(short localPortNum, short remotePortNum,
             int localAddr, int remoteAddr, short localTport, short remoteTport) {
         // Remember service's target port assuming that service flows sent
         // this packet to the OFPP_CONTROLLER.

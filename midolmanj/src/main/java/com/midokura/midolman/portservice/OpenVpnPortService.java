@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
-import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.MAC;
@@ -125,7 +125,7 @@ public class OpenVpnPortService implements PortService {
     }
 
     @Override
-    public void setController(NetworkController controller) {
+    public void setController(ServiceFlowController controller) {
         throw new RuntimeException("not implemented");
     }
 

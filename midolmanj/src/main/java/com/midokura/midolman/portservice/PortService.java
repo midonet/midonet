@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -18,7 +18,7 @@ public interface PortService {
 
     public void clear();
 
-    public void setController(NetworkController controller);
+    public void setController(ServiceFlowController controller);
 
     public Set<String> getPorts(UUID portId) throws StateAccessException;
 

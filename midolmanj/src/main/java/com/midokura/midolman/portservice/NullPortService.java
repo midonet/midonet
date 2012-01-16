@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.portservice;
 
-import com.midokura.midolman.layer3.NetworkController;
+import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ public class NullPortService implements PortService {
     }
 
     @Override
-    public void setController(NetworkController controller) {
+    public void setController(ServiceFlowController controller) {
         log.warn("setController() called!");
     }
 
