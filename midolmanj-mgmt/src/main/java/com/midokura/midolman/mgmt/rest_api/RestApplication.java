@@ -12,6 +12,11 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
+import com.midokura.midolman.mgmt.auth.AuthorizerSelector;
+import com.midokura.midolman.mgmt.config.AppConfig;
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.DataStoreSelector;
+import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.AuthInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ConfigInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.DataStoreInjectableProvider;
@@ -20,6 +25,7 @@ import com.midokura.midolman.mgmt.rest_api.jaxrs.StateAccessExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnauthorizedExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
+import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Jax-RS application class.
@@ -65,10 +71,34 @@ public class RestApplication extends Application {
     public Set<Object> getSingletons() {
         ConfigInjectableProvider configProvider = new ConfigInjectableProvider(
                 servletContext);
+        AppConfig config = configProvider.getValue();
+
+        DataStoreSelector dataStoreSelector = new DataStoreSelector(config);
         DataStoreInjectableProvider dataStoreProvider = new DataStoreInjectableProvider(
-                configProvider.getValue());
+                dataStoreSelector);
+        DaoFactory daoFactory = dataStoreProvider.getValue();
+
+        // Since this should only get called once, let the application
+        // initialize its data store here.
+        try {
+            ApplicationDao dao = daoFactory.getApplicationDao();
+            dao.initialize();
+        } catch (StateAccessException e) {
+            throw new UnsupportedOperationException(
+                    "Datastore could not be initialized due to data access error.",
+                    e);
+        }
+
+        AuthorizerSelector authzSelector = null;
+        try {
+            authzSelector = new AuthorizerSelector(config,
+                    daoFactory.getTenantDao());
+        } catch (StateAccessException e) {
+            throw new UnsupportedOperationException(
+                    "TenantDao could not be instantiated for Authorizr.", e);
+        }
         AuthInjectableProvider authProvider = new AuthInjectableProvider(
-                dataStoreProvider.getValue());
+                authzSelector);
 
         HashSet<Object> singletons = new HashSet<Object>();
         singletons.add(configProvider);

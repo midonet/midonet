@@ -29,6 +29,8 @@ public class FuncTest {
                     "com.midokura.midolman.mgmt.rest_api.RestApplication")
             .contextParam("datastore_service",
                     "com.midokura.midolman.mgmt.data.MockDaoFactory")
+            .contextParam("authorizer",
+                    "com.midokura.midolman.mgmt.auth.SimpleAuthorizer")
             .contextParam("zk_conn_string", "").contextParam("zk_timeout", "0")
             .contextParam("zk_root", "/test/midolman")
             .contextParam("zk_mgmt_root", "/test/midolman-mgmt")

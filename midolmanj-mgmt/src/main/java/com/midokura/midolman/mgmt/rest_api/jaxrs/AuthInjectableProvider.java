@@ -10,10 +10,9 @@ import java.lang.reflect.Type;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
-import com.midokura.midolman.mgmt.auth.AuthChecker;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.mgmt.auth.AuthorizerSelector;
+import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.sun.jersey.core.spi.component.ComponentContext;
 import com.sun.jersey.core.spi.component.ComponentScope;
 import com.sun.jersey.spi.inject.Injectable;
@@ -30,11 +29,12 @@ public class AuthInjectableProvider implements
         InjectableProvider<Context, Type>, Injectable<Authorizer> {
 
     private Authorizer authorizer = null;
-    private final DaoFactory daoFactory;
+    private final AuthorizerSelector selector;
 
-    public AuthInjectableProvider(DaoFactory daoFactory) {
-        this.daoFactory = daoFactory;
+    public AuthInjectableProvider(AuthorizerSelector selector) {
+        this.selector = selector;
     }
+
     /*
      * (non-Javadoc)
      *
@@ -71,11 +71,10 @@ public class AuthInjectableProvider implements
     public Authorizer getValue() {
         if (authorizer == null) {
             try {
-                authorizer = new Authorizer(new AuthChecker(),
-                        daoFactory.getTenantDao());
-            } catch (StateAccessException e) {
-                // Probably should refactor this part in the future.
-                throw new RuntimeException("Could not initialize DAO.", e);
+                authorizer = selector.getAuthorizer();
+            } catch (InvalidConfigException e) {
+                throw new UnsupportedOperationException(
+                        "Could not instantiate and initialize Authorizer.", e);
             }
         }
         return authorizer;

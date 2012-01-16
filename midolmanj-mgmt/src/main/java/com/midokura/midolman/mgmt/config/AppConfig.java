@@ -11,6 +11,7 @@ public class AppConfig {
 
     private final static String versionKey = "version";
     private final static String dataStoreKey = "datastore_service";
+    private final static String authorizerKey = "authorizer";
     private final static String zkConnStringKey = "zk_conn_string";
     private final static String zkTimeoutKey = "zk_timeout";
     private final static String zkRootKey = "zk_root";
@@ -35,6 +36,15 @@ public class AppConfig {
         if (val == null) {
             throw new InvalidConfigException("Config is missing "
                     + dataStoreKey);
+        }
+        return val;
+    }
+
+    public String getAuthorizerClassName() throws InvalidConfigException {
+        String val = ctx.getInitParameter(authorizerKey);
+        if (val == null) {
+            throw new InvalidConfigException("Config is missing "
+                    + authorizerKey);
         }
         return val;
     }

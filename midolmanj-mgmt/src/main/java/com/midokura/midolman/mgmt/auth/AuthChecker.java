@@ -17,6 +17,9 @@ import javax.ws.rs.core.SecurityContext;
  */
 public class AuthChecker {
 
+    private AuthChecker() {
+    }
+
     /**
      * Checks whether the user sending the request is admin.
      *
@@ -24,7 +27,7 @@ public class AuthChecker {
      *            Request context.
      * @return True if admin.
      */
-    public boolean isAdmin(SecurityContext context) {
+    public static boolean isAdmin(SecurityContext context) {
         return (context.isUserInRole(AuthRole.ADMIN.toString()));
     }
 
@@ -35,7 +38,7 @@ public class AuthChecker {
      *            Request context.
      * @return True if provider.
      */
-    public boolean isProvider(SecurityContext context) {
+    public static boolean isProvider(SecurityContext context) {
         return (isAdmin(context) || context.isUserInRole(AuthRole.PROVIDER
                 .toString()));
     }
@@ -48,7 +51,7 @@ public class AuthChecker {
      *            User principal ID
      * @return True if the requester ID matches the ID.
      */
-    public boolean isUserPrincipal(SecurityContext context, String id) {
+    public static boolean isUserPrincipal(SecurityContext context, String id) {
         return (isAdmin(context))
                 || context.getUserPrincipal().getName().equals(id);
     }
@@ -61,7 +64,7 @@ public class AuthChecker {
      *            User principal ID
      * @return True if the requester ID matches the ID.
      */
-    public boolean isUserPrincipal(SecurityContext context, UUID id) {
+    public static boolean isUserPrincipal(SecurityContext context, UUID id) {
         return isUserPrincipal(context, id.toString());
     }
 }

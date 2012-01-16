@@ -10,10 +10,9 @@ import java.lang.reflect.Type;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
-import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.DaoInitializationException;
-import com.midokura.midolman.mgmt.data.DatastoreSelector;
+import com.midokura.midolman.mgmt.data.DataStoreSelector;
 import com.sun.jersey.core.spi.component.ComponentContext;
 import com.sun.jersey.core.spi.component.ComponentScope;
 import com.sun.jersey.spi.inject.Injectable;
@@ -23,11 +22,11 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 public class DataStoreInjectableProvider implements
         InjectableProvider<Context, Type>, Injectable<DaoFactory> {
 
-    private final AppConfig appConfig;
-    DaoFactory daoFactory = null;
+    private DaoFactory daoFactory = null;
+    private final DataStoreSelector selector;
 
-    public DataStoreInjectableProvider(AppConfig appConfig) {
-        this.appConfig = appConfig;
+    public DataStoreInjectableProvider(DataStoreSelector selector) {
+        this.selector = selector;
     }
 
     @Override
@@ -39,7 +38,7 @@ public class DataStoreInjectableProvider implements
     public DaoFactory getValue() {
         if (daoFactory == null) {
             try {
-                daoFactory = DatastoreSelector.getDaoFactory(appConfig);
+                daoFactory = selector.getDaoFactory();
             } catch (DaoInitializationException e) {
                 throw new UnsupportedOperationException(
                         "Could not instantiate and initialize DaoFactory.", e);
