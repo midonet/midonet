@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
@@ -135,14 +135,14 @@ public class Chain extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getChain(getBaseUri(), id);
+        return ResourceUriBuilder.getChain(getBaseUri(), id);
     }
 
     /**
      * @return the rules URI
      */
     public URI getRules() {
-        return UriManager.getChainRules(getBaseUri(), id);
+        return ResourceUriBuilder.getChainRules(getBaseUri(), id);
     }
 
     public ChainConfig toConfig() {

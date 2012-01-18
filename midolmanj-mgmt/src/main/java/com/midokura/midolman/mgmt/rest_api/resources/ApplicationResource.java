@@ -15,7 +15,7 @@ import javax.ws.rs.core.UriInfo;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 
 /**
@@ -24,7 +24,7 @@ import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
  * @version 1.6 15 Nov 2011
  * @author Ryu Ishimoto
  */
-@Path(UriManager.ROOT)
+@Path(ResourceUriBuilder.ROOT)
 public class ApplicationResource {
 
     /**
@@ -32,7 +32,7 @@ public class ApplicationResource {
      *
      * @returns TenantResource object to handle sub-resource requests.
      */
-    @Path(UriManager.TENANTS)
+    @Path(ResourceUriBuilder.TENANTS)
     public TenantResource getTenantResource() {
         return new TenantResource();
     }
@@ -42,7 +42,7 @@ public class ApplicationResource {
      *
      * @returns RouterResource object to handle sub-resource requests.
      */
-    @Path(UriManager.ROUTERS)
+    @Path(ResourceUriBuilder.ROUTERS)
     public RouterResource getRouterResource() {
         return new RouterResource();
     }
@@ -52,7 +52,7 @@ public class ApplicationResource {
      *
      * @returns BridgeResource object to handle sub-resource requests.
      */
-    @Path(UriManager.BRIDGES)
+    @Path(ResourceUriBuilder.BRIDGES)
     public BridgeResource getBridgeResource() {
         return new BridgeResource();
     }
@@ -62,7 +62,7 @@ public class ApplicationResource {
      *
      * @returns PortResource object to handle sub-resource requests.
      */
-    @Path(UriManager.PORTS)
+    @Path(ResourceUriBuilder.PORTS)
     public PortResource getPortResource() {
         return new PortResource();
     }
@@ -72,7 +72,7 @@ public class ApplicationResource {
      *
      * @returns VifResource object to handle sub-resource requests.
      */
-    @Path(UriManager.VIFS)
+    @Path(ResourceUriBuilder.VIFS)
     public VifResource getVifResource() {
         return new VifResource();
     }
@@ -82,7 +82,7 @@ public class ApplicationResource {
      *
      * @returns RouteResource object to handle sub-resource requests.
      */
-    @Path(UriManager.ROUTES)
+    @Path(ResourceUriBuilder.ROUTES)
     public RouteResource getRouteResource() {
         return new RouteResource();
     }
@@ -92,7 +92,7 @@ public class ApplicationResource {
      *
      * @returns ChainResource object to handle sub-resource requests.
      */
-    @Path(UriManager.CHAINS)
+    @Path(ResourceUriBuilder.CHAINS)
     public ChainResource getChainResource() {
         return new ChainResource();
     }
@@ -102,7 +102,7 @@ public class ApplicationResource {
      *
      * @returns RuleResource object to handle sub-resource requests.
      */
-    @Path(UriManager.RULES)
+    @Path(ResourceUriBuilder.RULES)
     public RuleResource getRuleResource() {
         return new RuleResource();
     }
@@ -112,7 +112,7 @@ public class ApplicationResource {
      *
      * @returns BgpResource object to handle sub-resource requests.
      */
-    @Path(UriManager.BGP)
+    @Path(ResourceUriBuilder.BGP)
     public BgpResource getBgpResource() {
         return new BgpResource();
     }
@@ -122,7 +122,7 @@ public class ApplicationResource {
      *
      * @returns AdRouteResource object to handle sub-resource requests.
      */
-    @Path(UriManager.AD_ROUTES)
+    @Path(ResourceUriBuilder.AD_ROUTES)
     public AdRouteResource getAdRouteResource() {
         return new AdRouteResource();
     }
@@ -132,7 +132,7 @@ public class ApplicationResource {
      *
      * @returns VpnResource object to handle sub-resource requests.
      */
-    @Path(UriManager.VPN)
+    @Path(ResourceUriBuilder.VPN)
     public VpnResource getVpnResource() {
         return new VpnResource();
     }

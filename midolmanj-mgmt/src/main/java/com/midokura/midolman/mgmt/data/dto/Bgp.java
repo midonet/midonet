@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
@@ -171,14 +171,14 @@ public class Bgp extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getBgp(getBaseUri(), id);
+        return ResourceUriBuilder.getBgp(getBaseUri(), id);
     }
 
     /**
      * @return the Ad routes URI
      */
     public URI getAdRoutes() {
-        return UriManager.getBgpAdRoutes(getBaseUri(), id);
+        return ResourceUriBuilder.getBgpAdRoutes(getBaseUri(), id);
     }
 
     public BgpConfig toConfig() {

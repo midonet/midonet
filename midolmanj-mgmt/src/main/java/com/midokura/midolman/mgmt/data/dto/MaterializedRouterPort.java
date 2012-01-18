@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -109,14 +109,14 @@ public class MaterializedRouterPort extends RouterPort {
      * @return the bgps URI
      */
     public URI getBgps() {
-        return UriManager.getPortBgps(getBaseUri(), this.getId());
+        return ResourceUriBuilder.getPortBgps(getBaseUri(), this.getId());
     }
 
     /**
      * @return the vpns URI
      */
     public URI getVpns() {
-        return UriManager.getPortVpns(getBaseUri(), this.getId());
+        return ResourceUriBuilder.getPortVpns(getBaseUri(), this.getId());
     }
 
     /**

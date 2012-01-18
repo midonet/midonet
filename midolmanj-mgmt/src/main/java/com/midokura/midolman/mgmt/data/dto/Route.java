@@ -11,7 +11,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.util.Net;
 
 /**
@@ -243,7 +243,7 @@ public class Route extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getRoute(getBaseUri(), id);
+        return ResourceUriBuilder.getRoute(getBaseUri(), id);
     }
 
     public com.midokura.midolman.layer3.Route toZkRoute() {

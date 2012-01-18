@@ -28,7 +28,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.StateAccessException;
@@ -100,7 +100,7 @@ public class BgpAdRouteResource {
         }
 
         return Response
-                .created(UriManager.getAdRoute(uriInfo.getBaseUri(), id))
+                .created(ResourceUriBuilder.getAdRoute(uriInfo.getBaseUri(), id))
                 .build();
     }
 

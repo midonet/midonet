@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 
@@ -96,7 +96,7 @@ public class Vpn extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getVpn(getBaseUri(), id);
+        return ResourceUriBuilder.getVpn(getBaseUri(), id);
     }
 
     /**

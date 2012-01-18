@@ -11,7 +11,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.VifConfig;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Class representing Vif.
@@ -79,7 +79,7 @@ public class Vif extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getVif(getBaseUri(), id);
+        return ResourceUriBuilder.getVif(getBaseUri(), id);
     }
 
     /**

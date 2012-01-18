@@ -29,7 +29,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -151,7 +151,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterChainResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.CHAINS)
+    @Path("/{id}" + ResourceUriBuilder.CHAINS)
     public RouterChainResource getChainResource(@PathParam("id") UUID id) {
         return new RouterChainResource(id);
     }
@@ -163,7 +163,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterRouterResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.ROUTERS)
+    @Path("/{id}" + ResourceUriBuilder.ROUTERS)
     public RouterLinkResource getLinkResource(@PathParam("id") UUID id) {
         return new RouterLinkResource(id);
     }
@@ -175,7 +175,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterPortResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.PORTS)
+    @Path("/{id}" + ResourceUriBuilder.PORTS)
     public RouterPortResource getPortResource(@PathParam("id") UUID id) {
         return new RouterPortResource(id);
     }
@@ -187,7 +187,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterRouteResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.ROUTES)
+    @Path("/{id}" + ResourceUriBuilder.ROUTES)
     public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
         return new RouterRouteResource(id);
     }
@@ -199,7 +199,7 @@ public class RouterResource {
      *            Router ID from the request.
      * @returns RouterTableResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.TABLES)
+    @Path("/{id}" + ResourceUriBuilder.TABLES)
     public RouterTableResource getTableResource(@PathParam("id") UUID id) {
         return new RouterTableResource(id);
     }

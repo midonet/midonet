@@ -9,7 +9,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 
@@ -117,7 +117,7 @@ public abstract class Port extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getPort(getBaseUri(), id);
+        return ResourceUriBuilder.getPort(getBaseUri(), id);
     }
 
     /**

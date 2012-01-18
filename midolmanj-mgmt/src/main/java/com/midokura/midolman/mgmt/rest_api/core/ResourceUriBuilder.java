@@ -1,5 +1,5 @@
 /*
- * @(#)ResourcePath.java        1.6 11/11/15
+ * @(#)ResourceUriBuilder.java        1.6 11/11/15
  *
  * Copyright 2011 Midokura KK
  */
@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-public class UriManager {
+public class ResourceUriBuilder {
 
     public static final String ROOT = "/";
     public static final String TENANTS = "/tenants";
@@ -25,6 +25,9 @@ public class UriManager {
     public static final String BGP = "/bgps";
     public static final String AD_ROUTES = "/ad_routes";
     public static final String VPN = "/vpns";
+
+    private ResourceUriBuilder() {
+    }
 
     public static URI getRoot(URI baseUri) {
         return UriBuilder.fromUri(baseUri).path(ROOT).build();

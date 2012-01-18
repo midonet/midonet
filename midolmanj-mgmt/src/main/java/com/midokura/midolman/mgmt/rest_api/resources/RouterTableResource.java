@@ -11,7 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Sub-resource class for router's chain tables.
@@ -37,7 +37,7 @@ public class RouterTableResource {
      *            Chain ID from the request.
      * @returns RouterTableChainResource object to handle sub-resource requests.
      */
-    @Path("/{name}" + UriManager.CHAINS)
+    @Path("/{name}" + ResourceUriBuilder.CHAINS)
     public RouterTableChainResource getChainTableResource(
             @PathParam("name") ChainTable name) {
         return new RouterTableChainResource(routerId, name);

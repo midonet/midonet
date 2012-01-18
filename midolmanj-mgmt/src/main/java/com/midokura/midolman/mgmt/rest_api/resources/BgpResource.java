@@ -26,7 +26,7 @@ import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -148,7 +148,7 @@ public class BgpResource {
      *            BGP ID from the request.
      * @returns BgpAdRouteResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.AD_ROUTES)
+    @Path("/{id}" + ResourceUriBuilder.AD_ROUTES)
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
         return new BgpAdRouteResource(id);
     }

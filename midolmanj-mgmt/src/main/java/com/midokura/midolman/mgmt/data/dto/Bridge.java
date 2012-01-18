@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 
 /**
@@ -125,7 +125,7 @@ public class Bridge extends UriResource {
      * @return the ports URI
      */
     public URI getPorts() {
-        return UriManager.getBridgePorts(getBaseUri(), id);
+        return ResourceUriBuilder.getBridgePorts(getBaseUri(), id);
     }
 
     /**
@@ -133,7 +133,7 @@ public class Bridge extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getBridge(getBaseUri(), id);
+        return ResourceUriBuilder.getBridge(getBaseUri(), id);
     }
 
     /**

@@ -11,7 +11,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Class representing port.
@@ -134,7 +134,7 @@ public class PeerRouterLink extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getRouterLink(getBaseUri(), routerId, peerRouterId);
+        return ResourceUriBuilder.getRouterLink(getBaseUri(), routerId, peerRouterId);
     }
 
     /**

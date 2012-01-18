@@ -30,7 +30,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -92,7 +92,7 @@ public class TenantResource {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
-        return Response.created(UriManager.getTenant(uriInfo.getBaseUri(), id))
+        return Response.created(ResourceUriBuilder.getTenant(uriInfo.getBaseUri(), id))
                 .build();
     }
 
@@ -145,7 +145,7 @@ public class TenantResource {
      *            Tenant ID from the request.
      * @returns TenantBridgeResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.BRIDGES)
+    @Path("/{id}" + ResourceUriBuilder.BRIDGES)
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
         return new TenantBridgeResource(id);
     }
@@ -157,7 +157,7 @@ public class TenantResource {
      *            Tenant ID from the request.
      * @returns TenantRouterResource object to handle sub-resource requests.
      */
-    @Path("/{id}" + UriManager.ROUTERS)
+    @Path("/{id}" + ResourceUriBuilder.ROUTERS)
     public TenantRouterResource getRouterResource(@PathParam("id") String id) {
         return new TenantRouterResource(id);
     }

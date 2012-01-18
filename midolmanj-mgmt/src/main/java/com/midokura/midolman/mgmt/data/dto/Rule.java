@@ -15,7 +15,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
@@ -568,7 +568,7 @@ public class Rule extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getRule(getBaseUri(), id);
+        return ResourceUriBuilder.getRule(getBaseUri(), id);
     }
 
     public static String getActionString(Action a) {

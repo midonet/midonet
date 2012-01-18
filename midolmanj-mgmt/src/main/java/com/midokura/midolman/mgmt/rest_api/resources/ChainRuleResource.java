@@ -28,7 +28,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
@@ -103,7 +103,7 @@ public class ChainRuleResource {
             throw new UnknownRestApiException(e);
         }
 
-        return Response.created(UriManager.getRule(uriInfo.getBaseUri(), id))
+        return Response.created(ResourceUriBuilder.getRule(uriInfo.getBaseUri(), id))
                 .build();
     }
 

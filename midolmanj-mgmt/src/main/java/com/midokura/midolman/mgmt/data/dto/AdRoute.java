@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 
 /**
@@ -138,7 +138,7 @@ public class AdRoute extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getAdRoute(getBaseUri(), id);
+        return ResourceUriBuilder.getAdRoute(getBaseUri(), id);
     }
 
     /**

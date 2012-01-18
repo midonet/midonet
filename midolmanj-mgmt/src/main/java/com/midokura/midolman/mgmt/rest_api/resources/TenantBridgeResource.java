@@ -28,7 +28,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.StateAccessException;
@@ -100,7 +100,7 @@ public class TenantBridgeResource {
             throw new UnknownRestApiException(e);
         }
 
-        return Response.created(UriManager.getBridge(uriInfo.getBaseUri(), id))
+        return Response.created(ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id))
                 .build();
     }
 

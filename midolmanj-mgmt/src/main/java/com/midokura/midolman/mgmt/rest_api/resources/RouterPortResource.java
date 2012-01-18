@@ -29,7 +29,7 @@ import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.StateAccessException;
@@ -99,7 +99,7 @@ public class RouterPortResource {
             throw new UnknownRestApiException(e);
         }
 
-        return Response.created(UriManager.getPort(uriInfo.getBaseUri(), id))
+        return Response.created(ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))
                 .build();
     }
 

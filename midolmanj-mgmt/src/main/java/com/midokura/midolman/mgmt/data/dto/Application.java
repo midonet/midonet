@@ -9,7 +9,7 @@ import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Application DTO.
@@ -51,14 +51,14 @@ public class Application extends UriResource {
      * @return the tenants URI
      */
     public URI getTenant() {
-        return UriManager.getTenants(getBaseUri());
+        return ResourceUriBuilder.getTenants(getBaseUri());
     }
 
     /**
      * @return the VIFs URI
      */
     public URI getVifs() {
-        return UriManager.getVifs(getBaseUri());
+        return ResourceUriBuilder.getVifs(getBaseUri());
     }
 
     /**
@@ -66,6 +66,6 @@ public class Application extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getRoot(getBaseUri());
+        return ResourceUriBuilder.getRoot(getBaseUri());
     }
 }

@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.UriManager;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Class representing Virtual Router.
@@ -124,28 +124,28 @@ public class Router extends UriResource {
      * @return the ports URI.
      */
     public URI getPorts() {
-        return UriManager.getRouterPorts(getBaseUri(), id);
+        return ResourceUriBuilder.getRouterPorts(getBaseUri(), id);
     }
 
     /**
      * @return the chains URI.
      */
     public URI getChains() {
-        return UriManager.getRouterChains(getBaseUri(), id);
+        return ResourceUriBuilder.getRouterChains(getBaseUri(), id);
     }
 
     /**
      * @return the routes URI.
      */
     public URI getRoutes() {
-        return UriManager.getRouterRoutes(getBaseUri(), id);
+        return ResourceUriBuilder.getRouterRoutes(getBaseUri(), id);
     }
 
     /**
      * @return the peerRouters URI.F
      */
     public URI getPeerRouters() {
-        return UriManager.getRouterRouters(getBaseUri(), id);
+        return ResourceUriBuilder.getRouterRouters(getBaseUri(), id);
     }
 
     /**
@@ -153,7 +153,7 @@ public class Router extends UriResource {
      */
     @Override
     public URI getUri() {
-        return UriManager.getRouter(getBaseUri(), id);
+        return ResourceUriBuilder.getRouter(getBaseUri(), id);
     }
 
     /**
