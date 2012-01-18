@@ -9,7 +9,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midolman.mgmt.config.InvalidConfigException;
 
 /**
  * DAO factory selector.
@@ -45,9 +44,6 @@ public class DataStoreSelector {
 
         try {
             clazz = Class.forName(config.getDataStoreClassName());
-        } catch (InvalidConfigException e) {
-            throw new DaoInitializationException(
-                    "Could not get class name from config", e);
         } catch (ClassNotFoundException e) {
             throw new DaoInitializationException(
                     "Could not find class defined in config", e);

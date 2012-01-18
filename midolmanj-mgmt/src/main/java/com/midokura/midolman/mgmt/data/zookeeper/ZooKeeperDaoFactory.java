@@ -116,13 +116,14 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     public ZooKeeperDaoFactory(AppConfig config)
             throws DaoInitializationException {
         super(config);
+
+        this.rootPath = config.getZkRootPath();
+        this.rootMgmtPath = config.getZkMgmtRootPath();
+        this.connStr = config.getZkConnectionString();
         try {
-            this.rootPath = config.getZkRootPath();
-            this.rootMgmtPath = config.getZkMgmtRootPath();
-            this.connStr = config.getZkConnectionString();
             this.timeout = config.getZkTimeout();
         } catch (InvalidConfigException e) {
-            throw new DaoInitializationException("Invalid configurations", e);
+            throw new DaoInitializationException("Invalid ZK timeout", e);
         }
     }
 

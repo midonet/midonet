@@ -82,11 +82,9 @@ public class TestZookeeperDaoFactory {
 
     @Test(expected = DaoInitializationException.class)
     public void testInitializeBadConfig() throws Exception {
-        // Setup
-        PowerMockito.when(configMock.getZkRootPath()).thenThrow(
-                new InvalidConfigException("Bad Config"));
+        Mockito.doThrow(InvalidConfigException.class).when(configMock)
+                .getZkTimeout();
 
-        // Run
         new ZooKeeperDaoFactory(configMock);
     }
 
