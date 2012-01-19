@@ -98,8 +98,8 @@ public class VifResource {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
-        return Response.created(ResourceUriBuilder.getVif(uriInfo.getBaseUri(), id))
-                .build();
+        return Response.created(
+                ResourceUriBuilder.getVif(uriInfo.getBaseUri(), id)).build();
     }
 
     /**
@@ -181,7 +181,7 @@ public class VifResource {
         Vif vif = null;
         try {
             vif = dao.get(id);
-            if (!authorizer.portAuthorized(context, AuthAction.READ,
+            if (!authorizer.vifAuthorized(context, AuthAction.READ,
                     vif.getPortId())) {
                 throw new UnauthorizedException(
                         "Not authorized to view this VIF.");
