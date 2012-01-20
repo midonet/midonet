@@ -1,5 +1,5 @@
 /**
- * OpenvSwitchDatabaaseConnectionImpl.scala - OVSDB connection management
+ * OpenvSwitchDatabaseConnectionImpl.scala - OVSDB connection management
  *                                            classes.
  *
  * A pure Scala implementation of the Open vSwitch database protocol used to
@@ -92,7 +92,7 @@ object OpenvSwitchDatabaseConnectionImpl {
     }
 
     /**
-     * Get a JOSN-encodable 'where' clause to match the row with the uuid.
+     * Get a JSON-encodable 'where' clause to match the row with the uuid.
      *
      * @param uuid The UUID string of the row to match with returned 'where'
      *             clause.
@@ -266,7 +266,7 @@ object OpenvSwitchDatabaseConnectionImpl {
          * Get a JSON-encodable representation of this transaction's changes
          *
          * @param id An unambigous JSON-RPC request ID assigned to the
-         *           newrequest.
+         *           new request.
          * @return A Scala value that can be encoded into JSON to represent
          *         this transaction in a JSON-RPC call to a DB.
          */
@@ -304,7 +304,7 @@ object OpenvSwitchDatabaseConnectionImpl {
          * Delete a row in this transaction.
          *
          * @param table The name of the table containing the row to delete.
-         * @param rowUuid The UUID string of the row to delete.
+         * @param rowUUID The UUID string of the row to delete.
          */
         def delete(table: String, rowUUID: Option[String]) {
             val where: List[List[_]] = rowUUID match {
@@ -348,7 +348,7 @@ object OpenvSwitchDatabaseConnectionImpl {
         /**
          * Increment values in columns for a given row in this transaction.
          *
-         * @param table   The name of the table containig the row to update.
+         * @param table   The name of the table containing the row to update.
          * @param rowUUID The UUID string of the row to update.
          * @param columns The List of column names of the columns to increment.
          */
@@ -370,7 +370,7 @@ object OpenvSwitchDatabaseConnectionImpl {
          * This method is overloaded alias for
          *   increment(table: String, rowUUID: String, columns: List[String])
          *
-         * @param table   The name of the table containig the row to update.
+         * @param table   The name of the table containing the row to update.
          * @param rowUUID The UUID string of the row to update.
          * @param columns The List of column names of the columns to increment.
          * @see           #increment(String, Option[String], List[String]): Unit
@@ -918,7 +918,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def maxBackoff(maxBackoff: Int) =
             { ctrlRow += (ColumnMaxBackoff -> maxBackoff.toString); this }
         override def inactivityProbe(inactivityProbe: Int) = {
-            ctrlRow += (ColumnInacrivityProbe -> inactivityProbe.toString); this
+            ctrlRow += (ColumnInactivityProbe -> inactivityProbe.toString); this
         }
         override def controllerRateLimit(controllerRateLimit: Int) = {
             ctrlRow += (ColumnControllerRateLimit -> controllerRateLimit); this
@@ -1847,32 +1847,34 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                     TablePort, whereUUIDEquals(portUUID.get(1).getTextValue),
                     List(ColumnUUID, ColumnInterfaces, ColumnExternalIds)
                     ).get(0)
-                val ifs = portRow.get(ColumnInterfaces)
-                assume(ifs != null, "Invalid JSON object.")
-                val ifUUIDs: List[JsonNode] =
-                    if (ifs.get(0).getTextValue == "uuid") {
-                        List(ifs)
-                    } else {
-                        assume(ifs.get(1) != null, "Invalid JSON object.")
-                        ifs.get(1).getElements.toList
-                    }
-                for {
-                    ifUUID <- ifUUIDs
-                    ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
-                } {
-                    val ifRow =
-                        select(TableInterface,
-                               whereUUIDEquals(ifUUIDVal.getTextValue),
-                               List(ColumnUUID, ColumnOfPort)).get(0)
-                    assume(ifRow.get(ColumnOfPort) != null,
-                           "Invalid JSON object.")
-                    if (ifRow.get(ColumnOfPort).getValueAsInt == portNum) {
-                        assume(portRow.get(ColumnExternalIds) != null,
+                if ( portRow != null ) {
+                    val ifs = portRow.get(ColumnInterfaces)
+                    assume(ifs != null, "Invalid JSON object.")
+                    val ifUUIDs: List[JsonNode] =
+                        if (ifs.get(0).getTextValue == "uuid") {
+                            List(ifs)
+                        } else {
+                            assume(ifs.get(1) != null, "Invalid JSON object.")
+                            ifs.get(1).getElements.toList
+                        }
+                    for {
+                        ifUUID <- ifUUIDs
+                        ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
+                    } {
+                        val ifRow =
+                            select(TableInterface,
+                                   whereUUIDEquals(ifUUIDVal.getTextValue),
+                                   List(ColumnUUID, ColumnOfPort)).get(0)
+                        assume(ifRow.get(ColumnOfPort) != null,
                                "Invalid JSON object.")
-                        val extIds =
-                            ovsMapToMap(portRow.get(ColumnExternalIds))
-                        for (externalIdVal <- extIds.get(externalIdKey)) {
-                            return externalIdVal.getTextValue
+                        if (ifRow.get(ColumnOfPort).getValueAsInt == portNum) {
+                            assume(portRow.get(ColumnExternalIds) != null,
+                                   "Invalid JSON object.")
+                            val extIds =
+                                ovsMapToMap(portRow.get(ColumnExternalIds))
+                            for (externalIdVal <- extIds.get(externalIdKey)) {
+                                return externalIdVal.getTextValue
+                            }
                         }
                     }
                 }
@@ -2378,7 +2380,7 @@ object OpenvSwitchDatabaseConsts {
     final val ColumnLocalGateway = "local_gateway"
     final val ColumnMac = "mac"
     final val ColumnMaxBackoff = "max_backoff"
-    final val ColumnInacrivityProbe = "inactivity_probe"
+    final val ColumnInactivityProbe = "inactivity_probe"
     final val ColumnMaxRate = "max-rate"
     final val ColumnMinRate = "min-rate"
     final val ColumnName = "name"
