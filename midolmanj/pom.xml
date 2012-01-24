@@ -130,8 +130,6 @@
                             <value>${project.build.directory}/lib-native</value>
                         </property>
                     </systemProperties>
-                    <parallel>classes</parallel>
-                    <threadCount>1</threadCount>
                 </configuration>
             </plugin>
 
