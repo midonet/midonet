@@ -114,6 +114,7 @@ class TestBgpPortService {
 
     @Before
     def testSudo() {
+        log.debug("testSudo")
         // Check if it can call sudo w/o password.
         var cmdExitValue = Sudo.sudoExec("ip link")
         if (cmdExitValue != 0) {
@@ -138,132 +139,153 @@ class TestBgpPortService {
         assertEquals(0, portNames.size)
     }
 
-    // Keep this test at the top - it's assuming that it will run first and
-    // therefore it can predict the OF port nums.
     @Test
-    @Ignore("Fails probably because of a race condition between the VM and ovsdb")
     def testStart() {
-        try {
-            // Add the remote port.
-            val remotePortName = "dummy"
-            var portBuilder = ovsdb.addInternalPort(bridgeId, remotePortName)
-            portBuilder.externalId(bridgeExtIdKey, portId.toString)
-            portBuilder.build
-            assertTrue(ovsdb.hasPort(remotePortName))
+        log.debug("testStart")
 
-            // Add the service port.
-            portService.addPort(bridgeId, portId)
-            var portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                           portServiceExtId)
-            assertEquals(1, portNames.size)
-            var ports = portService.configurePort(portId)
-            var cmdExitValue = Sudo.sudoExec("ip addr add %s/%d dev %s".format(
-                Net.convertIntAddressToString(portConfig.portAddr),
-                portConfig.nwLength, portName))
-            assertTrue(cmdExitValue != 0)
-            // Assuming that remote port num is 1, and the service port num
-            // is 2.
-            portService.start(bridgeId, 2, 1)
-            reactor.incrementTime(1, TimeUnit.SECONDS)
-            // Check if bgpd is running.
-            cmdExitValue = Sudo.sudoExec("killall bgpd")
-            assertTrue(cmdExitValue == 0)
+        portService.synchronized {
+            try {
+                // Add the remote port.
+                val remotePortName = "dummy"
+                var portBuilder = ovsdb.addInternalPort(bridgeId,
+                                                        remotePortName)
+                portBuilder.externalId(bridgeExtIdKey, portId.toString)
+                portBuilder.build
+                assertTrue(ovsdb.hasPort(remotePortName))
 
-            // Calling start again to reconnet bgpd.
-            portService.start(bridgeId, 2, 1)
-            ovsdb.delPort(remotePortName)
-        } finally {
-            clearBgpResources
+                // Add the service port.
+                portService.addPort(bridgeId, portId)
+                var portNames = ovsdb.getPortNamesByExternalId(
+                    portServiceExtIdKey, portServiceExtId)
+                assertEquals(1, portNames.size)
+                var ports = portService.configurePort(portId)
+                var cmdExitValue = Sudo.sudoExec(
+                    "ip addr add %s/%d dev %s".format(
+                        Net.convertIntAddressToString(portConfig.portAddr),
+                        portConfig.nwLength, portName))
+                assertTrue(cmdExitValue != 0)
+                val remotePortNum = ovsdb.getPortNumsByPortName(remotePortName)
+                    .head
+                val localPortNum = ovsdb
+                                    .getPortNumsByPortName(portName).head
+                portService.start(bridgeId, localPortNum, remotePortNum)
+                reactor.incrementTime(1, TimeUnit.SECONDS)
+                // Check if bgpd is running.
+                cmdExitValue = Sudo.sudoExec("killall bgpd")
+                assertTrue(cmdExitValue == 0)
+
+                // Calling start again to reconnet bgpd.
+                portService.start(bridgeId, localPortNum, remotePortNum)
+                ovsdb.delPort(remotePortName)
+            } finally {
+                clearBgpResources
+            }
         }
     }
 
     @Test
     def testGetPorts() {
-        var ports = portService.getPorts(portId)
-        assertEquals(0, ports.size)
+        log.debug("testGetPorts")
+        portService.synchronized {
+            var ports = portService.getPorts(portId)
+            assertEquals(0, ports.size)
+        }
     }
 
     @Test
     def testAddPort() {
-        try {
-            portService.addPort(bridgeId, portId)
-            var portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                           portServiceExtId)
-            assertEquals(1, portNames.size)
-            // Add port with MAC addr specified.
-            portService.addPort(bridgeId, portId,
-                                MAC.fromString("02:dd:55:66:dd:01"))
-            portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                       portServiceExtId)
-            assertEquals(2, portNames.size)
+        log.debug("testAddPort")
 
-            // Delete BGP config and add it after calling addPort.
-            clearBgpResources
-            bgpMgr.delete(bgpId)
-            portService.addPort(bridgeId, portId)
-            portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                       portServiceExtId)
-            assertEquals(0, portNames.size)
-            bgpId = bgpMgr.create(bgpConfig)
-            portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                       portServiceExtId)
-            assertEquals(1, portNames.size)
-        } finally {
-            clearBgpResources
+        portService.synchronized {
+            try {
+                portService.addPort(bridgeId, portId)
+                var portNames = ovsdb.getPortNamesByExternalId(
+                    portServiceExtIdKey, portServiceExtId)
+                assertEquals(1, portNames.size)
+                // Add port with MAC addr specified.
+                portService.addPort(bridgeId, portId,
+                                    MAC.fromString("02:dd:55:66:dd:01"))
+                portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
+                                                           portServiceExtId)
+                assertEquals(2, portNames.size)
+
+                // Delete BGP config and add it after calling addPort.
+                clearBgpResources
+                bgpMgr.delete(bgpId)
+                portService.addPort(bridgeId, portId)
+                portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
+                                                           portServiceExtId)
+                assertEquals(0, portNames.size)
+                bgpId = bgpMgr.create(bgpConfig)
+                portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
+                                                           portServiceExtId)
+                assertEquals(1, portNames.size)
+            } finally {
+                clearBgpResources
+            }
         }
     }
 
     @Test
     def testGetRemotePort() {
-        try {
-            portService.addPort(bridgeId, portId)
-            val portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                           portServiceExtId)
-            assertEquals(1, portNames.size)
-            for (portName <- portNames) {
-                val remotePortName = portService.getRemotePort(portName)
-                assertEquals(portId, remotePortName)
+        log.debug("testGetRemotePort")
+
+        portService.synchronized {
+            try {
+                portService.addPort(bridgeId, portId)
+                val portNames = ovsdb.getPortNamesByExternalId(
+                    portServiceExtIdKey, portServiceExtId)
+                assertEquals(1, portNames.size)
+                for (portName <- portNames) {
+                    val remotePortName = portService.getRemotePort(portName)
+                    assertEquals(portId, remotePortName)
+                }
+
+                clearBgpResources
+
+                // Test adding a port w/ dummy service id.
+                var portBuilder = ovsdb.addSystemPort(bridgeId, portName)
+                portBuilder.externalId(portServiceExtIdKey, "dummy_service")
+                portBuilder.build
+                assertTrue(ovsdb.hasPort(portName))
+                assertEquals(null, portService.getRemotePort(portName))
+                ovsdb.delPort(portName)
+
+                // Test adding a port w/ dummy remote port id.
+                portBuilder = ovsdb.addSystemPort(bridgeId, portName)
+                portBuilder.externalId(portServiceExtIdKey, portServiceExtId)
+                portBuilder.externalId(bridgeExtIdKey, portId.toString)
+                portBuilder.build
+                assertTrue(ovsdb.hasPort(portName))
+                assertEquals(null, portService.getRemotePort(portName))
+            } finally {
+                ovsdb.delPort(portName)
+                clearBgpResources
             }
-
-            clearBgpResources
-
-            // Test adding a port w/ dummy service id.
-            var portBuilder = ovsdb.addSystemPort(bridgeId, portName)
-            portBuilder.externalId(portServiceExtIdKey, "dummy_service")
-            portBuilder.build
-            assertTrue(ovsdb.hasPort(portName))
-            assertEquals(null, portService.getRemotePort(portName))
-            ovsdb.delPort(portName)
-
-            // Test adding a port w/ dummy remote port id.
-            portBuilder = ovsdb.addSystemPort(bridgeId, portName)
-            portBuilder.externalId(portServiceExtIdKey, portServiceExtId)
-            portBuilder.externalId(bridgeExtIdKey, portId.toString)
-            portBuilder.build
-            assertTrue(ovsdb.hasPort(portName))
-            assertEquals(null, portService.getRemotePort(portName))
-        } finally {
-            ovsdb.delPort(portName)
-            clearBgpResources
         }
     }
 
     @Test
     def testConfigurePort() {
-        try {
-            portService.addPort(bridgeId, portId)
-            var portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                           portServiceExtId)
-            assertEquals(1, portNames.size)
-            var ports = portService.configurePort(portId)
-            // Test whether the expected ip addr is set. If it is the
-            // following command should fail.
-            var cmdExitValue = Sudo.sudoExec("ip addr add %s/%d dev %s".format(
-                Net.convertIntAddressToString(portConfig.portAddr),
-                portConfig.nwLength, portName))
-            assertTrue(cmdExitValue != 0)
-        } finally {
-            clearBgpResources
+        log.debug("testConfigurePort")
+
+        portService.synchronized {
+            try {
+                portService.addPort(bridgeId, portId)
+                var portNames = ovsdb.getPortNamesByExternalId(
+                    portServiceExtIdKey, portServiceExtId)
+                assertEquals(1, portNames.size)
+                var ports = portService.configurePort(portId)
+                // Test whether the expected ip addr is set. If it is the
+                // following command should fail.
+                var cmdExitValue = Sudo.sudoExec(
+                    "ip addr add %s/%d dev %s".format(
+                        Net.convertIntAddressToString(portConfig.portAddr),
+                        portConfig.nwLength, portName))
+                assertTrue(cmdExitValue != 0)
+            } finally {
+                clearBgpResources
+            }
         }
     }
 
