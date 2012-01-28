@@ -10,6 +10,9 @@ import java.util.Arrays;
 public class TCP extends BasePacket implements Transport {
     public static final byte PROTOCOL_NUMBER = 6;
     
+    public static final int MIN_HEADER_LEN = 20;
+    public static final int MIN_DATA_OFFSET = 5;
+
     protected short sourcePort;
     protected short destinationPort;
     protected int seqNo;
@@ -93,8 +96,13 @@ public class TCP extends BasePacket implements Transport {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
+
+        if (bb.remaining() < MIN_HEADER_LEN) {
+            throw new MalformedPacketException("TCP packet size is invalid: "
+                + bb.remaining());
+        }
+
         sourcePort = bb.getShort();
         destinationPort = bb.getShort();
         seqNo = bb.getInt();
@@ -105,21 +113,29 @@ public class TCP extends BasePacket implements Transport {
         urgent = bb.getShort();
         //TODO: verify checksum
         int dataOffset = (flags >> 12) & 0xf;
-        int remainingBytes = bb.limit() - bb.position();
-        if (dataOffset > 5) {
-            int optionsLength = (dataOffset-5)*4;
-            if (optionsLength > remainingBytes)
-                options = new byte[remainingBytes];
-            else
-                options = new byte[optionsLength];
+        if (dataOffset < MIN_DATA_OFFSET) {
+            throw new MalformedPacketException("TCP data offset is invalid: "
+                    + dataOffset);
+        }
+
+        if (dataOffset > MIN_DATA_OFFSET) {
+            int optionsLength = (dataOffset - MIN_DATA_OFFSET) * 4;
+            if (optionsLength > bb.remaining()) {
+                throw new MalformedPacketException("Packet size left "
+                        + bb.remaining()
+                        + " does not match the specified data offset: "
+                        + dataOffset);
+            }
+            options = new byte[optionsLength];
             bb.get(options);
         }
-        remainingBytes = bb.limit() - bb.position();
-        if (remainingBytes > 0) {
+
+        if (bb.hasRemaining()) {
             payload = new Data();
-            payload.deserialize(data, bb.position(), remainingBytes);
+            payload.deserialize(bb.slice());
             payload.setParent(this);
         }
+
         return this;
     }
 

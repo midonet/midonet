@@ -16,6 +16,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MidoPort;
@@ -98,7 +99,8 @@ public class TunnelingTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testPingTunnel() {
+    public void testPingTunnel() throws MalformedPacketException {
+
         // First arp for router's mac from port1.
         assertThat("An ARP packet was successfully sent via the first tap port",
                    tapPort1.send(helper1.makeArpRequest()));

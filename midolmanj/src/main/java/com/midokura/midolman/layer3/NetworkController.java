@@ -53,6 +53,7 @@ import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.portservice.PortService;
@@ -371,8 +372,18 @@ public class NetworkController extends AbstractController
             return;
         }
 
+        ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
         Ethernet ethPkt = new Ethernet();
-        ethPkt.deserialize(data, 0, data.length);
+        try {
+            ethPkt.deserialize(bb);
+        } catch(MalformedPacketException ex) {
+            // Packet could not be deserialized: Drop it.
+            log.warn("onPacketIn: dropping malformed packet from port {}.  "
+                    + "{}", inPort, ex.getMessage());
+            freeBuffer(bufferId);
+            return;
+        }
+
         log.debug("onPacketIn: port {} received buffer {} of size {} - {}",
                 new Object [] { inPort, bufferId, totalLen, ethPkt });
 
@@ -766,8 +777,18 @@ public class NetworkController extends AbstractController
                 installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                         ICMP_EXPIRY_SECONDS);
                 // Send an ICMP !H
+                ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
                 Ethernet ethPkt = new Ethernet();
-                ethPkt.deserialize(data, 0, data.length);
+                try {
+                    ethPkt.deserialize(bb);
+                } catch (MalformedPacketException ex) {
+                    // Packet could not be deserialized: Drop it.
+                    log.warn("TunneledPktArpCallback.call: dropping malformed "
+                            + "packet from port {}.  {}", inPort, ex.getMessage());
+                    freeBuffer(bufferId);
+                    return;
+                }
+
                 sendICMPforTunneledPkt(ICMP.UNREACH_CODE.UNREACH_HOST, ethPkt,
                         portsAndGw.lastIngressPortId,
                         portsAndGw.lastEgressPortId);
@@ -1173,15 +1194,6 @@ public class NetworkController extends AbstractController
             return false;
         }
         return true;
-    }
-
-    private void freeBuffer(int bufferId) {
-        // If it's unbuffered, nothing to do.
-        if (bufferId == ControllerStub.UNBUFFERED_ID)
-            return;
-        // TODO(pino): can we pass null instead of an empty action list?
-        controllerStub.sendPacketOut(bufferId, (short) 0,
-                new ArrayList<OFAction>(), null);
     }
 
     private void notifyFlowAdded(MidoMatch origMatch, MidoMatch flowMatch,

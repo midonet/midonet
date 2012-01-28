@@ -2,6 +2,7 @@
 
 package com.midokura.midolman;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.LLDP;
 import com.midokura.midolman.packets.LLDPTLV;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.TCP;
@@ -49,6 +51,9 @@ class AbstractControllerTester extends AbstractController {
     short idleFlowExpireSeconds;
     OFAction[] flowActions = {};
  
+    public Logger log = LoggerFactory.getLogger(
+            AbstractControllerTester.class);
+
     public AbstractControllerTester(
             int datapathId,
             UUID switchUuid,
@@ -73,7 +78,15 @@ class AbstractControllerTester extends AbstractController {
     public void onPacketIn(int bufferId, int totalLen, short inPort,
                            byte[] data, long matchingTunnelId) {
         Ethernet frame = new Ethernet();
-        frame.deserialize(data, 0, data.length);
+        ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
+        try {
+            frame.deserialize(bb);
+        } catch (MalformedPacketException e) {
+            // Dropping malformed packets
+            log.error("Dropping malformed packet: {}", e.getMessage());
+            freeBuffer(bufferId);
+            return;
+        }
         OFMatch match = createMatchFromPacket(frame, inPort);
         addFlowAndPacketOut(match, 1040, idleFlowExpireSeconds,
                             flowExpireSeconds, (short)1000, bufferId, true,

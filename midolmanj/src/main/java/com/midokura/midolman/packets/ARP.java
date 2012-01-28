@@ -19,6 +19,22 @@ public class ARP extends BasePacket {
     public static short OP_REQUEST = 0x1;
     public static short OP_REPLY = 0x2;
 
+    /**
+     * ARP packet size.  The ARP itself is 28 bytes but the minimum Ethernet
+     * payload size is 46.
+     */
+    public static final int PACKET_SIZE = 46;
+
+    /**
+     * The hardware address length as a number of octets.
+     */
+    private static final int HW_ADDR_LEN = 6;
+
+    /**
+     * The maximum prototype address length as a number of octets.
+     */
+    private static final int MAX_PROTO_ADDR_LEN = 4;
+
     protected short hardwareType;
     protected short protocolType;
     protected byte hardwareAddressLength;
@@ -207,21 +223,43 @@ public class ARP extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
+
+        // Check that the size is correct to avoid BufferUnderflowException.
+        if (bb.remaining() != PACKET_SIZE) {
+            throw new MalformedPacketException("Invalid ARP packet size: "
+                    + bb.remaining());
+        }
+
         this.hardwareType = bb.getShort();
         this.protocolType = bb.getShort();
         this.hardwareAddressLength = bb.get();
+        int hwAddrLen = 0xff & this.hardwareAddressLength;
+        if (hwAddrLen != HW_ADDR_LEN) {
+            // Check the length to avoid BufferUnderflowException.
+            // Only MAC address of 6 bytes is currently supported.
+            throw new MalformedPacketException(
+                    "Invalid hardware address len: " + hwAddrLen);
+        }
+
         this.protocolAddressLength = bb.get();
+        int protoAddrLen = 0xff & this.protocolAddressLength;
+        if (protoAddrLen != MAX_PROTO_ADDR_LEN) {
+            // Check the max length to avoid BufferUnderflowException
+            throw new MalformedPacketException(
+                    "Invalid protocol address len: " + protoAddrLen);
+        }
+
         this.opCode = bb.getShort();
-        this.senderHardwareAddress = new byte[0xff & this.hardwareAddressLength];
-        bb.get(this.senderHardwareAddress, 0, this.senderHardwareAddress.length);
-        this.senderProtocolAddress = new byte[0xff & this.protocolAddressLength];
-        bb.get(this.senderProtocolAddress, 0, this.senderProtocolAddress.length);
-        this.targetHardwareAddress = new byte[0xff & this.hardwareAddressLength];
-        bb.get(this.targetHardwareAddress, 0, this.targetHardwareAddress.length);
-        this.targetProtocolAddress = new byte[0xff & this.protocolAddressLength];
-        bb.get(this.targetProtocolAddress, 0, this.targetProtocolAddress.length);
+        this.senderHardwareAddress = new byte[hwAddrLen];
+        bb.get(this.senderHardwareAddress);
+        this.senderProtocolAddress = new byte[protoAddrLen];
+        bb.get(this.senderProtocolAddress);
+        this.targetHardwareAddress = new byte[hwAddrLen];
+        bb.get(this.targetHardwareAddress);
+        this.targetProtocolAddress = new byte[protoAddrLen];
+        bb.get(this.targetProtocolAddress);
+
         return this;
     }
 

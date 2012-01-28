@@ -108,8 +108,8 @@ public class LLDP extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+    public IPacket deserialize(ByteBuffer bb)
+            throws MalformedPacketException {
         LLDPTLV tlv;
         do {
             tlv = new LLDPTLV().deserialize(bb);

@@ -4,6 +4,7 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.midokura.midolman.packets.ICMP.UNREACH_CODE;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 
 public class PacketHelper {
 
@@ -83,17 +85,19 @@ public class PacketHelper {
      * Check that the packet is an ARP reply from the gateway to the endpoint.
      *
      * @param recv is a byte array containing the arp reply we want to check
+     * @throws MalformedPacketException
      */
-    public void checkArpReply(byte[] recv) {
+    public void checkArpReply(byte[] recv) throws MalformedPacketException {
         checkArpReply(recv, gwMac, gwIp, epMac, epIp);
     }
 
     public static void checkArpReply(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
-                                     MAC dlDst, IntIPv4 nwDst) {
+            MAC dlDst, IntIPv4 nwDst) throws MalformedPacketException {
         assertThat("We actually have a packet buffer", recv, notNullValue());
 
         Ethernet pkt = new Ethernet();
-        pkt.deserialize(recv, 0, recv.length);
+        ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
+        pkt.deserialize(bb);
         assertThat("The packet ether type is ARP",
                    pkt.getEtherType(), equalTo(ARP.ETHERTYPE));
         assertThat("The packet source MAC is consistent with the sender",
@@ -167,18 +171,20 @@ public class PacketHelper {
      * Check that the packet is an ARP request from the gateway to the endpoint.
      *
      * @param recv the arp request that we received
+     * @throws MalformedPacketException 
      */
-    public void checkArpRequest(byte[] recv) {
+    public void checkArpRequest(byte[] recv) throws MalformedPacketException {
         checkArpRequest(recv, gwMac, gwIp, epIp);
     }
 
     public static void checkArpRequest(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
-                                       IntIPv4 nwDst) {
+            IntIPv4 nwDst) throws MalformedPacketException {
 
         assertThat("We have a received package", recv, notNullValue());
 
         Ethernet pkt = new Ethernet();
-        pkt.deserialize(recv, 0, recv.length);
+        ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
+        pkt.deserialize(bb);
 
         assertThat("the package ether type is ARP",
                    pkt.getEtherType(), equalTo(ARP.ETHERTYPE));
@@ -220,8 +226,10 @@ public class PacketHelper {
      *
      * @param request is the icmp request
      * @param reply   is the icmp request
+     * @throws MalformedPacketException
      */
-    public static void checkIcmpEchoReply(byte[] request, byte[] reply) {
+    public static void checkIcmpEchoReply(byte[] request, byte[] reply)
+            throws MalformedPacketException {
         checkIcmpEchoReply(request, reply, null);
     }
 
@@ -232,16 +240,19 @@ public class PacketHelper {
      * @param request is the icmp request
      * @param reply   is the icmp request
      * @param srcIp   is the source IP we want to use for checking
+     * @throws MalformedPacketException
      */
     public static void checkIcmpEchoReply(byte[] request, byte[] reply,
-                                          IntIPv4 srcIp) {
+            IntIPv4 srcIp) throws MalformedPacketException {
         assertNotNull(request);
         assertNotNull(reply);
         assertEquals(request.length, reply.length);
         Ethernet pktRequest = new Ethernet();
-        pktRequest.deserialize(request, 0, request.length);
+        ByteBuffer bb = ByteBuffer.wrap(request, 0, request.length);
+        pktRequest.deserialize(bb);
         Ethernet pktReply = new Ethernet();
-        pktReply.deserialize(reply, 0, reply.length);
+        bb = ByteBuffer.wrap(reply, 0, reply.length);
+        pktReply.deserialize(bb);
         assertEquals(pktRequest.getSourceMACAddress(),
                      pktReply.getDestinationMACAddress());
         assertEquals(pktRequest.getDestinationMACAddress(),
@@ -346,19 +357,21 @@ public class PacketHelper {
      * @param code       is the code want to validate against
      * @param srcIp      is the source ip from which tha package was sent
      * @param triggerPkt ?
+     * @throws MalformedPacketException
      */
     public void checkIcmpError(byte[] recv, UNREACH_CODE code,
-                               IntIPv4 srcIp, byte[] triggerPkt) {
+            IntIPv4 srcIp, byte[] triggerPkt) throws MalformedPacketException {
         checkIcmpError(recv, code, gwMac, srcIp, epMac, epIp, triggerPkt);
     }
 
     public static void checkIcmpError(byte[] recv, UNREACH_CODE code, MAC dlSrc,
-                                      IntIPv4 nwSrc, MAC dlDst, IntIPv4 nwDst,
-                                      byte[] triggerPkt) {
+            IntIPv4 nwSrc, MAC dlDst, IntIPv4 nwDst, byte[] triggerPkt)
+                    throws MalformedPacketException {
         assertNotNull(recv);
         assertNotNull(triggerPkt);
         Ethernet pkt = new Ethernet();
-        pkt.deserialize(recv, 0, recv.length);
+        ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
+        pkt.deserialize(bb);
         assertEquals(dlSrc, pkt.getSourceMACAddress());
         assertEquals(dlDst, pkt.getDestinationMACAddress());
         assertEquals(IPv4.ETHERTYPE, pkt.getEtherType());

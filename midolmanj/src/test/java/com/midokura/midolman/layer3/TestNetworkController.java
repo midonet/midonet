@@ -7,6 +7,7 @@ package com.midokura.midolman.layer3;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -58,7 +59,9 @@ import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.TestDHCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.portservice.MockPortService;
 import com.midokura.midolman.rules.Condition;
@@ -380,7 +383,8 @@ public class TestNetworkController {
         // This isn't a real IPv6 packet. So this will break if we add an
         // IPv6 class in com.midokura.midolman.packets.
         Data payload = new Data();
-        payload.deserialize(new byte[100], 0, 100);
+        ByteBuffer bb = ByteBuffer.wrap(new byte[100], 0, 100);
+        payload.deserialize(bb);
         OFPhysicalPort phyPort = phyPorts.get(0).get(0);
         Ethernet eth = new Ethernet();
         eth.setSourceMACAddress(MAC.fromString("02:ab:cd:ef:01:23"));
@@ -401,7 +405,7 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testOneRouterNoRoute() {
+    public void testOneRouterNoRoute() throws Exception {
         // Send a packet to router0's first materialized port to a destination
         // that has no route.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -439,7 +443,7 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testOneRouterReject() {
+    public void testOneRouterReject() throws Exception {
         // Send a packet to router1's first materialized port to a destination
         // that will be rejected (in 10.1.0.0/16, not in 10.1.<0 or 1>.0/24).
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -659,7 +663,7 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testRemoteOutputTunnelDown() {
+    public void testRemoteOutputTunnelDown() throws Exception {
         // First, with the tunnel up.
         // Send a packet to router1's first port destined to an address on
         // router2's second port.
@@ -1003,9 +1007,11 @@ public class TestNetworkController {
     }
 
     public static void checkICMP(char type, char code, IPv4 triggerIPPkt,
-            MAC dlSrc, MAC dlDst, int nwSrc, int nwDst, byte[] icmpData) {
+            MAC dlSrc, MAC dlDst, int nwSrc, int nwDst, byte[] icmpData)
+            throws MalformedPacketException {
         Ethernet eth = new Ethernet();
-        eth.deserialize(icmpData, 0, icmpData.length);
+        ByteBuffer bb = ByteBuffer.wrap(icmpData, 0, icmpData.length);
+        eth.deserialize(bb);
         Assert.assertTrue(dlSrc.equals(eth.getSourceMACAddress()));
         Assert.assertTrue(dlDst.equals(eth.getDestinationMACAddress()));
         Assert.assertEquals(IPv4.ETHERTYPE, eth.getEtherType());
@@ -1024,7 +1030,8 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testPacketFromTunnelMaterializedIngressArpTimeout() {
+    public void testPacketFromTunnelMaterializedIngressArpTimeout()
+            throws Exception  {
         // Send a packet into the tunnel port corresponding to router2's
         // second port and destined for router2's first port.
         short inPortNum = 21;
@@ -1099,7 +1106,8 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testPacketFromTunnelLogicalIngressArpTimeout() {
+    public void testPacketFromTunnelLogicalIngressArpTimeout()
+            throws Exception {
         // A packet that entered router0's second port (on a remote host) and
         // was destined for router2's first port (local) would come over the
         // tunnel corresponding to router0's first port. The hardware addresses
@@ -1171,7 +1179,7 @@ public class TestNetworkController {
     }
 
     @Test
-    public void testLocalPacketArpTimeout() {
+    public void testLocalPacketArpTimeout() throws Exception {
         // Send a packet to router1's first port to an address on router2's
         // first port. Note that we traverse 3 routers.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -2074,5 +2082,24 @@ public class TestNetworkController {
         actions.add(new OFActionOutput((short) localPortNum, (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(7), match, (short) 0,
                 (short) 0, ControllerStub.UNBUFFERED_ID, false, actions);
+    }
+
+    @Test
+    public void testOnPacketInMalformedDhcpPacket() {
+        // Verify that a bad packet does not crash Midolman.
+        // This packet contains a junk DHCP data.
+        byte[] dhcpData = Arrays.copyOf(TestDHCP.dhcpBytes, 100);
+
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0a000005, 0x0a040005,
+                (short) 68, (short) 67, dhcpData);
+        byte[] data = eth.serialize();
+        OFPhysicalPort phyPort = phyPorts.get(0).get(0);
+
+        networkCtrl.onPacketIn(55, data.length, phyPort.getPortNumber(), data);
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
+        Assert.assertTrue(55 == controllerStub.droppedPktBufIds.get(0));
     }
 }

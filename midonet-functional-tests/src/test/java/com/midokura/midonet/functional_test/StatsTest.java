@@ -26,6 +26,7 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.AgFlowStats;
@@ -113,7 +114,8 @@ public class StatsTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testStatsAggregation() throws InterruptedException {
+    public void testStatsAggregation()
+            throws InterruptedException, MalformedPacketException {
         byte[] request;
         short portNum1 =
             ovsdb.getPortNumByUUID(

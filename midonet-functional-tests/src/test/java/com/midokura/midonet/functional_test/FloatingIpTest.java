@@ -21,6 +21,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MidoPort;
@@ -107,7 +108,7 @@ public class FloatingIpTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testFloatingIp() {
+    public void testFloatingIp() throws MalformedPacketException {
         byte[] request;
 
         // ICMP echo request to the floatingIP from tapPort1.

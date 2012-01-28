@@ -14,6 +14,11 @@ public class LLDPTLV {
     protected byte[] value;
 
     /**
+     * Minimum length of the TLV section of LLDP packet.
+     */
+    public final static int MIN_TLV_LEN = 2;
+
+    /**
      * @return the type
      */
     public byte getType() {
@@ -71,19 +76,29 @@ public class LLDPTLV {
         return data;
     }
 
-    public LLDPTLV deserialize(ByteBuffer bb) {
+    public LLDPTLV deserialize(ByteBuffer bb)
+            throws MalformedPacketException {
+        if (bb.remaining() < MIN_TLV_LEN) {
+            throw new MalformedPacketException("Invalid LLDPTLV len: "
+                + bb.remaining());
+        }
+
         short sscratch;
         sscratch = bb.getShort();
         this.type = (byte) ((sscratch >> 9) & 0x7f);
         this.length = (short) (sscratch & 0x1ff);
+
+        if (bb.remaining() < this.length) {
+            throw new MalformedPacketException("LLDPTLV len: "
+                    + this.length + " does not match the remaining size: "
+                    + bb.remaining());
+        }
+
         if (this.length > 0) {
             this.value = new byte[this.length];
-
-            // if there is an underrun just toss the TLV
-            if (bb.remaining() < this.length)
-                return null;
             bb.get(this.value);
         }
+
         return this;
     }
 

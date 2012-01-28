@@ -17,6 +17,16 @@ public class DHCP extends BasePacket {
     public static byte OPCODE_REQUEST = 0x1;
     public static byte OPCODE_REPLY = 0x2;
 
+    /**
+     * Header + magic without options
+     */
+    public static int MIN_HEADER_LENGTH = 240;
+
+    /**
+     * Max hardware addres len
+     */
+    public static int MAX_HADDR_LENGTH = 0x10;
+
     protected byte opCode;
     protected byte hardwareType;
     protected byte hardwareAddressLength;
@@ -292,7 +302,7 @@ public class DHCP extends BasePacket {
         if (optionsLength < 60)
             optionsPadLength = 60 - optionsLength;
 
-        byte[] data = new byte[240+optionsLength+optionsPadLength];
+        byte[] data = new byte[MIN_HEADER_LENGTH+optionsLength+optionsPadLength];
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(this.opCode);
         bb.put(this.hardwareType);
@@ -355,13 +365,22 @@ public class DHCP extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        if (length < 44)
-            return this;
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
+
+        if (bb.remaining() < MIN_HEADER_LENGTH) {
+            throw new MalformedPacketException("Invalid DHCP packet length: "
+                + bb.remaining());
+        }
+
         this.opCode = bb.get();
         this.hardwareType = bb.get();
         this.hardwareAddressLength = bb.get();
+        int hardwareAddressLength = 0xff & this.hardwareAddressLength;
+        if (hardwareAddressLength > MAX_HADDR_LENGTH) {
+            throw new MalformedPacketException("Invalid hardware length: "
+                + hardwareAddressLength);
+        }
+
         this.hops = bb.get();
         this.transactionId = bb.getInt();
         this.seconds = bb.getShort();
@@ -370,19 +389,13 @@ public class DHCP extends BasePacket {
         this.yourIPAddress = bb.getInt();
         this.serverIPAddress = bb.getInt();
         this.gatewayIPAddress = bb.getInt();
-        int hardwareAddressLength = 0xff & this.hardwareAddressLength;
         this.clientHardwareAddress = new byte[hardwareAddressLength];
         bb.get(this.clientHardwareAddress);
         for (int i = hardwareAddressLength; i < 16; ++i)
             bb.get();
-        if (length < 108)
-            return this;
         this.serverName = readString(bb, 64);
-        if (length < 236)
-            return this;
         this.bootFileName = readString(bb, 128);
-        if (length < 240)
-            return this;
+
         // read the magic cookie
         // magic cookie
         bb.get();
@@ -398,13 +411,19 @@ public class DHCP extends BasePacket {
                 // skip these
                 continue;
             } else if (code != DHCPOption.Code.END.value()) {
-                if (!bb.hasRemaining())
-                    break;
-                byte len = bb.get();
-                if (bb.remaining() < len)
-                    break;
-                option.setLength(len);
-                byte[] optionData = new byte[len & 0xff]; // needs length as positive int
+                if (!bb.hasRemaining()) {
+                    throw new MalformedPacketException("DHCP option code "
+                            + code + " has no length specified");
+                }
+
+                short len = (short) (bb.get() & 0xFF); // needs positive length
+                if (bb.remaining() < len) {
+                    throw new MalformedPacketException("DHCP option data size "
+                            + bb.remaining()
+                            + " does not match the specified len: " + len);
+                }
+                option.setLength((byte) len);
+                byte[] optionData = new byte[len];
                 bb.get(optionData);
                 option.setData(optionData);
                 log.debug("deserialize: found option with code {}", code & 0xff);

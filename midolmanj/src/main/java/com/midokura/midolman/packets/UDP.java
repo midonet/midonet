@@ -11,6 +11,16 @@ import java.util.Map;
 public class UDP extends BasePacket implements Transport {
     public static final byte PROTOCOL_NUMBER = 0x11;
 
+    /**
+     * UDP header length in bytes.
+     */
+    public static final int HEADER_LEN = 8;
+
+    /**
+     * Max len of a UDP packet.
+     */
+    public static final int MAX_PACKET_LEN = 0xFFFF;
+
     public static Map<Short, Class<? extends IPacket>> decodeMap;
 
     static {
@@ -21,7 +31,7 @@ public class UDP extends BasePacket implements Transport {
 
     protected short sourcePort;
     protected short destinationPort;
-    protected short length;
+    protected int length;
     protected short checksum;
 
     @Override
@@ -70,14 +80,17 @@ public class UDP extends BasePacket implements Transport {
     /**
      * @return the length
      */
-    public short getLength() {
+    public int getLength() {
         return length;
     }
 
     /**
      * @param length the length to set
      */
-    public UDP setLength(short length) {
+    public UDP setLength(int length) {
+        if (length > 0xFFFF) {
+            throw new IllegalArgumentException("Invalid length: " + length);
+        }
         this.length = length;
         return this;
     }
@@ -111,7 +124,7 @@ public class UDP extends BasePacket implements Transport {
         }
 
         if (this.length == 0) {
-            this.length = (short) (8 + ((payloadData == null) ? 0
+            this.length = (HEADER_LEN + ((payloadData == null) ? 0
                     : payloadData.length));
         }
 
@@ -120,7 +133,7 @@ public class UDP extends BasePacket implements Transport {
 
         bb.putShort(this.sourcePort);
         bb.putShort(this.destinationPort);
-        bb.putShort(this.length);
+        bb.putShort((short) this.length);
         bb.putShort(this.checksum);
         if (payloadData != null)
             bb.put(payloadData);
@@ -198,8 +211,13 @@ public class UDP extends BasePacket implements Transport {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
+
+        if (bb.remaining() < HEADER_LEN || bb.remaining() > MAX_PACKET_LEN) {
+            throw new MalformedPacketException("Invalid UDP length: "
+                    + bb.remaining());
+        }
+
         this.sourcePort = bb.getShort();
         this.destinationPort = bb.getShort();
         this.length = bb.getShort();
@@ -213,20 +231,21 @@ public class UDP extends BasePacket implements Transport {
             }
         } else if (UDP.decodeMap.containsKey(this.sourcePort)) {
             try {
-                payload = UDP.decodeMap.get(this.destinationPort).getConstructor().newInstance();
+                payload = UDP.decodeMap.get(this.sourcePort).getConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("Failure instantiating class", e);
             }
         } else {
             payload = new Data();
         }
-        // Calculate offset and length for next packet.
-        offset = bb.position();
-        length = bb.limit() - offset;
-        // Adjust length (the remaining bytes in data) if it is larger than
-        // the expected payload length (this.length - 8).
-        length = Math.min(length, (this.length & 0xffff) - 8);
-        payload.deserialize(data, offset, length);
+
+        int len = this.length & 0xffff;
+        int payloadLen = len - HEADER_LEN;
+        if (bb.remaining() > payloadLen) {
+            bb.limit(len);
+        }
+
+        payload.deserialize(bb.slice());
         payload.setParent(this);
         return this;
     }

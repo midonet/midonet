@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 package com.midokura.midolman.packets;
 
@@ -13,7 +13,7 @@ public class ICMP extends BasePacket {
 
     public static final char TYPE_UNREACH = 3;
     public static enum UNREACH_CODE {
-        UNREACH_NET((char)0), UNREACH_HOST((char)1), 
+        UNREACH_NET((char)0), UNREACH_HOST((char)1),
         UNREACH_FILTER_PROHIB((char)13);
 
         private final char value;
@@ -27,7 +27,12 @@ public class ICMP extends BasePacket {
     public static final char TYPE_REDIRECT = 5;
     public static final char TYPE_TIME_EXCEEDED = 11;
     public static final char TYPE_PARAMETER_PROBLEM = 12;
-    
+
+    /**
+     * ICMP header length as a number of octets.
+     */
+    public static final int HEADER_LEN = 8;
+
     // Types
 
     char type;
@@ -79,7 +84,7 @@ public class ICMP extends BasePacket {
         checksum = 0;
         quench = 0;
         byte[] data = ipPkt.serialize();
-        int length = ipPkt.headerLength*4 + 8;
+        int length = ipPkt.headerLength*4 + HEADER_LEN;
         if (length >= data.length)
             this.data = data;
         else
@@ -118,7 +123,7 @@ public class ICMP extends BasePacket {
      */
     @Override
     public byte[] serialize() {
-        int length = 8 + ((data == null) ? 0 : data.length);
+        int length = HEADER_LEN + ((data == null) ? 0 : data.length);
         byte[] bytes = new byte[length];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         bb.put((byte)type);
@@ -138,15 +143,20 @@ public class ICMP extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        type = (char)bb.get();
-        code = (char)bb.get();
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
+
+        // Check that the size is correct to avoid BufferUnderflowException.
+        if (bb.remaining() < HEADER_LEN) {
+            throw new MalformedPacketException("Invalid ICMP header len: "
+                    + bb.remaining());
+        }
+
+        type = (char) bb.get();
+        code = (char) bb.get();
         checksum = bb.getShort();
         quench = bb.getInt();
-        int remainingBytes = bb.limit() - bb.position();
-        if (remainingBytes > 0) {
-            this.data = new byte[remainingBytes];
+        if (bb.hasRemaining()) {
+            this.data = new byte[bb.remaining()];
             bb.get(this.data);
         }
         return this;

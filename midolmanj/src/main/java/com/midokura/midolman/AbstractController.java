@@ -5,6 +5,7 @@
 package com.midokura.midolman;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -638,5 +639,14 @@ public abstract class AbstractController
         int xid = controllerStub.sendQueueStatsRequest(queueRequests);
         OFStatisticsReply reply = controllerStub.getStatisticsReply(xid);
         return (List) reply.getStatistics();
+    }
+
+    protected void freeBuffer(int bufferId) {
+        // If it's unbuffered, nothing to do.
+        if (bufferId == ControllerStub.UNBUFFERED_ID)
+            return;
+        // TODO(pino): can we pass null instead of an empty action list?
+        controllerStub.sendPacketOut(bufferId, (short) 0,
+                new ArrayList<OFAction>(), null);
     }
 }

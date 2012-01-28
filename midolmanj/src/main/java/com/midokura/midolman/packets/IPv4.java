@@ -28,10 +28,16 @@ public class IPv4 extends BasePacket {
         protocolClassMap.put(UDP.PROTOCOL_NUMBER, UDP.class);
     }
 
+    public final static int MIN_HEADER_WORD_NUM = 5;
+    public final static int MAX_HEADER_WORD_NUM = 0xF;
+    public final static int MIN_HEADER_LEN = MIN_HEADER_WORD_NUM * 4;
+    public final static int MAX_HEADER_LEN = MAX_HEADER_WORD_NUM * 4;
+    public final static int MAX_PACKET_LEN = 0xFFFF;
+
     protected byte version;
     protected byte headerLength;
     protected byte diffServ;
-    protected short totalLength;
+    protected int totalLength;
     protected short identification;
     protected byte flags;
     protected short fragmentOffset;
@@ -116,14 +122,18 @@ public class IPv4 extends BasePacket {
     /**
      * @return the totalLength
      */
-    public short getTotalLength() {
+    public int getTotalLength() {
         return totalLength;
     }
 
     /**
      * @param totalLength the totalLength to set
      */
-    public IPv4 setTotalLength(short totalLength) {
+    public IPv4 setTotalLength(int totalLength) {
+        if (totalLength > 0xFFFF) {
+            throw new IllegalArgumentException("Invalid totalLength "
+                    + totalLength);
+        }
         this.totalLength = totalLength;
         return this;
     }
@@ -352,7 +362,7 @@ public class IPv4 extends BasePacket {
         }
 
         if (this.totalLength == 0) {
-            this.totalLength = (short) (this.headerLength * 4 + ((payloadData == null) ? 0
+            this.totalLength = (this.headerLength * 4 + ((payloadData == null) ? 0
                     : payloadData.length));
         }
 
@@ -361,7 +371,7 @@ public class IPv4 extends BasePacket {
 
         bb.put((byte) (((this.version & 0xf) << 4) | (this.headerLength & 0xf)));
         bb.put(this.diffServ);
-        bb.putShort(this.totalLength);
+        bb.putShort((short) this.totalLength);
         bb.putShort(this.identification);
         bb.putShort((short) (((this.flags & 0x7) << 13) | (this.fragmentOffset & 0x1fff)));
         bb.put(this.ttl);
@@ -383,15 +393,35 @@ public class IPv4 extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        short sscratch;
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
 
-        this.version = bb.get();
-        this.headerLength = (byte) (this.version & 0xf);
-        this.version = (byte) ((this.version >> 4) & 0xf);
+        int length = bb.remaining();
+
+        // Check that the size is correct to avoid BufferUnderflowException.
+        if (length < MIN_HEADER_LEN || length > MAX_PACKET_LEN) {
+            throw new MalformedPacketException("Invalid IPv4 packet size: "
+                    + length);
+        }
+
+        short sscratch;
+        byte versionAndHeaderLen = bb.get();
+        this.headerLength = (byte) (versionAndHeaderLen & 0xf);
+        if (this.headerLength < MIN_HEADER_WORD_NUM) {
+            // Don't process if it contains a bad header word num value.
+            throw new MalformedPacketException("Bad IPv4 header word num: "
+                    + this.headerLength);
+        }
+
+        this.version = (byte) ((versionAndHeaderLen >> 4) & 0xf);
         this.diffServ = bb.get();
-        this.totalLength = bb.getShort();
+        this.totalLength = bb.getShort() & 0xffff;
+        if (this.totalLength < (this.headerLength * 4)) {
+            // Don't process if the total length is corrupted.
+            throw new MalformedPacketException("Bad IPv4 datagram length: "
+                    + this.totalLength + " based on the given header size: "
+                    + this.headerLength);
+        }
+
         this.identification = bb.getShort();
         sscratch = bb.getShort();
         this.flags = (byte) ((sscratch >> 13) & 0x7);
@@ -402,8 +432,8 @@ public class IPv4 extends BasePacket {
         this.sourceAddress = bb.getInt();
         this.destinationAddress = bb.getInt();
 
-        if (this.headerLength > 5) {
-            int optionsLength = (this.headerLength - 5) * 4;
+        if (this.headerLength > MIN_HEADER_WORD_NUM) {
+            int optionsLength = (this.headerLength - MIN_HEADER_WORD_NUM) * 4;
             this.options = new byte[optionsLength];
             bb.get(this.options);
         }
@@ -418,13 +448,18 @@ public class IPv4 extends BasePacket {
         } else {
             payload = new Data();
         }
-        // Calculate offset and length for next packet.
-        offset = bb.position();
-        length = bb.limit() - offset;
-        // Adjust length (the remaining bytes in data) if it is larger than
-        // the expected payload length (totalLength - 4 * headerLength).
-        length = Math.min(length, totalLength - 4 * headerLength);
-        payload.deserialize(data, offset, length);
+
+        int payloadLen = this.totalLength - (4 * this.headerLength);
+        if (bb.remaining() > payloadLen) {
+            bb.limit(this.totalLength);
+        }
+
+        // TODO: Currently we treat packets that have less data than
+        // specified in the header as a valid packet because OVS could
+        // cut off the packet.  In the future, we will fix this perhaps
+        // by adding a catch-all flow rule that sends the right length
+        // of each type of packet to the controller.
+        payload.deserialize(bb.slice());
         payload.setParent(this);
         return this;
     }

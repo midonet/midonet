@@ -1,5 +1,6 @@
 package com.midokura.midolman.packets;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -42,8 +43,9 @@ public class Data extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        this.data = Arrays.copyOfRange(data, offset, offset + length);
+    public IPacket deserialize(ByteBuffer bb) {
+        this.data = new byte[bb.remaining()];
+        bb.get(this.data);
         return this;
     }
 

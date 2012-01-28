@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.layer3;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +44,7 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -353,7 +355,7 @@ public class TestRouter {
     }
 
     @Test
-    public void testICMP() {
+    public void testICMP() throws Exception {
         // Make an ICMP echo request packet and send it to port 23.
         UUID port23Id = portNumToId.get(23);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
@@ -386,7 +388,8 @@ public class TestRouter {
         Assert.assertEquals(controllerStub.UNBUFFERED_ID, pktRecord.bufferId);
         Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pktRecord.inPort);
         Ethernet ethReply = new Ethernet();
-        ethReply.deserialize(pktRecord.data, 0, pktRecord.data.length);
+        ByteBuffer bb = ByteBuffer.wrap(pktRecord.data, 0, pktRecord.data.length);
+        ethReply.deserialize(bb);
         Assert.assertEquals(IPv4.ETHERTYPE, ethReply.getEtherType());
         Assert.assertEquals(devPort23.getMacAddr(),
                 ethReply.getSourceMACAddress());

@@ -19,6 +19,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.mgmt.data.dto.client.DtoVpn.VpnType;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
@@ -134,7 +135,7 @@ public class VpnTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testPingOverVPN() {
+    public void testPingOverVPN() throws MalformedPacketException {
         IntIPv4 ip1 = IntIPv4.fromString("10.0.231.11");
         IntIPv4 rtr1 = IntIPv4.fromString("10.0.231.1");
         IntIPv4 ip2 = IntIPv4.fromString("10.0.232.4");

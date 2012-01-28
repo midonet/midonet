@@ -321,6 +321,13 @@ public class TestBridgeController {
     }
 
     @Test
+    public void testPacketInWithMalformedEmptyPacket() {
+        OFAction[] expectActions = { };
+        controller.onPacketIn(14, 13, (short)0, new byte[]{});
+        assertEquals(0, controllerStub.sentPackets.size());
+    }
+
+    @Test
     public void testPacketInWithNovelMac() {
         MidoMatch expectedMatch = flowmatch01.clone();
         short inputPort = 0;

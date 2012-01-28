@@ -30,6 +30,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap;
@@ -239,8 +240,18 @@ public class BridgeController extends AbstractController {
         log.debug("onPacketIn: bufferId {} totalLen {} inPort {}",
                 new Object[] {bufferId, totalLen, inPort});
 
+        ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
         Ethernet capturedPacket = new Ethernet();
-        capturedPacket.deserialize(data, 0, data.length);
+        try {
+            capturedPacket.deserialize(bb);
+        } catch (MalformedPacketException ex) {
+            // Drop malformed packets. Log it, but don't crash Midolman
+            log.warn("onPacketIn: Dropping malformed packet from port {}.  {}",
+                    inPort, ex.getMessage());
+            freeBuffer(bufferId);
+            return;
+        }
+
         MAC srcDlAddress = capturedPacket.getSourceMACAddress();
         MAC dstDlAddress = capturedPacket.getDestinationMACAddress();
         log.info("Packet recv'd on port {} destination {}",

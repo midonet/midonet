@@ -15,6 +15,18 @@ import com.midokura.midolman.util.Net;
 public class Ethernet extends BasePacket {
     private static String HEXES = "0123456789ABCDEF";
 
+
+    /**
+     * Mininum number of octets for an Ethernet packet header, without the
+     * optional fields.  Preamble and frame check sequence are not included.
+     */
+    public static final int MIN_HEADER_LEN = 14;
+
+    /**
+     * The number of octets in the optional TPID field.
+     */
+    public static final int HEADER_TPID_LEN = 4;
+
     public static Map<Short, Class<? extends IPacket>> etherTypeClassMap;
 
     static {
@@ -166,8 +178,16 @@ public class Ethernet extends BasePacket {
     }
 
     @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
+
+        // Check that the size is correct to avoid BufferUnderflowException.
+        // Don't check the upper boundary since this method may need to handle
+        // Super Jumbo frames.
+        if (bb.remaining() < MIN_HEADER_LEN) {
+            throw new MalformedPacketException("Invalid ethernet frame size: "
+                    + bb.remaining());
+        }
+
         if (this.destinationMACAddress == null)
             this.destinationMACAddress = new byte[6];
         bb.get(this.destinationMACAddress);
@@ -178,6 +198,11 @@ public class Ethernet extends BasePacket {
 
         short etherType = bb.getShort();
         if (etherType == (short) 0x8100) {
+            // Check the buffer length.
+            if (bb.remaining() < HEADER_TPID_LEN) {
+                throw new MalformedPacketException("Not enough buffer for "
+                        + "TPID fields: " + bb.remaining());
+            }
             short tci = bb.getShort();
             this.priorityCode = (byte) ((tci >> 13) & 0x07);
             this.vlanID = (short) (tci & 0x0fff);
@@ -196,7 +221,7 @@ public class Ethernet extends BasePacket {
         } else {
             payload = new Data();
         }
-        this.payload = payload.deserialize(data, bb.position(), bb.limit()-bb.position());
+        this.payload = payload.deserialize(bb.slice());
         this.payload.setParent(this);
         return this;
     }

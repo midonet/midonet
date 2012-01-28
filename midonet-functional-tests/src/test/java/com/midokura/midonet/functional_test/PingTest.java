@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.nullValue;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
@@ -109,7 +110,8 @@ public class PingTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testArpResolutionAndPortPing() {
+    public void testArpResolutionAndPortPing()
+            throws MalformedPacketException {
         byte[] request;
 
         // First arp for router's mac.

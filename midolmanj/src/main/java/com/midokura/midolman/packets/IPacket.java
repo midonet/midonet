@@ -1,5 +1,7 @@
 package com.midokura.midolman.packets;
 
+import java.nio.ByteBuffer;
+
 /**
 *
 * @author David Erickson (daviderickson@cs.stanford.edu)
@@ -40,10 +42,8 @@ public interface IPacket {
 
     /**
      * Deserializes this packet layer and all possible payloads
-     * @param data
-     * @param offset offset to start deserializing from
-     * @param length length of the data to deserialize
+     * @param bb  ByteBuffer of the data to deserialize.
      * @return the deserialized data
      */
-    public IPacket deserialize(byte[] data, int offset, int length);
+    public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException;
 }
