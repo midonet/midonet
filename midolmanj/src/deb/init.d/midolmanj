@@ -23,6 +23,7 @@ MIDO_JAR=$MIDO_HOME/midolmanj.jar
 MIDO_CFG=$MIDO_ETC/midolman.conf
 MIDO_LOG_DIR=/var/log/midolman/
 QUAGGA_DIR=/var/run/quagga/
+MIDO_DEBUG_PORT=8001
 
 # Exit if the package is not installed
 # Test that midolmanj is installed
@@ -146,6 +147,10 @@ case "$1" in
             2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
         ;;
+    start-debug)
+        JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
+        do_start
+        ;;
     stop)
         [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
         do_stop
@@ -180,7 +185,7 @@ case "$1" in
         esac
         ;;
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload|start-debug}" >&2
         exit 3
         ;;
 esac
