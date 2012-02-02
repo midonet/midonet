@@ -15,7 +15,7 @@
         <module>midolmanj</module>
         <module>midolmanj-mgmt</module>
         <module>midokura-util</module>
-        <!--<module>midonet-smoketest</module>-->
+        <module>midonet-smoketest</module>
     </modules>
 
     <scm>

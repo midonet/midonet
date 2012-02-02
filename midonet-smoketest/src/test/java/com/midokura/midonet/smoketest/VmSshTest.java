@@ -37,6 +37,7 @@ import com.midokura.tools.ssh.SshHelper;
  * Date: 11/24/11
  * Time: 12:16 PM
  */
+@Ignore
 public class VmSshTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(VmSshTest.class);

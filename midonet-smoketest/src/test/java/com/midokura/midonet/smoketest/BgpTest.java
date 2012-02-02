@@ -47,6 +47,7 @@ import com.midokura.tools.timed.Timed;
  * Date: 11/28/11
  * Time: 1:34 PM
  */
+@Ignore
 public class BgpTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);

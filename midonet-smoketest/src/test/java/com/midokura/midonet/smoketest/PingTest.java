@@ -100,12 +100,13 @@ public class PingTest extends AbstractSmokeTest {
     }
 
     @AfterClass
-    public static void tearDown() {
+    public static void tearDown() throws InterruptedException {
         ovsBridge.remove();
         tap1.remove();
         tap2.remove();
         //tenant1.delete();
         mgmt.stop();
+        Thread.sleep(3 * 1000);
 
         resetZooKeeperState(log);
     }
@@ -145,21 +146,30 @@ public class PingTest extends AbstractSmokeTest {
     @Test
     public void testPortDelete() throws InterruptedException {
         synchronized(mgmt) {
-        // Remove/re-add the two tap ports to remove all flows.
-        ovsBridge.deletePort(tap1.getName());
-        ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
-        ovsBridge.deletePort(tap1.getName());
-        ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
-
         short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
         short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
-        // Sleep to let OVS update its stats.
+        log.debug("The OF ports have numbers: {}, {}, and {}", new Object[] {
+                num1, num2, num3});
+
+        // Remove/re-add the two tap ports to remove all flows.
+        ovsBridge.deletePort(tap1.getName());
+        ovsBridge.deletePort(tap2.getName());
+        // Sleep to let OVS complete the port requests.
         Thread.sleep(1000);
+        ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
+        ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
+        // Sleep to let OVS complete the port requests.
+        Thread.sleep(1000);
+        num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
+        log.debug("The OF ports have numbers: {}, {}, and {}", new Object[] {
+                num1, num2, num3});
 
         // Verify that there are no ICMP flows.
         MidoMatch icmpMatch = new MidoMatch()
-        .setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+                .setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
         List<FlowStats> fstats = svcController.getFlowStats(icmpMatch);
         assertEquals(0, fstats.size());
 

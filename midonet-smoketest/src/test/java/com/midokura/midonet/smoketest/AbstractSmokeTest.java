@@ -3,9 +3,8 @@
  */
 package com.midokura.midonet.smoketest;
 
-import com.midokura.midonet.smoketest.topology.InternalPort;
+
 import com.midokura.midonet.smoketest.topology.Port;
-import com.midokura.midonet.smoketest.topology.TapPort;
 import com.midokura.midonet.smoketest.topology.TapWrapper;
 import com.midokura.midonet.smoketest.topology.Tenant;
 import com.midokura.tools.process.ProcessHelper;

@@ -188,7 +188,7 @@ public class BridgeTest extends AbstractSmokeTest {
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
         ovsBridge1.deletePort(tap1.getName());
-        Thread.sleep(500);
+        Thread.sleep(1000);
         assertEquals(0, svcController.getFlowStats(match1).size());
         assertEquals(0, svcController.getFlowStats(match2).size());
 

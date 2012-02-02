@@ -70,7 +70,7 @@ public class TunnelingTest extends AbstractSmokeTest {
         helper1 = new PacketHelper(MAC.fromString("02:00:aa:33:00:01"), ip1,
                 tapPort1.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
 
-        ip2 = IntIPv4.fromString("192.168.232.3");
+        ip2 = IntIPv4.fromString("192.168.231.3");
         MidoPort p2 = router1.addVmPort().setVMAddress(ip2).build();
         tapPort2 = new TapWrapper("tnlTestTap2");
         ovsBridge2.addSystemPort(p2.port.getId(), tapPort2.getName());
@@ -78,11 +78,11 @@ public class TunnelingTest extends AbstractSmokeTest {
         helper2 = new PacketHelper(MAC.fromString("02:00:aa:33:00:02"), ip2,
                 tapPort2.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
 
-        Thread.sleep(1000);
+        Thread.sleep(5 * 1000);
     }
 
     @AfterClass
-    public static void tearDown() {
+    public static void tearDown() throws InterruptedException {
         ovsBridge1.remove();
         ovsBridge2.remove();
 
@@ -91,6 +91,7 @@ public class TunnelingTest extends AbstractSmokeTest {
         removeTenant(tenant1);
 
         mgmt.stop();
+        Thread.sleep(5 * 1000);
 
         resetZooKeeperState(log);
     }
@@ -99,6 +100,15 @@ public class TunnelingTest extends AbstractSmokeTest {
     public void testPingTunnel() {
         byte[] sent;
 
+        // First arp for router's mac from port1.
+        assertTrue(tapPort1.send(helper1.makeArpRequest()));
+        helper1.checkArpReply(tapPort1.recv());
+
+        // Arp for router's mac from port2.
+        assertTrue(tapPort2.send(helper2.makeArpRequest()));
+        helper2.checkArpReply(tapPort2.recv());
+
+        // Now try sending an ICMP over the tunnel.
         sent = helper1.makeIcmpEchoRequest(ip2);
         assertTrue(tapPort1.send(sent));
         // Note: the virtual router ARPs before delivering the IPv4 packet.
@@ -114,6 +124,7 @@ public class TunnelingTest extends AbstractSmokeTest {
         assertTrue(tapPort1.send(helper1.makeArpReply()));
         // receive the icmp
         helper1.checkIcmpEchoRequest(sent, tapPort1.recv());
+
 
         assertNull(tapPort1.recv());
         assertNull(tapPort2.recv());

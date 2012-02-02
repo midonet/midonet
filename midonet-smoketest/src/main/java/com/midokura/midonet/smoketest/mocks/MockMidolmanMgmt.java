@@ -5,6 +5,8 @@ import com.midokura.midonet.smoketest.mgmt.*;
 import com.midokura.midonet.smoketest.utils.MidolmanLauncher;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
@@ -21,20 +23,24 @@ import java.net.URI;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
-    private final static Logger log = 
+    private final static Logger log =
         LoggerFactory.getLogger(MockMidolmanMgmt.class);
 
     DtoApplication app;
+    MidolmanLauncher launcher;
 
     private static WebAppDescriptor makeAppDescriptor(boolean mockZK) {
-        WebAppDescriptor ad = new WebAppDescriptor.Builder(
-                "com.midokura.midolman.mgmt.rest_api.resources",
-                "com.midokura.midolman.mgmt.rest_api.jaxrs",
-                "com.midokura.midolman.mgmt.data")
+        ClientConfig config = new DefaultClientConfig();
+        config.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
+        WebAppDescriptor ad = new WebAppDescriptor.Builder()
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(
                         "com.sun.jersey.spi.container.ContainerRequestFilters",
                         "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+                .initParam("javax.ws.rs.Application",
+                        "com.midokura.midolman.mgmt.rest_api.RestApplication")
+                .contextParam("authorizer",
+                        "com.midokura.midolman.mgmt.auth.SimpleAuthorizer")
                 .contextParam("version", "1.0")
                 .contextParam("datastore_service",
                                  mockZK
@@ -44,9 +50,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextParam("zk_timeout", "10000")
                 .contextParam("zk_root", "/smoketest/midolman")
                 .contextParam("zk_mgmt_root", "/smoketest/midolman-mgmt")
-                .contextPath("/test").build();
+                .contextPath("/test").clientConfig(config).build();
         ad.getClientConfig().getSingletons().add(new WildCardJacksonJaxbJsonProvider());
-
         return ad;
     }
 
@@ -56,7 +61,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         app = get("", DtoApplication.class);
         // Start Midolmanj controllers
         try {
-            MidolmanLauncher.start();
+            launcher = new MidolmanLauncher();
         } catch (IOException e) {
             log.error("Error starting Midolmanj controllers: {}", e);
         }
@@ -64,6 +69,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     public void stop() {
         log.info("Shutting down the WebApplication !");
+        try {
+            launcher.stop();
+        } catch (Exception e) {
+            log.error("While shutting down the mock manager:", e);
+        }
         try {
             tearDown();
         } catch (Exception e) {
@@ -185,7 +195,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public DtoRuleChain getRuleChain(DtoRouter router, String name) {
         URI uri = UriBuilder.fromUri(router.getUri())
-                .path("/tables/nat/chains/" + name).build();
+                .path("/tables/NAT/chains/" + name).build();
         return get(uri, DtoRuleChain.class);
     }
 
