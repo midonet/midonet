@@ -41,6 +41,8 @@ public class VpnTest extends AbstractSmokeTest {
     static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
     static OvsBridge ovsBridge;
+    static MidoPort vpn1;
+    static MidoPort vpn2;
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
@@ -87,7 +89,7 @@ public class VpnTest extends AbstractSmokeTest {
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
                         IntIPv4.fromString("169.254.0.2"))
                 .addRoute(IntIPv4.fromString("10.0.232.0")).build();
-        MidoPort vpn1 = router1.addVpnPort()
+        vpn1 = router1.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
                 .setLocalIp(IntIPv4.fromString("10.0.231.100"))
                 .setLayer4Port(12333).setRemoteIp("192.168.232.99")
@@ -103,7 +105,7 @@ public class VpnTest extends AbstractSmokeTest {
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))
                 .addRoute(IntIPv4.fromString("10.0.231.0")).build();
-        MidoPort vpn2 = router2.addVpnPort()
+        vpn2 = router2.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_SERVER)
                 .setLocalIp(IntIPv4.fromString("10.0.232.99"))
                 .setLayer4Port(12333).setPrivatePortId(p2.port.getId()).build();
@@ -115,6 +117,12 @@ public class VpnTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
+
+        // delete vpns
+        mgmt.deleteVpn(vpn1.getVpn());
+        mgmt.deleteVpn(vpn2.getVpn());
+        // give some second to the controller to clean up vpns stuff
+        Thread.sleep(3 * 1000);
         ovsdb.delBridge("smoke-br");
 
         removeTapWrapper(tapPort1);

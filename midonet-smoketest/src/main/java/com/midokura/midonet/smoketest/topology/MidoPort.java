@@ -159,7 +159,7 @@ public class MidoPort {
 
         public MidoPort build() {
             DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
-            mgmt.addVpn(p, vpn);
+            vpn = mgmt.addVpn(p, vpn);
             DtoRoute rt = new DtoRoute();
             rt.setDstNetworkAddr(port.getLocalNetworkAddress());
             rt.setDstNetworkLength(port.getNetworkLength());
@@ -169,16 +169,27 @@ public class MidoPort {
             rt.setNextHopPort(p.getId());
             rt.setWeight(10);
             rt = mgmt.addRoute(router, rt);
-            return new MidoPort(mgmt, p);
+            MidoPort port = new MidoPort(mgmt, p);
+            port.setVpn(vpn);
+            return port;
         }
     }
 
     MidolmanMgmt mgmt;
     public DtoMaterializedRouterPort port;
+    private DtoVpn vpn;
 
     MidoPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port) {
         this.mgmt = mgmt;
         this.port = port;
+    }
+
+    public DtoVpn getVpn() {
+        return vpn;
+    }
+
+    public void setVpn(DtoVpn vpn) {
+        this.vpn = vpn;
     }
 
     public void delete() {

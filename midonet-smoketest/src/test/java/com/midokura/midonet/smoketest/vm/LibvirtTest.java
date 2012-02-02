@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.notNullValue;
  * Date: 11/17/11
  * Time: 2:38 PM
  */
-@Ignore
 public class LibvirtTest extends AbstractLibvirtTest {
 
     private final static Logger log = LoggerFactory.getLogger(LibvirtTest.class);

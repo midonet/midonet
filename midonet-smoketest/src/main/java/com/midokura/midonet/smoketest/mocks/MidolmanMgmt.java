@@ -46,6 +46,8 @@ public interface MidolmanMgmt {
 
     DtoVpn addVpn(DtoMaterializedRouterPort p, DtoVpn vpn);
 
+    void deleteVpn(DtoVpn vpn);
+
     DtoRoute[] getRoutes(DtoRouter router);
 
     void stop();

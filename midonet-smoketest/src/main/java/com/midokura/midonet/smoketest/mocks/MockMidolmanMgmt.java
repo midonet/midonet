@@ -214,6 +214,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
+    public void deleteVpn(DtoVpn vpn) {
+        delete(vpn.getUri());
+    }
+
+    @Override
     public DtoRoute[] getRoutes(DtoRouter router) {
         return get(router.getRoutes(), DtoRoute[].class);
     }
