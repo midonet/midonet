@@ -44,6 +44,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 
 public abstract class AbstractController
@@ -66,7 +67,7 @@ public abstract class AbstractController
     private HashMap<Integer, IntIPv4> tunnelPortNumToPeerIp;
     private HashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
 
-    protected PortToIntNwAddrMap.Watcher<UUID, IntIPv4> listener;
+    protected ReplicatedMap.Watcher<UUID, IntIPv4> listener;
 
     private OpenvSwitchDatabaseConnection ovsdb;
 
