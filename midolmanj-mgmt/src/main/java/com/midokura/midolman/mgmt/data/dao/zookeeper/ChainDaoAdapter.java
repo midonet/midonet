@@ -20,6 +20,7 @@ import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
@@ -123,9 +124,11 @@ public class ChainDaoAdapter implements ChainDao {
         // Add built-in chains.
         for (Map.Entry<ChainTable, String[]> entry : ChainTable.builtInChains
                 .entrySet()) {
+            DtoRuleChain.ChainTable table = Enum.valueOf(
+                    DtoRuleChain.ChainTable.class, entry.getKey().name());
             for (String name : entry.getValue()) {
-                Chain chain = new Chain(UUID.randomUUID(), routerId,
-                        entry.getKey(), name);
+                Chain chain = new Chain(UUID.randomUUID(), routerId,  table,
+                        name);
                 chains.add(chain);
             }
         }

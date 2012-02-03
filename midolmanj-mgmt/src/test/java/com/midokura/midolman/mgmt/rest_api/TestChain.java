@@ -8,11 +8,13 @@ package com.midokura.midolman.mgmt.rest_api;
 import java.net.URI;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -86,7 +88,7 @@ public class TestChain extends JerseyTest {
         DtoRuleChain ruleChain = new DtoRuleChain();
 
         ruleChain.setName("foo_chain");
-        ruleChain.setTable(ChainTable.NAT);
+        ruleChain.setTable(DtoRuleChain.ChainTable.NAT);
 
         // Create a chain
         URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
@@ -111,5 +113,15 @@ public class TestChain extends JerseyTest {
         //Delete the chain
         response = resource().uri(ruleChainUri).delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
+    }
+
+    @Test
+    public void testChainTableTranslate() {
+        assertEquals(DtoRuleChain.ChainTable.NAT,
+                Enum.valueOf(DtoRuleChain.ChainTable.class,
+                        ChainTable.NAT.name()));
+        assertEquals(ChainTable.NAT,
+                Enum.valueOf(ChainTable.class,
+                        DtoRuleChain.ChainTable.NAT.name()));
     }
 }

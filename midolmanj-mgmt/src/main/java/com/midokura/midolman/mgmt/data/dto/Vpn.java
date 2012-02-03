@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
@@ -28,7 +29,7 @@ public class Vpn extends UriResource {
     private UUID publicPortId = null;
     private UUID privatePortId = null;
     private String remoteIp;
-    private VpnZkManager.VpnType vpnType;
+    private DtoVpn.VpnType vpnType;
 
     /**
      * Constructor
@@ -49,7 +50,7 @@ public class Vpn extends UriResource {
         this.privatePortId = config.privatePortId;
         this.publicPortId = config.publicPortId;
         this.remoteIp = config.remoteIp;
-        this.vpnType = config.vpnType;
+        this.vpnType = Enum.valueOf(DtoVpn.VpnType.class, config.vpnType.name());
         this.id = id;
     }
 
@@ -161,24 +162,24 @@ public class Vpn extends UriResource {
      *
      * @return VPN type.
      */
-    public VpnZkManager.VpnType getType() {
+    public DtoVpn.VpnType getVpnType() {
         return vpnType;
     }
 
     /**
      * Set VPN type.
      *
-     * @param id
+     * @param vpnType
      *            ID of the type.
      */
-    public void setVpnType(VpnZkManager.VpnType vpnType) {
+    public void setVpnType(DtoVpn.VpnType vpnType) {
         this.vpnType = vpnType;
     }
 
     public VpnConfig toConfig() {
         return new VpnConfig(this.getPublicPortId(), this.getPrivatePortId(),
-                this.getRemoteIp(), this.vpnType, this.getPort());
-
+                this.getRemoteIp(), Enum.valueOf(VpnZkManager.VpnType.class,
+                this.vpnType.name()), this.getPort());
     }
 
     /*

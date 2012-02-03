@@ -3,10 +3,10 @@ package com.midokura.midonet.smoketest.topology;
 import java.util.UUID;
 
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midonet.smoketest.mgmt.DtoRoute;
-import com.midokura.midonet.smoketest.mgmt.DtoRouter;
-import com.midokura.midonet.smoketest.mgmt.DtoRule;
-import com.midokura.midonet.smoketest.mgmt.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class Router {

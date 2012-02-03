@@ -4,10 +4,10 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoLogicalRouterPort;
-import com.midokura.midonet.smoketest.mgmt.DtoPeerRouterLink;
-import com.midokura.midonet.smoketest.mgmt.DtoRoute;
-import com.midokura.midonet.smoketest.mgmt.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPeerRouterLink;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class PeerRouterLink {

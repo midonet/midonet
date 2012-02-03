@@ -4,7 +4,7 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 import java.util.UUID;

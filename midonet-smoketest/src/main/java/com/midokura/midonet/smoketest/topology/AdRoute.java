@@ -1,6 +1,6 @@
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoAdRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 /**

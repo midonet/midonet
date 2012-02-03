@@ -5,12 +5,6 @@
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +12,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import junit.framework.Assert;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.junit.Before;
@@ -27,11 +20,15 @@ import org.junit.Test;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class TestChainDaoAdapter {
 
@@ -53,7 +50,7 @@ public class TestChainDaoAdapter {
         chain.setId(id);
         chain.setName("foo");
         chain.setRouterId(UUID.randomUUID());
-        chain.setTable(ChainTable.NAT);
+        chain.setTable(DtoRuleChain.ChainTable.NAT);
         return chain;
     }
 
@@ -203,7 +200,8 @@ public class TestChainDaoAdapter {
         Assert.assertEquals(id, chain.getId());
         Assert.assertEquals(config.routerId, chain.getRouterId());
         Assert.assertEquals(config.name, chain.getName());
-        Assert.assertEquals(mgmtConfig.table, chain.getTable());
+        Assert.assertEquals(Enum.valueOf(DtoRuleChain.ChainTable.class,
+                mgmtConfig.table.name()), chain.getTable());
     }
 
     @Test
@@ -225,7 +223,8 @@ public class TestChainDaoAdapter {
         Assert.assertEquals(id, chain.getId());
         Assert.assertEquals(config.routerId, chain.getRouterId());
         Assert.assertEquals(config.name, chain.getName());
-        Assert.assertEquals(mgmtConfig.table, chain.getTable());
+        Assert.assertEquals(Enum.valueOf(DtoRuleChain.ChainTable.class,
+                mgmtConfig.table.name()), chain.getTable());
     }
 
     @Test
@@ -244,7 +243,8 @@ public class TestChainDaoAdapter {
         Assert.assertEquals(id, chain.getId());
         Assert.assertEquals(config.routerId, chain.getRouterId());
         Assert.assertEquals(config.name, chain.getName());
-        Assert.assertEquals(mgmtConfig.table, chain.getTable());
+        Assert.assertEquals(Enum.valueOf(DtoRuleChain.ChainTable.class,
+                mgmtConfig.table.name()), chain.getTable());
     }
 
     @Test

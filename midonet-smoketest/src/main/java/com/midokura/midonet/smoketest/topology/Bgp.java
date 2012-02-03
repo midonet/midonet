@@ -4,9 +4,9 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoAdRoute;
-import com.midokura.midonet.smoketest.mgmt.DtoBgp;
-import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 /**

@@ -1,7 +1,7 @@
 package com.midokura.midonet.smoketest.mocks;
 
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midonet.smoketest.mgmt.*;
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midonet.smoketest.utils.MidolmanLauncher;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;

@@ -5,7 +5,7 @@ package com.midokura.midonet.smoketest.mocks;
 
 import java.net.URI;
 
-import com.midokura.midonet.smoketest.mgmt.*;
+import com.midokura.midolman.mgmt.data.dto.client.*;
 
 public interface MidolmanMgmt {
 

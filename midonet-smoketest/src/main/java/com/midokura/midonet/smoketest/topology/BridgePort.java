@@ -1,10 +1,7 @@
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midonet.smoketest.mgmt.DtoBridge;
-import com.midokura.midonet.smoketest.mgmt.DtoBridgePort;
-import com.midokura.midonet.smoketest.mgmt.DtoPort;
-import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
 
 import java.util.UUID;
 

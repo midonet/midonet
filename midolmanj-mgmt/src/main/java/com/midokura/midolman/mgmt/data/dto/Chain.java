@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
@@ -28,7 +29,7 @@ public class Chain extends UriResource {
     private UUID id = null;
     private UUID routerId = null;
     private String name = null;
-    private ChainTable table = null;
+    private DtoRuleChain.ChainTable table = null;
 
     /**
      * Default constructor
@@ -48,7 +49,8 @@ public class Chain extends UriResource {
      *            ChainMgmtConfig object
      */
     public Chain(UUID id, ChainConfig config, ChainMgmtConfig mgmtConfig) {
-        this(id, config.routerId, mgmtConfig.table, config.name);
+        this(id, config.routerId, Enum.valueOf(DtoRuleChain.ChainTable.class,
+                mgmtConfig.table.name()), config.name);
     }
 
     /**
@@ -63,7 +65,8 @@ public class Chain extends UriResource {
      * @param name
      *            Chain name
      */
-    public Chain(UUID id, UUID routerId, ChainTable table, String name) {
+    public Chain(UUID id, UUID routerId, DtoRuleChain.ChainTable table,
+                 String name) {
         this.id = id;
         this.routerId = routerId;
         this.table = table;
@@ -118,7 +121,7 @@ public class Chain extends UriResource {
     /**
      * @return the table
      */
-    public ChainTable getTable() {
+    public DtoRuleChain.ChainTable getTable() {
         return table;
     }
 
@@ -126,7 +129,7 @@ public class Chain extends UriResource {
      * @param table
      *            the table to set
      */
-    public void setTable(ChainTable table) {
+    public void setTable(DtoRuleChain.ChainTable table) {
         this.table = table;
     }
 
@@ -150,7 +153,8 @@ public class Chain extends UriResource {
     }
 
     public ChainMgmtConfig toMgmtConfig() {
-        return new ChainMgmtConfig(this.getTable());
+        return new ChainMgmtConfig(Enum.valueOf(ChainTable.class,
+                this.getTable().name()));
     }
 
     public ChainNameMgmtConfig toNameMgmtConfig() {

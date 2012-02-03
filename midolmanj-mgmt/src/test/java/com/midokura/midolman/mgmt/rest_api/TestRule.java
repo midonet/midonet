@@ -84,7 +84,7 @@ public class TestRule extends JerseyTest {
         // Create a chain
         DtoRuleChain ruleChain = new DtoRuleChain();
         ruleChain.setName("foo_chain");
-        ruleChain.setTable(ChainTable.NAT);
+        ruleChain.setTable(DtoRuleChain.ChainTable.NAT);
 
         URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
         response = resource().uri(routerChainUri).type(APPLICATION_CHAIN_JSON).post(ClientResponse.class, ruleChain);

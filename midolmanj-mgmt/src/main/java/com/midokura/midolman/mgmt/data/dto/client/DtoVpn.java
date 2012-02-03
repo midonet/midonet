@@ -14,13 +14,18 @@ import com.midokura.midolman.state.VpnZkManager;
 
 @XmlRootElement
 public class DtoVpn {
+
+    public static enum VpnType {
+        OPENVPN_SERVER, OPENVPN_CLIENT, OPENVPN_TCP_SERVER, OPENVPN_TCP_CLIENT
+    }
+
     private URI uri;
     private UUID id;
     private int port;
     private UUID publicPortId;
     private UUID privatePortId;
     private String remoteIp;
-    private VpnZkManager.VpnType vpnType;
+    private VpnType vpnType;
 
     public URI getUri() {
         return uri;
@@ -70,11 +75,11 @@ public class DtoVpn {
         this.remoteIp = remoteIp;
     }
 
-    public VpnZkManager.VpnType getVpnType() {
+    public VpnType getVpnType() {
         return vpnType;
     }
 
-    public void setVpnType(VpnZkManager.VpnType vpnType) {
+    public void setVpnType(VpnType vpnType) {
         this.vpnType = vpnType;
     }
 }

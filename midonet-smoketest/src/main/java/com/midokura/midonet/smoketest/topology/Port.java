@@ -6,8 +6,8 @@ package com.midokura.midonet.smoketest.topology;
 
 import java.util.UUID;
 
-import com.midokura.midonet.smoketest.mgmt.DtoBgp;
-import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class Port {

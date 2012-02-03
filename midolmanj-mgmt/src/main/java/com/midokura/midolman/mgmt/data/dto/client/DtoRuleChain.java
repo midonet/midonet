@@ -9,10 +9,13 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
-
 @XmlRootElement
 public class DtoRuleChain {
+
+    public static enum ChainTable {
+        NAT
+    }
+
     private UUID id;
     private UUID routerId;
     private String name;

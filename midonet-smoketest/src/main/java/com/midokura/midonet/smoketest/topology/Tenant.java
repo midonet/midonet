@@ -4,7 +4,7 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class Tenant {

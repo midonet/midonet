@@ -3,8 +3,8 @@ package com.midokura.midonet.smoketest.topology;
 import java.util.UUID;
 
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midonet.smoketest.mgmt.DtoRule;
-import com.midokura.midonet.smoketest.mgmt.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class Rule {

@@ -4,11 +4,9 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midonet.smoketest.mgmt.DtoBridge;
-import com.midokura.midonet.smoketest.mgmt.DtoBridgePort;
-import com.midokura.midonet.smoketest.mgmt.DtoPort;
-import com.midokura.midonet.smoketest.mgmt.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 import java.util.UUID;

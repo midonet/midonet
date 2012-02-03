@@ -4,7 +4,7 @@
 
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class VMPort extends Port {

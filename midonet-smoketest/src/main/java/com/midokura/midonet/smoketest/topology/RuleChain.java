@@ -1,7 +1,7 @@
 package com.midokura.midonet.smoketest.topology;
 
-import com.midokura.midonet.smoketest.mgmt.DtoRouter;
-import com.midokura.midonet.smoketest.mgmt.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class RuleChain {
@@ -22,16 +22,15 @@ public class RuleChain {
             return this;
         }
 
-        public Builder setTable(String table) {
+        public Builder setTable(DtoRuleChain.ChainTable table) {
             chain.setTable(table);
             return this;
         }
 
         public RuleChain build() {
-            if (null == chain.getName() || chain.getName().isEmpty()
-                    || null == chain.getTable() || chain.getTable().isEmpty())
+            if (null == chain.getName() || chain.getName().isEmpty())
                 throw new IllegalArgumentException("Cannot create a "
-                        + "router with a null or empty name.");
+                        + "rule chain with a null or empty name.");
             return new RuleChain(mgmt, mgmt.addRuleChain(router, chain));
         }
     }

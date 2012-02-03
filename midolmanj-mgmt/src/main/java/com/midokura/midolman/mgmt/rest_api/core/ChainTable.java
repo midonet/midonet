@@ -8,6 +8,8 @@ package com.midokura.midolman.mgmt.rest_api.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+
 /**
  * Enum for chain table
  *
@@ -52,7 +54,7 @@ public enum ChainTable {
     /**
      * Checks whether the given table is built-in.
      *
-     * @param name
+     * @param table
      *            Name to check
      * @return True if built-in
      */
@@ -107,4 +109,11 @@ public enum ChainTable {
         return false;
 
     }
+
+    public static boolean isBuiltInChainName(DtoRuleChain.ChainTable table,
+                                             String name) {
+        return isBuiltInChainName(Enum.valueOf(ChainTable.class, table.name()),
+                name);
+    }
+
 }

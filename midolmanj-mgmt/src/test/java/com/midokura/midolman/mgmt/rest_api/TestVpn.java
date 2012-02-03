@@ -113,7 +113,7 @@ public class TestVpn extends JerseyTest {
         int vpnPort = 1234;
         vpn.setPort(vpnPort);
         vpn.setPrivatePortId(privatePortId);
-        vpn.setVpnType(VpnZkManager.VpnType.valueOf("OPENVPN_SERVER"));
+        vpn.setVpnType(DtoVpn.VpnType.OPENVPN_SERVER);
 
         resource = resource().uri(
                 UriBuilder.fromUri(portUri).path("vpns").build());
@@ -143,5 +143,34 @@ public class TestVpn extends JerseyTest {
         //Delete the vpn
         response = response = resource().uri(vpnUri).type(APPLICATION_VPN_JSON).delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
+    }
+
+    @Test
+    public void testConvertVpnType() {
+        assertEquals(DtoVpn.VpnType.OPENVPN_CLIENT,
+                Enum.valueOf(DtoVpn.VpnType.class,
+                        VpnZkManager.VpnType.OPENVPN_CLIENT.name()));
+        assertEquals(DtoVpn.VpnType.OPENVPN_SERVER,
+                Enum.valueOf(DtoVpn.VpnType.class,
+                        VpnZkManager.VpnType.OPENVPN_SERVER.name()));
+        assertEquals(DtoVpn.VpnType.OPENVPN_TCP_CLIENT,
+                Enum.valueOf(DtoVpn.VpnType.class,
+                        VpnZkManager.VpnType.OPENVPN_TCP_CLIENT.name()));
+        assertEquals(DtoVpn.VpnType.OPENVPN_TCP_SERVER,
+                Enum.valueOf(DtoVpn.VpnType.class,
+                        VpnZkManager.VpnType.OPENVPN_TCP_SERVER.name()));
+
+        assertEquals(VpnZkManager.VpnType.OPENVPN_CLIENT,
+                Enum.valueOf(VpnZkManager.VpnType.class,
+                        DtoVpn.VpnType.OPENVPN_CLIENT.name()));
+        assertEquals(VpnZkManager.VpnType.OPENVPN_SERVER,
+                Enum.valueOf(VpnZkManager.VpnType.class,
+                        DtoVpn.VpnType.OPENVPN_SERVER.name()));
+        assertEquals(VpnZkManager.VpnType.OPENVPN_TCP_CLIENT,
+                Enum.valueOf(VpnZkManager.VpnType.class,
+                        DtoVpn.VpnType.OPENVPN_TCP_CLIENT.name()));
+        assertEquals(VpnZkManager.VpnType.OPENVPN_TCP_SERVER,
+                Enum.valueOf(VpnZkManager.VpnType.class,
+                        DtoVpn.VpnType.OPENVPN_TCP_SERVER.name()));
     }
 }

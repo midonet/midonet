@@ -8,13 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.state.VpnZkManager;
-import com.midokura.midonet.smoketest.mgmt.DtoBgp;
-import com.midokura.midonet.smoketest.mgmt.DtoMaterializedRouterPort;
-import com.midokura.midonet.smoketest.mgmt.DtoRoute;
-import com.midokura.midonet.smoketest.mgmt.DtoRouter;
-import com.midokura.midonet.smoketest.mgmt.DtoVpn;
 import com.midokura.midonet.smoketest.mocks.MidolmanMgmt;
 
 public class MidoPort {
@@ -124,7 +123,7 @@ public class MidoPort {
             this.vpn = new DtoVpn();
         }
 
-        public VPNPortBuilder setVpnType(VpnZkManager.VpnType type) {
+        public VPNPortBuilder setVpnType(DtoVpn.VpnType type) {
             vpn.setVpnType(type);
             return this;
         }
