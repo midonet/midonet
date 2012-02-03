@@ -11,10 +11,10 @@
 
     <groupId>${parent.groupId}</groupId>
     <version>${parent.version}</version>
-    <artifactId>midonet-smoketest</artifactId>
+    <artifactId>midonet-functional-tests</artifactId>
     <packaging>jar</packaging>
 
-    <name>Midonet Smoketests</name>
+    <name>Midonet Functional test suite</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
