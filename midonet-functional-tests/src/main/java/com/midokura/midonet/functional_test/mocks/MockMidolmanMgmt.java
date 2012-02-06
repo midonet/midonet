@@ -59,6 +59,9 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         super(makeAppDescriptor(mockZK));
         // Initialize the directory structure.
         app = get("", DtoApplication.class);
+        // Don't start Midolmanj controllers if we're using a mock Directory.
+        if (mockZK)
+            return;
         // Start Midolmanj controllers
         try {
             launcher = new MidolmanLauncher();
@@ -70,7 +73,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public void stop() {
         log.info("Shutting down the WebApplication !");
         try {
-            launcher.stop();
+            if (null != launcher)
+                launcher.stop();
         } catch (Exception e) {
             log.error("While shutting down the mock manager:", e);
         }

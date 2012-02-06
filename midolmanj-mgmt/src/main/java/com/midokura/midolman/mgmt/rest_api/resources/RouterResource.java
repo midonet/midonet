@@ -80,16 +80,16 @@ public class RouterResource {
             }
             dao.delete(id);
         } catch (NoStatePathException e) {
-            // Deleting a non-existing record is OK.
-            log.warn("The resource does not exist", e);
+            log.error("A path was not found or was deleted twice", e);
+            throw e;
         } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
+            log.error("StateAccessException error.", e);
             throw e;
         } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
+            log.error("UnauthorizedException error.", e);
             throw e;
         } catch (Exception e) {
-            log.error("Unhandled error.");
+            log.error("Unhandled error.", e);
             throw new UnknownRestApiException(e);
         }
     }
@@ -213,8 +213,6 @@ public class RouterResource {
      *            Router object.
      * @param context
      *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
      * @param daoFactory
      *            Data access factory object.
      * @param authorizer

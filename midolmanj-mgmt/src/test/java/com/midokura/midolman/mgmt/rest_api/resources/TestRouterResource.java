@@ -71,7 +71,7 @@ public class TestRouterResource {
         resource.delete(id, contextMock, factoryMock, authMock);
     }
 
-    @Test
+    @Test(expected = NoStatePathException.class)
     public void testDeleteNonExistentData() throws Exception {
         UUID id = UUID.randomUUID();
         doReturn(true).when(authMock).routerAuthorized(contextMock,
@@ -79,8 +79,6 @@ public class TestRouterResource {
         doThrow(NoStatePathException.class).when(daoMock).delete(id);
 
         resource.delete(id, contextMock, factoryMock, authMock);
-
-        verify(daoMock, times(1)).delete(id);
     }
 
     @Test(expected = StateAccessException.class)

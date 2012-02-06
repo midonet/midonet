@@ -145,7 +145,7 @@ public class ChainOpService {
         List<Op> ops = new ArrayList<Op>();
         Set<String> ids = zkDao.getIds(routerId, table);
         for (String id : ids) {
-            ops.addAll(buildDelete(UUID.fromString(id), true));
+            ops.addAll(buildDelete(UUID.fromString(id), false));
         }
 
         log.debug(

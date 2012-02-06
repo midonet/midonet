@@ -189,12 +189,14 @@ public class TestChainOpService {
 
         service.buildDeleteRouterChains(config.routerId, ChainTable.NAT);
 
-        verify(opBuilderMock, times(1)).getChainDeleteOps(
-                UUID.fromString(dummyId0));
-        verify(opBuilderMock, times(1)).getChainDeleteOps(
-                UUID.fromString(dummyId1));
-        verify(opBuilderMock, times(1)).getChainDeleteOps(
-                UUID.fromString(dummyId2));
+        verify(opBuilderMock, times(3)).getRouterTableChainNameDeleteOp(
+                config.routerId, mgmtConfig.table, config.name);
+        for (String id : dummyIds) {
+            verify(opBuilderMock, times(1)).getRouterTableChainDeleteOp(
+                    config.routerId, mgmtConfig.table, UUID.fromString(id));
+            verify(opBuilderMock, times(1)).getChainDeleteOp(
+                    UUID.fromString(id));
+        }
     }
 
     @Test
