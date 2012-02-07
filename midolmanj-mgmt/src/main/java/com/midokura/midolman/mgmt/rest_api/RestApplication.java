@@ -7,10 +7,12 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthorizerSelector;
 import com.midokura.midolman.mgmt.config.AppConfig;
@@ -34,6 +36,11 @@ import com.midokura.midolman.state.StateAccessException;
  * @author Ryu Ishimoto
  */
 public class RestApplication extends Application {
+    private final static Logger log = LoggerFactory
+        .getLogger(RestApplication.class);
+
+    private Set<Object> singletons;
+
     /*
      * Override methods to initialize application.
      */
@@ -68,14 +75,23 @@ public class RestApplication extends Application {
      * @return A list of singleton instances.
      */
     @Override
-    public Set<Object> getSingletons() {
-        ConfigInjectableProvider configProvider = new ConfigInjectableProvider(
-                servletContext);
+    public synchronized Set<Object> getSingletons() {
+        if (null == singletons)
+            singletons = initialize();
+
+        return singletons;
+    }
+
+    private synchronized Set<Object> initialize() {
+        ConfigInjectableProvider configProvider
+            = new ConfigInjectableProvider(servletContext);
+
         AppConfig config = configProvider.getValue();
 
         DataStoreSelector dataStoreSelector = new DataStoreSelector(config);
-        DataStoreInjectableProvider dataStoreProvider = new DataStoreInjectableProvider(
-                dataStoreSelector);
+        DataStoreInjectableProvider dataStoreProvider
+            = new DataStoreInjectableProvider(dataStoreSelector);
+
         DaoFactory daoFactory = dataStoreProvider.getValue();
 
         // Since this should only get called once, let the application
@@ -89,22 +105,24 @@ public class RestApplication extends Application {
                     e);
         }
 
-        AuthorizerSelector authzSelector = null;
+        AuthorizerSelector authzSelector;
         try {
             authzSelector = new AuthorizerSelector(config,
                     daoFactory.getTenantDao());
         } catch (StateAccessException e) {
             throw new UnsupportedOperationException(
-                    "TenantDao could not be instantiated for Authorizr.", e);
+                    "TenantDao could not be instantiated for Authorizer.", e);
         }
-        AuthInjectableProvider authProvider = new AuthInjectableProvider(
-                authzSelector);
 
-        HashSet<Object> singletons = new HashSet<Object>();
+        AuthInjectableProvider authProvider =
+                new AuthInjectableProvider(authzSelector);
+
+        Set<Object> singletons = new HashSet<Object>();
         singletons.add(configProvider);
         singletons.add(dataStoreProvider);
         singletons.add(authProvider);
         singletons.add(new WildCardJacksonJaxbJsonProvider());
+
         return singletons;
     }
 }
