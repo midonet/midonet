@@ -29,7 +29,11 @@ public class MidolmanLauncher {
     private Process m1;
     private Process m2;
 
-    public MidolmanLauncher() throws IOException {
+    public static MidolmanLauncher start() throws IOException {
+        return new MidolmanLauncher();
+    }
+
+    private MidolmanLauncher() throws IOException {
         List<String> cmd = new ArrayList<String>(Arrays.asList(MIDOLMANJ_CMD));
         // Start MM1
         cmd.set(2, cp1);

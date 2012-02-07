@@ -8,7 +8,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -29,6 +28,7 @@ import com.midokura.midonet.functional_test.topology.PeerRouterLink;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
 public class VpnTest extends AbstractSmokeTest {
 
@@ -40,6 +40,7 @@ public class VpnTest extends AbstractSmokeTest {
     static PeerRouterLink link;
     static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static OvsBridge ovsBridge;
     static MidoPort vpn1;
     static MidoPort vpn2;
@@ -49,14 +50,13 @@ public class VpnTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
-        Random rand = new Random(System.currentTimeMillis());
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                .build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
 
         // Router 1 has VMs on 10.0.231.0/24.
         Router router1 = tenant1.addRouter().setName("rtr1").build();
@@ -112,26 +112,24 @@ public class VpnTest extends AbstractSmokeTest {
         router2.addFloatingIp(IntIPv4.fromString("10.0.232.99"),
                 IntIPv4.fromString("192.168.232.99"), link.dto.getPeerPortId());
 
-        Thread.sleep(20000);
+        Thread.sleep(10000);
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-
         // delete vpns
         mgmt.deleteVpn(vpn1.getVpn());
         mgmt.deleteVpn(vpn2.getVpn());
         // give some second to the controller to clean up vpns stuff
         Thread.sleep(3 * 1000);
-        ovsdb.delBridge("smoke-br");
-
+        stopMidolman(midolman);
+        if (null != link)
+            link.delete();
+        removeTenant(tenant1);
+        stopMidolmanMgmt(mgmt);
+        ovsBridge.remove();
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-        removeTenant(tenant1);
-
-        mgmt.stop();
-
-        resetZooKeeperState(log);
     }
 
     @Test

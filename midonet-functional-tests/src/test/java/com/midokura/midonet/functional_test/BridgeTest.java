@@ -13,6 +13,8 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.*;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -41,6 +42,7 @@ public class BridgeTest extends AbstractSmokeTest {
     static PacketHelper helper3_1;
     static OpenvSwitchDatabaseConnectionImpl ovsdb;
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static BridgePort bPort1;
     static BridgePort bPort2;
     static BridgePort bPort3;
@@ -51,7 +53,6 @@ public class BridgeTest extends AbstractSmokeTest {
     static OvsBridge ovsBridge1;
     static OvsBridge ovsBridge2;
     static ServiceController svcController;
-    static Random rand = new Random(System.currentTimeMillis());
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
@@ -59,14 +60,14 @@ public class BridgeTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                .build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());
@@ -102,17 +103,15 @@ public class BridgeTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() {
-        ovsdb.delBridge("smoke-br");
-        ovsdb.delBridge("smoke-br2");
+        stopMidolman(midolman);
+        removeTenant(tenant1);
+        stopMidolmanMgmt(mgmt);
 
+        ovsBridge1.remove();
+        ovsBridge2.remove();
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
-        removeTenant(tenant1);
-
-        mgmt.stop();
-
-        resetZooKeeperState(log);
     }
 
     @Test

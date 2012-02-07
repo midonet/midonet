@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import java.io.IOException;
 import java.net.URI;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
@@ -57,27 +56,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     public MockMidolmanMgmt(boolean mockZK) {
         super(makeAppDescriptor(mockZK));
-        // Initialize the directory structure.
         app = get("", DtoApplication.class);
-        // Don't start Midolmanj controllers if we're using a mock Directory.
-        if (mockZK)
-            return;
-        // Start Midolmanj controllers
-        try {
-            launcher = new MidolmanLauncher();
-        } catch (IOException e) {
-            log.error("Error starting Midolmanj controllers: {}", e);
-        }
     }
 
     public void stop() {
         log.info("Shutting down the WebApplication !");
-        try {
-            if (null != launcher)
-                launcher.stop();
-        } catch (Exception e) {
-            log.error("While shutting down the mock manager:", e);
-        }
         try {
             tearDown();
         } catch (Exception e) {

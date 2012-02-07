@@ -36,6 +36,7 @@ import com.midokura.midonet.functional_test.topology.Route;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
@@ -56,6 +57,7 @@ public class BgpTest extends AbstractSmokeTest {
     static TapWrapper bgpPort;
     static Bgp bgp;
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static OvsBridge ovsBridge;
 
     static VMController bgpPeerVm;
@@ -80,6 +82,7 @@ public class BgpTest extends AbstractSmokeTest {
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
 
@@ -136,17 +139,12 @@ public class BgpTest extends AbstractSmokeTest {
             //
         }
 
-        removeTapWrapper(bgpPort);
-
+        stopMidolman(midolman);
         removeTenant(tenant);
-        mgmt.stop();
+        stopMidolmanMgmt(mgmt);
 
-
-        if (ovsdb.hasBridge("smoke-br")) {
-            ovsdb.delBridge("smoke-br");
-        }
-
-        resetZooKeeperState(log);
+        ovsBridge.remove();
+        removeTapWrapper(bgpPort);
     }
 
     @Test

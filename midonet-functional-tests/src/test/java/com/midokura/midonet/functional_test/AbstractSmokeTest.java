@@ -3,12 +3,13 @@
  */
 package com.midokura.midonet.functional_test;
 
-
-import com.midokura.midonet.functional_test.topology.Port;
+import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.tools.process.ProcessHelper;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@midokura.com>
@@ -18,10 +19,21 @@ import org.slf4j.Logger;
  */
 public abstract class AbstractSmokeTest {
 
-    protected static void removePort(Port port) {
-        if (port != null) {
-            port.delete();
-        }
+    private final static Logger log = LoggerFactory
+            .getLogger(AbstractSmokeTest.class);
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                ProcessHelper
+                        .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr " +
+                                " /smoketest")
+                        .logOutput(log, "cleaning_zk")
+                        .runAndWait();
+
+            }
+        });
     }
 
     protected static void removeTapWrapper(TapWrapper tap) {
@@ -30,18 +42,18 @@ public abstract class AbstractSmokeTest {
         }
     }
 
-    protected static void resetZooKeeperState(Logger log) {
-        ProcessHelper
-            .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr /smoketest/midolman-mgmt")
-            .logOutput(log, "cleaning_zk")
-            .runAndWait();
+    protected static void removeTenant(Tenant tenant) {
+        if (null != tenant)
+            tenant.delete();
     }
 
-    protected static void removeTenant(Tenant tenant) {
-        try {
-            tenant.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected static void stopMidolman(MidolmanLauncher mm) {
+        if (null != mm)
+            mm.stop();
+    }
+
+    protected static void stopMidolmanMgmt(MidolmanMgmt mgmt) {
+        if (null != mgmt)
+            mgmt.stop();
     }
 }

@@ -11,7 +11,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -33,6 +32,7 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
 public class PingTest extends AbstractSmokeTest {
 
@@ -52,6 +52,7 @@ public class PingTest extends AbstractSmokeTest {
     static PacketHelper helper1;
     static PacketHelper helper2;
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static OvsBridge ovsBridge;
     static ServiceController svcController;
 
@@ -60,6 +61,7 @@ public class PingTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -75,9 +77,7 @@ public class PingTest extends AbstractSmokeTest {
         ip2 = IntIPv4.fromString("192.168.231.3");
         ip3 = IntIPv4.fromString("192.168.231.4");
 
-        Random rand = new Random(System.currentTimeMillis());
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                .build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
         Router rtr = tenant1.addRouter().setName("rtr1").build();
 
         p1 = rtr.addVmPort().setVMAddress(ip1).build();
@@ -101,14 +101,12 @@ public class PingTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws InterruptedException {
+        stopMidolman(midolman);
+        removeTenant(tenant1);
+        stopMidolmanMgmt(mgmt);
         ovsBridge.remove();
         tap1.remove();
         tap2.remove();
-        //tenant1.delete();
-        mgmt.stop();
-        Thread.sleep(3 * 1000);
-
-        resetZooKeeperState(log);
     }
 
     @Test

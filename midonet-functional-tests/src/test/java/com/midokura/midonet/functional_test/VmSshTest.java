@@ -26,6 +26,7 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
@@ -45,6 +46,7 @@ public class VmSshTest extends AbstractSmokeTest {
     static TapWrapper tapPort;
 
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static OvsBridge ovsBridge;
 
     static OpenvSwitchDatabaseConnection ovsdb;
@@ -62,6 +64,7 @@ public class VmSshTest extends AbstractSmokeTest {
             ovsdb.delBridge("smoke-br");
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
 
         tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
 
@@ -94,13 +97,11 @@ public class VmSshTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() {
-        ovsdb.delBridge("smoke-br");
-
-        removeTapWrapper(tapPort);
+        stopMidolman(midolman);
         removeTenant(tenant);
-        mgmt.stop();
-
-        resetZooKeeperState(log);
+        stopMidolmanMgmt(mgmt);
+        ovsBridge.remove();
+        removeTapWrapper(tapPort);
     }
 
     @Test

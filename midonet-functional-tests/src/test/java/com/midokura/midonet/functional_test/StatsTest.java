@@ -9,7 +9,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -34,6 +33,7 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
 public class StatsTest extends AbstractSmokeTest {
 
@@ -50,6 +50,7 @@ public class StatsTest extends AbstractSmokeTest {
     static PacketHelper helper2;
     static OpenvSwitchDatabaseConnectionImpl ovsdb;
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static OpenFlowStats svcController;
     static OvsBridge ovsBridge;
 
@@ -58,6 +59,7 @@ public class StatsTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
         // First clean up left-overs from previous incomplete tests.
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -66,9 +68,7 @@ public class StatsTest extends AbstractSmokeTest {
         Thread.sleep(1000);
         svcController = new ServiceController(6640);
 
-        Random rand = new Random(System.currentTimeMillis());
-        String tenantName = "tenant" + rand.nextInt();
-        tenant1 = new Tenant.Builder(mgmt).setName(tenantName).build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         rtrIp = IntIPv4.fromString("192.168.231.1");
@@ -96,16 +96,12 @@ public class StatsTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws InterruptedException {
+        stopMidolman(midolman);
+        removeTenant(tenant1);
+        stopMidolmanMgmt(mgmt);
         ovsBridge.remove();
-
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-
-        removeTenant(tenant1);
-        Thread.sleep(1000);
-        mgmt.stop();
-
-        resetZooKeeperState(log);
     }
 
     @Test

@@ -9,7 +9,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -29,6 +28,7 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
 public class FloatingIpTest extends AbstractSmokeTest {
 
@@ -45,21 +45,21 @@ public class FloatingIpTest extends AbstractSmokeTest {
     static PacketHelper helper1;
     static PacketHelper helper2;
     static MidolmanMgmt mgmt;
+    static MidolmanLauncher midolman;
     static OvsBridge ovsBridge;
-    static Random rand = new Random(System.currentTimeMillis());
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
+        midolman = MidolmanLauncher.start();
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
 
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                .build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
@@ -97,15 +97,13 @@ public class FloatingIpTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() {
-        ovsdb.delBridge("smoke-br");
+        stopMidolman(midolman);
+        removeTenant(tenant1);
+        stopMidolmanMgmt(mgmt);
 
+        ovsBridge.remove();
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-        removeTenant(tenant1);
-
-        mgmt.stop();
-
-        resetZooKeeperState(log);
     }
 
     @Test

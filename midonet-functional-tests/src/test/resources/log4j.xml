@@ -16,7 +16,7 @@
         </layout>
     </appender>
 
-    <logger name="com.midokura.midonet">
+    <logger name="com.midokura">
         <level value="debug"/>
     </logger>
 

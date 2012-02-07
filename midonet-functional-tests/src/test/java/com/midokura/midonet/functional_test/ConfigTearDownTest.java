@@ -4,8 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.util.Random;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -16,6 +14,7 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MidoPort;
+import com.midokura.midonet.functional_test.topology.PeerRouterLink;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Tenant;
 
@@ -25,25 +24,25 @@ public class ConfigTearDownTest {
             .getLogger(ConfigTearDownTest.class);
 
     static MidolmanMgmt mgmt;
-    static Random rand;
 
     @BeforeClass
     public static void setUp() {
-        rand = new Random(System.currentTimeMillis());
         mgmt = new MockMidolmanMgmt(true);
     }
 
     @AfterClass
     public static void tearDown() {
-        mgmt.stop();
+        if (null != mgmt)
+            mgmt.stop();
     }
 
     @Test
     public void test1() {
-        Tenant t = new Tenant.Builder(mgmt).setName("tenant1" + rand.nextInt())
+        Tenant t = new Tenant.Builder(mgmt).setName("tenant1")
                 .build();
-        Router rtr = t.addRouter().setName("rtr1").build();
+        t.addRouter().setName("rtr1").build();
         t.delete();
+        new Exception().printStackTrace();
     }
 
     @Test
@@ -52,8 +51,7 @@ public class ConfigTearDownTest {
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
         IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
-        Tenant t = new Tenant.Builder(mgmt).setName("tenant2" + rand.nextInt())
-                .build();
+        Tenant t = new Tenant.Builder(mgmt).setName("tenant2").build();
         Router rtr = t.addRouter().setName("rtr1").build();
 
         MidoPort p1 = rtr.addVmPort().setVMAddress(ip1).build();
@@ -66,8 +64,7 @@ public class ConfigTearDownTest {
 
     @Test
     public void test3() {
-        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant" + rand.nextInt())
-                .build();
+        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
@@ -84,6 +81,19 @@ public class ConfigTearDownTest {
         MidoPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 
+        tenant1.delete();
+    }
+
+    @Test
+    public void test4() {
+        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        Router router1 = tenant1.addRouter().setName("rtr1").build();
+        Router router2 = tenant1.addRouter().setName("rtr2").build();
+        // Link the two routers.
+        PeerRouterLink link = router1.addRouterLink().setPeer(router2)
+                .setLocalPrefix("192.168.231.0").setPeerPrefix("192.168.232.0")
+                .build();
+        link.delete();
         tenant1.delete();
     }
 }
