@@ -80,16 +80,16 @@ public class RouterResource {
             }
             dao.delete(id);
         } catch (NoStatePathException e) {
-            log.error("A path was not found or was deleted twice", e);
+            log.error("A path was not found or was deleted twice");
             throw e;
         } catch (StateAccessException e) {
-            log.error("StateAccessException error.", e);
+            log.error("StateAccessException error.");
             throw e;
         } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.", e);
+            log.error("UnauthorizedException error.");
             throw e;
         } catch (Exception e) {
-            log.error("Unhandled error.", e);
+            log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
     }

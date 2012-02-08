@@ -25,6 +25,8 @@ public class FuncTest {
             .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
             .initParam("com.sun.jersey.spi.container.ContainerRequestFilters",
                     "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+            .initParam("com.sun.jersey.spi.container.ContainerResponseFilters",
+                    "com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter")
             .initParam("javax.ws.rs.Application",
                     "com.midokura.midolman.mgmt.rest_api.RestApplication")
             .contextParam("datastore_service",

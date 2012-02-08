@@ -246,10 +246,10 @@ public class TenantResource {
         try {
             tenant = dao.get(id);
         } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
+            log.error("Error accessing data");
             throw e;
         } catch (Exception e) {
-            log.error("Unhandled error", e);
+            log.error("Unhandled error");
             throw new UnknownRestApiException(e);
         }
 

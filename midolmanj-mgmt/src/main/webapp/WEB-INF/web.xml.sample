@@ -81,6 +81,10 @@
       <!-- Use the below filter to skip auth -->
       <!-- param-value>com.midokura.midolman.mgmt.auth.NoAuthFilter</param-value -->
     </init-param>
+    <init-param>
+      <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+      <param-value>com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter</param-value>
+    </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
