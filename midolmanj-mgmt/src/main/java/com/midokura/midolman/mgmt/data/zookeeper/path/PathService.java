@@ -70,6 +70,7 @@ public class PathService {
         pathSet.add(pathManager.getAgentPath());
         pathSet.add(pathManager.getAgentPortPath());
         pathSet.add(pathManager.getAgentVpnPath());
+        pathSet.add(pathManager.getHostsPath());
         pathSet.add(pathBuilder.getTenantsPath());
         pathSet.add(pathBuilder.getRoutersPath());
         pathSet.add(pathBuilder.getBridgesPath());

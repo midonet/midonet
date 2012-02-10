@@ -25,6 +25,8 @@ public class ResourceUriBuilder {
     public static final String BGP = "/bgps";
     public static final String AD_ROUTES = "/ad_routes";
     public static final String VPN = "/vpns";
+    public static final String HOSTS = "/hosts";
+    public static final String INTERFACES = "/interfaces";
 
     private ResourceUriBuilder() {
     }
@@ -193,5 +195,23 @@ public class ResourceUriBuilder {
     public static URI getRouterRoutes(URI baseUri, UUID routerId) {
         return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTES)
                 .build();
+    }
+
+    public static URI getHosts(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(HOSTS).build();
+    }
+
+    public static URI getHost(URI baseUri, UUID hostId) {
+        return UriBuilder.fromUri(getHosts(baseUri)).path(hostId.toString())
+                 .build();
+    }
+
+    public static URI getHostInterfaces(URI baseUri, UUID hostId) {
+        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(INTERFACES).build();
+    }
+
+    public static URI getHostInterface(URI baseUri, UUID interfaceId) {
+        return UriBuilder.fromUri(getHostInterfaces(baseUri, interfaceId))
+                         .path(interfaceId.toString()).build();
     }
 }

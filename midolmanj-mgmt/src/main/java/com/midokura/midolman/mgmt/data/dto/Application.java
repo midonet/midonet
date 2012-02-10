@@ -62,6 +62,13 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the hosts URI
+     */
+    public URI getHosts() {
+        return ResourceUriBuilder.getHosts(getBaseUri());
+    }
+
+    /**
      * @return the self URI
      */
     @Override

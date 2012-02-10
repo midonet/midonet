@@ -8,42 +8,13 @@ package com.midokura.midolman.mgmt.data.zookeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.AbstractDaoFactory;
 import com.midokura.midolman.mgmt.data.DaoInitializationException;
-import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
-import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
-import com.midokura.midolman.mgmt.data.dao.BgpDao;
-import com.midokura.midolman.mgmt.data.dao.BridgeDao;
-import com.midokura.midolman.mgmt.data.dao.ChainDao;
-import com.midokura.midolman.mgmt.data.dao.PortDao;
-import com.midokura.midolman.mgmt.data.dao.RouteDao;
-import com.midokura.midolman.mgmt.data.dao.RouterDao;
-import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
-import com.midokura.midolman.mgmt.data.dao.RuleDao;
-import com.midokura.midolman.mgmt.data.dao.TenantDao;
-import com.midokura.midolman.mgmt.data.dao.VifDao;
-import com.midokura.midolman.mgmt.data.dao.VpnDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.AdRouteZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.ApplicationZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterLinkDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.VifDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.VifZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
+import com.midokura.midolman.mgmt.data.dao.*;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.*;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
@@ -58,35 +29,11 @@ import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.io.PortSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.io.VifSerializer;
-import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.VifOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.VifOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.op.*;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.JsonJaxbSerializer;
-import com.midokura.midolman.state.AdRouteZkManager;
-import com.midokura.midolman.state.BgpZkManager;
-import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.VpnZkManager;
-import com.midokura.midolman.state.ZkConnection;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Serializer;
 
 /**
@@ -253,6 +200,19 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     public ChainDao getChainDao() throws StateAccessException {
         return new ChainDaoAdapter(getChainZkDao(), getChainOpService(),
                 getRuleDao());
+    }
+
+    @Override
+    public HostDao getHostDao() throws StateAccessException {
+        return new HostDaoAdapter(getHostZkDao());
+    }
+
+    private HostZkDao getHostZkDao() throws StateAccessException {
+        return new HostZkDao(getHostZkManager(), getPathManager());
+    }
+
+    private HostZkManager getHostZkManager() throws StateAccessException {
+        return new HostZkManager(getDirectory(), getRootPath());
     }
 
     private ChainZkDao getChainZkDao() throws StateAccessException {

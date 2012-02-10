@@ -10,6 +10,7 @@ import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
+import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
@@ -74,6 +75,15 @@ public interface DaoFactory {
     ChainDao getChainDao() throws StateAccessException;
 
     /**
+     * Get host DAO
+     *
+     * @return HostDao object
+     * @throws StateAccessException
+     *              Data access error.
+     */
+    HostDao getHostDao() throws StateAccessException;
+
+    /**
      * Get port DAO
      *
      * @return PortDao object
@@ -104,6 +114,8 @@ public interface DaoFactory {
      * Get RouterLinkDao object for router linking data access.
      *
      * @return RouterLinkDao object.
+     * @throws StateAccessException
+     *              Data access error.
      */
     RouterLinkDao getRouterLinkDao() throws StateAccessException;
 
