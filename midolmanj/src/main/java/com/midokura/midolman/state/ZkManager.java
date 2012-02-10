@@ -298,6 +298,11 @@ public class ZkManager {
                 .create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
+    public Op getEphemeralCreateOp(String path, byte[] data) {
+        log.debug("ZkManager.getEphemeralCreateOp", path);
+        return Op.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+    }
+
     public Op getDeleteOp(String path) {
         log.debug("ZkManager.getDeleteOp entered: path={}", path);
         return Op.delete(path, -1);

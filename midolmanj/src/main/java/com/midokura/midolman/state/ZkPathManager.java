@@ -11,8 +11,8 @@ import java.util.UUID;
  * This class was created to have all state classes share the Zk path
  * information.
  *
- * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
+ * @version 1.6 08 Sept 2011
  */
 public class ZkPathManager {
 
@@ -55,18 +55,22 @@ public class ZkPathManager {
     /**
      * Get GRE key path.
      *
+     * @param greKeyId
+     *              is the GRE key ID
+     *
      * @return /gre/greKey
      */
     public String getGreKeyPath(int greKeyId) {
         String formatted = String.format("%010d", greKeyId);
-        return new StringBuilder(getGrePath()).append("/").append(formatted)
-                .toString();
+        return new StringBuilder(getGrePath())
+            .append("/").append(formatted)
+            .toString();
     }
 
     /**
      * Get ZK bridges path.
      *
-     * @return /birdges
+     * @return /bridges
      */
     public String getBridgesPath() {
         return new StringBuilder(basePath).append("/bridges").toString();
@@ -214,10 +218,8 @@ public class ZkPathManager {
     /**
      * Get ZK routes path. /routes/routeId
      *
-     * @param portId
-     *            Port UUID
-     * @param Route
-     *            Route object to store.
+     * @param id
+     *            Route UUID
      * @return /routes/routeId
      */
     public String getRoutePath(UUID id) {
@@ -241,7 +243,9 @@ public class ZkPathManager {
      * Get ZK router routes path.
      *
      * @param routerId
-     *            Router UUID
+     *              Router UUID
+     * @param routeId
+     *              Route UUID
      * @return /routers/routerId/routes/routeId
      */
     public String getRouterRoutePath(UUID routerId, UUID routeId) {
@@ -570,8 +574,8 @@ public class ZkPathManager {
     /**
      * Get ZK agent port path.
      *
-     * @param vpnId
-     *            VPN UUID
+     * @param portId
+     *            Port UUID
      * @return /agents/ports/portId
      */
     public String getAgentPortPath(UUID portId) {
@@ -597,6 +601,68 @@ public class ZkPathManager {
      */
     public String getAgentVpnPath(UUID vpnId) {
         return new StringBuilder(getAgentVpnPath()).append("/").append(vpnId)
-            .toString();
+                                                   .toString();
+    }
+
+    /**
+     * Get ZK hosts path.
+     *
+     * @return /hosts
+     */
+    public String getHostsPath() {
+        return new StringBuilder(basePath).append("/hosts").toString();
+    }
+
+    /**
+     * Get ZK router path.
+     *
+     * @param id Host UUID
+     * @return /hosts/&lt;hostId&gt;
+     */
+    public String getHostPath(UUID id) {
+        return
+            new StringBuilder(getHostsPath())
+                .append("/")
+                .append(id)
+                .toString();
+    }
+
+    /**
+     * Get ZK hosts path.
+     *
+     * @param hostId Host UUID
+     * @return /hosts/&lt;hostId&gt;/interfaces
+     */
+    public String getHostInterfacesPath(UUID hostId) {
+        return new StringBuilder(getHostPath(hostId)).append("/interfaces")
+                                                     .toString();
+    }
+
+    /**
+     * Get ZK host interface path.
+     *
+     * @param hostId      Host UUID
+     * @param interfaceId Host interface UUID
+     * @return /hosts/&lt;hostId&gt;/interfaces/&lt;interfaceId&gt;
+     */
+    public String getHostInterfacePath(UUID hostId, UUID interfaceId) {
+        return
+            new StringBuilder(getHostPath(hostId))
+                .append("/interfaces/")
+                .append(interfaceId.toString())
+                .toString();
+    }
+
+    /**
+     * Get ZK host commands path.
+     * @param hostId    Host UUID
+     *
+     * @return /hosts/&lt;hostId&gt;/commands
+     */
+    public String getHostCommandsPath(UUID hostId) {
+        return
+            new StringBuilder(getHostPath(hostId))
+                .append("/commands")
+                .toString();
     }
 }
