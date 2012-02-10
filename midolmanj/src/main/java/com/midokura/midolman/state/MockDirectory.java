@@ -151,10 +151,11 @@ public class MockDirectory implements Directory {
     private Node rootNode;
     private Set<Runnable> multiDataWatchers;
 
-    private MockDirectory(Node root) {
+    private MockDirectory(Node root, Set<Runnable> multiWatchers) {
         rootNode = root;
         // All the nodes will belong to another MockDirectory whose
         // multiDataWatchers set is initialized, and they will use it.
+        multiDataWatchers = multiWatchers;
     }
 
     public MockDirectory() {
@@ -249,7 +250,7 @@ public class MockDirectory implements Directory {
     @Override
     public Directory getSubDirectory(String path) throws NoNodeException {
         Node subdirRoot = getNode(path);
-        return new MockDirectory(subdirRoot);
+        return new MockDirectory(subdirRoot, multiDataWatchers);
     }
 
     @Override
@@ -311,5 +312,12 @@ public class MockDirectory implements Directory {
     @Override
     public long getSessionId() {
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "MockDirectory{" +
+            "node.path=" + rootNode .path +
+            '}';
     }
 }
