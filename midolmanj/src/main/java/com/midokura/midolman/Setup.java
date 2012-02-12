@@ -469,16 +469,6 @@ public class Setup implements Watcher {
             String[] hostport = mcServer.split(":");
             setupTrafficPriorityRule(hostport[0], hostport[1]);
         }
-
-        // Add rules to mark Voldemort packets.
-        String volHosts = config.configurationAt("voldemort")
-                                .getString("servers", "127.0.0.1:6666");
-        for (String volUrlString : volHosts.split(",")) {
-            URI volUrl = new URI(volUrlString);
-            int port = volUrl.getPort();
-            setupTrafficPriorityRule(volUrl.getHost(), Integer.toString(port));
-        }
-
     }
 
     protected void setupTrafficPriorityQdiscsNova()

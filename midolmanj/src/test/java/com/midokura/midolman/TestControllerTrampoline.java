@@ -10,8 +10,6 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
-import com.midokura.midolman.util.VoldemortCache;
-import com.midokura.midolman.voldemort.VoldemortTester;
 
 public class TestControllerTrampoline {
 
@@ -26,37 +24,6 @@ public class TestControllerTrampoline {
         config.setProperty("openvswitch.midolman_ext_id_key", "midolman-vnet");
 
         return config;
-    }
-
-    @Test
-    public void testCreateCacheVoldemort() throws Exception {
-        // since this should be only test here to set up Voldemort servers,
-        // use try-finally block for tear down
-
-        VoldemortTester voldemort = new VoldemortTester("ephtest", 2000L, 2);
-        voldemort.setUp();
-
-        try {
-            List<String> urls = voldemort.bootstrapURLs();
-            assert urls.size() == 2;
-            String servers = urls.get(0) + "," + urls.get(1);
-
-            HierarchicalConfiguration config = minConfig();
-            config.setProperty("cache.type", "voldemort");
-            config.setProperty("voldemort.lifetime_millis", "2000");
-            config.setProperty("voldemort.store", "ephtest");
-            config.setProperty("voldemort.servers", servers);
-
-            ControllerTrampoline trampoline = new ControllerTrampoline(config,
-                    null, null, null);
-
-            Cache cache = trampoline.createCache();
-
-            assertTrue(cache instanceof VoldemortCache);
-            assertEquals(2, cache.getExpirationSeconds());
-        } finally {
-            voldemort.tearDown();
-        }
     }
 
     @Test(expected = net.spy.memcached.OperationTimeoutException.class,

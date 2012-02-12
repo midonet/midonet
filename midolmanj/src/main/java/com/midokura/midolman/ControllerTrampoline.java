@@ -22,8 +22,6 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MemcacheCache;
-import com.midokura.midolman.util.VoldemortCache;
-import com.midokura.midolman.voldemort.AmnesicStorageConfiguration;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
@@ -96,23 +94,7 @@ public class ControllerTrampoline implements Controller {
     protected Cache createCache() throws IOException {
         String cacheType = config.getString("cache.type", "memcache");
 
-        if (cacheType.equals("voldemort")) {
-            long voldemortLifetimeMilliseconds = config.configurationAt("voldemort")
-                .getLong("lifetime_millis",
-                         AmnesicStorageConfiguration.DEFAULT_LIFETIME);
-
-            int voldemortLifetime =
-                    (int)(voldemortLifetimeMilliseconds / 1000);
-
-            String voldemortStore = config.configurationAt("voldemort")
-                                          .getString("store");
-
-            String[] voldemortHosts = config.configurationAt("voldemort")
-                                            .getString("servers").split(",");
-
-            return new VoldemortCache(voldemortStore, voldemortLifetime,
-                                      Arrays.asList(voldemortHosts));
-        } else if (cacheType.equals("memcache")) {
+        if (cacheType.equals("memcache")) {
             // set log4j logging for spymemcached client
             Properties props = System.getProperties();
             props.put("net.spy.log.LoggerImpl", "net.spy.memcached.compat.log.Log4JLogger");

@@ -307,28 +307,9 @@
         </dependency>
 
         <dependency>
-            <groupId>voldemort</groupId>
-            <artifactId>voldemort</artifactId>
-            <version>0.90.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>jetty</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty</artifactId>
             <version>6.1.26</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>voldemort</groupId>
-            <artifactId>voldemort-test</artifactId>
-            <version>0.90.1</version>
             <scope>test</scope>
         </dependency>
 

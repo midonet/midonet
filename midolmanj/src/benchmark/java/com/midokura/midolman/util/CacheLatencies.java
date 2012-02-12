@@ -210,7 +210,6 @@ public class CacheLatencies {
     }
 
     public static void main(String[] args) throws Exception {
-        registerFactory(VoldemortCacheFactory.class);
         registerFactory(MemcacheCacheFactory.class);
 
         // TODO use command-line options instead of hardcoding
@@ -219,13 +218,9 @@ public class CacheLatencies {
 
         Configuration config = new HierarchicalConfiguration();
 
-        config.setProperty("voldemort.store", "latency");
-        config.setProperty("voldemort.lifetime", "60000");
-        config.setProperty("voldemort.servers", "tcp://localhost:6666");
-
         config.setProperty("memcache.memcache_hosts", "127.0.0.1:11211");
 
-        Cache cache = factories.get("voldemort").create(config);
+        Cache cache = factories.get("memcache").create(config);
         CacheLatencies measure = new CacheLatencies(cache);
         measure.setIgnoreFirst(true);
 
@@ -237,26 +232,6 @@ public class CacheLatencies {
         System.out.println();
         System.out.println("refresh latencies");
         measure.outputDistribution(System.out, measure.measureRefreshLatencies(n));
-    }
-
-    protected static class VoldemortCacheFactory extends CacheFactory {
-
-        @Override
-        public String typeName() {
-            return "voldemort";
-        }
-
-        @Override
-        public Cache create(Configuration config) {
-            String store = config.getString("voldemort.store");
-            String servers = config.getString("voldemort.servers");
-            long lifetime = config.getLong("voldemort.lifetime");
-
-            List<String> urls = Arrays.asList(servers.split(","));
-
-            return new VoldemortCache(store, (int)(lifetime / 1000), urls);
-        }
-
     }
 
     protected static class MemcacheCacheFactory extends CacheFactory {
