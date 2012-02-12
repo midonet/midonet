@@ -7,8 +7,12 @@ package com.midokura.midolman.util;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class TestCache {
+    private static final Logger log =
+                         LoggerFactory.getLogger(TestCache.class);
 
     /** Minimum lifetime of items in milliseconds. */
     protected long lifetime;
@@ -18,7 +22,7 @@ public abstract class TestCache {
 
     @Test
     public void testGetMissing() {
-        assertNull(cache.get("test_key"));
+        assertNull(cache.get("unknown_test_key"));
     }
 
     @Test
