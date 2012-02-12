@@ -14,4 +14,15 @@
     <appender-ref ref="console" /> 
   </root>
   
+  <logger name="org.apache.cassandra">
+    <level value="info"/>
+  </logger>
+
+  <logger name="org.cassandraunit.utils">
+    <level value="info"/>
+  </logger>
+
+  <logger name="me.prettyprint">
+    <level value="info"/>
+  </logger>
 </log4j:configuration>
