@@ -21,7 +21,8 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.MemcacheCache;
+import com.midokura.midolman.util.CacheException;
+import com.midokura.midolman.util.CacheFactory;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
@@ -48,8 +49,6 @@ public class ControllerTrampoline implements Controller {
 
     private static final Logger log =
         LoggerFactory.getLogger(ControllerTrampoline.class);
-
-    public static final int CACHE_EXPIRATION_SECONDS = 60;
 
     private HierarchicalConfiguration config;
     private OpenvSwitchDatabaseConnection ovsdb;
@@ -86,29 +85,6 @@ public class ControllerTrampoline implements Controller {
         this.controllerStub = controllerStub;
     }
 
-    /**
-     * Create and configure the cache depending on the configuration.
-     *
-     * @return the cache
-     */
-    protected Cache createCache() throws IOException {
-        String cacheType = config.getString("cache.type", "memcache");
-
-        if (cacheType.equals("memcache")) {
-            // set log4j logging for spymemcached client
-            Properties props = System.getProperties();
-            props.put("net.spy.log.LoggerImpl", "net.spy.memcached.compat.log.Log4JLogger");
-            System.setProperties(props);
-
-            String memcacheHosts = config.configurationAt("memcache")
-                                         .getString("memcache_hosts");
-
-            return new MemcacheCache(memcacheHosts, CACHE_EXPIRATION_SECONDS);
-        } else {
-            log.error("unknown cache type");
-            return null;
-        }
-    }
 
     @Override
     public void onConnectionMade() {
@@ -149,7 +125,7 @@ public class ControllerTrampoline implements Controller {
                     IntIPv4.fromString(config.configurationAt("openflow")
                                              .getString("public_ip_address"));
 
-                Cache cache = createCache();
+                Cache cache = CacheFactory.create(config);
 
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);

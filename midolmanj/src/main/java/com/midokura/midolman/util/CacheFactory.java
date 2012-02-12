@@ -54,13 +54,11 @@ public class CacheFactory {
                                        .getString("cluster");
                 String keyspace = config.configurationAt("cassandra")
                                         .getString("keyspace");
-                String columnFamily = config.configurationAt("cassandra")
-                                            .getString("column_family");
                 int replicationFactor = config.configurationAt("cassandra")
                                               .getInt("replication_factor");
 
                 cache = new CassandraCache(servers, cluster, keyspace,
-                                           columnFamily, replicationFactor,
+                                           "nat", replicationFactor,
                                            CACHE_EXPIRATION_SECONDS);
             }
         } catch (Exception e) {
