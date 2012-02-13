@@ -115,9 +115,9 @@ public class Router {
 
         @Override
         public String toString() {
-            return "ForwardInfo [inPortId=" + inPortId + 
-                   ", pktIn=" + pktIn + ", matchIn=" + matchIn + 
-                   ", action=" + action + ", outPortId=" + outPortId + 
+            return "ForwardInfo [inPortId=" + inPortId +
+                   ", pktIn=" + pktIn + ", matchIn=" + matchIn +
+                   ", action=" + action + ", outPortId=" + outPortId +
                    ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
                     + matchOut + ", trackConnection=" + trackConnection + "]";
         }
@@ -657,7 +657,7 @@ public class Router {
                 } catch (InterruptedException e) {
                     log.error("InterruptedException while removing ARP table entry", e);
                 }
-                Map<Integer, List<Callback<MAC>>> cbLists = 
+                Map<Integer, List<Callback<MAC>>> cbLists =
                                 arpCallbackLists.get(portId);
                 if (null != cbLists) {
                     List<Callback<MAC>> cbList = cbLists.remove(nwAddr);
@@ -706,7 +706,7 @@ public class Router {
     }
 
     private void generateArpRequest(int nwAddr, UUID portId) {
-        log.debug("generateArpRequest: ip {} port {}", 
+        log.debug("generateArpRequest: ip {} port {}",
                   Net.convertIntAddressToString(nwAddr), portId);
 
         L3DevicePort devPort = devicePorts.get(portId);

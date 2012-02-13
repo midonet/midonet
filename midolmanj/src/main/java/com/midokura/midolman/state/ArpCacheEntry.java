@@ -25,13 +25,13 @@ public class ArpCacheEntry implements Cloneable {
         return (macAddr == null ? "null" : macAddr.toString()) + ";" +
                expiry + ";" + stale + ";" + lastArp;
     }
-  
-    public static ArpCacheEntry decode(String str) 
+
+    public static ArpCacheEntry decode(String str)
                 throws ZkStateSerializationException {
         String[] fields = str.split(";");
         if (fields.length != 4)
             throw new ZkStateSerializationException(str, null, null);
-        return new ArpCacheEntry(fields[0].equals("null") ? null 
+        return new ArpCacheEntry(fields[0].equals("null") ? null
                                         : MAC.fromString(fields[0]),
                                  Long.parseLong(fields[1]),
                                  Long.parseLong(fields[2]),
