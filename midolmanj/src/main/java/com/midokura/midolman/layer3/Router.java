@@ -652,11 +652,6 @@ public class Router {
                         intNwAddr);
                 try {
                     arpTable.remove(intNwAddr);
-                    ArpCacheEntry curEntry = arpTable.get(intNwAddr);
-                    if (curEntry != null) {
-                        log.error("ARP table entry present after remove: {}",
-                                  curEntry);
-                    }
                 } catch (KeeperException e) {
                     log.error("KeeperException while removing ARP table entry", e);
                 } catch (InterruptedException e) {

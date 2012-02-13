@@ -114,7 +114,6 @@ public class MockDirectory implements Directory {
                 throw new NoNodeException(childPath);
             if (child.children.size() > 0)
                 throw new NotEmptyException(childPath);
-            log.debug("deleteChild: removing {}", childPath);
             children.remove(name);
             child.notifyDataWatchers(multi);
             this.notifyChildrenWatchers(multi);

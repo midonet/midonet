@@ -175,11 +175,6 @@ public abstract class ReplicatedMap<K, V> {
         Path p = decodePath(path);
         map.put(key, new MapValue(value, p.version, true));
 
-        if (oldMv != null) {
-            log.debug("put: updating {} from {} ({}) to {}", new Object[] { 
-                key, oldMv.value, oldMv.owner ? "owned" : "not owned", value });
-        }
-
         if (null != oldMv && oldMv.owner) {
             try {
                 dir.delete(encodePath(key, oldMv.value, oldMv.version));
