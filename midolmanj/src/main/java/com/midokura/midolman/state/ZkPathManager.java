@@ -381,6 +381,11 @@ public class ZkPathManager {
                 "/routing_table").toString();
     }
 
+    public String getRouterArpTablePath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId)).append(
+                "/arp_table").toString();
+    }
+
     /**
      * Get ZK router SNAT blocks path.
      *

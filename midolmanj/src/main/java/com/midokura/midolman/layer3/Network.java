@@ -28,6 +28,7 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
+import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -161,12 +162,14 @@ public class Network {
                 routerMgr.getRoutingTableDirectory(routerId),
                 CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
-        rtr = new Router(routerId, ruleEngine, table, reactor);
+        ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
+        rtr = new Router(routerId, ruleEngine, table, arpTable, reactor);
         routers.put(routerId, rtr);
         ObjectName oname =
             new ObjectName("com.midokura.midolman.layer3:type=Router,name=" +
                            routerId);
-        ManagementFactory.getPlatformMBeanServer().registerMBean(rtr, oname);
+        // FIXME(jlm)
+        //ManagementFactory.getPlatformMBeanServer().registerMBean(rtr, oname);
         return rtr;
     }
 

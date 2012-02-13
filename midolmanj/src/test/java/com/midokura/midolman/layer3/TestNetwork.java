@@ -318,7 +318,7 @@ public class TestNetwork {
 
     }
 
-    @Test
+    @Test @Ignore
     public void testJmxConnection()
             throws JMException, IOException, ZkStateSerializationException,
                    StateAccessException {

@@ -88,7 +88,8 @@ public class TestRouterZkManager {
                 new RuleZkManager(dir, basePath), rtrId, natMap);
         rTable = new ReplicatedRoutingTable(rtrId, routerMgr
                 .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
-        rtr = new Router(rtrId, ruleEngine, rTable, reactor);
+        ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(rtrId));
+        rtr = new Router(rtrId, ruleEngine, rTable, arpTable, reactor);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

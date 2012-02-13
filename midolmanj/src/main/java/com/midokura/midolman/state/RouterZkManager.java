@@ -31,8 +31,8 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
  */
 public class RouterZkManager extends ZkManager {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RouterZkManager.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(RouterZkManager.class);
 
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
@@ -70,6 +70,8 @@ public class RouterZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterArpTablePath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
@@ -139,6 +141,11 @@ public class RouterZkManager extends ZkManager {
         String routingTablePath = pathManager.getRouterRoutingTablePath(id);
         log.debug("Preparing to delete: " + routingTablePath);
         ops.add(Op.delete(routingTablePath, -1));
+
+        // Delete ARP table
+        String arpTablePath = pathManager.getRouterArpTablePath(id);
+        log.debug("Preparing to delete: " + arpTablePath);
+        ops.add(Op.delete(arpTablePath, -1));
 
         String routerPath = pathManager.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);
@@ -211,5 +218,10 @@ public class RouterZkManager extends ZkManager {
     public Directory getRoutingTableDirectory(UUID routerId)
             throws StateAccessException {
         return getSubDirectory(pathManager.getRouterRoutingTablePath(routerId));
+    }
+
+    public Directory getArpTableDirectory(UUID routerId)
+            throws StateAccessException {
+        return getSubDirectory(pathManager.getRouterArpTablePath(routerId));
     }
 }

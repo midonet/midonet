@@ -22,6 +22,9 @@ import org.apache.zookeeper.KeeperException.*;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * This is an in-memory, naive implementation of the Directory interface.
@@ -29,6 +32,8 @@ import org.apache.zookeeper.proto.SetDataRequest;
  * so that it can be used by external projects (e.g. functional tests).
  */
 public class MockDirectory implements Directory {
+
+    private final static Logger log = LoggerFactory.getLogger(MockDirectory.class);
 
     private class Node {
         // The node's path from the root.
@@ -101,7 +106,7 @@ public class MockDirectory implements Directory {
         }
 
         void deleteChild(String name, boolean multi)
-            throws NoNodeException, NotEmptyException {
+                throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
             String childPath = new StringBuilder(path).append("/").append(name)
                     .toString();
@@ -109,6 +114,7 @@ public class MockDirectory implements Directory {
                 throw new NoNodeException(childPath);
             if (child.children.size() > 0)
                 throw new NotEmptyException(childPath);
+            log.debug("deleteChild: removing {}", childPath);
             children.remove(name);
             child.notifyDataWatchers(multi);
             this.notifyChildrenWatchers(multi);

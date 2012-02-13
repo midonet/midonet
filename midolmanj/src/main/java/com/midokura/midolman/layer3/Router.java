@@ -46,9 +46,12 @@ import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
+import com.midokura.midolman.state.ArpCacheEntry;
+import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
@@ -70,7 +73,7 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-public class Router implements DynamicMBean {
+public class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
@@ -112,31 +115,11 @@ public class Router implements DynamicMBean {
 
         @Override
         public String toString() {
-            return "ForwardInfo [inPortId=" + inPortId + ", pktIn=" + pktIn + ", matchIn=" + matchIn + ", action="
-                    + action + ", outPortId=" + outPortId + ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
+            return "ForwardInfo [inPortId=" + inPortId + 
+                   ", pktIn=" + pktIn + ", matchIn=" + matchIn + 
+                   ", action=" + action + ", outPortId=" + outPortId + 
+                   ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
                     + matchOut + ", trackConnection=" + trackConnection + "]";
-        }
-    }
-
-    private static class ArpCacheEntry {
-        MAC macAddr;
-        long expiry;
-        long stale;
-        long lastArp;
-
-        public ArpCacheEntry(MAC macAddr, long expiry, long stale,
-                long lastArp) {
-            super();
-            this.macAddr = macAddr;
-            this.expiry = expiry;
-            this.stale = stale;
-            this.lastArp = lastArp;
-        }
-
-        @Override
-        public String toString() {
-            return "ArpCacheEntry [macAddr=" + macAddr + ", expiry=" + expiry + ", stale="
-                    + stale + ", lastArp=" + lastArp + "]";
         }
     }
 
@@ -194,20 +177,21 @@ public class Router implements DynamicMBean {
     // testing.
     Map<UUID, L3DevicePort> devicePorts;
     private PortListener portListener;
-    private Map<UUID, Map<Integer, ArpCacheEntry>> arpCaches;
+    private ArpTable arpTable;
     private Map<UUID, Map<Integer, List<Callback<MAC>>>> arpCallbackLists;
     private Reactor reactor;
     private LoadBalancer loadBalancer;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
-                  ReplicatedRoutingTable table, Reactor reactor)
+                  ReplicatedRoutingTable table, ArpTable arpTable,
+                  Reactor reactor)
             throws OpenDataException {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
         this.devicePorts = new HashMap<UUID, L3DevicePort>();
         this.portListener = new PortListener();
-        this.arpCaches = new HashMap<UUID, Map<Integer, ArpCacheEntry>>();
+        this.arpTable = arpTable;
         this.arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback<MAC>>>>();
         this.reactor = reactor;
         this.loadBalancer = new DummyLoadBalancer(table);
@@ -228,7 +212,6 @@ public class Router implements DynamicMBean {
             log.debug("{} adding route {} to table", this, rt.toString());
             table.addRoute(rt);
         }
-        arpCaches.put(port.getId(), new HashMap<Integer, ArpCacheEntry>());
         arpCallbackLists.put(port.getId(),
                 new HashMap<Integer, List<Callback<MAC>>>());
     }
@@ -249,7 +232,6 @@ public class Router implements DynamicMBean {
                 log.warn("removePort got NoNodeException removing route.");
             }
         }
-        arpCaches.remove(port.getId());
         arpCallbackLists.remove(port.getId());
     }
 
@@ -265,12 +247,12 @@ public class Router implements DynamicMBean {
      * @param cb
      */
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb) {
-        log.debug("getMacForIp: port {} ip {}", portId, Net.convertIntAddressToString(nwAddr));
+        log.debug("getMacForIp: port {} ip {}", portId,
+                  Net.convertIntAddressToString(nwAddr));
 
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
         L3DevicePort devPort = devicePorts.get(portId);
         String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
-        if (null == arpCache || null == devPort) {
+        if (null == devPort) {
             log.warn("getMacForIp: {} cannot get mac for {} on port {} - port not local.",
                     new Object[] {this, nwAddrStr, portId});
 
@@ -288,7 +270,7 @@ public class Router implements DynamicMBean {
             cb.call(null);
             return;
         }
-        ArpCacheEntry entry = arpCache.get(nwAddr);
+        ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
         long now = reactor.currentTimeMillis();
         if (null != entry && null != entry.macAddr) {
             if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now) {
@@ -305,8 +287,8 @@ public class Router implements DynamicMBean {
         // is waiting for the reply. Note that there is one case when we
         // generate the ARP even if there's one in flight: when the previous
         // ARP was generated by a stale entry that was subsequently expired.
-        Map<Integer, List<Callback<MAC>>> cbLists = arpCallbackLists
-                .get(portId);
+        Map<Integer, List<Callback<MAC>>> cbLists =
+                        arpCallbackLists.get(portId);
         if (null == cbLists) {
             // This should never happen.
             log.error("getMacForIp: {} getMacForIp found null arpCallbacks map for port {} "
@@ -320,8 +302,14 @@ public class Router implements DynamicMBean {
             log.debug("getMacForIp: {} getMacForIp generating ARP request for {}", this,
                     nwAddrStr);
             generateArpRequest(nwAddr, portId);
-            arpCache.put(nwAddr, new ArpCacheEntry(null, now
+            try {
+                arpTable.put(new IntIPv4(nwAddr), new ArpCacheEntry(null, now
                     + ARP_TIMEOUT_MILLIS, now + ARP_RETRY_MILLIS, now));
+            } catch (KeeperException e) {
+                log.error("KeeperException adding ARP table entry", e);
+            } catch (InterruptedException e) {
+                log.error("InterruptedException adding ARP table entry", e);
+            }
             // Schedule ARP retry and expiration.
             reactor.schedule(new ArpRetry(nwAddr, portId), ARP_RETRY_MILLIS,
                     TimeUnit.MILLISECONDS);
@@ -607,13 +595,6 @@ public class Router implements DynamicMBean {
         // Question: Should we make noise if an ARP reply disagrees with the
         // existing arp_cache entry?
 
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(inPortId);
-        if (null == arpCache) {
-            log.error("{} ignoring ARP reply - could not find ARP cache for "
-                    + "local port {}", this, inPortId.toString());
-            return;
-        }
-
         MAC sha = arpPkt.getSenderHardwareAddress();
         int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
         log.debug("{} received an ARP reply with spa {} and sha {}",
@@ -621,8 +602,14 @@ public class Router implements DynamicMBean {
         long now = reactor.currentTimeMillis();
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
-        arpCache.put(spa, entry);
         log.debug("Putting in ARP cache entry for {} on port {}", spa, inPortId);
+        try {
+            arpTable.put(new IntIPv4(spa), entry);
+        } catch (KeeperException e) {
+            log.error("KeeperException storing ARP table entry", e);
+        } catch (InterruptedException e) {
+            log.error("InterruptedException storing ARP table entry", e);
+        }
         reactor.schedule(new ArpExpiration(spa, inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
         Map<Integer, List<Callback<MAC>>> cbLists = arpCallbackLists
@@ -650,30 +637,33 @@ public class Router implements DynamicMBean {
 
         @Override
         public void run() {
-            log.debug("ArpExpiration.run: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
+            IntIPv4 intNwAddr = new IntIPv4(nwAddr);
+            log.debug("ArpExpiration.run: ip {} port {}", intNwAddr, portId);
 
-            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
-            String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
-            if (null == arpCache) {
-                // ARP cache is gone, probably because port went down.
-                log.debug("{} ARP expiration triggered for {} but port {} has "
-                        + "no ARP cache - port was removed?", new Object[] {
-                        this, nwAddrStr, portId.toString() });
-                return;
-            }
-            ArpCacheEntry entry = arpCache.get(nwAddr);
+            ArpCacheEntry entry = arpTable.get(intNwAddr);
             if (null == entry) {
                 // The entry has already been removed.
                 log.debug("{} ARP expiration triggered for {} but cache "
-                        + "entry has already been removed", this, nwAddrStr);
+                        + "entry has already been removed", this, intNwAddr);
                 return;
             }
             if (entry.expiry <= reactor.currentTimeMillis()) {
                 log.debug("{} expiring ARP cache entry for {}", this,
-                        nwAddrStr);
-                arpCache.remove(nwAddr);
-                Map<Integer, List<Callback<MAC>>> cbLists = arpCallbackLists
-                        .get(portId);
+                        intNwAddr);
+                try {
+                    arpTable.remove(intNwAddr);
+                    ArpCacheEntry curEntry = arpTable.get(intNwAddr);
+                    if (curEntry != null) {
+                        log.error("ARP table entry present after remove: {}",
+                                  curEntry);
+                    }
+                } catch (KeeperException e) {
+                    log.error("KeeperException while removing ARP table entry", e);
+                } catch (InterruptedException e) {
+                    log.error("InterruptedException while removing ARP table entry", e);
+                }
+                Map<Integer, List<Callback<MAC>>> cbLists = 
+                                arpCallbackLists.get(portId);
                 if (null != cbLists) {
                     List<Callback<MAC>> cbList = cbLists.remove(nwAddr);
                     if (null != cbList) {
@@ -702,15 +692,7 @@ public class Router implements DynamicMBean {
         public void run() {
             log.debug("ArpRetry.run: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
 
-            Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
-            if (null == arpCache) {
-                // ARP cache is gone, probably because port went down.
-                log.debug("{} ARP retry triggered for {} but port {} has "
-                        + "no ARP cache - port was removed?", new Object[] {
-                        this, nwAddrStr, portId.toString() });
-                return;
-            }
-            ArpCacheEntry entry = arpCache.get(nwAddr);
+            ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
             if (null == entry) {
                 // The entry has already been removed.
                 log.debug("{} ARP retry triggered for {} but cache "
@@ -729,7 +711,8 @@ public class Router implements DynamicMBean {
     }
 
     private void generateArpRequest(int nwAddr, UUID portId) {
-        log.debug("generateArpRequest: ip {} port {}", Net.convertIntAddressToString(nwAddr), portId);
+        log.debug("generateArpRequest: ip {} port {}", 
+                  Net.convertIntAddressToString(nwAddr), portId);
 
         L3DevicePort devPort = devicePorts.get(portId);
         if (null == devPort) {
@@ -761,11 +744,20 @@ public class Router implements DynamicMBean {
         // Now send it from the port.
         log.debug("generateArpRequest: sending {}", pkt);
         devPort.send(pkt.serialize());
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portId);
-        ArpCacheEntry entry = arpCache.get(nwAddr);
-        long now = reactor.currentTimeMillis();
-        if (null != entry)
-            entry.lastArp = now;
+        try {
+            ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
+            long now = reactor.currentTimeMillis();
+            if (null != entry) {
+                // Modifying an uncloned entry confuses Directory.
+                entry = entry.clone();
+                entry.lastArp = now;
+                arpTable.put(new IntIPv4(nwAddr), entry);
+            }
+        } catch (KeeperException e) {
+            log.error("Got KeeperException trying to update lastArp", e);
+        } catch (InterruptedException e) {
+            log.error("Got InterruptedException trying to update lastArp", e);
+        }
     }
 
     public void freeFlowResources(OFMatch match) {
@@ -774,100 +766,100 @@ public class Router implements DynamicMBean {
         ruleEngine.freeFlowResources(match);
     }
 
-    // OpenMBean stuff for JMX
-    // TODO: Replace this crap with something sane, like Thrift.
-    public Object getAttribute(String attribute)
-            throws AttributeNotFoundException, MBeanException {
-        if (attribute.equals("PortSet")) {
-           try {
-               return getPortTable();
-           } catch (OpenDataException e) {
-               throw new MBeanException(e);
-           }
-        }
-        throw new AttributeNotFoundException("Cannot find "
-               + attribute + " attribute");
-    }
-    public void setAttribute(Attribute attribute)
-            throws AttributeNotFoundException {
-        throw new AttributeNotFoundException("Cannot set " + attribute.getName());
-    }
-    public AttributeList getAttributes(String[] attributeNames) {
-        AttributeList resultList = new AttributeList();
-        if (attributeNames.length == 0)
-            return resultList;
-        try {
-            for (int i = 0; i < attributeNames.length; i++) {
-                Object value = getAttribute(attributeNames[i]);
-                resultList.add(new Attribute(attributeNames[i], value));
-            }
-            return resultList;
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    public AttributeList setAttributes(AttributeList attributes) {
-        if (attributes.size() == 0) {
-            return new AttributeList();
-        }
-        // That's right folks, AttributeList.get() returns Object.
-        Attribute attr = (Attribute) attributes.get(0);
-        throw new RuntimeException("Cannot set " + attr.getName());
-    }
-    public Object invoke(String actionName, Object params[], String signature[])
-            throws MBeanException, ReflectionException {
-        if (actionName.equals("getArpCacheEntry")) {
-            if (signature.length != 2 ||
-                !signature[0].equals("java.lang.String") ||
-                !signature[1].equals("int")) {
-                throw new ReflectionException(new IllegalArgumentException(
-                        "Invalid signature for " + actionName));
-            }
-            if (params.length != 2) {
-                throw new ReflectionException(new IllegalArgumentException(
-                        "Invalid parameter list for " + actionName));
-            }
-            UUID portUuid = UUID.fromString((String)params[0]);
-            int ipAddr = ((Integer)params[1]).intValue();
-            return getArpCacheEntry(portUuid, ipAddr);
-        } else if (actionName.equals("getArpCacheKeys")) {
-            if (signature.length != 1 ||
-                !signature[0].equals("java.lang.String")) {
-                throw new ReflectionException(new IllegalArgumentException(
-                        "Invalid signature for " + actionName));
-            }
-            if (params.length != 1) {
-                throw new ReflectionException(new IllegalArgumentException(
-                        "Invalid parameter list for " + actionName));
-            }
-            UUID portUuid = UUID.fromString((String)params[0]);
-            try {
-                return getArpCacheKeyTable(portUuid);
-            } catch (OpenDataException e) {
-                throw new MBeanException(e);
-            }
-        } else if (actionName.equals("getArpCacheTable")) {
-            if (signature.length != 1 ||
-                !signature[0].equals("java.lang.String")) {
-                throw new ReflectionException(new IllegalArgumentException(
-                        "Invalid signature for " + actionName));
-            }
-            if (params.length != 1) {
-                throw new ReflectionException(new IllegalArgumentException(
-                        "Invalid parameter list for " + actionName));
-            }
-            UUID portUuid = UUID.fromString((String)params[0]);
-            try {
-                return getArpCacheTable(portUuid);
-            } catch (OpenDataException e) {
-                throw new MBeanException(e);
-            }
-        } else {
-            throw new ReflectionException(new NoSuchMethodException(actionName));
-        }
-    }
+    // // OpenMBean stuff for JMX
+    // // TODO: Replace this crap with something sane, like Thrift.
+    // public Object getAttribute(String attribute)
+    //         throws AttributeNotFoundException, MBeanException {
+    //     if (attribute.equals("PortSet")) {
+    //        try {
+    //            return getPortTable();
+    //        } catch (OpenDataException e) {
+    //            throw new MBeanException(e);
+    //        }
+    //     }
+    //     throw new AttributeNotFoundException("Cannot find "
+    //            + attribute + " attribute");
+    // }
+    // public void setAttribute(Attribute attribute)
+    //         throws AttributeNotFoundException {
+    //     throw new AttributeNotFoundException("Cannot set " + attribute.getName());
+    // }
+    // public AttributeList getAttributes(String[] attributeNames) {
+    //     AttributeList resultList = new AttributeList();
+    //     if (attributeNames.length == 0)
+    //         return resultList;
+    //     try {
+    //         for (int i = 0; i < attributeNames.length; i++) {
+    //             Object value = getAttribute(attributeNames[i]);
+    //             resultList.add(new Attribute(attributeNames[i], value));
+    //         }
+    //         return resultList;
+    //     } catch (RuntimeException e) {
+    //         throw e;
+    //     } catch (Exception e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
+    // public AttributeList setAttributes(AttributeList attributes) {
+    //     if (attributes.size() == 0) {
+    //         return new AttributeList();
+    //     }
+    //     // That's right folks, AttributeList.get() returns Object.
+    //     Attribute attr = (Attribute) attributes.get(0);
+    //     throw new RuntimeException("Cannot set " + attr.getName());
+    // }
+    // public Object invoke(String actionName, Object params[], String signature[])
+    //         throws MBeanException, ReflectionException {
+    //     if (actionName.equals("getArpCacheEntry")) {
+    //         if (signature.length != 2 ||
+    //             !signature[0].equals("java.lang.String") ||
+    //             !signature[1].equals("int")) {
+    //             throw new ReflectionException(new IllegalArgumentException(
+    //                     "Invalid signature for " + actionName));
+    //         }
+    //         if (params.length != 2) {
+    //             throw new ReflectionException(new IllegalArgumentException(
+    //                     "Invalid parameter list for " + actionName));
+    //         }
+    //         UUID portUuid = UUID.fromString((String)params[0]);
+    //         int ipAddr = ((Integer)params[1]).intValue();
+    //         return getArpCacheEntry(portUuid, ipAddr);
+    //     } else if (actionName.equals("getArpCacheKeys")) {
+    //         if (signature.length != 1 ||
+    //             !signature[0].equals("java.lang.String")) {
+    //             throw new ReflectionException(new IllegalArgumentException(
+    //                     "Invalid signature for " + actionName));
+    //         }
+    //         if (params.length != 1) {
+    //             throw new ReflectionException(new IllegalArgumentException(
+    //                     "Invalid parameter list for " + actionName));
+    //         }
+    //         UUID portUuid = UUID.fromString((String)params[0]);
+    //         try {
+    //             return getArpCacheKeyTable(portUuid);
+    //         } catch (OpenDataException e) {
+    //             throw new MBeanException(e);
+    //         }
+    //     } else if (actionName.equals("getArpCacheTable")) {
+    //         if (signature.length != 1 ||
+    //             !signature[0].equals("java.lang.String")) {
+    //             throw new ReflectionException(new IllegalArgumentException(
+    //                     "Invalid signature for " + actionName));
+    //         }
+    //         if (params.length != 1) {
+    //             throw new ReflectionException(new IllegalArgumentException(
+    //                     "Invalid parameter list for " + actionName));
+    //         }
+    //         UUID portUuid = UUID.fromString((String)params[0]);
+    //         try {
+    //             return getArpCacheTable(portUuid);
+    //         } catch (OpenDataException e) {
+    //             throw new MBeanException(e);
+    //         }
+    //     } else {
+    //         throw new ReflectionException(new NoSuchMethodException(actionName));
+    //     }
+    // }
     public MBeanInfo getMBeanInfo() {
         OpenMBeanAttributeInfoSupport[] attributes =
                 new OpenMBeanAttributeInfoSupport[1];
@@ -925,58 +917,37 @@ public class Router implements DynamicMBean {
                                               intStrType,
                                               new String[] { "int", "string" });
 
-    public String getArpCacheEntry(UUID portUuid, int ipAddress) {
-        log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
-        if (arpCache == null)
-            return null;
-        ArpCacheEntry entry = arpCache.get(new Integer(ipAddress));
-        return entry == null ? null : entry.toString();
-    }
+    // public String getArpCacheEntry(UUID portUuid, int ipAddress) {
+    //     log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
+    //     ArpCacheEntry entry = arpTable.get(new IntIPv4(ipAddress));
+    //     return entry == null ? null : entry.toString();
+    // }
 
-    public TabularData getPortTable() throws OpenDataException {
-        TabularDataSupport table = new TabularDataSupport(portSetType);
-        for (UUID key : arpCaches.keySet()) {
-            CompositeDataSupport entry =
-                    new CompositeDataSupport(stringType,
-                                             new String[] { "string" },
-                                             new Object[] { key.toString() });
-            table.put(entry);
-        }
-        return table;
-    }
+    // public TabularData getArpCacheKeyTable(UUID portUuid)
+    //         throws OpenDataException {
+    //     TabularDataSupport table = new TabularDataSupport(intListType);
+    //     for (IntIPv4 i : arpTable.keySet()) {
+    //         CompositeDataSupport entry =
+    //             new CompositeDataSupport(intType,
+    //                                      new String[] { "int" },
+    //                                      new Object[] { i.address });
+    //         table.put(entry);
+    //     }
+    //     return table;
+    // }
 
-    public TabularData getArpCacheKeyTable(UUID portUuid)
-            throws OpenDataException {
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
-        if (arpCache == null)
-            return null;
-        TabularDataSupport table = new TabularDataSupport(intListType);
-        for (Integer i : arpCache.keySet()) {
-            CompositeDataSupport entry =
-                new CompositeDataSupport(intType,
-                                         new String[] { "int" },
-                                         new Object[] { i });
-            table.put(entry);
-        }
-        return table;
-    }
-
-    public TabularData getArpCacheTable(UUID portUuid)
-            throws OpenDataException {
-        Map<Integer, ArpCacheEntry> arpCache = arpCaches.get(portUuid);
-        if (arpCache == null)
-            return null;
-        TabularDataSupport table = new TabularDataSupport(intStrListType);
-        for (Map.Entry<Integer, ArpCacheEntry> entry : arpCache.entrySet()) {
-            String arpEntry = entry.getValue().toString();
-            CompositeDataSupport row =
-                new CompositeDataSupport(intStrType,
-                                         new String[] { "int", "string" },
-                                         new Object[] { entry.getKey(),
-                                                        arpEntry });
-            table.put(row);
-        }
-        return table;
-    }
+    // public TabularData getArpCacheTable(UUID portUuid)
+    //         throws OpenDataException {
+    //     TabularDataSupport table = new TabularDataSupport(intStrListType);
+    //     for (Map.Entry<IntIPv4, ArpCacheEntry> entry : arpTable.entrySet()) {
+    //         String arpEntry = entry.getValue().toString();
+    //         CompositeDataSupport row =
+    //             new CompositeDataSupport(intStrType,
+    //                                      new String[] { "int", "string" },
+    //                                      new Object[] { entry.getKey().address,
+    //                                                     arpEntry });
+    //         table.put(row);
+    //     }
+    //     return table;
+    // }
 }
