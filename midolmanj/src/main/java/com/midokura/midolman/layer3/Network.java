@@ -163,6 +163,7 @@ public class Network {
                 CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
         ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
+        arpTable.start();
         rtr = new Router(routerId, ruleEngine, table, arpTable, reactor);
         routers.put(routerId, rtr);
         ObjectName oname =

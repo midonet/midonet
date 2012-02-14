@@ -581,10 +581,9 @@ public class Router {
 
         // Verify that the reply was meant for us: tpa is the port's nw addr,
         // and tha is the port's mac.
-        // TODO(pino): only a suggestion in the Python, I implemented it. OK?
         UUID inPortId = devPortIn.getId();
-        PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
-                .getVirtualConfig();
+        PortDirectory.MaterializedRouterPortConfig portConfig =
+                 devPortIn.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         MAC tha = arpPkt.getTargetHardwareAddress();
         if (tpa != portConfig.portAddr
