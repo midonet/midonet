@@ -304,7 +304,7 @@ public class Router {
                     nwAddrStr);
             generateArpRequest(nwAddr, portId);
             try {
-                arpTable.put(intNwAddr, 
+                arpTable.put(intNwAddr,
                     new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
                                       now + ARP_RETRY_MILLIS, now));
             } catch (KeeperException e) {
