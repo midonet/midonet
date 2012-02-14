@@ -247,14 +247,14 @@ public class Router {
      * @param cb
      */
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb) {
-        log.debug("getMacForIp: port {} ip {}", portId,
-                  Net.convertIntAddressToString(nwAddr));
+        IntIPv4 intNwAddr = new IntIPv4(nwAddr);
+        log.debug("getMacForIp: port {} ip {}", portId, intNwAddr);
 
         L3DevicePort devPort = devicePorts.get(portId);
-        String nwAddrStr = IPv4.fromIPv4Address(nwAddr);
+        String nwAddrStr = intNwAddr.toString();
         if (null == devPort) {
-            log.warn("getMacForIp: {} cannot get mac for {} on port {} - port not local.",
-                    new Object[] {this, nwAddrStr, portId});
+            log.warn("getMacForIp: {} cannot get mac for {} on port {} - " +
+                     "port not local.", new Object[] {this, nwAddrStr, portId});
 
             throw new IllegalArgumentException(String.format("%s cannot get "
                     + "mac for %s on port %s - port not local.", this,
@@ -270,7 +270,7 @@ public class Router {
             cb.call(null);
             return;
         }
-        ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
+        ArpCacheEntry entry = arpTable.get(intNwAddr);
         long now = reactor.currentTimeMillis();
         if (null != entry && null != entry.macAddr) {
             if (entry.stale < now && entry.lastArp + ARP_RETRY_MILLIS < now) {
@@ -291,8 +291,9 @@ public class Router {
                         arpCallbackLists.get(portId);
         if (null == cbLists) {
             // This should never happen.
-            log.error("getMacForIp: {} getMacForIp found null arpCallbacks map for port {} "
-                    + "but arpCache was not null", this, portId.toString());
+            log.error("getMacForIp: {} getMacForIp found null arpCallbacks map "
+                    + "for port {} but arpCache was not null", this,
+                    portId.toString());
             cb.call(null);
         }
         List<Callback<MAC>> cbList = cbLists.get(nwAddr);
@@ -303,8 +304,9 @@ public class Router {
                     nwAddrStr);
             generateArpRequest(nwAddr, portId);
             try {
-                arpTable.put(new IntIPv4(nwAddr), new ArpCacheEntry(null, now
-                    + ARP_TIMEOUT_MILLIS, now + ARP_RETRY_MILLIS, now));
+                arpTable.put(intNwAddr, 
+                    new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
+                                      now + ARP_RETRY_MILLIS, now));
             } catch (KeeperException e) {
                 log.error("KeeperException adding ARP table entry", e);
             } catch (InterruptedException e) {
