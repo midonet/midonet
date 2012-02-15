@@ -110,10 +110,24 @@ public class ServiceController implements Controller, OpenFlowStats,
     }
 
     @Override
+    public void onPacketIn(int bufferId, int totalLen, short inPort,
+                           byte[] data, long matchingTunnelId) {
+        log.info("onPacketIn");
+    }
+
+    @Override
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
+        log.info("onFlowRemoved");
+    }
+
+    @Override
+    public void onFlowRemoved(OFMatch match, long cookie, short priority,
+            OFFlowRemovedReason reason, int durationSeconds,
+            int durationNanoseconds, short idleTimeout, long packetCount,
+            long byteCount, long matchingTunnelId) {
         log.info("onFlowRemoved");
     }
 

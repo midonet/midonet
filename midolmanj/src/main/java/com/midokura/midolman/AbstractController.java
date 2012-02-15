@@ -172,11 +172,22 @@ public abstract class AbstractController
         downPorts.clear();
     }
 
-    public abstract void clear();
+    @Override
+    public void onPacketIn(int bufferId, int totalLen, short inPort,
+                           byte[] data) {
+        onPacketIn(bufferId, totalLen, inPort, data, 0);
+    }
 
     @Override
-    public abstract void onPacketIn(int bufferId, int totalLen, short inPort,
-                                    byte[] data);
+    public void onFlowRemoved(OFMatch match, long cookie, short priority,
+            OFFlowRemovedReason reason, int durationSeconds,
+            int durationNanoseconds, short idleTimeout, long packetCount,
+            long byteCount) {
+        onFlowRemoved(match, cookie, priority, reason, durationSeconds,
+                durationNanoseconds, idleTimeout, packetCount, byteCount, 0);
+    }
+
+    public abstract void clear();
 
     private void _addVirtualPort(int num, String name, MAC addr, UUID uuid) {
         log.info("_addVirtualPort num:{} name:{} addr:{} id:{}",
@@ -405,12 +416,6 @@ public abstract class AbstractController
      */
     protected abstract void addTunnelPort(int num, IntIPv4 peerIP);
     protected abstract void deleteTunnelPort(int num, IntIPv4 peerIP);
-
-    @Override
-    public abstract void onFlowRemoved(OFMatch match, long cookie,
-            short priority, OFFlowRemovedReason reason, int durationSeconds,
-            int durationNanoseconds, short idleTimeout, long packetCount,
-            long byteCount);
 
     @Override
     public void onMessage(OFMessage m) {

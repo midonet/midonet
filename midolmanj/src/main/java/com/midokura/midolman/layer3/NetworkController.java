@@ -5,6 +5,7 @@
 package com.midokura.midolman.layer3;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import javax.management.JMException;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
@@ -341,7 +343,7 @@ public class NetworkController extends AbstractController
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short shortInPort,
-            byte[] data) {
+            byte[] data, long matchingTunnelId) {
         int inPort = shortInPort & 0xffff;
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, shortInPort);
@@ -1212,9 +1214,9 @@ public class NetworkController extends AbstractController
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
-            long byteCount) {
+            long byteCount, long matchingTunnelId) {
         log.debug("onFlowRemoved: match {} reason {}", match, reason);
-        
+
         // TODO(pino): do we care why the flow was removed?
         Collection<UUID> routers = matchToRouters.get(match);
         if (null != routers) {
@@ -1495,4 +1497,5 @@ public class NetworkController extends AbstractController
     protected void deleteTunnelPort(int num, IntIPv4 peerIP) {
         // Do nothing.
     }
+
 }

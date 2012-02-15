@@ -4,6 +4,7 @@
 
 package com.midokura.midolman;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -135,7 +137,7 @@ public class BridgeController extends AbstractController {
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
-            long byteCount) {
+            long byteCount, long matchingTunnelId) {
         log.debug("onFlowRemoved: {} {} {} {}",
                 new Object[] {match, reason, durationSeconds, packetCount});
         if ((match.getWildcards() & OFMatch.OFPFW_IN_PORT) != 0) {
@@ -233,7 +235,7 @@ public class BridgeController extends AbstractController {
 
     @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort,
-                           byte[] data) {
+                           byte[] data, long matchingTunnelId) {
         log.debug("onPacketIn: bufferId {} totalLen {} inPort {}",
                 new Object[] {bufferId, totalLen, inPort});
 
@@ -386,7 +388,7 @@ public class BridgeController extends AbstractController {
         log.info("invalidating flows with dl_dst {}", mac);
         MidoMatch match = new MidoMatch();
         match.setDataLayerDestination(mac);
-        controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
+        controllerStub.sendFlowModDelete(match, false, (short) 0, nonePort);
     }
 
     private boolean port_is_local(UUID port) {
@@ -396,7 +398,7 @@ public class BridgeController extends AbstractController {
     @Override
     protected void addVirtualPort(int num, String name, MAC addr, UUID vId) {
         log.info("addVirtualPort num:{} name:{} mac:{} uuid:{}",
-                new Object[] {num, name, addr, vId});
+                new Object[]{num, name, addr, vId});
         invalidateFlowsToPortUuid(vId);
     }
 

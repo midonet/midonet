@@ -28,6 +28,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.newsclub.net.unix.AFUNIXServerSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
+import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
@@ -41,6 +42,7 @@ import javax.management.ObjectName;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
@@ -300,6 +302,13 @@ public class ControllerTrampoline implements Controller {
     }
 
     @Override
+    public void onPacketIn(int bufferId, int totalLen, short inPort,
+            byte[] data, long matchingTunnelId) {
+        log.warn("onPacketIn");
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
         log.warn("onPacketIn");
         throw new UnsupportedOperationException();
@@ -309,7 +318,13 @@ public class ControllerTrampoline implements Controller {
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
-            long byteCount) {
+            long byteCount, long matchingTunnelId) {
+        log.warn("onFlowRemoved");
+//        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void onFlowRemoved(OFMatch match, long cookie, short priority, OFFlowRemovedReason reason, int durationSeconds, int durationNanoseconds, short idleTimeout, long packetCount, long byteCount) {
         log.warn("onFlowRemoved");
 //        throw new UnsupportedOperationException();
     }

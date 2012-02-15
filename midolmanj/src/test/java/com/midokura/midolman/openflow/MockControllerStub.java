@@ -51,12 +51,13 @@ public class MockControllerStub implements ControllerStub {
         public boolean checkOverlap;
         public boolean emergency;
         public List<OFAction> actions;
+        public long matchTunnelId;
 
         public Flow(OFMatch match, long cookie, short command,
                 short idleTimeoutSecs, short hardTimeoutSecs, short priority,
                 int bufferId, short outPort, boolean sendFlowRemove,
                 boolean checkOverlap, boolean emergency,
-                List<OFAction> actions) {
+                List<OFAction> actions, long matchTunnelId) {
             this.match = match;
             this.cookie = cookie;
             this.idleTimeoutSecs = idleTimeoutSecs;
@@ -68,6 +69,7 @@ public class MockControllerStub implements ControllerStub {
             this.checkOverlap = checkOverlap;
             this.emergency = emergency;
             this.actions = actions;
+            this.matchTunnelId = matchTunnelId;
         }
 
         public String toString() {
@@ -124,26 +126,42 @@ public class MockControllerStub implements ControllerStub {
             short idleTimeoutSecs, short hardTimoutSecs, short priority,
             int bufferId, boolean sendFlowRemove, boolean checkOverlap,
             boolean emergency, List<OFAction> actions) {
+        sendFlowModAdd(match, cookie, idleTimeoutSecs, hardTimoutSecs,
+                priority, bufferId, sendFlowRemove ,checkOverlap, emergency,
+                actions, 0);
+    }
+
+    @Override
+    public void sendFlowModAdd(OFMatch match, long cookie,
+            short idleTimeoutSecs, short hardTimoutSecs, short priority,
+            int bufferId, boolean sendFlowRemove, boolean checkOverlap,
+            boolean emergency, List<OFAction> actions, long matchingTunnelId) {
         addedFlows.add(new Flow(match, cookie,  OFFlowMod.OFPFC_ADD,
                 idleTimeoutSecs, hardTimoutSecs, priority, bufferId,
                 OFPort.OFPP_NONE.getValue(), sendFlowRemove, checkOverlap,
-                emergency, actions));
+                emergency, actions, matchingTunnelId));
         if (bufferId != 0xffffffff && null != actions && 0 != actions.size()) {
             sentPackets.add(new Packet(bufferId, (short)-1, actions,
-                                       new byte[] {}));
+                    new byte[] {}));
         }
     }
 
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict,
                                   short priority, short outPort) {
+        sendFlowModDelete(match, strict, priority, outPort, 0);
+    }
+
+    @Override
+    public void sendFlowModDelete(OFMatch match, boolean strict, short priority,
+            short outPort, long matchingTunnelId) {
         // For deletedFlows, use hardTimeout for outPort and
         // sendFlowRemove for strict.
         deletedFlows.add(new Flow(match, 0,
-                strict ?  OFFlowMod.OFPFC_DELETE_STRICT :
-                          OFFlowMod.OFPFC_DELETE,
-                (short)0, (short)0, priority, -1, outPort,
-                false, false, false, null));
+                strict ? OFFlowMod.OFPFC_DELETE_STRICT :
+                        OFFlowMod.OFPFC_DELETE,
+                (short) 0, (short) 0, priority, -1, outPort,
+                false, false, false, null, matchingTunnelId));
     }
 
     @Override
@@ -153,6 +171,16 @@ public class MockControllerStub implements ControllerStub {
             droppedPktBufIds.add(bufferId);
         else
             sentPackets.add(new Packet(bufferId, inPort, actions, data));
+    }
+
+    @Override
+    public void enableNxm() {
+        // For now, don't enforce the behavior.
+    }
+
+    @Override
+    public void disableNxm() {
+        // For now, don't enforce the behavior.
     }
 
     @Override

@@ -69,22 +69,36 @@ class AbstractControllerTester extends AbstractController {
         this.idleFlowExpireSeconds = (short)(idleFlowExpireMillis/1000);
     }
 
-    @Override 
+    @Override
     public void onPacketIn(int bufferId, int totalLen, short inPort,
-                           byte[] data) { 
+                           byte[] data, long matchingTunnelId) {
         Ethernet frame = new Ethernet();
         frame.deserialize(data, 0, data.length);
         OFMatch match = createMatchFromPacket(frame, inPort);
         addFlowAndPacketOut(match, 1040, idleFlowExpireSeconds,
-                            flowExpireSeconds, (short)1000, bufferId, true, 
+                            flowExpireSeconds, (short)1000, bufferId, true,
                             false, false, flowActions, inPort, data);
+    }
+
+    @Override
+    public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+        onPacketIn(bufferId, totalLen, inPort, data, 0);
     }
 
     @Override
     public void onFlowRemoved(OFMatch match, long cookie,
             short priority, OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
-            long byteCount) { }
+            long byteCount, long matchingTunnelId) { }
+
+    @Override
+    public void onFlowRemoved(OFMatch match, long cookie, short priority,
+            OFFlowRemovedReason reason, int durationSeconds,
+            int durationNanoseconds, short idleTimeout, long packetCount,
+            long byteCount) {
+        onFlowRemoved(match, cookie, priority, reason, durationSeconds,
+                durationNanoseconds, idleTimeout, packetCount, byteCount, 0);
+    }
 
     public void clear() {
         virtualPortsAdded.clear();

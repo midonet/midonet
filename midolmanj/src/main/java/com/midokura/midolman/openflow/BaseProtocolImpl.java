@@ -230,7 +230,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
     }
 
     /**
-     * 
+     *
      * @param m the messages
      * @return true if the message was handled, and false otherwise
      */
