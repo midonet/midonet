@@ -93,6 +93,9 @@ public class ControllerTrampoline implements Controller {
         log.info("onConnectionMade");
 
         try {
+            if (config.configurationAt("openflow").getBoolean("use_nxm", false))
+                controllerStub.enableNxm();
+
             long datapathId = controllerStub.getFeatures().getDatapathId();
 
             // lookup midolman-vnet of datapath

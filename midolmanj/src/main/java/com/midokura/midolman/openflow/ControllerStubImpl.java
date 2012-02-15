@@ -5,6 +5,7 @@
 package com.midokura.midolman.openflow;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -55,6 +56,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.openflow.nxm.*;
+import com.midokura.midolman.packets.ARP;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.util.Net;
 
 public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub {
 
@@ -473,12 +480,14 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         case VENDOR: {
             log.debug("handleMessage: VENDOR");
             OFVendor vm = (OFVendor) m;
+            int vendor = vm.getVendor();
 
-            if (vm.getVendor() == NX_VENDOR_ID) {
+            if (vendor == NX_VENDOR_ID) {
                 ByteBuffer data = ByteBuffer.wrap(vm.getData());
                 parseNiciraMessage(data);
             } else {
-                log.warn("handleMessage: VENDOR - unhandled vendor " + vm.getVendor());
+                log.warn("handleMessage: VENDOR - unhandled vendor 0x{}",
+                        Integer.toHexString(vendor));
             }
             return true;
         }
@@ -522,30 +531,26 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 data.get();
             }
 
-            //NxMatch nxm = new NxMatch();
-            //nxm.deserialize(nxmData);
+            NxMatch nxm = new NxMatch();
+            nxm.deserialize(nxmData);
 
             // invoke callback
-            //onNxFlowRemoved(nxm, cookie, priority,
-            //        reason, durationSeconds, durationNanoseconds,
-            //        idleTimeout, packetCount, byteCount);
+            onNxFlowRemoved(nxm, cookie, priority,
+                    reason, durationSeconds, durationNanoseconds,
+                    idleTimeout, packetCount, byteCount);
         }
         break;
         case NXT_PACKET_IN: {
             int bufferId = data.getInt();
             short totalLength = data.getShort();
-            //PacketInReason reason = PacketInReason.values()[(0xff & data.get())];
+            PacketInReason reason = PacketInReason.values()[(0xff & data.get())];
             byte tableId = data.get();
             long cookie = data.getLong();
             short nxMatchLen = data.getShort();
 
             // 6 bytes of padding
-            data.get();
-            data.get();
-            data.get();
-            data.get();
-            data.get();
-            data.get();
+            for (int i = 0; i < 6; i++)
+                data.get();
 
             // read NxMatch
             int lim = data.limit();
@@ -554,45 +559,51 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             data.limit(lim);
             data.position(data.position() + nxMatchLen);
 
-            //NxMatch nxm = new NxMatch();
-            //nxm.deserialize(nxmData);
+            NxMatch nxm = new NxMatch();
+            nxm.deserialize(nxmData);
 
             // read zero bytes
-            int zeroBytes = (nxMatchLen + 7)/8*8 - nxMatchLen;
-            for (int i=0; i<zeroBytes; i++) {
+            int zeroBytes = (nxMatchLen + 7)/8*8 - nxMatchLen + 2;
+            for (int i=0; i<zeroBytes; i++)
                 data.get();
-            }
 
             // read packet data
-            ByteBuffer packetData = data.slice();
+            byte[] packet = new byte[data.limit() - data.position()];
+            data.get(packet);
 
             // invoke controller
-            //onNxPacketIn(bufferId, reason, nxm, cookie, tableId, totalLength,
-            //        new byte[4]);
+            onNxPacketIn(bufferId, reason, nxm, cookie, tableId, totalLength,
+                    packet);
         }
         break;
         }
     }
 
-/*    private void onNxPacketIn(int bufferId, PacketInReason reason, NxMatch nxm,
+    private void onNxPacketIn(int bufferId, PacketInReason reason, NxMatch nxm,
             long cookie, byte tableId, short totalLen, byte[] packetData) {
         // Look for supported NxmEntry types in the NxMatch.
-        short inPort = nxm.getInPortEntry().getPortId();
-        OfNxTunIdNxmEntry tunEntry = nxm.getTunnelEntry();
+        short inPort = nxm.getInPortEntry().getValue();
+        OfNxTunIdNxmEntry tunEntry = nxm.getTunnelIdEntry();
+        log.debug("onNxPacketIn: bufferId={} totalLen={} nxm={}",
+                new Object[] {bufferId, totalLen, nxm});
+
         long tunId = 0;
         if (null != tunEntry) {
             tunId = tunEntry.getTunnelId();
         }
         controller.onPacketIn(bufferId, totalLen, inPort, packetData, tunId);
-    }*/
+    }
 
-/*
     private void onNxFlowRemoved(NxMatch nxm, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
             int durationNanoseconds, short idleTimeout, long packetCount,
             long byteCount) {
+        OfNxTunIdNxmEntry tunEntry = nxm.getTunnelIdEntry();
+        controller.onFlowRemoved(MatchTranslation.toOFMatch(nxm), cookie,
+                priority, reason, durationSeconds, durationNanoseconds,
+                idleTimeout, packetCount, byteCount,
+                tunEntry == null? 0 : tunEntry.getTunnelId());
     }
-*/
 
     @Override
     public String toString() {
@@ -609,6 +620,16 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             int bufferId, boolean sendFlowRemove, boolean checkOverlap,
             boolean emergency, List<OFAction> actions, long matchingTunnelId) {
         log.debug("sendFlowModAdd");
+        if (nxm_enabled) {
+            sendNxFlowModAdd(
+                    MatchTranslation.toNxMatch(match, matchingTunnelId),
+                    cookie, idleTimeoutSecs, hardTimeoutSecs, priority,
+                    bufferId, sendFlowRemove, checkOverlap, emergency, actions);
+            return;
+        }
+        else if (matchingTunnelId != 0)
+            throw new IllegalArgumentException("Since NXM has not been " +
+                    "enabled you cannot match on Tunnel ID.");
 
         short flags = 0;
 
@@ -664,10 +685,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 bufferId, sendFlowRemove, checkOverlap, emergency, actions, 0);
     }
 
-/*
-    public void sendNxFlowModAdd(NxMatch match, long cookie, short idleTimeoutSecs,
-            short hardTimoutSecs, short priority, int bufferId,
-            boolean sendFlowRemove, boolean checkOverlap,
+    private void sendNxFlowModAdd(NxMatch match, long cookie,
+            short idleTimeoutSecs, short hardTimoutSecs, short priority,
+            int bufferId, boolean sendFlowRemove, boolean checkOverlap,
             boolean emergency, List<OFAction> actions) {
         log.debug("sendNxFlowModAdd");
 
@@ -695,6 +715,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         fm.setFlags(flags);
 
         fm.setActions(actions);
+        fm.prepareSerialize();
 
         log.debug("sendNxFlowModAdd: about to send {}", fm);
 
@@ -705,19 +726,26 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             log.warn("sendNxFlowModAdd", e);
         }
     }
-*/
 
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict,
                                   short priority, short outPort) {
-        sendFlowModDelete(match,  strict, priority, outPort, 0);
+        sendFlowModDelete(match, strict, priority, outPort, 0);
     }
 
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict, short priority,
             short outPort, long matchingTunnelId) {
         log.debug("sendFlowModDelete");
-        // TODO: If NXM is enabled, translate the OFMatch and call sendNxFlowModDelete
+        if (nxm_enabled) {
+            sendNxFlowModDelete(
+                    MatchTranslation.toNxMatch(match, matchingTunnelId),
+                    strict, priority, outPort);
+            return;
+        }
+        else if (matchingTunnelId != 0)
+            throw new IllegalArgumentException("Since NXM has not been " +
+                    "enabled you cannot match on Tunnel ID.");
 
         OFFlowMod fm = (OFFlowMod) factory.getMessage(OFType.FLOW_MOD);
         fm.setCommand(strict ? OFFlowMod.OFPFC_DELETE_STRICT
@@ -732,28 +760,25 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }
     }
 
-/*
-    @Override
     private void sendNxFlowModDelete(NxMatch match, boolean strict,
-                              short priority, short outPort) {
-    log.debug("sendNxFlowModDelete");
+            short priority, short outPort) {
+        log.debug("sendNxFlowModDelete");
 
-    NxFlowMod fm = new NxFlowMod();
+        NxFlowMod fm = new NxFlowMod();
 
-    fm.setCommand(strict ? OFFlowMod.OFPFC_DELETE_STRICT
-                         : OFFlowMod.OFPFC_DELETE);
-    fm.setMatch(match);
-    fm.setPriority(priority);
-    fm.setOutPort(outPort);
+        fm.setCommand(strict ? OFFlowMod.OFPFC_DELETE_STRICT
+                             : OFFlowMod.OFPFC_DELETE);
+        fm.setMatch(match);
+        fm.setPriority(priority);
+        fm.setOutPort(outPort);
 
-    try {
-        stream.write(fm);
-        stream.flush();
-    } catch (IOException e) {
-        log.warn("sendPacketOut", e);
+        try {
+            stream.write(fm);
+            stream.flush();
+        } catch (IOException e) {
+            log.warn("sendPacketOut", e);
+        }
     }
-    }
-*/
 
     @Override
     public void sendPacketOut(int bufferId, short inPort, List<OFAction> actions, byte[] data) {
@@ -784,27 +809,27 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     private void setNxmFlowFormat(boolean nxm) {
         log.debug("setNxmFlowFormat");
 
-        /*NxSetFlowFormat sff = new NxSetFlowFormat(nxm);
+        NxSetFlowFormat sff = new NxSetFlowFormat(nxm);
 
         try {
             stream.write(sff);
             stream.flush();
         } catch (IOException e) {
             log.warn("setNxmFlowFormat", e);
-        }*/
+        }
     }
 
     private void setNxPacketInFormat(boolean nxm) {
         log.debug("setNxPacketInFormat");
 
-        /*NxSetPacketInFormat spif = new NxSetPacketInFormat(nxm);
+        NxSetPacketInFormat spif = new NxSetPacketInFormat(nxm);
 
         try {
             stream.write(spif);
             stream.flush();
         } catch (IOException e) {
             log.warn("setNxPacketInFormat", e);
-        }*/
+        }
     }
 
     @Override

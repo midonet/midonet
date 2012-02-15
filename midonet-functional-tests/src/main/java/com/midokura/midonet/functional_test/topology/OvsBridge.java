@@ -10,6 +10,7 @@ import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.BridgeFailMode;
 import com.midokura.midolman.openvswitch.ControllerBuilder;
 import com.midokura.midolman.openvswitch.ControllerConnectionMode;
+import com.midokura.midolman.openvswitch.GrePortBuilder;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.IntIPv4;
@@ -44,6 +45,10 @@ public class OvsBridge {
         this.bridgeName = bridgeName;
         this.ovsBridgeController = "tcp:127.0.0.1:6655";
         startBridge(bridgeId);
+    }
+
+    public String getName() {
+        return bridgeName;
     }
 
     public void remove() {
@@ -98,6 +103,18 @@ public class OvsBridge {
         } catch (InterruptedException e) {
             log.error("Error adding system port.", e);
         }
+    }
+
+    public void addGrePort(String name, String localIp, String remoteIp,
+                           int greKey) {
+        GrePortBuilder builder =
+                ovsdb.addGrePort(bridgeName, name, remoteIp.toString())
+                        .localIp(localIp);
+        if (greKey == 0)
+            builder.keyFlow();
+        else
+            builder.key(greKey);
+        builder.build();
     }
 
     public void deletePort(String name) {

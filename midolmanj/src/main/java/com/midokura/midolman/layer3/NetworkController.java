@@ -551,13 +551,10 @@ public class NetworkController extends AbstractController
         case NOT_IPV4:
             log.debug("onPacketIn: Network.process() returned NOT_IPV4, " +
                       "ethertype is {}", match.getDataLayerType());
-            // If wildcards are enabled, wildcard everything but dl_type. One
-            // rule per ethernet protocol type catches all non-IPv4 flows.
-            if (useWildcards) {
-                short dlType = match.getDataLayerType();
-                match = new MidoMatch();
-                match.setDataLayerType(dlType);
-            }
+            // Wildcard everything but dl_type. One rule per EtherType.
+            short dlType = match.getDataLayerType();
+            match = new MidoMatch();
+            match.setDataLayerType(dlType);
             installBlackhole(match, bufferId, NO_IDLE_TIMEOUT ,NO_HARD_TIMEOUT);
             return;
         case NO_ROUTE:

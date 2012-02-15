@@ -234,7 +234,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
      * @param m the messages
      * @return true if the message was handled, and false otherwise
      */
-    protected synchronized boolean handleMessage(OFMessage m) {
+    protected synchronized boolean handleMessage(OFMessage m)
+            throws  IOException {
         log.debug("handleMessage: xid = " + m.getXid());
 
         switch (m.getType()) {
@@ -259,13 +260,16 @@ public abstract class BaseProtocolImpl implements SelectListener {
             logError(error);
             return true;
         case VENDOR:
-            log.debug("handleMessage: VENDOR");
             OFVendor vm = (OFVendor) m;
-            VendorHandler vh = vendorHandlers.get(vm.getVendor());
+            int vendor = vm.getVendor();
+            log.debug("handleMessage: VENDOR 0x{}", Integer.toHexString(vendor));
+            // TODO(Pino): ask Dan/Ryu about removing vendorHandler mechanism.
+            VendorHandler vh = vendorHandlers.get(vendor);
             if (vh != null) {
                 vh.onVendorMessage(vm.getXid(), vm.getData());
+                return true;
             }
-            return true;
+            return false;
         default:
             log.debug("handleMessage: default: " + m.getType());
             return false;
