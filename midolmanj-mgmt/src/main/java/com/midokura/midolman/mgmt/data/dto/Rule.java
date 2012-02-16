@@ -116,9 +116,9 @@ public class Rule extends UriResource {
             }
         } else if (zkRule instanceof ReverseNatRule) {
             if (((NatRule) zkRule).dnat) {
-                this.type = Rule.DNAT;
+                this.type = Rule.RevDNAT;
             } else {
-                this.type = Rule.SNAT;
+                this.type = Rule.RevSNAT;
             }
             this.flowAction = Rule.getActionString(zkRule.action);
         } else {
