@@ -146,8 +146,7 @@ public class Router {
             // The L3DevicePort keeps the routes up-to-date and notifies us
             // of changes so we can keep the replicated routing table in sync.
             for (Route rt : added) {
-                log.debug("{} routesChanged adding {} to table", this, rt
-                        .toString());
+                log.debug("{} routesChanged adding {} to table", this, rt);
                 try {
                     table.addRoute(rt);
                 } catch (KeeperException e) {
@@ -157,8 +156,7 @@ public class Router {
                 }
             }
             for (Route rt : removed) {
-                log.debug("{} routesChanged removing {} from table", this,
-                        rt.toString());
+                log.debug("{} routesChanged removing {} from table", this, rt);
                 try {
                     table.deleteRoute(rt);
                 } catch (KeeperException e) {
@@ -209,7 +207,7 @@ public class Router {
                 port.getId(), port.getNum() });
         port.addListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
-            log.debug("{} adding route {} to table", this, rt.toString());
+            log.debug("{} adding route {} to table", this, rt);
             table.addRoute(rt);
         }
         arpCallbackLists.put(port.getId(),
@@ -224,8 +222,7 @@ public class Router {
                 port.getId(), port.getNum() });
         port.removeListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
-            log.debug("{} removing route {} from table", this, rt
-                    .toString());
+            log.debug("{} removing route {} from table", this, rt);
             try {
                 table.deleteRoute(rt);
             } catch (NoNodeException e) {
@@ -263,9 +260,9 @@ public class Router {
         // The nwAddr should be in the port's localNwAddr/localNwLength.
         int shift = 32 - devPort.getVirtualConfig().localNwLength;
         if ((nwAddr >>> shift) != (devPort.getVirtualConfig().localNwAddr >>> shift)) {
-            log.warn("getMacForIp: {} cannot get mac for {} - address not in network "
-                    + "segment of port {}", new Object[] { this, nwAddrStr,
-                    portId.toString() });
+            log.warn("getMacForIp: {} cannot get mac for {} - address not in " +
+                     "network segment of port {}",
+                     new Object[] { this, nwAddrStr, portId });
             // TODO(pino): should this call be invoked asynchronously?
             cb.call(null);
             return;
@@ -292,8 +289,7 @@ public class Router {
         if (null == cbLists) {
             // This should never happen.
             log.error("getMacForIp: {} getMacForIp found null arpCallbacks map "
-                    + "for port {} but arpCache was not null", this,
-                    portId.toString());
+                    + "for port {} but arpCache was not null", this, portId);
             cb.call(null);
         }
         List<Callback<MAC>> cbList = cbLists.get(nwAddr);
@@ -348,12 +344,10 @@ public class Router {
         }
 
         log.debug(
-                "{} apply pre-routing rules on pkt from port {} from {} to "
-                        + "{}",
+                "{} apply pre-routing rules on pkt from port {} from {} to {}",
                 new Object[] {
                         this,
-                        null == fwdInfo.inPortId ? "ICMP" : fwdInfo.inPortId
-                                .toString(),
+                        null == fwdInfo.inPortId ? "ICMP" : fwdInfo.inPortId,
                         IPv4.fromIPv4Address(fwdInfo.matchIn.getNetworkSource()),
                         IPv4.fromIPv4Address(fwdInfo.matchIn
                                 .getNetworkDestination()) });
@@ -405,7 +399,7 @@ public class Router {
         log.debug("{} pkt next hop {} and egress port {} - applying "
                 + "post-routing.", new Object[] { this,
                 IPv4.fromIPv4Address(rt.nextHopGateway),
-                rt.nextHopPort.toString() });
+                rt.nextHopPort });
         // Apply post-routing rules.
         res = ruleEngine.applyChain(POST_ROUTING, fwdInfo.flowMatch, res.match,
                 fwdInfo.inPortId, rt.nextHopPort);
@@ -484,7 +478,7 @@ public class Router {
         L3DevicePort devPort = devicePorts.get(inPortId);
         if (null == devPort) {
             log.warn("{} ignoring an ARP on {} - port is not local.", this,
-                    inPortId.toString());
+                    inPortId);
             return;
         }
         if (arpPkt.getOpCode() == ARP.OP_REQUEST) {
@@ -589,8 +583,7 @@ public class Router {
         if (tpa != portConfig.portAddr
                 || !tha.equals(devPortIn.getMacAddr())) {
             log.debug("{} ignoring ARP reply because its tpa or tha don't "
-                    + "match ip addr or mac of port {}", this, inPortId
-                    .toString());
+                    + "match ip addr or mac of port {}", this, inPortId);
             return;
         }
         // Question: Should we make noise if an ARP reply disagrees with the
@@ -700,7 +693,7 @@ public class Router {
                 return;
             // Re-ARP and schedule again.
             log.debug("{} retry ARP request for {} on port {}", new Object[] {
-                    this, nwAddrStr, portId.toString() });
+                    this, nwAddrStr, portId });
             generateArpRequest(nwAddr, portId);
             reactor.schedule(this, ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
         }
@@ -713,7 +706,7 @@ public class Router {
         L3DevicePort devPort = devicePorts.get(portId);
         if (null == devPort) {
             log.warn("{} generateArpRequest could not find device port for "
-                    + "{} - was port removed?", this, portId.toString());
+                    + "{} - was port removed?", this, portId);
             return;
         }
         PortDirectory.MaterializedRouterPortConfig portConfig = devPort
