@@ -194,8 +194,8 @@ public abstract class ReplicatedMap<K, V> {
         MapValue mv = map.get(key);
         if (null == mv)
             return null;
-        notifyWatchers(key, mv.value, null);
         map.remove(key);
+        notifyWatchers(key, mv.value, null);
         dir.delete(encodePath(key, mv.value, mv.version));
         return mv.value;
     }
