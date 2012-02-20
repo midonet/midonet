@@ -26,6 +26,7 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.NodeAgent;
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.ControllerStubImpl;
@@ -47,6 +48,8 @@ public class Midolman implements SelectListener, Watcher {
     private OpenvSwitchDatabaseConnection ovsdb;
     private ZkConnection zkConnection;
     private ServerSocketChannel listenSock;
+
+    private NodeAgent nodeAgent;
 
     private SelectLoop loop;
 
@@ -72,8 +75,10 @@ public class Midolman implements SelectListener, Watcher {
             @Override
             public void run() {
                 log.warn("In shutdown hook: disconnecting ZK.");
-                if (null!= zkConnection)
+                if (null != zkConnection)
                     zkConnection.close();
+                if (null != nodeAgent)
+                    nodeAgent.stop();
                 log.warn("Exiting. BYE!");
             }
         });
@@ -114,6 +119,14 @@ public class Midolman implements SelectListener, Watcher {
 
         midonetDirectory = zkConnection.getRootDirectory();
 
+        boolean startNodeAgent = config.configurationAt("midolman")
+            .getBoolean("start_host_agent", false);
+
+        if (startNodeAgent) {
+            nodeAgent = NodeAgent.bootstrapAgent(config, zkConnection, ovsdb);
+            nodeAgent.start();
+        }
+
         listenSock = ServerSocketChannel.open();
         listenSock.configureBlocking(false);
         listenSock.socket().bind(
@@ -127,6 +140,12 @@ public class Midolman implements SelectListener, Watcher {
         loop.doLoop();
         log.debug("after doLoop is done");
 
+        if (nodeAgent != null) {
+            log.debug("Stopping the node agent");
+            nodeAgent.stop();
+            log.debug("Node agent stopped");
+        }
+
         log.info("main finish");
     }
 
@@ -136,7 +155,7 @@ public class Midolman implements SelectListener, Watcher {
 
         try {
             SocketChannel sock = listenSock.accept();
-            log.info("handleEvent acccepted connection from " +
+            log.info("handleEvent accepted connection from " +
                      sock.socket().getRemoteSocketAddress());
 
             sock.socket().setTcpNoDelay(true);

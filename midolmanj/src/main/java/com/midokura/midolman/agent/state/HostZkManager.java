@@ -22,6 +22,9 @@ import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
+ * Wrapper class over a Directory that handled setting and reading data related
+ * to hosts and interfaces associated with the hosts.
+ *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 1/31/12
  */
@@ -100,11 +103,12 @@ public class HostZkManager extends ZkManager {
 
         List<Op> delMulti = new ArrayList<Op>();
 
-        if (exists(hostEntryPath + "/commands")) {
-            delMulti.addAll(getRecursiveDeleteOps(hostEntryPath + "/commands"));
+        if (exists(pathManager.getHostCommandsPath(id))) {
+            delMulti.addAll(
+                getRecursiveDeleteOps(pathManager.getHostCommandsPath(id)));
         }
-        if (exists(hostEntryPath + "/interfaces")) {
-            delMulti.add(getDeleteOp(hostEntryPath + "/interfaces"));
+        if (exists(pathManager.getHostInterfacesPath(id))) {
+            delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
         }
         delMulti.add(getDeleteOp(hostEntryPath));
 
@@ -170,10 +174,6 @@ public class HostZkManager extends ZkManager {
         return interfaceIds;
     }
 
-    interface Functor<S, T> {
-        public T process(S node);
-    }
-
     private List<Op> getRecursiveDeleteOps(String root)
         throws StateAccessException {
         return recursiveBottomUpFold(root, new Functor<String, Op>() {
@@ -182,6 +182,10 @@ public class HostZkManager extends ZkManager {
                 return Op.delete(node, -1);
             }
         }, new ArrayList<Op>());
+    }
+
+    interface Functor<S, T> {
+        public T process(S node);
     }
 
     private <T> List<T> recursiveBottomUpFold(String root,

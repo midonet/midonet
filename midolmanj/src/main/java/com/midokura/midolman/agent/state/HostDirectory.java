@@ -9,11 +9,16 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
+ * ZooKeeper state objects definitions for Host and Interface data.
+ *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 2/1/12
  */
 public class HostDirectory {
 
+    /**
+     * Metadata for a host description (contains a host name and a list of known addresses)
+     */
     public static class Metadata {
 
         String name;
@@ -40,6 +45,9 @@ public class HostDirectory {
         }
     }
 
+    /**
+     * A host interface description.
+     */
     public static class Interface {
 
         public enum Type {
