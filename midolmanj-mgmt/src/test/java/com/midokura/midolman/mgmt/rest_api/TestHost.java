@@ -5,6 +5,7 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import java.net.InetAddress;
 import java.util.UUID;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.ClientResponse;

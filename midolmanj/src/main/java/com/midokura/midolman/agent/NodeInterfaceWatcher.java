@@ -3,7 +3,6 @@
  */
 package com.midokura.midolman.agent;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.google.inject.Inject;
@@ -31,6 +30,7 @@ public class NodeInterfaceWatcher implements Runnable {
             LoggerFactory.getLogger(NodeInterfaceWatcher.class);
 
     private UUID hostId;
+    private HostDirectory.Metadata hostMetadata;
 
     @Inject
     InterfaceScanner interfaceScanner;
@@ -63,9 +63,9 @@ public class NodeInterfaceWatcher implements Runnable {
         while (isRunning) {
             InterfaceDescription[] descriptions;
 
-            interfaceList = interfaceScanner.scanInterfaces();
+            descriptions = interfaceScanner.scanInterfaces();
 
-            interfaceDataUpdater.updateInterfacesData(interfaceList);
+            interfaceDataUpdater.updateInterfacesData(hostId, hostMetadata, descriptions);
             try {
                 Thread.sleep(configuration.getWaitTimeBetweenScans());
             } catch (InterruptedException e) {
@@ -79,9 +79,12 @@ public class NodeInterfaceWatcher implements Runnable {
 
     private void identifyHost() throws InterruptedException {
         // Try to get the host Id
+        hostMetadata = new HostDirectory.Metadata();
+
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         // TODO set some meaningful data in the metadata
-        metadata.setName("Garbage");
+        metadata.setName("temporaryHostName");
+
         // If an exception is thrown it will loop forever
         while (hostId == null) {
             try {

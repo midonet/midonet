@@ -3,8 +3,10 @@
  */
 package com.midokura.midolman.agent.updater;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,59 +34,67 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     @Inject
     HostZkManager hostZkManager;
 
-    Map<String, UUID> nameToUuidMap = new HashMap<String, UUID>();
-
-    Map<UUID, HostDirectory.Interface> uuidToDescriptionMap =
-        new HashMap<UUID, HostDirectory.Interface>();
+    // use a local cache
+    private Map<String, Interface> previousDescriptions = new HashMap<String, Interface>();
 
     @Override
     public synchronized void updateInterfacesData(UUID hostID,
                                                   HostDirectory.Metadata host,
-                                                  InterfaceDescription ... descriptions)
-    {
+                                                  InterfaceDescription... descriptions) {
         log.debug("Start uploading the interface data ({} entries).",
                   descriptions.length);
 
-        List<HostDirectory.Interface> interfacesData =
-            new ArrayList<HostDirectory.Interface>();
+        Map<String, Interface> currentInterfacesByName = getPreviousDescriptions();
+
+        Map<String, Interface> newInterfacesByName = new HashMap<String, Interface>();
 
         for (InterfaceDescription description : descriptions) {
-            Interface interfaceData =
-                processDescription(description);
+            Interface hostInterface =
+                processDescription(description,
+                                   currentInterfacesByName, newInterfacesByName);
 
-            if (interfaceData != null) {
-                interfacesData.add(interfaceData);
-            }
+            newInterfacesByName.put(hostInterface.getName(), hostInterface);
         }
 
-        updateDataStore(hostID, interfacesData);
-        updateIdMappings(interfacesData);
-    }
-
-    private void updateIdMappings(List<Interface> hostInterfaces) {
-        nameToUuidMap.clear();
-        uuidToDescriptionMap.clear();
-
-        for (Interface hostInterface : hostInterfaces) {
-            nameToUuidMap.put(hostInterface.getName(), hostInterface.getId());
-            uuidToDescriptionMap.put(hostInterface.getId(), hostInterface);
-        }
+        updateDataStore(hostID, currentInterfacesByName, newInterfacesByName);
+        previousDescriptions = newInterfacesByName;
     }
 
     private void updateDataStore(UUID hostId,
-                                 List<Interface> newHostInterfaces) {
-
+                                 Map<String, Interface> curMapByName,
+                                 Map<String, Interface> newMapByName) {
         try {
-            Set<UUID> obsoleteHostInterfaces =
-                hostZkManager.getInterfaceIds(hostId);
+            Set<UUID> interfacesToRemove = new HashSet<UUID>();
 
-            for (Interface hostInterface : newHostInterfaces) {
-                obsoleteHostInterfaces.remove(hostInterface.getId());
+            for (Interface curHostInterface : curMapByName.values()) {
+                // the interface dissapeared form the new list
+                if (!newMapByName.containsKey(curHostInterface.getName())) {
+                    interfacesToRemove.add(curHostInterface.getId());
+                }
+            }
+
+            List<Interface> updatedInterfaces = new ArrayList<Interface>();
+
+            for (Interface newHostInterface : newMapByName.values()) {
+
+                // first look to see if the interface is completely new
+                if (!curMapByName.containsKey(newHostInterface.getName())) {
+                    updatedInterfaces.add(newHostInterface);
+                    continue;
+                }
+
+                // and if not completely new then if it was updated
+                Interface currentHostInterface =
+                    curMapByName.get(newHostInterface.getName());
+
+                if (!currentHostInterface.equals(newHostInterface)) {
+                    updatedInterfaces.add(newHostInterface);
+                }
             }
 
             hostZkManager.updateHostInterfaces(hostId,
-                                               newHostInterfaces,
-                                               obsoleteHostInterfaces);
+                                               updatedInterfaces,
+                                               interfacesToRemove);
         } catch (StateAccessException e) {
             log.warn("Updating of the interface data failed: ", e);
         }
@@ -98,36 +108,56 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
      * <p/>
      * It might return null if the description is up-to-date for example.
      *
-     * @param description an interface description
-     * @return an object suitable for storage inside the data store
+     * @param description       an interface description
+     * @param currentInterfaces the current list of interfaces registered
+     * @param newInterfaces     the new list of interfaces that we want to register
+     * @return an interface object corresponding to the description passed in
+     *         and with the proper uuid set.
      */
-    private Interface processDescription(InterfaceDescription description) {
+    private Interface processDescription(InterfaceDescription description,
+                                         Map<String, Interface> currentInterfaces,
+                                         Map<String, Interface> newInterfaces) {
         Interface hostInterface = createHostInterfaceInstance(description);
 
-        UUID uuid = nameToUuidMap.get(description.getName());
-        if (uuid == null) {
+        Interface previousHostInterface = currentInterfaces.get(
+            description.getName());
+
+        Set<UUID> uuids =
+            buildInterfaceUUIDSet(currentInterfaces, newInterfaces);
+
+        if (previousHostInterface == null) {
             log.debug("New interface named: {}. Generating a new id",
                       description.getName());
 
-            do {
-                uuid = UUID.randomUUID();
-            } while (uuidToDescriptionMap.containsKey(uuid));
+            UUID uuid;
+            synchronized (this) {
+                do {
+                    uuid = UUID.randomUUID();
+                } while (uuids.contains(uuid));
+            }
 
-            nameToUuidMap.put(description.getName(), uuid);
+            hostInterface.setId(uuid);
+        } else {
+            hostInterface.setId(previousHostInterface.getId());
         }
-
-        hostInterface.setId(uuid);
-
-        Interface oldHostInterface = uuidToDescriptionMap.get(
-            uuid);
-
-        if (hostInterface.equals(oldHostInterface)) {
-            return null;
-        }
-
-        uuidToDescriptionMap.put(uuid, hostInterface);
 
         return hostInterface;
+    }
+
+    private Set<UUID> buildInterfaceUUIDSet(
+        Map<String, Interface> currentByName,
+        Map<String, Interface> newByName) {
+        Set<UUID> uuids = new HashSet<UUID>();
+
+        for (Interface anInterface : currentByName.values()) {
+            uuids.add(anInterface.getId());
+        }
+
+        for (Interface anInterface : newByName.values()) {
+            uuids.add(anInterface.getId());
+        }
+
+        return uuids;
     }
 
     private Interface createHostInterfaceInstance(
@@ -136,7 +166,29 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
 
         hostInterface.setName(description.getName());
         hostInterface.setMac(description.getMac());
+        hostInterface.setMtu(description.getMtu());
+
+        switch (description.getType()) {
+            case PHYS:
+                hostInterface.setType(Interface.Type.Physical);
+                break;
+            case VIRT:
+                hostInterface.setType(Interface.Type.Virtual);
+                break;
+            case TUNN:
+                hostInterface.setType(Interface.Type.Tunnel);
+                break;
+            case UNKNOWN:
+                hostInterface.setType(Interface.Type.Unknown);
+                break;
+        }
+        hostInterface.setProperties(new HashMap<String, String>());
+        hostInterface.setAddresses(new InetAddress[0]);
 
         return hostInterface;
+    }
+
+    public Map<String, Interface> getPreviousDescriptions() {
+        return previousDescriptions;
     }
 }

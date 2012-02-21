@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Pte. Ltd.
  */
-package com.midokura.midolman.agent.sensor;
+package com.midokura.util.process;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -10,10 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
- * Date: 11/20/11
- * Time: 10:09 PM
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 11/20/11
  */
 public class ProcessOutputDrainer {
 
@@ -35,19 +33,22 @@ public class ProcessOutputDrainer {
 
     public void drainOutput(DrainTarget drainTarget, boolean wait) {
 
-        Thread stdoutThread = new Thread(new InputStreamDrainer(process.getInputStream(), drainTarget, true));
+        Thread stdoutThread = new Thread(
+            new InputStreamDrainer(process.getInputStream(), drainTarget,
+                                   true));
         stdoutThread.start();
 
         Thread stderrThread = null;
-
-        if ( separateErrorStream ) {
-            stderrThread = new Thread(new InputStreamDrainer(process.getErrorStream(), drainTarget, false));
+        if (separateErrorStream) {
+            stderrThread = new Thread(
+                new InputStreamDrainer(process.getErrorStream(), drainTarget,
+                                       false));
             stderrThread.start();
         }
-        if ( wait ) {
+        if (wait) {
             try {
                 stdoutThread.join();
-                if ( stderrThread != null ) {
+                if (stderrThread != null) {
                     stderrThread.join();
                 }
             } catch (InterruptedException e) {
@@ -70,7 +71,9 @@ public class ProcessOutputDrainer {
         private DrainTarget drainTarget;
         private boolean stdoutOrStderr;
 
-        public InputStreamDrainer(InputStream inputStream, DrainTarget drainTarget, boolean stdoutOrStderr) {
+        public InputStreamDrainer(InputStream inputStream,
+                                  DrainTarget drainTarget,
+                                  boolean stdoutOrStderr) {
             this.inputStream = inputStream;
             this.drainTarget = drainTarget;
             this.stdoutOrStderr = stdoutOrStderr;
@@ -79,7 +82,8 @@ public class ProcessOutputDrainer {
         @Override
         public void run() {
             try {
-                LineIterator lineIterator = IOUtils.lineIterator(inputStream, "UTF-8");
+                LineIterator lineIterator = IOUtils.lineIterator(inputStream,
+                                                                 "UTF-8");
                 while (lineIterator.hasNext()) {
                     String line = lineIterator.nextLine();
 
@@ -90,7 +94,10 @@ public class ProcessOutputDrainer {
                     }
                 }
             } catch (IOException e) {
-
+                // catch and ignore the output. Normally this happens when the
+                // reading input stream (which is connected to a process) is
+                // closed which usually means that the process died or it was
+                // killed. So we bail the loop and end the draining thread.
             }
         }
     }

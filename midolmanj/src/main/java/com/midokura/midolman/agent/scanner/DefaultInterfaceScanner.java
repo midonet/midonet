@@ -49,7 +49,6 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
             interfaces = sensor.updateInterfaceData(interfaces);
         }
 
-        return interfaces;
+        return interfaces.toArray(new InterfaceDescription[interfaces.size()]);
     }
-
 }

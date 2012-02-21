@@ -5,6 +5,9 @@
 package com.midokura.midolman.agent.sensor;
 
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.util.process.DrainTargets;
+import com.midokura.util.process.ProcessHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,12 +42,14 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
     // Protected methods
     ///////////////////////////////////////////////////////////////////////////
     protected List<String> getInterfacesOutput() {
+        String commandLine = "ip addr";
+
         try {
 
             List<String> stringList = new ArrayList<String>();
 
             ProcessHelper.RunnerConfiguration runner = ProcessHelper
-                    .newProcess("/bin/bash -c ip addr");
+                    .newProcess(commandLine);
 
             runner.setDrainTarget(DrainTargets.stringCollector(stringList));
             runner.runAndWait();
@@ -52,7 +57,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
             return stringList;
 
         } catch (Exception e) {
-            log.error("cannot execute command line " + e.toString());
+            log.error("cannot execute command line {}", commandLine, e);
         }
 
         return Collections.emptyList();

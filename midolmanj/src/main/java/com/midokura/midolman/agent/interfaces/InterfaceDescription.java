@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class InterfaceDescription {
 
-    protected enum Type { PHYS, VIRT, TUNN, UNKNOWN }
+    public enum Type { PHYS, VIRT, TUNN, UNKNOWN }
 
     ///////////////////////////////////////////////////////////////////////////
     // Attributes

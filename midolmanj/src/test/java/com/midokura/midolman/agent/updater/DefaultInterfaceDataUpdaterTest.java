@@ -16,11 +16,13 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
+import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -100,30 +102,25 @@ public class DefaultInterfaceDataUpdaterTest {
     @Test
     public void testNoInterfaces() throws Exception {
         Map<String, Interface> interfaceMap;
-        
-        interfaceMap = assertStoreDescriptions();
 
+        interfaceMap = assertStoreDescriptions();
         assertThat("The number of interfaces is zero",
                    interfaceMap.entrySet(), hasSize(0));
     }
 
     @Test
     public void testOneInterface() throws Exception {
-        InterfaceDescription description = new InterfaceDescription();
-        description.setName("testInterface");
-
+        InterfaceDescription description = new InterfaceDescription("testInterface");
         assertStoreDescriptions(description);
     }
 
     @Test
     public void testUpdateInterfaceData() throws Exception {
         Map<String, Interface> interfaceMap;
-
-        InterfaceDescription description = new InterfaceDescription();
-
         String testInterfaceName = "testInterface";
-        description.setName(testInterfaceName);
-        description.setMac("mac1");
+
+        InterfaceDescription description = new InterfaceDescription(testInterfaceName);
+        description.setMac("11:11:11:11:11:11");
 
         interfaceMap = assertStoreDescriptions(description);
 
@@ -135,7 +132,7 @@ public class DefaultInterfaceDataUpdaterTest {
 
         // update some data and validate that the returned values are properly
         // updated
-        description.setMac("mac2");
+        description.setMac("11:11:11:11:11:12");
 
         interfaceMap = assertStoreDescriptions(description);
         assertThat("The interface retained the previously generated id",
@@ -151,9 +148,8 @@ public class DefaultInterfaceDataUpdaterTest {
     public void testRenameInterface() throws Exception {
         Map<String, HostDirectory.Interface> hostInterfaces;
 
-        InterfaceDescription description = new InterfaceDescription();
-        description.setName("test-before");
-        description.setMac("11");
+        InterfaceDescription description = new InterfaceDescription("test-before");
+        description.setMac("11:11:11:11:11:11");
 
         hostInterfaces = assertStoreDescriptions(description);
 
@@ -180,13 +176,11 @@ public class DefaultInterfaceDataUpdaterTest {
 
     @Test
     public void testTwoInterfaces() throws Exception {
-        final InterfaceDescription first = new InterfaceDescription();
-        first.setName("first");
-        first.setMac("first-mac");
+        InterfaceDescription first = new InterfaceDescription("first");
+        first.setMac("11:11:11:11:11:11");
 
-        final InterfaceDescription second = new InterfaceDescription();
-        second.setName("second");
-        second.setMac("second-mac");
+        InterfaceDescription second = new InterfaceDescription("second");
+        second.setMac("11:11:11:11:11:12");
 
         assertStoreDescriptions(first, second);
 
@@ -196,6 +190,30 @@ public class DefaultInterfaceDataUpdaterTest {
 
         // validate removal of all interfaces
         assertStoreDescriptions();
+    }
+
+    @Test
+    public void testNonUpdatedInterface() throws Exception {
+        String name = "first";
+
+        InterfaceDescription first = new InterfaceDescription(name);
+        first.setMac("11:11:11:11:11:11");
+
+        Map<String, Interface> boundInterfaces = assertStoreDescriptions(first);
+
+        HostDirectory.Interface hostInterface = boundInterfaces.get(name);
+
+        for ( int i = 0; i < 10; i++ ) {
+            Map<String, Interface> newBoundInterfaces = assertStoreDescriptions(first);
+
+            assertThat(newBoundInterfaces.entrySet(), hasSize(boundInterfaces.size()));
+            assertThat(newBoundInterfaces,
+                       hasEntry(equalTo(name),
+                                HasPropertyWithValue.<Interface>hasProperty(
+                                    "id", equalTo(hostInterface.getId()))));
+        }
+
+        assertStoreDescriptions(first);
     }
 
     /**
@@ -217,7 +235,7 @@ public class DefaultInterfaceDataUpdaterTest {
 
         Set<UUID> interfaceIDs = hostManager.getInterfaceIds(hostID);
 
-        assertThat("Exactly two interfaces should appear in the datastore.",
+        assertThat("The datastore interfaces count should be correct one.",
                    interfaceIDs, hasSize(descriptions.length));
 
         Set<String> interfaceNames = new HashSet<String>();
