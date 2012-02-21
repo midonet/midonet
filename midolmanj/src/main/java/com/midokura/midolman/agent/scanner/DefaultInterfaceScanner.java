@@ -40,7 +40,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
     }
 
     @Override
-    public List<InterfaceDescription> scanInterfaces() {
+    public InterfaceDescription[] scanInterfaces() {
         log.debug("Start scanning for interface data.");
 
         List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();

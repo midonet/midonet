@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.agent.interfaces;
 

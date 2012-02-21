@@ -13,7 +13,7 @@ import com.midokura.midolman.agent.scanner.InterfaceScanner;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.agent.updater.DefaultInterfaceDataUpdater;
 import com.midokura.midolman.agent.updater.InterfaceDataUpdater;
-import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.Directory;
 
 /**
  * Abstract Guice module implementation that will configure guice with most of the
@@ -26,6 +26,10 @@ import com.midokura.midolman.state.ZkConnection;
  */
 public abstract class AbstractAgentModule extends AbstractModule {
 
+    /**
+     * This method is called by the Guice library to infer bindings for the
+     * objects that are managed by guice.
+     */
     @Override
     protected void configure() {
         bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
@@ -33,9 +37,9 @@ public abstract class AbstractAgentModule extends AbstractModule {
     }
 
     @Provides
-    HostZkManager buildZkConnection(ZkConnection zkConnection,
-                                    HostAgentConfiguration configuration) {
-        return new HostZkManager(zkConnection.getRootDirectory(),
+    HostZkManager buildHostManager(Directory directory,
+                                   HostAgentConfiguration configuration) {
+        return new HostZkManager(directory,
                                  configuration.getZooKeeperBasePath());
     }
 }

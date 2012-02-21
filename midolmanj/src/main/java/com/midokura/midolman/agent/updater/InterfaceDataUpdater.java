@@ -3,9 +3,10 @@
  */
 package com.midokura.midolman.agent.updater;
 
-import java.util.List;
+import java.util.UUID;
 
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.midolman.agent.state.HostDirectory;
 
 /**
  * Any implementation of this interface will have to update the centralized
@@ -20,8 +21,10 @@ public interface InterfaceDataUpdater {
      * It will use the list of interfaces provided as a parameter and it will
      * update the datastore with it.
      *
+     * @param hostID     is the current host ID.
+     * @param host       is the current host metadata.
      * @param interfaces the list of interface data we wish to use when updating
-     *                   the datastore.
      */
-    void updateInterfacesData(List<InterfaceDescription> interfaces);
+    void updateInterfacesData(UUID hostID, HostDirectory.Metadata host,
+                              InterfaceDescription ... interfaces);
 }

@@ -5,7 +5,6 @@ package com.midokura.midolman.agent.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -163,26 +162,6 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public Collection<UUID> getInterfaceIds(UUID hostId)
-        throws StateAccessException {
-        Set<String> interfaceIdStrings =
-            getChildren(pathManager.getHostInterfacesPath(hostId));
-
-        Set<UUID> interfaceIds = new HashSet<UUID>();
-
-        for (String interfaceIdString : interfaceIdStrings) {
-            try {
-                interfaceIds.add(UUID.fromString(interfaceIdString));
-            } catch (Exception e) {
-                log.warn(
-                    "Exception while converting an interface child entry to an uuid",
-                    e);
-            }
-        }
-
-        return interfaceIds;
-    }
-
     private List<Op> getRecursiveDeleteOps(String root)
         throws StateAccessException {
         return recursiveBottomUpFold(root, new Functor<String, Op>() {
@@ -191,6 +170,78 @@ public class HostZkManager extends ZkManager {
                 return Op.delete(node, -1);
             }
         }, new ArrayList<Op>());
+    }
+
+    /**
+     * Will return the collection of UUID for all the interfaces presently
+     * described under the provided host entry.
+     *
+     * @param hostId the host id for which we want the interfaces
+     * @return the collection of interface keys
+     * @throws StateAccessException if we weren't able to properly communicate
+     *                              with the datastore.
+     */
+    public Set<UUID> getInterfaceIds(UUID hostId)
+        throws StateAccessException {
+
+        Set<String> interfaceKeys = getChildren(
+            pathManager.getHostInterfacesPath(hostId));
+
+        Set<UUID> uuids = new HashSet<UUID>();
+        for (String key : interfaceKeys) {
+            try {
+                uuids.add(UUID.fromString(key));
+            } catch (Exception e) {
+                log.warn("Interface identifier couldn't be converted into a " +
+                             "UUID: {} (for host {})", key, hostId.toString());
+            }
+        }
+
+        return uuids;
+    }
+
+    public void updateHostInterfaces(UUID hostId,
+                                     List<HostDirectory.Interface> currentInterfaces,
+                                     Set<UUID> obsoleteInterfaces)
+        throws StateAccessException {
+
+        List<Op> updateInterfacesOperation = new ArrayList<Op>();
+
+        for (UUID obsoleteInterface : obsoleteInterfaces) {
+            updateInterfacesOperation.add(
+                getDeleteOp(
+                    pathManager.getHostInterfacePath(hostId,
+                                                     obsoleteInterface)));
+        }
+
+        for (HostDirectory.Interface hostInterface : currentInterfaces) {
+            try {
+
+                String hostInterfacePath =
+                    pathManager.getHostInterfacePath(hostId,
+                                                     hostInterface.getId());
+                byte[] serializedData = serialize(hostInterface);
+
+                Op hostInterfaceOp;
+                if (exists(hostInterfacePath)) {
+                    hostInterfaceOp =
+                        getSetDataOp(hostInterfacePath, serializedData);
+                } else {
+                    hostInterfaceOp =
+                        getEphemeralCreateOp(hostInterfacePath, serializedData);
+                }
+
+                updateInterfacesOperation.add(hostInterfaceOp);
+
+            } catch (IOException ex) {
+                log.warn("Could not serialize interface data {}.",
+                         hostInterface, ex);
+            }
+        }
+
+        if (updateInterfacesOperation.size() > 0) {
+            multi(updateInterfacesOperation);
+        }
     }
 
     interface Functor<S, T> {

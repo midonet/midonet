@@ -3,8 +3,6 @@
  */
 package com.midokura.midolman.agent.scanner;
 
-import java.util.List;
-
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 
 /**
@@ -22,5 +20,5 @@ public interface InterfaceScanner {
      *
      * @return list of interfaces
      */
-    List<InterfaceDescription> scanInterfaces();
+    InterfaceDescription[] scanInterfaces();
 }

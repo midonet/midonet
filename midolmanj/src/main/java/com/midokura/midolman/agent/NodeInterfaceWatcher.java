@@ -61,7 +61,7 @@ public class NodeInterfaceWatcher implements Runnable {
             return;
         }
         while (isRunning) {
-            List<InterfaceDescription> interfaceList;
+            InterfaceDescription[] descriptions;
 
             interfaceList = interfaceScanner.scanInterfaces();
 

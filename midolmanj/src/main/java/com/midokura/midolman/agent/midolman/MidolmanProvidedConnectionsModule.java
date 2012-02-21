@@ -10,6 +10,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 
 /**
@@ -33,6 +34,10 @@ public class MidolmanProvidedConnectionsModule extends AbstractAgentModule {
         this.config = config;
     }
 
+    /**
+     * This method is called by the Guice library to infer bindings for the
+     * objects that are managed by guice.
+     */
     @Override
     protected void configure() {
         super.configure();
@@ -47,8 +52,8 @@ public class MidolmanProvidedConnectionsModule extends AbstractAgentModule {
     }
 
     @Provides
-    ZkConnection builtZkConnectionObject() {
-        return zkConnection;
+    Directory buildRootDirectory() {
+        return zkConnection.getRootDirectory();
     }
 
     @Provides

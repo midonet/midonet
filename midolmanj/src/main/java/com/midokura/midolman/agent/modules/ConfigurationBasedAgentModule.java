@@ -13,6 +13,7 @@ import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.config.IniBasedHostAgentConfiguration;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 
 /**
@@ -33,6 +34,10 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
         this.configFilePath = configFilePath;
     }
 
+    /**
+     * This method is called by the Guice library to infer bindings for the
+     * objects that are managed by guice.
+     */
     @Override
     protected void configure() {
         super.configure();
@@ -49,7 +54,7 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
 
     @Provides
     @Singleton
-    ZkConnection builtZkConnectionObject(HostAgentConfiguration config)
+    Directory builtRootDirectory(HostAgentConfiguration config)
         throws Exception {
 
         final ZkConnection zkConnection = new ZkConnection(
@@ -71,7 +76,7 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
             }
         });
 
-        return zkConnection;
+        return zkConnection.getRootDirectory();
     }
 
     @Provides
