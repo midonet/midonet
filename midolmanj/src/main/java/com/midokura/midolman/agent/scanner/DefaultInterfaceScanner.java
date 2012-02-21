@@ -1,17 +1,19 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura Pte. Ltd.
  */
 package com.midokura.midolman.agent.scanner;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.midokura.midolman.agent.sensor.InterfaceSensor;
+import com.midokura.midolman.agent.sensor.IpAddrInterfaceSensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Default implementation for the interface scanning component.
@@ -21,15 +23,33 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
  */
 public class DefaultInterfaceScanner implements InterfaceScanner {
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Attributes
+    ///////////////////////////////////////////////////////////////////////////
     private final static Logger log =
         LoggerFactory.getLogger(DefaultInterfaceScanner.class);
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Public methods
+    ///////////////////////////////////////////////////////////////////////////
+    List<InterfaceSensor> sensors = new ArrayList<InterfaceSensor>();
+
     @Inject
-    OpenvSwitchDatabaseConnection ovsConnection;
+    public DefaultInterfaceScanner(Injector injector) {
+        sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
+    }
 
     @Override
     public List<InterfaceDescription> scanInterfaces() {
         log.debug("Start scanning for interface data.");
-        return Collections.emptyList();
+
+        List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
+
+        for (InterfaceSensor sensor : sensors) {
+            interfaces = sensor.updateInterfaceData(interfaces);
+        }
+
+        return interfaces;
     }
+
 }

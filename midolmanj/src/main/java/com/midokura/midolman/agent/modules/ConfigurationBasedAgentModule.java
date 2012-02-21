@@ -75,6 +75,7 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
     }
 
     @Provides
+    @Singleton
     OpenvSwitchDatabaseConnection buildOvsDatabaseConnection(
         HostAgentConfiguration config) {
         return
