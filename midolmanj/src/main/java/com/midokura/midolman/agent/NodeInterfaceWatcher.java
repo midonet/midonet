@@ -4,6 +4,7 @@
 package com.midokura.midolman.agent;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.scanner.InterfaceScanner;
+import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.agent.updater.InterfaceDataUpdater;
 
 /**
@@ -25,7 +28,9 @@ import com.midokura.midolman.agent.updater.InterfaceDataUpdater;
 public class NodeInterfaceWatcher implements Runnable {
 
     private final static Logger log =
-        LoggerFactory.getLogger(NodeInterfaceWatcher.class);
+            LoggerFactory.getLogger(NodeInterfaceWatcher.class);
+
+    private UUID hostId;
 
     @Inject
     InterfaceScanner interfaceScanner;
@@ -36,16 +41,30 @@ public class NodeInterfaceWatcher implements Runnable {
     @Inject
     HostAgentConfiguration configuration;
 
+    @Inject
+    HostZkManager zkManager;
+
     boolean isRunning;
 
     @Override
     public void run() {
         isRunning = true;
 
+        try {
+            identifyHost();
+        } catch (InterruptedException e) {
+            log.debug(
+                    "Got interrupted trying to generate the host ID." +
+                            "Stopping watcher loop");
+            // No need to call interrupt(), there's no higher level thread
+            // we want to inform
+            return;
+        }
         while (isRunning) {
             List<InterfaceDescription> interfaceList;
 
             interfaceList = interfaceScanner.scanInterfaces();
+
             interfaceDataUpdater.updateInterfacesData(interfaceList);
             try {
                 Thread.sleep(configuration.getWaitTimeBetweenScans());
@@ -56,6 +75,28 @@ public class NodeInterfaceWatcher implements Runnable {
         }
 
         log.info("Midolman node agent watcher thread stopped.");
+    }
+
+    private void identifyHost() throws InterruptedException {
+        // Try to get the host Id
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        // TODO set some meaningful data in the metadata
+        metadata.setName("Garbage");
+        // If an exception is thrown it will loop forever
+        while (hostId == null) {
+            try {
+                hostId = HostIdGenerator.getHostId(configuration, zkManager);
+                if (hostId != null) {
+                    zkManager.makeAlive(hostId, metadata);
+                    break;
+                }
+            } catch (Exception e) {
+                log.warn("Cannot create a unique Id.", e);
+                // Reset the hostId to null to continue looping
+                hostId = null;
+            }
+            Thread.sleep(configuration.getWaitTimeForUniqueHostId());
+        }
     }
 
     /**

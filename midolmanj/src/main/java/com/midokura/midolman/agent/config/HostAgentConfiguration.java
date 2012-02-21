@@ -53,4 +53,22 @@ public interface HostAgentConfiguration {
      * @return the root node path as a string
      */
     public String getZooKeeperBasePath();
+
+    /**
+     * Get the unique Id stored in the config file
+     * @return the unique Id
+     */
+    public String getId();
+
+    /**
+     * Get the path of the properties file
+     * @return properties file
+     */
+    public String getPropertiesFilePath();
+
+    /**
+     * Get the amount of time to wait during the generate host ID loop
+     * @return
+     */
+    public int getWaitTimeForUniqueHostId();
 }

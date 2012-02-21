@@ -76,6 +76,21 @@ public class IniBasedHostAgentConfiguration
                                "/midonet/v1/midolman");
     }
 
+    @Override
+    public String getId() {
+        return safelyGetString("midolman-agent", "host_uuid", "");
+    }
+
+    @Override
+    public String getPropertiesFilePath() {
+        return safelyGetString("midolman-agent", "properties-file", "host_uuid.properties");
+    }
+
+    @Override
+    public int getWaitTimeForUniqueHostId() {
+        return safelyGetInt("midolman-agent", "wait_time_gen_id", 1000);
+    }
+
     protected int safelyGetInt(String group, String key, int defaultValue) {
         try {
             SubnodeConfiguration subConfig = config.configurationAt(group);

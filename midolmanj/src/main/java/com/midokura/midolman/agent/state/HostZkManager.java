@@ -80,22 +80,31 @@ public class HostZkManager extends ZkManager {
     }
 
     public void makeAlive(UUID hostId, HostDirectory.Metadata metadata)
-        throws StateAccessException {
-        try {
-            addEphemeral(pathManager.getHostPath(hostId) + "/alive",
-                         new byte[0]);
-            if (metadata != null) {
+            throws StateAccessException {
+        addEphemeral(pathManager.getHostPath(hostId) + "/alive",
+                     new byte[0]);
+        updateMetadata(hostId, metadata);
+    }
+
+    public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)
+            throws StateAccessException {
+        if (metadata != null) {
+            try {
                 update(pathManager.getHostPath(hostId), serialize(metadata));
+            } catch (IOException e) {
+                throw new ZkStateSerializationException(
+                        "Could not serialize host metadata for id: " + hostId,
+                        e, HostDirectory.Metadata.class);
             }
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                "Could not serialize host metadata for id: " + hostId,
-                e, HostDirectory.Metadata.class);
         }
     }
 
     public boolean isAlive(UUID id) throws StateAccessException {
         return exists(pathManager.getHostPath(id) + "/alive");
+    }
+
+    public boolean hostExists(UUID id) throws StateAccessException {
+        return exists(pathManager.getHostPath(id));
     }
 
     public void deleteHost(UUID id) throws StateAccessException {
