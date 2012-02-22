@@ -12,6 +12,7 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.sun.jersey.test.framework.spi.container.TestContainerFactory;
 import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestContainerFactory;
+import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
@@ -27,6 +29,9 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     DtoApplication app;
     MidolmanLauncher launcher;
+
+    private static AtomicInteger portSeed = new AtomicInteger(3181/* a prime */);
+    private int currentPort;
 
     private static WebAppDescriptor makeAppDescriptor(boolean mockZK) {
         ClientConfig config = new DefaultClientConfig();
@@ -60,6 +65,20 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public MockMidolmanMgmt(boolean mockZK) {
         super(makeAppDescriptor(mockZK));
         app = get("", DtoApplication.class);
+    }
+
+    protected static int _getPort() {
+        return portSeed.getAndAdd(1);
+    }
+
+    @Override
+    protected synchronized int getPort(int defaultPort) {
+
+        if (currentPort == 0) {
+            currentPort = _getPort();
+        }
+
+        return currentPort;
     }
 
     public void stop() {
