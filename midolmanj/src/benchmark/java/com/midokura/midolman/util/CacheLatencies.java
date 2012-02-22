@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
 
 import com.midokura.util.Percentile;
 
@@ -26,60 +26,6 @@ public class CacheLatencies {
     private boolean ignoreFirst = true;
 
     private Cache cache;
-
-    /** Factories for producing Cache objects. */
-    private static Map<String, CacheFactory> factories =
-            new HashMap<String, CacheFactory>();
-
-    /**
-     * Exception raised when a CacheFactory cannot create a Cache object.
-     */
-    @SuppressWarnings("serial")
-    public static class CreateException extends Exception {
-        public CreateException(Exception e) {
-            super(e);
-        }
-    }
-
-    /**
-     * Constructs Cache objects for benchmark purposes.
-     */
-    protected static abstract class CacheFactory {
-
-        /**
-         * Short string denoting ephemeral store type.
-         * Needs to be unique among CacheFactory classes.
-         */
-        public abstract String typeName();
-
-        /**
-         * Create a Cache object to be benchmarked.  The Cache object is
-         * set up according to the given configuration, which should use
-         * the same properties as is expected during normal operation.
-         * It is alright for benchmark-specific properties to be defined,
-         * however.
-         *
-         * @param config configuration for the Cache object
-         * @return a Cache object
-         * @throws CreateException if an error occurs
-         */
-        public abstract Cache create(Configuration config)
-                throws CreateException;
-
-    }
-
-    /**
-     * Registers a CacheFactory.
-     *
-     * @param c class of the CacheFactory
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public static void registerFactory(Class<? extends CacheFactory> c)
-            throws InstantiationException, IllegalAccessException {
-        CacheFactory f = c.newInstance();
-        factories.put(f.typeName(), f);
-    }
 
     /**
      * Construct the benchmark for the given ephemeral store.
@@ -210,17 +156,13 @@ public class CacheLatencies {
     }
 
     public static void main(String[] args) throws Exception {
-        registerFactory(MemcacheCacheFactory.class);
-
         // TODO use command-line options instead of hardcoding
 
         int n = 10000;
 
-        Configuration config = new HierarchicalConfiguration();
-
-        config.setProperty("memcache.memcache_hosts", "127.0.0.1:11211");
-
-        Cache cache = factories.get("memcache").create(config);
+        HierarchicalConfiguration config =
+            new HierarchicalINIConfiguration("./conf/midolman.conf");
+        Cache cache = CacheFactory.create(config);
         CacheLatencies measure = new CacheLatencies(cache);
         measure.setIgnoreFirst(true);
 
@@ -233,24 +175,4 @@ public class CacheLatencies {
         System.out.println("refresh latencies");
         measure.outputDistribution(System.out, measure.measureRefreshLatencies(n));
     }
-
-    protected static class MemcacheCacheFactory extends CacheFactory {
-
-        @Override
-        public String typeName() {
-            return "memcache";
-         }
-
-        @Override
-        public Cache create(Configuration config) throws CreateException {
-            try {
-                String hosts = config.getString("memcache.memcache_hosts");
-                return new MemcacheCache(hosts, 60);
-            } catch (Exception e) {
-                throw new CreateException(e);
-            }
-        }
-
-    }
-
 }
