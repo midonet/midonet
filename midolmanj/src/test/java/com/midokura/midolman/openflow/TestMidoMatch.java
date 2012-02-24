@@ -60,7 +60,8 @@ public class TestMidoMatch {
     @Test
     public void testSetVlan() {
         OFMatch mmatch = new MidoMatch();
-        short dlVlan = 0x11ee;
+        // Vlan IDs are only 12 bits.
+        short dlVlan = 0x01ee;
         mmatch.setDataLayerVirtualLan(dlVlan);
         Assert.assertEquals(dlVlan, mmatch.getDataLayerVirtualLan());
         Assert.assertEquals(OFMatch.OFPFW_ALL & ~OFMatch.OFPFW_DL_VLAN,

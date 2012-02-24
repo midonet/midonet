@@ -1,6 +1,4 @@
 /*
- * @(#)NxMatch.java        1.6 12/1/25
- *
  * Copyright 2012 Midokura KK
  */
 package com.midokura.midolman.openflow.nxm;
@@ -32,14 +30,14 @@ public class NxMatch {
         if (entries.containsKey(type)) {
             if (!entries.get(type).equals(entry))
                 throw new NxmPrerequisiteException(type);
-        }
-        else
+        } else {
             entries.put(type, entry);
+        }
     }
 
     private void addEntry(NxmEntry entry)
             throws NxmDuplicateEntryException {
-        if(null != entries.put(entry.getNxmType(), entry))
+        if (null != entries.put(entry.getNxmType(), entry))
             throw new NxmDuplicateEntryException(entry.getNxmType());
     }
 
@@ -65,6 +63,36 @@ public class NxMatch {
 
     public void setEthType(short type) throws NxmDuplicateEntryException {
         addEntry(new OfEthTypeNxmEntry(type));
+    }
+
+    public void setVlanId(short vid)
+            throws NxmDuplicateEntryException {
+        OfVlanTciNxmEntry entry = OfVlanTciNxmEntry.class.cast(
+                entries.get(NxmType.NXM_OF_VLAN_TCI));
+        if (null != entry) {
+            if (entry.hasExactVid())
+                throw new NxmDuplicateEntryException(entry.getNxmType());
+        }
+        else {
+            entry = new OfVlanTciNxmEntry();
+            entries.put(entry.getNxmType(), entry);
+        }
+        entry.setVid(vid);
+    }
+
+    public void setVlanPcp(byte pcp)
+            throws NxmDuplicateEntryException {
+        OfVlanTciNxmEntry entry = OfVlanTciNxmEntry.class.cast(
+                entries.get(NxmType.NXM_OF_VLAN_TCI));
+        if (null != entry) {
+            if (entry.hasExactPcp())
+                throw new NxmDuplicateEntryException(entry.getNxmType());
+        }
+        else {
+            entry = new OfVlanTciNxmEntry();
+            entries.put(entry.getNxmType(), entry);
+        }
+        entry.setPcp(pcp);
     }
 
     public void setIpProto(byte proto) throws NxmDuplicateEntryException,
@@ -151,8 +179,9 @@ public class NxMatch {
         addEntry(new OfArpTargetPacketNxmEntry(addr, maskLen));
     }
 
-    public void deserialize(ByteBuffer buff) throws NxmIOException {
+    public static NxMatch deserialize(ByteBuffer buff) throws NxmIOException {
 
+        NxMatch nxm = new NxMatch();
         while (buff.hasRemaining()) {
             int header = buff.getInt();
             NxmType type = NxmHeaderCodec.getType(header);
@@ -181,81 +210,22 @@ public class NxMatch {
                 buff.get(mask);
             }
 
-            this.entries.put(type, type.makeNxmEntry(value, hasMask, mask));
+            nxm.entries.put(type, type.makeNxmEntry(value, hasMask, mask));
         }
-    }
-
-    private int totalLen(List<NxmRawEntry> rawEntries) {
-        int totalLen = 0;
-        for (NxmRawEntry entry : rawEntries) {
-            totalLen += 4 + entry.getValue().length;
-            if (entry.hasMask()) {
-                totalLen += entry.getMask().length;
-            }
-        }
-        return totalLen;
+        return nxm;
     }
 
     public ByteBuffer serialize() {
+        int totalLen = 0;
         ArrayList<NxmRawEntry> rawEntries = new ArrayList<NxmRawEntry>();
-        if (entries.containsKey(NxmType.NXM_OF_IN_PORT))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_IN_PORT).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_NX_TUN_ID))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_NX_TUN_ID).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_NX_COOKIE))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_NX_COOKIE).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ETH_DST))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ETH_DST).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ETH_SRC))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ETH_SRC).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ETH_TYPE))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ETH_TYPE).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ARP_OP))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ARP_OP).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ARP_TPA))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ARP_TPA).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ARP_SPA))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ARP_SPA).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_IP_TOS))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_IP_TOS).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_IP_PROTO))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_IP_PROTO).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_IP_DST))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_IP_DST).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_IP_SRC))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_IP_SRC).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_UDP_DST))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_UDP_DST).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_UDP_SRC))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_UDP_SRC).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_TCP_DST))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_TCP_DST).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_TCP_SRC))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_TCP_SRC).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ICMP_CODE))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ICMP_CODE).createRawNxmEntry());
-        if (entries.containsKey(NxmType.NXM_OF_ICMP_TYPE))
-            rawEntries.add(
-                    entries.get(NxmType.NXM_OF_ICMP_TYPE).createRawNxmEntry());
-        int totalLen = totalLen(rawEntries);
+        for (NxmEntry entry : entries.values()) {
+            NxmRawEntry rawEntry = entry.createRawNxmEntry();
+            rawEntries.add(rawEntry);
+            totalLen += 4 + rawEntry.getValue().length;
+            if (rawEntry.hasMask()) {
+                totalLen += rawEntry.getMask().length;
+            }
+        }
         ByteBuffer buff = ByteBuffer.allocate(totalLen);
         for (NxmRawEntry entry : rawEntries) {
             buff.putInt(entry.getHeader());
@@ -264,6 +234,7 @@ public class NxMatch {
                 buff.put(entry.getMask());
             }
         }
+        buff.flip();
         return buff;
     }
 
@@ -277,97 +248,122 @@ public class NxMatch {
 
     public OfNxTunIdNxmEntry getTunnelIdEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_NX_TUN_ID);
-        return null == entry? null : OfNxTunIdNxmEntry.class.cast(entry);
+        return null == entry ? null : OfNxTunIdNxmEntry.class.cast(entry);
     }
 
     public OfNxCookieNxmEntry getCookieEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_NX_COOKIE);
-        return null == entry? null : OfNxCookieNxmEntry.class.cast(entry);
+        return null == entry ? null : OfNxCookieNxmEntry.class.cast(entry);
     }
 
     public OfInPortNxmEntry getInPortEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_IN_PORT);
-        return null == entry? null : OfInPortNxmEntry.class.cast(entry);
+        return null == entry ? null : OfInPortNxmEntry.class.cast(entry);
     }
 
     public OfEthDstNxmEntry getEthDstEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ETH_DST);
-        return null == entry? null : OfEthDstNxmEntry.class.cast(entry);
+        return null == entry ? null : OfEthDstNxmEntry.class.cast(entry);
     }
 
     public OfEthSrcNxmEntry getEthSrcEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ETH_SRC);
-        return null == entry? null : OfEthSrcNxmEntry.class.cast(entry);
+        return null == entry ? null : OfEthSrcNxmEntry.class.cast(entry);
     }
 
     public OfEthTypeNxmEntry getEthTypeEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ETH_TYPE);
-        return null == entry? null : OfEthTypeNxmEntry.class.cast(entry);
+        return null == entry ? null : OfEthTypeNxmEntry.class.cast(entry);
+    }
+
+    public OfVlanTciNxmEntry getVlanTciEntry() {
+        NxmEntry entry = entries.get(NxmType.NXM_OF_VLAN_TCI);
+        return null == entry ? null : OfVlanTciNxmEntry.class.cast(entry);
     }
 
     public OfArpOpNxmEntry getArpOpEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ARP_OP);
-        return null == entry? null : OfArpOpNxmEntry.class.cast(entry);
+        return null == entry ? null : OfArpOpNxmEntry.class.cast(entry);
     }
 
     public OfArpSrcPacketNxmEntry getArpSPAEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ARP_SPA);
-        return null == entry? null : OfArpSrcPacketNxmEntry.class.cast(entry);
+        return null == entry ? null : OfArpSrcPacketNxmEntry.class.cast(entry);
     }
 
     public OfArpTargetPacketNxmEntry getArpTPAEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ARP_TPA);
-        return null == entry? null : OfArpTargetPacketNxmEntry.class.cast(entry);
+        return null == entry ?
+                null : OfArpTargetPacketNxmEntry.class.cast(entry);
     }
 
     public OfIpTosNxmEntry getIpTosEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_IP_TOS);
-        return null == entry? null : OfIpTosNxmEntry.class.cast(entry);
+        return null == entry ? null : OfIpTosNxmEntry.class.cast(entry);
     }
 
     public OfIpProtoNxmEntry getIpProtoEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_IP_PROTO);
-        return null == entry? null : OfIpProtoNxmEntry.class.cast(entry);
+        return null == entry ? null : OfIpProtoNxmEntry.class.cast(entry);
     }
 
     public OfIpSrcNxmEntry getIpSrcEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_IP_SRC);
-        return null == entry? null : OfIpSrcNxmEntry.class.cast(entry);
+        return null == entry ? null : OfIpSrcNxmEntry.class.cast(entry);
     }
 
     public OfIpDstNxmEntry getIpDstEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_IP_DST);
-        return null == entry? null : OfIpDstNxmEntry.class.cast(entry);
+        return null == entry ? null : OfIpDstNxmEntry.class.cast(entry);
     }
 
     public OfTcpSrcNxmEntry getTcpSrcEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_TCP_SRC);
-        return null == entry? null : OfTcpSrcNxmEntry.class.cast(entry);
+        return null == entry ? null : OfTcpSrcNxmEntry.class.cast(entry);
     }
 
     public OfTcpDstNxmEntry getTcpDstEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_TCP_DST);
-        return null == entry? null : OfTcpDstNxmEntry.class.cast(entry);
+        return null == entry ? null : OfTcpDstNxmEntry.class.cast(entry);
     }
 
     public OfUdpSrcNxmEntry getUdpSrcEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_UDP_SRC);
-        return null == entry? null : OfUdpSrcNxmEntry.class.cast(entry);
+        return null == entry ? null : OfUdpSrcNxmEntry.class.cast(entry);
     }
 
     public OfUdpDstNxmEntry getUdpDstEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_UDP_DST);
-        return null == entry? null : OfUdpDstNxmEntry.class.cast(entry);
+        return null == entry ? null : OfUdpDstNxmEntry.class.cast(entry);
     }
 
     public OfIcmpCodeNxmEntry getIcmpCodeEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ICMP_CODE);
-        return null == entry? null : OfIcmpCodeNxmEntry.class.cast(entry);
+        return null == entry ? null : OfIcmpCodeNxmEntry.class.cast(entry);
     }
 
     public OfIcmpTypeNxmEntry getIcmpTypeEntry() {
         NxmEntry entry = entries.get(NxmType.NXM_OF_ICMP_TYPE);
-        return null == entry? null : OfIcmpTypeNxmEntry.class.cast(entry);
+        return null == entry ? null : OfIcmpTypeNxmEntry.class.cast(entry);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NxMatch nxMatch = (NxMatch) o;
+
+        if (entries != null ?
+                !entries.equals(nxMatch.entries) : nxMatch.entries != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return entries != null ? entries.hashCode() : 0;
     }
 
     @Override
@@ -382,5 +378,6 @@ public class NxMatch {
         }
         s.append("}");
         return s.toString();
+
     }
 }

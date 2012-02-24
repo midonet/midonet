@@ -5,7 +5,6 @@
 package com.midokura.midolman.openflow;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -56,12 +55,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.openflow.nxm.*;
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
-import com.midokura.midolman.util.Net;
+import com.midokura.midolman.openflow.nxm.MatchTranslation;
+import com.midokura.midolman.openflow.nxm.NxFlowMod;
+import com.midokura.midolman.openflow.nxm.NxFlowRemoved;
+import com.midokura.midolman.openflow.nxm.NxMatch;
+import com.midokura.midolman.openflow.nxm.NxMessage;
+import com.midokura.midolman.openflow.nxm.NxPacketIn;
+import com.midokura.midolman.openflow.nxm.NxSetFlowFormat;
+import com.midokura.midolman.openflow.nxm.NxSetPacketInFormat;
+import com.midokura.midolman.openflow.nxm.OfNxTunIdNxmEntry;
 
 public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub {
 
@@ -69,8 +71,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     private final static int FLOW_REQUEST_BODY_LENGTH = 44;
     private final static int PORT_QUEUE_REQUEST_BODY_LENGTH = 8;
     private final static int POLLING_DEADLINE_MSEC = 300;
-
-    public final static int NX_VENDOR_ID  = 0x00002320;
 
     protected Controller controller;
 
@@ -165,7 +165,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             controller.onConnectionLost();
         }
     }
-    
+
     protected void deleteAllFlows() {
         OFMatch match = new OFMatch().setWildcards(OFMatch.OFPFW_ALL);
         OFMessage fm = ((OFFlowMod) factory.getMessage(OFType.FLOW_MOD))
@@ -173,18 +173,18 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
               .setOutPort(OFPort.OFPP_NONE).setLength(U16.t(OFFlowMod.MINIMUM_LENGTH));
         stream.write(fm);
     }
-    
+
     protected void sendFeaturesRequest() {
         log.info("sendFeaturesRequest");
-        
+
         OFFeaturesRequest m = (OFFeaturesRequest) factory.getMessage(OFType.FEATURES_REQUEST);
         m.setXid(initiateOperation(new SuccessHandler<OFFeaturesReply>() {
             @Override
             public void onSuccess(OFFeaturesReply data) {
                 log.debug("received features reply");
-                
+
                 featuresReply = data;
-                
+
                 sendConfigRequest();
             }
         },
@@ -193,27 +193,27 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             @Override
             public void onTimeout() {
                 log.warn("features request timeout");
-                
+
                 if (socketChannel.isConnected()) {
                     sendFeaturesRequest();
                 }
             }
         }, Long.valueOf(500), OFType.FEATURES_REQUEST));
-        
+
         stream.write(m);
     }
-    
+
     protected void sendConfigRequest() {
         log.info("sendConfigRequest");
-        
+
         OFGetConfigRequest m = (OFGetConfigRequest) factory.getMessage(OFType.GET_CONFIG_REQUEST);
         m.setXid(initiateOperation(new SuccessHandler<OFGetConfigReply>() {
             @Override
             public void onSuccess(OFGetConfigReply data) {
                 log.debug("received config reply");
-                
+
                 boolean firstTime = (null == configReply);
-                
+
                 if (firstTime) {
                     controller.onConnectionMade();
                 }
@@ -224,7 +224,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             @Override
             public void onTimeout() {
                 log.warn("config request timeout");
-                
+
                 if (socketChannel.isConnected()) {
                     sendConfigRequest();
                 }
@@ -482,9 +482,20 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             OFVendor vm = (OFVendor) m;
             int vendor = vm.getVendor();
 
-            if (vendor == NX_VENDOR_ID) {
-                ByteBuffer data = ByteBuffer.wrap(vm.getData());
-                parseNiciraMessage(data);
+            if (vendor == NxMessage.NX_VENDOR_ID) {
+                NxMessage nxm = NxMessage.fromOFVendor(vm);
+                switch(nxm.getNxType()) {
+                    case NXT_FLOW_REMOVED:
+                        onNxFlowRemoved(NxFlowRemoved.class.cast(nxm));
+                        break;
+                    case NXT_PACKET_IN:
+                        onNxPacketIn(NxPacketIn.class.cast(nxm));
+                        break;
+                    default:
+                        log.warn("handleMessage: VENDOR {} - unhandled " +
+                                "subtype {}", NxMessage.NX_VENDOR_ID,
+                                nxm.getNxType());
+                }
             } else {
                 log.warn("handleMessage: VENDOR - unhandled vendor 0x{}",
                         Integer.toHexString(vendor));
@@ -499,110 +510,31 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }
     }
 
-    final static int NXT_FLOW_REMOVED = 14;
-    final static int NXT_PACKET_IN = 17;
-
-    void parseNiciraMessage(ByteBuffer data) throws IOException {
-        int subtype = data.getInt();
-
-        switch(subtype) {
-        case NXT_FLOW_REMOVED: {
-            long cookie = data.getLong();
-            short priority = data.getShort();
-            OFFlowRemovedReason reason = OFFlowRemovedReason.values()[(0xff & data.get())];
-            data.get(); // padding
-            int durationSeconds = data.getInt();
-            int durationNanoseconds = data.getInt();
-            short idleTimeout = data.getShort();
-            short nxMatchLen = data.getShort();
-            long packetCount = data.getLong();
-            long byteCount = data.getLong();
-
-            // read NxMatch
-            int lim = data.limit();
-            data.limit(data.position() + nxMatchLen);
-            ByteBuffer nxmData = data.slice();
-            data.limit(lim);
-            data.position(data.position() + nxMatchLen);
-
-            // read zero bytes
-            int zeroBytes = (nxMatchLen + 7) / 8*8 - nxMatchLen;
-            for (int i=0; i<zeroBytes; i++) {
-                data.get();
-            }
-
-            NxMatch nxm = new NxMatch();
-            nxm.deserialize(nxmData);
-
-            // invoke callback
-            onNxFlowRemoved(nxm, cookie, priority,
-                    reason, durationSeconds, durationNanoseconds,
-                    idleTimeout, packetCount, byteCount);
-        }
-        break;
-        case NXT_PACKET_IN: {
-            int bufferId = data.getInt();
-            short totalLength = data.getShort();
-            PacketInReason reason = PacketInReason.values()[(0xff & data.get())];
-            byte tableId = data.get();
-            long cookie = data.getLong();
-            short nxMatchLen = data.getShort();
-
-            // 6 bytes of padding
-            for (int i = 0; i < 6; i++)
-                data.get();
-
-            // read NxMatch
-            int lim = data.limit();
-            data.limit(data.position() + nxMatchLen);
-            ByteBuffer nxmData = data.slice();
-            data.limit(lim);
-            data.position(data.position() + nxMatchLen);
-
-            NxMatch nxm = new NxMatch();
-            nxm.deserialize(nxmData);
-
-            // read zero bytes
-            int zeroBytes = (nxMatchLen + 7)/8*8 - nxMatchLen + 2;
-            for (int i=0; i<zeroBytes; i++)
-                data.get();
-
-            // read packet data
-            byte[] packet = new byte[data.limit() - data.position()];
-            data.get(packet);
-
-            // invoke controller
-            onNxPacketIn(bufferId, reason, nxm, cookie, tableId, totalLength,
-                    packet);
-        }
-        break;
-        }
-    }
-
-    private void onNxPacketIn(int bufferId, PacketInReason reason, NxMatch nxm,
-            long cookie, byte tableId, short totalLen, byte[] packetData) {
+    private void onNxPacketIn(NxPacketIn nxm) {
         // Look for supported NxmEntry types in the NxMatch.
-        short inPort = nxm.getInPortEntry().getValue();
-        OfNxTunIdNxmEntry tunEntry = nxm.getTunnelIdEntry();
+        NxMatch match = nxm.getNxMatch();
+        short inPort = match.getInPortEntry().getValue();
+        OfNxTunIdNxmEntry tunEntry = match.getTunnelIdEntry();
         log.debug("onNxPacketIn: bufferId={} totalLen={} nxm={}",
-                new Object[] {bufferId, totalLen, nxm});
+                new Object[] {
+                        nxm.getBufferId(), nxm.getTotalFrameLen(), match});
 
         long tunId = 0;
         if (null != tunEntry) {
             tunId = tunEntry.getTunnelId();
         }
-        controller.onPacketIn(bufferId, totalLen, inPort, packetData, tunId);
+        controller.onPacketIn(nxm.getBufferId(), nxm.getTotalFrameLen(),
+                inPort, nxm.getPacket(), tunId);
     }
 
-    private void onNxFlowRemoved(NxMatch nxm, long cookie, short priority,
-            OFFlowRemovedReason reason, int durationSeconds,
-            int durationNanoseconds, short idleTimeout, long packetCount,
-            long byteCount) {
-        OfNxTunIdNxmEntry tunEntry = nxm.getTunnelIdEntry();
-        controller.onFlowRemoved(MatchTranslation.toOFMatch(nxm), cookie,
-                priority, reason, durationSeconds, durationNanoseconds,
-                idleTimeout, packetCount, byteCount,
-                tunEntry == null? 0 : tunEntry.getTunnelId());
+    private void onNxFlowRemoved(NxFlowRemoved nxm) {
+        NxMatch match = nxm.getNxMatch();
+        OfNxTunIdNxmEntry tunEntry = match.getTunnelIdEntry();
+        controller.onFlowRemoved(MatchTranslation.toOFMatch(match),
+                nxm.getCookie(), nxm.getPriority(), nxm.getReason(),
+                nxm.getDurationSeconds(), nxm.getDurationNanoseconds(),
+                nxm.getIdleTimeout(), nxm.getPacketCount(), nxm.getByteCount(),
+                tunEntry == null ? 0 : tunEntry.getTunnelId());
     }
 
     @Override
@@ -626,8 +558,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                     cookie, idleTimeoutSecs, hardTimeoutSecs, priority,
                     bufferId, sendFlowRemove, checkOverlap, emergency, actions);
             return;
-        }
-        else if (matchingTunnelId != 0)
+        } else if (matchingTunnelId != 0)
             throw new IllegalArgumentException("Since NXM has not been " +
                     "enabled you cannot match on Tunnel ID.");
 
@@ -649,16 +580,16 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         fm.setMatch(match).setCookie(cookie).setIdleTimeout(idleTimeoutSecs);
         fm.setHardTimeout(hardTimeoutSecs).setPriority(priority);
         fm.setBufferId(bufferId).setFlags(flags);
-        
+
         fm.setActions(actions);
-        
+
         int totalActionLength = 0;
         if (null != actions) {
             for (OFAction a : actions)
                 totalActionLength += a.getLengthU();
         }
         fm.setLength(U16.t(OFFlowMod.MINIMUM_LENGTH + totalActionLength));
-        
+
         log.debug("sendFlowModAdd: about to send {}", fm);
 
         // TODO(pino): remove after finding the root cause of Redmine #301.
@@ -704,17 +635,10 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         if (emergency)
             flags |= (1 << 2);
 
-        NxFlowMod fm = new NxFlowMod();
-        fm.setCommand(OFFlowMod.OFPFC_ADD);
-        fm.setMatch(match);
-        fm.setCookie(cookie);
-        fm.setIdleTimeout(idleTimeoutSecs);
-        fm.setHardTimeout(hardTimoutSecs);
-        fm.setPriority(priority);
-        fm.setBufferId(bufferId);
-        fm.setFlags(flags);
-
-        fm.setActions(actions);
+        NxFlowMod fm = NxFlowMod.flowModAdd(match, actions,
+                bufferId, cookie, priority, flags, idleTimeoutSecs,
+                hardTimoutSecs);
+        // Need to call prepareSerialize so that the length is pre-computed.
         fm.prepareSerialize();
 
         log.debug("sendNxFlowModAdd: about to send {}", fm);
@@ -742,8 +666,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                     MatchTranslation.toNxMatch(match, matchingTunnelId),
                     strict, priority, outPort);
             return;
-        }
-        else if (matchingTunnelId != 0)
+        } else if (matchingTunnelId != 0)
             throw new IllegalArgumentException("Since NXM has not been " +
                     "enabled you cannot match on Tunnel ID.");
 
@@ -764,13 +687,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             short priority, short outPort) {
         log.debug("sendNxFlowModDelete");
 
-        NxFlowMod fm = new NxFlowMod();
-
-        fm.setCommand(strict ? OFFlowMod.OFPFC_DELETE_STRICT
-                             : OFFlowMod.OFPFC_DELETE);
-        fm.setMatch(match);
-        fm.setPriority(priority);
-        fm.setOutPort(outPort);
+        NxFlowMod fm = NxFlowMod.flowModDelete(match, strict, priority,
+                outPort);
+        fm.prepareSerialize();
 
         try {
             stream.write(fm);

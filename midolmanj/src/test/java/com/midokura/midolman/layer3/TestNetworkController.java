@@ -144,7 +144,7 @@ public class TestNetworkController {
 
         // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);
-        Directory portLocSubdir = 
+        Directory portLocSubdir =
                 dir.getSubDirectory(pathMgr.getVRNPortLocationsPath());
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
 
@@ -237,7 +237,7 @@ public class TestNetworkController {
                     GrePort expectGrePort = new GrePort(
                             Long.toString(datapathId), phyPort.getName(),
                             underlayIp.toString());
-                    Assert.assertEquals(expectGrePort, 
+                    Assert.assertEquals(expectGrePort,
                             ovsdb.addedGrePorts.get(
                                         ovsdb.addedGrePorts.size() - 1));
                     // Manually add the remote port's route since we're only
@@ -393,7 +393,7 @@ public class TestNetworkController {
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPort.getPortNumber());
+        match.setDataLayerType((short) 0x86dd);
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 NetworkController.NO_IDLE_TIMEOUT,

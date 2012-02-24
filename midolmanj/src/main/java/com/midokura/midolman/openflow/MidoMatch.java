@@ -5,14 +5,15 @@
 package com.midokura.midolman.openflow;
 
 import org.openflow.protocol.OFMatch;
+import org.openflow.util.U16;
 
 import com.midokura.midolman.packets.MAC;
 
 /**
  * MidoMatch extends OFMatch and sets the wildcard bits automatically.
- * 
+ *
  * @author ddumitriu
- * 
+ *
  */
 public class MidoMatch extends OFMatch {
 
@@ -66,7 +67,8 @@ public class MidoMatch extends OFMatch {
     @Override
     public MidoMatch setDataLayerVirtualLan(short dataLayerVirtualLan) {
         wildcards &= ~OFPFW_DL_VLAN;
-        super.setDataLayerVirtualLan(dataLayerVirtualLan);
+        // Vlan ID can only use 12 bits.
+        super.setDataLayerVirtualLan(U16.t(dataLayerVirtualLan & 0xfff));
         return this;
     }
 

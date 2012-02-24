@@ -44,7 +44,7 @@ public abstract class OfIpNxmEntry implements NxmEntry {
     }
 
     public int getMaskLen() {
-        return this.maskLen;        
+        return this.maskLen;
     }
 
     @Override

@@ -277,7 +277,7 @@ public class PrimaryController implements Controller, SelectListener {
                 new Object[] { portNum & 0xffff, name, reason });
         if (!reason.equals(OFPortStatus.OFPortReason.OFPPR_ADD))
             return;
-        
+
         lock.lock();
         try {
             portNameToNum.put(name, portNum);

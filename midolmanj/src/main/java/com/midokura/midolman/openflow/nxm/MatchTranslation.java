@@ -4,10 +4,11 @@
  * Copyright 2012 Midokura KK
  */
 
-package com.midokura.midolman.openflow;
+package com.midokura.midolman.openflow.nxm;
 
 import org.openflow.protocol.OFMatch;
 
+import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.*;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.ICMP;
@@ -40,10 +41,10 @@ public class MatchTranslation {
                 nxm.setEthDst(match.getDataLayerDestination());
             if ((match.getWildcards() & OFMatch.OFPFW_DL_SRC) == 0)
                 nxm.setEthSrc(match.getDataLayerSource());
-            // TODO: deal with vlan ID and PCP
-            if ((match.getWildcards() &
-                    (OFMatch.OFPFW_DL_VLAN | OFMatch.OFPFW_DL_VLAN_PCP)) == 0) {
-            }
+            if ((match.getWildcards() & OFMatch.OFPFW_DL_VLAN) == 0)
+                nxm.setVlanId(match.getDataLayerVirtualLan());
+            if ((match.getWildcards() & OFMatch.OFPFW_DL_VLAN_PCP) == 0)
+                nxm.setVlanPcp(match.getDataLayerVirtualLanPriorityCodePoint());
             if ((match.getWildcards() & OFMatch.OFPFW_DL_TYPE) == 0) {
                 short etherType = match.getDataLayerType();
                 nxm.setEthType(etherType);
@@ -52,8 +53,7 @@ public class MatchTranslation {
                 if (etherType == ARP.ETHERTYPE) {
                     toNxMatchARP(match, nxm);
                     return nxm;
-                }
-                else if (etherType == IPv4.ETHERTYPE) {
+                } else if (etherType == IPv4.ETHERTYPE) {
                     toNxMatchIPv4(match, nxm);
                     return nxm;
                 }
@@ -62,13 +62,11 @@ public class MatchTranslation {
             verifyNoL3(match);
             verifyNoL4(match);
             return nxm;
-        }
-        catch (NxmDuplicateEntryException e) {
+        } catch (NxmDuplicateEntryException e) {
             // This should never happen in this code since we don't try to set
             // the same field twice.
             throw new RuntimeException(e);
-        }
-        catch (NxmPrerequisiteException e) {
+        } catch (NxmPrerequisiteException e) {
             // This should never happen since we make sure we make sure we
             // respect NxMatch dependencies.
             throw new RuntimeException(e);
@@ -125,18 +123,16 @@ public class MatchTranslation {
         if ((match.getWildcards() & OFMatch.OFPFW_NW_TOS) == 0)
             nxm.setIpTos(match.getNetworkTypeOfService());
         if ((match.getWildcards() & OFMatch.OFPFW_NW_PROTO) == 0) {
-            byte proto = match.getNetworkProtocol(); 
+            byte proto = match.getNetworkProtocol();
             nxm.setIpProto(proto);
             // The rest of the translation depends on the network protocol.
             if (proto == TCP.PROTOCOL_NUMBER) {
                 toNxMatchTCP(match, nxm);
                 return;
-            }
-            else if (proto == UDP.PROTOCOL_NUMBER) {
+            } else if (proto == UDP.PROTOCOL_NUMBER) {
                 toNxMatchUDP(match, nxm);
                 return;
-            }
-            else if (proto == ICMP.PROTOCOL_NUMBER) {
+            } else if (proto == ICMP.PROTOCOL_NUMBER) {
                 toNxMatchICMP(match, nxm);
                 return;
             }
@@ -198,6 +194,15 @@ public class MatchTranslation {
             OfEthTypeNxmEntry e = nxm.getEthTypeEntry();
             if (null != e)
                 match.setDataLayerType(e.getValue());
+        }
+        {
+            OfVlanTciNxmEntry e = nxm.getVlanTciEntry();
+            if (null != e) {
+                if (e.hasExactPcp())
+                    match.setDataLayerVirtualLanPriorityCodePoint(e.getPcp());
+                if (e.hasExactVid())
+                    match.setDataLayerVirtualLan(e.getVid());
+            }
         }
         {
             OfArpOpNxmEntry e = nxm.getArpOpEntry();

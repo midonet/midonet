@@ -9,20 +9,56 @@ import java.nio.ByteBuffer;
 
 public class OfVlanTciNxmEntry implements NxmEntry {
 
-    private short tci = 0;
-    private boolean hasMask = false;
-    private short mask;
+    private final int VLAN_MASK = 0xfff;
+
+    private short vid = 0;
+    private boolean hasVid = false;
+    private byte pcp = 0;
+    private boolean hasPcp = false;
 
     // Default constructor for class.newInstance used by NxmType.
     public OfVlanTciNxmEntry() {
     }
 
-    public OfVlanTciNxmEntry(short tci) {
-        this.tci = tci;
+    public boolean hasExactPcp() {
+        return hasPcp;
+    }
+
+    public byte getPcp() {
+        return pcp;
+    }
+
+    public void setPcp(byte pcp) {
+        this.pcp = (byte)(pcp & 0x7);
+        hasPcp = true;
+    }
+
+    public boolean hasExactVid() {
+        return hasVid;
+    }
+
+    public short getVid() {
+        return (short)(vid & VLAN_MASK);
+    }
+
+    public void setVid(short vid) {
+        this.vid = (short)(vid & VLAN_MASK);
+        hasVid = true;
     }
 
     @Override
     public NxmRawEntry createRawNxmEntry() {
+        short tci = 0x1000; // set
+        short mask = 0;
+        boolean hasMask = !(hasPcp & hasVid);
+        if (hasPcp) {
+            tci |= (pcp << 13) & 0xe000;
+            mask |= 0xe000;
+        }
+        if (hasVid) {
+            tci |= vid & VLAN_MASK;
+            mask |= VLAN_MASK;
+        }
         byte[] valueBytes = new byte[2];
         ByteBuffer buff = ByteBuffer.wrap(valueBytes);
         buff.putShort(tci);
@@ -43,11 +79,24 @@ public class OfVlanTciNxmEntry implements NxmEntry {
                     getClass() + " from a raw entry of type " +
                     rawEntry.getType());
         ByteBuffer buff = ByteBuffer.wrap(rawEntry.getValue());
-        tci = buff.getShort();
-        hasMask = rawEntry.hasMask();
+        short tci = buff.getShort();
+        short mask = 0;
+        boolean hasMask = rawEntry.hasMask();
         if (hasMask) {
             buff = ByteBuffer.wrap(rawEntry.getMask());
             mask = buff.getShort();
+        }
+        vid = 0;
+        pcp = 0;
+        hasVid = false;
+        hasPcp = false;
+        if (!hasMask || (mask & 0xe000) == 0xe000) {
+            hasPcp = true;
+            pcp = (byte)((tci & 0xe000) >> 13);
+        }
+        if (!hasMask || (mask & VLAN_MASK) == VLAN_MASK) {
+            hasVid = true;
+            vid = (short)(tci & VLAN_MASK);
         }
         return this;
     }
@@ -64,18 +113,20 @@ public class OfVlanTciNxmEntry implements NxmEntry {
 
         OfVlanTciNxmEntry that = (OfVlanTciNxmEntry) o;
 
-        if (hasMask != that.hasMask) return false;
-        if (mask != that.mask) return false;
-        if (tci != that.tci) return false;
+        if (hasPcp != that.hasPcp) return false;
+        if (hasVid != that.hasVid) return false;
+        if (pcp != that.pcp) return false;
+        if (vid != that.vid) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) tci;
-        result = 31 * result + (hasMask ? 1 : 0);
-        result = 31 * result + (int) mask;
+        int result = (int) vid;
+        result = 31 * result + (hasVid ? 1 : 0);
+        result = 31 * result + (int) pcp;
+        result = 31 * result + (hasPcp ? 1 : 0);
         return result;
     }
 }

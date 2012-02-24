@@ -1,3 +1,9 @@
+/*
+ * @(#)MockControllerStub.java
+ *
+ * Copyright 2011 Midokura KK
+ */
+
 package com.midokura.midolman.openflow;
 
 import java.util.ArrayList;

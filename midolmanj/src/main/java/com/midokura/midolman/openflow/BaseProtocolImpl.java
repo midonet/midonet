@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.openflow;
@@ -31,7 +31,6 @@ import org.openflow.protocol.OFError.OFPortModFailedCode;
 import org.openflow.protocol.OFError.OFQueueOpFailedCode;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
-import org.openflow.protocol.OFVendor;
 import org.openflow.protocol.factory.BasicFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,21 +40,21 @@ import com.midokura.midolman.eventloop.SelectListener;
 
 /**
  * An implementation of the OpenFlow 1.0 protocol to abstract operations.
- * 
+ *
  * This class keeps track of pending operations (request / reply pairs) and to
  * periodically initiate echo operations.
- * 
+ *
  * Some settable attributes include:
- * 
+ *
  * defaultOperationTimeoutMillis: The default period, in seconds, before an
  * operation times out. This is also used as the timeout for echo operations.
  * Defaults to 3000.
- * 
+ *
  * echoPeriodMillis: The period, in seconds, between two echo operations.
  * Defaults to 5000.
- * 
+ *
  * @author ddumitriu
- * 
+ *
  */
 public abstract class BaseProtocolImpl implements SelectListener {
 
@@ -65,8 +64,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
     protected BasicFactory factory;
     protected OFMessageAsyncStream stream;
-
-    protected Map<Integer, VendorHandler> vendorHandlers = new ConcurrentHashMap<Integer, VendorHandler>();
 
     protected class PendingOperation {
         SuccessHandler successHandler;
@@ -91,7 +88,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
     protected long echoPeriodMillis = 5000;
 
     protected Random rand = new Random();
-    
+
     protected Reactor reactor;
 
     public BaseProtocolImpl(SocketChannel sock, Reactor reactor)
@@ -104,10 +101,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
         factory = new BasicFactory();
         stream = new OFMessageAsyncStream(sock, factory);
-    }
-
-    public void setVendorHandler(int vendorId, VendorHandler handler) {
-        vendorHandlers.put(vendorId, handler);
     }
 
     protected int initiateOperation(SuccessHandler successHandler,
@@ -259,17 +252,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
             OFError error = (OFError) m;
             logError(error);
             return true;
-        case VENDOR:
-            OFVendor vm = (OFVendor) m;
-            int vendor = vm.getVendor();
-            log.debug("handleMessage: VENDOR 0x{}", Integer.toHexString(vendor));
-            // TODO(Pino): ask Dan/Ryu about removing vendorHandler mechanism.
-            VendorHandler vh = vendorHandlers.get(vendor);
-            if (vh != null) {
-                vh.onVendorMessage(vm.getXid(), vm.getData());
-                return true;
-            }
-            return false;
         default:
             log.debug("handleMessage: default: " + m.getType());
             return false;
