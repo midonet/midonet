@@ -58,10 +58,39 @@
       <param-value>999888777666</param-value>
     </init-param>
   </filter>
+  <filter>
+    <filter-name>cors</filter-name>
+    <description>
+      This filter allows clients cross-origin resource sharing.
+    </description>
+    <filter-class>
+      com.midokura.midolman.mgmt.servlet.CrossOriginResourceSharingFilter
+    </filter-class>
+    <init-param>
+      <param-name>Access-Control-Allow-Origin</param-name>
+      <param-value>*</param-value>
+    </init-param>
+    <init-param>
+      <param-name>Access-Control-Allow-Headers</param-name>
+      <param-value>Origin, HTTP_X_AUTH_TOKEN, Content-Type, Accept</param-value>
+    </init-param>
+    <init-param>
+      <param-name>Access-Control-Allow-Methods</param-name>
+      <param-value>GET, POST, PUT, DELETE, OPTIONS</param-value>
+    </init-param>
+    <init-param>
+      <param-name>Access-Control-Expose-Headers</param-name>
+      <param-value>Location</param-value>
+    </init-param>
+  </filter>
   <!--filter-mapping>
     <filter-name>keystone_auth</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping-->
+  <filter-mapping>
+    <filter-name>cors</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
   <servlet>
     <servlet-name>jersey_servlet</servlet-name>
     <servlet-class>
