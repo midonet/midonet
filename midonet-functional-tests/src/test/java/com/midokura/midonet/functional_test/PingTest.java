@@ -103,12 +103,12 @@ public class PingTest extends AbstractSmokeTest {
 
     @After
     public void tearDown() throws InterruptedException {
-        stopMidolman(midolman);
+        removeTapWrapper(tap1);
+        removeTapWrapper(tap2);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
-        ovsBridge.remove();
-        tap1.remove();
-        tap2.remove();
+        stopMidolman(midolman);
+        removeBridge(ovsBridge);
     }
 
     @Test
