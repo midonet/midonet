@@ -84,7 +84,7 @@ public class BgpTest extends AbstractSmokeTest {
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start();
 
-        tenant = new Tenant.Builder(mgmt).setName("tenant1").build();
+        tenant = new Tenant.Builder(mgmt).setName("tenant-bgp").build();
 
         router = tenant.addRouter().setName("rtr1").build();
 

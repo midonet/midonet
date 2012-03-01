@@ -38,11 +38,10 @@ public class ConfigTearDownTest {
 
     @Test
     public void test1() {
-        Tenant t = new Tenant.Builder(mgmt).setName("tenant1")
+        Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-1")
                 .build();
         t.addRouter().setName("rtr1").build();
         t.delete();
-        new Exception().printStackTrace();
     }
 
     @Test
@@ -51,7 +50,7 @@ public class ConfigTearDownTest {
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
         IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
-        Tenant t = new Tenant.Builder(mgmt).setName("tenant2").build();
+        Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-2").build();
         Router rtr = t.addRouter().setName("rtr1").build();
 
         MidoPort p1 = rtr.addVmPort().setVMAddress(ip1).build();
@@ -64,7 +63,7 @@ public class ConfigTearDownTest {
 
     @Test
     public void test3() {
-        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-3").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
@@ -86,7 +85,7 @@ public class ConfigTearDownTest {
 
     @Test
     public void test4() {
-        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-4").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         Router router2 = tenant1.addRouter().setName("rtr2").build();
         // Link the two routers.

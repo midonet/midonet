@@ -61,7 +61,7 @@ public class TunnelingTest extends AbstractSmokeTest {
         ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", OvsBridge.L3UUID,
                 "tcp:127.0.0.1:6657");
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-tunneling").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         ip1 = IntIPv4.fromString("192.168.231.2");

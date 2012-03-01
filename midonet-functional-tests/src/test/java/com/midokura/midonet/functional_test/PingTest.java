@@ -79,7 +79,7 @@ public class PingTest extends AbstractSmokeTest {
         ip2 = IntIPv4.fromString("192.168.231.3");
         ip3 = IntIPv4.fromString("192.168.231.4");
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-ping").build();
         Router rtr = tenant1.addRouter().setName("rtr1").build();
 
         p1 = rtr.addVmPort().setVMAddress(ip1).build();

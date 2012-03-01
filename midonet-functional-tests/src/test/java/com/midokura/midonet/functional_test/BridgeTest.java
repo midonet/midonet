@@ -74,7 +74,7 @@ public class BridgeTest extends AbstractSmokeTest {
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());

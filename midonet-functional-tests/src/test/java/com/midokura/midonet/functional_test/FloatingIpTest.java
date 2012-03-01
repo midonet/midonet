@@ -60,7 +60,7 @@ public class FloatingIpTest extends AbstractSmokeTest {
 
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant1").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-floating-ip").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");

@@ -71,7 +71,7 @@ public class StatsTest extends AbstractSmokeTest {
         Thread.sleep(1000);
         svcController = new ServiceController(6640);
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-stats").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         rtrIp = IntIPv4.fromString("192.168.231.1");

@@ -56,7 +56,7 @@ public class VpnTest extends AbstractSmokeTest {
             ovsdb.delBridge("smoke-br");
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-vpn").build();
 
         // Router 1 has VMs on 10.0.231.0/24.
         Router router1 = tenant1.addRouter().setName("rtr1").build();
