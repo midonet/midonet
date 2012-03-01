@@ -1876,10 +1876,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                             select(TableInterface,
                                    whereUUIDEquals(ifUUIDVal.getTextValue),
                                    List(ColumnUUID, ColumnOfPort)).get(0)
-                        assume(ifRow.get(ColumnOfPort) != null,
-                               "Invalid JSON object.")
-                        if (ifRow.get(ColumnOfPort).getValueAsInt == portNum) {
-                            assume(portRow.get(ColumnExternalIds) != null,
+                        if (ifRow != null
+                          && ifRow.get(ColumnOfPort).getValueAsInt == portNum) {
+                          assume(ifRow.get(ColumnOfPort) != null,
+                            "Invalid JSON object.")
+                          assume(portRow.get(ColumnExternalIds) != null,
                                    "Invalid JSON object.")
                             val extIds =
                                 ovsMapToMap(portRow.get(ColumnExternalIds))
