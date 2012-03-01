@@ -7,6 +7,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -48,6 +49,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
+    @Ignore
     public void testNewHostAppearsWhenTheAgentIsExecuted() throws Exception {
 
         DtoHost[] hosts = api.getHosts();
@@ -83,6 +85,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
+    @Ignore
     public void testHostIsMarkedAsDownWhenTheAgentDies() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -133,6 +136,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
+    @Ignore
     public void testHostIsMarkedAsAliveAfterAgentRestarts() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -196,6 +200,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
+    @Ignore
     public void testNewInterfaceBecomesVisible() throws Exception {
 
         final String tapInterfaceName = "newTapInterface";
