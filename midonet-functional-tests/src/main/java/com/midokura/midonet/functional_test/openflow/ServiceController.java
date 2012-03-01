@@ -44,8 +44,11 @@ public class ServiceController implements Controller, OpenFlowStats,
     private SelectLoop loop;
     private SocketChannel client;
     private Thread myThread;
+    private boolean connected;
+    private int portNum;
 
     public ServiceController(int portNum) throws IOException {
+        this.portNum = portNum;
         client = SocketChannel.open();
         client.configureBlocking(false);
         client.connect(new java.net.InetSocketAddress("127.0.0.1", portNum));
@@ -91,11 +94,13 @@ public class ServiceController implements Controller, OpenFlowStats,
 
     @Override
     public void onConnectionMade() {
+        connected = true;
         log.info("onConnectionMade");
     }
 
     @Override
     public void onConnectionLost() {
+        connected = false;
         log.info("onConnectionLost");
     }
 
@@ -201,4 +206,11 @@ public class ServiceController implements Controller, OpenFlowStats,
         // TODO Auto-generated method stub
     }
 
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public int getPortNum() {
+        return portNum;
+    }
 }

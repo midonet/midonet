@@ -69,4 +69,11 @@ public class TableStats {
         Assert.assertEquals(i, stat.getMatchedCount());
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "TableStats{" +
+            "tableId=" + tableId +
+            '}';
+    }
 }

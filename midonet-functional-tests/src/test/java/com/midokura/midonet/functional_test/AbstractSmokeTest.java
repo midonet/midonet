@@ -3,37 +3,50 @@
  */
 package com.midokura.midonet.functional_test;
 
+import java.util.concurrent.TimeUnit;
+
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
+import com.midokura.midonet.functional_test.openflow.ServiceController;
+import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.tools.process.ProcessHelper;
+import com.midokura.tools.timed.Timed;
+import com.midokura.util.process.ProcessHelper;
+
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import static com.midokura.tools.timed.Timed.newTimedExecution;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@midokura.com>
- * <p/>
- * Date: 12/7/11
- * Time: 2:03 PM
+ * @author Mihai Claudiu Toader  <mtoader@midokura.com>
+ *         Date: 12/7/11
  */
 public abstract class AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory
-            .getLogger(AbstractSmokeTest.class);
+        .getLogger(AbstractSmokeTest.class);
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                ProcessHelper
-                        .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr " +
-                                " /smoketest")
-                        .logOutput(log, "cleaning_zk")
-                        .runAndWait();
-
+                cleanupZooKeeperData();
             }
         });
+    }
+
+    protected static void cleanupZooKeeperData() {
+        ProcessHelper
+            .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr " +
+                            " /smoketest")
+            .logOutput(log, "cleaning_zk")
+            .runAndWait();
     }
 
     protected static void removeTapWrapper(TapWrapper tap) {
@@ -56,4 +69,52 @@ public abstract class AbstractSmokeTest {
         if (null != mgmt)
             mgmt.stop();
     }
+
+    protected static void removeBridge(OvsBridge ovsBridge) {
+        if (ovsBridge != null) {
+            ovsBridge.remove();
+        }
+    }
+
+    protected static <T> T waitFor(String what, Timed.Execution<T> assertion)
+        throws Exception {
+        return waitFor(what,
+                       TimeUnit.SECONDS.toMillis(10),
+                       TimeUnit.MILLISECONDS.toMillis(500),
+                       assertion);
+    }
+
+    protected static <T> T waitFor(String what, long total, long between,
+                                   Timed.Execution<T> assertion)
+        throws Exception {
+        Timed.ExecutionResult<T> executionResult =
+            newTimedExecution()
+                .until(total)
+                .waiting(between)
+                .execute(assertion);
+
+        assertThat(
+            String.format("The wait for: \"%s\" didn't complete successfully",
+                          what),
+            executionResult.completed(), equalTo(true));
+
+        return executionResult.result();
+    }
+
+    protected static void waitForBridgeToConnect(
+        final ServiceController controller)
+        throws Exception {
+
+        waitFor(
+            "waiting for the bridge to connect to the controller on port: " +
+                controller.getPortNum(),
+            new Timed.Execution<Boolean>() {
+                @Override
+                protected void _runOnce() throws Exception {
+                    setResult(controller.isConnected());
+                    setCompleted(getResult());
+                }
+            });
+    }
+
 }

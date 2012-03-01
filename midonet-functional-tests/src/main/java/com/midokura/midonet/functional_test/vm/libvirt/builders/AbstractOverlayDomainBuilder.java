@@ -8,7 +8,8 @@ import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.DomainController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.process.ProcessHelper;
+import com.midokura.util.process.ProcessHelper;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.libvirt.Connect;
@@ -267,7 +268,8 @@ public abstract class AbstractOverlayDomainBuilder<Builder extends AbstractOverl
                 toolScript);
 
         return ProcessHelper
-            .newProcess("" + toolScriptFile.getAbsolutePath() + " " + toolCommandLine)
+            .newProcess(
+                "" + toolScriptFile.getAbsolutePath() + " " + toolCommandLine)
             .logOutput(log, toolScript)
             .runAndWait();
     }

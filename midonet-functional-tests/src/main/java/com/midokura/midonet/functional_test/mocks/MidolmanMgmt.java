@@ -51,4 +51,10 @@ public interface MidolmanMgmt {
     DtoRoute[] getRoutes(DtoRouter router);
 
     void stop();
+
+    DtoHost[] getHosts();
+
+    DtoHost getHost(URI uri);
+
+    DtoInterface[] getHostInterfaces(DtoHost host);
 }

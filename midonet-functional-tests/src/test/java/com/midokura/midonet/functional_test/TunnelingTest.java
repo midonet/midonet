@@ -1,7 +1,8 @@
 package com.midokura.midonet.functional_test;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 
@@ -38,7 +39,8 @@ public class TunnelingTest extends AbstractSmokeTest {
     static PacketHelper helper2;
     static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman;
+    static MidolmanLauncher midolman1;
+    static MidolmanLauncher midolman2;
     static OvsBridge ovsBridge1;
     static OvsBridge ovsBridge2;
 
@@ -47,7 +49,8 @@ public class TunnelingTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman1 = MidolmanLauncher.start();
+        midolman2 = MidolmanLauncher.start(MidolmanLauncher.CONFIG_WITHOUT_BGP);
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -82,7 +85,8 @@ public class TunnelingTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws InterruptedException {
-        stopMidolman(midolman);
+        stopMidolman(midolman1);
+        stopMidolman(midolman2);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
         ovsBridge1.remove();
@@ -93,35 +97,47 @@ public class TunnelingTest extends AbstractSmokeTest {
 
     @Test
     public void testPingTunnel() {
-        byte[] sent;
-
         // First arp for router's mac from port1.
-        assertTrue(tapPort1.send(helper1.makeArpRequest()));
+        assertThat("An ARP packet was successfully sent via the first tap port",
+                   tapPort1.send(helper1.makeArpRequest()));
         helper1.checkArpReply(tapPort1.recv());
 
         // Arp for router's mac from port2.
-        assertTrue(tapPort2.send(helper2.makeArpRequest()));
+        assertThat(
+            "An ARP packet was successfully sent via the second tap port",
+            tapPort2.send(helper2.makeArpRequest()));
         helper2.checkArpReply(tapPort2.recv());
 
+        byte[] icmpRequest;
+
         // Now try sending an ICMP over the tunnel.
-        sent = helper1.makeIcmpEchoRequest(ip2);
-        assertTrue(tapPort1.send(sent));
+        icmpRequest = helper1.makeIcmpEchoRequest(ip2);
+        assertThat("An ICMP request was sent via the first port",
+                   tapPort1.send(icmpRequest));
+
         // Note: the virtual router ARPs before delivering the IPv4 packet.
         helper2.checkArpRequest(tapPort2.recv());
-        assertTrue(tapPort2.send(helper2.makeArpReply()));
-        // receive the icmp
-        helper2.checkIcmpEchoRequest(sent, tapPort2.recv());
+        assertThat("An ARP reply was properly sent to the second tap port",
+                   tapPort2.send(helper2.makeArpReply()));
 
-        sent = helper2.makeIcmpEchoRequest(ip1);
-        assertTrue(tapPort2.send(sent));
+        // receive the icmp
+        helper2.checkIcmpEchoRequest(icmpRequest, tapPort2.recv());
+
+        icmpRequest = helper2.makeIcmpEchoRequest(ip1);
+        assertThat("An ICMP request was sent via the second port",
+                   tapPort2.send(icmpRequest));
+
         // Note: the virtual router ARPs before delivering the IPv4 packet.
         helper1.checkArpRequest(tapPort1.recv());
-        assertTrue(tapPort1.send(helper1.makeArpReply()));
+        assertThat("An ARP reply was sent to the first tap port",
+                   tapPort1.send(helper1.makeArpReply()));
+
         // receive the icmp
-        helper1.checkIcmpEchoRequest(sent, tapPort1.recv());
+        helper1.checkIcmpEchoRequest(icmpRequest, tapPort1.recv());
 
-
-        assertNull(tapPort1.recv());
-        assertNull(tapPort2.recv());
+        assertThat("No more packages arrived on the first tap port",
+                   tapPort1.recv(), is(nullValue()));
+        assertThat("No more packages arrived on the second tap port",
+                   tapPort1.recv(), is(nullValue()));
     }
 }

@@ -5,6 +5,8 @@
  */
 package com.midokura.util;
 
+import java.util.Iterator;
+
 /**
  * Helper class for String operations. Only static methods should exist.
  *
@@ -45,6 +47,27 @@ public class StringUtil {
 
         // Remove the last separator char.
         return sb.deleteCharAt(sb.length() - 1).toString();
+    }
+
+    /**
+     * Join the elements of the provided Iterable into a single string using the
+     * separator provided.
+     */
+    public static <T> String join(Iterable<T> items, char separator) {
+        if (items == null) {
+            throw new IllegalArgumentException("list cannot be null");
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (Iterator<T> iterator = items.iterator(); iterator.hasNext(); ) {
+            T item = iterator.next();
+            builder.append(item);
+            if (iterator.hasNext() ){
+                builder.append(separator);
+            }
+        }
+
+        return builder.toString();
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.midokura.midonet.functional_test.topology;
 
-import static com.midokura.tools.process.ProcessHelper.newProcess;
 
 import java.util.UUID;
 
@@ -14,6 +13,7 @@ import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.IntIPv4;
+import static com.midokura.util.process.ProcessHelper.newProcess;
 
 /**
  * Copyright 2011 Midokura Europe SARL User: rossella rossella@midokura.com

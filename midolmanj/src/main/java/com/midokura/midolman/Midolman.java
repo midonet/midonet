@@ -125,6 +125,9 @@ public class Midolman implements SelectListener, Watcher {
         if (startNodeAgent) {
             nodeAgent = NodeAgent.bootstrapAgent(config, zkConnection, ovsdb);
             nodeAgent.start();
+        } else {
+            log.info("Not starting node agent because it was not enabled in the " +
+                         "configuration file.");
         }
 
         listenSock = ServerSocketChannel.open();

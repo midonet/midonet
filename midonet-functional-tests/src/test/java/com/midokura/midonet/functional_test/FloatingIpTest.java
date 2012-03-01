@@ -4,10 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import static com.midokura.tools.process.ProcessHelper.newProcess;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 
 import org.junit.AfterClass;
@@ -15,6 +11,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -29,6 +29,7 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.util.process.ProcessHelper.newProcess;
 
 public class FloatingIpTest extends AbstractSmokeTest {
 
@@ -97,30 +98,42 @@ public class FloatingIpTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() {
+        removeTapWrapper(tapPort1);
+        removeTapWrapper(tapPort2);
+        ovsBridge.remove();
+
+        try {
+            Thread.sleep(2 * 1000);
+        } catch (InterruptedException e) {
+            //
+        }
+
         stopMidolman(midolman);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
 
-        ovsBridge.remove();
-        removeTapWrapper(tapPort1);
-        removeTapWrapper(tapPort2);
     }
 
     @Test
-    public void test() {
+    public void testFloatingIp() {
         byte[] request;
 
         // ICMP echo request to the floatingIP from tapPort1.
         request = helper1.makeIcmpEchoRequest(pubAddr);
-        assertTrue(tapPort1.send(request));
+        assertThat("The ICMP request was sent successfully",
+                   tapPort1.send(request), equalTo(true));
+
         // Midolman's virtual router ARPs before delivering the response.
         helper1.checkArpRequest(tapPort1.recv());
-        assertTrue(tapPort1.send(helper1.makeArpReply()));
+        assertThat("The ARP Reply was sent",
+                   tapPort1.send(helper1.makeArpReply()), equalTo(true));
         // Now the icmp echo reply from the peer.
         PacketHelper.checkIcmpEchoReply(request, tapPort1.recv());
 
         // ICMP echo request to the private IP from tapPort1.
         request = helper1.makeIcmpEchoRequest(privAddr);
+        assertThat("The ARP Reply was sent",
+                   tapPort1.send(helper1.makeArpReply()), equalTo(true));
         assertTrue(tapPort1.send(request));
         // No arp request this time since our earlier reply was cached.
         // Note that the ICMP reply is from the floatingIP not privAddr.

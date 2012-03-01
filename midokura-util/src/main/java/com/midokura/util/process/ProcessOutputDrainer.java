@@ -93,6 +93,17 @@ public class ProcessOutputDrainer {
                         drainTarget.errLine(line);
                     }
                 }
+            } catch (IllegalStateException ex) {
+                Throwable cause = ex.getCause();
+                if ( cause != null
+                    && cause instanceof IOException
+                    && cause.getMessage().equals("Stream closed") ) {
+                    // we ignore an IllegalStateException caused by a stream close
+                    // because this usually happens when the watched process is
+                    // destroyed forcibly (and we tend to that.
+                } else {
+                    throw ex;
+                }
             } catch (IOException e) {
                 // catch and ignore the output. Normally this happens when the
                 // reading input stream (which is connected to a process) is

@@ -12,7 +12,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -56,8 +58,8 @@ public class PingTest extends AbstractSmokeTest {
     static OvsBridge ovsBridge;
     static ServiceController svcController;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
+    @Before
+    public void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -99,8 +101,8 @@ public class PingTest extends AbstractSmokeTest {
         Thread.sleep(10 * 1000);
     }
 
-    @AfterClass
-    public static void tearDown() throws InterruptedException {
+    @After
+    public void tearDown() throws InterruptedException {
         stopMidolman(midolman);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
@@ -115,7 +117,9 @@ public class PingTest extends AbstractSmokeTest {
         byte[] request;
 
         // First arp for router's mac.
-        assertTrue(tap1.send(helper1.makeArpRequest()));
+        assertThat("The ARP request was sent properly",
+                   tap1.send(helper1.makeArpRequest()));
+
         helper1.checkArpReply(tap1.recv());
 
         // Ping router's port.

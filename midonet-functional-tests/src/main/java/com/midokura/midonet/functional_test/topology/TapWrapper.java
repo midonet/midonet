@@ -2,13 +2,14 @@ package com.midokura.midonet.functional_test.topology;
 
 import com.midokura.midolman.packets.*;
 import com.midokura.midonet.functional_test.utils.Tap;
-import static com.midokura.tools.process.ProcessHelper.newProcess;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static com.midokura.util.process.ProcessHelper.newProcess;
 
 
 /**
@@ -27,18 +28,26 @@ public class TapWrapper {
     int fd = -1;
 
     public TapWrapper(String name) {
+        this(name, true);
+    }
+
+    public TapWrapper(String name, boolean create) {
         this.name = name;
 
-        // Create Tap
-        newProcess(
-                String.format("sudo -n ip tuntap add dev %s mode tap",name))
-            .logOutput(log, "create_tap")
-            .runAndWait();
+        if (create) {
+            // Create Tap
+            newProcess(
+                String.format("sudo -n ip tuntap add dev %s mode tap", name))
+                .logOutput(log, "create_tap")
+                .runAndWait();
 
-        newProcess(
-                String.format("sudo -n ip link set dev %s arp off multicast off up", name))
-            .logOutput(log, "create_tap")
-            .runAndWait();
+            newProcess(
+                String.format(
+                    "sudo -n ip link set dev %s arp off multicast off up",
+                    name))
+                .logOutput(log, "create_tap")
+                .runAndWait();
+        }
 
         fd = Tap.openTap(name, true).fd;
     }
@@ -60,7 +69,7 @@ public class TapWrapper {
      * @author mtoader@midokura.com
      */
     public void closeFd() {
-        if ( fd > 0 ) {
+        if (fd > 0) {
             Tap.closeFD(fd);
         }
     }
@@ -71,7 +80,7 @@ public class TapWrapper {
     }
 
     public byte[] recv() {
-        long maxSleepMillis = 2000;
+        long maxSleepMillis = 10000;
         long timeSlept = 0;
         // Max pkt size = 14 (Ethernet) + 1500 (MTU) - 20 GRE = 1492
         byte[] data = new byte[1492];
@@ -86,18 +95,18 @@ public class TapWrapper {
         while (true) {
             int numRead = Tap.readFromTap(this.fd, tmp, 1492 - buf.position());
             if (numRead > 0)
-            	log.debug("Got {} bytes reading from tap.", numRead);
+                log.debug("Got {} bytes reading from tap.", numRead);
             if (0 == numRead) {
                 if (timeSlept >= maxSleepMillis) {
-                	//log.debug("Returning null after receiving {} bytes",
-                	//		buf.position());
+                    //log.debug("Returning null after receiving {} bytes",
+                    //		buf.position());
                     return null;
                 }
                 try {
-                	log.debug("Sleeping for 100 millis.");
+                    log.debug("Sleeping for 100 millis.");
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
-                    log.error("InterrupException in recv()", e);
+                    log.error("InterruptedException in recv()", e);
                 }
                 timeSlept += 100;
                 continue;
@@ -106,13 +115,12 @@ public class TapWrapper {
             if (totalSize < 0) {
                 totalSize = getTotalPacketSize(data, buf.position());
                 if (totalSize == -2) {
-                	log.warn("Got a non-IPv4 packet. Discarding.");
-                	totalSize = -1;
-                	buf.position(0);
-                	continue;
-                }
-                else if (totalSize > -1)
-                	log.debug("The packet has size {}", totalSize);
+                    log.warn("Got a non-IPv4 packet. Discarding.");
+                    totalSize = -1;
+                    buf.position(0);
+                    continue;
+                } else if (totalSize > -1)
+                    log.debug("The packet has size {}", totalSize);
             }
             // break out of the loop if you've read at least one full packet.
             if (totalSize > 0 && totalSize <= buf.position())
@@ -121,13 +129,13 @@ public class TapWrapper {
         if (buf.position() > totalSize) {
             unreadBytes = Arrays.copyOfRange(data, totalSize, buf.position());
             log.debug("Saving {} unread bytes for next packet recv call.",
-            		unreadBytes.length);
+                      unreadBytes.length);
         }
         return Arrays.copyOf(data, totalSize);
     }
 
     private int getTotalPacketSize(byte[] pktBytes, int size) {
-    	log.debug("computing total size, currently have {} bytes", size);
+        log.debug("computing total size, currently have {} bytes", size);
         if (size < 14)
             return -1;
         ByteBuffer bb = ByteBuffer.wrap(pktBytes);
@@ -142,15 +150,17 @@ public class TapWrapper {
         }
         // Now parse the payload.
         if (etherType == ARP.ETHERTYPE) {
-        	bb.getInt();
-        	int hwLen = bb.get();
-        	int protoLen = bb.get();
-        	bb.getShort();
-        	return bb.position() + 2*(hwLen + protoLen);
+            bb.getInt();
+            int hwLen = bb.get();
+            int protoLen = bb.get();
+            bb.getShort();
+            return bb.position() + 2 * (hwLen + protoLen);
         }
-        if (etherType != IPv4.ETHERTYPE)
-        	return -2;
-            //throw new RuntimeException("Received non-IPv4 packet");
+        if (etherType != IPv4.ETHERTYPE) {
+            log.debug("Ether type different from IPv4.ETHERTYPE, was {}", String.format("%x", etherType));
+            return -2;
+        }
+        //throw new RuntimeException("Received non-IPv4 packet");
         if (size - bb.position() < 4)
             return -1;
         // Ignore the first 2 bytes of the IP header.
@@ -169,9 +179,10 @@ public class TapWrapper {
     public void remove() {
         closeFd();
 
-        newProcess(String.format("sudo -n ip tuntap del dev %s mode tap",getName()))
-                .logOutput(log, "remove_tap@" + getName())
-                .runAndWait();
+        newProcess(
+            String.format("sudo -n ip tuntap del dev %s mode tap", getName()))
+            .logOutput(log, "remove_tap@" + getName())
+            .runAndWait();
 
     }
 }

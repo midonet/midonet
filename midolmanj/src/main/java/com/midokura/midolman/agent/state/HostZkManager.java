@@ -43,8 +43,10 @@ public class HostZkManager extends ZkManager {
         try {
             metadata = deserialize(data, HostDirectory.Metadata.class);
         } catch (IOException e) {
+            String dataAsString = new String(data);
             throw new ZkStateSerializationException(
-                "Could not deserialize host metadata for id: " + id,
+                "Could not deserialize host metadata for id: " + id +
+                    " [" + dataAsString + "]",
                 e,
                 HostDirectory.Metadata.class);
         }

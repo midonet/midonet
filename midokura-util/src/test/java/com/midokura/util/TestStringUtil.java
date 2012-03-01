@@ -61,7 +61,7 @@ public class TestStringUtil {
 
     @Test(expected = IllegalArgumentException.class)
     public void testJoinNullInput() throws Exception {
-        StringUtil.join(null, '/');
+        StringUtil.join((Object[]) null, '/');
     }
 
     @Test
