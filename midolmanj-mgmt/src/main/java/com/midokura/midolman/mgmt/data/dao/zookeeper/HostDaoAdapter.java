@@ -60,7 +60,8 @@ public class HostDaoAdapter implements HostDao {
                     hosts.add(host);
                 }
             } catch (StateAccessException e) {
-                log.warn("Tried to read an an host that vanished: hosts", e);
+                log.warn("Tried to read the information of a host that vanished " +
+                             "or become corrupted: {}", id, e);
             }
         }
 

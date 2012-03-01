@@ -15,6 +15,7 @@ public class DtoApplication {
     private URI admin;
     private URI tenant;
     private URI vifs;
+    private URI hosts;
 
     public String getVersion() {
         return version;
@@ -46,5 +47,13 @@ public class DtoApplication {
 
     public void setVifs(URI vifs) {
         this.vifs = vifs;
+    }
+
+    public URI getHosts() {
+        return hosts;
+    }
+
+    public void setHosts(URI hosts) {
+        this.hosts = hosts;
     }
 }
