@@ -23,6 +23,16 @@
         <url>http://github.com/midokura/midonet</url>
     </scm>
 
+    <properties>
+        <versions.jackson>1.8.5</versions.jackson>
+        <versions.log4j>1.2.16</versions.log4j>
+        <versions.jersey>1.9.1</versions.jersey>
+        <versions.jetty>6.1.26</versions.jetty>
+        <versions.powermock>1.4.11</versions.powermock>
+        <versions.commons.io>2.1</versions.commons.io>
+        <versions.hamcrest>1.3.RC2</versions.hamcrest>
+    </properties>
+
     <pluginRepositories>
         <pluginRepository>
             <id>mido-maven</id>
