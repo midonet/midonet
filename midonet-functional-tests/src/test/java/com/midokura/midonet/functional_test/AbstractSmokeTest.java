@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
+import com.midokura.midonet.functional_test.topology.MidoPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -52,6 +53,12 @@ public abstract class AbstractSmokeTest {
     protected static void removeTapWrapper(TapWrapper tap) {
         if (tap != null) {
             tap.remove();
+        }
+    }
+
+    protected void removeMidoPort(MidoPort port) {
+        if (port != null) {
+            port.delete();
         }
     }
 

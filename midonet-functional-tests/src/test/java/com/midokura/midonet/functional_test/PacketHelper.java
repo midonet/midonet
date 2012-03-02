@@ -90,7 +90,7 @@ public class PacketHelper {
 
     public static void checkArpReply(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
                                      MAC dlDst, IntIPv4 nwDst) {
-        assertThat("The packet we received is not null", recv, notNullValue());
+        assertThat("We actually have a packet buffer", recv, notNullValue());
 
         Ethernet pkt = new Ethernet();
         pkt.deserialize(recv, 0, recv.length);
@@ -180,7 +180,7 @@ public class PacketHelper {
         Ethernet pkt = new Ethernet();
         pkt.deserialize(recv, 0, recv.length);
 
-        assertThat("the package ether type is actually ARP",
+        assertThat("the package ether type is ARP",
                    pkt.getEtherType(), equalTo(ARP.ETHERTYPE));
         assertThat("the package MAC address matches the source MAC",
                    pkt.getSourceMACAddress(), equalTo(dlSrc));

@@ -155,7 +155,7 @@ public class BridgeTest extends AbstractSmokeTest {
 
             assertNull(tap3.recv());
             assertNull(tap1.recv());
-        } // end synchronized(mgmt)
+        } // end synchronized(api)
     }
 
     @Test
@@ -208,6 +208,6 @@ public class BridgeTest extends AbstractSmokeTest {
 
             // Re-add the OVS port to leave things as we found them.
             ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
-        } // end synchronized(mgmt)
+        } // end synchronized(api)
     }
 }

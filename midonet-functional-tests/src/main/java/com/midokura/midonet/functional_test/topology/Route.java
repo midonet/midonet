@@ -49,6 +49,13 @@ public class Route {
 
     }
 
+    @Override
+    public String toString() {
+        return "Route{" +
+            "dtoRoute=" + dtoRoute +
+            '}';
+    }
+
     public void delete() {
         
     }

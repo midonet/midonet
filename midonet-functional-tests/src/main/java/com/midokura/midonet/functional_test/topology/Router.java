@@ -59,6 +59,10 @@ public class Router {
         return new PeerRouterLink.Builder(mgmt, dto);
     }
 
+    public String getName() {
+        return dto.getName();
+    }
+
     public void delete() {
 
     }

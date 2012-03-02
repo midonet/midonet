@@ -85,15 +85,16 @@ public class OvsBridge {
         try {
             Thread.sleep(1000);
             newProcess(
-                    new StringBuilder("sudo -n ip link set dev ").append(name)
-                            .append(" arp on mtu 1400 multicast off up")
-                            .toString()).logOutput(log, "int_port")
-                    .runAndWait();
+                String.format("sudo -n ip link set dev %s arp on " +
+                                  "mtu 1400 multicast off up", name))
+                .logOutput(log, "int_port")
+                .runAndWait();
+
             newProcess(
-                    new StringBuilder("sudo -n ip addr add ")
-                            .append(ip.toString()).append("/").append(nwLen)
-                            .append(" dev ").append(name).toString())
-                    .logOutput(log, "int_port").runAndWait();
+                String.format("sudo -n ip addr add %s/%d dev %s",
+                              ip.toString(), nwLen, name))
+                .logOutput(log, "int_port")
+                .runAndWait();
         } catch (InterruptedException e) {
             log.error("Error adding system port.", e);
         }
