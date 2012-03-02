@@ -359,7 +359,7 @@ class TestBridgeControllerOVS {
             val response = controller.getTableStats
             log.info("Controlelr got the response {}", response)
             for (reply: OFTableStatistics <- response) {
-                assertEquals(reply.getTableId, 0)
+                assertEquals(reply.getTableId, 1)
                 assertNotSame(reply.getActiveCount, 0)
             }
         } catch {
