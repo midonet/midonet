@@ -140,4 +140,21 @@ public class DtoRoute {
         return Reject;
     }
 
+    @Override
+    public String toString() {
+        return "DtoRoute{" +
+            "id=" + id +
+            ", routerId=" + routerId +
+            ", srcNetworkAddr='" + srcNetworkAddr + '\'' +
+            ", srcNetworkLength=" + srcNetworkLength +
+            ", dstNetworkAddr='" + dstNetworkAddr + '\'' +
+            ", dstNetworkLength=" + dstNetworkLength +
+            ", nextHopPort=" + nextHopPort +
+            ", nextHopGateway='" + nextHopGateway + '\'' +
+            ", weight=" + weight +
+            ", attributes='" + attributes + '\'' +
+            ", type='" + type + '\'' +
+            ", uri=" + uri +
+            '}';
+    }
 }

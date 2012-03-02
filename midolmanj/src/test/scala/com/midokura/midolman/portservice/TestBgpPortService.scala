@@ -21,18 +21,16 @@ import scala.collection.JavaConversions._
 import com.midokura.midolman.eventloop.MockReactor
 import com.midokura.midolman.layer3.MockServiceFlowController
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
-import com.midokura.midolman.openvswitch.OpenvSwitchException._
 import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.quagga.{MockBgpConnection, MockZebraServer}
-import com.midokura.midolman.Setup
 import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
                                     MockDirectory, PortDirectory,
                                     PortZkManager, RouteZkManager,
                                     RouterZkManager, ZkPathManager}
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
 import com.midokura.midolman.util.{Net, ShortUUID, Sudo}
+import com.midokura.midolman.{TestHelpers, Setup}
+import org.hamcrest.Matchers._
 
 /**
  * Test for BgpPortService using Open vSwitch database connection.
@@ -111,6 +109,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
 
 class TestBgpPortService {
     import TestBgpPortService._
+    import TestHelpers._
 
     @Before
     def testSudo() {
@@ -159,22 +158,29 @@ class TestBgpPortService {
                     portServiceExtIdKey, portServiceExtId)
                 assertEquals(1, portNames.size)
                 var ports = portService.configurePort(portId)
+
+                assertThat(
+                  "The port -%s appeared in ovsdb".format(portName),
+                  waitFor { ovsdb.hasPort(portName) }, equalTo(true))
+
                 var cmdExitValue = Sudo.sudoExec(
-                    "ip addr add %s/%d dev %s".format(
-                        Net.convertIntAddressToString(portConfig.portAddr),
-                        portConfig.nwLength, portName))
-                assertTrue(cmdExitValue != 0)
-                val remotePortNum = ovsdb.getPortNumsByPortName(remotePortName)
-                    .head
-                val localPortNum = ovsdb
-                                    .getPortNumsByPortName(portName).head
+                  "ip addr add %s/%d dev %s".format(
+                    Net.convertIntAddressToString(portConfig.portAddr),
+                    portConfig.nwLength, portName))
+                assertTrue("The ip addr command was executed successfully", cmdExitValue != 0)
+
+                val remotePortNum =
+                  ovsdb.getPortNumsByPortName(remotePortName).head
+                val localPortNum =
+                  ovsdb.getPortNumsByPortName(portName).head
+
                 portService.start(bridgeId, localPortNum, remotePortNum)
                 reactor.incrementTime(1, TimeUnit.SECONDS)
                 // Check if bgpd is running.
-                cmdExitValue = Sudo.sudoExec("killall bgpd")
-                assertTrue(cmdExitValue == 0)
+                assertTrue("bgpd process was running",
+                  Sudo.sudoExec("killall bgpd") == 0)
 
-                // Calling start again to reconnet bgpd.
+                // Calling start again to reconnect bgpd.
                 portService.start(bridgeId, localPortNum, remotePortNum)
                 ovsdb.delPort(remotePortName)
             } finally {
