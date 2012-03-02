@@ -126,6 +126,7 @@ public class Rule extends UriResource {
             this.jumpChainName = ((JumpRule) zkRule).jumpToChain;
         }
         this.id = id;
+        this.position = zkRule.position;
     }
 
     /**

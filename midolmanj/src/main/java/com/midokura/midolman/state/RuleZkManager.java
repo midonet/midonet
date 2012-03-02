@@ -21,7 +21,7 @@ import com.midokura.midolman.rules.Rule;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -32,7 +32,7 @@ public class RuleZkManager extends ZkManager {
 
     /**
      * Constructor to set ZooKeeper and base path.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -101,11 +101,10 @@ public class RuleZkManager extends ZkManager {
         for (ZkNodeEntry<UUID, Rule> rule : rules) {
             // For any node that has the > position value, shift down.
             if (rule.value.position > position) {
-                String path = pathManager.getChainRulePath(rule.value.chainId,
-                        rule.key);
+                String path = pathManager.getRulePath(rule.key);
                 rule.value.position--;
                 try {
-                    ops.add(Op.setData(path, serialize(rule), -1));
+                    ops.add(Op.setData(path, serialize(rule.value), -1));
                 } catch (IOException e) {
                     throw new ZkStateSerializationException(
                             "Could not serialize Rule", e, Rule.class);
@@ -118,8 +117,9 @@ public class RuleZkManager extends ZkManager {
 
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
-     * new rule.
-     * 
+     * new rule. This method does not re-number the positions of other rules in
+     * the same chain.
+     *
      * @param ruleEntry
      *            ZooKeeper node representing a key-value entry of rule UUID and
      *            Rule object.
@@ -127,7 +127,7 @@ public class RuleZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareRuleCreate(ZkNodeEntry<UUID, Rule> ruleEntry)
+    private List<Op> prepareRuleCreate(ZkNodeEntry<UUID, Rule> ruleEntry)
             throws ZkStateSerializationException {
         String rulePath = pathManager.getRulePath(ruleEntry.key);
         String chainRulePath = pathManager.getChainRulePath(
@@ -148,21 +148,24 @@ public class RuleZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareRuleDelete(UUID id)
+    private List<Op> prepareRuleDelete(UUID id)
             throws ZkStateSerializationException, StateAccessException {
         return prepareDeletePositionOrdering(get(id));
     }
 
     /**
-     * Constructs a list of operations to perform in a rule deletion.
-     * 
+     * Constructs a list of operations to perform in a rule deletion. This
+     * method does not re-number the positions of other rules in the same
+     * chain. The method is package-private so that it can be used for
+     * deleting an entire rule-chain.
+     *
      * @param entry
      *            Rule ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareRuleDelete(ZkNodeEntry<UUID, Rule> entry) {
+    List<Op> prepareRuleDelete(ZkNodeEntry<UUID, Rule> entry) {
         List<Op> ops = new ArrayList<Op>();
         String chainRulePath = pathManager.getChainRulePath(
                 entry.value.chainId, entry.key);
@@ -175,8 +178,10 @@ public class RuleZkManager extends ZkManager {
     }
 
     /**
-     * Performs an atomic update on the ZooKeeper to add a new rule entry.
-     * 
+     * Performs an atomic update on the ZooKeeper to add a new rule entry. This
+     * method may re-number the positions of other rules in the same chain in
+     * order to insert the new rule at the desired position.
+     *
      * @param rule
      *            Rule object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
@@ -195,7 +200,7 @@ public class RuleZkManager extends ZkManager {
 
     /**
      * Gets a ZooKeeper node entry key-value pair of a rule with the given ID.
-     * 
+     *
      * @param id
      *            The ID of the rule.
      * @return Rule object found.
@@ -220,7 +225,7 @@ public class RuleZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper rule nodes belonging to a chain with the given
      * ID.
-     * 
+     *
      * @param chainId
      *            The ID of the chain to find the rules of.
      * @return A list of ZooKeeper chain nodes.
@@ -236,7 +241,7 @@ public class RuleZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper rule nodes belonging to a chain with the given
      * ID.
-     * 
+     *
      * @param chainId
      *            The ID of the chain to find the rules of.
      * @param watcher
@@ -260,8 +265,9 @@ public class RuleZkManager extends ZkManager {
 
     /***
      * Deletes a rule and its related data from the ZooKeeper directories
-     * atomically.
-     * 
+     * atomically. This method may re-number the positions of other rules in
+     * the same chain.
+     *
      * @param id
      *            ID of the rule to delete.
      * @throws ZkStateSerializationException

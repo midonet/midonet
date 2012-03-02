@@ -251,6 +251,7 @@ public class TestRule extends JerseyTest {
         //NOTE(tomoe) just check type field since other fields
         //            are straightforward data transformation
         assertEquals(rule.getType(), ruleReturned.getType());
+        assertEquals(1, ruleReturned.getPosition());
 
         // List rules
         response = resource().uri(
@@ -259,6 +260,35 @@ public class TestRule extends JerseyTest {
             .get(ClientResponse.class);
         log.debug("{}", response.getEntity(String.class));
         assertEquals(200, response.getStatus());
+
+        // Now insert a copy of the rule in position 1.
+        response = resource().uri(rulesUri)
+                .type(APPLICATION_RULE_JSON)
+                .post(ClientResponse.class, rule);
+        assertEquals(201, response.getStatus());
+        URI newRuleUri = response.getLocation();
+
+        // Verify that the original rule has been pushed to position 2.
+        response = resource().uri(ruleUri)
+                .accept(APPLICATION_RULE_JSON)
+                .get(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+        ruleReturned = response.getEntity(DtoRule.class);
+        assertEquals(2, ruleReturned.getPosition());
+
+        // Now delete the rule at position 1.
+        response = resource().uri(newRuleUri)
+                .type(APPLICATION_RULE_JSON)
+                .delete(ClientResponse.class);
+        assertEquals(204, response.getStatus());
+
+        // Verify that the original rule has been pushed back to position 1.
+        response = resource().uri(ruleUri)
+                .accept(APPLICATION_RULE_JSON)
+                .get(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+        ruleReturned = response.getEntity(DtoRule.class);
+        assertEquals(1, ruleReturned.getPosition());
 
         //Delete the chain
         response = resource().uri(ruleUri).delete(ClientResponse.class);
