@@ -34,6 +34,8 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
+import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
 public class BridgeTest extends AbstractSmokeTest {
 
@@ -66,8 +68,8 @@ public class BridgeTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(MidolmanLauncher.CONFIG_DEFAULT);
-        midolman2 = MidolmanLauncher.start(MidolmanLauncher.CONFIG_WITHOUT_BGP);
+        midolman1 = MidolmanLauncher.start(Default, "BridgeTest-smoke_br");
+        midolman2 = MidolmanLauncher.start(Without_Bgp, "BridgeTest-smoke_br2");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");

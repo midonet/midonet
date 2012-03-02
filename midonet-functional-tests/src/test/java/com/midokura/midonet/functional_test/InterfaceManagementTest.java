@@ -26,6 +26,7 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.tools.timed.Timed;
+import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 
 /**
  * Test Suite that will exercise the interface management subsystem.
@@ -59,7 +60,8 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         // create a new one
         // start the agent / or midolman1
         MidolmanLauncher launcher =
-            MidolmanLauncher.start(MidolmanLauncher.CONFIG_WITH_NODE_AGENT);
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagement-testNewHostAppearsWhenTheAgentIsExecuted");
 
         try {
             hosts =
@@ -92,7 +94,8 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
                    hosts, allOf(notNullValue(), arrayWithSize(0)));
 
         MidolmanLauncher launcher =
-            MidolmanLauncher.start(MidolmanLauncher.CONFIG_WITH_NODE_AGENT);
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagement-testHostIsMarkedAsDownWhenTheAgentDies");
 
         try {
             DtoHost[] newHosts =
@@ -143,7 +146,8 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
                    hosts, allOf(notNullValue(), arrayWithSize(0)));
 
         MidolmanLauncher launcher =
-            MidolmanLauncher.start(MidolmanLauncher.CONFIG_WITH_NODE_AGENT);
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagement-testHostIsMarkedAsAliveAfterAgentRestarts");
 
         try {
             hosts = waitFor("a new host should appear",
@@ -179,7 +183,8 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
                        newHostInfo.isAlive(), equalTo(false));
 
             // start the agent again
-            launcher = MidolmanLauncher.start();
+            launcher = MidolmanLauncher.start(With_Node_Agent,
+                                              "InterfaceManagement-testHostIsMarkedAsAliveAfterAgentRestarts-restarted");
 
             newHostInfo =
                 waitFor("host status change",
@@ -206,7 +211,8 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         final String tapInterfaceName = "newTapInterface";
 
         MidolmanLauncher launcher =
-            MidolmanLauncher.start(MidolmanLauncher.CONFIG_WITH_NODE_AGENT);
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagementTest-testNewInterfaceBecomesVisible");
 
         TapWrapper tapWrapper = null;
 

@@ -35,6 +35,7 @@ public class PingTest extends AbstractSmokeTest {
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
     IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
+    String internalPortName = "pingTestInt";
 
     Router rtr;
     Tenant tenant1;
@@ -53,11 +54,13 @@ public class PingTest extends AbstractSmokeTest {
 
     @Before
     public void setUp() throws Exception {
+        fixQuaggaFolderPermissions();
+
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
             "Open_vSwitch", "127.0.0.1", 12344);
 
         api = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman = MidolmanLauncher.start("PingTest");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -82,7 +85,7 @@ public class PingTest extends AbstractSmokeTest {
         ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
 
         p3 = rtr.addVmPort().setVMAddress(ip3).build();
-        ovsBridge.addInternalPort(p3.port.getId(), "pingTestInt", ip3, 24);
+        ovsBridge.addInternalPort(p3.port.getId(), internalPortName, ip3, 24);
 
         helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1,
                 tap1.getHwAddr(), rtrIp);
@@ -96,7 +99,7 @@ public class PingTest extends AbstractSmokeTest {
     public void tearDown() throws Exception {
         removeTapWrapper(tap2);
         removeTapWrapper(tap1);
-        ovsBridge.deletePort("pingTestInt");
+        ovsBridge.deletePort(internalPortName);
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);

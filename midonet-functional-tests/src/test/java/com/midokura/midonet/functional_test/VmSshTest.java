@@ -64,7 +64,7 @@ public class VmSshTest extends AbstractSmokeTest {
             ovsdb.delBridge("smoke-br");
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
         mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman = MidolmanLauncher.start("VmSshTest");
 
         tenant = new Tenant.Builder(mgmt).setName("tenant-vm-ssh").build();
 

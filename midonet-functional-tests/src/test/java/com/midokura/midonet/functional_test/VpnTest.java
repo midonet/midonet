@@ -50,7 +50,7 @@ public class VpnTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman = MidolmanLauncher.start("VpnTest");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");

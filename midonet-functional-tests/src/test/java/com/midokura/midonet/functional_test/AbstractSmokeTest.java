@@ -3,8 +3,14 @@
  */
 package com.midokura.midonet.functional_test;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MidoPort;
@@ -14,14 +20,6 @@ import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.process.ProcessHelper;
-
-import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import static com.midokura.tools.timed.Timed.newTimedExecution;
 
 /**
@@ -54,6 +52,14 @@ public abstract class AbstractSmokeTest {
         if (tap != null) {
             tap.remove();
         }
+    }
+
+    protected static void fixQuaggaFolderPermissions()
+        throws IOException, InterruptedException {
+        // sometimes after a reboot someone will reset the permissions which in
+        // turn will make our Zebra implementation unable to bind to the socket
+        // so we fix it like a boss.
+        Sudo.sudoExec("chmod 777 /run/quagga");
     }
 
     protected void removeMidoPort(MidoPort port) {
@@ -101,9 +107,9 @@ public abstract class AbstractSmokeTest {
                 .execute(assertion);
 
         assertThat(
-            String.format("The wait for: \"%s\" didn't complete successfully",
-                          what),
-            executionResult.completed(), equalTo(true));
+            String.format("The wait for: \"%s\" didn't complete successfully " +
+                              "(waited %d seconds)", what, total % 1000),
+            executionResult.completed());
 
         return executionResult.result();
     }

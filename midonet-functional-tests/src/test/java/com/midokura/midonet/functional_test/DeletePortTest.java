@@ -67,7 +67,7 @@ public class DeletePortTest extends AbstractSmokeTest {
             "Open_vSwitch", "127.0.0.1", 12344);
 
         api = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman = MidolmanLauncher.start("DeletePortTest");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");

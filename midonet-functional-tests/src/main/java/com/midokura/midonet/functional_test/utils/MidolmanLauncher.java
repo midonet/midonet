@@ -21,37 +21,38 @@ public class MidolmanLauncher {
 
     private final static Logger log = LoggerFactory
         .getLogger(MidolmanLauncher.class);
-    public static final String MIDONET_PROJECT_LOCATION = "midonet.functional.tests.current_midonet_project";
+
+    public static final String MIDONET_PROJECT_LOCATION =
+        "midonet.functional.tests.current_midonet_project";
+
+    public static final String MIDONET_MIDOLMAN_USE_JARS =
+        "midonet.functional.tests.use_midolman_jars";
 
     private Process midolmanProcess;
     private Thread midolmanProcessShutdownHook;
 
-    public final static String CONFIG_DEFAULT =
-        "./midolmanj_runtime_configurations/default";
-
-    public final static String CONFIG_WITHOUT_BGP =
-        "./midolmanj_runtime_configurations/without_bgp";
-
-    public final static String CONFIG_WITH_NODE_AGENT =
-        "./midolmanj_runtime_configurations/with_node_agent";
-
-    public static MidolmanLauncher start() throws IOException {
-        return start(CONFIG_DEFAULT);
+    public enum ConfigType {
+        Default, Without_Bgp, With_Node_Agent
     }
 
-    public static MidolmanLauncher start(String configFileLocation)
+    public static MidolmanLauncher start(String logPostFix) throws IOException {
+        return start(ConfigType.Default, logPostFix);
+    }
+
+    public static MidolmanLauncher start(ConfigType configType, String logPostfix)
         throws IOException {
 
         MidolmanLauncher launcher = new MidolmanLauncher();
 
-        launcher.startMidolman(configFileLocation);
+        launcher.startMidolman(configType.name().toLowerCase(), logPostfix);
 
         return launcher;
     }
 
-    private void startMidolman(String configFileLocation) {
-        String commandLine = createCommandLine(configFileLocation);
+    private void startMidolman(String configType, String logFilePostfix) {
+        String commandLine = createCommandLine(configType, logFilePostfix);
         log.debug("Launching midolman with command line: " + commandLine);
+
         midolmanProcess = ProcessHelper
             .newProcess(commandLine)
             .setDrainTarget(DrainTargets.noneTarget())
@@ -70,17 +71,38 @@ public class MidolmanLauncher {
         Runtime.getRuntime().addShutdownHook(midolmanProcessShutdownHook);
     }
 
-    private String createCommandLine(String configFileLocation) {
-        String classPath = getClassPath(configFileLocation);
-
+    private String createCommandLine(String configType, String logPostfix) {
         return
             String.format(
-                "java -cp %s:%s -Dmidolman.log.dir=. " +
-                    "com.midokura.midolman.Midolman -c %s/midolman.conf",
-                configFileLocation, classPath, configFileLocation);
+                "java -cp %s " +
+                    "-Dmidolman.log.file=%s " +
+                    "com.midokura.midolman.Midolman " +
+                    "-c %s",
+                getClassPath(),
+                getLogFilePath(configType, logPostfix),
+                String.format("./midolmanj_runtime_configurations/midolman-%s.conf",
+                              configType));
     }
 
-    private String getClassPath(String configFileLocation) {
+    private String getLogFilePath(String configType, String postfix) {
+        String fileName =
+            String.format("midolman-%s%s.log",
+                          configType,
+                          postfix != null ? "-" + postfix : "");
+
+        String midonetLocation =
+            System.getProperty(MIDONET_PROJECT_LOCATION, "");
+
+
+        File midonetFolder = new File(midonetLocation);
+        if (!midonetFolder.exists() || !midonetFolder.isDirectory()) {
+            return "./midonet-functional-tests/" + fileName;
+        }
+
+        return "./" + fileName;
+    }
+
+    private String getClassPath() {
         String midonetLocation =
             System.getProperty(MIDONET_PROJECT_LOCATION, "");
 
@@ -91,27 +113,37 @@ public class MidolmanLauncher {
 
         List<String> classPathEntries = new ArrayList<String>();
 
+        // add the log.xml file location first in the class path
         classPathEntries.add(
             new File(midonetLocation,
-                     "midolmanj/target/classes")
-                .getAbsolutePath());
+                     "midonet-functional-tests/midolmanj_runtime_configurations")
+            .getAbsolutePath()
+        );
 
-        classPathEntries.add(
-            new File(midonetLocation,
-                     "midokura-util/target/classes")
-                .getAbsolutePath());
+        // add either the classes or the built jars of the project dependencies
+        if (!Boolean.getBoolean(MIDONET_MIDOLMAN_USE_JARS) ) {
+            classPathEntries.add(
+                new File(midonetLocation, "midolmanj/target/classes")
+                    .getAbsolutePath());
 
-        classPathEntries.add(
-            new File(midonetLocation,
-                     "midolmanj/target/midolmanj-12.06-SNAPSHOT.jar")
-                .getAbsolutePath());
+            classPathEntries.add(
+                new File(midonetLocation, "midokura-util/target/classes")
+                    .getAbsolutePath());
+        } else {
+            classPathEntries.add(
+                new File(midonetLocation,
+                         "midolmanj/target/midolmanj-12.06-SNAPSHOT.jar")
+                    .getAbsolutePath());
 
-        classPathEntries.add(
-            new File(midonetLocation,
-                     "midokura-util/target/midokura-util-12.06-SNAPSHOT.jar")
-                .getAbsolutePath());
+            classPathEntries.add(
+                new File(midonetLocation,
+                         "midokura-util/target/midokura-util-12.06-SNAPSHOT.jar")
+                    .getAbsolutePath());
+        }
 
-
+        // add all the midolmanj dependencies that we find inside the
+        // target/dependencies folder (check the midolmanj/pom.xml to see how
+        // they are copied in there)
         File []midolmanJars =
             new File(midonetFolder, "midolmanj/target/dependencies").listFiles(
                 new FileFilter() {

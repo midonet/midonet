@@ -25,7 +25,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bgp;
@@ -68,10 +67,7 @@ public class BgpTest extends AbstractSmokeTest {
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
 
-        // sometimes after a reboot someone will reset the permissions which in
-        // turn will make our Zebra implementation unable to bind to the socket
-        // so we fix it like a boss.
-        Sudo.sudoExec("chmod 777 /run/quagga");
+        fixQuaggaFolderPermissions();
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
@@ -82,7 +78,7 @@ public class BgpTest extends AbstractSmokeTest {
         ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
 
         mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman = MidolmanLauncher.start("BgpTest");
 
         tenant = new Tenant.Builder(mgmt).setName("tenant-bgp").build();
 

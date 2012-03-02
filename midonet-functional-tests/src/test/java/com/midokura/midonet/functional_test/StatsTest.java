@@ -62,7 +62,7 @@ public class StatsTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start();
+        midolman = MidolmanLauncher.start("StatsTest");
         // First clean up left-overs from previous incomplete tests.
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
