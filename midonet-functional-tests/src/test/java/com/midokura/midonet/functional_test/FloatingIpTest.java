@@ -6,8 +6,8 @@ package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,21 +36,21 @@ public class FloatingIpTest extends AbstractSmokeTest {
     private final static Logger log = LoggerFactory
             .getLogger(FloatingIpTest.class);
 
-    static Tenant tenant1;
-    static TapWrapper tapPort1;
-    static TapWrapper tapPort2;
-    static IntIPv4 rtrIp;
-    static IntIPv4 pubAddr;
-    static IntIPv4 privAddr;
-    static OpenvSwitchDatabaseConnection ovsdb;
-    static PacketHelper helper1;
-    static PacketHelper helper2;
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman;
-    static OvsBridge ovsBridge;
+    Tenant tenant1;
+    TapWrapper tapPort1;
+    TapWrapper tapPort2;
+    IntIPv4 rtrIp;
+    IntIPv4 pubAddr;
+    IntIPv4 privAddr;
+    OpenvSwitchDatabaseConnection ovsdb;
+    PacketHelper helper1;
+    PacketHelper helper2;
+    MidolmanMgmt mgmt;
+    MidolmanLauncher midolman;
+    OvsBridge ovsBridge;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
+    @Before
+    public void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -96,22 +96,14 @@ public class FloatingIpTest extends AbstractSmokeTest {
         Thread.sleep(5 * 1000);
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-        ovsBridge.remove();
-
-        try {
-            Thread.sleep(2 * 1000);
-        } catch (InterruptedException e) {
-            //
-        }
-
+        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
-
     }
 
     @Test

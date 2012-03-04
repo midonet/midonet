@@ -353,7 +353,7 @@ class TestBridgeControllerOVS {
         }
     }
 
-    @Test(timeout=1000) def testTableStats() {
+    @Ignore @Test(timeout=1000) def testTableStats() {
         log.info("testTableStats")
         try {
             val response = controller.getTableStats

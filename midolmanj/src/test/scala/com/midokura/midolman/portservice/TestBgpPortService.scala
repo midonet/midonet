@@ -139,6 +139,7 @@ class TestBgpPortService {
     }
 
     @Test
+    @Ignore
     def testStart() {
         log.debug("testStart")
 
@@ -160,8 +161,8 @@ class TestBgpPortService {
                 var ports = portService.configurePort(portId)
 
                 assertThat(
-                  "The port -%s appeared in ovsdb".format(portName),
-                  waitFor { ovsdb.hasPort(portName) }, equalTo(true))
+                  "The port %s didn't appeared in ovsdb".format(portName),
+                  waitFor(30000,250) { ovsdb.hasPort(portName) }, equalTo(true))
 
                 var cmdExitValue = Sudo.sudoExec(
                   "ip addr add %s/%d dev %s".format(
@@ -177,7 +178,7 @@ class TestBgpPortService {
                 portService.start(bridgeId, localPortNum, remotePortNum)
                 reactor.incrementTime(1, TimeUnit.SECONDS)
                 // Check if bgpd is running.
-                assertTrue("bgpd process was running",
+                assertTrue("We could not kill the bgpd process",
                   Sudo.sudoExec("killall bgpd") == 0)
 
                 // Calling start again to reconnect bgpd.

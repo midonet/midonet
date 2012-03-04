@@ -9,8 +9,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,19 +34,19 @@ public class VpnTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(VpnTest.class);
 
-    static Tenant tenant1;
-    static TapWrapper tapPort1;
-    static TapWrapper tapPort2;
-    static PeerRouterLink link;
-    static OpenvSwitchDatabaseConnection ovsdb;
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman;
-    static OvsBridge ovsBridge;
-    static MidoPort vpn1;
-    static MidoPort vpn2;
+    Tenant tenant1;
+    TapWrapper tapPort1;
+    TapWrapper tapPort2;
+    PeerRouterLink link;
+    OpenvSwitchDatabaseConnection ovsdb;
+    MidolmanMgmt mgmt;
+    MidolmanLauncher midolman;
+    OvsBridge ovsBridge;
+    MidoPort vpn1;
+    MidoPort vpn2;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
+    @Before
+    public void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -115,21 +115,21 @@ public class VpnTest extends AbstractSmokeTest {
         Thread.sleep(10000);
     }
 
-    @AfterClass
-    public static void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         // delete vpns
+        removeTapWrapper(tapPort1);
+        removeTapWrapper(tapPort2);
         mgmt.deleteVpn(vpn1.getVpn());
         mgmt.deleteVpn(vpn2.getVpn());
         // give some second to the controller to clean up vpns stuff
         Thread.sleep(3 * 1000);
+        ovsBridge.remove();
         stopMidolman(midolman);
         if (null != link)
             link.delete();
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
-        ovsBridge.remove();
-        removeTapWrapper(tapPort1);
-        removeTapWrapper(tapPort2);
     }
 
     @Test
