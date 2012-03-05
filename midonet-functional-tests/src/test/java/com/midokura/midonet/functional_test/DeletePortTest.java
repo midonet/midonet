@@ -247,7 +247,7 @@ public class DeletePortTest extends AbstractSmokeTest {
 
         // Now remove p3 and verify that all flows are removed since they
         // are ingress or egress at p3.
-        ovsBridge.deletePort("pingTestInt");
+        ovsBridge.deletePort(INT_PORT_NAME);
         Thread.sleep(2000);
         fstats = svcController.getFlowStats(icmpMatch);
         assertThat("The list of FlowStats should be empty", fstats, hasSize(0));
