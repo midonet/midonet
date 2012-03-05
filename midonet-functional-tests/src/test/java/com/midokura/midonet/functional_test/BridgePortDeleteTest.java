@@ -36,9 +36,9 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
-public class BridgeTest extends AbstractSmokeTest {
+public class BridgePortDeleteTest extends AbstractSmokeTest {
 
-    private final static Logger log = LoggerFactory.getLogger(BridgeTest.class);
+    private final static Logger log = LoggerFactory.getLogger(BridgePortDeleteTest.class);
 
     Tenant tenant1;
     IntIPv4 ip1;
@@ -67,8 +67,8 @@ public class BridgeTest extends AbstractSmokeTest {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "BridgeTest-smoke_br");
-        midolman2 = MidolmanLauncher.start(Without_Bgp, "BridgeTest-smoke_br2");
+        midolman1 = MidolmanLauncher.start(Default, "BridgePortDeleteTest-smoke_br");
+        midolman2 = MidolmanLauncher.start(Without_Bgp, "BridgePortDeleteTest-smoke_br2");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -114,7 +114,6 @@ public class BridgeTest extends AbstractSmokeTest {
     public void tearDown() {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
-        removeTapWrapper(tap3);
 
         removeBridge(ovsBridge1);
         removeBridge(ovsBridge2);
@@ -127,34 +126,53 @@ public class BridgeTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testPingOverBridge() {
-        byte[] sent;
+    public void testPortDelete() throws InterruptedException {
+        // Use different MAC addrs from other tests (unlearned MACs).
+        MAC mac1 = MAC.fromString("02:00:00:00:aa:01");
+        MAC mac2 = MAC.fromString("02:00:00:00:aa:02");
+        // Send broadcast from Mac1/port1.
+        byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
 
-        sent = helper1_3.makeIcmpEchoRequest(ip3);
-        assertThat("One ICMP echo request was sent via the tap1 device",
-                   tap1.send(sent), equalTo(true));
+        assertThat("The ARP packet was sent properly.",
+                   tap1.send(pkt), equalTo(true));
+        assertThat("The received package is the same as the one sent",
+                   tap2.recv(), equalTo(pkt));
 
-        // Receive the icmp, Mac3 hasn't been learnt so the icmp will be
-        // delivered to all the ports.
-        helper3_1.checkIcmpEchoRequest(sent, tap3.recv());
-        helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
+        // There should now be one flow that outputs to ALL.
+        Thread.sleep(1000);
+        MidoMatch match1 = new MidoMatch().setDataLayerSource(mac1);
+        List<FlowStats> fstats = svcController.getFlowStats(match1);
+        assertEquals(1, fstats.size());
+        FlowStats flow1 = fstats.get(0);
+        flow1.expectCount(1).expectOutputAction(OFPort.OFPP_ALL.getValue());
 
-        sent = helper3_1.makeIcmpEchoRequest(ip1);
-        assertTrue(tap3.send(sent));
-        // Mac1 was learnt, so the message will be sent only to tap1
-        helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
+        // Send unicast from Mac2/port2 to mac1.
+        pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
+        assertTrue(tap2.send(pkt));
+        assertArrayEquals(pkt, tap1.recv());
 
-        // VM moves, sending from Mac3 Ip3 using tap2
-        sent = helper3_1.makeIcmpEchoRequest(ip1);
-        assertTrue(tap2.send(sent));
-        helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
+        // There should now be one flow that outputs to port 1.
+        Thread.sleep(1000);
+        MidoMatch match2 = new MidoMatch().setDataLayerSource(mac2);
+        fstats = svcController.getFlowStats(match2);
+        assertEquals(1, fstats.size());
+        FlowStats flow2 = fstats.get(0);
+        short portNum1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(
+            tap1.getName()));
+        flow2.expectCount(1).expectOutputAction(portNum1);
 
-        sent = helper1_3.makeIcmpEchoRequest(ip3);
-        assertTrue(tap1.send(sent));
-        helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
+        // The first flow should not have changed.
+        flow1.findSameInList(svcController.getFlowStats(match1))
+             .expectCount(1);
 
-        assertNull(tap3.recv());
-        assertNull(tap1.recv());
+        // Delete port1. It is the destination of flow2 and
+        // the origin of flow1 - so expect both flows to be removed.
+        ovsBridge1.deletePort(tap1.getName());
+        Thread.sleep(1000);
+        assertEquals(0, svcController.getFlowStats(match1).size());
+        assertEquals(0, svcController.getFlowStats(match2).size());
+
+        // Re-add the OVS port to leave things as we found them.
+        ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
     }
 }
-

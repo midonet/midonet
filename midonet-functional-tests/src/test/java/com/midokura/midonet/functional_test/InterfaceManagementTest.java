@@ -50,7 +50,6 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
-    @Ignore
     public void testNewHostAppearsWhenTheAgentIsExecuted() throws Exception {
 
         DtoHost[] hosts = api.getHosts();
@@ -87,7 +86,6 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
-    @Ignore
     public void testHostIsMarkedAsDownWhenTheAgentDies() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -139,7 +137,6 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
-    @Ignore
     public void testHostIsMarkedAsAliveAfterAgentRestarts() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -205,7 +202,6 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
     }
 
     @Test
-    @Ignore
     public void testNewInterfaceBecomesVisible() throws Exception {
 
         final String tapInterfaceName = "newTapInterface";

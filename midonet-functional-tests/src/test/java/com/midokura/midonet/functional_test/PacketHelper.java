@@ -313,28 +313,28 @@ public class PacketHelper {
      * @param recv is the serialization of the reply we received
      */
     public void checkIcmpEchoRequest(byte[] sent, byte[] recv) {
-        assertThat("The sent ICMP Echo buffer is not null", sent,
+        assertThat("The sent ICMP Echo buffer wasn't correct.", sent,
                    notNullValue());
-        assertThat("The recv ICMP Rply buffer is not null", recv,
+        assertThat("The recv ICMP Reply buffer wasn't correct.", recv,
                    notNullValue());
-        assertThat("The sent and received packages have the same length",
+        assertThat("The sent and received packages had different sizes.",
                    sent.length, equalTo(recv.length));
 
         byte[] mac = Arrays.copyOf(recv, 6); // the destination mac
         assertThat(
-            "The destination mac address of the incoming package is the " +
-                "same as the port mac address!",
+            "The destination mac address of the incoming package was different " +
+                "from the port mac address.",
             new MAC(mac), equalTo(epMac));
 
         mac = Arrays.copyOfRange(recv, 6, 12); // the source mac
-        assertThat("The source mac address of the incoming package is the " +
-                       "same as the gateway mac address!",
+        assertThat("The source mac address of the incoming package was different " +
+                       "from the gateway mac address.",
                    new MAC(mac), equalTo(gwMac));
 
         // The rest of the packet should be identical.
         Arrays.fill(sent, 0, 12, (byte) 0);
         Arrays.fill(recv, 0, 12, (byte) 0);
-        assertThat("The rest of the package bytes should match",
+        assertThat("The rest of the package bytes were different.",
                    sent, equalTo(recv));
     }
 
