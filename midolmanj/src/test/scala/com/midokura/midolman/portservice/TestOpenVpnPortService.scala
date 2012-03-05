@@ -9,18 +9,12 @@ package com.midokura.midolman.portservice
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
-import org.junit.{ AfterClass, BeforeClass, Ignore, Test }
+import org.junit.{AfterClass, BeforeClass, Test}
 import org.junit.Assert._
-import org.junit.Assume._
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
-import com.midokura.midolman.openvswitch.OpenvSwitchException._
-import com.midokura.midolman.Setup
 import com.midokura.midolman.state.MockDirectory
 import com.midokura.midolman.state.PortDirectory
 import com.midokura.midolman.state.PortZkManager
@@ -29,12 +23,15 @@ import com.midokura.midolman.state.VpnZkManager
 import com.midokura.midolman.state.VpnZkManager.{VpnConfig, VpnType}
 import com.midokura.midolman.state.ZkPathManager
 import com.midokura.midolman.util.{Net, Sudo}
+import com.midokura.midolman.Setup
+import com.midokura.midolman.TestHelpers._
 
 /**
  * Test for OpenVpnPortService using Open vSwitch database connection.
  */
 object TestOpenVpnPortService
-extends OpenvSwitchDatabaseConnectionBridgeConnector {
+    extends OpenvSwitchDatabaseConnectionBridgeConnector {
+
     private final val log =
         LoggerFactory.getLogger(classOf[TestOpenVpnPortService])
 
@@ -72,7 +69,9 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
     }
 
     @AfterClass
-    def finalizeTest() { disconnectFromOVSDB }
+    def finalizeTest() {
+        disconnectFromOVSDB
+    }
 
     @BeforeClass
     def initializeTest() {
@@ -89,8 +88,8 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
         vpnMgr = new VpnZkManager(dir, basePath)
 
         portService = new OpenVpnPortService(this.ovsdb, bridgeExtIdKey,
-                                             portServiceExtIdKey, portMgr,
-                                             vpnMgr)
+            portServiceExtIdKey, portMgr,
+            vpnMgr)
         // Create a provider router and a tenant router.
         val pRouterId = routerMgr.create
         val tRouterId = routerMgr.create
@@ -111,11 +110,11 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
 
         // Create an UDP server vpn config.
         vpnConfig = new VpnConfig(pubPortId, priPortId, null,
-                                  VpnType.OPENVPN_SERVER, 1154)
+            VpnType.OPENVPN_SERVER, 1154)
         vpnId = vpnMgr.create(vpnConfig)
         // Create a TCP server vpn config.
         vpnConfig2 = new VpnConfig(pubPortId, priPortId, null,
-                                  VpnType.OPENVPN_TCP_SERVER, 1154)
+            VpnType.OPENVPN_TCP_SERVER, 1154)
         vpnId2 = vpnMgr.create(vpnConfig2)
     }
 }
@@ -127,11 +126,7 @@ class TestOpenVpnPortService {
     def testClear() {
         log.debug("testClear")
         // Skip tests if a user don't have sudo access w/o password.
-        var cmdExitValue = Sudo.sudoExec("ip link")
-        if (cmdExitValue != 0) {
-            log.warn("sudo w/o password is required to run this test.")
-        }
-        assumeTrue(cmdExitValue == 0)
+        assertSudoAccess("ip link")
 
         assertFalse(ovsdb.hasInterface(portName))
         // Add a private tap port with "midolman_port_service=openvpn".
@@ -148,11 +143,7 @@ class TestOpenVpnPortService {
     def testAddPort() {
         log.debug("testAddPort")
         // Skip tests if a user don't have sudo access w/o password.
-        var cmdExitValue = Sudo.sudoExec("ip link")
-        if (cmdExitValue != 0) {
-            log.warn("sudo w/o password is required to run this test.")
-        }
-        assumeTrue(cmdExitValue == 0)
+        assertSudoAccess("ip link")
 
         portService.clear
         assertFalse(ovsdb.hasPort(pubPortName))
@@ -166,10 +157,10 @@ class TestOpenVpnPortService {
             portServiceExtIdKey, portServiceExtId)
         assertEquals(2, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   pubPortId.toString);
+            pubPortId.toString);
         assertEquals(1, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   priPortId.toString);
+            priPortId.toString);
         assertEquals(1, portNames.size)
 
         // Destroy all ports and readd them.
@@ -182,13 +173,13 @@ class TestOpenVpnPortService {
         assertTrue(ovsdb.hasPort(priPortName))
 
         portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                   portServiceExtId)
+            portServiceExtId)
         assertEquals(2, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   pubPortId.toString);
+            pubPortId.toString);
         assertEquals(1, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   priPortId.toString);
+            priPortId.toString);
         assertEquals(1, portNames.size)
         portService.clear
     }
@@ -199,15 +190,10 @@ class TestOpenVpnPortService {
         portService.addPort(0, null)
     }
 
-    @Test
-    def testConfigurePort() {
+    @Test def testConfigurePort() {
         log.debug("testConfigurePort")
         // Skip tests if a user don't have sudo access w/o password.
-        var cmdExitValue = Sudo.sudoExec("ip link")
-        if (cmdExitValue != 0) {
-            log.warn("sudo w/o password is required to run this test.")
-        }
-        assumeTrue(cmdExitValue == 0)
+        assertSudoAccess("ip link")
 
         portService.clear
         assertFalse(ovsdb.hasPort(pubPortName))
@@ -216,36 +202,31 @@ class TestOpenVpnPortService {
 
         // Check there is no left over addrs, rules or routes are in the
         // running environment.
-        var ipCmdExitValue = Sudo.sudoExec(
-            "ip addr del %s/%d dev %s".format(pubPortNw, pubPortNwLength,
-                                              pubPortName))
-        assertTrue(ipCmdExitValue != 0)
+        assertCommandFails(
+            "ip addr del %s/%d dev %s".format(pubPortNw, pubPortNwLength, pubPortName))
+
         val ruleTableId = getRuleTableId(pubPortId)
-        ipCmdExitValue = Sudo.sudoExec(
+        assertCommandFails(
             "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
-        assertTrue(ipCmdExitValue != 0)
-        ipCmdExitValue = Sudo.sudoExec(
+
+        assertCommandFails(
             "ip route del table %d".format(ruleTableId))
-        assertTrue(ipCmdExitValue != 0)
 
         portService.configurePort(pubPortId, pubPortName)
-        ipCmdExitValue = Sudo.sudoExec(
-            "ip addr add %s/%d dev %s".format(pubPortNw, pubPortNwLength,
-                                              pubPortName))
-        assertTrue(ipCmdExitValue != 0)
-        ipCmdExitValue = Sudo.sudoExec(
-            "ip route add default via %s table %d".format(pubPortAddr,
-                                                          ruleTableId))
-        assertTrue(ipCmdExitValue != 0)
+        assertCommandFails(
+            "ip addr add %s/%d dev %s".format(pubPortNw, pubPortNwLength, pubPortName))
+
+        assertCommandFails(
+            "ip route add default via %s table %d".format(pubPortAddr, ruleTableId))
+
         // Check expected route is added to the table. The command should
         // succeed if it exists.
-        ipCmdExitValue = Sudo.sudoExec(
+        assertCommandSucceeds(
             "ip route del table %d".format(ruleTableId))
-        assertTrue(ipCmdExitValue == 0)
+
         // Check expected rule is added. The command should succeed if there is.
-        ipCmdExitValue = Sudo.sudoExec(
+        assertCommandSucceeds(
             "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
-        assertTrue(ipCmdExitValue == 0)
 
         portService.clear
     }
@@ -254,11 +235,7 @@ class TestOpenVpnPortService {
     def testDelPort() {
         log.debug("testDelPort")
         // Skip tests if a user don't have sudo access w/o password.
-        var cmdExitValue = Sudo.sudoExec("ip link")
-        if (cmdExitValue != 0) {
-            log.warn("sudo w/o password is required to run this test.")
-        }
-        assumeTrue(cmdExitValue == 0)
+        assertSudoAccess("ip link")
 
         portService.clear
         assertFalse(ovsdb.hasPort(pubPortName))
@@ -272,10 +249,10 @@ class TestOpenVpnPortService {
             portServiceExtIdKey, portServiceExtId)
         assertEquals(2, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   pubPortId.toString);
+            pubPortId.toString);
         assertEquals(1, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   priPortId.toString);
+            priPortId.toString);
         assertEquals(1, portNames.size)
 
         // Delete ports.
@@ -285,13 +262,13 @@ class TestOpenVpnPortService {
         assertFalse(ovsdb.hasPort(priPortName))
 
         portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-                                                   portServiceExtId)
+            portServiceExtId)
         assertEquals(0, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   pubPortId.toString);
+            pubPortId.toString);
         assertEquals(0, portNames.size)
         portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-                                                   priPortId.toString);
+            priPortId.toString);
         assertEquals(0, portNames.size)
 
         portService.clear
@@ -302,13 +279,9 @@ class TestOpenVpnPortService {
         try {
             log.debug("testStart")
             // Skip tests if a user don't have sudo access w/o password.
-            var cmdExitValue = Sudo.sudoExec("ip link")
-            if (cmdExitValue != 0) {
-                log.warn("sudo w/o password is required to run this test.")
-            }
-            assumeTrue(cmdExitValue == 0)
+            assertSudoAccess("ip link")
 
-            portService.clear
+            portService.clear()
             assertFalse(ovsdb.hasPort(pubPortName))
             portService.addPort(bridgeId, pubPortId, null)
             assertTrue(ovsdb.hasPort(pubPortName))
@@ -317,31 +290,28 @@ class TestOpenVpnPortService {
             assertTrue(ovsdb.hasPort(priPortName))
             portService.configurePort(pubPortId, pubPortName)
 
-            var ipCmdExitValue = Sudo.sudoExec(
+            assertCommandFails(
                 "killall %s".format(portServiceExtId))
-            assertTrue(ipCmdExitValue != 0)
 
             portService.start(vpnId)
             val ruleTableId = getRuleTableId(pubPortId)
             // Check expected route is added to the table. The command should
             // succeed if it exists.
-            ipCmdExitValue = Sudo.sudoExec(
+            assertCommandSucceeds(
                 "ip route del table %d".format(ruleTableId))
-            assertTrue(ipCmdExitValue == 0)
+
             // Check expected rule is added. The command should succeed if
             // there is.
-            ipCmdExitValue = Sudo.sudoExec(
+            assertCommandSucceeds(
                 "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
-            assertTrue(ipCmdExitValue == 0)
-            ipCmdExitValue = Sudo.sudoExec(
-                "killall %s".format(portServiceExtId))
-            assertTrue(ipCmdExitValue == 0)
 
-            portService.clear
+            assertCommandSucceeds(
+                "killall %s".format(portServiceExtId))
+
+            portService.clear()
         } catch {
             case e: java.io.IOException =>
-                Console.println("IOException in testStart: " + e)
-                e.printStackTrace
+                log.error("IOException in testStart: ", e)
         }
     }
 
@@ -350,11 +320,7 @@ class TestOpenVpnPortService {
         try {
             log.debug("testStartTcpServer")
             // Skip tests if a user don't have sudo access w/o password.
-            var cmdExitValue = Sudo.sudoExec("ip link")
-            if (cmdExitValue != 0) {
-                log.warn("sudo w/o password is required to run this test.")
-            }
-            assumeTrue(cmdExitValue == 0)
+            assertSudoAccess("ip link")
 
             portService.clear
             assertFalse(ovsdb.hasPort(pubPortName))
@@ -365,31 +331,28 @@ class TestOpenVpnPortService {
             assertTrue(ovsdb.hasPort(priPortName))
             portService.configurePort(pubPortId, pubPortName)
 
-            var ipCmdExitValue = Sudo.sudoExec(
+            assertCommandFails(
                 "killall %s".format(portServiceExtId))
-            assertTrue(ipCmdExitValue != 0)
 
             portService.start(vpnId2)
             val ruleTableId = getRuleTableId(pubPortId)
             // Check expected route is added to the table. The command should
             // succeed if it exists.
-            ipCmdExitValue = Sudo.sudoExec(
+            assertCommandSucceeds(
                 "ip route del table %d".format(ruleTableId))
-            assertTrue(ipCmdExitValue == 0)
+
             // Check expected rule is added. The command should succeed if
             // there is.
-            ipCmdExitValue = Sudo.sudoExec(
+            assertCommandSucceeds(
                 "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
-            assertTrue(ipCmdExitValue == 0)
-            ipCmdExitValue = Sudo.sudoExec(
+
+            assertCommandSucceeds(
                 "killall %s".format(portServiceExtId))
-            assertTrue(ipCmdExitValue == 0)
 
             portService.clear
         } catch {
             case e: java.io.IOException =>
-                Console.println("IOException in testStart: " + e)
-                e.printStackTrace
+                log.error("IOException in testStart: ", e)
         }
     }
 
@@ -404,11 +367,7 @@ class TestOpenVpnPortService {
         try {
             log.debug("testStop")
             // Skip tests if a user don't have sudo access w/o password.
-            var cmdExitValue = Sudo.sudoExec("ip link")
-            if (cmdExitValue != 0) {
-                log.warn("sudo w/o password is required to run this test.")
-            }
-            assumeTrue(cmdExitValue == 0)
+            assertSudoAccess("ip link")
 
             portService.clear
             assertFalse(ovsdb.hasPort(pubPortName))
@@ -419,36 +378,32 @@ class TestOpenVpnPortService {
             assertTrue(ovsdb.hasPort(priPortName))
             portService.configurePort(pubPortId, pubPortName)
 
-            var ipCmdExitValue = Sudo.sudoExec(
-                "killall %s".format(portServiceExtId))
-            assertTrue(ipCmdExitValue != 0)
+            assertCommandFails("killall %s".format(portServiceExtId))
 
             portService.start(vpnId)
+
             val ruleTableId = getRuleTableId(pubPortId)
             // Check expected route is added to the table. The command should
             // succeed if it exists.
-            ipCmdExitValue = Sudo.sudoExec(
+            assertCommandSucceeds(
                 "ip route del table %d".format(ruleTableId))
-            assertTrue(ipCmdExitValue == 0)
+
             // Check expected rule is added. The command should succeed if
             // there is.
-            ipCmdExitValue = Sudo.sudoExec(
+            assertCommandSucceeds(
                 "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
-            assertTrue(ipCmdExitValue == 0)
 
             portService.stop(vpnId)
+
+            Thread.sleep(1000)
             // Check openvpn process doesn't exist.
             // Waiting 1sec to helps to destory the process.
-            Thread.sleep(1000)
-            ipCmdExitValue = Sudo.sudoExec(
-                "killall %s".format(portServiceExtId))
-            assertTrue(ipCmdExitValue != 0)
+            assertCommandFails("killall %s".format(portServiceExtId))
 
             portService.clear
         } catch {
             case e: java.io.IOException =>
-                Console.println("IOException in testStart: " + e)
-                e.printStackTrace
+                log.error("IOException in testStart: ", e)
         }
     }
 

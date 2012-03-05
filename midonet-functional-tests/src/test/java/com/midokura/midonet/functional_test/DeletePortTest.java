@@ -7,15 +7,16 @@ package com.midokura.midonet.functional_test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 
 import com.midokura.midolman.openflow.MidoMatch;
@@ -29,17 +30,16 @@ import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MidoPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.Route;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.tools.timed.Timed;
 
 public class DeletePortTest extends AbstractSmokeTest {
 
     private final static Logger log = LoggerFactory.getLogger(
         DeletePortTest.class);
+    public static final String INT_PORT_NAME = "intDeletePort";
 
     IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
@@ -84,15 +84,15 @@ public class DeletePortTest extends AbstractSmokeTest {
         log.debug("Done building tenant");
 
         p1 = rtr.addVmPort().setVMAddress(ip1).build();
-        tap1 = new TapWrapper("pingTestTap1");
+        tap1 = new TapWrapper("tapDelPort1");
         ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
 
         p2 = rtr.addVmPort().setVMAddress(ip2).build();
-        tap2 = new TapWrapper("pingTestTap2");
+        tap2 = new TapWrapper("tapDelPort2");
         ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
 
         p3 = rtr.addVmPort().setVMAddress(ip3).build();
-        ovsBridge.addInternalPort(p3.port.getId(), "pingTestInt", ip3, 24);
+        ovsBridge.addInternalPort(p3.port.getId(), INT_PORT_NAME, ip3, 24);
 
         helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1,
                                    tap1.getHwAddr(), rtrIp);
@@ -111,8 +111,8 @@ public class DeletePortTest extends AbstractSmokeTest {
 
     @After
     public void tearDown() throws Exception {
-        removeTapWrapper(tap2);
         removeTapWrapper(tap1);
+        removeTapWrapper(tap2);
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         Thread.sleep(1000);
@@ -126,7 +126,7 @@ public class DeletePortTest extends AbstractSmokeTest {
     public void testPortDelete() throws InterruptedException {
         short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
+        short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
         log.debug(
             "The OF ports have numbers: {}, {}, and {}",
             new Object[]{num1, num2, num3});
@@ -144,7 +144,7 @@ public class DeletePortTest extends AbstractSmokeTest {
 
         num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID("pingTestInt"));
+        num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
         log.debug("The OF ports have numbers: {}, {}, and {}",
                   new Object[]{num1, num2, num3});
 
@@ -188,33 +188,50 @@ public class DeletePortTest extends AbstractSmokeTest {
         assertEquals(4, fstats.size());
 
         // Verify that there are flows: 1->3, 3->1, 2->3, 3->2.
-        fstats = svcController.getFlowStats(new MidoMatch().setNetworkSource(
-            ip1.address).setNetworkDestination(ip3.address));
-        assertEquals(1, fstats.size());
+        fstats =
+            svcController.getFlowStats(
+                new MidoMatch().setNetworkSource(ip1.address)
+                               .setNetworkDestination(ip3.address));
+
+        assertThat("Only one FlowStats object should be visible",
+                   fstats, hasSize(1));
+
         FlowStats flow1_3 = fstats.get(0);
         flow1_3.expectCount(1).expectOutputAction(num3);
 
-        fstats = svcController.getFlowStats(new MidoMatch().setNetworkSource(
-            ip3.address).setNetworkDestination(ip1.address));
-        assertEquals(1, fstats.size());
+        fstats = svcController.getFlowStats(
+            new MidoMatch().setNetworkSource(ip3.address)
+                           .setNetworkDestination(ip1.address));
+        assertThat("Only one FlowStats object should be visible.",
+                   fstats, hasSize(1));
         FlowStats flow3_1 = fstats.get(0);
         flow3_1.expectCount(1).expectOutputAction(num1);
 
-        fstats = svcController.getFlowStats(new MidoMatch().setNetworkSource(
-            ip2.address).setNetworkDestination(ip3.address));
-        assertEquals(1, fstats.size());
+        fstats = svcController.getFlowStats(
+            new MidoMatch().setNetworkSource(ip2.address)
+                           .setNetworkDestination(ip3.address));
+        assertThat("One one FlowStats object should be visible.",
+                   fstats, hasSize(1));
         FlowStats flow2_3 = fstats.get(0);
         flow2_3.expectCount(1).expectOutputAction(num3);
 
-        fstats = svcController.getFlowStats(new MidoMatch().setNetworkSource(
-            ip3.address).setNetworkDestination(ip2.address));
-        assertEquals(1, fstats.size());
+        fstats = svcController.getFlowStats(
+            new MidoMatch().setNetworkSource(ip3.address)
+                           .setNetworkDestination(ip2.address));
+        assertThat("Only one FlowStats object should be visible.",
+                   fstats, hasSize(1));
         FlowStats flow3_2 = fstats.get(0);
         flow3_2.expectCount(1).expectOutputAction(num2);
 
         // Repeat the pings and verify that the packet counts increase.
-        assertThat("The tap should have sent the packet", tap1.send(ping1_3));
-        assertThat("The tap should have sent the packet", tap2.send(ping2_3));
+        assertThat(
+            format("The tap %s should have sent the packet", tap1.getName()),
+            tap1.send(ping1_3));
+
+        assertThat(
+            format("The tap %s should have sent the packet", tap2.getName()),
+            tap2.send(ping2_3));
+
         // Sleep to let OVS update its stats.
         Thread.sleep(1000);
 
@@ -233,6 +250,6 @@ public class DeletePortTest extends AbstractSmokeTest {
         ovsBridge.deletePort("pingTestInt");
         Thread.sleep(2000);
         fstats = svcController.getFlowStats(icmpMatch);
-        assertEquals(0, fstats.size());
+        assertThat("The list of FlowStats should be empty", fstats, hasSize(0));
     }
 }

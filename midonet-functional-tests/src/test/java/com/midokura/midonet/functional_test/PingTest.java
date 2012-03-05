@@ -6,6 +6,8 @@ package com.midokura.midonet.functional_test;
 
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -118,7 +120,10 @@ public class PingTest extends AbstractSmokeTest {
 
         // Ping router's port.
         request = helper1.makeIcmpEchoRequest(rtrIp);
-        assertThat("The tap should have sent the packet", tap1.send(request));
+        assertThat(
+            format("The tap %s should have sent the packet", tap1.getName()),
+            tap1.send(request));
+
         // Note: Midolman's virtual router currently does not ARP before
         // responding to ICMP echo requests addressed to its own port.
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());

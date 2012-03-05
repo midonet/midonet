@@ -4,28 +4,24 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.util.List;
+import static java.lang.String.format;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openflow.protocol.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
@@ -89,17 +85,17 @@ public class BridgeTest extends AbstractSmokeTest {
 
         ip1 = IntIPv4.fromString("192.168.231.2");
         bPort1 = bridge1.addPort();
-        tap1 = new TapWrapper("tap1");
+        tap1 = new TapWrapper("tapBridge1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
         ip2 = IntIPv4.fromString("192.168.231.3");
         bPort2 = bridge1.addPort();
-        tap2 = new TapWrapper("tap2");
+        tap2 = new TapWrapper("tapBridge2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
         ip3 = IntIPv4.fromString("192.168.231.4");
         bPort3 = bridge1.addPort();
-        tap3 = new TapWrapper("tap3");
+        tap3 = new TapWrapper("tapBridge3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
         helper1_3 = new PacketHelper(tap1.getHwAddr(), ip1, tap3.getHwAddr(),
@@ -131,8 +127,10 @@ public class BridgeTest extends AbstractSmokeTest {
         byte[] sent;
 
         sent = helper1_3.makeIcmpEchoRequest(ip3);
-        assertThat("One ICMP echo request was sent via the tap1 device",
-                   tap1.send(sent), equalTo(true));
+        assertThat(
+            format("One ICMP echo request was sent via the %s device",
+                   tap1.getName()),
+            tap1.send(sent), equalTo(true));
 
         // Receive the icmp, Mac3 hasn't been learnt so the icmp will be
         // delivered to all the ports.
@@ -153,8 +151,13 @@ public class BridgeTest extends AbstractSmokeTest {
         assertTrue(tap1.send(sent));
         helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
 
-        assertNull(tap3.recv());
-        assertNull(tap1.recv());
+        assertThat(
+            format("No more packets should have been received on %s", tap3.getName()),
+            tap3.recv(), is(nullValue()));
+
+        assertThat(
+            format("No more packets should have been received on %s", tap1.getName()),
+            tap1.recv(), is(nullValue()));
     }
 }
 

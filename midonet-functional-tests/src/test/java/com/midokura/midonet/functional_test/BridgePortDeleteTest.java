@@ -83,11 +83,11 @@ public class BridgePortDeleteTest extends AbstractSmokeTest {
         waitForBridgeToConnect(svcController);
 
         bPort1 = bridge1.addPort();
-        tap1 = new TapWrapper("tap1");
+        tap1 = new TapWrapper("tapBridgeDel1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
         bPort2 = bridge1.addPort();
-        tap2 = new TapWrapper("tap2");
+        tap2 = new TapWrapper("tapBridgeDel2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
         Thread.sleep(10000);
@@ -132,10 +132,14 @@ public class BridgePortDeleteTest extends AbstractSmokeTest {
 
         // Send unicast from Mac2/port2 to mac1.
         pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
-        assertThat("The ICMP echo packet was properly sent via tap2",
-                   tap2.send(pkt));
-        assertThat("We received the same packet on tap1",
-                   tap1.recv(), equalTo(pkt));
+        assertThat(
+            String.format(
+                "The ICMP echo packet was properly sent via %s", tap2.getName()),
+            tap2.send(pkt));
+
+        assertThat(
+            String.format("We received the same packet on %s", tap1.getName()),
+            tap1.recv(), equalTo(pkt));
 
         // There should now be one flow that outputs to port 1.
         Thread.sleep(1000);

@@ -13,6 +13,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 
+import static java.lang.String.format;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -224,8 +226,10 @@ public class StatsTest extends AbstractSmokeTest {
             new MidoMatch()
                 .setNetworkSource(tapIp2.address, 32)
                 .setNetworkDestination(tapIp1.address, 32));
-        assertThat("There is only one stats object from tap2 to tap1",
-                   fstats, hasSize(1));
+        assertThat(
+            format("There is only one stats object from %s to %s",
+                   tapIp2.toString(), tapIp1.toString()),
+            fstats, hasSize(1));
         FlowStats statsFlowTwoToOne = fstats.get(0);
         statsFlowTwoToOne.expectCount(5);
         // The aggregate flow stats to tap1 now include counts for PeerTo1 And

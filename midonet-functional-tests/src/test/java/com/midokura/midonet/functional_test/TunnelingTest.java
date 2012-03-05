@@ -87,14 +87,14 @@ public class TunnelingTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() throws InterruptedException {
+        removeTapWrapper(tapPort1);
+        removeTapWrapper(tapPort2);
+        removeBridge(ovsBridge1);
+        removeBridge(ovsBridge2);
         stopMidolman(midolman1);
         stopMidolman(midolman2);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
-        ovsBridge1.remove();
-        ovsBridge2.remove();
-        removeTapWrapper(tapPort1);
-        removeTapWrapper(tapPort2);
     }
 
     @Test
