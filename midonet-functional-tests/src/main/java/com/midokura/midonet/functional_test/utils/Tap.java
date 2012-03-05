@@ -87,7 +87,9 @@ public class Tap {
             String errorMessage = _errmsg();
             closeFD(fd);
             throw new RuntimeException(
-                String.format("Error doing ioctl on the tap: %s", errorMessage));
+                String.format(
+                    "Error doing ioctl on the tap %s. Error message: %s",
+                    tapName, errorMessage));
         }
 
         OpenTapDescriptor descriptor = new OpenTapDescriptor();

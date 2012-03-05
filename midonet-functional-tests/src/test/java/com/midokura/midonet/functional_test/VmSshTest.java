@@ -97,11 +97,13 @@ public class VmSshTest extends AbstractSmokeTest {
 
     @AfterClass
     public static void tearDown() {
+        removeTapWrapper(tapPort);
+        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
         stopMidolmanMgmt(mgmt);
-        ovsBridge.remove();
-        removeTapWrapper(tapPort);
+
+        vm.destroy();
     }
 
     @Test
