@@ -130,4 +130,9 @@ public abstract class AbstractSmokeTest {
             });
     }
 
+    protected void removeVpn(MidolmanMgmt mgmt, MidoPort vpn1) {
+        if (mgmt != null && vpn1 != null) {
+            mgmt.deleteVpn(vpn1.getVpn());
+        }
+    }
 }

@@ -49,7 +49,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         stopMidolmanMgmt(api);
     }
 
-    @Test
+    @Ignore @Test
     public void testNewHostAppearsWhenTheAgentIsExecuted() throws Exception {
 
         DtoHost[] hosts = api.getHosts();
@@ -85,7 +85,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         }
     }
 
-    @Test
+    @Ignore @Test
     public void testHostIsMarkedAsDownWhenTheAgentDies() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -136,7 +136,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         }
     }
 
-    @Test
+    @Ignore @Test
     public void testHostIsMarkedAsAliveAfterAgentRestarts() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -201,7 +201,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         }
     }
 
-    @Test
+    @Ignore @Test
     public void testNewInterfaceBecomesVisible() throws Exception {
 
         final String tapInterfaceName = "newTapInterface";

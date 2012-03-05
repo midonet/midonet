@@ -120,11 +120,12 @@ public class VpnTest extends AbstractSmokeTest {
         // delete vpns
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-        mgmt.deleteVpn(vpn1.getVpn());
-        mgmt.deleteVpn(vpn2.getVpn());
-        // give some second to the controller to clean up vpns stuff
-        Thread.sleep(3 * 1000);
-        ovsBridge.remove();
+        removeVpn(mgmt, vpn1);
+        removeVpn(mgmt, vpn2);
+        removeBridge(ovsBridge);
+        // TODO: Convert the following to a condition.
+        // Give some second to the controller to clean up vpns stuff
+        Thread.sleep(5 * 1000);
         stopMidolman(midolman);
         if (null != link)
             link.delete();
