@@ -93,13 +93,12 @@ public class MidolmanLauncher {
         String midonetLocation =
             System.getProperty(MIDONET_PROJECT_LOCATION, "");
 
-
         File midonetFolder = new File(midonetLocation);
         if (!midonetFolder.exists() || !midonetFolder.isDirectory()) {
-            return "./midonet-functional-tests/" + fileName;
+            return "./midonet-functional-tests/target/" + fileName;
         }
 
-        return "./" + fileName;
+        return "./target/" + fileName;
     }
 
     private String getClassPath() {
