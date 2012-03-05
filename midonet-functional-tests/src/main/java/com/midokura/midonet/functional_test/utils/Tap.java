@@ -84,9 +84,10 @@ public class Tap {
                                                      interfaceReq);
         // check if ioctl has been successful
         if (result < 0) {
+            String errorMessage = _errmsg();
             closeFD(fd);
             throw new RuntimeException(
-                String.format("Error doing ioctl on the tap: %s", _errmsg()));
+                String.format("Error doing ioctl on the tap: %s", errorMessage));
         }
 
         OpenTapDescriptor descriptor = new OpenTapDescriptor();
