@@ -56,4 +56,11 @@ public class NxAction extends OFActionVendor {
         result = 31 * result + subtype.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "NxAction{" +
+                "subtype=" + subtype +
+                '}';
+    }
 }

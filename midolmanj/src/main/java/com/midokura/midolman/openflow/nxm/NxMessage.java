@@ -17,8 +17,8 @@ import org.openflow.util.U16;
  */
 public class NxMessage extends OFMessage {
 
-    public static int MINIMUM_LENGTH = 12;
-    public final static int NX_VENDOR_ID  = 0x00002320;
+    public static final int MINIMUM_LENGTH = 12;
+    public static final int NX_VENDOR_ID  = 0x00002320;
     protected NxType subtype;
 
     // Used for de-serialization, e.g. by NxMessage.fromOFVendor

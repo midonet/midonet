@@ -24,6 +24,6 @@ public class OfEthTypeNxmEntry extends ShortNomaskNxmEntry {
 
     @Override
     public String toString() {
-        return "OfEthTypeNxmEntry: type=" + value;
+        return "OfEthTypeNxmEntry: type=0x" + Integer.toHexString(value & 0xffff);
     }
 }

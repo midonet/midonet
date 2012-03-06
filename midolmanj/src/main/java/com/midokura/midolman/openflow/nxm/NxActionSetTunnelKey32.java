@@ -59,4 +59,11 @@ public class NxActionSetTunnelKey32 extends NxAction {
         result = 31 * result + key;
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "NxActionSetTunnelKey32{" +
+                "key=" + key +
+                '}';
+    }
 }

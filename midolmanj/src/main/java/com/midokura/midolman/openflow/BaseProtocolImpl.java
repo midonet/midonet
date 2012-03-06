@@ -6,6 +6,7 @@ package com.midokura.midolman.openflow;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -31,12 +32,15 @@ import org.openflow.protocol.OFError.OFPortModFailedCode;
 import org.openflow.protocol.OFError.OFQueueOpFailedCode;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
+import org.openflow.protocol.OFVendor;
 import org.openflow.protocol.factory.BasicFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectListener;
+import com.midokura.midolman.openflow.nxm.NxError;
+import com.midokura.midolman.openflow.nxm.NxMessage;
 
 /**
  * An implementation of the OpenFlow 1.0 protocol to abstract operations.
@@ -248,7 +252,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             }
             return true;
         case ERROR:
-            log.debug("handleMessage: ERROR");
+            log.debug("handleMessage: ERROR for xid: {}", m.getXid());
             OFError error = (OFError) m;
             logError(error);
             return true;
@@ -259,6 +263,13 @@ public abstract class BaseProtocolImpl implements SelectListener {
     }
 
     protected void logError(OFError error) {
+        if (NxError.isNxErrorExtension(error)) {
+            NxError nxErr = NxError.fromOFError(error);
+            OFMessage failedReq = new OFMessage();
+            failedReq.readFrom(ByteBuffer.wrap(nxErr.getFailedReq()));
+            log.error("Nicira error {} caused by message {}", nxErr, failedReq);
+            return;
+        }
         // TODO Move this to OFJ with *much* better printing
         OFErrorType et = OFErrorType.values()[0xffff & error.getErrorType()];
         switch (et) {

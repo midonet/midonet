@@ -6,9 +6,8 @@ package com.midokura.midolman.openflow.nxm;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.ICMP;
@@ -21,7 +20,11 @@ public class NxMatch {
     private final Map<NxmType, NxmEntry> entries;
 
     public NxMatch() {
-        this.entries = new HashMap<NxmType, NxmEntry>();
+        // Note: important to use a TreeMap keyed by the NxmType so that during
+        // serialization of NxMatch the entries can be iterated and serialized
+        // in the order defined by NxmType. This order guarantees that an
+        // NxmEntry is preceded by its prerequisites as defined in NXM's spec.
+        this.entries = new TreeMap<NxmType, NxmEntry>();
     }
 
     private void checkOrSetPrerequisite(NxmEntry entry)

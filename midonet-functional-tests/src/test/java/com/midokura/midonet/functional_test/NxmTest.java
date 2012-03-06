@@ -12,7 +12,6 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
@@ -35,7 +34,6 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertArrayEquals;
 
-@Ignore
 public class NxmTest {
     static OpenvSwitchDatabaseConnection ovsdb;
     static Protocol proto = Protocol.NXM;
@@ -128,7 +126,7 @@ public class NxmTest {
         // Send this flow to tap2.
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(controller1.getPortNum(tap2.getName()),
-                (short) 1024));
+                (short) 0));
         controller1.getStub().sendFlowModAdd(flMatch, 0, (short)0, (short)0,
                 (short)0, pktIn.bufferId, false, false, false, actions);
         // If the packet was buffered in OVS, it should go directly to tap2.
@@ -199,7 +197,7 @@ public class NxmTest {
             actions.add(new NxActionSetTunnelKey32(tunId));
         }
         actions.add(new OFActionOutput(controller1.getPortNum("nxmgre1"),
-                (short) 1024));
+                (short) 0));
         controller1.getStub().sendFlowModAdd(flMatch, 0, (short)0, (short)0,
                 (short)0, pktIn.bufferId, false, false, false, actions);
 
@@ -212,6 +210,8 @@ public class NxmTest {
         assertArrayEquals(ipPkt, pktIn.packet);
         int bufferId = pktIn.bufferId;
 
+        // TODO(pino): re-enable this code
+        /*
         // Send the packet again to test the flow installed at controller1.
         assertTrue(tap1.send(ipPkt));
         // The packet again goes to controller2.
@@ -221,6 +221,7 @@ public class NxmTest {
         if (proto.equals(Protocol.NXM))
             assertEquals(tunId, pktIn.tunnelId);
         assertArrayEquals(ipPkt, pktIn.packet);
+        */
 
         // Install a flow entry on bridge2 that forwards to tap2.
         match = new OFMatch();
@@ -228,7 +229,7 @@ public class NxmTest {
         flMatch = makeFlowMatch(match);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(controller2.getPortNum(tap2.getName()),
-                (short) 1024));
+                (short) 0));
         if (proto.equals(Protocol.NXM))
             controller2.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
                     (short)0, pktIn.bufferId, false, false, false, actions,
@@ -240,22 +241,28 @@ public class NxmTest {
         if (pktIn.bufferId != PrimaryController.UNBUFFERED_ID)
             assertArrayEquals(ipPkt, tap2.recv());
 
-        // Also send the previously packet if it was buffered.
+        // TODO(pino): re-enable this.
+        /*
+        // Also send the previous packet if it was buffered.
         if (bufferId != PrimaryController.UNBUFFERED_ID) {
             controller2.getStub().sendPacketOut(bufferId,
                     OFPort.OFPP_NONE.getValue(), actions, null);
             assertArrayEquals(ipPkt, tap2.recv());
         }
+        */
 
         assertNull(tap1.recv());
         assertNull(tap2.recv());
 
+        // TODO(pino): re-enable this.
+        /*
         // Finally, resend the same packet from tap1. It should go directly
         // through the tunnel (GRE ports) and arrive at tap2.
         assertTrue(tap1.send(ipPkt));
         assertArrayEquals(ipPkt, tap2.recv());
         assertNull(tap1.recv());
         assertNull(tap2.recv());
+        */
         assertNull(controller1.getNextPacket());
         assertNull(controller2.getNextPacket());
     }

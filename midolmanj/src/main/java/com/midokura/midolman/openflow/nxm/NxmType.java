@@ -11,6 +11,8 @@ import java.util.Map;
 
 public enum NxmType {
 
+    // Note that the order of declaration is important. It should enforce that
+    // pre-requisites precede their dependent types. E.g. EthType before IpSrc.
     NXM_OF_IN_PORT(0, (byte) 0, (short) 2, false, OfInPortNxmEntry.class),
     NXM_OF_ETH_DST(0, (byte) 1, (short) 6, true, OfEthDstNxmEntry.class),
     NXM_OF_ETH_SRC(0, (byte) 2, (short) 6, false, OfEthSrcNxmEntry.class),

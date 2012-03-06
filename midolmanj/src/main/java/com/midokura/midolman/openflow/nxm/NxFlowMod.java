@@ -237,4 +237,17 @@ public class NxFlowMod extends NxMessage {
         fm.outPort = outPort;
         return fm;
     }
+
+    @Override
+    public String toString() {
+        return "NxFlowMod{" +
+                "idleTimeout=" + idleTimeout +
+                ", hardTimeout=" + hardTimeout +
+                ", priority=" + priority +
+                ", bufferId=" + bufferId +
+                ", outPort=" + outPort +
+                ", nxm=" + nxm +
+                ", actions=" + actions +
+                '}';
+    }
 }
