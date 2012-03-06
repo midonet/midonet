@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
@@ -34,6 +35,7 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertArrayEquals;
 
+@Ignore
 public class NxmTest {
     static OpenvSwitchDatabaseConnection ovsdb;
     static Protocol proto = Protocol.NXM;
