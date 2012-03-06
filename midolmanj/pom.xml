@@ -108,10 +108,9 @@
                             </transformers>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>javax.servlet:*</exclude>
+                                    <exclude>*:servlet-api</exclude>
                                 </excludes>
                             </artifactSet>
-                            <minimizeJar>true</minimizeJar>
                         </configuration>
                     </execution>
                 </executions>
