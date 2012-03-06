@@ -48,14 +48,14 @@ object TestHelpers {
     def assertCommandFails(command: String) {
         val commandExitCode = Sudo.sudoExec(command)
 
-        assertThat("Command \"%s\" should have exited.",
+        assertThat("Command \"%s\" should have exited.".format(command),
             commandExitCode, not(equalTo(0)))
     }
 
     def assertCommandSucceeds(command: String) {
         val commandExitCode = Sudo.sudoExec(command)
 
-        assertThat("Command \"%s\" should have suceeded",
+        assertThat("Command \"%s\" should have succeeded".format(command),
             commandExitCode, is(equalTo(0)))
     }
 }

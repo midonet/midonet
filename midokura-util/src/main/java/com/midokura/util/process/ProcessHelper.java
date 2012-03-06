@@ -98,8 +98,8 @@ public class ProcessHelper {
             if (checkForProcessExit(process))
                 return;
 
-            log.debug("Process wasn't destroyed by Process.destroy so we will " +
-                          "try a kill-15 {}", process);
+            log.warn("Process wasn't destroyed by Process.destroy(). We we will " +
+                          "try to actually do a kill by hand");
 
             Field field = process.getClass().getDeclaredField("pid");
             field.setAccessible(true);
@@ -108,13 +108,23 @@ public class ProcessHelper {
             if (o instanceof Integer) {
                 int pid = Integer.class.cast(o);
 
+                log.debug("Found pid. Trying kill SIGTEM {}.", pid);
+
                 // try to send a kill -15 signal first.
                 newProcess("kill -15 " + pid)
                     .setDrainTarget(DrainTargets.noneTarget())
                     .runAndWait();
-                log.debug("kill -9 executed properly");
 
-                checkForProcessExit(process);
+                if (!checkForProcessExit(process) ) {
+                    log.warn("Process didn't exit.  Trying: kill SIGKILL {}.", pid);
+
+                    newProcess("kill -9 " + pid)
+                        .setDrainTarget(DrainTargets.noneTarget())
+                        .runAndWait();
+
+                    boolean processExited = checkForProcessExit(process);
+                    log.debug("Process exit status: {}", processExited);
+                }
             }
         } catch (Exception e) {
             //
@@ -127,7 +137,7 @@ public class ProcessHelper {
         Timed.ExecutionResult<Integer> waitResult =
             Timed.newTimedExecution()
                  .waiting(100)
-                 .until(6 * 1000)
+                 .until(5 * 1000)
                  .execute(new Timed.Execution<Integer>() {
                      @Override
                      protected void _runOnce() throws Exception {
