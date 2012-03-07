@@ -24,6 +24,7 @@ MIDO_CFG=$MIDO_ETC/midolman.conf
 MIDO_LOG_DIR=/var/log/midolman/
 QUAGGA_DIR=/var/run/quagga/
 MIDO_DEBUG_PORT=8001
+MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
 # Exit if the package is not installed
 # Test that midolmanj is installed
@@ -96,7 +97,7 @@ do_start()
                --chuid $USER:$GROUP \
                --background \
                --exec $JAVA -- \
-                   -cp $MIDO_ETC:$MIDO_JAR \
+                   -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                    $JAVA_OPTS \
                    $MIDO_MAIN \
                    -c $MIDO_CFG \

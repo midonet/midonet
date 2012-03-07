@@ -89,34 +89,6 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.midokura.midolman.Midolman
-                                    </mainClass>
-                                </transformer>
-                            </transformers>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>*:servlet-api</exclude>
-                                </excludes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.7</version>
                 <configuration>
@@ -227,6 +199,18 @@
                                 </data>
                                 <data>
                                     <src>
+                                        ${project.build.directory}/dep
+                                    </src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>
+                                            /usr/share/midolman/dep
+                                        </prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>
                                         ${project.basedir}/src/deb/sudoers/midolman
                                     </src>
                                     <type>file</type>
@@ -304,7 +288,7 @@
                         <configuration>
                             <excludeGroupIds>com.midokura</excludeGroupIds>
                             <outputDirectory>
-                                ${project.build.directory}/dependencies/
+                                ${project.build.directory}/dep/
                             </outputDirectory>
                         </configuration>
                     </execution>
