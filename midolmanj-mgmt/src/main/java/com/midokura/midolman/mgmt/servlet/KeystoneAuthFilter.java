@@ -140,6 +140,7 @@ public final class KeystoneAuthFilter implements Filter {
             setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "No token was passed in.");
+            log.error("No token was passed in.");
             return;
         }
         TenantUser tu = null;
@@ -150,6 +151,7 @@ public final class KeystoneAuthFilter implements Filter {
             setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Unknown error occurred while validating token.");
+            log.error("Got an error while validating token({}): {}", token, ex);
             return;
         }
 
@@ -160,6 +162,7 @@ public final class KeystoneAuthFilter implements Filter {
             setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Invalid token passed in.");
+            log.error("Got null for tenant user with token({})", token);
         }
     }
 
