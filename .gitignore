@@ -7,6 +7,12 @@ web.xml
 log4j.xml
 .idea/
 target/
+midovpn0
+midovpn1
+midovpn2
+midovpn3
+midovpn4
+*.log
 *.iml
 *.ipr
 *.iws

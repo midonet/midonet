@@ -103,7 +103,7 @@ public class VmSshTest extends AbstractSmokeTest {
         removeTenant(tenant);
         stopMidolmanMgmt(mgmt);
 
-        vm.destroy();
+        destroyVm(vm);
     }
 
     @Test

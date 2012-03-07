@@ -18,6 +18,7 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.process.ProcessHelper;
 import static com.midokura.tools.timed.Timed.newTimedExecution;
@@ -133,6 +134,18 @@ public abstract class AbstractSmokeTest {
     protected void removeVpn(MidolmanMgmt mgmt, MidoPort vpn1) {
         if (mgmt != null && vpn1 != null) {
             mgmt.deleteVpn(vpn1.getVpn());
+        }
+    }
+ 
+    protected static void destroyVm(VMController vm) {
+        try {
+            if (vm != null) {
+                vm.destroy();
+            }
+
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            //
         }
     }
 }
