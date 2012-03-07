@@ -124,64 +124,68 @@ class TestOpenVpnPortService {
 
     @Test
     def testClear() {
-        log.debug("testClear")
-        // Skip tests if a user don't have sudo access w/o password.
-        assertSudoAccess("ip link")
+        portService.synchronized {
+            log.debug("testClear")
+            // Skip tests if a user don't have sudo access w/o password.
+            assertSudoAccess("ip link")
 
-        assertFalse(ovsdb.hasInterface(portName))
-        // Add a private tap port with "midolman_port_service=openvpn".
-        val pb = ovsdb.addTapPort(bridgeName, portName)
-        pb.externalId(portServiceExtIdKey, portServiceExtId)
-        pb.build
-        assertTrue(ovsdb.hasPort(portName))
+            assertFalse(ovsdb.hasInterface(portName))
+            // Add a private tap port with "midolman_port_service=openvpn".
+            val pb = ovsdb.addTapPort(bridgeName, portName)
+            pb.externalId(portServiceExtIdKey, portServiceExtId)
+            pb.build
+            assertTrue(ovsdb.hasPort(portName))
 
-        portService.clear
-        assertFalse(ovsdb.hasPort(portName))
+            portService.clear
+            assertFalse(ovsdb.hasPort(portName))
+        }
     }
 
     @Test
     def testAddPort() {
-        log.debug("testAddPort")
-        // Skip tests if a user don't have sudo access w/o password.
-        assertSudoAccess("ip link")
+        portService.synchronized {
+            log.debug("testAddPort")
+            // Skip tests if a user don't have sudo access w/o password.
+            assertSudoAccess("ip link")
 
-        portService.clear
-        assertFalse(ovsdb.hasPort(pubPortName))
-        portService.addPort(bridgeId, pubPortId, null)
-        assertTrue(ovsdb.hasPort(pubPortName))
-        assertFalse(ovsdb.hasPort(priPortName))
-        portService.addPort(bridgeId, priPortId, null)
-        assertTrue(ovsdb.hasPort(priPortName))
+            portService.clear
+            assertFalse(ovsdb.hasPort(pubPortName))
+            portService.addPort(bridgeId, pubPortId, null)
+            assertTrue(ovsdb.hasPort(pubPortName))
+            assertFalse(ovsdb.hasPort(priPortName))
+            portService.addPort(bridgeId, priPortId, null)
+            assertTrue(ovsdb.hasPort(priPortName))
 
-        var portNames = ovsdb.getPortNamesByExternalId(
-            portServiceExtIdKey, portServiceExtId)
-        assertEquals(2, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            pubPortId.toString);
-        assertEquals(1, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            priPortId.toString);
-        assertEquals(1, portNames.size)
+            var portNames = ovsdb.getPortNamesByExternalId(
+                portServiceExtIdKey, portServiceExtId)
+            assertEquals(2, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                pubPortId.toString);
+            assertEquals(1, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                priPortId.toString);
+            assertEquals(1, portNames.size)
 
-        // Destroy all ports and readd them.
-        portService.clear
-        assertFalse(ovsdb.hasPort(pubPortName))
-        portService.addPort(bridgeId, pubPortId, null)
-        assertTrue(ovsdb.hasPort(pubPortName))
-        assertFalse(ovsdb.hasPort(priPortName))
-        portService.addPort(bridgeId, priPortId, null)
-        assertTrue(ovsdb.hasPort(priPortName))
+            // Destroy all ports and readd them.
+            portService.clear
+            assertFalse(ovsdb.hasPort(pubPortName))
+            portService.addPort(bridgeId, pubPortId, null)
+            assertTrue(ovsdb.hasPort(pubPortName))
+            assertFalse(ovsdb.hasPort(priPortName))
+            portService.addPort(bridgeId, priPortId, null)
+            assertTrue(ovsdb.hasPort(priPortName))
 
-        portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-            portServiceExtId)
-        assertEquals(2, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            pubPortId.toString);
-        assertEquals(1, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            priPortId.toString);
-        assertEquals(1, portNames.size)
-        portService.clear
+            portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
+                portServiceExtId)
+            assertEquals(2, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                pubPortId.toString);
+            assertEquals(1, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                priPortId.toString);
+            assertEquals(1, portNames.size)
+            portService.clear
+        }
     }
 
     @Test(expected = classOf[RuntimeException])
@@ -191,168 +195,176 @@ class TestOpenVpnPortService {
     }
 
     @Test def testConfigurePort() {
-        log.debug("testConfigurePort")
-        // Skip tests if a user don't have sudo access w/o password.
-        assertSudoAccess("ip link")
+        portService.synchronized {
+            log.debug("testConfigurePort")
+            // Skip tests if a user don't have sudo access w/o password.
+            assertSudoAccess("ip link")
 
-        portService.clear
-        assertFalse(ovsdb.hasPort(pubPortName))
-        portService.addPort(bridgeId, pubPortId, null)
-        assertTrue(ovsdb.hasPort(pubPortName))
+            portService.clear
+            assertFalse(ovsdb.hasPort(pubPortName))
+            portService.addPort(bridgeId, pubPortId, null)
+            assertTrue(ovsdb.hasPort(pubPortName))
 
-        // Check there is no left over addrs, rules or routes are in the
-        // running environment.
-        assertCommandFails(
-            "ip addr del %s/%d dev %s".format(pubPortNw, pubPortNwLength, pubPortName))
+            // Check there is no left over addrs, rules or routes are in the
+            // running environment.
+            assertCommandFails(
+                "ip addr del %s/%d dev %s".format(pubPortNw, pubPortNwLength, pubPortName))
 
-        val ruleTableId = getRuleTableId(pubPortId)
-        assertCommandFails(
-            "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+            val ruleTableId = getRuleTableId(pubPortId)
+            assertCommandFails(
+                "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
 
-        assertCommandFails(
-            "ip route del table %d".format(ruleTableId))
+            assertCommandFails(
+                "ip route del table %d".format(ruleTableId))
 
-        portService.configurePort(pubPortId, pubPortName)
-        assertCommandFails(
-            "ip addr add %s/%d dev %s".format(pubPortNw, pubPortNwLength, pubPortName))
+            portService.configurePort(pubPortId, pubPortName)
+            assertCommandFails(
+                "ip addr add %s/%d dev %s".format(pubPortNw, pubPortNwLength, pubPortName))
 
-        assertCommandFails(
-            "ip route add default via %s table %d".format(pubPortAddr, ruleTableId))
+            assertCommandFails(
+                "ip route add default via %s table %d".format(pubPortAddr, ruleTableId))
 
-        // Check expected route is added to the table. The command should
-        // succeed if it exists.
-        assertCommandSucceeds(
-            "ip route del table %d".format(ruleTableId))
+            // Check expected route is added to the table. The command should
+            // succeed if it exists.
+            assertCommandSucceeds(
+                "ip route del table %d".format(ruleTableId))
 
-        // Check expected rule is added. The command should succeed if there is.
-        assertCommandSucceeds(
-            "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+            // Check expected rule is added. The command should succeed if there is.
+            assertCommandSucceeds(
+                "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
 
-        portService.clear
+            portService.clear
+        }
     }
 
     @Test
     def testDelPort() {
-        log.debug("testDelPort")
-        // Skip tests if a user don't have sudo access w/o password.
-        assertSudoAccess("ip link")
-
-        portService.clear
-        assertFalse(ovsdb.hasPort(pubPortName))
-        portService.addPort(bridgeId, pubPortId, null)
-        assertTrue(ovsdb.hasPort(pubPortName))
-        assertFalse(ovsdb.hasPort(priPortName))
-        portService.addPort(bridgeId, priPortId, null)
-        assertTrue(ovsdb.hasPort(priPortName))
-
-        var portNames = ovsdb.getPortNamesByExternalId(
-            portServiceExtIdKey, portServiceExtId)
-        assertEquals(2, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            pubPortId.toString);
-        assertEquals(1, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            priPortId.toString);
-        assertEquals(1, portNames.size)
-
-        // Delete ports.
-        portService.delPort(pubPortId)
-        assertFalse(ovsdb.hasPort(pubPortName))
-        portService.delPort(priPortId)
-        assertFalse(ovsdb.hasPort(priPortName))
-
-        portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
-            portServiceExtId)
-        assertEquals(0, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            pubPortId.toString);
-        assertEquals(0, portNames.size)
-        portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
-            priPortId.toString);
-        assertEquals(0, portNames.size)
-
-        portService.clear
-    }
-
-    @Test
-    def testStart() {
-        try {
-            log.debug("testStart")
+        portService.synchronized {
+            log.debug("testDelPort")
             // Skip tests if a user don't have sudo access w/o password.
             assertSudoAccess("ip link")
 
-            portService.clear()
+            portService.clear
             assertFalse(ovsdb.hasPort(pubPortName))
             portService.addPort(bridgeId, pubPortId, null)
             assertTrue(ovsdb.hasPort(pubPortName))
             assertFalse(ovsdb.hasPort(priPortName))
             portService.addPort(bridgeId, priPortId, null)
             assertTrue(ovsdb.hasPort(priPortName))
-            portService.configurePort(pubPortId, pubPortName)
 
-            assertCommandFails(
-                "killall %s".format(portServiceExtId))
+            var portNames = ovsdb.getPortNamesByExternalId(
+                portServiceExtIdKey, portServiceExtId)
+            assertEquals(2, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                pubPortId.toString);
+            assertEquals(1, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                priPortId.toString);
+            assertEquals(1, portNames.size)
 
-            portService.start(vpnId)
-            val ruleTableId = getRuleTableId(pubPortId)
-            // Check expected route is added to the table. The command should
-            // succeed if it exists.
-            assertCommandSucceeds(
-                "ip route del table %d".format(ruleTableId))
+            // Delete ports.
+            portService.delPort(pubPortId)
+            assertFalse(ovsdb.hasPort(pubPortName))
+            portService.delPort(priPortId)
+            assertFalse(ovsdb.hasPort(priPortName))
 
-            // Check expected rule is added. The command should succeed if
-            // there is.
-            assertCommandSucceeds(
-                "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+            portNames = ovsdb.getPortNamesByExternalId(portServiceExtIdKey,
+                portServiceExtId)
+            assertEquals(0, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                pubPortId.toString);
+            assertEquals(0, portNames.size)
+            portNames = ovsdb.getPortNamesByExternalId(bridgeExtIdKey,
+                priPortId.toString);
+            assertEquals(0, portNames.size)
 
-            assertCommandSucceeds(
-                "killall %s".format(portServiceExtId))
+            portService.clear
+        }
+    }
 
-            portService.clear()
-        } catch {
-            case e: java.io.IOException =>
-                log.error("IOException in testStart: ", e)
+    @Test
+    def testStart() {
+        portService.synchronized {
+            try {
+                log.debug("testStart")
+                // Skip tests if a user don't have sudo access w/o password.
+                assertSudoAccess("ip link")
+
+                portService.clear()
+                assertFalse(ovsdb.hasPort(pubPortName))
+                portService.addPort(bridgeId, pubPortId, null)
+                assertTrue(ovsdb.hasPort(pubPortName))
+                assertFalse(ovsdb.hasPort(priPortName))
+                portService.addPort(bridgeId, priPortId, null)
+                assertTrue(ovsdb.hasPort(priPortName))
+                portService.configurePort(pubPortId, pubPortName)
+
+                assertCommandFails(
+                    "killall %s".format(portServiceExtId))
+
+                portService.start(vpnId)
+                val ruleTableId = getRuleTableId(pubPortId)
+                // Check expected route is added to the table. The command should
+                // succeed if it exists.
+                assertCommandSucceeds(
+                    "ip route del table %d".format(ruleTableId))
+
+                // Check expected rule is added. The command should succeed if
+                // there is.
+                assertCommandSucceeds(
+                    "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+
+                assertCommandSucceeds(
+                    "killall %s".format(portServiceExtId))
+
+                portService.clear()
+            } catch {
+                case e: java.io.IOException =>
+                    log.error("IOException in testStart: ", e)
+            }
         }
     }
 
     @Test
     def testStartTcpServer() {
-        try {
-            log.debug("testStartTcpServer")
-            // Skip tests if a user don't have sudo access w/o password.
-            assertSudoAccess("ip link")
+        portService.synchronized {
+            try {
+                log.debug("testStartTcpServer")
+                // Skip tests if a user don't have sudo access w/o password.
+                assertSudoAccess("ip link")
 
-            portService.clear
-            assertFalse(ovsdb.hasPort(pubPortName))
-            portService.addPort(bridgeId, pubPortId, null)
-            assertTrue(ovsdb.hasPort(pubPortName))
-            assertFalse(ovsdb.hasPort(priPortName))
-            portService.addPort(bridgeId, priPortId, null)
-            assertTrue(ovsdb.hasPort(priPortName))
-            portService.configurePort(pubPortId, pubPortName)
+                portService.clear
+                assertFalse(ovsdb.hasPort(pubPortName))
+                portService.addPort(bridgeId, pubPortId, null)
+                assertTrue(ovsdb.hasPort(pubPortName))
+                assertFalse(ovsdb.hasPort(priPortName))
+                portService.addPort(bridgeId, priPortId, null)
+                assertTrue(ovsdb.hasPort(priPortName))
+                portService.configurePort(pubPortId, pubPortName)
 
-            assertCommandFails(
-                "killall %s".format(portServiceExtId))
+                assertCommandFails(
+                    "killall %s".format(portServiceExtId))
 
-            portService.start(vpnId2)
-            val ruleTableId = getRuleTableId(pubPortId)
-            // Check expected route is added to the table. The command should
-            // succeed if it exists.
-            assertCommandSucceeds(
-                "ip route del table %d".format(ruleTableId))
+                portService.start(vpnId2)
+                val ruleTableId = getRuleTableId(pubPortId)
+                // Check expected route is added to the table. The command should
+                // succeed if it exists.
+                assertCommandSucceeds(
+                    "ip route del table %d".format(ruleTableId))
 
-            // Check expected rule is added. The command should succeed if
-            // there is.
-            assertCommandSucceeds(
-                "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+                // Check expected rule is added. The command should succeed if
+                // there is.
+                assertCommandSucceeds(
+                    "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
 
-            assertCommandSucceeds(
-                "killall %s".format(portServiceExtId))
+                assertCommandSucceeds(
+                    "killall %s".format(portServiceExtId))
 
-            portService.clear
-        } catch {
-            case e: java.io.IOException =>
-                log.error("IOException in testStart: ", e)
+                portService.clear
+            } catch {
+                case e: java.io.IOException =>
+                    log.error("IOException in testStart: ", e)
+            }
         }
     }
 
@@ -364,46 +376,48 @@ class TestOpenVpnPortService {
 
     @Test
     def testStop() {
-        try {
-            log.debug("testStop")
-            // Skip tests if a user don't have sudo access w/o password.
-            assertSudoAccess("ip link")
+        portService.synchronized {
+            try {
+                log.debug("testStop")
+                // Skip tests if a user don't have sudo access w/o password.
+                assertSudoAccess("ip link")
 
-            portService.clear
-            assertFalse(ovsdb.hasPort(pubPortName))
-            portService.addPort(bridgeId, pubPortId, null)
-            assertTrue(ovsdb.hasPort(pubPortName))
-            assertFalse(ovsdb.hasPort(priPortName))
-            portService.addPort(bridgeId, priPortId, null)
-            assertTrue(ovsdb.hasPort(priPortName))
-            portService.configurePort(pubPortId, pubPortName)
+                portService.clear
+                assertFalse(ovsdb.hasPort(pubPortName))
+                portService.addPort(bridgeId, pubPortId, null)
+                assertTrue(ovsdb.hasPort(pubPortName))
+                assertFalse(ovsdb.hasPort(priPortName))
+                portService.addPort(bridgeId, priPortId, null)
+                assertTrue(ovsdb.hasPort(priPortName))
+                portService.configurePort(pubPortId, pubPortName)
 
-            assertCommandFails("killall %s".format(portServiceExtId))
+                assertCommandFails("killall %s".format(portServiceExtId))
 
-            portService.start(vpnId)
+                portService.start(vpnId)
 
-            val ruleTableId = getRuleTableId(pubPortId)
-            // Check expected route is added to the table. The command should
-            // succeed if it exists.
-            assertCommandSucceeds(
-                "ip route del table %d".format(ruleTableId))
+                val ruleTableId = getRuleTableId(pubPortId)
+                // Check expected route is added to the table. The command should
+                // succeed if it exists.
+                assertCommandSucceeds(
+                    "ip route del table %d".format(ruleTableId))
 
-            // Check expected rule is added. The command should succeed if
-            // there is.
-            assertCommandSucceeds(
-                "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
+                // Check expected rule is added. The command should succeed if
+                // there is.
+                assertCommandSucceeds(
+                    "ip rule del from %s table %d".format(pubPortNw, ruleTableId))
 
-            portService.stop(vpnId)
+                portService.stop(vpnId)
 
-            Thread.sleep(1000)
-            // Check openvpn process doesn't exist.
-            // Waiting 1sec to helps to destory the process.
-            assertCommandFails("killall %s".format(portServiceExtId))
+                Thread.sleep(1000)
+                // Check openvpn process doesn't exist.
+                // Waiting 1sec to helps to destory the process.
+                assertCommandFails("killall %s".format(portServiceExtId))
 
-            portService.clear
-        } catch {
-            case e: java.io.IOException =>
-                log.error("IOException in testStart: ", e)
+                portService.clear
+            } catch {
+                case e: java.io.IOException =>
+                    log.error("IOException in testStart: ", e)
+            }
         }
     }
 
