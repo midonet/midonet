@@ -303,6 +303,11 @@ public class ZkManager {
         return Op.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
     }
 
+    public Op getPersistentSequentialCreateOp(String path, byte[] data) {
+        log.debug("ZkManager.getPersistentSequentialCreateOp", path);
+        return Op.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+    }
+
     public Op getDeleteOp(String path) {
         log.debug("ZkManager.getDeleteOp entered: path={}", path);
         return Op.delete(path, -1);

@@ -5,6 +5,7 @@ package com.midokura.midolman.agent;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.UUID;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -19,8 +20,12 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.command.NodeCommandWatcher;
+import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;
 import com.midokura.midolman.agent.modules.ConfigurationBasedAgentModule;
+import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.ZkConnection;
 
@@ -37,11 +42,21 @@ public final class NodeAgent {
 
     private final static Logger log =
         LoggerFactory.getLogger(NodeAgent.class);
+    private UUID hostId;
 
     @Inject
     private NodeInterfaceWatcher interfaceWatcher;
 
+    @Inject
+    HostAgentConfiguration configuration;
+
+    @Inject
+    HostZkManager zkManager;
+
     private Thread watcherThread;
+
+    @Inject
+    private NodeCommandWatcher cmdExecutor;
 
     /**
      * Private constructor so we can control the creation process.
@@ -124,6 +139,8 @@ public final class NodeAgent {
      * Starts the agent watcher thread.
      */
     public void start() {
+        hostId = identifyHost();
+        cmdExecutor.checkCommands(hostId);
         watcherThread = new Thread(interfaceWatcher);
 
         log.info("Starting Midolman node agent.");
@@ -148,5 +165,39 @@ public final class NodeAgent {
 
         // wait for the thread to finish running
         watcherThread.join();
+    }
+
+    private UUID identifyHost() {
+        // Try to get the host Id
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        // TODO set some meaningful data in the metadata
+        metadata.setName("Garbage");
+        UUID hostId = null;
+        // If an exception is thrown it will loop forever
+        while (hostId == null) {
+            try {
+                hostId = HostIdGenerator.getHostId(configuration, zkManager);
+                if (hostId != null) {
+                    zkManager.makeAlive(hostId, metadata);
+                    break;
+                }
+            } catch (Exception e) {
+                log.warn("Cannot create a unique Id.", e);
+                // Reset the hostId to null to continue looping
+                hostId = null;
+            }
+            try {
+                Thread.sleep(configuration.getWaitTimeForUniqueHostId());
+            } catch (InterruptedException e) {
+                //TODO throw another exception
+                log.debug("Got interrupted. Stopping watcher loop");
+                break;
+            }
+        }
+        return hostId;
+    }
+
+    public UUID getHostId() {
+        return hostId;
     }
 }

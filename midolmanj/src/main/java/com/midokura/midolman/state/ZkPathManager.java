@@ -665,4 +665,19 @@ public class ZkPathManager {
                 .append("/commands")
                 .toString();
     }
+
+    /**
+     * Get ZK host interface path.
+     *
+     * @param hostId      Host UUID
+     * @param commandId Host Command UUID
+     * @return /hosts/&lt;hostId&gt;/commands/&lt;commandId&gt;
+     */
+    public String getHostCommandsPath(UUID hostId, UUID commandId) {
+        return
+                new StringBuilder(getHostPath(hostId))
+                        .append("/commands/")
+                        .append(commandId.toString())
+                        .toString();
+    }
 }

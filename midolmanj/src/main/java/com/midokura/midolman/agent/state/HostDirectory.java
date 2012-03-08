@@ -4,7 +4,9 @@
 package com.midokura.midolman.agent.state;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,6 +17,78 @@ import java.util.UUID;
  *         Date: 2/1/12
  */
 public class HostDirectory {
+    
+    public static class Command {
+
+        public enum OperationType {
+            // TODO(rossella) add other needed operation
+            SET, DELETE
+        }
+        public static class AtomicCommand {
+            String property;
+            String value;
+            OperationType OpType;
+
+            // Default constructor for the Jackson de-serialization.
+            public AtomicCommand() {
+            }
+
+            public String getValue() {
+                return value;
+            }
+
+            public void setValue(String value) {
+                this.value = value;
+            }
+
+            public OperationType getOpType() {
+                return OpType;
+            }
+
+            public void setOpType(OperationType opType) {
+                OpType = opType;
+            }
+
+            public String getProperty() {
+                return property;
+            }
+
+            public void setProperty(String property) {
+                this.property = property;
+            }
+        }
+
+        public String interfaceName;
+
+        List<AtomicCommand> commandList = new ArrayList<AtomicCommand>();
+
+        // Default constructor for the Jackson de-serialization.
+        public Command() {
+
+        }
+
+        public String getInterfaceName() {
+            return interfaceName;
+        }
+
+        public void setInterfaceName(String interfaceName) {
+            this.interfaceName = interfaceName;
+        }
+
+        public void addAtomicCommand(Command.AtomicCommand command)
+        {
+            commandList.add(command);
+        }
+
+        public List<AtomicCommand> getCommandList() {
+            return commandList;
+        }
+
+        public void setCommandList(
+                List<AtomicCommand> commandList) {
+            this.commandList = commandList;
+        }
+    }
 
     /**
      * Metadata for a host description (contains a host name and a list of known addresses)
@@ -24,7 +98,7 @@ public class HostDirectory {
         String name;
         InetAddress[] addresses;
 
-        // Default constructor for the Jackson deserialization.
+        // Default constructor for the Jackson de-serialization.
         public Metadata() {
         }
 

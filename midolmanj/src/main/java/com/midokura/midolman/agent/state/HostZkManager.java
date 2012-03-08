@@ -246,6 +246,58 @@ public class HostZkManager extends ZkManager {
         }
     }
 
+    public ZkNodeEntry<UUID, HostDirectory.Command> getCommand(
+            UUID hostId, UUID commandId) throws StateAccessException {
+
+        try {
+            byte[] data = get(
+                    pathManager.getHostCommandsPath(hostId, commandId));
+
+            return new ZkNodeEntry<UUID, HostDirectory.Command>(
+                    commandId,
+                    deserialize(data, HostDirectory.Command.class)
+            );
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize host command metadata for id: " +
+                            hostId + " / " + commandId,
+                    e, HostDirectory.Metadata.class);
+        }
+    }
+
+    public UUID createCommand(UUID hostId,
+                                HostDirectory.Command aCommand)
+            throws StateAccessException, IOException {
+
+        List<Op> ops = new ArrayList<Op>();
+
+        UUID uuid = UUID.randomUUID();
+        if (!exists(pathManager.getHostCommandsPath(hostId))) {
+            ops.add(getPersistentSequentialCreateOp(
+                    pathManager.getHostCommandsPath(hostId), null));
+        }
+        ops.add(getPersistentCreateOp(
+                pathManager.getHostCommandsPath(hostId, uuid),
+                serialize(aCommand)));
+
+        multi(ops);
+
+        return uuid;
+    }
+
+    public List<ZkNodeEntry<UUID, HostDirectory.Command>> list(UUID id, Runnable watcher)
+            throws StateAccessException {
+        List<ZkNodeEntry<UUID, HostDirectory.Command>> result =
+                new ArrayList<ZkNodeEntry<UUID, HostDirectory.Command>>();
+        // TODO is the watcher on the children or on the folder?
+        Set<String> commands = getChildren(pathManager.getHostCommandsPath(id), watcher);
+        for (String commandId : commands) {
+            // For now, get each one.
+            result.add(getCommand(id, UUID.fromString(commandId)));
+        }
+        return result;
+    }
+
     interface Functor<S, T> {
         public T process(S node);
     }
