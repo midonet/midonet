@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura Europe SARL
+ * Copyright 2012 Midokura Pte. Ltd.
  */
 package com.midokura.midolman.mgmt.data.dto;
 

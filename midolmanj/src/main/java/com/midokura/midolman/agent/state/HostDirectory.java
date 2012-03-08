@@ -20,11 +20,13 @@ public class HostDirectory {
 
     public static class Command {
 
-        public enum OperationType {
-            // TODO(rossella) add other needed operation
-            SET, DELETE
-        }
         public static class AtomicCommand {
+
+            public enum OperationType {
+                // TODO(rossella) add other needed operation
+                SET, DELETE
+            }
+
             String property;
             String value;
             OperationType OpType;

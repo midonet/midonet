@@ -176,7 +176,7 @@ public class HostZkDao {
         HostDirectory.Command command =
             commandGenerator.createUpdateCommand(curHostInterface, newHostInterface);
 
-        Integer commandId = zkDao.createHostCommand(hostId, command);
+        Integer commandId = zkDao.createHostCommandId(hostId, command);
 
         HostCommand dtoCommand = new HostCommand();
         dtoCommand.setId(commandId);

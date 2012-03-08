@@ -25,13 +25,16 @@ public class NodeCommandWatcher {
     private final static Logger log = LoggerFactory.getLogger(
             NodeCommandWatcher.class);
 
-    private static CommandInterpreter cmdInterpreter;
     private UUID hostId;
     protected Set<Integer> executedCommands;
     private CommanderWatcher watcher;
 
     @Inject
     HostZkManager zkManager;
+
+    @Inject
+    CommandInterpreter commandInterpreter;
+
 
     public void checkCommands(UUID hostId) {
         this.hostId = hostId;
@@ -78,11 +81,11 @@ public class NodeCommandWatcher {
         }
     }
 
+    @Inject
     private void executeCommands(HostDirectory.Command cmd) {
-        CommandInterpreter interpreter = new CommandInterpreter();
         CommandExecutor[] commandToExecute;
         try {
-            commandToExecute = interpreter.interpret(cmd);
+            commandToExecute = commandInterpreter.interpret(cmd);
         } catch (Exception e) {
             log.error("Execute commands: ", e);
             return;

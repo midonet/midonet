@@ -7,12 +7,14 @@ package com.midokura.midolman.agent.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.state.HostDirectory;
 
 public class CommandInterpreter {
+
     public class InvalidParameterException extends Exception {
         public InvalidParameterException(String property, String actualValue,
                                          String acceptedValue) {
@@ -31,8 +33,6 @@ public class CommandInterpreter {
     private final static Logger log =
             LoggerFactory.getLogger(CommandInterpreter.class);
 
-    public CommandInterpreter() {
-    }
 
     public CommandExecutor[] interpret(HostDirectory.Command cmd)
             throws InvalidParameterException, InvalidExecutorInstanceException {
@@ -54,6 +54,7 @@ public class CommandInterpreter {
                 executor = PropertyExecutor.get(property).getExecutor().newInstance();
                 executor.setTargetName(cmd.getInterfaceName());
                 executor.setParamAsObject(convertedValue);
+                executor.setOperationType(atomicCmd.getOpType());
             } catch (Exception e) {
                 throw new InvalidExecutorInstanceException(property,
                     PropertyExecutor.get(property).getExecutor().getClass().toString());

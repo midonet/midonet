@@ -9,7 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum PropertyExecutor {
-    mtu("mtu", Integer.class, MtuCommandExecutor.class);
+    mtu("mtu", Integer.class, MtuCommandExecutor.class),
+    address("address", String.class, AddressCommandExecutor.class),
+    mac("mac", String.class, MacCommandExecutor.class),
+    iface("interface", String.class, InterfaceCommandExecutor.class);
 
     private String key;
     private Class type;

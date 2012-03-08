@@ -127,7 +127,7 @@ public class HostZkManager extends ZkManager {
         multi(delMulti);
     }
 
-    public Integer createHostCommand(UUID hostId, Command command)
+    public Integer createHostCommandId(UUID hostId, Command command)
         throws StateAccessException {
 
         try {
