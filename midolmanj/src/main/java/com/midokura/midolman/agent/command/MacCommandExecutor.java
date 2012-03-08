@@ -5,6 +5,7 @@
 package com.midokura.midolman.agent.command;
 
 import com.midokura.midolman.util.Sudo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +19,19 @@ public class MacCommandExecutor extends CommandExecutor<String> {
     }
 
     @Override
-    public void execute() {
+    public void execute() throws CommandExecutionFailedException {
+        int returnValue;
         try {
-            int returnValue = Sudo.sudoExec("ifconfig " + targetName + " hw ether " + param);
-            // if there was an error, log it
-            if (returnValue != 0) {
-                log.warn("Cannot set MAC address for " + targetName + " (" + returnValue + ")");
-            }
+            returnValue = Sudo.sudoExec(
+                    "ifconfig " + targetName + " hw ether " + param);
         } catch (Exception e) {
-            log.warn("Cannot set MAC address for " + targetName, e);
+            throw new CommandExecutionFailedException(
+                    "Cannot set MAC address for " + targetName + e.getMessage());
+        }
+        // if there was an error, throw a CommandExecutionFailedException
+        if (returnValue != 0) {
+            throw new CommandExecutionFailedException(
+                    "Cannot set MAC address for " + targetName + " (" + returnValue + ")");
         }
     }
 }

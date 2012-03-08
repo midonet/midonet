@@ -33,7 +33,6 @@ import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;
 import com.midokura.midolman.agent.modules.ConfigurationBasedAgentModule;
-import com.midokura.midolman.agent.scanner.DefaultInterfaceScanner;
 import com.midokura.midolman.agent.scanner.InterfaceScanner;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
@@ -71,7 +70,7 @@ public final class NodeAgent {
     private Thread watcherThread;
 
     @Inject
-    private NodeCommandWatcher cmdExecutor;
+    private NodeCommandWatcher cmdWatcher;
 
     /**
      * Private constructor so we can control the creation process.
@@ -160,7 +159,7 @@ public final class NodeAgent {
             log.error("Couldn't generate unique host ID, EXITING! ", e);
             return;
         }
-        cmdExecutor.checkCommands(hostId);
+        cmdWatcher.checkCommands(hostId);
         watcherThread = new Thread(interfaceWatcher);
         interfaceWatcher.setHostId(hostId);
         log.info("Starting Midolman node agent.");

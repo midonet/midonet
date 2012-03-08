@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +20,45 @@ import java.util.UUID;
  *         Date: 2/1/12
  */
 public class HostDirectory {
+
+    public static class ErrorLogItem {
+        Integer commandId;
+        String error;
+        String intefaceName;
+        Date time = Calendar.getInstance().getTime();
+
+        public Integer getCommandId() {
+            return commandId;
+        }
+
+        public void setCommandId(Integer commandId) {
+            this.commandId = commandId;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        public void setError(String error) {
+            this.error = error;
+        }
+
+        public String getIntefaceName() {
+            return intefaceName;
+        }
+
+        public void setIntefaceName(String intefaceName) {
+            this.intefaceName = intefaceName;
+        }
+
+        public Date getTime() {
+            return time;
+        }
+
+        public void setTime(Date time) {
+            this.time = time;
+        }
+    }
 
     public static class Command {
 

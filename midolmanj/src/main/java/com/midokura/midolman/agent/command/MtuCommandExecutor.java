@@ -5,6 +5,7 @@
 package com.midokura.midolman.agent.command;
 
 import com.midokura.midolman.util.Sudo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +19,19 @@ public class MtuCommandExecutor extends CommandExecutor<Integer> {
     }
 
     @Override
-    public void execute() {
+    public void execute() throws CommandExecutionFailedException {
+        int returnValue;
         try {
-            int returnValue = Sudo.sudoExec("ifconfig " + targetName + " mtu " + param);
-            // if there was an error, log it
-            if (returnValue != 0) {
-                log.warn("Cannot set MTU for " + targetName + " (" + returnValue + ")");
-            }
+            returnValue = Sudo.sudoExec(
+                    "ifconfig " + targetName + " mtu " + param);
         } catch (Exception e) {
-            log.warn("Cannot set MTU for " + targetName, e);
+            throw new CommandExecutionFailedException("Cannot set MTU for " +
+                                                   targetName + e.getMessage());
+        }
+        // if there was an error, throw a CommandExecutionFailedException
+        if (returnValue != 0) {
+            throw new CommandExecutionFailedException("Cannot set MTU for " +
+                                         targetName + " (" + returnValue + ")");
         }
     }
 }

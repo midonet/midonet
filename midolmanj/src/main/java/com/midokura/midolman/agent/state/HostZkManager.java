@@ -69,6 +69,9 @@ public class HostZkManager extends ZkManager {
             createMulti.add(
                 getPersistentCreateOp(pathManager.getHostCommandsPath(hostId),
                                       null));
+            createMulti.add(
+                getPersistentCreateOp(pathManager.getHostCommandErrorLogsPath(hostId),
+                                      null));
 
             multi(createMulti);
         } catch (IOException e) {
@@ -132,7 +135,7 @@ public class HostZkManager extends ZkManager {
 
         try {
             String path = addPersistentSequential(
-                pathManager.getHostCommandsPath(hostId), serialize(command));
+                    pathManager.getHostCommandsPath(hostId), serialize(command));
 
             int idx = path.lastIndexOf('/');
             return Integer.parseInt(path.substring(idx + 1));
@@ -183,13 +186,11 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public List<ZkNodeEntry<Integer, HostDirectory.Command>> list(UUID hostId,
-                                                                  Runnable watcher)
-        throws StateAccessException {
+    public List<ZkNodeEntry<Integer, HostDirectory.Command>> listCommands(
+            UUID hostId, Runnable watcher) throws StateAccessException {
         List<ZkNodeEntry<Integer, HostDirectory.Command>> result =
             new ArrayList<ZkNodeEntry<Integer, HostDirectory.Command>>();
 
-        // TODO is the watcher on the children or on the folder?
         String hostCommandsPath = pathManager.getHostCommandsPath(hostId);
         Set<String> commands = getChildren(hostCommandsPath, watcher);
         for (String commandId : commands) {
@@ -337,6 +338,59 @@ public class HostZkManager extends ZkManager {
         multi(delete);
     }
 
+    public void setCommandErrorLogEntry(UUID hostId, HostDirectory.ErrorLogItem errorLog)
+            throws StateAccessException {
+        String path = pathManager.getHostCommandErrorLogsPath(hostId) + "/"
+                + String.format("%010d", errorLog.getCommandId());
+        if(!(exists(path))){
+            addPersistent(path, null);
+        }
+        try {
+            // Assign to the error log the same id of the command that generated it
+            update(path, serialize(errorLog));
+
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize host metadata for id: " + hostId,
+                    e, HostDirectory.Metadata.class);
+        }
+    }
+
+    public ZkNodeEntry<Integer, HostDirectory.ErrorLogItem> getErrorLogData(UUID hostId,
+                    Integer logId) throws StateAccessException {
+        try {
+            byte[] data = get(pathManager.getHostCommandErrorLogPath(hostId,
+                                                                     logId));
+
+            return new ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>(
+                    logId, deserialize(data, HostDirectory.ErrorLogItem.class)
+            );
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize host error log data id: " +
+                            hostId + " / " + logId, e, HostDirectory.ErrorLogItem.class);
+        }
+    }
+
+    public List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>> listErrorLogs(
+            UUID hostId) throws StateAccessException {
+        List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>> result =
+                new ArrayList<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>>();
+
+        String hostLogsPath = pathManager.getHostCommandErrorLogsPath(hostId);
+        Set<String> logs = getChildren(hostLogsPath, null);
+        for (String logId : logs) {
+            // For now, get each one.
+            try {
+                result.add(getErrorLogData(hostId, Integer.parseInt(logId)));
+            } catch (NumberFormatException e) {
+                log.warn("ErrorLog id is not a number: {} (for host: {}",
+                         logId, hostId);
+            }
+        }
+
+        return result;
+    }
     interface Functor<S, T> {
         public T process(S node);
     }
@@ -359,4 +413,5 @@ public class HostZkManager extends ZkManager {
 
         return acc;
     }
+
 }

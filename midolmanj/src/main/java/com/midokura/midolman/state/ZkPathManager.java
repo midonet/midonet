@@ -681,4 +681,30 @@ public class ZkPathManager {
                 .append(String.format("%010d", commandId))
                 .toString();
     }
+
+    /**
+     * Get ZK commands error log path
+     * @param hostId
+     * @return /hosts/&lt;hostId&gt;/errors
+     */
+    public String getHostCommandErrorLogsPath(UUID hostId) {
+        return
+                new StringBuilder(getHostPath(hostId))
+                        .append("/errors")
+                        .toString();
+    }
+
+    /**
+     * Get the error log path of a specific host
+     * @param hostId
+     * @param commandId
+     * @return /hosts/&lt;hostId&gt;/errors/&lt;commandIs&gt;
+     */
+    public String getHostCommandErrorLogPath(UUID hostId, Integer commandId) {
+        return
+                new StringBuilder(getHostCommandErrorLogsPath(hostId))
+                        .append("/")
+                        .append(String.format("%010d", commandId))
+                        .toString();
+    }
 }
