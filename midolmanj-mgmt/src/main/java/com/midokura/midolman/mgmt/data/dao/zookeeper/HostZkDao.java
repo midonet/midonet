@@ -121,7 +121,8 @@ public class HostZkDao {
             hostInterface.setType(
                 Interface.Type.valueOf(interfaceData.getType().name()));
         }
-
+        hostInterface.setAddresses(interfaceData.getAddresses());
+        hostInterface.setEndpoint(interfaceData.getEndpoint());
         return hostInterface;
     }
 
@@ -140,7 +141,8 @@ public class HostZkDao {
             hostInterface.setType(
                 HostDirectory.Interface.Type.valueOf(intface.getType().name()));
         }
-
+        hostInterface.setAddresses(intface.getAddresses());
+        hostInterface.setEndpoint(intface.getEndpoint());
         return hostInterface;
     }
 

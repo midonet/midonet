@@ -1,5 +1,6 @@
 package com.midokura.midolman.mgmt.data.dto.client;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -37,6 +38,9 @@ public class DtoInterface {
     private int mtu;
     private int status;
     private Type type;
+    private String endpoint;
+    private InetAddress[] addresses;
+
 
     @XmlTransient
     private URI uri;
@@ -115,5 +119,21 @@ public class DtoInterface {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public InetAddress[] getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(InetAddress[] addresses) {
+        this.addresses = addresses;
     }
 }

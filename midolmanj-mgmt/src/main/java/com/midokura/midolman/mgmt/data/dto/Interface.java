@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -25,6 +26,8 @@ public class Interface extends UriResource {
     int mtu;
     int status;
     Type type;
+    String endpoint;
+    InetAddress[] addresses;
 
     public enum Type {
         Physical, Virtual, Tunnel, Unknown
@@ -87,6 +90,22 @@ public class Interface extends UriResource {
 
     public void setHostId(UUID hostId) {
         this.hostId = hostId;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public InetAddress[] getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(InetAddress[] addresses) {
+        this.addresses = addresses;
     }
 
     @Override
