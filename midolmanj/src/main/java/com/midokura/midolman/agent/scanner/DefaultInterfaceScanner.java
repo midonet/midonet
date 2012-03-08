@@ -5,6 +5,7 @@ package com.midokura.midolman.agent.scanner;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.midokura.midolman.agent.sensor.InterfaceSensor;
 import com.midokura.midolman.agent.sensor.IpAddrInterfaceSensor;
 import com.midokura.midolman.agent.sensor.DmesgInterfaceSensor;
@@ -24,6 +25,7 @@ import java.util.List;
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 2/8/12
  */
+@Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
 
     ///////////////////////////////////////////////////////////////////////////
@@ -48,7 +50,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
     }
 
     @Override
-    public InterfaceDescription[] scanInterfaces() {
+    public synchronized InterfaceDescription[] scanInterfaces() {
         log.debug("Start scanning for interface data.");
 
         List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
