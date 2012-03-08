@@ -266,10 +266,4 @@ public class HostDirectory {
             return result;
         }
     }
-
-    public static class Command {
-        String name;
-        public Command() {
-        }
-    }
 }

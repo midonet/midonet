@@ -15,6 +15,8 @@ import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.ZkConnection;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +58,11 @@ public class TestOvsDbInterfaceSensor {
             @Provides
             OpenvSwitchDatabaseConnection buildOpenvSwitch() {
                 return ovsDBConnection;
+            }
+
+            @Provides
+            Directory buildDirectory() {
+                return new MockDirectory();
             }
         });
 

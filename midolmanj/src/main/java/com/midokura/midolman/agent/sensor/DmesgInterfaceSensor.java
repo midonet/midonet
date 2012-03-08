@@ -5,6 +5,7 @@
 package com.midokura.midolman.agent.sensor;
 
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.util.process.ProcessHelper;
 
 import java.util.List;
 
@@ -25,7 +26,8 @@ public class DmesgInterfaceSensor implements InterfaceSensor {
     }
 
     protected List<String> getDmesgOutput(String interfaceName) {
-        return ProcessHelper.executeCommandLine("dmesg | grep " + interfaceName + " | grep PHY");
+        return ProcessHelper.executeCommandLine(
+            "dmesg | grep " + interfaceName + " | grep PHY");
     }
 
     private boolean isPhysical(String interfaceName) {

@@ -27,7 +27,7 @@ public class NodeCommandWatcher {
 
     private static CommandInterpreter cmdInterpreter;
     private UUID hostId;
-    protected Set<UUID> executedCommands;
+    protected Set<Integer> executedCommands;
     private CommanderWatcher watcher;
 
     @Inject
@@ -36,7 +36,7 @@ public class NodeCommandWatcher {
     public void checkCommands(UUID hostId) {
         this.hostId = hostId;
         this.watcher = new CommanderWatcher();
-        this.executedCommands = new HashSet<UUID>();
+        this.executedCommands = new HashSet<Integer>();
         updateCommand();
     }
 
@@ -52,22 +52,25 @@ public class NodeCommandWatcher {
     }
 
     private void updateCommand() {
-        Collection<ZkNodeEntry<UUID, HostDirectory.Command>> entryList = null;
+        Collection<ZkNodeEntry<Integer, HostDirectory.Command>> entryList = null;
         try {
             entryList = zkManager.list(hostId, watcher);
         } catch (StateAccessException e) {
             log.warn("Cannot list the Commands.", e);
             return;
         }
-        Map<UUID, HostDirectory.Command> currentCommands = new HashMap<UUID, HostDirectory.Command>();
-        for (ZkNodeEntry<UUID, HostDirectory.Command> entry : entryList) {
+
+        Map<Integer, HostDirectory.Command> currentCommands =
+            new HashMap<Integer, HostDirectory.Command>();
+        for (ZkNodeEntry<Integer, HostDirectory.Command> entry : entryList) {
             currentCommands.put(entry.key, entry.value);
         }
-        Set<UUID> newCommands = new HashSet<UUID>(currentCommands.keySet());
+
+        Set<Integer> newCommands = new HashSet<Integer>(currentCommands.keySet());
         newCommands.removeAll(executedCommands);
 
         // Any brand new command should be processed.
-        for (UUID command : newCommands) {
+        for (Integer command : newCommands) {
             //TODO(rossella) thread pool? here or in executeCommands?
             executeCommands(currentCommands.get(command));
             // add it to executed

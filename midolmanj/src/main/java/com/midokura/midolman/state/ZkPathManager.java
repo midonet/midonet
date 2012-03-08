@@ -670,15 +670,15 @@ public class ZkPathManager {
      * Get ZK a specific host commands path.
      *
      * @param hostId    Host UUID
-     * @param commandId Command UUID
+     * @param commandId Command Id
      *
      * @return /hosts/&lt;hostId&gt;/commands/&lt;commandIs&gt;
      */
-    public String getHostCommandPath(UUID hostId, UUID commandId) {
+    public String getHostCommandPath(UUID hostId, Integer commandId) {
         return
             new StringBuilder(getHostCommandsPath(hostId))
                 .append("/")
-                .append(commandId.toString())
+                .append(String.format("%010d", commandId))
                 .toString();
     }
 }

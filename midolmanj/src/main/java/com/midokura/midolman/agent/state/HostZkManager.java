@@ -5,23 +5,22 @@ package com.midokura.midolman.agent.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.bind.ValidationException;
-
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.commands.DataValidationException;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import static com.midokura.midolman.agent.state.HostDirectory.Command;
 
 /**
  * Wrapper class over a Directory that handled setting and reading data related
@@ -84,21 +83,21 @@ public class HostZkManager extends ZkManager {
     }
 
     public void makeAlive(UUID hostId, HostDirectory.Metadata metadata)
-            throws StateAccessException {
+        throws StateAccessException {
         addEphemeral(pathManager.getHostPath(hostId) + "/alive",
                      new byte[0]);
         updateMetadata(hostId, metadata);
     }
 
     public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)
-            throws StateAccessException {
+        throws StateAccessException {
         if (metadata != null) {
             try {
                 update(pathManager.getHostPath(hostId), serialize(metadata));
             } catch (IOException e) {
                 throw new ZkStateSerializationException(
-                        "Could not serialize host metadata for id: " + hostId,
-                        e, HostDirectory.Metadata.class);
+                    "Could not serialize host metadata for id: " + hostId,
+                    e, HostDirectory.Metadata.class);
             }
         }
     }
@@ -128,7 +127,7 @@ public class HostZkManager extends ZkManager {
         multi(delMulti);
     }
 
-    public Integer createHostCommand(UUID hostId, HostDirectory.Command command)
+    public Integer createHostCommand(UUID hostId, Command command)
         throws StateAccessException {
 
         try {
@@ -141,7 +140,7 @@ public class HostZkManager extends ZkManager {
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                 "Could not serialize host command for id: " + hostId, e,
-                HostDirectory.Command.class);
+                Command.class);
         }
     }
 
@@ -184,6 +183,28 @@ public class HostZkManager extends ZkManager {
         }
     }
 
+    public List<ZkNodeEntry<Integer, HostDirectory.Command>> list(UUID hostId,
+                                                                  Runnable watcher)
+        throws StateAccessException {
+        List<ZkNodeEntry<Integer, HostDirectory.Command>> result =
+            new ArrayList<ZkNodeEntry<Integer, HostDirectory.Command>>();
+
+        // TODO is the watcher on the children or on the folder?
+        String hostCommandsPath = pathManager.getHostCommandsPath(hostId);
+        Set<String> commands = getChildren(hostCommandsPath, watcher);
+        for (String commandId : commands) {
+            // For now, get each one.
+            try {
+                result.add(getCommandData(hostId, Integer.parseInt(commandId)));
+            } catch (NumberFormatException e) {
+                log.warn("HostCommand id is not a number: {} (for host: {}",
+                         commandId, hostId);
+            }
+        }
+
+        return result;
+    }
+    
     private List<Op> getRecursiveDeleteOps(String root)
         throws StateAccessException {
         return recursiveBottomUpFold(root, new Functor<String, Op>() {
@@ -266,56 +287,54 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public ZkNodeEntry<UUID, HostDirectory.Command> getCommand(
-            UUID hostId, UUID commandId) throws StateAccessException {
+    public List<Integer> getCommandIds(UUID hostId)
+        throws StateAccessException {
+
+        Set<String> commandIdKeys = getChildren(
+            pathManager.getHostCommandsPath(hostId));
+
+        List<Integer> commandIds = new ArrayList<Integer>();
+        for (String commandIdKey : commandIdKeys) {
+            try {
+                commandIds.add(Integer.parseInt(commandIdKey));
+            } catch (NumberFormatException e) {
+                log.warn("Command key could not be converted to a number: " +
+                             "host {}, command {}", hostId, commandIdKey);
+            }
+        }
+
+        Collections.sort(commandIds);
+
+        return commandIds;
+    }
+
+    public ZkNodeEntry<Integer, Command> getCommandData(UUID hostId,
+                                                        Integer commandId)
+        throws StateAccessException {
 
         try {
             byte[] data = get(
-                    pathManager.getHostCommandsPath(hostId, commandId));
+                pathManager.getHostCommandPath(hostId, commandId));
 
-            return new ZkNodeEntry<UUID, HostDirectory.Command>(
-                    commandId,
-                    deserialize(data, HostDirectory.Command.class)
+            return new ZkNodeEntry<Integer, Command>(
+                commandId,
+                deserialize(data, Command.class)
             );
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not deserialize host command metadata for id: " +
-                            hostId + " / " + commandId,
-                    e, HostDirectory.Metadata.class);
+                "Could not deserialize host command data id: " +
+                    hostId + " / " + commandId, e, Command.class);
         }
     }
 
-    public UUID createCommand(UUID hostId,
-                                HostDirectory.Command aCommand)
-            throws StateAccessException, IOException {
+    public void deleteHostCommand(UUID hostId, Integer id)
+        throws StateAccessException {
 
-        List<Op> ops = new ArrayList<Op>();
+        String commandPath = pathManager.getHostCommandPath(hostId, id);
 
-        UUID uuid = UUID.randomUUID();
-        if (!exists(pathManager.getHostCommandsPath(hostId))) {
-            ops.add(getPersistentSequentialCreateOp(
-                    pathManager.getHostCommandsPath(hostId), null));
-        }
-        ops.add(getPersistentCreateOp(
-                pathManager.getHostCommandsPath(hostId, uuid),
-                serialize(aCommand)));
+        List<Op> delete = getRecursiveDeleteOps(commandPath);
 
-        multi(ops);
-
-        return uuid;
-    }
-
-    public List<ZkNodeEntry<UUID, HostDirectory.Command>> list(UUID id, Runnable watcher)
-            throws StateAccessException {
-        List<ZkNodeEntry<UUID, HostDirectory.Command>> result =
-                new ArrayList<ZkNodeEntry<UUID, HostDirectory.Command>>();
-        // TODO is the watcher on the children or on the folder?
-        Set<String> commands = getChildren(pathManager.getHostCommandsPath(id), watcher);
-        for (String commandId : commands) {
-            // For now, get each one.
-            result.add(getCommand(id, UUID.fromString(commandId)));
-        }
-        return result;
+        multi(delete);
     }
 
     interface Functor<S, T> {

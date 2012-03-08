@@ -101,7 +101,8 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
 
             // Check if it's localhost interface
             if (tokens[1].replaceAll(":", "").equals("lo")) {
-                interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.LOCALHOST);
+                interfaceDescription.setEndpoint(
+                    InterfaceDescription.Endpoint.LOCALHOST);
             }
 
         } else if (tokens[0].startsWith("link")) {
