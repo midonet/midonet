@@ -6,6 +6,7 @@ package com.midokura.midolman.agent.state;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -275,6 +276,20 @@ public class HostDirectory {
                 addresses) : 0);
             result = 31 * result + (properties != null ? properties.hashCode() : 0);
             return result;
+        }
+
+        // Copy constructor
+        public Interface(Interface original) {
+
+            this.mtu = original.mtu;
+            this.status = original.status;
+            this.addresses = original.addresses.clone();
+            this.endpoint = original.endpoint;
+            this.mac = original.mac.clone();
+            this.name = new String(original.name);
+            this.type = original.type;
+            this.properties = new HashMap<String, String>(original.properties);
+            // UUID is unique so we cannot copy it
         }
     }
 }
