@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +33,7 @@
                 <includes>
                     <include>**/*.properties</include>
                     <include>**/*.xml</include>
-		    <include>**/*.sh</include>
+                    <include>**/*.sh</include>
                 </includes>
             </resource>
         </resources>
@@ -46,35 +47,6 @@
                     <target>1.6</target>
                 </configuration>
                 <version>2.3</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <version>2.15.0</version>
-                <executions>
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <args>
-                                <arg>-deprecation</arg>
-                                <arg>-dependencyfile</arg>
-                                <arg>${project.build.directory}/.scala_dependencies</arg>
-                            </args>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>scala-compile-tests</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -96,13 +68,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.12</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
-                    <systemProperties>
-                        <property>
-                            <name>org.newsclub.net.unix.library.path</name>
-                            <value>${project.build.directory}/lib-native</value>
-                        </property>
-                    </systemProperties>
+                    <useUnlimitedThreads>true</useUnlimitedThreads>
+                    <systemPropertyVariables>
+                        <org.newsclub.net.unix.library.path>
+                            ${project.build.directory}/lib-native
+                        </org.newsclub.net.unix.library.path>
+                    </systemPropertyVariables>
+                    <parallel>false</parallel>
                 </configuration>
             </plugin>
 
@@ -122,10 +103,13 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/lib-native</outputDirectory>
+                            <outputDirectory>
+                                ${project.build.directory}/lib-native
+                            </outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/lib-native</directory>
+                                    <directory>${project.basedir}/lib-native
+                                    </directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -159,7 +143,9 @@
                     <verbose>true</verbose>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+                    <generateGitPropertiesFilename>
+                        src/main/resources/git.properties
+                    </generateGitPropertiesFilename>
                 </configuration>
             </plugin>
 
@@ -382,16 +368,12 @@
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <systemProperties>
-                                <property>
-                                    <name>org.newsclub.net.unix.library.path</name>
-                                    <value>${project.build.directory}/lib-native</value>
-                                </property>
-                                <property>
-                                    <name>midonet.functional.tests.current_midonet_project</name>
-                                    <value>${basedir}/../</value>
-                                </property>
-                            </systemProperties>
+                            <useUnlimitedThreads>true</useUnlimitedThreads>
+                            <systemPropertyVariables>
+                                <midonet.functional.tests.current_midonet_project>
+                                    ${basedir}/../
+                                </midonet.functional.tests.current_midonet_project>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>
