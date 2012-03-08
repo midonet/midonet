@@ -16,6 +16,7 @@ import java.util.List;
 public class InterfaceDescription {
 
     public enum Type { PHYS, VIRT, TUNN, UNKNOWN }
+    public enum Endpoint { BRIDGE, PHYSICAL, VM, GRE, LOCALHOST, TUNTAP, UNKNOWN }
 
     ///////////////////////////////////////////////////////////////////////////
     // Attributes
@@ -27,7 +28,7 @@ public class InterfaceDescription {
     protected boolean isUp;
     protected boolean hasLink;
     protected int mtu;
-    //protected ... endpoint
+    protected Endpoint endpoint;
     //protected ... other
 
     ///////////////////////////////////////////////////////////////////////////
@@ -41,6 +42,7 @@ public class InterfaceDescription {
         this.isUp = false;
         this.hasLink = false;
         this.mtu = 0;
+        this.endpoint = Endpoint.UNKNOWN;
     }
 
     public void setName(String name) {
@@ -109,16 +111,25 @@ public class InterfaceDescription {
         return mtu;
     }
 
+    public Endpoint getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(Endpoint endpoint) {
+        this.endpoint = endpoint;
+    }
+
     @Override
     public String toString() {
         return "InterfaceDescription{" +
-                "mtu=" + mtu +
-                ", hasLink=" + hasLink +
-                ", isUp=" + isUp +
-                ", inetAddresses=" + inetAddresses +
-                ", mac=" + mac +
-                ", type=" + type +
+                "endpoint=" + endpoint +
                 ", name='" + name + '\'' +
+                ", type=" + type +
+                ", mac=" + mac +
+                ", inetAddresses=" + inetAddresses +
+                ", isUp=" + isUp +
+                ", hasLink=" + hasLink +
+                ", mtu=" + mtu +
                 '}';
     }
 }

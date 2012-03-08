@@ -54,6 +54,13 @@ public class TestIpAddrInterfaceSensor {
                                 "link/ether 4e:07:50:07:55:8a brd ff:ff:ff:ff:ff:ff"
                         );
                     }
+
+                    @Override
+                    protected List<String> getTuntapOutput() {
+                        return Arrays.asList(
+                                "xxx: tap vnet_hdr"
+                        );
+                    }
                 };
 
         List<InterfaceDescription> interfaces =
@@ -71,6 +78,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getInetAddresses().size(), equalTo(2));
         assertThat(interfaceDescription.getInetAddresses().get(0), equalTo(InetAddress.getByName("127.0.0.1")));
         assertThat(interfaceDescription.getInetAddresses().get(1), equalTo(InetAddress.getByName("::1")));
+        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.LOCALHOST));
 
         // Check second interface
         interfaceDescription = interfaces.get(1);
@@ -87,6 +95,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getInetAddresses().get(5), equalTo(InetAddress.getByName("2002::1")));
         assertThat(interfaceDescription.getInetAddresses().get(6), equalTo(InetAddress.getByName("2001::1")));
         assertThat(interfaceDescription.getInetAddresses().get(7), equalTo(InetAddress.getByName("fe80::a00:27ff:fec8:c1f3")));
+        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Check third interface
         interfaceDescription = interfaces.get(2);
@@ -96,6 +105,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getMac(), equalTo(MAC.fromString("1A:4E:BC:C7:EA:FF").getAddress()));
         assertThat(interfaceDescription.getInetAddresses().size(), equalTo(1));
         assertThat(interfaceDescription.getInetAddresses().get(0), equalTo(InetAddress.getByName("192.168.122.1")));
+        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Check fourth interface
         interfaceDescription = interfaces.get(3);
@@ -104,5 +114,6 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getMtu(), equalTo(1500));
         assertThat(interfaceDescription.getMac(), equalTo(MAC.fromString("4E:07:50:07:55:8A").getAddress()));
         assertThat(interfaceDescription.getInetAddresses().size(), equalTo(0));
+        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.TUNTAP));
     }
 }

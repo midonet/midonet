@@ -18,6 +18,26 @@ public class MockOpenvSwitchDatabaseConnection implements
     Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
         new HashMap<Long, Map<Integer, Map<String, String>>>();
 
+    MockOpenvSwitchBridges bridges = new MockOpenvSwitchBridges();
+
+    public MockOpenvSwitchBridge getBridge(String key) {
+        return bridges.get(key);
+    }
+
+    public void setBridge(String name) {
+        bridges.put(name, new MockOpenvSwitchBridge(name));
+    }
+
+    public void setPort(long bridgeId, String portName, MockOpenvSwitchPort.Type type) {
+        MockOpenvSwitchBridge bridge = bridges.get(bridgeId);
+        bridge.setPort(portName, type);
+    }
+
+    public void setPort(String bridgeName, String portName, MockOpenvSwitchPort.Type type) {
+        MockOpenvSwitchBridge bridge = bridges.get(bridgeName);
+        bridge.setPort(portName, type);
+    }
+
     static public class GrePort {
         public String bridgeName;
         public String portName;
@@ -49,20 +69,17 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     @Override
     public BridgeBuilder addBridge(String name) {
-        // TODO Auto-generated method stub
-        return null;
+        return new MockOpenvSwitchBridgeBuilder(name, this);
     }
 
     @Override
     public PortBuilder addSystemPort(long bridgeId, String portName) {
-        // TODO Auto-generated method stub
-        return null;
+        return new MockOpenvSwitchPortBuilder(bridgeId, portName, MockOpenvSwitchPort.Type.SYSTEM, this);
     }
 
     @Override
     public PortBuilder addSystemPort(String bridgeName, String portName) {
-        // TODO Auto-generated method stub
-        return null;
+        return new MockOpenvSwitchPortBuilder(bridgeName, portName, MockOpenvSwitchPort.Type.SYSTEM, this);
     }
 
     @Override
@@ -288,7 +305,12 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     @Override
     public boolean hasPort(String portName) {
-        // TODO Auto-generated method stub
+        for (MockOpenvSwitchBridge bridge : bridges) {
+            if (bridge.hasPort(portName)) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -320,14 +342,12 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     @Override
     public boolean hasBridge(long bridgeId) {
-        // TODO Auto-generated method stub
-        return false;
+        return bridges.has(bridgeId);
     }
 
     @Override
     public boolean hasBridge(String bridgeName) {
-        // TODO Auto-generated method stub
-        return false;
+        return bridges.has(bridgeName);
     }
 
     @Override

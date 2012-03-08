@@ -42,14 +42,21 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
     // Protected methods
     ///////////////////////////////////////////////////////////////////////////
     protected List<String> getInterfacesOutput() {
-        String commandLine = "ip addr";
+        return executeCommandLine("/bin/bash -c ip addr");
 
+    }
+    
+    protected List<String> getTuntapOutput() {
+        return executeCommandLine("/bin/bash -c ip tuntap");
+    }
+    
+    protected List<String> executeCommandLine(String command) {
         try {
 
             List<String> stringList = new ArrayList<String>();
 
             ProcessHelper.RunnerConfiguration runner = ProcessHelper
-                    .newProcess(commandLine);
+                    .newProcess(command);
 
             runner.setDrainTarget(DrainTargets.stringCollector(stringList));
             runner.runAndWait();
@@ -57,7 +64,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
             return stringList;
 
         } catch (Exception e) {
-            log.error("cannot execute command line {}", commandLine, e);
+            log.error("cannot execute command: {}", command, e);
         }
 
         return Collections.emptyList();
@@ -125,6 +132,16 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
                 interfaceDescription.setHasLink(false);
             }
 
+            // Check if it's localhost interface
+            if (tokens[1].replaceAll(":", "").equals("lo")) {
+                interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.LOCALHOST);
+            }
+            
+            // Check if it's a tuntap interface
+            if (isTuntap(interfaceDescription.getName())) {
+                interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.TUNTAP);
+            }
+
         } else if (tokens[0].startsWith("link")) {
             // this line contains L2 address (MAC)
             // sample:
@@ -179,6 +196,18 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
              if (token.matches("UP")) {
                  return true;
              }
+        }
+        return false;
+    }
+    
+    private boolean isTuntap (String interfaceName) {
+        for (String line : getTuntapOutput()) {
+            String[] tokens = line.trim().split(":");
+            if (tokens.length < 1) {
+                return false;
+            } else if (tokens[0].equals(interfaceName)) {
+                return true;
+            }
         }
         return false;
     }
