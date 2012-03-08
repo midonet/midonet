@@ -158,6 +158,18 @@ public class BridgeResource {
     }
 
     /**
+     * Bridge resource locator for router links.
+     *
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterBridgesResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.ROUTERS)
+    public BridgeRoutersResource getRoutersResource(@PathParam("id") UUID id) {
+        return new BridgeRoutersResource(id);
+    }
+
+    /**
      * Handler to updating a bridge.
      *
      * @param id
@@ -166,8 +178,6 @@ public class BridgeResource {
      *            Bridge object.
      * @param context
      *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
      * @param daoFactory
      *            Data access factory object.
      * @param authorizer

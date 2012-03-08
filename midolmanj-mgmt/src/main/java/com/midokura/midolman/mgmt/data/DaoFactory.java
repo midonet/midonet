@@ -5,20 +5,7 @@
  */
 package com.midokura.midolman.mgmt.data;
 
-import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
-import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
-import com.midokura.midolman.mgmt.data.dao.BgpDao;
-import com.midokura.midolman.mgmt.data.dao.BridgeDao;
-import com.midokura.midolman.mgmt.data.dao.ChainDao;
-import com.midokura.midolman.mgmt.data.dao.HostDao;
-import com.midokura.midolman.mgmt.data.dao.PortDao;
-import com.midokura.midolman.mgmt.data.dao.RouteDao;
-import com.midokura.midolman.mgmt.data.dao.RouterDao;
-import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
-import com.midokura.midolman.mgmt.data.dao.RuleDao;
-import com.midokura.midolman.mgmt.data.dao.TenantDao;
-import com.midokura.midolman.mgmt.data.dao.VifDao;
-import com.midokura.midolman.mgmt.data.dao.VpnDao;
+import com.midokura.midolman.mgmt.data.dao.*;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -64,6 +51,15 @@ public interface DaoFactory {
      *             Data access error.
      */
     BridgeDao getBridgeDao() throws StateAccessException;
+
+    /**
+     * Get BridgeLinkDao object for bridge linking data access.
+     *
+     * @return BridgeLinkDao object.
+     * @throws StateAccessException
+     *              Data access error.
+     */
+    BridgeLinkDao getBridgeLinkDao() throws StateAccessException;
 
     /**
      * Get chain DAO
@@ -154,5 +150,4 @@ public interface DaoFactory {
      *             Data access error.
      */
     VpnDao getVpnDao() throws StateAccessException;
-
 }

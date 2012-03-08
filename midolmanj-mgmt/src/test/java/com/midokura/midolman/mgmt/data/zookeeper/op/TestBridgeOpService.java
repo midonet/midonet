@@ -5,6 +5,10 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -41,9 +45,12 @@ public class TestBridgeOpService {
             new byte[] { 1 }, null, CreateMode.PERSISTENT);
     private static final Op dummyCreateOp2 = Op.create("/baz",
             new byte[] { 2 }, null, CreateMode.PERSISTENT);
+    private static final Op dummyCreateOp3 = Op.create("/fuzz",
+            new byte[] { 3 }, null, CreateMode.PERSISTENT);
     private static final Op dummyDeleteOp0 = Op.delete("/foo", -1);;
     private static final Op dummyDeleteOp1 = Op.delete("/bar", -1);
     private static final Op dummyDeleteOp2 = Op.delete("/baz", -1);
+    private static final Op dummyDeleteOp3 = Op.delete("/fuzz", -1);
     private static List<Op> dummyCreateOps = null;
     static {
         dummyCreateOps = new ArrayList<Op>();
@@ -92,22 +99,25 @@ public class TestBridgeOpService {
                 dummyCreateOps);
         when(opBuilderMock.getBridgeCreateOp(id, mgmtConfig)).thenReturn(
                 dummyCreateOp0);
+        when(opBuilderMock.getBridgeRoutersCreateOp(id)).thenReturn(
+                dummyCreateOp3);
         when(opBuilderMock.getTenantBridgeCreateOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyCreateOp1);
-        when(
-                opBuilderMock.getTenantBridgeNameCreateOp(mgmtConfig.tenantId,
-                        mgmtConfig.name, nameConfig))
+        when(opBuilderMock.getTenantBridgeNameCreateOp(
+                mgmtConfig.tenantId, mgmtConfig.name, nameConfig))
                 .thenReturn(dummyCreateOp2);
 
         List<Op> ops = service.buildCreate(id, config, mgmtConfig, nameConfig);
 
-        Assert.assertEquals(6, ops.size());
+        assertThat(ops, hasSize(7));
+        Assert.assertEquals(7, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.get(0));
         Assert.assertEquals(dummyCreateOp1, ops.get(1));
         Assert.assertEquals(dummyCreateOp2, ops.get(2));
         Assert.assertEquals(dummyCreateOp0, ops.get(3));
-        Assert.assertEquals(dummyCreateOp1, ops.get(4));
-        Assert.assertEquals(dummyCreateOp2, ops.get(5));
+        Assert.assertEquals(dummyCreateOp3, ops.get(4));
+        Assert.assertEquals(dummyCreateOp1, ops.get(5));
+        Assert.assertEquals(dummyCreateOp2, ops.get(6));
     }
 
     @Test
@@ -122,16 +132,17 @@ public class TestBridgeOpService {
         when(opBuilderMock.getBridgeDeleteOps(id)).thenReturn(dummyDeleteOps);
         when(portOpServiceMock.buildBridgePortsDelete(id)).thenReturn(
                 dummyDeleteOps);
-        when(
-                opBuilderMock.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,
-                        mgmtConfig.name)).thenReturn(dummyDeleteOp0);
+        when(opBuilderMock.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,
+                mgmtConfig.name)).thenReturn(dummyDeleteOp0);
         when(opBuilderMock.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyDeleteOp1);
+        when(opBuilderMock.getBridgeRoutersDeleteOp(id)).thenReturn(
+                dummyDeleteOp3);
         when(opBuilderMock.getBridgeDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
         List<Op> ops = service.buildDelete(id, true);
 
-        Assert.assertEquals(9, ops.size());
+        Assert.assertEquals(10, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));
         Assert.assertEquals(dummyDeleteOp1, ops.get(1));
         Assert.assertEquals(dummyDeleteOp2, ops.get(2));
@@ -140,7 +151,8 @@ public class TestBridgeOpService {
         Assert.assertEquals(dummyDeleteOp2, ops.get(5));
         Assert.assertEquals(dummyDeleteOp0, ops.get(6));
         Assert.assertEquals(dummyDeleteOp1, ops.get(7));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(8));
+        Assert.assertEquals(dummyDeleteOp3, ops.get(8));
+        Assert.assertEquals(dummyDeleteOp2, ops.get(9));
     }
 
     @Test
@@ -159,17 +171,20 @@ public class TestBridgeOpService {
                         mgmtConfig.name)).thenReturn(dummyDeleteOp0);
         when(opBuilderMock.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyDeleteOp1);
+        when(opBuilderMock.getBridgeRoutersDeleteOp(id)).thenReturn(
+                dummyDeleteOp3);
         when(opBuilderMock.getBridgeDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
         List<Op> ops = service.buildDelete(id, false);
 
-        Assert.assertEquals(6, ops.size());
+        Assert.assertEquals(7, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.get(0));
         Assert.assertEquals(dummyDeleteOp1, ops.get(1));
         Assert.assertEquals(dummyDeleteOp2, ops.get(2));
         Assert.assertEquals(dummyDeleteOp0, ops.get(3));
         Assert.assertEquals(dummyDeleteOp1, ops.get(4));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(5));
+        Assert.assertEquals(dummyDeleteOp3, ops.get(5));
+        Assert.assertEquals(dummyDeleteOp2, ops.get(6));
     }
 
     @Test

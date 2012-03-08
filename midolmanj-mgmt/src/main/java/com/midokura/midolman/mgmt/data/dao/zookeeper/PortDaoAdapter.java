@@ -19,6 +19,7 @@ import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
+import com.midokura.midolman.mgmt.data.dto.LogicalBridgePort;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -104,7 +105,8 @@ public class PortDaoAdapter implements PortDao {
                     "Cannot delete a port with VIF plugged in.");
         }
 
-        if (port instanceof LogicalRouterPort) {
+        if (port instanceof LogicalRouterPort ||
+                port instanceof LogicalBridgePort) {
             throw new UnsupportedOperationException(
                     "Cannot delete a logical port without deleting the link.");
         }

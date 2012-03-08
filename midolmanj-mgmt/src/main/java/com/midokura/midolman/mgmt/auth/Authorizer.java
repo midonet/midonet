@@ -143,6 +143,25 @@ public interface Authorizer {
             UUID id, UUID peerId) throws StateAccessException;
 
     /**
+     * Checks whether linking a router to a bridge is allowed.
+     *
+     * @param context
+     *            SecurityContect object.
+     * @param action
+     *            AuthAction object.
+     * @param routerId
+     *            ID of the router to check.
+     * @param bridgeId
+     *            ID of the bridge to check.
+     * @return True if authorized.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    boolean routerBridgeLinkAuthorized(SecurityContext context,
+            AuthAction action, UUID routerId, UUID bridgeId)
+            throws StateAccessException;
+
+    /**
      * Checks whether the user is authorized to view router.
      *
      * @param context

@@ -35,6 +35,7 @@ public class RouterOpService {
     private final RouterOpBuilder opBuilder;
     private final PortOpService portOpService;
     private final ChainOpService chainOpService;
+    private final BridgeOpBuilder bridgeOpBuilder;
     private final RouterZkDao zkDao;
 
     /**
@@ -51,10 +52,11 @@ public class RouterOpService {
      */
     public RouterOpService(RouterOpBuilder opBuilder,
             ChainOpService chainOpService, PortOpService portOpService,
-            RouterZkDao zkDao) {
+            BridgeOpBuilder bridgeOpBuilder, RouterZkDao zkDao) {
         this.opBuilder = opBuilder;
         this.chainOpService = chainOpService;
         this.portOpService = portOpService;
+        this.bridgeOpBuilder = bridgeOpBuilder;
         this.zkDao = zkDao;
     }
 
@@ -79,8 +81,9 @@ public class RouterOpService {
         ops.addAll(opBuilder.getRouterCreateOps(id));
         ops.add(opBuilder.getRouterCreateOp(id, mgmtConfig));
 
-        // link
+        // links
         ops.add(opBuilder.getRouterRoutersCreateOp(id));
+        ops.add(opBuilder.getRouterBridgesCreateOp(id));
 
         // tables
         ops.add(opBuilder.getRouterTablesCreateOp(id));
@@ -164,8 +167,9 @@ public class RouterOpService {
         // tables
         ops.add(opBuilder.getRouterTablesDeleteOp(id));
 
-        // link
+        // links
         ops.add(opBuilder.getRouterRoutersDeleteOp(id));
+        ops.add(opBuilder.getRouterBridgesDeleteOp(id));
 
         // root
         ops.add(opBuilder.getRouterDeleteOp(id));
@@ -217,7 +221,7 @@ public class RouterOpService {
     /**
      * Build list of Op objects to link routers
      *
-     * @param ID
+     * @param portId
      *            Port ID
      * @param config
      *            PortConfig object
@@ -231,7 +235,7 @@ public class RouterOpService {
      *             Data access error
      */
     public List<Op> buildLink(UUID portId, PortConfig config, UUID peerPortId,
-            PortConfig peerConfig) throws StateAccessException {
+                              PortConfig peerConfig) throws StateAccessException {
         log.debug("RouterOpService.buildLink entered: portId=" + portId
                 + ",peerPortId=" + peerPortId + ",routerId=" + config.device_id
                 + ",peerRouterId=" + peerConfig.device_id);
@@ -280,6 +284,63 @@ public class RouterOpService {
 
         log.debug("RouterOpService.buildUnLink exiting: ops count={}",
                 ops.size());
+        return ops;
+    }
+
+    /**
+     * Build list of Op objects to link a bridge.
+     *
+     * @param rtrPortId
+     *            Router port ID
+     * @param rtrPortConfig
+     *            PortConfig object for router port.
+     * @param brPortId
+     *            Bridge port ID
+     * @param brPortConfig
+     *            PortConfig object for the bridge port.
+     *
+     * @return List of Op objects
+     * @throws StateAccessException
+     *             Data access error
+     */
+    public List<Op> buildBridgeLink(UUID rtrPortId, PortConfig rtrPortConfig,
+            UUID brPortId, PortConfig brPortConfig)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        ops.add(opBuilder.getRouterBridgeCreateOp(rtrPortConfig.device_id,
+                brPortConfig.device_id,
+                zkDao.constructPeerRouterConfig(rtrPortId, brPortId)));
+
+        ops.add(bridgeOpBuilder.getBridgeRouterCreateOp(brPortConfig.device_id,
+                rtrPortConfig.device_id,
+                zkDao.constructPeerRouterConfig(brPortId, rtrPortId)));
+
+        // Create the port entries.
+        ops.addAll(portOpService.buildCreateLink(rtrPortId, rtrPortConfig,
+                brPortId, brPortConfig));
+        return ops;
+    }
+
+    /**
+     * Build list of Op objects to unlink a bridge
+     *
+     * @param routerId
+     *            Router ID
+     * @param bridgeId
+     *            Bridge ID
+     * @return List of Op objects
+     * @throws StateAccessException
+     *             Data access error
+     */
+    public List<Op> buildBridgeUnlink(UUID routerId, UUID bridgeId)
+            throws StateAccessException {
+        PeerRouterConfig config = zkDao.getRouterBridgeLinkData(routerId, bridgeId);
+        List<Op> ops = new ArrayList<Op>();
+        ops.addAll(portOpService.buildDeleteLink(config.portId,
+                config.peerPortId));
+        ops.add(opBuilder.getRouterBridgeDeleteOp(routerId, bridgeId));
+        ops.add(bridgeOpBuilder.getBridgeRouterDeleteOp(bridgeId, routerId));
         return ops;
     }
 

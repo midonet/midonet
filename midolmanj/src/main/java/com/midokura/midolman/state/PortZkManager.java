@@ -22,7 +22,7 @@ import com.midokura.midolman.util.ShortUUID;
 
 /**
  * Class to manage the port ZooKeeper data.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -34,7 +34,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -99,7 +99,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new port.
-     * 
+     *
      * @param entry
      *            ZooKeeper node representing a key-value entry of port UUID and
      *            PortConfig object.
@@ -127,8 +127,16 @@ public class PortZkManager extends ZkManager {
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
 
-        ops.addAll(prepareRouterPortCreate(localPortEntry));
-        ops.addAll(prepareRouterPortCreate(peerPortEntry));
+        if (localPortEntry.value
+                instanceof PortDirectory.LogicalBridgePortConfig)
+            ops.addAll(prepareBridgePortCreate(localPortEntry));
+        else
+            ops.addAll(prepareRouterPortCreate(localPortEntry));
+        if (peerPortEntry.value
+                instanceof PortDirectory.LogicalBridgePortConfig)
+            ops.addAll(prepareBridgePortCreate(peerPortEntry));
+        else
+            ops.addAll(prepareRouterPortCreate(peerPortEntry));
 
         return ops;
     }
@@ -175,7 +183,7 @@ public class PortZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a bridge port deletion.
-     * 
+     *
      * @param entry
      *            Port ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
@@ -193,10 +201,20 @@ public class PortZkManager extends ZkManager {
 
     private List<Op> prepareLinkDelete(ZkNodeEntry<UUID, PortConfig> entry)
             throws ZkStateSerializationException, StateAccessException {
-        List<Op> ops = prepareRouterPortDelete(entry);
-        UUID peerId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
+        List<Op> ops;
+        UUID peerId;
+        if (entry.value instanceof PortDirectory.LogicalBridgePortConfig) {
+            ops = prepareBridgePortDelete(entry);
+            peerId = ((PortDirectory.LogicalBridgePortConfig) entry.value).peer_uuid;
+        } else {
+            ops = prepareRouterPortDelete(entry);
+            peerId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
+        }
         ZkNodeEntry<UUID, PortConfig> peer = get(peerId);
-        ops.addAll(prepareRouterPortDelete(peer));
+        if (peer.value instanceof PortDirectory.LogicalBridgePortConfig)
+            ops.addAll(prepareBridgePortDelete(peer));
+        else
+            ops.addAll(prepareRouterPortDelete(peer));
         return ops;
     }
 
@@ -207,7 +225,7 @@ public class PortZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a port deletion.
-     * 
+     *
      * @param entry
      *            Port ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
@@ -216,12 +234,13 @@ public class PortZkManager extends ZkManager {
      */
     public List<Op> preparePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        if (entry.value instanceof PortDirectory.BridgePortConfig) {
+        if (entry.value instanceof PortDirectory.LogicalBridgePortConfig ||
+                entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
+            return prepareLinkDelete(entry);
+        } else if (entry.value instanceof PortDirectory.BridgePortConfig) {
             return prepareBridgePortDelete(entry);
         } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             return prepareRouterPortDelete(entry);
-        } else if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
-            return prepareLinkDelete(entry);
         } else {
             throw new IllegalArgumentException("Unsupported port type");
         }
@@ -229,8 +248,8 @@ public class PortZkManager extends ZkManager {
 
     /**
      * Performs an atomic update on the ZooKeeper to add a new port entry.
-     * 
-     * @param route
+     *
+     * @param port
      *            PortConfig object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
      * @throws ZkStateSerializationException
@@ -242,8 +261,8 @@ public class PortZkManager extends ZkManager {
         // persistent
         // create in a ZK directory.
         UUID id = ShortUUID.generate32BitUUID();
-        ZkNodeEntry<UUID, PortConfig> portNode = new ZkNodeEntry<UUID, PortConfig>(
-                id, port);
+        ZkNodeEntry<UUID, PortConfig> portNode =
+                new ZkNodeEntry<UUID, PortConfig>(id, port);
         multi(preparePortCreate(portNode));
         return id;
     }
@@ -266,7 +285,7 @@ public class PortZkManager extends ZkManager {
 
     /**
      * Gets a ZooKeeper node entry key-value pair of a port with the given ID.
-     * 
+     *
      * @param id
      *            The ID of the port.
      * @return Port object found.
@@ -281,7 +300,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Gets a ZooKeeper node entry key-value pair of a port with the given ID
      * and sets a watcher on the node.
-     * 
+     *
      * @param id
      *            The ID of the port.
      * @param watcher
@@ -308,7 +327,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper port nodes belonging under the directory path
      * specified.
-     * 
+     *
      * @param path
      *            The directory path of the parent node.
      * @param watcher
@@ -332,7 +351,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper port nodes belonging to a router with the given
      * ID.
-     * 
+     *
      * @param routerId
      *            The ID of the router to find the ports of.
      * @return A list of ZooKeeper port nodes.
@@ -347,7 +366,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper port nodes belonging to a router with the given
      * ID.
-     * 
+     *
      * @param routerId
      *            The ID of the router to find the ports of.
      * @param watcher
@@ -366,7 +385,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper port nodes belonging to a bridge with the given
      * ID.
-     * 
+     *
      * @param bridgeId
      *            The ID of the bridge to find the ports of.
      * @return A list of ZooKeeper port nodes.
@@ -381,7 +400,7 @@ public class PortZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper port nodes belonging to a bridge with the given
      * ID.
-     * 
+     *
      * @param bridgeId
      *            The ID of the bridge to find the routes of.
      * @param watcher
@@ -399,7 +418,7 @@ public class PortZkManager extends ZkManager {
 
     /**
      * Updates the PortConfig values with the given PortConfig object.
-     * 
+     *
      * @param entry
      *            PortConfig object to save.
      * @throws ZkStateSerializationException
@@ -422,7 +441,7 @@ public class PortZkManager extends ZkManager {
     /***
      * Deletes a port and its related data from the ZooKeeper directories
      * atomically.
-     * 
+     *
      * @param id
      *            ID of the port to delete.
      * @throws ZkStateSerializationException

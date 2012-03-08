@@ -16,6 +16,7 @@ public class DtoBridge {
     private String tenantId;
     private URI uri;
     private URI ports;
+    private URI routers;
 
     public UUID getId() {
         return id;
@@ -57,4 +58,11 @@ public class DtoBridge {
         this.ports = ports;
     }
 
+    public URI getRouters() {
+        return routers;
+    }
+
+    public void setRouters(URI routers) {
+        this.routers = routers;
+    }
 }

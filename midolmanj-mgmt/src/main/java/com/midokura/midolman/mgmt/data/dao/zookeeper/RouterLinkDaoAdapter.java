@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
+import com.midokura.midolman.mgmt.data.dto.BridgeRouterLink;
+import com.midokura.midolman.mgmt.data.dto.BridgeRouterPort;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
@@ -86,6 +88,32 @@ public class RouterLinkDaoAdapter implements RouterLinkDao {
         return link;
     }
 
+    @Override
+    public BridgeRouterLink create(BridgeRouterPort port) throws StateAccessException {
+        if (port.getDeviceId() == null || port.getBridgeId() == null) {
+            throw new IllegalArgumentException(
+                    "Router ID and bridge ID must be set: deviceId="
+                            + port.getDeviceId() + ", peerId="
+                            + port.getBridgeId());
+        }
+        // Check that they are not currently linked.
+        if (zkDao.routerLinkExists(port.getDeviceId(), port.getBridgeId())) {
+            throw new IllegalArgumentException(
+                    "This router and bridge are already connected.");
+        }
+
+        // TODO(pino): these are logical ports so they don't need to be 32 bits.
+        // TODO(pino): port ID generation should be centralized somewhere.
+        UUID portId = ShortUUID.generate32BitUUID();
+        UUID peerPortId = ShortUUID.generate32BitUUID();
+        port.setId(portId);
+        port.setPeerId(peerPortId);
+        List<Op> ops = opService.buildBridgeLink(port.getId(), port.toConfig(),
+                port.getPeerId(), port.toPeerConfig());
+        zkDao.multi(ops);
+        return port.toLink();
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -110,6 +138,16 @@ public class RouterLinkDaoAdapter implements RouterLinkDao {
         log.debug("RouterLinkDaoAdapter.delete exiting.");
     }
 
+    @Override
+    public void deleteBridgeLink(UUID routerId, UUID bridgeId) throws StateAccessException {
+        if (!zkDao.routerBridgeLinkExists(routerId, bridgeId)) {
+            throw new IllegalArgumentException("Invalid operation. " +
+                    "The router and bridge are not connected.");
+        }
+        List<Op> ops = opService.buildBridgeUnlink(routerId, bridgeId);
+        zkDao.multi(ops);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -131,6 +169,14 @@ public class RouterLinkDaoAdapter implements RouterLinkDao {
         return link;
     }
 
+    @Override
+    public BridgeRouterLink getBridgeLink(UUID routerId, UUID bridgeId) throws StateAccessException {
+        PeerRouterConfig config =
+                zkDao.getRouterBridgeLinkData(routerId, bridgeId);
+        return new BridgeRouterLink(
+                config.portId, config.peerPortId, routerId, bridgeId);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -148,6 +194,16 @@ public class RouterLinkDaoAdapter implements RouterLinkDao {
         }
 
         log.debug("RouterLinkDaoAdapter.list exiting: links count={}", links.size());
+        return links;
+    }
+
+    @Override
+    public List<BridgeRouterLink> listBridgeLinks(UUID routerId) throws StateAccessException {
+        List<BridgeRouterLink> links = new ArrayList<BridgeRouterLink>();
+        Set<String> bridgeIds = zkDao.getBridgeIds(routerId);
+        for (String bridgeId : bridgeIds) {
+            links.add(getBridgeLink(routerId, UUID.fromString(bridgeId)));
+        }
         return links;
     }
 }

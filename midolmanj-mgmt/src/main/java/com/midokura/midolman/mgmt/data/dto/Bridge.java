@@ -129,6 +129,13 @@ public class Bridge extends UriResource {
     }
 
     /**
+     * @return the routers URI
+     */
+    public URI getRouters() {
+        return ResourceUriBuilder.getBridgeRouters(getBaseUri(), id);
+    }
+
+    /**
      * @return the self URI
      */
     @Override

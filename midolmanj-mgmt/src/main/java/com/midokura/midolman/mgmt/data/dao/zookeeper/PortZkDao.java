@@ -138,7 +138,7 @@ public class PortZkDao {
     /**
      * Get a set of port IDs for a given bridge.
      *
-     * @param routerId
+     * @param bridgeId
      *            ID of the bridge.
      * @return Set of port IDs.
      * @throws StateAccessException

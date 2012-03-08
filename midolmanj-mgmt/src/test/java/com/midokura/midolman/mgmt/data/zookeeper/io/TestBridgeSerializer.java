@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Serializer;
 
@@ -21,6 +22,7 @@ public class TestBridgeSerializer {
 
     Serializer<BridgeMgmtConfig> serializerMock = null;
     Serializer<BridgeNameMgmtConfig> nameSerializerMock = null;
+    Serializer<PeerRouterConfig> peerSerializerMock = null;
     BridgeSerializer serializer = null;
     byte[] dummyBytes = { 1, 2, 3 };
 
@@ -29,7 +31,9 @@ public class TestBridgeSerializer {
     public void setUp() throws Exception {
         serializerMock = Mockito.mock(Serializer.class);
         nameSerializerMock = Mockito.mock(Serializer.class);
-        serializer = new BridgeSerializer(serializerMock, nameSerializerMock);
+        peerSerializerMock = Mockito.mock(Serializer.class);
+        serializer = new BridgeSerializer(
+                serializerMock, nameSerializerMock, peerSerializerMock);
     }
 
     @Test

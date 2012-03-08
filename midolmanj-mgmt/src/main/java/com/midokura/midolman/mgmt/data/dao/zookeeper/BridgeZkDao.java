@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.StateAccessException;
@@ -74,8 +75,8 @@ public class BridgeZkDao {
     /**
      * Get the name data for the given bridge.
      *
-     * @param id
-     *            ID of the bridge.
+     * @param tenantId
+     *            ID of the Tenant.
      * @return BridgeNameMgmtConfig stored in ZK.
      * @throws StateAccessException
      *             Data access error.
@@ -124,5 +125,38 @@ public class BridgeZkDao {
         log.debug("BridgeZkDao.multi entered: ops count={}", ops.size());
         zkDao.multi(ops);
         log.debug("BridgeZkDao.multi exiting.");
+    }
+
+    /**
+     * Get a set of connected router IDs for a given bridge.
+     *
+     * @param bridgeId
+     *            ID of the bridge.
+     * @return Set of router IDs.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public Set<String> getRouterIds(UUID bridgeId)
+            throws StateAccessException {
+        String path = pathBuilder.getBridgeRoutersPath(bridgeId);
+        return zkDao.getChildren(path, null);
+    }
+
+    /**
+     * Get the PeerRouterConfig object for the link between the given IDs.
+     *
+     * @param bridgeId
+     *            Bridge ID
+     * @param routerId
+     *            Router ID
+     * @return PeerRouterConfig object.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public PeerRouterConfig getBridgeRouterLinkData(
+            UUID bridgeId, UUID routerId) throws StateAccessException {
+        String path = pathBuilder.getBridgeRouterPath(bridgeId, routerId);
+        byte[] data = zkDao.get(path);
+        return serializer.deserializePeer(data);
     }
 }

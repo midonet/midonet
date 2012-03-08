@@ -67,6 +67,17 @@ public class ResourceUriBuilder {
                 .path(bridgeId.toString()).build();
     }
 
+    public static URI getBridgeRouters(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(ROUTERS)
+                .build();
+    }
+
+    public static URI getBridgeRouter(
+            URI baseUri, UUID bridgeId, UUID routerId) {
+        return UriBuilder.fromUri(getBridgeRouters(baseUri, bridgeId))
+                .path(routerId.toString()).build();
+    }
+
     public static URI getTenantBridges(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(BRIDGES)
                 .build();
@@ -179,9 +190,20 @@ public class ResourceUriBuilder {
     }
 
     public static URI getRouterLink(URI baseUri, UUID routerId,
-            UUID peerRouterId) {
+                                    UUID peerRouterId) {
         return UriBuilder.fromUri(getRouterLinks(baseUri, routerId))
                 .path(peerRouterId.toString()).build();
+    }
+
+    public static URI getRouterBridges(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(BRIDGES)
+                .build();
+    }
+
+    public static URI getRouterBridge(URI baseUri, UUID routerId,
+                                    UUID bridgeId) {
+        return UriBuilder.fromUri(getRouterBridges(baseUri, routerId))
+                .path(bridgeId.toString()).build();
     }
 
     public static URI getRoutes(URI baseUri) {

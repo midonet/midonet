@@ -1,13 +1,12 @@
 /*
- * @(#)RouterLinkResource        1.6 12/1/11
+ * @(#)RouteBridgeLinkResource        1.6 3/6/12
  *
- * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 import java.util.UUID;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -29,20 +28,20 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
-import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
-import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
+import com.midokura.midolman.mgmt.data.dto.BridgeRouterLink;
+import com.midokura.midolman.mgmt.data.dto.BridgeRouterPort;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Sub-resource class for router's peer router.
+ * Sub-resource class for an L2 device connected to a router.
  */
-public class RouterLinkResource {
+public class RouterBridgesResource {
 
     private final static Logger log = LoggerFactory
-            .getLogger(RouterLinkResource.class);
+            .getLogger(RouterBridgesResource.class);
     private UUID routerId = null;
 
     /**
@@ -51,15 +50,15 @@ public class RouterLinkResource {
      * @param routerId
      *            ID of a router.
      */
-    public RouterLinkResource(UUID routerId) {
+    public RouterBridgesResource(UUID routerId) {
         this.routerId = routerId;
     }
 
     /**
-     * Handler for creating a router to router link.
+     * Handler for creating a router to bridge link.
      *
      * @param port
-     *            LogicalRouterPort object.
+     *            BridgeRouterPort object.
      * @param uriInfo
      *            Object that holds the request URI data.
      * @param context
@@ -68,33 +67,33 @@ public class RouterLinkResource {
      *            Data access factory object.
      * @param authorizer
      *            Authorizer object.
-     * @throws StateAccessException
+     * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
+     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
      *             Authentication/authorization error.
      * @returns Response object with 201 status code set if successful. Body is
-     *          set to PeerRouterLink.
+     *          set to BridgeRouterLink.
      */
     @POST
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(LogicalRouterPort port, @Context UriInfo uriInfo,
+    public Response create(BridgeRouterPort port, @Context UriInfo uriInfo,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
         port.setDeviceId(routerId);
-        PeerRouterLink peerRouter = null;
+        BridgeRouterLink link = null;
         try {
-            if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
-                    port.getDeviceId(), port.getPeerRouterId())) {
+            if (!authorizer.routerBridgeLinkAuthorized(context,
+                    AuthAction.WRITE, port.getDeviceId(), port.getBridgeId())) {
                 throw new UnauthorizedException(
-                        "Not authorized to link these routers.");
+                        "Not authorized to link this router and bridge.");
             }
-            peerRouter = dao.create(port);
+            link = dao.create(port);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -106,41 +105,41 @@ public class RouterLinkResource {
             throw new UnknownRestApiException(e);
         }
 
-        peerRouter.setBaseUri(uriInfo.getBaseUri());
-        return Response.created(peerRouter.getUri()).entity(peerRouter).build();
+        link.setBaseUri(uriInfo.getBaseUri());
+        return Response.created(link.getUri()).entity(link).build();
     }
 
     /**
-     * Handler to deleting a router link.
+     * Handler to deleting a router to bridge link.
      *
-     * @param peerId
-     *            Peer router ID from the request.
+     * @param bridgeId
+     *            Bridge ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param daoFactory
      *            Data access factory object.
      * @param authorizer
      *            Authorizer object.
-     * @throws StateAccessException
+     * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
+     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
      *             Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
-    public void delete(@PathParam("id") UUID peerId,
+    public void delete(@PathParam("id") UUID bridgeId,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
         try {
-            if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
-                    routerId, peerId)) {
+            if (!authorizer.routerBridgeLinkAuthorized(context,
+                    AuthAction.WRITE, routerId, bridgeId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to unlink these routers.");
+                        "Not authorized to unlink this router and bridge.");
             }
-            dao.delete(routerId, peerId);
+            dao.deleteBridgeLink(routerId, bridgeId);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -154,10 +153,10 @@ public class RouterLinkResource {
     }
 
     /**
-     * Handler to getting a router to router link.
+     * Handler to getting a router to bridge link.
      *
      * @param id
-     *            Peer router ID from the request.
+     *            Bridge ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param uriInfo
@@ -166,30 +165,30 @@ public class RouterLinkResource {
      *            Data access factory object.
      * @param authorizer
      *            Authorizer object.
-     * @throws StateAccessException
+     * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
+     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
      *             Authentication/authorization error.
-     * @return A PeerRouterLink object.
+     * @return A BridgeRouterLink object.
      */
     @GET
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
             MediaType.APPLICATION_JSON })
-    public PeerRouterLink get(@PathParam("id") UUID id,
+    public BridgeRouterLink get(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
             throws StateAccessException, UnauthorizedException {
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
-        PeerRouterLink link = null;
+        BridgeRouterLink link = null;
         try {
-            if (!authorizer.routerLinkAuthorized(context, AuthAction.READ,
-                    routerId, id)) {
+            if (!authorizer.routerBridgeLinkAuthorized(context,
+                    AuthAction.READ, routerId, id)) {
                 throw new UnauthorizedException(
-                        "Not authorized to view this router link.");
+                        "Not authorized to view this router to bridge link.");
             }
-            link = dao.get(routerId, id);
+            link = dao.getBridgeLink(routerId, id);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -205,7 +204,7 @@ public class RouterLinkResource {
     }
 
     /**
-     * Handler to list router links.
+     * Handler to list router to bridge links.
      *
      * @param context
      *            Object that holds the security data.
@@ -215,29 +214,29 @@ public class RouterLinkResource {
      *            Data access factory object.
      * @param authorizer
      *            Authorizer object.
-     * @throws StateAccessException
+     * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
+     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
      *             Authentication/authorization error.
-     * @return A list of PeerRouterLink objects.
+     * @return A list of BridgeRouterLink objects.
      */
     @GET
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public List<PeerRouterLink> list(@Context SecurityContext context,
+    public List<BridgeRouterLink> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
-        List<PeerRouterLink> links = null;
+        List<BridgeRouterLink> links = null;
         try {
             if (!authorizer.routerAuthorized(
                     context, AuthAction.READ, routerId)) {
                 throw new UnauthorizedException(
-                        "Not authorized to view these router links.");
+                        "Not authorized to view this router's bridge links.");
             }
-            links = dao.list(routerId);
+            links = dao.listBridgeLinks(routerId);
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;

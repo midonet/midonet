@@ -38,6 +38,7 @@ public class TestRouterOpService {
     private RouterZkDao zkDaoMock = null;
     private PortOpService portOpServiceMock = null;
     private ChainOpService chainOpServiceMock = null;
+    private BridgeOpBuilder bridgeOpBuilderMock = null;
     private RouterOpService service = null;
     private static final Op dummyCreateOp0 = Op.create("/foo",
             new byte[] { 0 }, null, CreateMode.PERSISTENT);
@@ -45,9 +46,12 @@ public class TestRouterOpService {
             new byte[] { 1 }, null, CreateMode.PERSISTENT);
     private static final Op dummyCreateOp2 = Op.create("/baz",
             new byte[] { 2 }, null, CreateMode.PERSISTENT);
+    private static final Op dummyCreateOp3 = Op.create("/fuzz",
+            new byte[] { 2 }, null, CreateMode.PERSISTENT);
     private static final Op dummyDeleteOp0 = Op.delete("/foo", -1);;
     private static final Op dummyDeleteOp1 = Op.delete("/bar", -1);
     private static final Op dummyDeleteOp2 = Op.delete("/baz", -1);
+    private static final Op dummyDeleteOp3 = Op.delete("/fuzz", -1);
     private static List<Op> dummyCreateOps = null;
     static {
         dummyCreateOps = new ArrayList<Op>();
@@ -78,9 +82,11 @@ public class TestRouterOpService {
         this.opBuilderMock = mock(RouterOpBuilder.class);
         this.portOpServiceMock = mock(PortOpService.class);
         this.chainOpServiceMock = mock(ChainOpService.class);
+        this.bridgeOpBuilderMock = mock(BridgeOpBuilder.class);
         this.zkDaoMock = mock(RouterZkDao.class);
         this.service = new RouterOpService(this.opBuilderMock,
-                this.chainOpServiceMock, this.portOpServiceMock, this.zkDaoMock);
+                this.chainOpServiceMock, this.portOpServiceMock,
+                this.bridgeOpBuilderMock, this.zkDaoMock);
     }
 
     @Test
@@ -97,6 +103,8 @@ public class TestRouterOpService {
                 dummyCreateOp0);
         when(opBuilderMock.getRouterRoutersCreateOp(id)).thenReturn(
                 dummyCreateOp1);
+        when(opBuilderMock.getRouterBridgesCreateOp(id)).thenReturn(
+                dummyCreateOp3);
         when(opBuilderMock.getRouterTablesCreateOp(id)).thenReturn(
                 dummyCreateOp2);
         for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
@@ -112,21 +120,20 @@ public class TestRouterOpService {
 
         when(opBuilderMock.getTenantRouterCreateOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyCreateOp0);
-        when(
-                opBuilderMock.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
-                        mgmtConfig.name, nameConfig))
-                .thenReturn(dummyCreateOp1);
+        when(opBuilderMock.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
+                mgmtConfig.name, nameConfig)).thenReturn(dummyCreateOp1);
 
         List<Op> ops = service.buildCreate(id, mgmtConfig, nameConfig);
 
         int chainNum = ChainTable.class.getEnumConstants().length;
         int chainOpNum = chainNum * 6;
-        Assert.assertEquals(8 + chainOpNum, ops.size());
+        Assert.assertEquals(9 + chainOpNum, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
+        Assert.assertEquals(dummyCreateOp3, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
         for (int i = 0; i < chainNum; i++) {
             Assert.assertEquals(dummyCreateOp0, ops.remove(0));
@@ -153,9 +160,8 @@ public class TestRouterOpService {
         when(opBuilderMock.getRouterDeleteOps(id)).thenReturn(dummyDeleteOps);
         when(portOpServiceMock.buildRouterPortsDelete(id)).thenReturn(
                 dummyDeleteOps);
-        when(
-                opBuilderMock.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,
-                        mgmtConfig.name)).thenReturn(dummyDeleteOp0);
+        when(opBuilderMock.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,
+                mgmtConfig.name)).thenReturn(dummyDeleteOp0);
         when(opBuilderMock.getTenantRouterDeleteOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyDeleteOp1);
 
@@ -174,12 +180,14 @@ public class TestRouterOpService {
                 dummyDeleteOp0);
         when(opBuilderMock.getRouterRoutersDeleteOp(id)).thenReturn(
                 dummyDeleteOp1);
+        when(opBuilderMock.getRouterBridgesDeleteOp(id)).thenReturn(
+                dummyDeleteOp3);
 
         List<Op> ops = service.buildDelete(id, true);
 
         int chainNum = ChainTable.class.getEnumConstants().length;
         int chainOpNum = chainNum * 6;
-        Assert.assertEquals(11 + chainOpNum, ops.size());
+        Assert.assertEquals(12 + chainOpNum, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
@@ -198,6 +206,7 @@ public class TestRouterOpService {
         }
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp3, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
 
     }
@@ -235,12 +244,14 @@ public class TestRouterOpService {
         when(opBuilderMock.getRouterRoutersDeleteOp(id)).thenReturn(
                 dummyDeleteOp1);
         when(opBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp2);
+        when(opBuilderMock.getRouterBridgesDeleteOp(id)).thenReturn(
+                dummyDeleteOp3);
 
         List<Op> ops = service.buildDelete(id, false);
 
         int chainNum = ChainTable.class.getEnumConstants().length;
         int chainOpNum = chainNum * 6;
-        Assert.assertEquals(8 + chainOpNum, ops.size());
+        Assert.assertEquals(9 + chainOpNum, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
@@ -256,6 +267,7 @@ public class TestRouterOpService {
         }
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp3, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
     }
 

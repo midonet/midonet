@@ -159,6 +159,34 @@ public class RouterOpBuilder {
     }
 
     /**
+     * Get the bridge link create Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for bridge link create.
+     */
+    public Op getRouterBridgesCreateOp(UUID id) {
+        String path = pathBuilder.getRouterBridgesPath(id);
+        return zkDao.getPersistentCreateOp(path, null);
+    }
+
+    /**
+     * Get the bridges link create Op object.
+     *
+     * @param routerId
+     *            ID of the router
+     * @param bridgeId
+     *            ID of the bridge
+     * @return Op for bridge link create.
+     */
+    public Op getRouterBridgeCreateOp(UUID routerId, UUID bridgeId,
+            PeerRouterConfig config) throws ZkStateSerializationException {
+        String path = pathBuilder.getRouterBridgePath(routerId, bridgeId);
+        byte[] data = serializer.serialize(config);
+        return zkDao.getPersistentCreateOp(path, data);
+    }
+
+    /**
      * Get the routers link delete Op object.
      *
      * @param id
@@ -191,6 +219,30 @@ public class RouterOpBuilder {
 
         log.debug("RouterOpBuilder.getRouterRoutersDeleteOp exiting.");
         return op;
+    }
+
+    /**
+     * Get the bridges link delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for bridge link delete.
+     */
+    public Op getRouterBridgesDeleteOp(UUID id) {
+        String path = pathBuilder.getRouterBridgesPath(id);
+        return zkDao.getDeleteOp(path);
+    }
+
+    /**
+     * Get the bridge link delete Op object.
+     *
+     * @param id
+     *            ID of the router
+     * @return Op for bridge link delete.
+     */
+    public Op getRouterBridgeDeleteOp(UUID id, UUID bridgeId) {
+        String path = pathBuilder.getRouterBridgePath(id, bridgeId);
+        return zkDao.getDeleteOp(path);
     }
 
     /**
@@ -435,7 +487,7 @@ public class RouterOpBuilder {
     /**
      * Get the tenant router name delete Op object.
      *
-     * @param id
+     * @param tenantId
      *            ID of the tenant
      * @param name
      *            name of the router

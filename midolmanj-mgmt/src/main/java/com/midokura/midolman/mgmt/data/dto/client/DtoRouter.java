@@ -19,6 +19,7 @@ public class DtoRouter {
     private URI chains;
     private URI routes;
     private URI peerRouters;
+    private URI bridges;
 
     public UUID getId() {
         return id;
@@ -82,6 +83,14 @@ public class DtoRouter {
 
     public void setPeerRouters(URI peerRouters) {
         this.peerRouters = peerRouters;
+    }
+
+    public URI getBridges() {
+        return bridges;
+    }
+
+    public void setBridges(URI bridges) {
+        this.bridges = bridges;
     }
 
 }

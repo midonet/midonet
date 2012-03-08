@@ -235,6 +235,25 @@ public class SimpleAuthorizer implements Authorizer {
         return allowed;
     }
 
+    @Override
+    public boolean routerBridgeLinkAuthorized(SecurityContext context,
+            AuthAction action, UUID routerId, UUID bridgeId)
+            throws StateAccessException {
+
+        if (AuthChecker.isProvider(context)) {
+            return true;
+        }
+
+        // Allow if both devices belong to the user.
+        Tenant routerTenant = tenantDao.getByRouter(routerId);
+        if (!AuthChecker.isUserPrincipal(context, routerTenant.getId())) {
+            return false;
+        }
+
+        Tenant bridgeTenant = tenantDao.getByBridge(bridgeId);
+        return routerTenant.getId().equals(bridgeTenant.getId());
+    }
+
     /*
      * (non-Javadoc)
      *

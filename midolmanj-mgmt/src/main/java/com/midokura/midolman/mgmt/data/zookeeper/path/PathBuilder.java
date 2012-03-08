@@ -63,6 +63,32 @@ public class PathBuilder {
     }
 
     /**
+     * Get ZK path to a bridge's routers.
+     *
+     * @param id
+     *            Bridge UUID
+     * @return /bridges/bridgeId/routers
+     */
+    public String getBridgeRoutersPath(UUID id) {
+        return new StringBuilder(getBridgePath(id)).append("/").append(id)
+                .append(ROUTERS_PATH).toString();
+    }
+
+    /**
+     * Get ZK path to a bridge's connected router.
+     *
+     * @param bridgeId
+     *            Bridge UUID
+     * @param routerId
+     *            Router UUID
+     * @return /bridges/bridgeId/routers/routerId
+     */
+    public String getBridgeRouterPath(UUID bridgeId, UUID routerId) {
+        return new StringBuilder(getBridgeRoutersPath(bridgeId)).append("/")
+                .append(routerId).toString();
+    }
+
+    /**
      * Get ZK bridges path.
      *
      * @return /bridges
@@ -148,6 +174,32 @@ public class PathBuilder {
     public String getRouterRoutersPath(UUID routerId) {
         return new StringBuilder(getRouterPath(routerId)).append("/")
                 .append(ROUTERS_PATH).toString();
+    }
+
+    /**
+     * Get ZK router linked bridge path.
+     *
+     * @param routerId
+     *            Router UUID
+     * @param bridgeId
+     *            Bridge UUID
+     * @return /routers/routerId/bridges/bridgeId
+     */
+    public String getRouterBridgePath(UUID routerId, UUID bridgeId) {
+        return new StringBuilder(getRouterBridgesPath(routerId)).append("/")
+                .append(bridgeId).toString();
+    }
+
+    /**
+     * Get ZK router linked bridges path.
+     *
+     * @param routerId
+     *            Router UUID
+     * @return /routers/routerId/bridges
+     */
+    public String getRouterBridgesPath(UUID routerId) {
+        return new StringBuilder(getRouterPath(routerId)).append("/")
+                .append(BRIDGES_PATH).toString();
     }
 
     /**

@@ -166,6 +166,11 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
                 getPortDao());
     }
 
+    @Override
+    public BridgeLinkDao getBridgeLinkDao() throws StateAccessException {
+        return new BridgeLinkDaoAdapter(getBridgeZkDao(), getBridgeOpService());
+    }
+
     private BridgeZkManager getBridgeZkManager() throws StateAccessException {
         return new BridgeZkManager(getDirectory(), getRootPath());
     }
@@ -188,7 +193,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     private BridgeSerializer getBridgeSerializer() {
         Serializer<BridgeMgmtConfig> serializer = new JsonJaxbSerializer<BridgeMgmtConfig>();
         Serializer<BridgeNameMgmtConfig> nameSerializer = new JsonJaxbSerializer<BridgeNameMgmtConfig>();
-        return new BridgeSerializer(serializer, nameSerializer);
+        Serializer<PeerRouterConfig> peerSerializer = new JsonJaxbSerializer<PeerRouterConfig>();
+        return new BridgeSerializer(serializer, nameSerializer, peerSerializer);
     }
 
     /*
@@ -326,7 +332,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private RouterOpService getRouterOpService() throws StateAccessException {
         return new RouterOpService(getRouterOpBuilder(), getChainOpService(),
-                getPortOpService(), getRouterZkDao());
+                getPortOpService(), getBridgeOpBuilder(), getRouterZkDao());
     }
 
     private RouterSerializer getRouterSerializer() {

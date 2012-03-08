@@ -75,8 +75,10 @@ public class RouterZkDao {
     /**
      * Get the name data for the given router.
      *
-     * @param id
-     *            ID of the router.
+     * @param tenantId
+     *            ID of the tenant.
+     * @param name
+     *            Name of the router.
      * @return RouterNameMgmtConfig stored in ZK.
      * @throws StateAccessException
      *             Data access error.
@@ -136,6 +138,21 @@ public class RouterZkDao {
     }
 
     /**
+     * Get a set of connected bridge IDs for a given router.
+     *
+     * @param routerId
+     *            ID of the routerId.
+     * @return Set of bridge IDs.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public Set<String> getBridgeIds(UUID routerId)
+            throws StateAccessException {
+        String path = pathBuilder.getRouterBridgesPath(routerId);
+        return zkDao.getChildren(path, null);
+    }
+
+    /**
      * Get the PeerRouterConfig object for the link between the given IDs.
      *
      * @param id
@@ -157,6 +174,24 @@ public class RouterZkDao {
 
         log.debug("RouterZkDao.getRouterLinkData exiting.");
         return config;
+    }
+
+    /**
+     * Get the PeerRouterConfig object for the link between the given IDs.
+     *
+     * @param id
+     *            Router ID
+     * @param bridgeId
+     *            Bridge ID
+     * @return PeerRouterConfig object.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public PeerRouterConfig getRouterBridgeLinkData(UUID id, UUID bridgeId)
+            throws StateAccessException {
+        String path = pathBuilder.getRouterBridgePath(id, bridgeId);
+        byte[] data = zkDao.get(path);
+        return serializer.deserializePeer(data);
     }
 
     /**
@@ -193,6 +228,23 @@ public class RouterZkDao {
 
         log.debug("RouterZkDao.routerLinkExists exiting: exists=" + exists);
         return exists;
+    }
+
+    /**
+     * Checks whether the given link exists.
+     *
+     * @param routerId
+     *            Router ID
+     * @param bridgeId
+     *            Bridge ID
+     * @return True if the router to bridge link exists.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public boolean routerBridgeLinkExists(UUID routerId, UUID bridgeId)
+            throws StateAccessException {
+        String path = pathBuilder.getRouterBridgePath(routerId, bridgeId);
+        return zkDao.exists(path);
     }
 
     /**

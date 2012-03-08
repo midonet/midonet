@@ -161,11 +161,23 @@ public class RouterResource {
      *
      * @param id
      *            Router ID from the request.
-     * @returns RouterRouterResource object to handle sub-resource requests.
+     * @returns RouterLinkResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.ROUTERS)
     public RouterLinkResource getLinkResource(@PathParam("id") UUID id) {
         return new RouterLinkResource(id);
+    }
+
+    /**
+     * Router resource locator for linked bridges.
+     *
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterBridgesResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.BRIDGES)
+    public RouterBridgesResource getBridgesResource(@PathParam("id") UUID id) {
+        return new RouterBridgesResource(id);
     }
 
     /**

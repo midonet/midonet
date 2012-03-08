@@ -148,6 +148,10 @@ public class Router extends UriResource {
         return ResourceUriBuilder.getRouterRouters(getBaseUri(), id);
     }
 
+    public URI getBridges() {
+        return ResourceUriBuilder.getRouterBridges(getBaseUri(), id);
+    }
+
     /**
      * @return the self URI
      */

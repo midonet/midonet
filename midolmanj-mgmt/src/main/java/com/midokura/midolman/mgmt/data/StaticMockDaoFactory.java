@@ -67,6 +67,11 @@ public class StaticMockDaoFactory implements DaoFactory {
     }
 
     @Override
+    public BridgeLinkDao getBridgeLinkDao() throws StateAccessException {
+        return factoryInstance.getBridgeLinkDao();
+    }
+
+    @Override
     public ChainDao getChainDao() throws StateAccessException {
         return factoryInstance.getChainDao();
     }

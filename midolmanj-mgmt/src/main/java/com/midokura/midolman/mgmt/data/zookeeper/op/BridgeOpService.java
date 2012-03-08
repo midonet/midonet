@@ -17,8 +17,10 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Bridge Op service.
@@ -79,6 +81,9 @@ public class BridgeOpService {
         // Create the root bridge path
         ops.add(opBuilder.getBridgeCreateOp(id, mgmtConfig));
 
+        // links
+        ops.add(opBuilder.getBridgeRoutersCreateOp(id));
+
         // Add the bridge under tenant.
         ops.add(opBuilder.getTenantBridgeCreateOp(mgmtConfig.tenantId, id));
 
@@ -125,6 +130,9 @@ public class BridgeOpService {
 
         // Delete the tenant bridge
         ops.add(opBuilder.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id));
+
+        // links
+        ops.add(opBuilder.getBridgeRoutersDeleteOp(id));
 
         // Delete the root bridge path.
         ops.add(opBuilder.getBridgeDeleteOp(id));
@@ -198,4 +206,5 @@ public class BridgeOpService {
                 ops.size());
         return ops;
     }
+
 }
