@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.agent.commands;
 
+import com.midokura.midolman.packets.MAC;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
@@ -12,6 +13,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 import com.midokura.midolman.agent.state.HostDirectory;
+
+import java.net.InetAddress;
+import java.util.Arrays;
+
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;
@@ -68,7 +73,53 @@ public class HostCommandGenerator {
         // TODO: finish this once we get the classes from Rossella
 //        validateThat("");
 
-        return new Command();
+        // In this command we'll store the configuration changes
+        Command command = new Command();
+        command.setInterfaceName(newHostInterface.getName());
+
+        // do we need to create a new interface? we know the new one is not empty
+        if (curHostInterface == null) {
+            // create interface
+            Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
+            atomicCommand.setProperty("interface");
+            atomicCommand.setOpType(Command.AtomicCommand.OperationType.SET);
+            atomicCommand.setValue(newHostInterface.getType().toString());
+            return command;
+        }
+
+        // If MACs are different, create atomic command to update them
+        if (!Arrays.equals(curHostInterface.getMac(), newHostInterface.getMac())) {
+            Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
+            atomicCommand.setProperty("mac");
+            atomicCommand.setOpType(Command.AtomicCommand.OperationType.SET);
+            MAC mac = new MAC(newHostInterface.getMac());
+            atomicCommand.setValue(mac.toString());
+            command.addAtomicCommand(atomicCommand);
+        }
+
+        // Look for addresses no longer used
+        for (InetAddress address : curHostInterface.getAddresses()) {
+            if (!newHostInterface.hasAddress(address)) {
+                Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
+                atomicCommand.setProperty("address");
+                atomicCommand.setOpType(Command.AtomicCommand.OperationType.DELETE);
+                atomicCommand.setValue(address.toString());
+                command.addAtomicCommand(atomicCommand);
+            }
+        }
+
+        // Look for addresses new to add
+        for (InetAddress address : newHostInterface.getAddresses()) {
+            if (!curHostInterface.hasAddress(address)) {
+                Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
+                atomicCommand.setProperty("address");
+                atomicCommand.setOpType(Command.AtomicCommand.OperationType.SET);
+                atomicCommand.setValue(address.toString());
+                command.addAtomicCommand(atomicCommand);
+            }
+        }
+
+        return command;
     }
 
     private <T> void validateThat(String message,

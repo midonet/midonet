@@ -221,6 +221,15 @@ public class HostDirectory {
             this.addresses = addresses;
         }
 
+        public boolean hasAddress(InetAddress searchAddress) {
+            for (InetAddress address : addresses) {
+                if (searchAddress.equals(address)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public Map<String, String> getProperties() {
             return properties;
         }
