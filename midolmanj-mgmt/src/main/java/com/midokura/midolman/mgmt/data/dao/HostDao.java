@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.Host;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -43,27 +44,6 @@ public interface HostDao {
     List<Host> list() throws StateAccessException;
 
     /**
-     * Add an interface description to a host
-     * 
-     * @param hostId      the host uuid
-     * @param anInterface the interface description
-     *
-     * @throws StateAccessException if a data access error occurs.
-     * @return the UUID of the created interface
-     */
-    UUID createInterface(UUID hostId, Interface anInterface) throws StateAccessException;
-
-    /**
-     * Remove an interface description from a host.
-     *
-     * @param hostId      the host uuid
-     * @param interfaceId the interface uuid
-     * @throws StateAccessException if the deletion fails
-     */
-    void deleteInterface(UUID hostId, UUID interfaceId)
-        throws StateAccessException;
-
-    /**
      * Lists all the interface information available on a host.
      *
      * @param hostId the host uuid
@@ -81,5 +61,21 @@ public interface HostDao {
      * @throws StateAccessException if the operation fails
      */
     Interface getInterface(UUID hostId, UUID interfaceId)
+        throws StateAccessException;
+
+    /**
+     * It will convert the target interface description into a set of commands
+     * that are to be executed by the client.
+     *
+     * @param hostId    is the if of the host on which the commands are
+     *                  to be executed
+     * @param interfaceId   interfaceId that we want to change (may be null)
+     * @param interfaceData is the interface description that we want created
+     *
+     * @return the command abstraction of this interface
+     * @throws StateAccessException if the operation fails
+     */
+    HostCommand createCommandForInterfaceUpdate(UUID hostId, UUID interfaceId,
+                                                Interface interfaceData)
         throws StateAccessException;
 }

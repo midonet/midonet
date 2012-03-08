@@ -10,10 +10,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.xml.bind.ValidationException;
+
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.commands.DataValidationException;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
@@ -123,6 +126,23 @@ public class HostZkManager extends ZkManager {
         delMulti.add(getDeleteOp(hostEntryPath));
 
         multi(delMulti);
+    }
+
+    public Integer createHostCommand(UUID hostId, HostDirectory.Command command)
+        throws StateAccessException {
+
+        try {
+            String path = addPersistentSequential(
+                pathManager.getHostCommandsPath(hostId), serialize(command));
+
+            int idx = path.lastIndexOf('/');
+            return Integer.parseInt(path.substring(idx + 1));
+
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                "Could not serialize host command for id: " + hostId, e,
+                HostDirectory.Command.class);
+        }
     }
 
     public UUID createInterface(UUID hostId,

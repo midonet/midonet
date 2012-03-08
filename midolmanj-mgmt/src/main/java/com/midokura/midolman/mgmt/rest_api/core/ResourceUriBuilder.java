@@ -27,6 +27,7 @@ public class ResourceUriBuilder {
     public static final String VPN = "/vpns";
     public static final String HOSTS = "/hosts";
     public static final String INTERFACES = "/interfaces";
+    public static final String COMMANDS = "/commands";
 
     private ResourceUriBuilder() {
     }
@@ -210,8 +211,18 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getHost(baseUri, hostId)).path(INTERFACES).build();
     }
 
-    public static URI getHostInterface(URI baseUri, UUID interfaceId) {
-        return UriBuilder.fromUri(getHostInterfaces(baseUri, interfaceId))
+    public static URI getHostInterface(URI baseUri, UUID hostId, UUID interfaceId) {
+        return UriBuilder.fromUri(getHostInterfaces(baseUri, hostId))
                          .path(interfaceId.toString()).build();
+    }
+
+    public static URI getHostCommands(URI baseUri, UUID hostId) {
+        return UriBuilder
+            .fromUri(getHost(baseUri, hostId)).path(COMMANDS).build();
+    }
+    public static URI getHostCommand(URI baseUri, UUID hostId, Integer id) {
+        return UriBuilder
+            .fromUri(getHostCommands(baseUri, hostId))
+            .path(id.toString()).build();
     }
 }

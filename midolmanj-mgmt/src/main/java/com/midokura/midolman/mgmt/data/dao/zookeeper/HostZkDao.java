@@ -15,9 +15,11 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.commands.HostCommandGenerator;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.mgmt.data.dto.Host;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
@@ -101,9 +103,14 @@ public class HostZkDao {
 
         HostDirectory.Interface interfaceData = metadataZkNodeEntry.value;
 
+        return toDtoInterfaceObject(hostId, interfaceId, interfaceData);
+    }
+
+    private Interface toDtoInterfaceObject(UUID hostId, UUID interfaceId,
+                                           HostDirectory.Interface interfaceData) {
         Interface hostInterface = new Interface();
         hostInterface.setName(interfaceData.getName());
-        if ( interfaceData.getMac() != null ) {
+        if (interfaceData.getMac() != null) {
             hostInterface.setMac(new MAC(interfaceData.getMac()).toString());
         }
         hostInterface.setStatus(interfaceData.getStatus());
@@ -118,6 +125,25 @@ public class HostZkDao {
         return hostInterface;
     }
 
+    private HostDirectory.Interface toHostDirectoryInterface(Interface intface) {
+
+        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
+
+        hostInterface.setName(intface.getName());
+        if (intface.getMac() != null) {
+            hostInterface.setMac(MAC.fromString(intface.getMac()).getAddress());
+        }
+        hostInterface.setStatus(intface.getStatus());
+        hostInterface.setMtu(intface.getMtu());
+        hostInterface.setId(intface.getId());
+        if (intface.getType() != null) {
+            hostInterface.setType(
+                HostDirectory.Interface.Type.valueOf(intface.getType().name()));
+        }
+
+        return hostInterface;
+    }
+
     public boolean existsInterface(UUID hostId, UUID interfaceId)
         throws StateAccessException {
         return zkDao.exists(
@@ -126,5 +152,36 @@ public class HostZkDao {
 
     public void delete(UUID hostId) throws StateAccessException {
         zkDao.deleteHost(hostId);
+    }
+
+    public HostCommand registerCommandForInterface(UUID hostId,
+                                                   UUID curInterfaceId,
+                                                   Interface newInterface)
+        throws StateAccessException {
+
+        HostCommandGenerator commandGenerator = new HostCommandGenerator();
+
+        HostDirectory.Interface curHostInterface = null;
+
+         if (curInterfaceId != null) {
+            ZkNodeEntry<UUID, HostDirectory.Interface> curInterfacePair =
+                zkDao.getInterfaceData(hostId, curInterfaceId);
+
+            curHostInterface = curInterfacePair.value;
+        }
+
+        HostDirectory.Interface newHostInterface =
+            toHostDirectoryInterface(newInterface);
+
+        HostDirectory.Command command =
+            commandGenerator.createUpdateCommand(curHostInterface, newHostInterface);
+
+        Integer commandId = zkDao.createHostCommand(hostId, command);
+
+        HostCommand dtoCommand = new HostCommand();
+        dtoCommand.setId(commandId);
+        dtoCommand.setHostId(hostId);
+
+        return dtoCommand;
     }
 }

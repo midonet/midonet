@@ -91,7 +91,7 @@ public class Interface extends UriResource {
 
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getHostInterface(super.getBaseUri(), id);
+        return ResourceUriBuilder.getHostInterface(super.getBaseUri(), hostId, id);
     }
 
 }

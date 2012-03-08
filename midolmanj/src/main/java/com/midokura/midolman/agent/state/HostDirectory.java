@@ -128,9 +128,23 @@ public class HostDirectory {
             Unknown, Physical, Virtual, Tunnel
         }
 
+        public enum StatusType {
+            Up(0x01), Carrier(0x02);
+
+            private int mask;
+
+            private StatusType(int mask) {
+                this.mask = mask;
+            }
+
+            public int getMask() {
+                return mask;
+            }
+        }
+
         UUID id;
         String name;
-        Type type;
+        Type type = Type.Unknown;
         String endpoint;
         byte[] mac;
         int status;
@@ -250,6 +264,12 @@ public class HostDirectory {
                 addresses) : 0);
             result = 31 * result + (properties != null ? properties.hashCode() : 0);
             return result;
+        }
+    }
+
+    public static class Command {
+        String name;
+        public Command() {
         }
     }
 }

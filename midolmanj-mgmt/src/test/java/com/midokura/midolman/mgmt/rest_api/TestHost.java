@@ -301,7 +301,8 @@ public class TestHost extends JerseyTest {
                    response.getStatus(), equalTo(403));
 
         assertThat("Host was not removed from zk",
-                   rootDirectory.has(pathManager.getHostPath(hostId)), equalTo(true));
+                   rootDirectory.has(pathManager.getHostPath(hostId)),
+                   equalTo(true));
     }
 
     @Test
@@ -311,7 +312,8 @@ public class TestHost extends JerseyTest {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("test");
         metadata.setAddresses(new InetAddress[]{
-            InetAddress.getByAddress(new byte[]{(byte)193, (byte)231, 30, (byte)197})
+            InetAddress.getByAddress(
+                new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
         });
 
         hostManager.createHost(hostId, metadata);
@@ -325,7 +327,9 @@ public class TestHost extends JerseyTest {
         assertThat(host, is(notNullValue()));
 
         assertThat(host.getInterfaces(),
-                   equalTo(UriBuilder.fromUri(host.getUri()).path("/interfaces").build()));
+                   equalTo(UriBuilder.fromUri(host.getUri())
+                                     .path("/interfaces")
+                                     .build()));
 
         ClientResponse clientResponse = resource()
             .uri(host.getInterfaces())
@@ -345,7 +349,8 @@ public class TestHost extends JerseyTest {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("test");
         metadata.setAddresses(new InetAddress[]{
-            InetAddress.getByAddress(new byte[]{(byte)193, (byte)231, 30, (byte)197})
+            InetAddress.getByAddress(
+                new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
         });
 
         hostManager.createHost(hostId, metadata);
@@ -357,8 +362,8 @@ public class TestHost extends JerseyTest {
         anInterface.setMac(MAC.fromString("16:1f:5c:19:a0:60").getAddress());
         anInterface.setMtu(123);
         anInterface.setType(HostDirectory.Interface.Type.Physical);
-        anInterface.setAddresses(new InetAddress[] {
-            InetAddress.getByAddress(new byte[] {10, 10, 10, 1})
+        anInterface.setAddresses(new InetAddress[]{
+            InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
         });
 
         UUID interfaceId = hostManager.createInterface(hostId, anInterface);
@@ -393,7 +398,8 @@ public class TestHost extends JerseyTest {
         assertThat("The DtoInterface should have a proper MTU valued",
                    dtoInterface.getMtu(), equalTo(anInterface.getMtu()));
         assertThat("The DtoInterface should have the proper mac address",
-                   dtoInterface.getMac(), equalTo(new MAC(anInterface.getMac()).toString()));
+                   dtoInterface.getMac(),
+                   equalTo(new MAC(anInterface.getMac()).toString()));
         assertThat("The DtoInterface type should be returned properly",
                    dtoInterface.getType(), equalTo(DtoInterface.Type.Physical));
     }
@@ -422,7 +428,7 @@ public class TestHost extends JerseyTest {
     }
 
     @Test
-    public void testInterfaceUri() throws Exception {
+    public void testInterfaceUriExists() throws Exception {
         UUID hostId = UUID.randomUUID();
 
         HostDirectory.Metadata hostMetadata = new HostDirectory.Metadata();
@@ -448,8 +454,53 @@ public class TestHost extends JerseyTest {
                    interfaces, arrayWithSize(1));
 
         DtoInterface dtoHostInterface = interfaces[0];
-        assertThat("the host dto should be properly configured", dtoHostInterface,
+        assertThat("the host dto should be properly configured",
+                   dtoHostInterface,
+                   allOf(notNullValue(), hasProperty("uri", notNullValue())));
+    }
+
+    @Test
+    public void testInterfaceUriIsValid() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        HostDirectory.Metadata hostMetadata = new HostDirectory.Metadata();
+        hostMetadata.setName("host1");
+
+        hostManager.createHost(hostId, hostMetadata);
+
+        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
+        hostInterface.setName("test");
+        hostManager.createInterface(hostId, hostInterface);
+
+        DtoHost host = resource()
+            .path("hosts/" + hostId.toString())
+            .type(VendorMediaType.APPLICATION_HOST_JSON)
+            .get(DtoHost.class);
+
+        DtoInterface[] interfaces = resource()
+            .uri(host.getInterfaces())
+            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
+            .get(DtoInterface[].class);
+
+        assertThat("There should be one interface description for the host",
+                   interfaces, arrayWithSize(1));
+
+        DtoInterface dtoHostInterface = interfaces[0];
+        assertThat("the host dto should be properly configured",
+                   dtoHostInterface,
                    allOf(notNullValue(), hasProperty("uri", notNullValue())));
 
+        DtoInterface rereadInterface = resource()
+            .uri(dtoHostInterface.getUri())
+            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
+            .get(DtoInterface.class);
+
+        assertThat(
+            "The interface should be properly retrieved when requested by uri",
+            rereadInterface, notNullValue());
+
+        assertThat(
+            "When retrieving by uri we should get the same interface object",
+            rereadInterface.getId(), equalTo(dtoHostInterface.getId()));
     }
 }

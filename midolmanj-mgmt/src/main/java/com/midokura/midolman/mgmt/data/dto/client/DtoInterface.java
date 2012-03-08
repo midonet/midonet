@@ -16,11 +16,26 @@ public class DtoInterface {
         Physical, Virtual, Tunnel, Unknown
     }
 
+    public enum StatusType {
+        Up(0x01), Carrier(0x02);
+
+        private int mask;
+
+        private StatusType(int mask) {
+            this.mask = mask;
+        }
+
+        public int getMask() {
+            return mask;
+        }
+    }
+
     private UUID id;
     private UUID hostId;
     private String name;
     private String mac;
     private int mtu;
+    private int status;
     private Type type;
 
     @XmlTransient
@@ -72,6 +87,26 @@ public class DtoInterface {
 
     public void setMtu(int mtu) {
         this.mtu = mtu;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public boolean getStatusField(StatusType statusType) {
+        return (status & statusType.getMask()) != 0;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public void setStatusField(StatusType statusType) {
+        setStatus(getStatus() & statusType.getMask());
+    }
+
+    public void clearStatusField(StatusType statusType) {
+        setStatus(getStatus() & ~statusType.getMask());
     }
 
     public Type getType() {

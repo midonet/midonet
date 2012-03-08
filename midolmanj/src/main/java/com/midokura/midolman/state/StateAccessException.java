@@ -19,5 +19,9 @@ public class StateAccessException extends Exception {
     
     public StateAccessException(String message, Throwable cause) {
         super(message, cause);
-    }   
+    }
+
+    public StateAccessException(Throwable cause) {
+        super(cause);
+    }
 }

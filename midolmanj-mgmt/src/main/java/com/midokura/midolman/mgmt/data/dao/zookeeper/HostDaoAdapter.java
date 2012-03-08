@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.Host;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -69,20 +70,6 @@ public class HostDaoAdapter implements HostDao {
     }
 
     @Override
-    public UUID createInterface(UUID hostId, Interface anInterface)
-        throws StateAccessException {
-        // TODO (mtoader@midokura.com) implement interface update commands
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public void deleteInterface(UUID hostId, UUID interfaceId)
-        throws StateAccessException {
-        // TODO (mtoader@midokura.com) implement interface update commands
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
     public List<Interface> listInterfaces(UUID hostId)
         throws StateAccessException {
         List<Interface> interfaces = new ArrayList<Interface>();
@@ -95,9 +82,10 @@ public class HostDaoAdapter implements HostDao {
                     interfaces.add(anInterface);
                 }
             } catch (StateAccessException e) {
-                log.warn("An interface description went missing in action while " +
-                             "we were looking for it host: {}, interface: {}.",
-                         new Object[] {hostId, interfaceId, e});
+                log.warn(
+                    "An interface description went missing in action while " +
+                        "we were looking for it host: {}, interface: {}.",
+                    new Object[]{hostId, interfaceId, e});
             }
         }
 
@@ -114,5 +102,14 @@ public class HostDaoAdapter implements HostDao {
         }
 
         return anInterface;
+    }
+
+    @Override
+    public HostCommand createCommandForInterfaceUpdate(UUID hostId,
+                                                       UUID curInterfaceId,
+                                                       Interface newInterface)
+        throws StateAccessException {
+        return zkDao.registerCommandForInterface(hostId, curInterfaceId,
+                                                 newInterface);
     }
 }

@@ -1,3 +1,6 @@
+/*
+ * Copyright 2012 Midokura Europe SARL
+ */
 package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;

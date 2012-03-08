@@ -6,6 +6,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -18,12 +19,13 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.commands.DataValidationException;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -70,23 +72,26 @@ public class InterfaceResource {
         throws StateAccessException, UnauthorizedException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException("Not authorized to create tenant.");
+            throw new UnauthorizedException(
+                "Not authorized to create an interface.");
         }
 
-        HostDao dao = daoFactory.getHostDao();
+        HostDao hostDao = daoFactory.getHostDao();
         try {
 
-            UUID id = dao.createInterface(hostId, anInterface);
+            HostCommand hostCommand =
+                hostDao.createCommandForInterfaceUpdate(hostId, null, anInterface);
 
-            // TODO (mtoader@midokura.com): NOT implemented yet
+            hostCommand.setBaseUri(uriInfo.getBaseUri());
+
             return Response
-                .created(
-                    ResourceUriBuilder.getHostInterface(
-                        uriInfo.getBaseUri(), hostId))
+                .ok(hostCommand, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
                 .build();
-//        } catch (StateAccessException e) {
-//            log.error("StateAccessException error.");
-//            throw e;
+        } catch (DataValidationException e) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(e.getMessage())
+                .build();
         } catch (Exception e) {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
@@ -191,7 +196,6 @@ public class InterfaceResource {
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
-
     public Interface get(@PathParam("id") UUID id,
                          @Context SecurityContext context,
                          @Context UriInfo uriInfo,
@@ -211,6 +215,60 @@ public class InterfaceResource {
 
             anInterface.setBaseUri(uriInfo.getBaseUri());
             return anInterface;
+        } catch (StateAccessException e) {
+            log.error("Error accessing data", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unhandled error", e);
+            throw new UnknownRestApiException(e);
+        }
+    }
+
+    /**
+     * Handler for updating an interface.
+     *
+     * @param id         Interface ID from the request.
+     * @param context    Object that holds the security data.
+     * @param uriInfo    Object that holds the request URI data.
+     * @param daoFactory Data access factory object.
+     * @param authorizer Authorizer object.
+     * @return A Tenant object.
+     * @throws StateAccessException  Data access error.
+     * @throws UnauthorizedException Authentication/authorization error.
+     */
+    @PUT
+    @Path("{id}")
+    public Response update(@PathParam("id") UUID id,
+                           Interface newInterfaceData,
+                           @Context SecurityContext context,
+                           @Context UriInfo uriInfo,
+                           @Context DaoFactory daoFactory,
+                           @Context Authorizer authorizer)
+        throws UnauthorizedException, StateAccessException {
+
+        if (!authorizer.isAdmin(context)) {
+            throw new UnauthorizedException(
+                "Not authorized to get node interface data.");
+        }
+
+        try {
+            HostDao dao = daoFactory.getHostDao();
+
+            HostCommand command =
+                dao.createCommandForInterfaceUpdate(hostId, id,
+                                                    newInterfaceData);
+
+            command.setBaseUri(uriInfo.getBaseUri());
+
+            return
+                Response
+                    .ok(command, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
+                    .build();
+        } catch (DataValidationException e) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(e.getMessage())
+                .build();
         } catch (StateAccessException e) {
             log.error("Error accessing data", e);
             throw e;
