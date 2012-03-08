@@ -9,7 +9,7 @@ public class MockOpenvSwitchPort {
     Type type;
 
     public static enum Type { SYSTEM, TAP, UNKNOWN }
-    
+
     public MockOpenvSwitchPort(String portName, Type type) {
         this.portName = portName;
         this.type = type;

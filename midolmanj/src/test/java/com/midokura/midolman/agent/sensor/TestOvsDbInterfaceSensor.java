@@ -30,7 +30,7 @@ public class TestOvsDbInterfaceSensor {
 
     OpenvSwitchDatabaseConnection ovsDBConnection;
     OvsDbInterfaceSensor ovsDbInterfaceSensor;
-    
+
     @Before
     public void setupGuice() {
 
@@ -52,7 +52,7 @@ public class TestOvsDbInterfaceSensor {
                 return null;
             }
 
-            
+
             @Provides
             OpenvSwitchDatabaseConnection buildOpenvSwitch() {
                 return ovsDBConnection;
@@ -62,7 +62,7 @@ public class TestOvsDbInterfaceSensor {
 
         ovsDbInterfaceSensor = injector.getInstance(OvsDbInterfaceSensor.class);
     }
-    
+
     @Test
     public void testUpdateInterfaceData() throws Exception {
         List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
@@ -78,7 +78,9 @@ public class TestOvsDbInterfaceSensor {
 
         List<InterfaceDescription> updatedInterfaces = ovsDbInterfaceSensor.updateInterfaceData(interfaces);
 
-        assertThat(updatedInterfaces.size(), equalTo(1));
+        assertThat(updatedInterfaces.size(), equalTo(2));
+        assertThat(updatedInterfaces.get(0).getEndpoint(), equalTo(InterfaceDescription.Endpoint.BRIDGE));
+        assertThat(updatedInterfaces.get(1).getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
     }
-    
+
 }

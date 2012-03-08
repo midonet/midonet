@@ -7,6 +7,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.midokura.midolman.agent.sensor.InterfaceSensor;
 import com.midokura.midolman.agent.sensor.IpAddrInterfaceSensor;
+import com.midokura.midolman.agent.sensor.DmesgInterfaceSensor;
+import com.midokura.midolman.agent.sensor.IpTuntapInterfaceSensor;
 import com.midokura.midolman.agent.sensor.OvsDbInterfaceSensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +39,11 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
 
     @Inject
     public DefaultInterfaceScanner(Injector injector) {
+        // Always call first IpAddrInterfaceSensor, as it is the sensor who
+        // will create the interfaces
         sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
+        sensors.add(injector.getInstance(IpTuntapInterfaceSensor.class));
+        sensors.add(injector.getInstance(DmesgInterfaceSensor.class));
         sensors.add(injector.getInstance(OvsDbInterfaceSensor.class));
     }
 

@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import com.midokura.tools.timed.Timed;
 import static com.midokura.util.process.ProcessOutputDrainer.DrainTarget;
@@ -150,5 +153,25 @@ public class ProcessHelper {
         public int runAndWait();
 
         public Process run();
+    }
+
+    public static List<String> executeCommandLine(String command) {
+        try {
+
+            List<String> stringList = new ArrayList<String>();
+
+            ProcessHelper.RunnerConfiguration runner = ProcessHelper
+                .newProcess(command);
+
+            runner.setDrainTarget(DrainTargets.stringCollector(stringList));
+            runner.runAndWait();
+
+            return stringList;
+
+        } catch (Exception e) {
+            log.error("cannot execute command line " + e.toString());
+        }
+
+        return Collections.emptyList();
     }
 }

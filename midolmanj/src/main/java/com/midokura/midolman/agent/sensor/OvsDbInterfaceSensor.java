@@ -18,6 +18,9 @@ public class OvsDbInterfaceSensor implements InterfaceSensor {
     @Override
     public List<InterfaceDescription> updateInterfaceData(List<InterfaceDescription> interfaces) {
         for (InterfaceDescription interfaceDescription : interfaces) {
+
+
+            // Only update interfaces were the endpoint hasn't been already set
             if (interfaceDescription.getEndpoint() != InterfaceDescription.Endpoint.UNKNOWN) {
                 // We already got an endpoint classification from the previous sensor
                 // Skip this interface
@@ -27,19 +30,9 @@ public class OvsDbInterfaceSensor implements InterfaceSensor {
             if (ovsdb.hasBridge(interfaceDescription.getName())) {
                 // this is a bridge interface
                 interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.BRIDGE);
-                continue;
             }
-
-            if (ovsdb.hasPort(interfaceDescription.getName())) {
-                // this interface is a port
-                continue;
-            }
-
-            //if (ovsdb.)
-
-            //String portUUID = ovsdb.getPortUUID(interfaceDescription.getName());
-            //System.out.println("Port " + interfaceDescription.getName() + " UUID " + portUUID);
         }
+
         return interfaces;
     }
 }

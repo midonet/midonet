@@ -5,20 +5,12 @@
 package com.midokura.midolman.agent.sensor;
 
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.util.process.DrainTargets;
 import com.midokura.util.process.ProcessHelper;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class IpAddrInterfaceSensor implements InterfaceSensor {
-
-    Logger log = LoggerFactory.getLogger(
-            IpAddrInterfaceSensor.class);
 
     ///////////////////////////////////////////////////////////////////////////
     // Public methods
@@ -42,32 +34,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
     // Protected methods
     ///////////////////////////////////////////////////////////////////////////
     protected List<String> getInterfacesOutput() {
-        return executeCommandLine("/bin/bash -c ip addr");
-
-    }
-    
-    protected List<String> getTuntapOutput() {
-        return executeCommandLine("/bin/bash -c ip tuntap");
-    }
-    
-    protected List<String> executeCommandLine(String command) {
-        try {
-
-            List<String> stringList = new ArrayList<String>();
-
-            ProcessHelper.RunnerConfiguration runner = ProcessHelper
-                    .newProcess(command);
-
-            runner.setDrainTarget(DrainTargets.stringCollector(stringList));
-            runner.runAndWait();
-
-            return stringList;
-
-        } catch (Exception e) {
-            log.error("cannot execute command: {}", command, e);
-        }
-
-        return Collections.emptyList();
+        return ProcessHelper.executeCommandLine("ip addr");
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -136,11 +103,6 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
             if (tokens[1].replaceAll(":", "").equals("lo")) {
                 interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.LOCALHOST);
             }
-            
-            // Check if it's a tuntap interface
-            if (isTuntap(interfaceDescription.getName())) {
-                interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.TUNTAP);
-            }
 
         } else if (tokens[0].startsWith("link")) {
             // this line contains L2 address (MAC)
@@ -196,18 +158,6 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
              if (token.matches("UP")) {
                  return true;
              }
-        }
-        return false;
-    }
-    
-    private boolean isTuntap (String interfaceName) {
-        for (String line : getTuntapOutput()) {
-            String[] tokens = line.trim().split(":");
-            if (tokens.length < 1) {
-                return false;
-            } else if (tokens[0].equals(interfaceName)) {
-                return true;
-            }
         }
         return false;
     }

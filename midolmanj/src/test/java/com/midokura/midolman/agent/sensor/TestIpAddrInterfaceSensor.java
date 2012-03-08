@@ -54,13 +54,6 @@ public class TestIpAddrInterfaceSensor {
                                 "link/ether 4e:07:50:07:55:8a brd ff:ff:ff:ff:ff:ff"
                         );
                     }
-
-                    @Override
-                    protected List<String> getTuntapOutput() {
-                        return Arrays.asList(
-                                "xxx: tap vnet_hdr"
-                        );
-                    }
                 };
 
         List<InterfaceDescription> interfaces =
@@ -114,6 +107,6 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getMtu(), equalTo(1500));
         assertThat(interfaceDescription.getMac(), equalTo(MAC.fromString("4E:07:50:07:55:8A").getAddress()));
         assertThat(interfaceDescription.getInetAddresses().size(), equalTo(0));
-        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.TUNTAP));
+        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
     }
 }
