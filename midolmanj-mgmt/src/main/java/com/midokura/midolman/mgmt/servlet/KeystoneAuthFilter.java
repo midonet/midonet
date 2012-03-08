@@ -135,7 +135,10 @@ public final class KeystoneAuthFilter implements Filter {
         // Ask the Keystone server if the token is valid.
         log.debug("Filtering request for Keystone authentication.");
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
-        String token = req.getHeader("HTTP_X_AUTH_TOKEN"); // Get token.
+        String token = req.getHeader("X-Auth-Token"); // Get token.
+        if (token == null) {
+            token = req.getHeader("HTTP_X_AUTH_TOKEN");
+        }
         if (token == null) {
             setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_UNAUTHORIZED,
