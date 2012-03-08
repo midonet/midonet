@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.scanner.InterfaceScanner;
+import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.updater.InterfaceDataUpdater;
 
 /**
@@ -26,6 +27,10 @@ public class NodeInterfaceWatcher implements Runnable {
 
     private final static Logger log =
             LoggerFactory.getLogger(NodeInterfaceWatcher.class);
+
+    private UUID hostId;
+
+    private HostDirectory.Metadata hostMetadata;
 
     @Inject
     InterfaceScanner interfaceScanner;
@@ -42,12 +47,17 @@ public class NodeInterfaceWatcher implements Runnable {
     public void run() {
         isRunning = true;
 
+        if(hostId == null){
+            log.error("HostID is null, NodeInterfaceWatcher will now exit!");
+            return;
+        }
+
         while (isRunning) {
             InterfaceDescription[] descriptions;
 
             descriptions = interfaceScanner.scanInterfaces();
 
-            interfaceDataUpdater.updateInterfacesData(null, null, descriptions);
+            interfaceDataUpdater.updateInterfacesData(hostId, hostMetadata, descriptions);
             try {
                 Thread.sleep(configuration.getWaitTimeBetweenScans());
             } catch (InterruptedException e) {
@@ -55,7 +65,6 @@ public class NodeInterfaceWatcher implements Runnable {
                 break;
             }
         }
-
         log.info("Midolman node agent watcher thread stopped.");
     }
 
@@ -65,5 +74,13 @@ public class NodeInterfaceWatcher implements Runnable {
     public void stop() {
         log.info("Midolman node agent watcher thread stopping.");
         isRunning = false;
+    }
+
+    /**
+     * It will set the host ID
+     * @param hostId
+     */
+    public void setHostId(UUID hostId) {
+        this.hostId = hostId;
     }
 }

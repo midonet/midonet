@@ -40,9 +40,12 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
     List<InterfaceSensor> sensors = new ArrayList<InterfaceSensor>();
 
     @Inject
+    // In this case we inject the Injector itself
     public DefaultInterfaceScanner(Injector injector) {
         // Always call first IpAddrInterfaceSensor, as it is the sensor who
         // will create the interfaces
+        // getInstance will try to create an object of the type specified. If some
+        // member is annotated with @Inject it will try to inject
         sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
         sensors.add(injector.getInstance(IpTuntapInterfaceSensor.class));
         sensors.add(injector.getInstance(DmesgInterfaceSensor.class));

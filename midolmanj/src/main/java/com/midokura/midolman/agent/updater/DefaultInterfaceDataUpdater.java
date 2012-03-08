@@ -67,7 +67,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
             Set<UUID> interfacesToRemove = new HashSet<UUID>();
 
             for (Interface curHostInterface : curMapByName.values()) {
-                // the interface dissapeared form the new list
+                // the interface disappeared form the new list
                 if (!newMapByName.containsKey(curHostInterface.getName())) {
                     interfacesToRemove.add(curHostInterface.getId());
                 }

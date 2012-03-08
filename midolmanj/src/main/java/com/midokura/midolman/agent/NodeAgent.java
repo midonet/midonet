@@ -4,6 +4,10 @@
 package com.midokura.midolman.agent;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -22,11 +26,15 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.command.NodeCommandWatcher;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
+import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;
 import com.midokura.midolman.agent.modules.ConfigurationBasedAgentModule;
+import com.midokura.midolman.agent.scanner.DefaultInterfaceScanner;
+import com.midokura.midolman.agent.scanner.InterfaceScanner;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConnection;
 
 /**
@@ -49,6 +57,9 @@ public final class NodeAgent {
 
     @Inject
     HostAgentConfiguration configuration;
+
+    @Inject
+    InterfaceScanner scanner;
 
     @Inject
     HostZkManager zkManager;
@@ -139,10 +150,15 @@ public final class NodeAgent {
      * Starts the agent watcher thread.
      */
     public void start() {
-        hostId = identifyHost();
+        try {
+            hostId = identifyHost();
+        } catch (Exception e) {
+            log.error("Couldn't generate unique host ID, EXITING! ", e);
+            return;
+        }
         cmdExecutor.checkCommands(hostId);
         watcherThread = new Thread(interfaceWatcher);
-
+        interfaceWatcher.setHostId(hostId);
         log.info("Starting Midolman node agent.");
         watcherThread.start();
         log.info("Midolman node agent started.");
@@ -167,37 +183,45 @@ public final class NodeAgent {
         watcherThread.join();
     }
 
-    private UUID identifyHost() {
+    private UUID identifyHost()
+            throws StateAccessException, PropertiesFileNotWritableException,
+                   InterruptedException {
         // Try to get the host Id
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        // TODO set some meaningful data in the metadata
-        metadata.setName("Garbage");
+        // Retrieve the interfaces and store the addresses in the metadata
+        InterfaceDescription[] interfaces = scanner.scanInterfaces();
+        List<InetAddress> listAddresses = new ArrayList<InetAddress>();
+        for(InterfaceDescription interfaceDescription : interfaces){
+            listAddresses.addAll(interfaceDescription.getInetAddresses());
+        }
+        metadata.setAddresses(
+                listAddresses.toArray(new InetAddress[listAddresses.size()]));
+
         UUID hostId = null;
-        // If an exception is thrown it will loop forever
+        // If HostIdAlreadyInUseException is thrown it will loop forever
         while (hostId == null) {
             try {
                 hostId = HostIdGenerator.getHostId(configuration, zkManager);
                 if (hostId != null) {
+                    String hostName;
+                    try {
+                        hostName = InetAddress.getLocalHost().getHostName();
+                    } catch (UnknownHostException e) {
+                        hostName = "UNKNOWN";
+                    }
+                    metadata.setName(hostName);
                     zkManager.makeAlive(hostId, metadata);
                     break;
                 }
-            } catch (Exception e) {
-                log.warn("Cannot create a unique Id.", e);
+            } catch (HostIdAlreadyInUseException e) {
+                // The ID is already in use, wait. It could be that the ephemeral
+                // node has not been deleted yet (if the host just crashed)
+                log.warn("Host Id already in use.", e);
                 // Reset the hostId to null to continue looping
                 hostId = null;
             }
-            try {
-                Thread.sleep(configuration.getWaitTimeForUniqueHostId());
-            } catch (InterruptedException e) {
-                //TODO throw another exception
-                log.debug("Got interrupted. Stopping watcher loop");
-                break;
-            }
+            Thread.sleep(configuration.getWaitTimeForUniqueHostId());
         }
-        return hostId;
-    }
-
-    public UUID getHostId() {
         return hostId;
     }
 }

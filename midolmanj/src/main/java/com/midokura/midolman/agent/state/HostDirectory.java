@@ -17,7 +17,7 @@ import java.util.UUID;
  *         Date: 2/1/12
  */
 public class HostDirectory {
-    
+
     public static class Command {
 
         public enum OperationType {
