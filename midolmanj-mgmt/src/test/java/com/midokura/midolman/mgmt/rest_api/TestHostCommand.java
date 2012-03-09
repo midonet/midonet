@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
 import com.midokura.midolman.mgmt.data.dto.client.DtoHostCommand;
@@ -319,6 +320,46 @@ public class TestHostCommand extends JerseyTest {
         assertThat("Request should return and http error code",
                    response,
                    anyOf(notNullValue(), hasProperty("status", equalTo(400))));
+    }
+
+    @Test
+    public void testHostCommandCreate() throws Exception {
+
+        DtoInterface dtoInterface = new DtoInterface();
+        dtoInterface.setName("eth1");
+        dtoInterface.setType(DtoInterface.Type.Virtual);
+
+        response = resource()
+            .uri(dtoHost.getInterfaces())
+            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
+            .post(ClientResponse.class, dtoInterface);
+
+        assertThat("The interface creation call should have returned HTTP 200.",
+                   response,
+                   allOf(notNullValue(),
+                         hasProperty("clientResponseStatus",
+                                     equalTo(ClientResponse.Status.OK))));
+
+        dtoInterface.setName("eth2");
+        response = resource()
+            .uri(dtoHost.getInterfaces())
+            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
+            .post(ClientResponse.class, dtoInterface);
+
+        assertThat("The interface creation call should have returned HTTP 200.",
+                   response,
+                   allOf(notNullValue(),
+                         hasProperty("clientResponseStatus",
+                                     equalTo(ClientResponse.Status.OK))));
+
+        DtoHostCommand[] hostCommands = resource()
+            .uri(dtoHost.getHostCommands())
+            .type(VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON)
+            .get(DtoHostCommand[].class);
+
+        assertThat("We should have two host commands returned",
+                   hostCommands,
+                   allOf(notNullValue(), arrayWithSize(2)));
     }
 
     private DtoInterface saveInterface(HostDirectory.Interface anInterface)

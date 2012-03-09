@@ -44,6 +44,16 @@ public interface HostDao {
     List<Host> list() throws StateAccessException;
 
     /**
+     * Removes an interface description from a host.
+     *
+     * @param hostId      the host uuid
+     * @param interfaceId the interface uuid
+     * @throws StateAccessException if the deletion fails
+     */
+    void deleteInterface(UUID hostId, UUID interfaceId)
+        throws StateAccessException;
+
+    /**
      * Lists all the interface information available on a host.
      *
      * @param hostId the host uuid
@@ -78,4 +88,33 @@ public interface HostDao {
     HostCommand createCommandForInterfaceUpdate(UUID hostId, UUID interfaceId,
                                                 Interface interfaceData)
         throws StateAccessException;
+
+    /**
+     * It will list all the network interface commands registered for this host.
+     *
+     * @param hostId is the host id for which we want to commands to be retrieved.
+     *
+     * @return the list of currently known command objects.
+     */
+    List<HostCommand> listCommands(UUID hostId) throws StateAccessException;
+
+    /**
+     * Returns the information about a command that was assigned to be executed
+     * on a host.
+     *
+     * @param hostId host host uuid
+     * @param id     the command id
+     * @return       the object representation
+     *
+     * @throws StateAccessException if the datastore access fails
+     */
+    HostCommand getCommand(UUID hostId, Integer id) throws StateAccessException;
+
+    /**
+     * Removes a command from the list of commands associated with a host.
+     *
+     * @param hostId is the host uuid
+     * @param id     is the id of the command that we want to have removed
+     */
+    void deleteCommand(UUID hostId, Integer id) throws StateAccessException;
 }

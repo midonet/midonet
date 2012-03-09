@@ -19,6 +19,7 @@ public class DtoHost {
     private String name;
     private String[] addresses;
     private URI interfaces;
+    private URI hostCommands;
     private boolean alive;
 
     @XmlTransient
@@ -70,5 +71,13 @@ public class DtoHost {
 
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public URI getHostCommands() {
+        return hostCommands;
+    }
+
+    public void setHostCommands(URI hostCommands) {
+        this.hostCommands = hostCommands;
     }
 }

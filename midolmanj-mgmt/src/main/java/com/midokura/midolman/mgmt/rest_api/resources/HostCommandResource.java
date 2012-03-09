@@ -1,3 +1,6 @@
+/*
+ * Copyright 2012 Midokura Europe SARL
+ */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
@@ -20,8 +23,7 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
-import com.midokura.midolman.mgmt.data.dto.Host;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -29,20 +31,26 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 1/30/12
+ *         Date: 2/23/12
  */
-public class HostResource {
+public class HostCommandResource {
 
     private final static Logger log =
-        LoggerFactory.getLogger(HostResource.class);
+        LoggerFactory.getLogger(HostCommandResource.class);
+
+    private UUID hostId;
+
+    public HostCommandResource(UUID hostId) {
+        this.hostId = hostId;
+    }
 
     @GET
-    @Produces({VendorMediaType.APPLICATION_HOST_COLLECTION_JSON,
+    @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<Host> list(@Context SecurityContext context,
-                           @Context UriInfo uriInfo,
-                           @Context DaoFactory daoFactory,
-                           @Context Authorizer authorizer)
+    public List<HostCommand> list(@Context SecurityContext context,
+                                  @Context UriInfo uriInfo,
+                                  @Context DaoFactory daoFactory,
+                                  @Context Authorizer authorizer)
         throws UnauthorizedException, StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
@@ -51,13 +59,14 @@ public class HostResource {
 
         HostDao dao = daoFactory.getHostDao();
         try {
-            List<Host> hosts = dao.list();
 
-            for (Host host : hosts) {
-                host.setBaseUri(uriInfo.getBaseUri());
+            List<HostCommand> hostCommands = dao.listCommands(hostId);
+
+            for (HostCommand hostCommand : hostCommands) {
+                hostCommand.setBaseUri(uriInfo.getBaseUri());
             }
 
-            return hosts.size() > 0 ? hosts : null;
+            return hostCommands;
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
             throw e;
@@ -68,9 +77,9 @@ public class HostResource {
     }
 
     /**
-     * Handler to getting a host information.
+     * Handler for getting a host command information.
      *
-     * @param id         Host ID from the request.
+     * @param id         Command ID from the request.
      * @param context    Object that holds the security data.
      * @param uriInfo    Object that holds the request URI data.
      * @param daoFactory Data access factory object.
@@ -81,34 +90,29 @@ public class HostResource {
      */
     @GET
     @Path("{id}")
-    @Produces({VendorMediaType.APPLICATION_HOST_JSON,
+    @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_JSON,
                   MediaType.APPLICATION_JSON})
-    public Host get(@PathParam("id") UUID id,
-                    @Context SecurityContext context, @Context UriInfo uriInfo,
-                    @Context DaoFactory daoFactory,
-                    @Context Authorizer authorizer)
+    public HostCommand get(@PathParam("id") Integer id,
+                           @Context SecurityContext context,
+                           @Context UriInfo uriInfo,
+                           @Context DaoFactory daoFactory,
+                           @Context Authorizer authorizer)
         throws StateAccessException, UnauthorizedException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException(
-                "Not authorized to view the host information.");
-        }
-
-        HostDao dao = daoFactory.getHostDao();
         try {
+
+            HostDao hostDao = daoFactory.getHostDao();
             if (!authorizer.isAdmin(context)) {
                 throw new UnauthorizedException(
-                    "Not authorized to retrieve host information.");
+                    "Not authorized to view this command.");
             }
-
-            Host host = dao.get(id);
-            if (host != null) {
-                host.setBaseUri(uriInfo.getBaseUri());
-            }
-
+            HostCommand host = hostDao.getCommand(hostId, id);
+            host.setBaseUri(uriInfo.getBaseUri());
             return host;
         } catch (StateAccessException e) {
             log.error("StateAccessException error.");
+            throw e;
+        } catch (UnauthorizedException e) {
+            log.error("UnauthorizedException error.");
             throw e;
         } catch (Exception e) {
             log.error("Unhandled error.");
@@ -117,9 +121,9 @@ public class HostResource {
     }
 
     /**
-     * Handler to deleting a host.
+     * Handler to deleting a host command object.
      *
-     * @param id         Host ID from the request.
+     * @param id         Command ID from the request.
      * @param context    Object that holds the security data.
      * @param daoFactory Data access factory object.
      * @param authorizer Authorizer object.
@@ -130,61 +134,36 @@ public class HostResource {
      */
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") UUID id,
+    public Response delete(@PathParam("id") Integer id,
                            @Context SecurityContext context,
                            @Context DaoFactory daoFactory,
                            @Context Authorizer authorizer)
         throws StateAccessException, UnauthorizedException {
 
-        HostDao dao = daoFactory.getHostDao();
+        if (!authorizer.isAdmin(context)) {
+            throw new UnauthorizedException(
+                "Not authorized to delete this bridge.");
+        }
+
+        HostDao hostDao = daoFactory.getHostDao();
         Response response;
         try {
-            if (!authorizer.isAdmin(context)) {
-                throw new UnauthorizedException(
-                    "Not authorized to delete a host.");
-            }
-            dao.delete(id);
 
-            response = Response.noContent().build();
+            hostDao.deleteCommand(hostId, id);
+
+            return Response.noContent().build();
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
             response = Response.noContent().build();
         } catch (StateAccessException e) {
-            response = Response.status(Response.Status.FORBIDDEN).build();
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
+            log.error("State Access Exception while deleting an host command");
+            throw new UnknownRestApiException(e);
         } catch (Exception e) {
             log.error("Unhandled error.");
             throw new UnknownRestApiException(e);
         }
 
         return response;
-    }
-
-    /**
-     * Interface resource locator for hosts.
-     *
-     * @param hostId Host ID from the request.
-     * @return InterfaceResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.INTERFACES)
-    public InterfaceResource getInterfaceResource(
-        @PathParam("id") UUID hostId) {
-        return new InterfaceResource(hostId);
-    }
-
-    /**
-     * Interface resource locator for hosts.
-     *
-     *
-     * @param hostId Host ID from the request.
-     * @return InterfaceResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.COMMANDS)
-    public HostCommandResource getHostCommandsResource(
-        @PathParam("id") UUID hostId) {
-        return new HostCommandResource(hostId);
     }
 }

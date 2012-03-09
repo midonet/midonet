@@ -112,4 +112,28 @@ public class HostDaoAdapter implements HostDao {
         return zkDao.registerCommandForInterface(hostId, curInterfaceId,
                                                  newInterface);
     }
+
+    @Override
+    public List<HostCommand> listCommands(UUID hostId)
+        throws StateAccessException {
+        return zkDao.getCommands(hostId);
+    }
+
+    @Override
+    public HostCommand getCommand(UUID hostId, Integer id)
+        throws StateAccessException {
+        return zkDao.getCommand(hostId, id);
+    }
+
+    @Override
+    public void deleteCommand(UUID hostId, Integer id)
+        throws StateAccessException {
+        zkDao.deleteHostCommand(hostId, id);
+    }
+
+    @Override
+    public void deleteInterface(UUID hostId, UUID interfaceId)
+        throws StateAccessException {
+        //
+    }
 }

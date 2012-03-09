@@ -126,7 +126,8 @@ public class HostZkDao {
         return hostInterface;
     }
 
-    private HostDirectory.Interface toHostDirectoryInterface(Interface intface) {
+    private HostDirectory.Interface toHostDirectoryInterface(
+        Interface intface) {
 
         HostDirectory.Interface hostInterface = new HostDirectory.Interface();
 
@@ -165,7 +166,7 @@ public class HostZkDao {
 
         HostDirectory.Interface curHostInterface = null;
 
-         if (curInterfaceId != null) {
+        if (curInterfaceId != null) {
             ZkNodeEntry<UUID, HostDirectory.Interface> curInterfacePair =
                 zkDao.getInterfaceData(hostId, curInterfaceId);
 
@@ -176,7 +177,8 @@ public class HostZkDao {
             toHostDirectoryInterface(newInterface);
 
         HostDirectory.Command command =
-            commandGenerator.createUpdateCommand(curHostInterface, newHostInterface);
+            commandGenerator.createUpdateCommand(curHostInterface,
+                                                 newHostInterface);
 
         Integer commandId = zkDao.createHostCommandId(hostId, command);
 
@@ -185,5 +187,48 @@ public class HostZkDao {
         dtoCommand.setHostId(hostId);
 
         return dtoCommand;
+    }
+
+    public List<HostCommand> getCommands(UUID hostId)
+        throws StateAccessException {
+
+        List<Integer> commandsIds = zkDao.getCommandIds(hostId);
+        List<HostCommand> commands = new ArrayList<HostCommand>();
+        for (Integer commandsId : commandsIds) {
+
+            HostCommand hostCommand = getCommand(hostId, commandsId);
+
+            if (hostCommand != null ) {
+                commands.add(hostCommand);
+            }
+        }
+
+        return commands;
+    }
+
+    public HostCommand getCommand(UUID hostId, Integer id)
+        throws StateAccessException {
+
+        HostCommand command = null;
+
+        try {
+            ZkNodeEntry<Integer, HostDirectory.Command> commandZkNodeEntry =
+                zkDao.getCommandData(hostId, id);
+
+            command = new HostCommand();
+
+            command.setId(id);
+            command.setHostId(hostId);
+        } catch (StateAccessException e) {
+            log.warn("Could not read command with id {} from datastore " +
+                         "(for host: {})",
+                     new Object[]{id, hostId, e});
+        }
+
+        return command;
+    }
+
+    public void deleteHostCommand(UUID hostId, Integer id) throws StateAccessException {
+        zkDao.deleteHostCommand(hostId, id);
     }
 }

@@ -67,9 +67,16 @@ public class Host extends UriResource {
     }
 
     /**
-     * @return the ports URI
+     * @return the interfaces URI
      */
     public URI getInterfaces() {
         return ResourceUriBuilder.getHostInterfaces(getBaseUri(), id);
+    }
+
+    /**
+     * @return the commands URI
+     */
+    public URI getHostCommands() {
+        return ResourceUriBuilder.getHostCommands(getBaseUri(), id);
     }
 }
