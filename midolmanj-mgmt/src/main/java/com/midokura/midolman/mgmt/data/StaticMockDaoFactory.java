@@ -120,4 +120,9 @@ public class StaticMockDaoFactory implements DaoFactory {
     public VpnDao getVpnDao() throws StateAccessException {
         return factoryInstance.getVpnDao();
     }
+
+    @Override
+    public DhcpDao getDhcpDao() throws StateAccessException {
+        return factoryInstance.getDhcpDao();
+    }
 }

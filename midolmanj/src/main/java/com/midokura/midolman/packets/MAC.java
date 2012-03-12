@@ -10,10 +10,15 @@ import java.util.Arrays;
 import com.midokura.midolman.util.Net;
 
 public class MAC implements Cloneable {
-    //package scope
-    final byte[] address;
 
-    public MAC(byte[] rhs) { 
+    // TODO(pino): make this private. Can't be final because of deserialization.
+    byte[] address;
+
+    /* Default constructor for deserialization. */
+    public MAC() {
+    }
+
+    public MAC(byte[] rhs) {
         assert rhs.length == 6;
         address = rhs.clone();
     }
@@ -21,7 +26,7 @@ public class MAC implements Cloneable {
     private MAC(MAC rhs) {
         address = rhs.address.clone();
     }
-    
+
     public MAC clone() {
         return new MAC(this);
     }
@@ -29,7 +34,7 @@ public class MAC implements Cloneable {
     public byte[] getAddress() {
         return address;
     }
-    
+
     public static MAC fromString(String str) {
         return new MAC(Ethernet.toMACAddress(str));
     }
@@ -55,5 +60,5 @@ public class MAC implements Cloneable {
                ((address[3]&0xff) << 8) |
                ((address[4] ^ address[5])&0xff);
     }
-    
+
 }

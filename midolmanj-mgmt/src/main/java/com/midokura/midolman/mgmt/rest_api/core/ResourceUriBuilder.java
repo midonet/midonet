@@ -10,12 +10,17 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.midokura.midolman.packets.IntIPv4;
+
 public class ResourceUriBuilder {
 
     public static final String ROOT = "/";
     public static final String TENANTS = "/tenants";
     public static final String ROUTERS = "/routers";
     public static final String BRIDGES = "/bridges";
+    public static final String FILTER_DB = "/filteringDB";
+    public static final String DHCP = "/dhcp";
+    public static final String DHCP_HOSTS = "/hosts";
     public static final String PORTS = "/ports";
     public static final String CHAINS = "/chains";
     public static final String TABLES = "/tables";
@@ -95,6 +100,44 @@ public class ResourceUriBuilder {
     public static URI getBridgePorts(URI baseUri, UUID bridgeId) {
         return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(PORTS)
                 .build();
+    }
+
+    public static URI getFilteringDb(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(FILTER_DB)
+                .build();
+    }
+
+    public static URI getBridgeDhcps(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(DHCP)
+                .build();
+    }
+
+    public static URI getBridgeDhcp(URI bridgeDhcpsUri, IntIPv4 subnetAddr) {
+        return UriBuilder.fromUri(bridgeDhcpsUri)
+                .path(subnetAddr.toString()).build();
+    }
+
+    public static URI getBridgeDhcp(URI baseUri, UUID bridgeId,
+                                    IntIPv4 subnetAddr) {
+        URI dhcpsUri = getBridgeDhcps(baseUri, bridgeId);
+        return getBridgeDhcp(dhcpsUri, subnetAddr);
+    }
+
+    public static URI getDhcpHosts(URI bridgeDhcpUri) {
+        return UriBuilder.fromUri(bridgeDhcpUri).path(DHCP_HOSTS).build();
+    }
+
+    public static String macToUri(String mac) {
+        return mac.replace(':', '-');
+    }
+
+    public static String macFromUri(String mac) {
+        return mac.replace('-', ':');
+    }
+
+    public static URI getDhcpHost(URI bridgeDhcpUri, String macAddr) {
+        return UriBuilder.fromUri(getDhcpHosts(bridgeDhcpUri))
+                .path(macToUri(macAddr)).build();
     }
 
     public static URI getRouterPorts(URI baseUri, UUID routerId) {

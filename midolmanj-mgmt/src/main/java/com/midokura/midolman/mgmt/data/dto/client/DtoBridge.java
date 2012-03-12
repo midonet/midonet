@@ -17,6 +17,8 @@ public class DtoBridge {
     private URI uri;
     private URI ports;
     private URI routers;
+    private URI filteringDb;
+    private URI dhcpSubnets;
 
     public UUID getId() {
         return id;
@@ -64,5 +66,21 @@ public class DtoBridge {
 
     public void setRouters(URI routers) {
         this.routers = routers;
+    }
+
+    public URI getFilteringDb() {
+        return filteringDb;
+    }
+
+    public void setFilteringDb(URI filteringDb) {
+        this.filteringDb = filteringDb;
+    }
+
+    public URI getDhcpSubnets() {
+        return dhcpSubnets;
+    }
+
+    public void setDhcpSubnets(URI dhcpSubnets) {
+        this.dhcpSubnets = dhcpSubnets;
     }
 }

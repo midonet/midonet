@@ -150,4 +150,13 @@ public interface DaoFactory {
      *             Data access error.
      */
     VpnDao getVpnDao() throws StateAccessException;
+
+    /**
+     * Get DHCP DAO
+     *
+     * @return DhcpDao object
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    DhcpDao getDhcpDao() throws StateAccessException;
 }

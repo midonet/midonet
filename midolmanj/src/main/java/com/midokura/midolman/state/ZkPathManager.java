@@ -7,6 +7,9 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
+
 /**
  * This class was created to have all state classes share the Zk path
  * information.
@@ -204,6 +207,55 @@ public class ZkPathManager {
     public String getBridgePortPath(UUID bridgeId, UUID portId) {
         return new StringBuilder(getBridgePortsPath(bridgeId)).append("/")
                 .append(portId).toString();
+    }
+
+    /**
+     * Get ZK bridge dhcp path.
+     *
+     * @param bridgeId
+     *            Bridge UUID
+     * @return /bridges/bridgeId/dhcp
+     */
+    public String getBridgeDhcpPath(UUID bridgeId) {
+        return new StringBuilder(getBridgePath(bridgeId)).append("/dhcp")
+                .toString();
+    }
+
+    /**
+     * Get ZK bridge dhcp subnet path.
+     *
+     * @param bridgeId
+     *            Bridge UUID
+     * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen
+     */
+    public String getBridgeDhcpSubnetPath(UUID bridgeId, IntIPv4 subnetAddr) {
+        return new StringBuilder(getBridgeDhcpPath(bridgeId))
+                .append("/").append(subnetAddr.toString()).toString();
+    }
+
+    /**
+     * Get ZK bridge dhcp hosts path for a given subnet.
+     *
+     * @param bridgeId
+     *            Bridge UUID
+     * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen/hosts
+     */
+    public String getBridgeDhcpHostsPath(UUID bridgeId, IntIPv4 subnetAddr) {
+        return new StringBuilder(getBridgeDhcpSubnetPath(bridgeId, subnetAddr))
+                .append("/hosts").toString();
+    }
+
+    /**
+     * Get ZK bridge dhcp host path for a given subnet and mac address.
+     *
+     * @param bridgeId
+     *            Bridge UUID
+     * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen/hosts/mac
+     */
+    public String getBridgeDhcpHostPath(UUID bridgeId, IntIPv4 subnetAddr,
+                                        MAC macAddr) {
+        return new StringBuilder(getBridgeDhcpHostsPath(bridgeId, subnetAddr))
+                .append('/').append(macAddr.toString()).toString();
     }
 
     /**

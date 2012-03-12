@@ -13,8 +13,7 @@ package com.midokura.midolman.mgmt.rest_api.core;
  */
 public class VendorMediaType {
 
-    public static final String APPLICATION_JSON = "application/vnd.com.midokura.midolman.mgmt+json";
-    public static final String APPLICATION_ADMIN_JSON = "application/vnd.com.midokura.midolman.mgmt.Admin+json";
+    public static final String APPLICATION_JSON = "application/vnd.com.midokura.midolman.mgmt.Application+json";
     public static final String APPLICATION_TENANT_JSON = "application/vnd.com.midokura.midolman.mgmt.Tenant+json";
     public static final String APPLICATION_TENANT_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Tenant+json";
     public static final String APPLICATION_ROUTER_JSON = "application/vnd.com.midokura.midolman.mgmt.Router+json";
@@ -45,4 +44,10 @@ public class VendorMediaType {
     public static final String APPLICATION_AD_ROUTE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.AdRoute+json";
     public static final String APPLICATION_VPN_JSON = "application/vnd.com.midokura.midolman.mgmt.Vpn+json";
     public static final String APPLICATION_VPN_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Vpn+json";
+
+    /* DHCP configuration types. */
+    public static final String APPLICATION_DHCP_SUBNET_JSON = "application/vnd.com.midokura.midolman.mgmt.DhcpSubnet+json";
+    public static final String APPLICATION_DHCP_SUBNET_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.DhcpSubnet+json";
+    public static final String APPLICATION_DHCP_HOST_JSON = "application/vnd.com.midokura.midolman.mgmt.DhcpHost+json";
+    public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.DhcpHost+json";
 }

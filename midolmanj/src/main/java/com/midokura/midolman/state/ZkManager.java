@@ -176,6 +176,24 @@ public class ZkManager {
         }
     }
 
+    public void delete(String path) throws StateAccessException {
+        try {
+            zk.delete(path);
+        } catch (NoNodeException e) {
+            throw new NoStatePathException(
+                    "ZooKeeper error occurred while deleting a node with path "
+                            + path + ": " + e.getMessage(), e);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while deleting the path " + path
+                            + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while deleting the path "
+                            + path + ": " + e.getMessage(), e);
+        }
+    }
+
     public byte[] get(String path) throws StateAccessException {
         return get(path, null);
     }

@@ -19,7 +19,7 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
  * Class to manage the bridge ZooKeeper data.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -42,7 +42,7 @@ public class BridgeZkManager extends ZkManager {
     /**
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
-     * 
+     *
      * @param zk
      *            ZooKeeper object.
      * @param basePath
@@ -61,7 +61,7 @@ public class BridgeZkManager extends ZkManager {
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new bridge.
-     * 
+     *
      * @param bridgeNode
      *            ZooKeeper node representing a key-value entry of Bridge UUID
      *            and BridgeConfig object.
@@ -94,6 +94,9 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getBridgePortsPath(bridgeNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        ops.add(Op.create(pathManager.getBridgeDhcpPath(bridgeNode.key), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         ops.add(Op.create(pathManager.getBridgeMacPortsPath(bridgeNode.key),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
@@ -114,7 +117,7 @@ public class BridgeZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a bridge deletion.
-     * 
+     *
      * @param entry
      *            Bridge ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
@@ -140,6 +143,7 @@ public class BridgeZkManager extends ZkManager {
             ops.addAll(portZkManager.preparePortDelete(portEntry));
         }
         ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBridgeDhcpPath(entry.key), -1));
         ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
         ops.add(Op
                 .delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
@@ -157,7 +161,7 @@ public class BridgeZkManager extends ZkManager {
 
     /**
      * Performs an atomic update on the ZooKeeper to add a new bridge entry.
-     * 
+     *
      * @param bridge
      *            Bridge object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
@@ -179,7 +183,7 @@ public class BridgeZkManager extends ZkManager {
 
     /**
      * Gets a ZooKeeper node entry key-value pair of a bridge with the given ID.
-     * 
+     *
      * @param id
      *            The ID of the bridge.
      * @return Bridge object found.
@@ -194,7 +198,7 @@ public class BridgeZkManager extends ZkManager {
     /**
      * Gets a ZooKeeper node entry key-value pair of a bridge with the given ID
      * and sets a watcher on the node.
-     * 
+     *
      * @param id
      *            The ID of the bridge.
      * @param watcher
@@ -221,7 +225,7 @@ public class BridgeZkManager extends ZkManager {
     /***
      * Deletes a bridge and its related data from the ZooKeeper directories
      * atomically.
-     * 
+     *
      * @param id
      *            ID of the bridge to delete.
      * @throws ZkStateSerializationException
@@ -231,4 +235,5 @@ public class BridgeZkManager extends ZkManager {
             ZkStateSerializationException {
         multi(prepareBridgeDelete(id));
     }
+
 }

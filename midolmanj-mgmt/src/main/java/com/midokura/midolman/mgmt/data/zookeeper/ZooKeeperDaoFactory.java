@@ -175,6 +175,11 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
         return new BridgeZkManager(getDirectory(), getRootPath());
     }
 
+    private BridgeDhcpZkManager getBridgeDhcpZkMaanager()
+            throws StateAccessException {
+        return new BridgeDhcpZkManager(getDirectory(), getRootPath());
+    }
+
     private BridgeZkDao getBridgeZkDao() throws StateAccessException {
         return new BridgeZkDao(getZkDao(), getPathBuilder(),
                 getBridgeSerializer());
@@ -422,6 +427,11 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     @Override
     public VpnDao getVpnDao() throws StateAccessException {
         return new VpnZkProxy(getVpnZkManager());
+    }
+
+    @Override
+    public DhcpDao getDhcpDao() throws StateAccessException {
+        return new DhcpDaoAdapter(getBridgeDhcpZkMaanager());
     }
 
     private VpnZkManager getVpnZkManager() throws StateAccessException {

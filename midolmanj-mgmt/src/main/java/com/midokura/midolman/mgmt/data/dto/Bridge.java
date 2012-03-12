@@ -136,6 +136,20 @@ public class Bridge extends UriResource {
     }
 
     /**
+     * @return the Filtering Database URI
+     */
+   public URI getFilteringDb() {
+        return ResourceUriBuilder.getFilteringDb(getBaseUri(), id);
+    }
+
+    /**
+     * @return the DHCP server configuration URI
+     */
+    public URI getDhcpSubnets() {
+        return ResourceUriBuilder.getBridgeDhcps(getBaseUri(), id);
+    }
+
+    /**
      * @return the self URI
      */
     @Override

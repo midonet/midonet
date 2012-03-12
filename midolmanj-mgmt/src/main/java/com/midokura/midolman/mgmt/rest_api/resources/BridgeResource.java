@@ -170,6 +170,31 @@ public class BridgeResource {
     }
 
     /**
+     * Filtering database resource locator for bridges.
+     *
+     * @param id
+     *            Bridge ID from the request.
+     * @returns BridgeFilterDbResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.FILTER_DB)
+    public BridgeFilterDbResource getBridgeFilterDbResource(
+            @PathParam("id") UUID id) {
+        return new BridgeFilterDbResource(id);
+    }
+
+    /**
+     * DHCP resource locator for bridges.
+     *
+     * @param id
+     *            Bridge ID from the request.
+     * @returns BridgeDhcpResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.DHCP)
+    public BridgeDhcpResource getBridgeDhcpResource(@PathParam("id") UUID id) {
+        return new BridgeDhcpResource(id);
+    }
+
+    /**
      * Handler to updating a bridge.
      *
      * @param id
