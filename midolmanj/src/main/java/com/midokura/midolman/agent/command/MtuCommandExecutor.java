@@ -9,7 +9,7 @@ import com.midokura.midolman.util.Sudo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MtuCommandExecutor extends CommandExecutor<Integer> {
+public class MtuCommandExecutor extends AbstractCommandExecutor<Integer> {
 
     private final static Logger log =
             LoggerFactory.getLogger(MtuCommandExecutor.class);

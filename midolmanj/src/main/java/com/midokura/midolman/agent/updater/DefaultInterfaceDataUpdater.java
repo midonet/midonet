@@ -183,7 +183,10 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 break;
         }
         hostInterface.setProperties(new HashMap<String, String>());
-        hostInterface.setAddresses(new InetAddress[0]);
+
+        List<InetAddress> addresses = description.getInetAddresses();
+        hostInterface.setAddresses(
+            addresses.toArray(new InetAddress[addresses.size()]));
 
         return hostInterface;
     }

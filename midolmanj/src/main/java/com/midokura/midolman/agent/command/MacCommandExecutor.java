@@ -4,12 +4,19 @@
 
 package com.midokura.midolman.agent.command;
 
+import java.util.List;
+import static java.lang.String.format;
+
 import com.midokura.midolman.util.Sudo;
+import com.midokura.util.process.ProcessHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MacCommandExecutor extends CommandExecutor<String> {
+import static com.midokura.midolman.util.Sudo.sudoExec;
+import static com.midokura.util.process.ProcessHelper.executeCommandLine;
+
+public class MacCommandExecutor extends AbstractCommandExecutor<String> {
 
     private final static Logger log =
             LoggerFactory.getLogger(MtuCommandExecutor.class);
@@ -21,9 +28,26 @@ public class MacCommandExecutor extends CommandExecutor<String> {
     @Override
     public void execute() throws CommandExecutionFailedException {
         int returnValue;
+
         try {
-            returnValue = Sudo.sudoExec(
-                    "ifconfig " + targetName + " hw ether " + param);
+
+            List<String> stdOut =
+                executeCommandLine(String.format("ip link show %s", targetName));
+
+            log.debug("Stdout: " + stdOut);
+            boolean wasUp = stdOut.size() > 0 && stdOut.get(0).matches(".*state UP.*");
+
+            if (wasUp) {
+                sudoExec(format("ip link set %s down", targetName));
+            }
+
+            returnValue =
+                sudoExec(format("ifconfig %s hw ether %s", targetName, param));
+
+            if (wasUp) {
+                sudoExec(format("ip link set %s up", targetName));
+            }
+
         } catch (Exception e) {
             throw new CommandExecutionFailedException(
                     "Cannot set MAC address for " + targetName + e.getMessage());

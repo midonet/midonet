@@ -8,7 +8,7 @@ import com.midokura.midolman.util.Sudo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AddressCommandExecutor extends CommandExecutor<String> {
+public class AddressCommandExecutor extends AbstractCommandExecutor<String> {
 
     private final static Logger log =
             LoggerFactory.getLogger(AddressCommandExecutor.class);

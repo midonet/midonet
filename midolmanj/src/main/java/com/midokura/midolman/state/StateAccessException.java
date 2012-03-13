@@ -12,11 +12,11 @@ public class StateAccessException extends Exception {
     public StateAccessException() {
         super();
     }
-    
+
     public StateAccessException(String message) {
         super(message);
     }
-    
+
     public StateAccessException(String message, Throwable cause) {
         super(message, cause);
     }

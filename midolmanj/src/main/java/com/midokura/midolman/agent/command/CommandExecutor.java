@@ -1,12 +1,19 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright 2012 Midokura Europe SARL
  */
-
 package com.midokura.midolman.agent.command;
 
-import com.midokura.midolman.agent.state.HostDirectory;
+import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand;
 
-public abstract class CommandExecutor<T> {
+/**
+ * Interface expressing the semantics of a local node CommandExecutor.
+ * It will get instantiated based on a specific HostCommand entry and called to
+ * do it's job when the NodeAgent detects that this should be done.
+ *
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 3/9/12
+ */
+public interface CommandExecutor<T> {
 
     public static class CommandExecutionFailedException extends Exception {
         public CommandExecutionFailedException(String s) {
@@ -14,42 +21,14 @@ public abstract class CommandExecutor<T> {
         }
     }
 
-    String targetName;
-    T param;
-    Class<T> clazz;
-    HostDirectory.Command.AtomicCommand.OperationType operationType;
 
-    protected CommandExecutor(Class<T> clazz) {
-        this.clazz = clazz;
-    }
+    public void execute() throws CommandExecutionFailedException;
 
-    public abstract void execute() throws CommandExecutionFailedException;
+    public void setTargetName(String targetName);
 
-    public String getTargetName() {
-        return targetName;
-    }
+    public void setParam(T param);
 
-    public void setTargetName(String targetName) {
-        this.targetName = targetName;
-    }
+    public void setParamAsObject(Object parameter);
 
-    public T getParam() {
-        return param;
-    }
-
-    public void setParamAsObject(Object param) {
-        setParam(clazz.cast(param));
-    }
-
-    protected void setParam(T param) {
-        this.param = param;
-    }
-
-    public HostDirectory.Command.AtomicCommand.OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(HostDirectory.Command.AtomicCommand.OperationType operationType) {
-        this.operationType = operationType;
-    }
+    public void setOperationType(AtomicCommand.OperationType operationType);
 }

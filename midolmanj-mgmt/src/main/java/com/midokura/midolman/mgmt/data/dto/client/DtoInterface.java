@@ -2,6 +2,7 @@ package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -135,5 +136,22 @@ public class DtoInterface {
 
     public void setAddresses(InetAddress[] addresses) {
         this.addresses = addresses;
+    }
+
+    @Override
+    public String toString() {
+        return "DtoInterface{" +
+            "id=" + id +
+            ", hostId=" + hostId +
+            ", name='" + name + '\'' +
+            ", mac='" + mac + '\'' +
+            ", mtu=" + mtu +
+            ", status=" + status +
+            ", type=" + type +
+            ", endpoint='" + endpoint + '\'' +
+            ", addresses=" + (addresses == null ? null : Arrays.asList(
+            addresses)) +
+            ", uri=" + uri +
+            '}';
     }
 }

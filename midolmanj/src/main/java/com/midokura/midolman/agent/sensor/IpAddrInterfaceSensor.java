@@ -10,7 +10,13 @@ import com.midokura.util.process.ProcessHelper;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class IpAddrInterfaceSensor implements InterfaceSensor {
+
+    private final static Logger log =
+        LoggerFactory.getLogger(IpAddrInterfaceSensor.class);
 
     ///////////////////////////////////////////////////////////////////////////
     // Public methods

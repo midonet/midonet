@@ -205,7 +205,7 @@ public class HostZkManager extends ZkManager {
 
         return result;
     }
-    
+
     private List<Op> getRecursiveDeleteOps(String root)
         throws StateAccessException {
         return recursiveBottomUpFold(root, new Functor<String, Op>() {

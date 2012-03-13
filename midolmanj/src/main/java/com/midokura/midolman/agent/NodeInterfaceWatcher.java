@@ -78,7 +78,7 @@ public class NodeInterfaceWatcher implements Runnable {
 
     /**
      * It will set the host ID
-     * @param hostId
+     * @param hostId is the host id under which we are currently running
      */
     public void setHostId(UUID hostId) {
         this.hostId = hostId;

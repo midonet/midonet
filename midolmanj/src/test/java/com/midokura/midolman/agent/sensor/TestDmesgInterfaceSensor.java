@@ -18,7 +18,7 @@ import static org.junit.Assert.assertThat;
 public class TestDmesgInterfaceSensor {
     @Test
     public void testUpdateInterfaceData() throws Exception {
-        
+
         InterfaceSensor interfaceSensor = new DmesgInterfaceSensor() {
             @Override
             protected List<String> getDmesgOutput(String interfaceName) {

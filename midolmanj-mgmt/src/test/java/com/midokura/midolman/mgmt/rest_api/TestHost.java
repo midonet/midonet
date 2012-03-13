@@ -403,7 +403,7 @@ public class TestHost extends JerseyTest {
         assertThat("The DtoInterface type should be returned properly",
                    dtoInterface.getType(), equalTo(DtoInterface.Type.Physical));
     }
-    
+
     @Test
     public void testTwoHosts() throws Exception {
         UUID host1 = UUID.randomUUID();

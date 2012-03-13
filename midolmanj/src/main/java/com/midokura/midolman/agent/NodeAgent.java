@@ -1,7 +1,3 @@
-
-
-
-
 /*
 * Copyright 2012 Midokura Europe SARL
 */
@@ -191,12 +187,15 @@ public final class NodeAgent {
                    InterruptedException {
         // Try to get the host Id
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+
         // Retrieve the interfaces and store the addresses in the metadata
         InterfaceDescription[] interfaces = scanner.scanInterfaces();
+
         List<InetAddress> listAddresses = new ArrayList<InetAddress>();
         for(InterfaceDescription interfaceDescription : interfaces){
             listAddresses.addAll(interfaceDescription.getInetAddresses());
         }
+
         metadata.setAddresses(
                 listAddresses.toArray(new InetAddress[listAddresses.size()]));
 

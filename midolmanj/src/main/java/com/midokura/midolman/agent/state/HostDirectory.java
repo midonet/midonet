@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.midolman.agent.command.CommandProperty;
+
 /**
  * ZooKeeper state objects definitions for Host and Interface data.
  *
@@ -66,10 +68,10 @@ public class HostDirectory {
 
             public enum OperationType {
                 // TODO(rossella) add other needed operation
-                SET, DELETE
+                SET, DELETE, CLEAR
             }
 
-            String property;
+            CommandProperty property;
             String value;
             OperationType OpType;
 
@@ -81,8 +83,8 @@ public class HostDirectory {
                 return value;
             }
 
-            public void setValue(String value) {
-                this.value = value;
+            public void setValue(Object value) {
+                this.value = value.toString();
             }
 
             public OperationType getOpType() {
@@ -93,12 +95,21 @@ public class HostDirectory {
                 OpType = opType;
             }
 
-            public String getProperty() {
+            public CommandProperty getProperty() {
                 return property;
             }
 
-            public void setProperty(String property) {
+            public void setProperty(CommandProperty property) {
                 this.property = property;
+            }
+
+            @Override
+            public String toString() {
+                return "AtomicCommand{" +
+                    "property='" + property + '\'' +
+                    ", value='" + value + '\'' +
+                    ", OpType=" + OpType +
+                    '}';
             }
         }
 
@@ -131,6 +142,14 @@ public class HostDirectory {
         public void setCommandList(
                 List<AtomicCommand> commandList) {
             this.commandList = commandList;
+        }
+
+        @Override
+        public String toString() {
+            return "Command{" +
+                "interfaceName='" + interfaceName + '\'' +
+                ", commandList=" + commandList +
+                '}';
         }
     }
 

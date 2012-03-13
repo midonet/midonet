@@ -3,7 +3,10 @@
  */
 package com.midokura.midolman.agent.commands;
 
+import com.midokura.midolman.agent.command.CommandProperty;
+import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.packets.MAC;
+
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
@@ -12,13 +15,14 @@ import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-import com.midokura.midolman.agent.state.HostDirectory;
-
 import java.net.InetAddress;
 import java.util.Arrays;
 
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
+import static com.midokura.midolman.agent.command.CommandProperty.*;
+import static com.midokura.midolman.agent.command.CommandProperty.address;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
+import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;
 
 /**
@@ -32,94 +36,119 @@ import static com.midokura.midolman.agent.state.HostDirectory.Interface;
  */
 public class HostCommandGenerator {
 
-    public Command createUpdateCommand(Interface curHostInterface,
-                                       Interface newHostInterface)
+    public Command createUpdateCommand(Interface current,
+                                       Interface updated)
         throws DataValidationException {
 
+        validateRequest(current, updated);
+
+        // In this command we'll store the configuration changes
+        Command command = new Command();
+        command.setInterfaceName(updated.getName());
+
+        // do we need to create a new interface? we know the new one is not empty
+        if (current == null) {
+            // create interface
+            command.addAtomicCommand(
+                newCommand(iface, OperationType.SET,
+                           updated.getType().toString())
+            );
+        }
+
+        // If MACs are different, create atomic command to update them
+        if ((current == null && updated.getMac() != null) ||
+            (current != null
+                && !Arrays.equals(current.getMac(),
+                                  updated.getMac()))) {
+            command.addAtomicCommand(
+                newCommand(mac, OperationType.SET,
+                           new MAC(updated.getMac()).toString()));
+        }
+
+        // Look for addresses no longer used
+        if (current != null) {
+            for (InetAddress inetAddress : current.getAddresses()) {
+                if (!updated.hasAddress(inetAddress)) {
+                    command.addAtomicCommand(
+                        newCommand(address, OperationType.DELETE,
+                                   inetAddress.getHostAddress()));
+                }
+            }
+        }
+
+        // Look for addresses new to add
+        if (updated.getAddresses() != null) {
+            for (InetAddress inetAddress : updated.getAddresses()) {
+                if (current == null || !current.hasAddress(inetAddress)) {
+                    command.addAtomicCommand(
+                        newCommand(address, OperationType.SET,
+                                   inetAddress.getHostAddress()));
+                }
+            }
+        }
+
+        return command;
+    }
+
+    /**
+     * It will check the parameters for not allowed operations and if any
+     * invalid operation is found (a not allowed by our rules) it will throw an
+     * DataValidationException.
+     *
+     * Otherwise the method will complete properly.
+     *
+     * @param current is the current state of the interface we want to change
+     * @param updated is the desired state of the interface we want to change
+     *
+     * @throws DataValidationException
+     */
+    private void validateRequest(Interface current, Interface updated)
+        throws DataValidationException {
         // interface should have a proper name
         validateThat(
             "The interface name should be properly formed!",
-            newHostInterface.getName(),
-            allOf(notNullValue(), matchesRegex("[-a-zA-Z0-9]+")));
+            updated.getName(),
+            allOf(notNullValue(), matchesRegex("[-a-zA-Z0-9]+{1,15}")));
 
         // compare the name against the old name
-        if (curHostInterface != null) {
+        if (current != null) {
             validateThat("The interface should not be changed!",
-                         newHostInterface.getName(),
-                         equalTo(curHostInterface.getName()));
+                         updated.getName(),
+                         equalTo(current.getName()));
         }
 
         // validate interface type
-        if (curHostInterface == null) {
+        if (current == null) {
             validateThat("The interface type should only be of specific type",
-                         newHostInterface.getType(),
+                         updated.getType(),
                          anyOf(
                              equalTo(Interface.Type.Tunnel),
                              equalTo(Interface.Type.Virtual)));
         } else {
             validateThat("The interface type can't be changed!",
-                         newHostInterface.getType(),
-                         equalTo(curHostInterface.getType()));
+                         updated.getType(),
+                         equalTo(current.getType()));
         }
 
         // validate interface status change (we only accept the setting of the link up status)
         validateThat("Only the UP interface status bit can be changed.",
-                     newHostInterface.getStatus(),
+                     updated.getStatus(),
                      anyOf(
                          equalTo(0),
                          equalTo(Interface.StatusType.Up.getMask()))
-                     );
+        );
+    }
 
-        // TODO: finish this once we get the classes from Rossella
-//        validateThat("");
+    private Command.AtomicCommand newCommand(CommandProperty property,
+                                             OperationType operation,
+                                             String value) {
+        Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
 
-        // In this command we'll store the configuration changes
-        Command command = new Command();
-        command.setInterfaceName(newHostInterface.getName());
+        atomicCommand.setProperty(property);
+        atomicCommand.setOpType(operation);
+        atomicCommand.setValue(value);
 
-        // do we need to create a new interface? we know the new one is not empty
-        if (curHostInterface == null) {
-            // create interface
-            Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
-            atomicCommand.setProperty("interface");
-            atomicCommand.setOpType(Command.AtomicCommand.OperationType.SET);
-            atomicCommand.setValue(newHostInterface.getType().toString());
-            return command;
-        }
-
-        // If MACs are different, create atomic command to update them
-        if (!Arrays.equals(curHostInterface.getMac(), newHostInterface.getMac())) {
-            Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
-            atomicCommand.setProperty("mac");
-            atomicCommand.setOpType(Command.AtomicCommand.OperationType.SET);
-            MAC mac = new MAC(newHostInterface.getMac());
-            atomicCommand.setValue(mac.toString());
-            command.addAtomicCommand(atomicCommand);
-        }
-
-        // Look for addresses no longer used
-        for (InetAddress address : curHostInterface.getAddresses()) {
-            if (!newHostInterface.hasAddress(address)) {
-                Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
-                atomicCommand.setProperty("address");
-                atomicCommand.setOpType(Command.AtomicCommand.OperationType.DELETE);
-                atomicCommand.setValue(address.toString());
-                command.addAtomicCommand(atomicCommand);
-            }
-        }
-
-        // Look for addresses new to add
-        for (InetAddress address : newHostInterface.getAddresses()) {
-            if (!curHostInterface.hasAddress(address)) {
-                Command.AtomicCommand atomicCommand = new Command.AtomicCommand();
-                atomicCommand.setProperty("address");
-                atomicCommand.setOpType(Command.AtomicCommand.OperationType.SET);
-                atomicCommand.setValue(address.toString());
-                command.addAtomicCommand(atomicCommand);
-            }
-        }
-
-        return command;
+        return atomicCommand;
     }
 
     private <T> void validateThat(String message,

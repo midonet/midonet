@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.agent.commands;
 
+import com.midokura.midolman.agent.command.CommandProperty;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.packets.MAC;
 import org.junit.Test;
@@ -18,9 +19,16 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+
+import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 
 public class TestHostCommandGenerator {
 
@@ -48,10 +56,14 @@ public class TestHostCommandGenerator {
         HostCommandGenerator hostCommandGenerator = new HostCommandGenerator();
         HostDirectory.Command command = hostCommandGenerator.createUpdateCommand(currentInterface, newInterface);
 
-        assertThat(command, not(nullValue()));
-        assertThat(command.getInterfaceName(), equalTo(currentInterface.getName()));
-        assertThat(command.getInterfaceName(), equalTo(newInterface.getName()));
-        assertThat(command.getCommandList().size(), equalTo(0));
+        assertThat(command,
+                   allOf(notNullValue(),
+                         hasProperty("interfaceName",
+                                     allOf(
+                                         equalTo(currentInterface.getName()),
+                                         equalTo(newInterface.getName())))));
+
+        assertThat(command.getCommandList(), hasSize(0));
     }
 
     @Test
@@ -62,22 +74,35 @@ public class TestHostCommandGenerator {
 
         // Add new address
         String newAddress = "172.16.16.17";
-        InetAddress[] addresses = Arrays.copyOf(currentInterface.getAddresses(), currentInterface.getAddresses().length + 1);
+        InetAddress[] addresses =
+            Arrays.copyOf(currentInterface.getAddresses(),
+                          currentInterface.getAddresses().length + 1);
+
         addresses[addresses.length - 1] = InetAddress.getByName(newAddress);
         newInterface.setAddresses(addresses);
 
         HostCommandGenerator hostCommandGenerator = new HostCommandGenerator();
-        HostDirectory.Command command = hostCommandGenerator.createUpdateCommand(currentInterface, newInterface);
+        HostDirectory.Command command =
+            hostCommandGenerator.createUpdateCommand(currentInterface, newInterface);
 
-        assertThat(command, not(nullValue()));
-        assertThat(command.getInterfaceName(), equalTo(currentInterface.getName()));
-        assertThat(command.getInterfaceName(), equalTo(newInterface.getName()));
-        assertThat(command.getCommandList().size(), equalTo(1));
-        for (HostDirectory.Command.AtomicCommand atomicCommand : command.getCommandList()) {
-            assertThat(atomicCommand.getProperty(), equalTo("address"));
-            assertThat(atomicCommand.getOpType(), equalTo(HostDirectory.Command.AtomicCommand.OperationType.SET));
-            assertThat(atomicCommand.getValue().replaceFirst("/", ""), equalTo(newAddress));
-        }
+        assertThat(command,
+                   allOf(notNullValue(),
+                         hasProperty("interfaceName",
+                                     allOf(
+                                         equalTo(currentInterface.getName()),
+                                         equalTo(newInterface.getName())))));
+
+        assertThat("The generated command has only atomic command",
+                   command.getCommandList(), hasSize(1));
+
+        assertThat("The generated command has the proper atomic command generated",
+                   command.getCommandList(),
+                   contains(
+                       allOf(
+                           hasProperty("property", equalTo(CommandProperty.address)),
+                           hasProperty("opType", equalTo(OperationType.SET)),
+                           hasProperty("value", equalTo(newAddress))
+                       )));
     }
 
     private static HostDirectory.Interface getSampleInterface() {

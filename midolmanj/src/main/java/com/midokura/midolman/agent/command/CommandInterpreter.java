@@ -7,60 +7,76 @@ package com.midokura.midolman.agent.command;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.inject.Singleton;
+import static java.lang.String.format;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.state.HostDirectory;
+import static com.midokura.midolman.agent.state.HostDirectory.Command;
 
 public class CommandInterpreter {
 
-    public class InvalidParameterException extends Exception {
-        public InvalidParameterException(String property, String actualValue,
-                                         String acceptedValue) {
-            super("Couldn't accept property: " + property + " it's " + actualValue
-                          + "should be " + acceptedValue);
+    public static class InvalidParameterException extends Exception {
+
+        public InvalidParameterException(CommandProperty property,
+                                         String actualValue,
+                                         String message) {
+            super(
+                String.format(
+                    "Couldn't accept property: %s with value=%s to type: %s. Error message: %s",
+                    property, actualValue,
+                    property.getType().getCanonicalName(), message));
         }
     }
 
-    public class InvalidExecutorInstanceException extends Exception {
-        public InvalidExecutorInstanceException(String property, String executorClass) {
-            super("Cannot instanciate the CommandExecutor " + executorClass
-                          + ".for property " + property);
+    public static class InvalidExecutorInstanceException extends Exception {
+
+        public InvalidExecutorInstanceException(CommandProperty property,
+                                                Exception e) {
+            super(
+                format("Cannot instantiate the CommandExecutor for " +
+                           "property: %s (we wanted: %s)",
+                       property, property.getExecutor().getCanonicalName()), e);
         }
     }
 
     private final static Logger log =
-            LoggerFactory.getLogger(CommandInterpreter.class);
+        LoggerFactory.getLogger(CommandInterpreter.class);
 
 
-    public CommandExecutor[] interpret(HostDirectory.Command cmd)
-            throws InvalidParameterException, InvalidExecutorInstanceException {
-        List<CommandExecutor> cmdToExecute = new ArrayList<CommandExecutor>();
-        List<HostDirectory.Command.AtomicCommand> cmdList = cmd.getCommandList();
-        for (HostDirectory.Command.AtomicCommand atomicCmd : cmdList) {
-            String property = atomicCmd.getProperty();
+    public List<CommandExecutor> interpret(Command cmd)
+        throws InvalidParameterException, InvalidExecutorInstanceException {
+        log.debug("Interpreting command: {}.", cmd);
+
+        List<CommandExecutor> executors = new ArrayList<CommandExecutor>();
+        List<Command.AtomicCommand> cmdList = cmd.getCommandList();
+        for (Command.AtomicCommand atomicCmd : cmdList) {
+            CommandProperty property = atomicCmd.getProperty();
             String value = atomicCmd.getValue();
-            Object convertedValue;
+            Object parameter;
             try {
-                convertedValue = CommandValidatorFactory.getValidator(property)
-                                           .validateAndConvert(property, value);
+                parameter =
+                    property.getValidator().validateAndConvert(property, value);
             } catch (Exception e) {
                 throw new InvalidParameterException(property, value,
-                           PropertyExecutor.get(property).getType().toString());
+                                                    e.getMessage());
             }
-            CommandExecutor executor = null;
+
+            CommandExecutor executor;
             try {
-                executor = PropertyExecutor.get(property).getExecutor().newInstance();
-                executor.setTargetName(cmd.getInterfaceName());
-                executor.setParamAsObject(convertedValue);
-                executor.setOperationType(atomicCmd.getOpType());
-            } catch (Exception e) {
-                throw new InvalidExecutorInstanceException(property,
-                    PropertyExecutor.get(property).getExecutor().getClass().toString());
+                executor = property.getExecutor().newInstance();
+            } catch (Exception ex) {
+                throw new InvalidExecutorInstanceException(property, ex);
             }
-            cmdToExecute.add(executor);
+
+            executor.setTargetName(cmd.getInterfaceName());
+            executor.setParamAsObject(parameter);
+            executor.setOperationType(atomicCmd.getOpType());
+
+            executors.add(executor);
         }
-        return cmdToExecute.toArray(new CommandExecutor[cmdToExecute.size()]);
+
+        return executors;
     }
 }
+

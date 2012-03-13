@@ -4,21 +4,23 @@
 
 package com.midokura.midolman.agent.command;
 
-import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.util.Sudo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InterfaceCommandExecutor extends CommandExecutor<String> {
+import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.util.Sudo;
+
+public class InterfaceCommandExecutor
+    extends AbstractCommandExecutor<HostDirectory.Interface.Type> {
 
     private final static Logger log =
-            LoggerFactory.getLogger(InterfaceCommandExecutor.class);
+        LoggerFactory.getLogger(InterfaceCommandExecutor.class);
 
     protected InterfaceCommandExecutor() {
-        super(String.class);
+        super(HostDirectory.Interface.Type.class);
     }
 
-    private enum InterfaceType {
+    public enum InterfaceType {
         TUN, TAP, UNKNOWN;
 
         @Override
@@ -43,48 +45,60 @@ public class InterfaceCommandExecutor extends CommandExecutor<String> {
 
     @Override
     public void execute() {
+        InterfaceType interfaceType;
 
-        // Get interface mode from param
-        InterfaceType interfaceType = InterfaceType.UNKNOWN;
-        if (param.equals("tun")) {
-            interfaceType = InterfaceType.TUN;
-        } else if (param.equals("tap")) {
-            interfaceType = InterfaceType.TAP;
+        switch (getParam()) {
+            case Virtual:
+                interfaceType = InterfaceType.TAP;
+                break;
+            default:
+                interfaceType = InterfaceType.UNKNOWN;
+                break;
         }
 
         // We don't support an unknown interface type
-        if (interfaceType.equals(InterfaceType.UNKNOWN)) {
-            log.warn("Unsupported interface type");
+        if (interfaceType == InterfaceType.UNKNOWN) {
+            log.warn("Unsupported interface type {} (derived from parameter value: {})",
+                     interfaceType, getParam());
             return;
         }
 
         // Get the interface action (add/del)
-        InterfaceAction interfaceAction = InterfaceAction.UNKNOWN;
-        if (operationType.equals(HostDirectory.Command.AtomicCommand.OperationType.SET)) {
-            interfaceAction = InterfaceAction.ADD;
-        } else if (operationType.equals(HostDirectory.Command.AtomicCommand.OperationType.DELETE)) {
-            interfaceAction = InterfaceAction.DELETE;
+        InterfaceAction interfaceAction = null;
+        switch (getOperationType()) {
+            case SET:
+                interfaceAction = InterfaceAction.ADD;
+                break;
+            case DELETE:
+                interfaceAction = InterfaceAction.DELETE;
+                break;
         }
 
         // We don't support unknown operations
-        if (interfaceAction.equals(InterfaceAction.UNKNOWN)) {
-            log.warn("Unsupported interface action");
+        if (interfaceAction == null) {
+            log.warn("Unsupported interface action: {} ", interfaceAction);
             return;
         }
 
         executeAction(interfaceType, interfaceAction);
     }
 
-    private void executeAction(InterfaceType interfaceType, InterfaceAction interfaceAction) {
+    private void executeAction(InterfaceType interfaceType,
+                               InterfaceAction interfaceAction) {
         try {
-            int returnValue = Sudo.sudoExec("ip tuntap " + interfaceAction + " dev " +
-                    targetName + " mode " + interfaceType );
+            int returnValue =
+                Sudo.sudoExec(
+                    String.format("ip tuntap %s dev %s mode %s",
+                                  interfaceAction, targetName, interfaceType));
+
             // if there was an error, log it
             if (returnValue != 0) {
-                log.warn("Cannot " + interfaceAction + " interface " + targetName + " (" + returnValue + ")");
+                log.warn("Cannot {}  interface {} ({})",
+                         new Object[]{interfaceAction, targetName, returnValue});
             }
         } catch (Exception e) {
-            log.warn ("Cannot " + interfaceAction + " interface " + targetName, e);
+            log.warn("Cannot " + interfaceAction + " interface " + targetName,
+                     e);
         }
     }
 }

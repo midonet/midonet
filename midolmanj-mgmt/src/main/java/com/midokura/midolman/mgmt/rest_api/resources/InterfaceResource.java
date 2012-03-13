@@ -86,6 +86,7 @@ public class InterfaceResource {
 
             return Response
                 .ok(hostCommand, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
+                .location(hostCommand.getUri())
                 .build();
         } catch (DataValidationException e) {
             return Response
@@ -263,6 +264,7 @@ public class InterfaceResource {
             return
                 Response
                     .ok(command, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
+                    .location(command.getUri())
                     .build();
         } catch (DataValidationException e) {
             return Response
