@@ -423,6 +423,7 @@ public class Setup implements Watcher {
         paths.add(pathMgr.getRulesPath());
         paths.add(pathMgr.getGrePath());
         paths.add(pathMgr.getPortsPath());
+        paths.add(pathMgr.getPortSetsPath());
         paths.add(pathMgr.getRoutersPath());
         paths.add(pathMgr.getRoutesPath());
         paths.add(pathMgr.getVRNPortLocationsPath());

@@ -79,6 +79,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
@@ -150,6 +151,9 @@ public class TestNetworkController {
         Directory portLocSubdir =
                 dir.getSubDirectory(pathMgr.getVRNPortLocationsPath());
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
+        Directory portSetSubdir = 
+                dir.getSubDirectory(pathMgr.getPortSetsPath());
+        PortSetMap portSetMap = new PortSetMap(portSetSubdir);
 
         // Now create the Open vSwitch database connection
         ovsdb = new MockOpenvSwitchDatabaseConnection();
@@ -167,7 +171,7 @@ public class TestNetworkController {
         networkCtrl = new NetworkController(datapathId, networkId,
                 5 /* greKey */, portLocMap, idleFlowTimeoutSeconds,
                 localNwIP, portMgr, routerMgr, routeMgr, chainMgr, ruleMgr,
-                ovsdb, reactor, cache, "midonet", service);
+                ovsdb, reactor, cache, "midonet", service, portSetMap);
         networkCtrl.setControllerStub(controllerStub);
 
         /*
