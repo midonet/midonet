@@ -506,8 +506,8 @@ public class NetworkController extends AbstractController
             // If the egress port is local, ARP and forward the packet.
             devPortOut = devPortById.get(fwdInfo.outPortId);
             if (null != devPortOut) {
-                log.debug("onPacketIn: Network.process() returned FORWARD to local"
-                        + "port {} for {}", devPortOut, fwdInfo);
+                log.debug("onPacketIn: Network.process() returned FORWARD to " +
+                          "local port {} for {}", devPortOut, fwdInfo);
                 LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
@@ -519,10 +519,32 @@ public class NetworkController extends AbstractController
                     freeBuffer(bufferId);
                     freeFlowResources(match, routers);
                 }
-            } else { // devPortOut is null; the egress port is remote.
+            } else { // devPortOut is null; the egress port is remote or multiple.
                 log.debug("onPacketIn: Network.process() returned FORWARD to "
-                        + "remote port {} for {}", fwdInfo.outPortId, fwdInfo);
-                
+                        + "remote/multi port {} for {}", fwdInfo.outPortId, fwdInfo);
+
+                if (portSetMap.contains(fwdInfo.outPortId)) {
+                    Set<Short> outPorts = new HashSet<Short>();
+                    for (UUID portUuid : portSetMap.get(fwdInfo.outPortId)) {
+                        if (devPortById.contains(portUuid)) {
+                            outPorts.add(devPortById.get(portUuid));
+                        } else if (portUuidToTunnelPortNumber.contains(portUuid)) {
+                            outPorts.add(portUuidToTunnelPortNumber.get(portUuid));
+                        } else {
+                            log.warn("onPacketIn:  No OVS port found for port ID {}", portUuid);
+                        }
+                    }
+
+                    List<OFAction> ofActions = makeActionsForFlow(match,
+                            fwdInfo.matchOut, outPorts);
+                    // Track the routers for this flow so we can free resources
+                    // when the flow is removed.
+                    matchToRouters.put(match, routers);
+                    addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
+                            NO_HARD_TIMEOUT, true, ofActions, inPort, data);
+                    return;
+                }
+
                 Integer tunPortNum = 
                         super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
@@ -604,6 +626,13 @@ public class NetworkController extends AbstractController
 
     private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
             MidoMatch newMatch, short outPortNum) {
+        Set<Short> portSet = new HashSet<Short>();
+        portSet.add(outPortNum);
+        return makeActionsForFlow(origMatch, newMatch, portSet);
+    }
+
+    private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
+            MidoMatch newMatch, Set<Short> outPorts) {
         // Create OF actions for fields that changed from original to last
         // match.
         List<OFAction> actions = new ArrayList<OFAction>();
@@ -648,8 +677,10 @@ public class NetworkController extends AbstractController
                     .getTransportDestination());
             actions.add(action);
         }
-        action = new OFActionOutput(outPortNum, (short) 0);
-        actions.add(action);
+        for (Short outPortNum : outPorts) {
+            action = new OFActionOutput(outPortNum.toShort(), (short) 0);
+            actions.add(action);
+        }
         return actions;
     }
 

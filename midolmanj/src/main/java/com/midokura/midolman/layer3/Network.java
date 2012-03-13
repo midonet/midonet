@@ -212,7 +212,8 @@ public class Network {
 
     public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb)
             throws ZkStateSerializationException {
-        log.debug("getMacForIp: port {} in {}", portId, Net.convertIntAddressToString(nwAddr));
+        log.debug("getMacForIp: port {} in {}", portId,
+                  Net.convertIntAddressToString(nwAddr));
 
         Router rtr;
         try {
