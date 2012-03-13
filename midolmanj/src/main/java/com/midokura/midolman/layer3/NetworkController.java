@@ -540,6 +540,20 @@ public class NetworkController extends AbstractController
                         }
                     }
 
+                    if (outPorts.size() == 0) {
+                        log.warn("onPacketIn:  No OVS ports found for {}",
+                                fwdInfo.outPortId);
+
+                        installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
+                                ICMP_EXPIRY_SECONDS);
+                        freeFlowResources(match, routers);
+                        // TODO: check whether this is the right error code (host?).
+                        sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
+                                devPortIn.getId(), ethPkt, fwdInfo.inPortId,
+                                fwdInfo.pktIn, fwdInfo.outPortId);
+                        return;
+                    }
+
                     List<OFAction> ofActions = makeActionsForFlow(match,
                             fwdInfo.matchOut, outPorts);
                     // Track the routers for this flow so we can free resources
