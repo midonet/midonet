@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,33 +39,41 @@ import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
 import com.midokura.tools.timed.Timed;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midkura.com>
  *         Date: 11/28/11
  */
-public class BgpTest extends AbstractSmokeTest {
+public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
 
-    static Tenant tenant;
-    static Router router;
-    static TapWrapper bgpPort;
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman;
-    static OvsBridge ovsBridge;
+    Tenant tenant;
+    Router router;
+    TapWrapper bgpPort;
+    MidolmanMgmt mgmt;
+    MidolmanLauncher midolman;
+    OvsBridge ovsBridge;
 
-    static VMController bgpPeerVm;
+    VMController bgpPeerVm;
 
-    static OpenvSwitchDatabaseConnection ovsdb;
+    OpenvSwitchDatabaseConnection ovsdb;
 
-    static String bgpPortPortName = "bgpPeerPort";
+    String bgpPortPortName = "bgpPeerPort";
 
-    static String peerAdvertisedNetworkAddr = "10.173.0.0";
-    static int peerAdvertisedNetworkLength = 24;
+    String peerAdvertisedNetworkAddr = "10.173.0.0";
+    int peerAdvertisedNetworkLength = 24;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
+    @Before
+    public void setUp() throws InterruptedException, IOException {
 
         fixQuaggaFolderPermissions();
 
@@ -122,24 +130,16 @@ public class BgpTest extends AbstractSmokeTest {
         Thread.sleep(1000);
     }
 
-    @AfterClass
-    public static void tearDown() {
-        try {
-            if (bgpPeerVm != null) {
-                bgpPeerVm.destroy();
-            }
+    @After
+    public void tearDown() {
 
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            //
-        }
+        destroyVM(bgpPeerVm);
 
+        removeTapWrapper(bgpPort);
+        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
         stopMidolmanMgmt(mgmt);
-
-        ovsBridge.remove();
-        removeTapWrapper(bgpPort);
     }
 
     @Test
@@ -149,23 +149,17 @@ public class BgpTest extends AbstractSmokeTest {
 
         bgpPeerVm.startup();
 
-        Boolean result =
-            waitFor("The new route is advertised to the router",
-                    TimeUnit.SECONDS.toMillis(100),
-                    TimeUnit.SECONDS.toMillis(2),
-                    new Timed.Execution<Boolean>() {
-                        @Override
-                        public void _runOnce() throws Exception {
-                            setResult(
-                                checkPeerAdRouteIsRegistered(
-                                    router.getRoutes()));
-                            setCompleted(getResult());
-                        }
-                    });
-
-        assertThat("The execution result should have been successful",
-                   result,
-                   allOf(is(notNullValue()), equalTo(true)));
+        waitFor("The new route is advertised to the router",
+                TimeUnit.SECONDS.toMillis(100),
+                TimeUnit.SECONDS.toMillis(1),
+                new Timed.Execution<Boolean>() {
+                    @Override
+                    public void _runOnce() throws Exception {
+                        setResult(
+                            checkPeerAdRouteIsRegistered(router.getRoutes()));
+                        setCompleted(getResult());
+                    }
+                });
     }
 
     private boolean checkPeerAdRouteIsRegistered(Route[] routes) {

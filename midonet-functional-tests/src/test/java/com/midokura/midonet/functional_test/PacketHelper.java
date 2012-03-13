@@ -180,7 +180,7 @@ public class PacketHelper {
     public static void checkArpRequest(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
             IntIPv4 nwDst) throws MalformedPacketException {
 
-        assertThat("We have a received package", recv, notNullValue());
+        assertThat("We expected a package that we didn't get.", recv, notNullValue());
 
         Ethernet pkt = new Ethernet();
         ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);

@@ -4,9 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 
 import org.junit.After;
@@ -14,13 +11,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertTrue;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoVpn.VpnType;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
-import com.midokura.midolman.mgmt.data.dto.client.DtoVpn.VpnType;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MidoPort;
@@ -30,8 +28,16 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeVpn;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 
-public class VpnTest extends AbstractSmokeTest {
+public class VpnTest {
 
     private final static Logger log = LoggerFactory.getLogger(VpnTest.class);
 
@@ -113,7 +119,7 @@ public class VpnTest extends AbstractSmokeTest {
         router2.addFloatingIp(IntIPv4.fromString("10.0.232.99"),
                 IntIPv4.fromString("192.168.232.99"), link.dto.getPeerPortId());
 
-        Thread.sleep(10000);
+        sleepBecause("wait for the network config to settle", 5);
     }
 
     @After
@@ -126,7 +132,7 @@ public class VpnTest extends AbstractSmokeTest {
         removeBridge(ovsBridge);
         // TODO: Convert the following to a condition.
         // Give some second to the controller to clean up vpns stuff
-        Thread.sleep(5 * 1000);
+        sleepBecause("wait for midolman to clean vpn configuration up", 10);
         stopMidolman(midolman);
         if (null != link)
             link.delete();
@@ -164,9 +170,8 @@ public class VpnTest extends AbstractSmokeTest {
         // receive the icmp
         helper1.checkIcmpEchoRequest(sent, tapPort1.recv());
 
-        assertNull(tapPort1.recv());
-        assertNull(tapPort2.recv());
 
+        assertNoMorePacketsOnTap(tapPort1);
+        assertNoMorePacketsOnTap(tapPort2);
     }
-
 }

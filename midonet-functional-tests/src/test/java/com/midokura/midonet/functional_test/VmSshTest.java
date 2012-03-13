@@ -31,14 +31,13 @@ import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
 import com.midokura.tools.ssh.SshHelper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
- * Date: 11/24/11
- * Time: 12:16 PM
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 11/24/11
  */
-public class VmSshTest extends AbstractSmokeTest {
+public class VmSshTest {
 
     private final static Logger log = LoggerFactory.getLogger(VmSshTest.class);
 
@@ -103,11 +102,12 @@ public class VmSshTest extends AbstractSmokeTest {
         removeTenant(tenant);
         stopMidolmanMgmt(mgmt);
 
-        destroyVm(vm);
+        destroyVM(vm);
     }
 
     @Test
-    public void testSshRemoteCommand() throws IOException, InterruptedException {
+    public void testSshRemoteCommand()
+        throws IOException, InterruptedException {
 
         try {
             vm.startup();
@@ -117,9 +117,9 @@ public class VmSshTest extends AbstractSmokeTest {
             // validate ssh to the 192.168.231.2 address
             String output =
                 SshHelper.newRemoteCommand("hostname")
-                    .onHost("192.168.231.2")
-                    .withCredentials("ubuntu", "ubuntu")
-                    .runWithTimeout(60 * 1000); // 60 seconds
+                         .onHost("192.168.231.2")
+                         .withCredentials("ubuntu", "ubuntu")
+                         .runWithTimeout(60 * 1000); // 60 seconds
 
             log.info("Command output: {}", output.trim());
 
@@ -147,9 +147,10 @@ public class VmSshTest extends AbstractSmokeTest {
                          .onHost("192.168.231.2")
                          .withCredentials("ubuntu", "ubuntu")
                          .runWithTimeout(60 * 1000); // 60 seconds
-            
-            assertThat("There should not by any content in the target test_file.txt", 
-                       output, equalTo(""));
+
+            assertThat(
+                "There should not by any content in the target test_file.txt",
+                output, equalTo(""));
 
             File localFile = File.createTempFile("smoke-ssh-test", null);
             localFile.deleteOnExit();
@@ -171,14 +172,16 @@ public class VmSshTest extends AbstractSmokeTest {
                        output, equalTo("Hannibal"));
 
             File newLocalFile = File.createTempFile("smoke-ssh-test", null);
-            SshHelper.copyFileFrom(newLocalFile.getAbsolutePath(), "test_file.txt")
+            SshHelper.copyFileFrom(newLocalFile.getAbsolutePath(),
+                                   "test_file.txt")
                      .onHost("192.168.231.2")
                      .withCredentials("ubuntu", "ubuntu")
                      .runWithTimeout(60 * 1000); // 60 seconds
 
             output = FileUtils.readFileToString(newLocalFile);
-            assertThat("The remote copy to local file should have succeeded. The file content check failed.",
-                       output, equalTo("Hannibal"));
+            assertThat(
+                "The remote copy to local file should have succeeded. The file content check failed.",
+                output, equalTo("Hannibal"));
 
         } finally {
             vm.shutdown();

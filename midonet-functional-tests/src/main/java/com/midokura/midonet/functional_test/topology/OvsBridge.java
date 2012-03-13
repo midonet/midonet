@@ -59,7 +59,7 @@ public class OvsBridge {
         if (ovsdb.hasBridge(bridgeName))
             return;
         BridgeBuilder brBuilder = ovsdb.addBridge(bridgeName);
-        brBuilder.externalId("midolman-vnet", bridgeId.toString());
+        brBuilder.externalId("midolman-vthe net", bridgeId.toString());
         brBuilder.failMode(BridgeFailMode.SECURE);
         brBuilder.otherConfig("hwaddr", "02:aa:bb:11:22:33");
         brBuilder.build();

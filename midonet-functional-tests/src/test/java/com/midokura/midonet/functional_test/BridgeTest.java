@@ -29,10 +29,19 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
-public class BridgeTest extends AbstractSmokeTest {
+public class BridgeTest {
 
     private final static Logger log = LoggerFactory.getLogger(BridgeTest.class);
 
@@ -103,7 +112,7 @@ public class BridgeTest extends AbstractSmokeTest {
         helper3_1 = new PacketHelper(tap3.getHwAddr(), ip3, tap1.getHwAddr(),
                                      ip1);
 
-        Thread.sleep(10000);
+        sleepBecause("we need the network to boot up", 5);
     }
 
     @After
@@ -127,10 +136,7 @@ public class BridgeTest extends AbstractSmokeTest {
         byte[] sent;
 
         sent = helper1_3.makeIcmpEchoRequest(ip3);
-        assertThat(
-            format("One ICMP echo request was sent via the %s device",
-                   tap1.getName()),
-            tap1.send(sent), equalTo(true));
+        assertPacketWasSentOnTap(tap1, sent);
 
         // Receive the icmp, Mac3 hasn't been learnt so the icmp will be
         // delivered to all the ports.
@@ -138,26 +144,21 @@ public class BridgeTest extends AbstractSmokeTest {
         helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
 
         sent = helper3_1.makeIcmpEchoRequest(ip1);
-        assertTrue(tap3.send(sent));
+        assertPacketWasSentOnTap(tap3, sent);
         // Mac1 was learnt, so the message will be sent only to tap1
         helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
 
         // VM moves, sending from Mac3 Ip3 using tap2
         sent = helper3_1.makeIcmpEchoRequest(ip1);
-        assertTrue(tap2.send(sent));
+        assertPacketWasSentOnTap(tap2, sent);
         helper1_3.checkIcmpEchoRequest(sent, tap1.recv());
 
         sent = helper1_3.makeIcmpEchoRequest(ip3);
-        assertTrue(tap1.send(sent));
+        assertPacketWasSentOnTap(tap1, sent);
         helper3_1.checkIcmpEchoRequest(sent, tap2.recv());
 
-        assertThat(
-            format("No more packets should have been received on %s", tap3.getName()),
-            tap3.recv(), is(nullValue()));
-
-        assertThat(
-            format("No more packets should have been received on %s", tap1.getName()),
-            tap1.recv(), is(nullValue()));
+        assertNoMorePacketsOnTap(tap3);
+        assertNoMorePacketsOnTap(tap1);
     }
 }
 

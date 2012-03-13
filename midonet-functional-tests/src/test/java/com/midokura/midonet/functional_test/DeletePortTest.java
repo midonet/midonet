@@ -6,11 +6,9 @@ package com.midokura.midonet.functional_test;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static java.lang.String.format;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -35,8 +33,16 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 
-public class DeletePortTest extends AbstractSmokeTest {
+public class DeletePortTest {
 
     private final static Logger log = LoggerFactory.getLogger(
         DeletePortTest.class);
@@ -100,14 +106,7 @@ public class DeletePortTest extends AbstractSmokeTest {
         helper2 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:02"), ip2,
                                    tap2.getHwAddr(), rtrIp);
 
-        waitForNetworkConfigurationToEnd();
-    }
-
-    private void waitForNetworkConfigurationToEnd() {
-        // just wait 2 seconds.
-        // normally we would need a way to pool the configuration until we know
-        // it's settled
-        TimeUnit.SECONDS.toMillis(2);
+        sleepBecause("the network config should boot up", 5);
     }
 
     @After
@@ -116,11 +115,8 @@ public class DeletePortTest extends AbstractSmokeTest {
         removeTapWrapper(tap2);
         removeBridge(ovsBridge);
         stopMidolman(midolman);
-        Thread.sleep(1000);
         removeTenant(tenant1);
-        Thread.sleep(1000);
         stopMidolmanMgmt(api);
-        Thread.sleep(10 * 1000);
     }
 
     @Test
@@ -137,12 +133,12 @@ public class DeletePortTest extends AbstractSmokeTest {
         ovsBridge.deletePort(tap1.getName());
         ovsBridge.deletePort(tap2.getName());
         // Sleep to let OVS complete the port requests.
-        Thread.sleep(1000);
+        sleepBecause("wait OVS to complete the port deletions", 1);
 
         ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
         ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
         // Sleep to let OVS complete the port requests.
-        Thread.sleep(1000);
+        sleepBecause("wait OVS to complete the port creations", 1);
 
         num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
@@ -183,7 +179,7 @@ public class DeletePortTest extends AbstractSmokeTest {
         PacketHelper.checkIcmpEchoReply(ping2_3, tap2.recv());
 
         // Sleep to let OVS update its stats.
-        Thread.sleep(1000);
+        sleepBecause("OVS needs to update it's stats", 1);
 
         // Now there should be 4 ICMP flows
         fstats = svcController.getFlowStats(icmpMatch);
@@ -226,16 +222,11 @@ public class DeletePortTest extends AbstractSmokeTest {
         flow3_2.expectCount(1).expectOutputAction(num2);
 
         // Repeat the pings and verify that the packet counts increase.
-        assertThat(
-            format("The tap %s should have sent the packet", tap1.getName()),
-            tap1.send(ping1_3));
-
-        assertThat(
-            format("The tap %s should have sent the packet", tap2.getName()),
-            tap2.send(ping2_3));
+        assertPacketWasSentOnTap(tap1, ping1_3);
+        assertPacketWasSentOnTap(tap2, ping2_3);
 
         // Sleep to let OVS update its stats.
-        Thread.sleep(1000);
+        sleepBecause("OVS needs to update its stats", 1);
 
         // Verify that the flow counts have increased as expected.
         // TODO(pino): re-enable the following checks after committing NXM changes.
@@ -253,7 +244,8 @@ public class DeletePortTest extends AbstractSmokeTest {
         // Now remove p3 and verify that all flows are removed since they
         // are ingress or egress at p3.
         ovsBridge.deletePort(INT_PORT_NAME);
-        Thread.sleep(2000);
+        sleepBecause("OVS should process the internal port deletion", 2);
+
         fstats = svcController.getFlowStats(icmpMatch);
         assertThat("The list of FlowStats should be empty", fstats, hasSize(0));
     }

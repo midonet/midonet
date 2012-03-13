@@ -4,15 +4,8 @@
 
 package com.midokura.midonet.functional_test;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.util.List;
-
 import static java.lang.String.format;
 
 import org.junit.AfterClass;
@@ -21,6 +14,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -34,17 +31,22 @@ import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.OpenFlowStats;
 import com.midokura.midonet.functional_test.openflow.PortStats;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.openflow.TableStats;
 import com.midokura.midonet.functional_test.topology.MidoPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 
 // TODO(pino): re-enable this test after committing NXM
 @Ignore
-public class StatsTest extends AbstractSmokeTest {
+public class StatsTest {
 
     private final static Logger log = LoggerFactory.getLogger(StatsTest.class);
 
@@ -69,6 +71,7 @@ public class StatsTest extends AbstractSmokeTest {
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("StatsTest");
+
         // First clean up left-overs from previous incomplete tests.
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -100,17 +103,17 @@ public class StatsTest extends AbstractSmokeTest {
         MidoPort p3 = router1.addVmPort().setVMAddress(peerIp).build();
         ovsBridge.addInternalPort(p3.port.getId(), "statsTestInt", peerIp, 24);
 
-        Thread.sleep(5 * 1000);
+        sleepBecause("we want to wait for the network config to settle", 5);
     }
 
     @AfterClass
     public static void tearDown() throws InterruptedException {
+        removeTapWrapper(tapPort1);
+        removeTapWrapper(tapPort2);
         stopMidolman(midolman);
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
-        ovsBridge.remove();
-        removeTapWrapper(tapPort1);
-        removeTapWrapper(tapPort2);
+        removeBridge(ovsBridge);
     }
 
     @Test
@@ -178,7 +181,7 @@ public class StatsTest extends AbstractSmokeTest {
         }
 
         // Sleep to give OVS a chance to update its stats.
-        Thread.sleep(1000);
+        sleepBecause("wait for OVS to update stats", 1);
         statsForPort1.refresh()
                      .expectRx(7).expectTx(7)
                      .expectRxDrop(0).expectTxDrop(0);
@@ -209,7 +212,7 @@ public class StatsTest extends AbstractSmokeTest {
             helper1.checkIcmpEchoRequest(request, tapPort1.recv());
         }
         // Sleep to give OVS a chance to update its stats.
-        Thread.sleep(1000);
+        sleepBecause("wait for OVS to update it's stats", 1);
         statsForPort2.refresh()
                      .expectRx(5).expectTx(0)
                      .expectRxDrop(0).expectTxDrop(0);

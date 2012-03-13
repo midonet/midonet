@@ -277,20 +277,6 @@
             <artifactId>jersey-json</artifactId>
             <version>1.9.1</version>
             <type>jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-core-asl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-jaxrs</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-xc</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -327,7 +313,6 @@
             <groupId>com.midokura</groupId>
             <artifactId>midolmanj-mgmt</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
         </dependency>
 
         <dependency>

@@ -118,7 +118,25 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
             throw
                 new IllegalStateException(
                     "A POST call to " + uri + " failed to return a proper " +
-                        "location header: " + response);
+                        "location header: " + response + "\n" +
+                        response.getEntity(String.class));
+        }
+
+        return response.getLocation();
+    }
+
+    private URI put(URI uri, Object entity) {
+        ClientResponse response = resource()
+            .uri(uri)
+            .type(MediaType.APPLICATION_JSON)
+            .put(ClientResponse.class, entity);
+
+        if (response.getLocation() == null) {
+            throw
+                new IllegalStateException(
+                    "A PUT call to " + uri + " failed to return a proper " +
+                        "location header: " + response + "\n" +
+                        response.getEntity(String.class));
         }
 
         return response.getLocation();
@@ -236,6 +254,20 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         }
 
         return new DtoInterface[0];
+    }
+
+    @Override
+    public void addInterface(DtoHost host, DtoInterface dtoInterface) {
+        URI returnURI = post(host.getInterfaces(), dtoInterface);
+        // TODO: return the HostCommand object
+        int a = 10;
+    }
+
+    @Override
+    public void updateInterface(DtoInterface dtoInterface) {
+        URI returnURI = put(dtoInterface.getUri(), dtoInterface);
+        // TODO: return the HostCommand object
+        int a = 10;
     }
 
     @Override

@@ -1,16 +1,15 @@
 package com.midokura.midonet.functional_test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -25,30 +24,37 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
-public class TunnelingTest extends AbstractSmokeTest {
+public class TunnelingTest {
 
     private final static Logger log = LoggerFactory
             .getLogger(TunnelingTest.class);
 
-    static Tenant tenant1;
-    static TapWrapper tapPort1;
-    static TapWrapper tapPort2;
-    static IntIPv4 ip1;
-    static IntIPv4 ip2;
-    static PacketHelper helper1;
-    static PacketHelper helper2;
-    static OpenvSwitchDatabaseConnection ovsdb;
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman1;
-    static MidolmanLauncher midolman2;
-    static OvsBridge ovsBridge1;
-    static OvsBridge ovsBridge2;
+    Tenant tenant1;
+    TapWrapper tapPort1;
+    TapWrapper tapPort2;
+    IntIPv4 ip1;
+    IntIPv4 ip2;
+    PacketHelper helper1;
+    PacketHelper helper2;
+    OpenvSwitchDatabaseConnection ovsdb;
+    MidolmanMgmt mgmt;
+    MidolmanLauncher midolman1;
+    MidolmanLauncher midolman2;
+    OvsBridge ovsBridge1;
+    OvsBridge ovsBridge2;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
+    @Before
+    public void setUp() throws InterruptedException, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -83,11 +89,11 @@ public class TunnelingTest extends AbstractSmokeTest {
         helper2 = new PacketHelper(MAC.fromString("02:00:aa:33:00:02"), ip2,
                 tapPort2.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
 
-        Thread.sleep(5 * 1000);
+        sleepBecause("wait for the network config to settle", 5);
     }
 
-    @AfterClass
-    public static void tearDown() throws InterruptedException {
+    @After
+    public void tearDown() throws InterruptedException {
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
         removeBridge(ovsBridge1);
@@ -139,9 +145,7 @@ public class TunnelingTest extends AbstractSmokeTest {
         // receive the icmp
         helper1.checkIcmpEchoRequest(icmpRequest, tapPort1.recv());
 
-        assertThat("No more packages arrived on the first tap port",
-                   tapPort1.recv(), is(nullValue()));
-        assertThat("No more packages arrived on the second tap port",
-                   tapPort1.recv(), is(nullValue()));
+        assertNoMorePacketsOnTap(tapPort1);
+        assertNoMorePacketsOnTap(tapPort2);
     }
 }

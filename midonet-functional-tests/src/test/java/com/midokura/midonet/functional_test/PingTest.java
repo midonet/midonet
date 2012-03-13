@@ -29,8 +29,9 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 
-public class PingTest extends AbstractSmokeTest {
+public class PingTest {
 
     private final static Logger log = LoggerFactory.getLogger(PingTest.class);
 
@@ -95,14 +96,16 @@ public class PingTest extends AbstractSmokeTest {
         helper2 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:02"), ip2,
                 tap2.getHwAddr(), rtrIp);
 
-        Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+        sleepBecause("we wait for the network configuration to bootup", 5);
     }
 
     @After
     public void tearDown() throws Exception {
         removeTapWrapper(tap2);
         removeTapWrapper(tap1);
-        ovsBridge.deletePort(internalPortName);
+        if (ovsBridge != null) {
+            ovsBridge.deletePort(internalPortName);
+        }
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
@@ -141,8 +144,6 @@ public class PingTest extends AbstractSmokeTest {
         // Finally, the icmp echo reply from the peer.
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
-        // No other packets arrive at the port.
-        assertThat("Not other packet has arrived on the port",
-                   tap1.recv(), nullValue());
+        assertNoMorePacketsOnTap(tap1);
     }
 }

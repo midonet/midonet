@@ -3,11 +3,17 @@
  */
 package com.midokura.midonet.functional_test;
 
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
+
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -15,17 +21,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
 import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
+import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.tools.timed.Timed;
+import com.midokura.util.process.ProcessHelper;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 
 /**
@@ -34,9 +44,10 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 2/27/12
  */
-public class InterfaceManagementTest extends AbstractSmokeTest {
+public class InterfaceManagementTest extends FunctionalTestsHelper {
 
     MidolmanMgmt api;
+
 
     @Before
     public void setUp() throws Exception {
@@ -49,22 +60,22 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         stopMidolmanMgmt(api);
     }
 
-    @Ignore @Test
+    @Test
     public void testNewHostAppearsWhenTheAgentIsExecuted() throws Exception {
 
         DtoHost[] hosts = api.getHosts();
-        assertThat("No hosts should be visible now",
+        assertThat("We didn't start with no hosts registered",
                    hosts, allOf(notNullValue(), arrayWithSize(0)));
 
         // create a new one
         // start the agent / or midolman1
         MidolmanLauncher launcher =
             MidolmanLauncher.start(With_Node_Agent,
-                                   "InterfaceManagement-testNewHostAppearsWhenTheAgentIsExecuted");
+                                   "InterfaceManagementTest.testNewHostAppearsWhenTheAgentIsExecuted");
 
         try {
             hosts =
-                waitFor("a new host should come up", 10 * 1000, 250,
+                waitFor("a new host should come up", 10 * 1000, 500,
                         new Timed.Execution<DtoHost[]>() {
                             @Override
                             protected void _runOnce() throws Exception {
@@ -85,7 +96,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         }
     }
 
-    @Ignore @Test
+    @Test
     public void testHostIsMarkedAsDownWhenTheAgentDies() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -93,7 +104,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
 
         MidolmanLauncher launcher =
             MidolmanLauncher.start(With_Node_Agent,
-                                   "InterfaceManagement-testHostIsMarkedAsDownWhenTheAgentDies");
+                                   "InterfaceManagementTest.testHostIsMarkedAsDownWhenTheAgentDies");
 
         try {
             DtoHost[] newHosts =
@@ -136,7 +147,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         }
     }
 
-    @Ignore @Test
+    @Test
     public void testHostIsMarkedAsAliveAfterAgentRestarts() throws Exception {
         DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
@@ -144,7 +155,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
 
         MidolmanLauncher launcher =
             MidolmanLauncher.start(With_Node_Agent,
-                                   "InterfaceManagement-testHostIsMarkedAsAliveAfterAgentRestarts");
+                                   "InterfaceManagementTest.testHostIsMarkedAsAliveAfterAgentRestarts");
 
         try {
             hosts = waitFor("a new host should appear",
@@ -181,7 +192,7 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
 
             // start the agent again
             launcher = MidolmanLauncher.start(With_Node_Agent,
-                                              "InterfaceManagement-testHostIsMarkedAsAliveAfterAgentRestarts-restarted");
+                                              "InterfaceManagementTest.testHostIsMarkedAsAliveAfterAgentRestarts-restarted");
 
             newHostInfo =
                 waitFor("host status change",
@@ -201,14 +212,14 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
         }
     }
 
-    @Ignore @Test
+    @Test
     public void testNewInterfaceBecomesVisible() throws Exception {
 
         final String tapInterfaceName = "newTapInterface";
 
         MidolmanLauncher launcher =
             MidolmanLauncher.start(With_Node_Agent,
-                                   "InterfaceManagementTest-testNewInterfaceBecomesVisible");
+                                   "InterfaceManagementTest.testNewInterfaceBecomesVisible");
 
         TapWrapper tapWrapper = null;
 
@@ -263,5 +274,365 @@ public class InterfaceManagementTest extends AbstractSmokeTest {
             launcher.stop();
             removeTapWrapper(tapWrapper);
         }
+    }
+
+    @Test
+    public void testCreateInterfaceOnHost() throws Exception {
+        final String tapInterfaceName = "newTapInt2";
+
+        assertThat("We were expecting no hosts to be registered",
+                   api.getHosts(), arrayWithSize(0));
+
+        MidolmanLauncher launcher =
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagementTest.testCreateInterfaceOnHost");
+
+        TapWrapper tapWrapper = null;
+
+        try {
+            DtoHost[] hosts =
+                waitFor("a host should register",
+                        new Timed.Execution<DtoHost[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHosts());
+                                setCompleted(getResult().length == 1);
+                            }
+                        });
+
+            final DtoHost host = hosts[0];
+            assertThat("The new host should be alive!", host.isAlive());
+
+            DtoInterface[] interfaces = api.getHostInterfaces(host);
+            assertThat("We should have seen some interfaces",
+                       interfaces,
+                       allOf(
+                           notNullValue(),
+                           arrayWithSize(greaterThanOrEqualTo(0))));
+
+            final Matcher<DtoInterface[]> hasNewTapMatcher =
+                hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
+
+            assertThat(
+                "The interface we want to create does not already exists",
+                interfaces,
+                not(hasNewTapMatcher));
+
+            DtoInterface dtoInterface = new DtoInterface();
+            dtoInterface.setName(tapInterfaceName);
+            dtoInterface.setType(DtoInterface.Type.Virtual);
+            api.addInterface(host, dtoInterface);
+
+            interfaces =
+                waitFor("the new interface to become visible on the host",
+                        new Timed.Execution<DtoInterface[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHostInterfaces(host));
+                                setCompleted(
+                                    hasNewTapMatcher.matches(getResult()));
+                            }
+                        });
+
+            assertThat("the new interface appeared properly on the host",
+                       interfaces, hasNewTapMatcher);
+
+            tapWrapper = new TapWrapper(tapInterfaceName, false);
+        } finally {
+            launcher.stop();
+            removeTapWrapper(tapWrapper);
+        }
+    }
+
+    @Test
+    public void testUpdateInterfaceMacForHost() throws Exception {
+        final String tapInterfaceName = "newTapInt3";
+
+        assertThat("We were expecting no hosts to be registered",
+                   api.getHosts(), arrayWithSize(0));
+
+        MidolmanLauncher launcher =
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagementTest.testUpdateInterfaceMacForHost");
+
+        TapWrapper tapWrapper = new TapWrapper(tapInterfaceName);
+
+        try {
+            DtoHost[] hosts =
+                waitFor("host registration",
+                        new Timed.Execution<DtoHost[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHosts());
+                                setCompleted(getResult().length == 1);
+                            }
+                        });
+
+            final DtoHost host = hosts[0];
+            assertThat("The new host should be alive!", host.isAlive());
+
+            final Matcher<DtoInterface[]> tapMatcher =
+                hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
+
+            DtoInterface[] interfaces =
+                waitFor("the interface to be exposed via API",
+                        new Timed.Execution<DtoInterface[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHostInterfaces(host));
+                                setCompleted(tapMatcher.matches(getResult()));
+                            }
+                        });
+
+            DtoInterface dtoInterface = null;
+            for (DtoInterface anInterface : interfaces) {
+                if (anInterface.getName().equals(tapInterfaceName)) {
+                    dtoInterface = anInterface;
+                    break;
+                }
+            }
+
+            String targetMacAddress = "12:11:11:11:11:17";
+
+            assertThat(
+                "the interface dto is ok (non null and with a different mac)",
+                dtoInterface,
+                allOf(notNullValue(),
+                      hasProperty("mac", not(equalTo(targetMacAddress)))));
+
+            //noinspection ConstantConditions
+            dtoInterface.setMac(targetMacAddress);
+
+            final Matcher<DtoInterface[]> newMacMatcher =
+                hasItemInArray(
+                    allOf(
+                        hasProperty("mac", equalTo(targetMacAddress)),
+                        hasProperty("name", equalTo(dtoInterface.getName()))
+                    )
+                );
+
+            // make the update
+            api.updateInterface(dtoInterface);
+
+            // wait to see the change
+            waitFor("the interface MAC address to change",
+                    new Timed.Execution<java.lang.Object>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setResult(api.getHostInterfaces(host));
+                            setCompleted(newMacMatcher.matches(getResult()));
+                        }
+                    });
+        } finally {
+            launcher.stop();
+            removeTapWrapper(tapWrapper);
+        }
+    }
+
+    @Test
+    public void testUpdateInterfaceAddressForHost() throws Exception {
+        final String tapInterfaceName = "newTapInt4";
+
+        assertThat("We were expecting no hosts to be registered",
+                   api.getHosts(), arrayWithSize(0));
+
+        MidolmanLauncher launcher =
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagementTest.testUpdateInterfaceAddressForHost");
+
+        TapWrapper tapWrapper = new TapWrapper(tapInterfaceName);
+
+        try {
+            DtoHost[] hosts =
+                waitFor("host registration",
+                        new Timed.Execution<DtoHost[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHosts());
+                                setCompleted(getResult().length == 1);
+                            }
+                        });
+
+            final DtoHost host = hosts[0];
+            assertThat("The new host should be alive!", host.isAlive());
+
+            final Matcher<DtoInterface[]> tapMatcher =
+                hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
+
+            DtoInterface[] interfaces =
+                waitFor("the interface to be exposed via API",
+                        new Timed.Execution<DtoInterface[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHostInterfaces(host));
+                                setCompleted(tapMatcher.matches(getResult()));
+                            }
+                        });
+
+            DtoInterface dtoInterface = null;
+            for (DtoInterface anInterface : interfaces) {
+                if (anInterface.getName().equals(tapInterfaceName)) {
+                    dtoInterface = anInterface;
+                    break;
+                }
+            }
+
+            String targetIpAddress = "10.56.34.1";
+            @SuppressWarnings("ConstantConditions")
+            InetAddress addresses[] =
+                new InetAddress[dtoInterface.getAddresses().length + 1];
+
+            System.arraycopy(dtoInterface.getAddresses(), 0,
+                             addresses, 0, dtoInterface.getAddresses().length);
+
+
+            addresses[addresses.length - 1] =
+                InetAddress.getByName(targetIpAddress);
+
+            assertThat(
+                "the interface dto is ok (non null and with a different mac)",
+                dtoInterface,
+                allOf(notNullValue(),
+                      hasProperty("addresses",
+                                  not(hasItemInArray(
+                                      hasProperty("address", equalTo(
+                                          new byte[]{(byte) 10, (byte) 56, (byte) 34, (byte) 1}))
+                                  )))));
+
+            //noinspection ConstantConditions
+            dtoInterface.setAddresses(addresses);
+
+            final Matcher<DtoInterface[]> addressMatcher =
+                hasItemInArray(
+                    allOf(
+                        hasProperty("name", equalTo(dtoInterface.getName())),
+                        hasProperty("addresses", hasItemInArray(
+                            hasProperty("address", Matchers.equalTo(
+                                new byte[]{(byte) 10, (byte) 56, (byte) 34, (byte) 1}))
+                        ))
+                    ));
+
+            // make the update
+            api.updateInterface(dtoInterface);
+
+            // wait to see the change
+            waitFor("the interface MAC address to change",
+                    new Timed.Execution<java.lang.Object>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setResult(api.getHostInterfaces(host));
+                            log.debug("{}", getResult());
+                            setCompleted(addressMatcher.matches(getResult()));
+                        }
+                    });
+        } finally {
+            launcher.stop();
+            removeTapWrapper(tapWrapper);
+        }
+    }
+
+    @Test
+    public void testUpdateInterfaceDeleteAddressForHost()
+        throws Exception {
+        final String tapInterfaceName = newTapName();
+
+        assertThat("We were expecting no hosts to be registered",
+                   api.getHosts(), arrayWithSize(0));
+
+        MidolmanLauncher launcher =
+            MidolmanLauncher.start(With_Node_Agent,
+                                   "InterfaceManagementTest.testUpdateInterfaceDeleteAddressForHost");
+
+        TapWrapper tapWrapper = new TapWrapper(tapInterfaceName);
+
+        Sudo.sudoExec(
+            format("ip addr add 10.43.56.34/12 dev %s", tapInterfaceName));
+
+        try {
+            DtoHost[] hosts =
+                waitFor("host registration",
+                        new Timed.Execution<DtoHost[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHosts());
+                                setCompleted(getResult().length == 1);
+                            }
+                        });
+
+            final DtoHost host = hosts[0];
+            assertThat("The new host should be alive!", host.isAlive());
+
+            final Matcher<DtoInterface[]> tapMatcher =
+                hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
+
+            DtoInterface[] interfaces =
+                waitFor("the interface to be exposed via API",
+                        new Timed.Execution<DtoInterface[]>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHostInterfaces(host));
+                                setCompleted(tapMatcher.matches(getResult()));
+                            }
+                        });
+
+            DtoInterface dtoInterface = null;
+            for (DtoInterface anInterface : interfaces) {
+                if (anInterface.getName().equals(tapInterfaceName)) {
+                    dtoInterface = anInterface;
+                    break;
+                }
+            }
+
+            assertThat(
+                "the interface should be visible with the correct address",
+                dtoInterface,
+                allOf(notNullValue(),
+                      hasProperty("addresses",
+                                  hasItemInArray(
+                                      hasProperty("hostAddress",
+                                                  equalTo("10.43.56.34"))))));
+
+            List<InetAddress> newAddresses = new ArrayList<InetAddress>();
+            //noinspection ConstantConditions
+            for (InetAddress inetAddress : dtoInterface.getAddresses()) {
+                if (!inetAddress.getHostAddress().equals("10.43.56.34")) {
+                    newAddresses.add(inetAddress);
+                }
+            }
+
+            dtoInterface.setAddresses(
+                newAddresses.toArray(new InetAddress[newAddresses.size()]));
+
+            final Matcher<DtoInterface[]> addressMatcher =
+                hasItemInArray(
+                    allOf(
+                        hasProperty("name", equalTo(dtoInterface.getName())),
+                        hasProperty("addresses", hasItemInArray(
+                            hasProperty("hostAddress",
+                                        equalTo("10.43.56.34"))))));
+
+            // make the update
+            api.updateInterface(dtoInterface);
+
+            // wait to see the change
+            waitFor("the interface MAC address to change",
+                    new Timed.Execution<java.lang.Object>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setResult(api.getHostInterfaces(host));
+                            log.debug("{}", getResult());
+                            setCompleted(addressMatcher.matches(getResult()));
+                        }
+                    });
+        } finally {
+            launcher.stop();
+            removeTapWrapper(tapWrapper);
+        }
+    }
+
+    private static int tapInterfaceId = 1;
+
+    private String newTapName() {
+        return "tstIMTap" + (++tapInterfaceId);
     }
 }

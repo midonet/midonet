@@ -12,10 +12,9 @@ import org.junit.Test;
 import org.openflow.protocol.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertArrayEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -31,10 +30,17 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
-public class BridgePortDeleteTest extends AbstractSmokeTest {
+public class BridgePortDeleteTest {
 
     private final static Logger log =
         LoggerFactory.getLogger(BridgePortDeleteTest.class);
@@ -90,11 +96,12 @@ public class BridgePortDeleteTest extends AbstractSmokeTest {
         tap2 = new TapWrapper("tapBridgeDel2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
-        Thread.sleep(10000);
+        sleepBecause("we want the network config to boot up properly", 5);
     }
 
     @After
     public void tearDown() {
+        removeTapWrapper(tap1);
         removeTapWrapper(tap2);
 
         removeBridge(ovsBridge1);
@@ -160,7 +167,8 @@ public class BridgePortDeleteTest extends AbstractSmokeTest {
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
         ovsBridge1.deletePort(tap1.getName());
-        Thread.sleep(1000);
+        sleepBecause("we want midolman to sense the port deletion", 1);
+
         assertThat(
             "No FlowStats object should be visible after we deleted a port",
             svcController.getFlowStats(match1), hasSize(0));
