@@ -59,6 +59,7 @@ import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
@@ -99,6 +100,8 @@ public class NetworkController extends AbstractController
     private short serviceTargetPort;
     // Track which routers processed an installed flow.
     private Map<MidoMatch, Set<UUID>> matchToRouters;
+    // Which ports make up a multiport.  TODO: Should this be part of PortZkManager?
+    private PortSetMap portSetMap;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
@@ -106,7 +109,7 @@ public class NetworkController extends AbstractController
             RouterZkManager routerMgr, RouteZkManager routeMgr,
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
-            String externalIdKey, PortService service) {
+            String externalIdKey, PortService service, PortSetMap portSetMap) {
         super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr, 
               externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
@@ -116,6 +119,7 @@ public class NetworkController extends AbstractController
                 ruleMgr, reactor, cache);
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Integer, L3DevicePort>();
+        this.portSetMap = portSetMap;
 
         this.service = service;
         this.service.setController(this);
@@ -523,7 +527,7 @@ public class NetworkController extends AbstractController
                 log.debug("onPacketIn: Network.process() returned FORWARD to "
                         + "remote/multi port {} for {}", fwdInfo.outPortId, fwdInfo);
 
-                if (portSetMap.contains(fwdInfo.outPortId)) {
+                if (portSetMap.containsKey(fwdInfo.outPortId)) {
                     Set<Short> outPorts = new HashSet<Short>();
                     for (UUID portUuid : portSetMap.get(fwdInfo.outPortId)) {
                         L3DevicePort devPort = devPortById.get(portUuid);
