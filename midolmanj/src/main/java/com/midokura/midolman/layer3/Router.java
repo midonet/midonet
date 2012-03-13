@@ -194,6 +194,7 @@ public class Router {
         this.arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback<MAC>>>>();
         this.reactor = reactor;
         this.loadBalancer = new DummyLoadBalancer(table);
+        arpTable.addWatcher(new ArpWatcher());
     }
 
     public String toString() {
