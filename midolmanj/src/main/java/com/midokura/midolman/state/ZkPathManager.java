@@ -146,6 +146,15 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK port sets path.
+     *
+     * @return /port_sets
+     */
+    public String getPortSetsPath() {
+        return new StringBuilder(basePath).append("/port_sets").toString();
+    }
+
+    /**
      * Get ZK port path.
      *
      * @param id

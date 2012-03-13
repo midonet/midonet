@@ -123,6 +123,11 @@ public class ControllerTrampoline implements Controller {
                 PortToIntNwAddrMap portLocationMap =
                         new PortToIntNwAddrMap(portLocationDirectory);
 
+                Directory portSetDirectory =
+                    directory.getSubDirectory(pathMgr.getPortSetsPath());
+
+                PortSetMap portSetMap = new PortSetMap(portSetDirectory);
+
                 long idleFlowExpireMillis = config.configurationAt("openflow")
                                                   .getLong("flow_idle_expire_millis");
 
@@ -178,7 +183,8 @@ public class ControllerTrampoline implements Controller {
                         reactor,
                         cache,
                         externalIdKey,
-                        bgpPortService);
+                        bgpPortService,
+                        portSetMap);
             } else {
                 BridgeConfig bridgeConfig;
                 try {
