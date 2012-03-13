@@ -526,12 +526,17 @@ public class NetworkController extends AbstractController
                 if (portSetMap.contains(fwdInfo.outPortId)) {
                     Set<Short> outPorts = new HashSet<Short>();
                     for (UUID portUuid : portSetMap.get(fwdInfo.outPortId)) {
-                        if (devPortById.contains(portUuid)) {
-                            outPorts.add(devPortById.get(portUuid));
-                        } else if (portUuidToTunnelPortNumber.contains(portUuid)) {
-                            outPorts.add(portUuidToTunnelPortNumber.get(portUuid));
+                        L3DevicePort devPort = devPortById.get(portUuid);
+                        if (devPort != null) {
+                            outPorts.add(devPort.getNum());
                         } else {
-                            log.warn("onPacketIn:  No OVS port found for port ID {}", portUuid);
+                            Integer portNum = portUuidToTunnelPortNumber(portUuid);
+                            if (portNum != null) {
+                                outPorts.add(new Short(portNum.shortValue()));
+                            } else {
+                                log.warn("onPacketIn:  No OVS port found for " +
+                                         "port ID {}", portUuid);
+                            }
                         }
                     }
 
@@ -678,7 +683,7 @@ public class NetworkController extends AbstractController
             actions.add(action);
         }
         for (Short outPortNum : outPorts) {
-            action = new OFActionOutput(outPortNum.toShort(), (short) 0);
+            action = new OFActionOutput(outPortNum.shortValue(), (short) 0);
             actions.add(action);
         }
         return actions;
