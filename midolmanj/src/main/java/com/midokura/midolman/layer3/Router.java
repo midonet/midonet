@@ -53,6 +53,7 @@ import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
@@ -617,6 +618,24 @@ public class Router {
         if (null != cbList)
             for (Callback<MAC> cb : cbList)
                 cb.call(sha);
+    }
+
+    private class ArpWatcher implements ReplicatedMap.Watcher<IntIPv4, ArpCacheEntry> {
+        public void processChange(IntIPv4 ipAddr, ArpCacheEntry old, ArpCacheEntry new_) {
+            if (new_ == null || new_.macAddr == null) {
+                // Entry was deleted or added as "pending".
+                return;
+            }
+            Integer ipInt = new Integer(ipAddr.address);
+            // Scan arpCallbackLists for ipAddr.
+            for (Map.Entry<UUID, Map<Integer, List<Callback<MAC>>>> entry :
+                         arpCallbackLists.entrySet()) {
+                List<Callback<MAC>> cbList = entry.getValue().remove(ipInt);
+                if (null != cbList)
+                    for (Callback<MAC> cb : cbList)
+                        cb.call(new_.macAddr);
+            }
+        }
     }
 
     private class ArpExpiration implements Runnable {
