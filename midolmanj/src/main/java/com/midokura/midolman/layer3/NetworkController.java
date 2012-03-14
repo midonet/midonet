@@ -101,9 +101,11 @@ public class NetworkController extends AbstractController
     private short serviceTargetPort;
     // Track which routers processed an installed flow.
     private Map<MidoMatch, Set<UUID>> matchToRouters;
-    // The ports which make up the multiports.
+    // The controllers which make up the portsets.
     // TODO: Should this be part of PortZkManager?
     private PortSetMap portSetMap;
+    // The local OVS ports in a portset.
+    private Map<UUID, Set<Short>> localPortSetSlices;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
@@ -122,6 +124,7 @@ public class NetworkController extends AbstractController
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Integer, L3DevicePort>();
         this.portSetMap = portSetMap;
+        this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.service = service;
         this.service.setController(this);
@@ -531,14 +534,19 @@ public class NetworkController extends AbstractController
 
                 if (portSetMap.containsKey(fwdInfo.outPortId)) {
                     Set<Short> outPorts = new HashSet<Short>();
-                    // XXX: Add local OVS ports.
+                    // Add local OVS ports.
+                    if (localPortSetSlices.containsKey(fwdInfo.outPortId))
+                        outPorts.addAll(localPortSetSlices.get(fwdInfo.outPortId));
                     IPv4Set remoteControllersAddrs = portSetMap.get(fwdInfo.outPortId);
                     if (remoteControllersAddrs == null)
                         log.error("Can't find portset ID {}", fwdInfo.outPortId);
                     else for (String remoteControllerAddr : 
                             remoteControllersAddrs.getStrings()) {
-                        Integer portNum = tunnelPortNumOfPeer(
-                                              IntIPv4.fromString(remoteControllerAddr));
+                        IntIPv4 target = IntIPv4.fromString(remoteControllerAddr);
+                        // Skip the local controller.
+                        if (target.equals(publicIp))
+                            continue;
+                        Integer portNum = tunnelPortNumOfPeer(target);
                         if (portNum != null) {
                             outPorts.add(new Short(portNum.shortValue()));
                         } else {
