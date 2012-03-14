@@ -2,45 +2,58 @@
 
 package com.midokura.midolman.state;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class PortSetMap extends ReplicatedMap<UUID, Set<UUID>> {
+import com.midokura.midolman.packets.IntIPv4;
+
+
+public class PortSetMap {
+    private final static Logger log = LoggerFactory.getLogger(PortSetMap.class);
+
+    private Directory dir;
+    private boolean running;
+    private Map<UUID, IPv4Set> map;
 
     public PortSetMap(Directory dir) {
-        super(dir);
+        this.dir = dir;
+        this.running = false;
+        this.map = new HashMap<UUID, IPv4Set>();
+        //XXX this.myWatcher = new DirectoryWatcher();
     }
 
-    @Override
-    protected String encodeKey(UUID key) {
-        return key.toString();
+    public void stop() {
+        this.running = false;
+        this.map.clear();
     }
 
-    @Override
-    protected UUID decodeKey(String str) {
-        return UUID.fromString(str);
+    public IPv4Set get(UUID key) {
+        return map.get(key);
     }
 
-    @Override
-    protected String encodeValue(Set<UUID> value) {
-        if (value.isEmpty())
-            return "";
-        Iterator<UUID> i = value.iterator();
-        StringBuffer buf = new StringBuffer(i.next().toString());
-        while (i.hasNext()) {
-            buf.append(";").append(i.next().toString());
+    public boolean containsKey(UUID key) {
+        return map.containsKey(key);
+    }
+
+    public void createPortSet(UUID key)
+            throws KeeperException, InterruptedException {
+        // TODO: Implement
+    }
+
+    public void addIPv4AddrToSet(UUID key, IntIPv4 addr) 
+            throws KeeperException, InterruptedException,
+                   InvalidStateOperationException {
+        IPv4Set ipv4Set = map.get(key);
+        if (ipv4Set == null) {
+            throw new InvalidStateOperationException("No portset with ID " + 
+                                                     key.toString());
         }
-        return buf.toString();
+        ipv4Set.add(addr);
     }
 
-    @Override
-    protected Set<UUID> decodeValue(String str) {
-        Set<UUID> value = new HashSet<UUID>();
-        for (String uuidStr : str.split(";"))
-            value.add(UUID.fromString(uuidStr));
-        return value;
-    }
 }
