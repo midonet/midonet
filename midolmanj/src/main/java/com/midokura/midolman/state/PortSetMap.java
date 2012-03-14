@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,19 @@ public class PortSetMap {
     private boolean running;
     private Map<UUID, IPv4Set> map;
     private DirectoryWatcher myWatcher;
+    private CreateMode createMode;
 
     public PortSetMap(Directory dir) {
+        construct(dir, CreateMode.EPHEMERAL);
+    }
+
+    public PortSetMap(Directory dir, CreateMode mode) {
+        construct(dir, mode);
+    }
+
+    private void construct(Directory dir, CreateMode mode) {
         this.dir = dir;
+        this.createMode = mode;
         this.running = false;
         this.map = new HashMap<UUID, IPv4Set>();
         this.myWatcher = new DirectoryWatcher();
@@ -92,7 +103,16 @@ public class PortSetMap {
                 UUID key = UUID.fromString(path);
                 curKeys.add(key);
                 if (!map.containsKey(key)) {
-                    // XXXX
+                    Directory subdir;
+                    try {
+                        subdir = dir.getSubDirectory(key.toString());
+                    } catch (KeeperException e) {
+                        log.error("DirectoryWatcher.run", e);
+                        throw new RuntimeException(e);
+                    }
+                    IPv4Set newSet = new IPv4Set(subdir, createMode);
+                    map.put(key, newSet);
+                    newSet.start();
                 }
             }
             Set<UUID> removedKeys = new HashSet<UUID>(map.keySet());
