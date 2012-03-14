@@ -67,7 +67,11 @@ public class PortSetMap {
 
     public void createPortSet(UUID key)
             throws KeeperException, InterruptedException {
-        // TODO: Implement
+        dir.add(key.toString(), null, CreateMode.PERSISTENT);
+        Directory subdir = dir.getSubDirectory(key.toString());
+        IPv4Set newSet = new IPv4Set(subdir, createMode);
+        map.put(key, newSet);
+        newSet.start();
     }
 
     public void addIPv4AddrToSet(UUID key, IntIPv4 addr) 
