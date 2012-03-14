@@ -58,6 +58,7 @@ import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.IPv4Set;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -100,7 +101,8 @@ public class NetworkController extends AbstractController
     private short serviceTargetPort;
     // Track which routers processed an installed flow.
     private Map<MidoMatch, Set<UUID>> matchToRouters;
-    // Which ports make up a multiport.  TODO: Should this be part of PortZkManager?
+    // The ports which make up the multiports.
+    // TODO: Should this be part of PortZkManager?
     private PortSetMap portSetMap;
 
     public NetworkController(long datapathId, UUID deviceId, int greKey,
@@ -529,24 +531,25 @@ public class NetworkController extends AbstractController
 
                 if (portSetMap.containsKey(fwdInfo.outPortId)) {
                     Set<Short> outPorts = new HashSet<Short>();
-                    for (UUID portUuid : portSetMap.get(fwdInfo.outPortId)) {
-                        L3DevicePort devPort = devPortById.get(portUuid);
-                        if (devPort != null) {
-                            outPorts.add(devPort.getNum());
+                    // XXX: Add local OVS ports.
+                    IPv4Set remoteControllersAddrs = portSetMap.get(fwdInfo.outPortId);
+                    if (remoteControllersAddrs == null)
+                        log.error("Can't find portset ID {}", fwdInfo.outPortId);
+                    else for (String remoteControllerAddr : 
+                            remoteControllersAddrs.getStrings()) {
+                        Integer portNum = tunnelPortNumOfPeer(
+                                              IntIPv4.fromString(remoteControllerAddr));
+                        if (portNum != null) {
+                            outPorts.add(new Short(portNum.shortValue()));
                         } else {
-                            Integer portNum = portUuidToTunnelPortNumber(portUuid);
-                            if (portNum != null) {
-                                outPorts.add(new Short(portNum.shortValue()));
-                            } else {
-                                log.warn("onPacketIn:  No OVS port found for " +
-                                         "port ID {}", portUuid);
-                            }
+                            log.warn("onPacketIn:  No OVS tunnel port found " +
+                                     "for Controller at {}", remoteControllerAddr);
                         }
                     }
 
                     if (outPorts.size() == 0) {
-                        log.warn("onPacketIn:  No OVS ports found for {}",
-                                fwdInfo.outPortId);
+                        log.warn("onPacketIn:  No OVS ports or tunnels found " +
+                                 "for portset {}", fwdInfo.outPortId);
 
                         installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                                 ICMP_EXPIRY_SECONDS);
