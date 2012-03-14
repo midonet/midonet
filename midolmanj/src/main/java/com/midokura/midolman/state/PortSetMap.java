@@ -3,7 +3,11 @@
 package com.midokura.midolman.state;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
@@ -19,17 +23,27 @@ public class PortSetMap {
     private Directory dir;
     private boolean running;
     private Map<UUID, IPv4Set> map;
+    private DirectoryWatcher myWatcher;
 
     public PortSetMap(Directory dir) {
         this.dir = dir;
         this.running = false;
         this.map = new HashMap<UUID, IPv4Set>();
-        //XXX this.myWatcher = new DirectoryWatcher();
+        this.myWatcher = new DirectoryWatcher();
     }
 
     public void stop() {
         this.running = false;
+        for (Map.Entry<UUID, IPv4Set> entry : this.map.entrySet())
+            entry.getValue().stop();
         this.map.clear();
+    }
+
+    public void start() {
+        if (!this.running) {
+            this.running = true;
+            myWatcher.run();
+        }
     }
 
     public IPv4Set get(UUID key) {
@@ -54,6 +68,40 @@ public class PortSetMap {
                                                      key.toString());
         }
         ipv4Set.add(addr);
+    }
+
+    private class DirectoryWatcher implements Runnable {
+        public void run() {
+            if (!running) {
+                return;
+            }
+
+            Set<String> curPaths = null;
+            try {
+                curPaths = dir.getChildren("/", this);
+            } catch (KeeperException e) {
+                log.error("DirectoryWatcher.run", e);
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                log.error("DirectoryWatcher.run", e);
+                Thread.currentThread().interrupt();
+            }
+            List<String> cleanupPaths = new LinkedList<String>();
+            Set<UUID> curKeys = new HashSet<UUID>();
+            for (String path : curPaths) {
+                UUID key = UUID.fromString(path);
+                curKeys.add(key);
+                if (!map.containsKey(key)) {
+                    // XXXX
+                }
+            }
+            Set<UUID> removedKeys = new HashSet<UUID>(map.keySet());
+            removedKeys.removeAll(curKeys);
+            for (UUID key : removedKeys) {
+                map.get(key).stop();
+                map.remove(key);
+            }
+        }
     }
 
 }

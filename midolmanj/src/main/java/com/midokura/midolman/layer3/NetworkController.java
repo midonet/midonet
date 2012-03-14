@@ -124,6 +124,7 @@ public class NetworkController extends AbstractController
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Integer, L3DevicePort>();
         this.portSetMap = portSetMap;
+        portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.service = service;
