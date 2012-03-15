@@ -122,6 +122,10 @@ public class HostZkManager extends ZkManager {
             delMulti.addAll(
                 getRecursiveDeleteOps(pathManager.getHostCommandsPath(id)));
         }
+        if (exists(pathManager.getHostCommandErrorLogsPath(id))) {
+            delMulti.addAll(
+                getRecursiveDeleteOps(pathManager.getHostCommandErrorLogsPath(id)));
+        }
         if (exists(pathManager.getHostInterfacesPath(id))) {
             delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
         }

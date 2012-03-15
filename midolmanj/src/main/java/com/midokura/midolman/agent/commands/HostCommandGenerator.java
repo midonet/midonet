@@ -66,7 +66,7 @@ public class HostCommandGenerator {
         }
 
         // Look for addresses no longer used
-        if (current != null) {
+        if (current != null && current.getAddresses() != null) {
             for (InetAddress inetAddress : current.getAddresses()) {
                 if (!updated.hasAddress(inetAddress)) {
                     command.addAtomicCommand(
