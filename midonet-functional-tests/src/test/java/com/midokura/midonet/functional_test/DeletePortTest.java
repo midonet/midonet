@@ -24,6 +24,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
@@ -123,7 +124,8 @@ public class DeletePortTest extends AbstractSmokeTest {
     }
 
     @Test
-    public void testPortDelete() throws InterruptedException {
+    public void testPortDelete() 
+	throws InterruptedException, MalformedPacketException {
         short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
         short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
