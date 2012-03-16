@@ -20,10 +20,9 @@ public class ARP extends BasePacket {
     public static short OP_REPLY = 0x2;
 
     /**
-     * ARP packet size.  The ARP itself is 28 bytes but the minimum Ethernet
-     * payload size is 46.
+     * ARP packet size.  The ARP itself is 28 bytes.
      */
-    public static final int PACKET_SIZE = 46;
+    public static final int PACKET_SIZE = 28;
 
     /**
      * The hardware address length as a number of octets.
@@ -226,7 +225,7 @@ public class ARP extends BasePacket {
     public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
 
         // Check that the size is correct to avoid BufferUnderflowException.
-        if (bb.remaining() != PACKET_SIZE) {
+        if (bb.remaining() < PACKET_SIZE) {
             throw new MalformedPacketException("Invalid ARP packet size: "
                     + bb.remaining());
         }

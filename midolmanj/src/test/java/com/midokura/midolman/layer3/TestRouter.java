@@ -432,6 +432,7 @@ public class TestRouter {
         pkt.setSourceMACAddress(sha);
         pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         pkt.setEtherType(ARP.ETHERTYPE);
+        //pkt.setPad(true);
         return pkt;
     }
 
@@ -452,6 +453,7 @@ public class TestRouter {
         pkt.setSourceMACAddress(sha);
         pkt.setDestinationMACAddress(tha);
         pkt.setEtherType(ARP.ETHERTYPE);
+        //pkt.setPad(true);
         return pkt;
     }
 

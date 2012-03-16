@@ -24,7 +24,10 @@ public class TestARP {
             (byte) 0x05, (byte) 0x06, (byte) 0x0A, (byte) 0x0B, (byte) 0x0C,
             (byte) 0x0D, (byte) 0x06, (byte) 0x05, (byte) 0x04, (byte) 0x03,
             (byte) 0x02, (byte) 0x01, (byte) 0x0D, (byte) 0x0C, (byte) 0x0B,
-            (byte) 0x0A };
+            (byte) 0x0A, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
     @RunWith(Parameterized.class)
     public static class TestArpValidPacket {
@@ -69,29 +72,7 @@ public class TestARP {
             arp.setTargetProtocolAddress(Arrays.copyOfRange(samplePacket, 24,
                     28));
 
-            // Zero length proto addr
-            byte[] zeroByteProtoAddr = Arrays.copyOf(samplePacket,
-                    samplePacket.length);
-            zeroByteProtoAddr[5] = (byte) 0x00;
-            ARP zeroByteArp = copyArp(arp);
-            zeroByteArp.setProtocolAddressLength((byte) 0x00);
-            zeroByteArp.setSenderProtocolAddress(new byte[] {});
-            zeroByteArp.setTargetProtocolAddress(new byte[] {});
-
-            // One byte length proto addr
-            byte[] oneByteProtoAddr = Arrays.copyOf(samplePacket,
-                    samplePacket.length);
-            oneByteProtoAddr[5] = (byte) 0x01;
-            ARP oneByteArp = copyArp(arp);
-            oneByteArp.setProtocolAddressLength((byte) 0x01);
-            oneByteArp.setSenderProtocolAddress(Arrays.copyOfRange(
-                    samplePacket, 14, 15));
-            oneByteArp.setTargetProtocolAddress(Arrays.copyOfRange(
-                    samplePacket, 24, 25));
-
-            Object[][] data = new Object[][] { { samplePacket, arp },
-                    { zeroByteProtoAddr, zeroByteArp },
-                    { oneByteProtoAddr, oneByteArp } };
+            Object[][] data = new Object[][] { { samplePacket, arp } };
 
             return Arrays.asList(data);
         }
@@ -143,11 +124,19 @@ public class TestARP {
             // 27 bytes
             byte[] oneByteLess = Arrays.copyOf(samplePacket, 27);
 
-            // 29 bytes
-            byte[] oneByteMore = Arrays.copyOf(samplePacket, 29);
+            // Zero length proto addr
+            byte[] zeroByteProtoAddr = Arrays.copyOf(samplePacket,
+                    samplePacket.length);
+            zeroByteProtoAddr[5] = (byte) 0x00;
+
+            // One byte length proto addr
+            byte[] oneByteProtoAddr = Arrays.copyOf(samplePacket,
+                    samplePacket.length);
+            oneByteProtoAddr[5] = (byte) 0x01;
 
             Object[][] data = new Object[][] { { empty }, { oneByte },
-                    { oneByteLess }, { oneByteMore } };
+                    { oneByteLess }, { zeroByteProtoAddr },
+                    { oneByteProtoAddr } };
 
             return Arrays.asList(data);
         }
