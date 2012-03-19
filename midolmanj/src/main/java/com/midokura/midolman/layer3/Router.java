@@ -69,47 +69,6 @@ public class Router implements ForwardingElement, RouterMBean {
     public static final String PRE_ROUTING = "pre_routing";
     public static final String POST_ROUTING = "post_routing";
 
-    public enum Action {
-        BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED;
-    }
-
-    /**
-     * Clients of Router create and partially populate an instance of
-     * ForwardInfo to call Router.process(fInfo). The Router populates a number
-     * of field to indicate various decisions: the next action for the packet,
-     * the next hop gateway address, the egress port, the packet at egress
-     * (i.e. after possible modifications).
-     */
-    public static class ForwardInfo {
-        // These fields are filled by the caller of Router.process():
-        public UUID inPortId;
-        public Ethernet pktIn;
-        public MidoMatch flowMatch; // (original) match of any eventual flows
-        public MidoMatch matchIn; // the match as it enters the router
-
-        // These fields are filled by Router.process():
-        public Action action;
-        public UUID outPortId;
-        public int nextHopNwAddr;
-        public MidoMatch matchOut; // the match as it exits the router
-        public boolean trackConnection;
-        // Used by forwarding elements that want notification when the flow
-        // is removed.
-        public Collection<UUID> notifyFEs;
-
-        public ForwardInfo() {
-        }
-
-        @Override
-        public String toString() {
-            return "ForwardInfo [inPortId=" + inPortId +
-                   ", pktIn=" + pktIn + ", matchIn=" + matchIn +
-                   ", action=" + action + ", outPortId=" + outPortId +
-                   ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
-                    + matchOut + ", trackConnection=" + trackConnection + "]";
-        }
-    }
-
     /**
      * Router uses one instance of this class to get a callback when there are
      * changes to the routes of any local materialized ports. The callback
