@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.util.Net;
 
 public class PortDirectory {
@@ -35,9 +36,11 @@ public class PortDirectory {
     }
 
     public static abstract class RouterPortConfig extends PortConfig {
+        // TODO(pino): use IntIPv4 for Babuza!
         public int nwAddr;
         public int nwLength;
         public int portAddr;
+        public MAC hwAddr;
 
         // Routes are stored in a ZK sub-directory. Don't serialize them.
         public transient Set<Route> routes;

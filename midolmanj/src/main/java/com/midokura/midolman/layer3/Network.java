@@ -4,21 +4,19 @@
 
 package com.midokura.midolman.layer3;
 
-import java.lang.management.ManagementFactory;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.ForwardingElement;
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router.Action;
@@ -28,22 +26,13 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
-import com.midokura.midolman.state.ArpTable;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
-public class Network {
+public class Network implements ForwardingElement {
 
     private static final Logger log = LoggerFactory.getLogger(Network.class);
     private static final int MAX_HOPS = 10;
@@ -146,8 +135,7 @@ public class Network {
             watcher.call(routerId);
     }
 
-    protected Router getRouter(UUID routerId) throws
-            ZkStateSerializationException, StateAccessException, JMException {
+    protected Router getRouter(UUID routerId) throws StateAccessException {
         Router rtr = routers.get(routerId);
         if (null != rtr)
             return rtr;
@@ -166,16 +154,10 @@ public class Network {
         arpTable.start();
         rtr = new Router(routerId, ruleEngine, table, arpTable, reactor);
         routers.put(routerId, rtr);
-        ObjectName oname =
-            new ObjectName("com.midokura.midolman.layer3:type=Router,name=" +
-                           routerId);
-        // FIXME(jlm)
-        //ManagementFactory.getPlatformMBeanServer().registerMBean(rtr, oname);
         return rtr;
     }
 
-    public Router getRouterByPort(UUID portId) throws
-            ZkStateSerializationException, StateAccessException, JMException {
+    public Router getRouterByPort(UUID portId) throws StateAccessException {
         Router rtr = routersByPortId.get(portId);
         if (null != rtr)
             return rtr;
@@ -224,20 +206,19 @@ public class Network {
         }
     }
 
-    public void process(ForwardInfo fwdInfo, Collection<UUID> traversedRouters)
-            throws ZkStateSerializationException, StateAccessException,
-                   JMException {
+    @Override
+    public void process(ForwardInfo fwdInfo) throws StateAccessException {
         log.debug("process: fwdInfo {} traversedRouters {}", fwdInfo,
-                  traversedRouters);
+                  fwdInfo.notifyFEs);
 
-        traversedRouters.clear();
+        fwdInfo.notifyFEs.clear();
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
             throw new RuntimeException("Packet arrived on a port that hasn't "
                     + "been added to the network instance (yet?).");
 
         for (int i = 0; i < MAX_HOPS; i++) {
-            traversedRouters.add(rtr.routerId);
+            fwdInfo.notifyFEs.add(rtr.routerId);
             rtr.process(fwdInfo);
             if (fwdInfo.action.equals(Action.FORWARD)) {
                 // Get the port's configuration to see if it's logical.
@@ -251,12 +232,12 @@ public class Network {
                     return;
                 }
                 if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
-                    PortDirectory.LogicalRouterPortConfig lcfg = 
+                    PortDirectory.LogicalRouterPortConfig lcfg =
                         PortDirectory.LogicalRouterPortConfig.class.cast(cfg);
                     rtr = getRouterByPort(lcfg.peer_uuid);
                     log.debug("Packet exited router on logical port to "
                             + "router {}", rtr.routerId.toString());
-                    if (traversedRouters.contains(rtr.routerId)) {
+                    if (fwdInfo.notifyFEs.contains(rtr.routerId)) {
                         log.warn("Detected a routing loop.");
                         fwdInfo.action = Action.BLACKHOLE;
                         return;

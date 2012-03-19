@@ -14,27 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.management.JMException;
 
 import org.apache.zookeeper.KeeperException;
-import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionDataLayer;
-import org.openflow.protocol.action.OFActionDataLayerDestination;
-import org.openflow.protocol.action.OFActionDataLayerSource;
-import org.openflow.protocol.action.OFActionNetworkLayerAddress;
-import org.openflow.protocol.action.OFActionNetworkLayerDestination;
-import org.openflow.protocol.action.OFActionNetworkLayerSource;
-import org.openflow.protocol.action.OFActionOutput;
-import org.openflow.protocol.action.OFActionTransportLayer;
-import org.openflow.protocol.action.OFActionTransportLayerDestination;
-import org.openflow.protocol.action.OFActionTransportLayerSource;
+import org.openflow.protocol.action.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.AbstractController;
@@ -45,17 +32,7 @@ import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.DHCP;
-import com.midokura.midolman.packets.DHCPOption;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.ICMP;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.MalformedPacketException;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.IPv4Set;
@@ -132,21 +109,21 @@ public class NetworkController extends AbstractController
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Set<UUID>>();
     }
-    
+
     /*
-     * Setup a flow that sends all DHCP request packets to 
+     * Setup a flow that sends all DHCP request packets to
      * the controller.
      */
     private void setFlowsForHandlingDhcpInController(L3DevicePort devPortIn) {
         log.debug("setFlowsForHandlingDhcpInController: on port {}", devPortIn);
-        
+
         MidoMatch match = new MidoMatch();
         match.setInputPort(devPortIn.getNum());
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
         match.setTransportSource((short) 68);
         match.setTransportDestination((short) 67);
-        
+
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
                 (short) 1024));
@@ -155,7 +132,7 @@ public class NetworkController extends AbstractController
                 NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
-    
+
     private void handleDhcpRequest(L3DevicePort devPortIn, DHCP request,
             MAC sourceMac) {
         byte[] chaddr = request.getClientHardwareAddress();
@@ -295,7 +272,7 @@ public class NetworkController extends AbstractController
                 IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
                         .getVirtualConfig().nwLength)));
         options.add(opt);
-        // Generate the broadcast address... this is nwAddr with 1's in the 
+        // Generate the broadcast address... this is nwAddr with 1's in the
         // last 32-nwAddrLength bits.
         int mask = ~0 >>> devPortIn.getVirtualConfig().nwLength;
         int bcast = mask | devPortIn.getVirtualConfig().nwAddr;
@@ -333,23 +310,36 @@ public class NetworkController extends AbstractController
         udp.setSourcePort((short) 67);
         udp.setDestinationPort((short) 68);
         udp.setPayload(reply);
-        
+
         IPv4 ip = new IPv4();
         ip.setSourceAddress(devPortIn.getVirtualConfig().portAddr);
         ip.setDestinationAddress("255.255.255.255");
         ip.setProtocol(UDP.PROTOCOL_NUMBER);
         ip.setPayload(udp);
-        
+
         Ethernet eth = new Ethernet();
         eth.setEtherType(IPv4.ETHERTYPE);
         eth.setPayload(ip);
 
         eth.setSourceMACAddress(devPortIn.getMacAddr());
         eth.setDestinationMACAddress(sourceMac);
-        
+
         log.debug("handleDhcpRequest: sending DHCP reply {} to port {}", eth,
                 devPortIn);
         sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
+    }
+
+    public void addGeneratedPacket(Ethernet pkt, UUID originPort) {
+        //reactor.submit(new GenPacketContext(pkt, originPort));
+    }
+
+    public void continueProcessing(ForwardInfo info) {
+        /*reactor.schedule(new Runnable() {
+           public void run() {
+               //network.handleProcessResult(ctx);
+               //NetworkController.handleSimulationResult(ctx);
+           }
+        });*/
     }
 
     @Override
@@ -418,23 +408,23 @@ public class NetworkController extends AbstractController
 
             log.debug("onPacketIn: from tunnel port {} decoded mac {}",
                     inPort, portsAndGw);
-            
+
             // If we don't own the egress port, there was a forwarding mistake.
             devPortOut = devPortById.get(portsAndGw.lastEgressPortId);
-            
+
             if (null == devPortOut) {
                 log.warn("onPacketIn: the egress port {} is not local", portsAndGw.lastEgressPortId);
                 // TODO: raise an exception or install a Blackhole?
                 return;
             }
-            
+
             TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
                     totalLen, inPort, data, match, portsAndGw);
             try {
                 log.debug("onPacketIn: need mac for ip {} on port {}",
                         IPv4.fromIPv4Address(portsAndGw.nextHopNwAddr),
                         portsAndGw.lastEgressPortId);
-                
+
                 network.getMacForIp(portsAndGw.lastEgressPortId,
                         portsAndGw.nextHopNwAddr, cb);
             } catch (ZkStateSerializationException e) {
@@ -461,7 +451,7 @@ public class NetworkController extends AbstractController
                 }
             }
         }
-        
+
         // Drop the packet if it's not addressed to an L2 mcast address or
         // the ingress port's own address.
         // TODO(pino): check this with Jacob.
@@ -477,8 +467,10 @@ public class NetworkController extends AbstractController
         fwdInfo.matchIn = match.clone();
         fwdInfo.pktIn = ethPkt;
         Set<UUID> routers = new HashSet<UUID>();
+        // TODO(pino, jlm): make sure notifyFEs is used in the rest of the class
+        fwdInfo.notifyFEs = routers;
         try {
-            network.process(fwdInfo, routers);
+            network.process(fwdInfo);
         } catch (Exception e) {
             log.warn("onPacketIn dropping packet: ", e);
             freeBuffer(bufferId);
@@ -585,7 +577,7 @@ public class NetworkController extends AbstractController
                 if (null == tunPortNum) {
                     log.warn("onPacketIn:  No tunnel port found for {}",
                             fwdInfo.outPortId);
-                    
+
                     installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                             ICMP_EXPIRY_SECONDS);
                     freeFlowResources(match, routers);
@@ -602,10 +594,10 @@ public class NetworkController extends AbstractController
                         ShortUUID.UUID32toInt(fwdInfo.inPortId),
                         ShortUUID.UUID32toInt(fwdInfo.outPortId),
                         fwdInfo.nextHopNwAddr);
-                
+
                 fwdInfo.matchOut.setDataLayerSource(dlHeaders[0]);
                 fwdInfo.matchOut.setDataLayerDestination(dlHeaders[1]);
-                
+
                 List<OFAction> ofActions = makeActionsForFlow(match,
                         fwdInfo.matchOut, tunPortNum.shortValue());
                 // TODO(pino): should we do any wildcarding here?
@@ -630,7 +622,7 @@ public class NetworkController extends AbstractController
                     fwdInfo);
             // Intentionally use an exact match for this drop rule.
             // TODO(pino): wildcard the L2 fields.
-            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, 
+            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
                     ICMP_EXPIRY_SECONDS);
             freeFlowResources(match, routers);
             // Send an ICMP
@@ -728,7 +720,7 @@ public class NetworkController extends AbstractController
             int lastInPortId, int lastEgPortId, int gwNwAddr) {
         byte[] dlSrc = new byte[6];
         byte[] dlDst = new byte[6];
-        
+
         // Set the data layer source and destination:
         // The ingress port is used as the high 32 bits of the source mac.
         // The egress port is used as the low 32 bits of the dst mac.
@@ -742,7 +734,7 @@ public class NetworkController extends AbstractController
         dlDst[1] = (byte) (gwNwAddr);
         for (int i = 2; i < 6; i++)
             dlDst[i] = (byte) (lastEgPortId >> (5 - i) * 8);
-        
+
         return new MAC[] {new MAC(dlSrc), new MAC(dlDst)};
     }
 
@@ -750,7 +742,7 @@ public class NetworkController extends AbstractController
         UUID lastIngressPortId;
         UUID lastEgressPortId;
         int nextHopNwAddr;
-        
+
         public String toString() {
             return String.format("DecodedMacAddrs: ingress %s egress %s nextHopIp %s",
                     lastIngressPortId,
@@ -804,14 +796,14 @@ public class NetworkController extends AbstractController
                 log.debug("TunneledPktArpCallback.call: Mac resolved for tunneled packet to {}", nwDstStr);
                 L3DevicePort devPort = devPortById
                         .get(portsAndGw.lastEgressPortId);
-                
+
                 if (null == devPort) {
                     log.warn("TunneledPktArpCallback.call: port {} is no longer local", portsAndGw.lastEgressPortId);
                     // TODO(pino): do we need to do anything for this?
                     // The port was removed while we waited for the ARP.
                     return;
                 }
-                
+
                 MidoMatch newMatch = match.clone();
                 // TODO(pino): get the port's mac address from the ZK config.
                 newMatch.setDataLayerSource(devPort.getMacAddr());
@@ -917,7 +909,7 @@ public class NetworkController extends AbstractController
                     return;
                 }
                 log.debug("LocalPktArpCallback.call: forward and install flow");
-                
+
                 fwdInfo.matchOut.setDataLayerSource(devPort.getMacAddr());
                 fwdInfo.matchOut.setDataLayerDestination(mac);
                 List<OFAction> ofActions = makeActionsForFlow(match,
@@ -955,7 +947,7 @@ public class NetworkController extends AbstractController
      * Send an ICMP Unreachable for a packet that arrived on a materialized port
      * that is not local to this controller. Equivalently, the packet was
      * received over a tunnel.
-     * 
+     *
      * @param unreachCode
      *            The ICMP error code of ICMP Unreachable sent by this method.
      * @param tunneledEthPkt
@@ -1058,7 +1050,7 @@ public class NetworkController extends AbstractController
             UUID peer_uuid = ((PortDirectory.LogicalRouterPortConfig) portConfig).peer_uuid;
             fwdInfo.inPortId = peer_uuid;
             try {
-                network.process(fwdInfo, routerIds);
+                network.process(fwdInfo);
             } catch (Exception e) {
                 log.warn("Dropping ICMP error message. Don't know where to "
                         + "forward it because network.process threw exception.");
@@ -1090,7 +1082,7 @@ public class NetworkController extends AbstractController
                 ICMP_TUNNEL,
                 ShortUUID.UUID32toInt(fwdInfo.outPortId),
                 fwdInfo.nextHopNwAddr);
-        
+
         eth.setSourceMACAddress(dlHeaders[0]);
         eth.setDestinationMACAddress(dlHeaders[1]);
 
@@ -1106,7 +1098,7 @@ public class NetworkController extends AbstractController
     /**
      * Send an ICMP Unreachable for a packet that arrived on a materialized port
      * local to this controller.
-     * 
+     *
      * @param unreachCode
      *            The ICMP error code of ICMP Unreachable sent by this method.
      * @param firstIngress
@@ -1193,7 +1185,7 @@ public class NetworkController extends AbstractController
      * errors. 2) Invalid IP packets. 3) Destined to IP bcast or mcast address.
      * 4) Destined to a link-layer bcast or mcast. 5) With source network prefix
      * zero or invalid source. 6) Second and later IP fragments.
-     * 
+     *
      * @param ethPkt
      *            We wish to know whether this packet may trigger an ICMP error
      *            message.
@@ -1310,10 +1302,6 @@ public class NetworkController extends AbstractController
                         + " caught: \n{}",
                         new Object[] { match, rtrId, e.getStackTrace() });
             } catch (StateAccessException e) {
-                log.warn("freeFlowResources failed for match {} in router {} -"
-                        + " caught: \n{}",
-                        new Object[] { match, rtrId, e.getStackTrace() });
-            } catch (JMException e) {
                 log.warn("freeFlowResources failed for match {} in router {} -"
                         + " caught: \n{}",
                         new Object[] { match, rtrId, e.getStackTrace() });

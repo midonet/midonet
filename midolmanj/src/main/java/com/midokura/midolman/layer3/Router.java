@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.layer3;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,27 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.DynamicMBean;
-import javax.management.InvalidAttributeValueException;
-import javax.management.MBeanException;
-import javax.management.MBeanInfo;
-import javax.management.MBeanNotificationInfo;
-import javax.management.ReflectionException;
-import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
-import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
-import javax.management.openmbean.OpenMBeanInfoSupport;
-import javax.management.openmbean.OpenMBeanOperationInfoSupport;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
-import javax.management.openmbean.SimpleType;
-import javax.management.openmbean.TabularData;
-import javax.management.openmbean.TabularDataSupport;
-import javax.management.openmbean.TabularType;
+import javax.management.JMException;
+import javax.management.ObjectName;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -39,6 +21,7 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.ForwardingElement;
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
@@ -74,7 +57,7 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-public class Router {
+public class Router implements ForwardingElement, RouterMBean {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
@@ -87,7 +70,7 @@ public class Router {
     public static final String POST_ROUTING = "post_routing";
 
     public enum Action {
-        BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED;
+        BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED;
     }
 
     /**
@@ -110,6 +93,9 @@ public class Router {
         public int nextHopNwAddr;
         public MidoMatch matchOut; // the match as it exits the router
         public boolean trackConnection;
+        // Used by forwarding elements that want notification when the flow
+        // is removed.
+        public Collection<UUID> notifyFEs;
 
         ForwardInfo() {
         }
@@ -180,11 +166,11 @@ public class Router {
     private Map<UUID, Map<Integer, List<Callback<MAC>>>> arpCallbackLists;
     private Reactor reactor;
     private LoadBalancer loadBalancer;
+    private final ObjectName objectName;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
                   ReplicatedRoutingTable table, ArpTable arpTable,
-                  Reactor reactor)
-            throws OpenDataException {
+                  Reactor reactor) {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
@@ -195,6 +181,25 @@ public class Router {
         this.reactor = reactor;
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
+        try {
+            objectName = new ObjectName(
+                    "com.midokura.midolman.layer3:type=Router,name="
+                            + routerId);
+            ManagementFactory.getPlatformMBeanServer()
+                    .registerMBean(this, objectName);
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // TODO(pino): call this from Network when VRN is torn down.
+    public void destroy() {
+        try {
+            ManagementFactory.getPlatformMBeanServer()
+                    .unregisterMBean(objectName);
+        } catch (JMException e) {
+            throw new RuntimeException("Dan said this would NEVER happen!", e);
+        }
     }
 
     public String toString() {
@@ -319,6 +324,7 @@ public class Router {
         cbList.add(cb);
     }
 
+    @Override
     public void process(ForwardInfo fwdInfo) {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
 
@@ -775,188 +781,4 @@ public class Router {
         ruleEngine.freeFlowResources(match);
     }
 
-    // // OpenMBean stuff for JMX
-    // // TODO: Replace this crap with something sane, like Thrift.
-    // public Object getAttribute(String attribute)
-    //         throws AttributeNotFoundException, MBeanException {
-    //     if (attribute.equals("PortSet")) {
-    //        try {
-    //            return getPortTable();
-    //        } catch (OpenDataException e) {
-    //            throw new MBeanException(e);
-    //        }
-    //     }
-    //     throw new AttributeNotFoundException("Cannot find "
-    //            + attribute + " attribute");
-    // }
-    // public void setAttribute(Attribute attribute)
-    //         throws AttributeNotFoundException {
-    //     throw new AttributeNotFoundException("Cannot set " + attribute.getName());
-    // }
-    // public AttributeList getAttributes(String[] attributeNames) {
-    //     AttributeList resultList = new AttributeList();
-    //     if (attributeNames.length == 0)
-    //         return resultList;
-    //     try {
-    //         for (int i = 0; i < attributeNames.length; i++) {
-    //             Object value = getAttribute(attributeNames[i]);
-    //             resultList.add(new Attribute(attributeNames[i], value));
-    //         }
-    //         return resultList;
-    //     } catch (RuntimeException e) {
-    //         throw e;
-    //     } catch (Exception e) {
-    //         throw new RuntimeException(e);
-    //     }
-    // }
-    // public AttributeList setAttributes(AttributeList attributes) {
-    //     if (attributes.size() == 0) {
-    //         return new AttributeList();
-    //     }
-    //     // That's right folks, AttributeList.get() returns Object.
-    //     Attribute attr = (Attribute) attributes.get(0);
-    //     throw new RuntimeException("Cannot set " + attr.getName());
-    // }
-    // public Object invoke(String actionName, Object params[], String signature[])
-    //         throws MBeanException, ReflectionException {
-    //     if (actionName.equals("getArpCacheEntry")) {
-    //         if (signature.length != 2 ||
-    //             !signature[0].equals("java.lang.String") ||
-    //             !signature[1].equals("int")) {
-    //             throw new ReflectionException(new IllegalArgumentException(
-    //                     "Invalid signature for " + actionName));
-    //         }
-    //         if (params.length != 2) {
-    //             throw new ReflectionException(new IllegalArgumentException(
-    //                     "Invalid parameter list for " + actionName));
-    //         }
-    //         UUID portUuid = UUID.fromString((String)params[0]);
-    //         int ipAddr = ((Integer)params[1]).intValue();
-    //         return getArpCacheEntry(portUuid, ipAddr);
-    //     } else if (actionName.equals("getArpCacheKeys")) {
-    //         if (signature.length != 1 ||
-    //             !signature[0].equals("java.lang.String")) {
-    //             throw new ReflectionException(new IllegalArgumentException(
-    //                     "Invalid signature for " + actionName));
-    //         }
-    //         if (params.length != 1) {
-    //             throw new ReflectionException(new IllegalArgumentException(
-    //                     "Invalid parameter list for " + actionName));
-    //         }
-    //         UUID portUuid = UUID.fromString((String)params[0]);
-    //         try {
-    //             return getArpCacheKeyTable(portUuid);
-    //         } catch (OpenDataException e) {
-    //             throw new MBeanException(e);
-    //         }
-    //     } else if (actionName.equals("getArpCacheTable")) {
-    //         if (signature.length != 1 ||
-    //             !signature[0].equals("java.lang.String")) {
-    //             throw new ReflectionException(new IllegalArgumentException(
-    //                     "Invalid signature for " + actionName));
-    //         }
-    //         if (params.length != 1) {
-    //             throw new ReflectionException(new IllegalArgumentException(
-    //                     "Invalid parameter list for " + actionName));
-    //         }
-    //         UUID portUuid = UUID.fromString((String)params[0]);
-    //         try {
-    //             return getArpCacheTable(portUuid);
-    //         } catch (OpenDataException e) {
-    //             throw new MBeanException(e);
-    //         }
-    //     } else {
-    //         throw new ReflectionException(new NoSuchMethodException(actionName));
-    //     }
-    // }
-    public MBeanInfo getMBeanInfo() {
-        OpenMBeanAttributeInfoSupport[] attributes =
-                new OpenMBeanAttributeInfoSupport[1];
-        OpenMBeanConstructorInfoSupport[] constructors =
-                new OpenMBeanConstructorInfoSupport[0];
-        OpenMBeanOperationInfoSupport[] operations =
-                new OpenMBeanOperationInfoSupport[3];
-        MBeanNotificationInfo[] notifications = new MBeanNotificationInfo[0];
-        OpenMBeanParameterInfoSupport[] ackSignature =
-                new OpenMBeanParameterInfoSupport[1];
-        OpenMBeanParameterInfoSupport[] aceSignature =
-                new OpenMBeanParameterInfoSupport[2];
-
-        ackSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
-                                "Port UUID", SimpleType.STRING);
-        aceSignature[0] = new OpenMBeanParameterInfoSupport("portUuid",
-                                "Port UUID", SimpleType.STRING);
-        aceSignature[1] = new OpenMBeanParameterInfoSupport("ipAddr",
-                                "IP number", SimpleType.INTEGER);
-
-        attributes[0] = new OpenMBeanAttributeInfoSupport("PortSet",
-                "list of ports", portSetType, true, false, false);
-        operations[0] = new OpenMBeanOperationInfoSupport("getArpCacheKeys",
-                "keys of the ARP cache", ackSignature, intListType,
-                OpenMBeanOperationInfoSupport.INFO);
-        operations[1] = new OpenMBeanOperationInfoSupport("getArpCacheTable",
-                "the ARP cache (as a table)", ackSignature, intStrListType,
-                OpenMBeanOperationInfoSupport.INFO);
-        operations[2] = new OpenMBeanOperationInfoSupport("getArpCacheEntry",
-                "an entry in the ARP cache", aceSignature, SimpleType.STRING,
-                OpenMBeanOperationInfoSupport.INFO);
-
-        return new OpenMBeanInfoSupport(this.getClass().getName(),
-                "Router - Open - MBean", attributes, constructors,
-                operations, notifications);
-    }
-    CompositeType stringType = new CompositeType("string", "String",
-        new String[] { "string" }, new String[] { "String" },
-        new SimpleType[] { SimpleType.STRING });
-    TabularType portSetType = new TabularType("portSet", "List of ports",
-                                              stringType,
-                                              new String[] { "string" });
-    CompositeType intType = new CompositeType("int", "Integer",
-        new String[] { "int" }, new String[] { "Integer" },
-        new SimpleType[] { SimpleType.INTEGER });
-    TabularType intListType = new TabularType("intList", "List of integers",
-                                              intType,
-                                              new String[] { "int" });
-    CompositeType intStrType = new CompositeType("int-string",
-        "Integer+String tuple",
-        new String[] { "int", "string" }, new String[] { "Integer", "String" },
-        new SimpleType[] { SimpleType.INTEGER, SimpleType.STRING });
-    TabularType intStrListType = new TabularType("intStrList",
-                                              "Integer to String Map",
-                                              intStrType,
-                                              new String[] { "int", "string" });
-
-    // public String getArpCacheEntry(UUID portUuid, int ipAddress) {
-    //     log.debug("JMX asking for {} on port {}", ipAddress, portUuid);
-    //     ArpCacheEntry entry = arpTable.get(new IntIPv4(ipAddress));
-    //     return entry == null ? null : entry.toString();
-    // }
-
-    // public TabularData getArpCacheKeyTable(UUID portUuid)
-    //         throws OpenDataException {
-    //     TabularDataSupport table = new TabularDataSupport(intListType);
-    //     for (IntIPv4 i : arpTable.keySet()) {
-    //         CompositeDataSupport entry =
-    //             new CompositeDataSupport(intType,
-    //                                      new String[] { "int" },
-    //                                      new Object[] { i.address });
-    //         table.put(entry);
-    //     }
-    //     return table;
-    // }
-
-    // public TabularData getArpCacheTable(UUID portUuid)
-    //         throws OpenDataException {
-    //     TabularDataSupport table = new TabularDataSupport(intStrListType);
-    //     for (Map.Entry<IntIPv4, ArpCacheEntry> entry : arpTable.entrySet()) {
-    //         String arpEntry = entry.getValue().toString();
-    //         CompositeDataSupport row =
-    //             new CompositeDataSupport(intStrType,
-    //                                      new String[] { "int", "string" },
-    //                                      new Object[] { entry.getKey().address,
-    //                                                     arpEntry });
-    //         table.put(row);
-    //     }
-    //     return table;
-    // }
 }
