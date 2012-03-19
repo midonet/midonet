@@ -70,7 +70,7 @@ public class PathBuilder {
      * @return /bridges/bridgeId/routers
      */
     public String getBridgeRoutersPath(UUID id) {
-        return new StringBuilder(getBridgePath(id)).append("/").append(id)
+        return new StringBuilder(getBridgePath(id)).append("/")
                 .append(ROUTERS_PATH).toString();
     }
 
