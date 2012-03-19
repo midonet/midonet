@@ -205,7 +205,8 @@ public class TestNetwork {
                 0x0a000005, 0x0a040005, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
-        network.process(fInfo, traversedRtrs);
+        fInfo.notifyFEs = traversedRtrs;
+        network.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
@@ -223,7 +224,8 @@ public class TestNetwork {
                 0x0a000005, 0x0a000c05, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
-        network.process(fInfo, traversedRtrs);
+        fInfo.notifyFEs = traversedRtrs;
+        network.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.REJECT, null, 0);
@@ -242,7 +244,8 @@ public class TestNetwork {
                 0x0a000005, 0x0a000105, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
-        network.process(fInfo, traversedRtrs);
+        fInfo.notifyFEs = traversedRtrs;
+        network.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
@@ -262,7 +265,8 @@ public class TestNetwork {
                 0x0a0100cc, 0x0a0000aa, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
-        network.process(fInfo, traversedRtrs);
+        fInfo.notifyFEs = traversedRtrs;
+        network.process(fInfo);
         Assert.assertEquals(2, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
@@ -283,7 +287,8 @@ public class TestNetwork {
                 0x0a0101bb, 0x0a020188, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
-        network.process(fInfo, traversedRtrs);
+        fInfo.notifyFEs = traversedRtrs;
+        network.process(fInfo);
         Assert.assertEquals(3, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
@@ -368,7 +373,8 @@ public class TestNetwork {
                         devPort.getVirtualConfig().portAddr);
             ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
             Set<UUID> traversedRtrs = new HashSet<UUID>();
-            network.process(fInfo, traversedRtrs);
+            fInfo.notifyFEs = traversedRtrs;
+            network.process(fInfo);
             table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
                                              ackParams, ackSignature);
             Assert.assertEquals(1, table.size());
