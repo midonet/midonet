@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.layer3;
+package com.midokura.midolman;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,11 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.actors.threadpool.Arrays;
 
-import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.ReplicatedRoutingTable;
+import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
+import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -50,11 +51,11 @@ import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 
-public class NetworkController extends AbstractController
+public class VRNController extends AbstractController
     implements ServiceFlowController {
 
     private static final Logger log = LoggerFactory
-            .getLogger(NetworkController.class);
+            .getLogger(VRNController.class);
 
     // TODO(pino): This constant should be declared in openflow...
     public static final short NO_HARD_TIMEOUT = 0;
@@ -67,7 +68,7 @@ public class NetworkController extends AbstractController
 
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
-    Network network;
+    VRNCoordinator vrn;
     private Map<UUID, L3DevicePort> devPortById;
     private Map<Integer, L3DevicePort> devPortByNum;
     short idleFlowExpireSeconds; //package private to allow test access.
@@ -84,7 +85,7 @@ public class NetworkController extends AbstractController
     // The local OVS ports in a portset.
     private Map<UUID, Set<Short>> localPortSetSlices;
 
-    public NetworkController(long datapathId, UUID deviceId, int greKey,
+    public VRNController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
             IntIPv4 localNwAddr, PortZkManager portMgr,
             RouterZkManager routerMgr, RouteZkManager routeMgr,
@@ -96,7 +97,7 @@ public class NetworkController extends AbstractController
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
-        this.network = new Network(deviceId, portMgr, routerMgr, chainMgr,
+        this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, chainMgr,
                 ruleMgr, reactor, cache);
         this.devPortById = new HashMap<UUID, L3DevicePort>();
         this.devPortByNum = new HashMap<Integer, L3DevicePort>();
@@ -336,8 +337,8 @@ public class NetworkController extends AbstractController
     public void continueProcessing(ForwardInfo info) {
         /*reactor.schedule(new Runnable() {
            public void run() {
-               //network.handleProcessResult(ctx);
-               //NetworkController.handleSimulationResult(ctx);
+               //vrn.handleProcessResult(ctx);
+               //VRNController.handleSimulationResult(ctx);
            }
         });*/
     }
@@ -425,7 +426,7 @@ public class NetworkController extends AbstractController
                         IPv4.fromIPv4Address(portsAndGw.nextHopNwAddr),
                         portsAndGw.lastEgressPortId);
 
-                network.getMacForIp(portsAndGw.lastEgressPortId,
+                vrn.getMacForIp(portsAndGw.lastEgressPortId,
                         portsAndGw.nextHopNwAddr, cb);
             } catch (ZkStateSerializationException e) {
                 log.warn("onPacketIn", e);
@@ -470,7 +471,7 @@ public class NetworkController extends AbstractController
         // TODO(pino, jlm): make sure notifyFEs is used in the rest of the class
         fwdInfo.notifyFEs = routers;
         try {
-            network.process(fwdInfo);
+            vrn.process(fwdInfo);
         } catch (Exception e) {
             log.warn("onPacketIn dropping packet: ", e);
             freeBuffer(bufferId);
@@ -493,7 +494,7 @@ public class NetworkController extends AbstractController
                 flowMatch = makeWildcarded(match);
             else
                 flowMatch = match;
-            log.debug("onPacketIn: Network.process() returned BLACKHOLE for {}", fwdInfo);
+            log.debug("onPacketIn: vrn.process() returned BLACKHOLE for {}", fwdInfo);
             installBlackhole(flowMatch, bufferId, NO_IDLE_TIMEOUT,
                     ICMP_EXPIRY_SECONDS);
             notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
@@ -501,20 +502,20 @@ public class NetworkController extends AbstractController
             freeFlowResources(match, routers);
             return;
         case CONSUMED:
-            log.debug("onPacketIn: Network.process() returned CONSUMED for {}", fwdInfo);
+            log.debug("onPacketIn: vrn.process() returned CONSUMED for {}", fwdInfo);
             freeBuffer(bufferId);
             return;
         case FORWARD:
             // If the egress port is local, ARP and forward the packet.
             devPortOut = devPortById.get(fwdInfo.outPortId);
             if (null != devPortOut) {
-                log.debug("onPacketIn: Network.process() returned FORWARD to " +
+                log.debug("onPacketIn: vrn.process() returned FORWARD to " +
                           "local port {} for {}", devPortOut, fwdInfo);
                 LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
                 try {
-                    network.getMacForIp(fwdInfo.outPortId,
+                    vrn.getMacForIp(fwdInfo.outPortId,
                             fwdInfo.nextHopNwAddr, cb);
                 } catch (ZkStateSerializationException e) {
                     log.warn("onPacketIn dropping the packet: ", e);
@@ -522,7 +523,7 @@ public class NetworkController extends AbstractController
                     freeFlowResources(match, routers);
                 }
             } else { // devPortOut is null; the egress port is remote or multiple.
-                log.debug("onPacketIn: Network.process() returned FORWARD to "
+                log.debug("onPacketIn: vrn.process() returned FORWARD to "
                         + "remote/multi port {} for {}", fwdInfo.outPortId, fwdInfo);
 
                 if (portSetMap.containsKey(fwdInfo.outPortId)) {
@@ -609,7 +610,7 @@ public class NetworkController extends AbstractController
             }
             return;
         case NOT_IPV4:
-            log.debug("onPacketIn: Network.process() returned NOT_IPV4, " +
+            log.debug("onPacketIn: vrn.process() returned NOT_IPV4, " +
                       "ethertype is {}", match.getDataLayerType());
             // Wildcard everything but dl_type. One rule per EtherType.
             short dlType = match.getDataLayerType();
@@ -618,7 +619,7 @@ public class NetworkController extends AbstractController
             installBlackhole(match, bufferId, NO_IDLE_TIMEOUT ,NO_HARD_TIMEOUT);
             return;
         case NO_ROUTE:
-            log.debug("onPacketIn: Network.process() returned NO_ROUTE for {}",
+            log.debug("onPacketIn: vrn.process() returned NO_ROUTE for {}",
                     fwdInfo);
             // Intentionally use an exact match for this drop rule.
             // TODO(pino): wildcard the L2 fields.
@@ -632,7 +633,7 @@ public class NetworkController extends AbstractController
             // This rule is temporary, don't notify the flow checker.
             return;
         case REJECT:
-            log.debug("onPacketIn: Network.process() returned REJECT for {}",
+            log.debug("onPacketIn: vrn.process() returned REJECT for {}",
                     fwdInfo);
             // Intentionally use an exact match for this drop rule.
             installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
@@ -645,7 +646,7 @@ public class NetworkController extends AbstractController
             // This rule is temporary, don't notify the flow checker.
             return;
         default:
-            log.error("onPacketIn: Network.process() returned unrecognized action {}",
+            log.error("onPacketIn: vrn.process() returned unrecognized action {}",
                     fwdInfo.action);
             throw new RuntimeException("Unrecognized forwarding Action type " + fwdInfo.action);
         }
@@ -822,7 +823,7 @@ public class NetworkController extends AbstractController
                 // don't install a flow match, just send the packet
                 if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL) {
                     log.debug("TunneledPktArpCallback.call: forward ICMP without installing flow");
-                    NetworkController.super.controllerStub.sendPacketOut(
+                    VRNController.super.controllerStub.sendPacketOut(
                             bufferId, (short)inPort, ofActions, data);
                 } else {
                     log.debug("TunneledPktArpCallback.call: forward and install flow {}", match);
@@ -984,7 +985,7 @@ public class NetworkController extends AbstractController
 
         // First, we ask the last router to undo any transformation it may have
         // applied on the packet.
-        network.undoRouterTransformation(tunneledEthPkt);
+        vrn.undoRouterTransformation(tunneledEthPkt);
         ICMP icmp = new ICMP();
         IPv4 ipPktAtEgress = IPv4.class.cast(tunneledEthPkt.getPayload());
         icmp.setUnreachable(unreachCode, ipPktAtEgress);
@@ -992,7 +993,7 @@ public class NetworkController extends AbstractController
         IPv4 ip = new IPv4();
         PortDirectory.RouterPortConfig portConfig;
         try {
-            portConfig = network.getPortConfig(lastIngress);
+            portConfig = vrn.getPortConfig(lastIngress);
         } catch (Exception e) {
             // Can't send the ICMP if we can't find the last egress port.
             return;
@@ -1021,7 +1022,7 @@ public class NetworkController extends AbstractController
             // that the lastIngress port should emit the ICMP.
             Router rtr;
             try {
-                rtr = network.getRouterByPort(lastIngress);
+                rtr = vrn.getRouterByPort(lastIngress);
             } catch (Exception e) {
                 log.warn("Dropping ICMP error message. Don't know where to "
                         + "forward because we failed to retrieve the router "
@@ -1050,15 +1051,15 @@ public class NetworkController extends AbstractController
             UUID peer_uuid = ((PortDirectory.LogicalRouterPortConfig) portConfig).peer_uuid;
             fwdInfo.inPortId = peer_uuid;
             try {
-                network.process(fwdInfo);
+                vrn.process(fwdInfo);
             } catch (Exception e) {
                 log.warn("Dropping ICMP error message. Don't know where to "
-                        + "forward it because network.process threw exception.");
+                        + "forward it because vrn.process threw exception.");
                 return;
             }
             if (!fwdInfo.action.equals(Action.FORWARD)) {
                 log.warn("Dropping ICMP error message. Don't know where to "
-                        + "forward it because network.process didn't return "
+                        + "forward it because vrn.process didn't return "
                         + "FORWARD action.");
                 return;
             }
@@ -1134,7 +1135,7 @@ public class NetworkController extends AbstractController
         // The packet's network address is that of the last ingress port.
         PortDirectory.RouterPortConfig portConfig;
         try {
-            portConfig = network.getPortConfig(lastIngress);
+            portConfig = vrn.getPortConfig(lastIngress);
         } catch (Exception e) {
             // Can't send the ICMP if we can't find the last ingress port.
             return;
@@ -1221,7 +1222,7 @@ public class NetworkController extends AbstractController
         if (null != egressPortId) {
             PortDirectory.RouterPortConfig portConfig;
             try {
-                portConfig = network.getPortConfig(egressPortId);
+                portConfig = vrn.getPortConfig(egressPortId);
             } catch (Exception e) {
                 return false;
             }
@@ -1295,7 +1296,7 @@ public class NetworkController extends AbstractController
     public void freeFlowResources(OFMatch match, Collection<UUID> routers) {
         for (UUID rtrId : routers) {
             try {
-                Router rtr = network.getRouter(rtrId);
+                Router rtr = vrn.getRouter(rtrId);
                 rtr.freeFlowResources(match);
             } catch (ZkStateSerializationException e) {
                 log.warn("freeFlowResources failed for match {} in router {} -"
@@ -1508,7 +1509,7 @@ public class NetworkController extends AbstractController
                 + "nw address {}", new Object[] { portNum, devPort.getId(),
                 IPv4.fromIPv4Address(devPort.getVirtualConfig().portAddr) });
         try {
-            network.addPort(devPort);
+            vrn.addPort(devPort);
             addServicePort(devPort);
         } catch (Exception e) {
             log.error("addVirtualPort", e);
@@ -1529,7 +1530,7 @@ public class NetworkController extends AbstractController
                 + "nw address {}", new Object[] { devPort.getNum(),
                 portId, devPort.getVirtualConfig().portAddr });
         try {
-            network.removePort(devPort);
+            vrn.removePort(devPort);
         } catch (Exception e) {
             log.error("deleteVirtualPort", e);
         }

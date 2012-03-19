@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.layer3;
+package com.midokura.midolman;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,9 +16,10 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.ForwardingElement;
-import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.ReplicatedRoutingTable;
+import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer4.NatLeaseManager;
@@ -32,9 +33,9 @@ import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
-public class Network implements ForwardingElement {
+public class VRNCoordinator implements ForwardingElement {
 
-    private static final Logger log = LoggerFactory.getLogger(Network.class);
+    private static final Logger log = LoggerFactory.getLogger(VRNCoordinator.class);
     private static final int MAX_HOPS = 10;
 
     protected UUID netId;
@@ -53,7 +54,7 @@ public class Network implements ForwardingElement {
     // TODO(pino): use Guava's CacheBuilder here.
     private Map<UUID, PortDirectory.RouterPortConfig> portIdToConfig;
 
-    public Network(UUID netId, PortZkManager portMgr,
+    public VRNCoordinator(UUID netId, PortZkManager portMgr,
             RouterZkManager routerMgr, ChainZkManager chainMgr,
             RuleZkManager ruleMgr, Reactor reactor, Cache cache) {
         this.netId = netId;

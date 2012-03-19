@@ -97,7 +97,7 @@ public class Router implements ForwardingElement, RouterMBean {
         // is removed.
         public Collection<UUID> notifyFEs;
 
-        ForwardInfo() {
+        public ForwardInfo() {
         }
 
         @Override
@@ -155,7 +155,7 @@ public class Router implements ForwardingElement, RouterMBean {
         }
     }
 
-    protected UUID routerId;
+    public UUID routerId;
     protected RuleEngine ruleEngine;
     protected ReplicatedRoutingTable table;
     // Note that only materialized ports are tracked. Package visibility for
