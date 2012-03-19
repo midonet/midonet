@@ -407,7 +407,7 @@ public class TestRouter {
         Assert.assertArrayEquals(data, icmpReply.getData());
     }
 
-    static class ArpCompletedCallback implements Callback<MAC> {
+    static public class ArpCompletedCallback implements Callback<MAC> {
         List<MAC> macsReturned = new ArrayList<MAC>();
 
         @Override

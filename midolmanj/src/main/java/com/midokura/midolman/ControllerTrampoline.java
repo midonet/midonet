@@ -4,7 +4,6 @@
 package com.midokura.midolman;
 
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer3.NetworkController;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -167,7 +166,7 @@ public class ControllerTrampoline implements Controller {
                 vpnAgent.setPortService(VpnType.OPENVPN_TCP_CLIENT, openVpnSvc);
                 vpnAgent.start();
 
-                newController = new NetworkController(
+                newController = new VRNController(
                         datapathId,
                         deviceId,
                         config.configurationAt("vrn").getInt("router_network_gre_key"),

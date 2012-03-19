@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.layer3;
+package com.midokura.midolman;
 
 import java.lang.management.ManagementFactory;
 import java.io.IOException;
@@ -36,9 +36,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router.Action;
 import com.midokura.midolman.layer3.Router.ForwardInfo;
+import com.midokura.midolman.layer3.TestRouter;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
@@ -59,11 +61,11 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 
-public class TestNetwork {
+public class TestVRNCoordinator {
 
-    private static final Logger log = LoggerFactory.getLogger(TestNetwork.class);
+    private static final Logger log = LoggerFactory.getLogger(TestVRNCoordinator.class);
 
-    private Network network;
+    private VRNCoordinator vrn;
     private List<L3DevicePort> devPorts;
     private List<UUID> routerIds;
     private MockReactor reactor;
@@ -93,7 +95,7 @@ public class TestNetwork {
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
-        network = new Network(new UUID(19, 19), portMgr, routerMgr,
+        vrn = new VRNCoordinator(new UUID(19, 19), portMgr, routerMgr,
                 new ChainZkManager(dir, basePath), new RuleZkManager(dir,
                         basePath), reactor, createCache());
 
@@ -137,7 +139,7 @@ public class TestNetwork {
                         portId, portNum, new MAC(new byte[] { (byte) 0x02, (byte) 0x00,
                                 (byte) 0x00, (byte) 0x00, (byte) 0x00,
                                 (byte) portNum }), controllerStub);
-                network.addPort(devPort);
+                vrn.addPort(devPort);
                 devPorts.add(devPort);
             }
         }
@@ -206,7 +208,7 @@ public class TestNetwork {
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         fInfo.notifyFEs = traversedRtrs;
-        network.process(fInfo);
+        vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
@@ -225,7 +227,7 @@ public class TestNetwork {
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         fInfo.notifyFEs = traversedRtrs;
-        network.process(fInfo);
+        vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.REJECT, null, 0);
@@ -245,7 +247,7 @@ public class TestNetwork {
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         fInfo.notifyFEs = traversedRtrs;
-        network.process(fInfo);
+        vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
@@ -266,7 +268,7 @@ public class TestNetwork {
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         fInfo.notifyFEs = traversedRtrs;
-        network.process(fInfo);
+        vrn.process(fInfo);
         Assert.assertEquals(2, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
@@ -288,7 +290,7 @@ public class TestNetwork {
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
         Set<UUID> traversedRtrs = new HashSet<UUID>();
         fInfo.notifyFEs = traversedRtrs;
-        network.process(fInfo);
+        vrn.process(fInfo);
         Assert.assertEquals(3, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
@@ -304,7 +306,7 @@ public class TestNetwork {
         TestRouter.ArpCompletedCallback cb = new TestRouter.ArpCompletedCallback();
         L3DevicePort devPort = devPorts.get(5);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
-        network.getMacForIp(devPort.getId(), 0x0a020123, cb);
+        vrn.getMacForIp(devPort.getId(), 0x0a020123, cb);
         // There should now be an ARP request in the MockProtocolStub
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
@@ -374,7 +376,7 @@ public class TestNetwork {
             ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
             Set<UUID> traversedRtrs = new HashSet<UUID>();
             fInfo.notifyFEs = traversedRtrs;
-            network.process(fInfo);
+            vrn.process(fInfo);
             table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
                                              ackParams, ackSignature);
             Assert.assertEquals(1, table.size());
