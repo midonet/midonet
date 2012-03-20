@@ -222,56 +222,71 @@ public class VRNCoordinator implements ForwardingElement {
                   fwdInfo.notifyFEs);
 
         fwdInfo.notifyFEs.clear();
+        processOneFE(fwdInfo);
+    }
+
+    protected void processOneFE(ForwardInfo fwdInfo) throws StateAccessException {
         Router rtr = getRouterByPort(fwdInfo.inPortId);
         if (null == rtr)
             throw new RuntimeException("Packet arrived on a port that hasn't "
                     + "been added to the network instance (yet?).");
 
-        for (int i = 0; i < MAX_HOPS; i++) {
-            fwdInfo.notifyFEs.add(rtr.routerId);
-            rtr.process(fwdInfo);
-            if (fwdInfo.action.equals(Action.FORWARD)) {
-                // Get the port's configuration to see if it's logical.
-                PortDirectory.RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
-                if (null == cfg) {
-                    // Either the config wasn't found or it's not a router port.
-                    log.error("Packet forwarded to a portId that either "
-                            + "has null config or not router type.");
-                    // TODO(pino): throw exception instead?
+        fwdInfo.notifyFEs.add(rtr.routerId);
+        fwdInfo.depth++;
+        if (fwdInfo.depth > MAX_HOPS) {
+            // If we got here, we traversed MAX_HOPS routers without reaching a
+            // materialized port.
+            log.warn("More than {} routers traversed; probably a loop; " +
+                     "giving up.", MAX_HOPS);
+            fwdInfo.action = Action.BLACKHOLE;
+            return;
+        }
+        rtr.process(fwdInfo);
+        if (fwdInfo.action != Action.PAUSED)
+            handleProcessResult(fwdInfo);
+    }
+
+    protected void handleProcessResult(ForwardInfo fwdInfo)
+            throws StateAccessException {
+        if (fwdInfo.action.equals(Action.FORWARD)) {
+            // Get the port's configuration to see if it's logical.
+            PortDirectory.RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
+            if (null == cfg) {
+                // Either the config wasn't found or it's not a router port.
+                log.error("Packet forwarded to a portId that either "
+                        + "has null config or not router type.");
+                // TODO(pino): throw exception instead?
+                fwdInfo.action = Action.BLACKHOLE;
+                return;
+            }
+            if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
+                PortDirectory.LogicalRouterPortConfig lcfg =
+                    PortDirectory.LogicalRouterPortConfig.class.cast(cfg);
+                Router rtr = getRouterByPort(lcfg.peer_uuid);
+                log.debug("Packet exited router on logical port to "
+                        + "router {}", rtr.routerId.toString());
+                if (fwdInfo.notifyFEs.contains(rtr.routerId)) {
+                    log.warn("Detected a routing loop.");
                     fwdInfo.action = Action.BLACKHOLE;
                     return;
                 }
-                if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
-                    PortDirectory.LogicalRouterPortConfig lcfg =
-                        PortDirectory.LogicalRouterPortConfig.class.cast(cfg);
-                    rtr = getRouterByPort(lcfg.peer_uuid);
-                    log.debug("Packet exited router on logical port to "
-                            + "router {}", rtr.routerId.toString());
-                    if (fwdInfo.notifyFEs.contains(rtr.routerId)) {
-                        log.warn("Detected a routing loop.");
-                        fwdInfo.action = Action.BLACKHOLE;
-                        return;
-                    }
-                    fwdInfo.matchIn = fwdInfo.matchOut;
-                    fwdInfo.matchOut = null;
-                    fwdInfo.inPortId = lcfg.peer_uuid;
-                    fwdInfo.outPortId = null;
-                    fwdInfo.action = null;
-                    fwdInfo.nextHopNwAddr = Route.NO_GATEWAY;
-                    continue;
-                }
+                fwdInfo.matchIn = fwdInfo.matchOut;
+                fwdInfo.matchOut = null;
+                fwdInfo.inPortId = lcfg.peer_uuid;
+                fwdInfo.outPortId = null;
+                fwdInfo.action = null;
+                fwdInfo.nextHopNwAddr = Route.NO_GATEWAY;
+
+                // fwd_action was OUTPUT, and port type is logical.  Continue
+                // the simulation.
+                processOneFE(fwdInfo);
+                return;
             }
-            // If we got here, return fwd_action to the caller. One of
-            // these holds:
-            // 1) the action is OUTPUT and the port type is not logical OR
-            // 2) the action is not OUTPUT
-            return;
         }
-        // If we got here, we traversed MAX_HOPS routers without reaching a
-        // materialized port.
-        log.warn("More than {} routers traversed; probably a loop; giving up.",
-                MAX_HOPS);
-        fwdInfo.action = Action.BLACKHOLE;
+        // If we got here, return fwd_action to the caller. One of
+        // these holds:
+        // 1) the action is OUTPUT and the port type is not logical OR
+        // 2) the action is not OUTPUT
         return;
     }
 

@@ -45,8 +45,10 @@ public interface ForwardingElement {
         // Used by forwarding elements that want notification when the flow
         // is removed.
         public Collection<UUID> notifyFEs;
+        public int depth;  // depth in the VRN simulation
 
         public ForwardInfo() {
+            depth = 0;
         }
 
         @Override
@@ -55,7 +57,8 @@ public interface ForwardingElement {
                    ", pktIn=" + pktIn + ", matchIn=" + matchIn +
                    ", action=" + action + ", outPortId=" + outPortId +
                    ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
-                    + matchOut + ", trackConnection=" + trackConnection + "]";
+                    + matchOut + ", trackConnection=" + trackConnection + 
+                   ", depth=" + depth + "]";
         }
     }
 
