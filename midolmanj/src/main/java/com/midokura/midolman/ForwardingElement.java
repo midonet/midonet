@@ -6,17 +6,26 @@ package com.midokura.midolman;
 
 import java.util.Collection;
 import java.util.UUID;
+import javax.management.JMException;
+
+import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkStateSerializationException;
 
 
 public interface ForwardingElement {
 
     void process(ForwardInfo fwdInfo) throws StateAccessException;
-    void addPort(UUID portId);
-    void removePort(UUID portId);
+    void addPort(UUID portId)
+         throws ZkStateSerializationException, StateAccessException,
+                KeeperException, InterruptedException, JMException;
+    void removePort(UUID portId)
+         throws ZkStateSerializationException, StateAccessException,
+                KeeperException, InterruptedException, JMException;
+    UUID getId();
 
     public enum Action {
         BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED;

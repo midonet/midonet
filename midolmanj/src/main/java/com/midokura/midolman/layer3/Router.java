@@ -114,7 +114,7 @@ public class Router implements ForwardingElement, RouterMBean {
         }
     }
 
-    public UUID routerId;
+    protected UUID routerId;
     protected RuleEngine ruleEngine;
     protected ReplicatedRoutingTable table;
     // Note that only materialized ports are tracked. Package visibility for
@@ -163,6 +163,10 @@ public class Router implements ForwardingElement, RouterMBean {
 
     public String toString() {
         return routerId.toString();
+    }
+
+    public UUID getId() {
+        return routerId;
     }
 
     // This should only be called for materialized ports, not logical ports.

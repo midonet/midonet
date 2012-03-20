@@ -45,14 +45,14 @@ public class VRNCoordinator implements ForwardingElement {
     private RouterZkManager routerMgr;
     private Reactor reactor;
     private Cache cache;
-    private Map<UUID, Router> routers;
-    private Map<UUID, Router> routersByPortId;
+    private Map<UUID, ForwardingElement> forwardingElements;
+    private Map<UUID, ForwardingElement> feByPortId;
     // These watchers are interested in routing table and rule changes.
     private Set<Callback<UUID>> watchers;
     // This watches all routing and table changes and then notifies the others.
     private Callback<UUID> routerWatcher;
     // TODO(pino): use Guava's CacheBuilder here.
-    private Map<UUID, PortDirectory.RouterPortConfig> portIdToConfig;
+    private Map<UUID, PortConfig> portIdToConfig;
 
     public VRNCoordinator(UUID netId, PortZkManager portMgr,
             RouterZkManager routerMgr, ChainZkManager chainMgr,
@@ -64,8 +64,8 @@ public class VRNCoordinator implements ForwardingElement {
         this.ruleZkMgr = ruleMgr;
         this.reactor = reactor;
         this.cache = cache;
-        this.routers = new HashMap<UUID, Router>();
-        this.routersByPortId = new HashMap<UUID, Router>();
+        this.forwardingElements = new HashMap<UUID, ForwardingElement>();
+        this.feByPortId = new HashMap<UUID, ForwardingElement>();
         this.watchers = new HashSet<Callback<UUID>>();
         routerWatcher = new Callback<UUID>() {
             public void call(UUID routerId) {
@@ -73,7 +73,7 @@ public class VRNCoordinator implements ForwardingElement {
             }
         };
         // TODO(pino): use Guava's CacheBuilder here.
-        portIdToConfig = new HashMap<UUID, PortDirectory.RouterPortConfig>();
+        portIdToConfig = new HashMap<UUID, PortConfig>();
     }
 
     // This maintains consistency of the cached port configs w.r.t ZK.
@@ -97,15 +97,15 @@ public class VRNCoordinator implements ForwardingElement {
         }
     };
 
-    public PortDirectory.RouterPortConfig getPortConfig(UUID portId) throws
+    public PortConfig getPortConfig(UUID portId) throws
             ZkStateSerializationException, StateAccessException {
-        PortDirectory.RouterPortConfig rcfg = portIdToConfig.get(portId);
-        if (null == rcfg)
-            rcfg = refreshPortConfig(portId, null);
-        return rcfg;
+        PortConfig pcfg = portIdToConfig.get(portId);
+        if (null == pcfg)
+            pcfg = refreshPortConfig(portId, null);
+        return pcfg;
     }
 
-    private PortDirectory.RouterPortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
+    private PortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
             throws ZkStateSerializationException, StateAccessException {
         log.debug("refreshPortConfig for {} watcher", portId.toString(), watcher);
 
@@ -115,11 +115,8 @@ public class VRNCoordinator implements ForwardingElement {
 
         ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId, watcher);
         PortConfig cfg = entry.value;
-        if (!(cfg instanceof PortDirectory.RouterPortConfig))
-            return null;
-        PortDirectory.RouterPortConfig rcfg = PortDirectory.RouterPortConfig.class.cast(cfg);
-        portIdToConfig.put(portId, rcfg);
-        return rcfg;
+        portIdToConfig.put(portId, cfg);
+        return cfg;
     }
 
     public void addWatcher(Callback<UUID> watcher) {
@@ -136,84 +133,74 @@ public class VRNCoordinator implements ForwardingElement {
             watcher.call(routerId);
     }
 
-    protected Router getRouter(UUID routerId) throws StateAccessException {
-        Router rtr = routers.get(routerId);
-        if (null != rtr)
-            return rtr;
-        log.debug("Creating new router instance for {}", routerId.toString());
-        Cache cache = new CacheWithPrefix(this.cache, routerId.toString());
-        NatMapping natMap = new NatLeaseManager(routerMgr, routerId, cache,
+    protected ForwardingElement getForwardingElement(UUID deviceId)
+            throws StateAccessException {
+        ForwardingElement fe = forwardingElements.get(deviceId);
+        if (null != fe)
+            return fe;
+        log.debug("Creating new forwarding element instance for {}", deviceId);
+        // XXX: Create router or bridge.
+        Cache cache = new CacheWithPrefix(this.cache, deviceId.toString());
+        NatMapping natMap = new NatLeaseManager(routerMgr, deviceId, cache,
                 reactor);
-        RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, routerId,
+        RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, deviceId,
                 natMap);
         ruleEngine.addWatcher(routerWatcher);
-        ReplicatedRoutingTable table = new ReplicatedRoutingTable(routerId,
-                routerMgr.getRoutingTableDirectory(routerId),
+        ReplicatedRoutingTable table = new ReplicatedRoutingTable(deviceId,
+                routerMgr.getRoutingTableDirectory(deviceId),
                 CreateMode.EPHEMERAL);
         table.addWatcher(routerWatcher);
-        ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
+        ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(deviceId));
         arpTable.start();
-        rtr = new Router(routerId, ruleEngine, table, arpTable, reactor);
-        routers.put(routerId, rtr);
-        return rtr;
+        fe = new Router(deviceId, ruleEngine, table, arpTable, reactor);
+        forwardingElements.put(deviceId, fe);
+        return fe;
     }
 
-    public Router getRouterByPort(UUID portId) throws StateAccessException {
-        Router rtr = routersByPortId.get(portId);
-        if (null != rtr)
-            return rtr;
-        PortDirectory.RouterPortConfig cfg = getPortConfig(portId);
+    public ForwardingElement getForwardingElementByPort(UUID portId)
+            throws StateAccessException {
+        ForwardingElement fe = feByPortId.get(portId);
+        if (null != fe)
+            return fe;
+        PortConfig cfg = getPortConfig(portId);
         // TODO(pino): throw an exception if the config isn't found.
-        rtr = getRouter(cfg.device_id);
-        routersByPortId.put(cfg.device_id, rtr);
-        return rtr;
+        fe = getForwardingElement(cfg.device_id);
+        feByPortId.put(cfg.device_id, fe);
+        return fe;
     }
 
 
     @Override
-    public void addPort(UUID portId) {
+    public UUID getId() {
+        return null;
     }
 
     @Override
-    public void removePort(UUID portId) {
-    }
-
-    public void addPort(L3DevicePort port) throws
+    public void addPort(UUID portId) throws
             ZkStateSerializationException, StateAccessException,
             KeeperException, InterruptedException, JMException {
-        log.debug("addPort: {}", port);
+        log.debug("addPort: {}", portId);
+        L3DevicePort port = null;  // XXX: Go from portId to port
 
-        UUID routerId = port.getVirtualConfig().device_id;
-        Router rtr = getRouter(routerId);
-        rtr.addPort(port);
-        routersByPortId.put(port.getId(), rtr);
+        UUID deviceId = port.getVirtualConfig().device_id;
+        ForwardingElement fe = getForwardingElement(deviceId);
+        fe.addPort(portId);
+        feByPortId.put(portId, fe);
     }
 
     // This should only be called for materialized ports, not logical ports.
-    public void removePort(L3DevicePort port) throws
+    @Override
+    public void removePort(UUID portId) throws
             ZkStateSerializationException, StateAccessException,
             KeeperException, InterruptedException, JMException {
-        log.debug("removePort: {}", port);
+        log.debug("removePort: {}", portId);
+        L3DevicePort port = null;  // XXX: Go from portId to port
 
-        Router rtr = getRouter(port.getVirtualConfig().device_id);
-        rtr.removePort(port);
-        routersByPortId.remove(port.getId());
+        ForwardingElement fe = getForwardingElement(port.getVirtualConfig().device_id);
+        fe.removePort(portId);
+        feByPortId.remove(portId);
         // TODO(pino): we should clean up any router that isn't a value in the
         // routersByPortId map.
-    }
-
-    public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb)
-            throws ZkStateSerializationException {
-        log.debug("getMacForIp: port {} in {}", portId,
-                  Net.convertIntAddressToString(nwAddr));
-
-        Router rtr;
-        try {
-            rtr = getRouterByPort(portId);
-            rtr.getMacForIp(portId, nwAddr, cb);
-        } catch (Exception e) {
-            log.warn("getMacForIp", e);
-        }
     }
 
     @Override
@@ -226,22 +213,22 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     protected void processOneFE(ForwardInfo fwdInfo) throws StateAccessException {
-        Router rtr = getRouterByPort(fwdInfo.inPortId);
-        if (null == rtr)
+        ForwardingElement fe = getForwardingElementByPort(fwdInfo.inPortId);
+        if (null == fe)
             throw new RuntimeException("Packet arrived on a port that hasn't "
                     + "been added to the network instance (yet?).");
 
-        fwdInfo.notifyFEs.add(rtr.routerId);
+        fwdInfo.notifyFEs.add(fe.getId());
         fwdInfo.depth++;
         if (fwdInfo.depth > MAX_HOPS) {
             // If we got here, we traversed MAX_HOPS routers without reaching a
             // materialized port.
-            log.warn("More than {} routers traversed; probably a loop; " +
+            log.warn("More than {} FEs traversed; probably a loop; " +
                      "giving up.", MAX_HOPS);
             fwdInfo.action = Action.BLACKHOLE;
             return;
         }
-        rtr.process(fwdInfo);
+        fe.process(fwdInfo);
         if (fwdInfo.action != Action.PAUSED)
             handleProcessResult(fwdInfo);
     }
@@ -250,22 +237,22 @@ public class VRNCoordinator implements ForwardingElement {
             throws StateAccessException {
         if (fwdInfo.action.equals(Action.FORWARD)) {
             // Get the port's configuration to see if it's logical.
-            PortDirectory.RouterPortConfig cfg = getPortConfig(fwdInfo.outPortId);
+            PortConfig cfg = getPortConfig(fwdInfo.outPortId);
             if (null == cfg) {
                 // Either the config wasn't found or it's not a router port.
                 log.error("Packet forwarded to a portId that either "
-                        + "has null config or not router type.");
+                        + "has null config or not forwarding element type.");
                 // TODO(pino): throw exception instead?
                 fwdInfo.action = Action.BLACKHOLE;
                 return;
             }
-            if (cfg instanceof PortDirectory.LogicalRouterPortConfig) {
+            if (cfg instanceof PortDirectory.LogicalRouterPortConfig) { //XXX
                 PortDirectory.LogicalRouterPortConfig lcfg =
                     PortDirectory.LogicalRouterPortConfig.class.cast(cfg);
-                Router rtr = getRouterByPort(lcfg.peer_uuid);
+                ForwardingElement fe = getForwardingElementByPort(lcfg.peer_uuid);
                 log.debug("Packet exited router on logical port to "
-                        + "router {}", rtr.routerId.toString());
-                if (fwdInfo.notifyFEs.contains(rtr.routerId)) {
+                        + "router {}", fe.getId().toString());
+                if (fwdInfo.notifyFEs.contains(fe.getId())) {
                     log.warn("Detected a routing loop.");
                     fwdInfo.action = Action.BLACKHOLE;
                     return;
@@ -288,10 +275,5 @@ public class VRNCoordinator implements ForwardingElement {
         // 1) the action is OUTPUT and the port type is not logical OR
         // 2) the action is not OUTPUT
         return;
-    }
-
-    public void undoRouterTransformation(Ethernet tunneledEthPkt) {
-        log.debug("getMacForIp: tunneledEthPkt {}", tunneledEthPkt);
-        // TODO Auto-generated method stub
     }
 }
