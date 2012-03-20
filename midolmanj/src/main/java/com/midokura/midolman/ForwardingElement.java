@@ -15,13 +15,15 @@ import com.midokura.midolman.state.StateAccessException;
 public interface ForwardingElement {
 
     void process(ForwardInfo fwdInfo) throws StateAccessException;
+    void addPort(UUID portId);
+    void removePort(UUID portId);
 
     public enum Action {
         BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED;
     }
 
     /* ForwardingElements create and partially populate an instance of
-     * ForwardInfo to call ForwardingElement.process(fInfo).  The 
+     * ForwardInfo to call ForwardingElement.process(fInfo).  The
      * ForwardingElement populates a number of fields to indicate various
      * decisions:  the next action for the packet, the next hop gateway
      * address, the egress port, the packet at egress (i.e. after possible

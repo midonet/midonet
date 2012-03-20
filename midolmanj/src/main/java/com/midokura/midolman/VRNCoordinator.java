@@ -169,6 +169,15 @@ public class VRNCoordinator implements ForwardingElement {
         return rtr;
     }
 
+
+    @Override
+    public void addPort(UUID portId) {
+    }
+
+    @Override
+    public void removePort(UUID portId) {
+    }
+
     public void addPort(L3DevicePort port) throws
             ZkStateSerializationException, StateAccessException,
             KeeperException, InterruptedException, JMException {

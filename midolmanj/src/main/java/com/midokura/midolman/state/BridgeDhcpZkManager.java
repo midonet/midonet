@@ -21,6 +21,7 @@ public class BridgeDhcpZkManager extends ZkManager {
 
     public static class Subnet {
         IntIPv4 subnetAddr;
+        IntIPv4 serverAddr; // TODO: implement this.
         IntIPv4 defaultGateway;
         List<Opt121> opt121Routes;
 

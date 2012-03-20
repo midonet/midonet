@@ -392,6 +392,16 @@ public class Router implements ForwardingElement, RouterMBean {
         return;
     }
 
+    @Override
+    public void addPort(UUID portId) {
+
+    }
+
+    @Override
+    public void removePort(UUID portId) {
+
+    }
+
     private void processICMPtoLocal(Ethernet ethPkt, L3DevicePort port) {
         IPv4 ipPkt = (IPv4)ethPkt.getPayload();
         if (ipPkt.getProtocol() != ICMP.PROTOCOL_NUMBER) {
