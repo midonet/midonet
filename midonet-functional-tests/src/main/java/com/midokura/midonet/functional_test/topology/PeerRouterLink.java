@@ -36,11 +36,21 @@ public class PeerRouterLink {
             return this;
         }
 
+        /**
+         * Set the /24 network that the peer should route to the 'local' router.
+         * @param ipv4
+         * @return
+         */
         public Builder setLocalPrefix(String ipv4) {
             localPrefix = ipv4;
             return this;
         }
 
+        /**
+         * Set the /24 network that the 'local' router should route to the peer.
+         * @param ipv4
+         * @return
+         */
         public Builder setPeerPrefix(String ipv4) {
             peerPrefix = ipv4;
             return this;

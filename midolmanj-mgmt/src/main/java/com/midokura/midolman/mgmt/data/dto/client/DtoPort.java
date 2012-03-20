@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.mgmt.data.dto.client;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -13,6 +14,7 @@ public class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;
     private UUID vifId = null;
+    private URI uri;
 
     public UUID getId() {
         return id;
@@ -38,4 +40,11 @@ public class DtoPort {
         this.vifId = vifId;
     }
 
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
 }

@@ -16,7 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.MidoPort;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -68,7 +68,7 @@ public class FunctionalTestsHelper {
         Sudo.sudoExec("chmod 777 /run/quagga");
     }
 
-    protected void removeMidoPort(MidoPort port) {
+    protected void removeMidoPort(RouterPort port) {
         if (port != null) {
             port.delete();
         }
@@ -136,7 +136,7 @@ public class FunctionalTestsHelper {
                 });
     }
 
-    public static void removeVpn(MidolmanMgmt mgmt, MidoPort vpn1) {
+    public static void removeVpn(MidolmanMgmt mgmt, RouterPort vpn1) {
         if (mgmt != null && vpn1 != null) {
             mgmt.deleteVpn(vpn1.getVpn());
         }

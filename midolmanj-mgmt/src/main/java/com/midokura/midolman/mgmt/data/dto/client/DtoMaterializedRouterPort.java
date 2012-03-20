@@ -12,7 +12,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoMaterializedRouterPort extends DtoRouterPort {
     private String localNetworkAddress = null;
     private int localNetworkLength;
-    private URI uri;
     private URI bgps;
     private URI vpns;
 
@@ -30,14 +29,6 @@ public class DtoMaterializedRouterPort extends DtoRouterPort {
 
     public void setLocalNetworkLength(int localNetworkLength) {
         this.localNetworkLength = localNetworkLength;
-    }
-
-    public URI getUri() {
-        return uri;
-    }
-
-    public void setUri(URI uri) {
-        this.uri = uri;
     }
 
     public URI getBgps() {

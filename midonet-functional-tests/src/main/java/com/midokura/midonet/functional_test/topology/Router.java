@@ -43,20 +43,25 @@ public class Router {
         this.dto = router;
     }
 
-    public MidoPort.VMPortBuilder addVmPort() {
-        return new MidoPort.VMPortBuilder(mgmt, dto);
+    public RouterPort.VMPortBuilder addVmPort() {
+        return new RouterPort.VMPortBuilder(mgmt, dto);
     }
 
-    public MidoPort.GWPortBuilder addGwPort() {
-        return new MidoPort.GWPortBuilder(mgmt, dto);
+    public RouterPort.GWPortBuilder addGwPort() {
+        return new RouterPort.GWPortBuilder(mgmt, dto);
     }
 
-    public MidoPort.VPNPortBuilder addVpnPort() {
-        return new MidoPort.VPNPortBuilder(mgmt, dto);
+    public RouterPort.VPNPortBuilder addVpnPort() {
+        return new RouterPort.VPNPortBuilder(mgmt, dto);
     }
 
     public PeerRouterLink.Builder addRouterLink() {
         return new PeerRouterLink.Builder(mgmt, dto);
+    }
+
+    public BridgeRouterLink addBridgeRouterLink(
+            Bridge br, IntIPv4 subnet) {
+        return new BridgeRouterLink.Builder(mgmt, dto, br, subnet).build();
     }
 
     public String getName() {

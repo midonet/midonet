@@ -21,7 +21,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MidoPort;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.PeerRouterLink;
 import com.midokura.midonet.functional_test.topology.Router;
@@ -49,8 +49,8 @@ public class VpnTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
-    MidoPort vpn1;
-    MidoPort vpn2;
+    RouterPort vpn1;
+    RouterPort vpn2;
 
     @Before
     public void setUp() throws InterruptedException, IOException {
@@ -69,7 +69,7 @@ public class VpnTest {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         // Here's a VM on router1.
         IntIPv4 ip1 = IntIPv4.fromString("10.0.231.11");
-        MidoPort p = router1.addVmPort().setVMAddress(ip1).build();
+        RouterPort p = router1.addVmPort().setVMAddress(ip1).build();
         tapPort1 = new TapWrapper("vpnTestTap1");
         ovsBridge.addSystemPort(p.port.getId(), tapPort1.getName());
 
@@ -91,7 +91,7 @@ public class VpnTest {
         // Router 1 has a port that leads to 10.0.232.0/24 via a VPN
         // and gateway (router2).
         // p1 private port of the VPN
-        MidoPort p1 = router1
+        RouterPort p1 = router1
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
                         IntIPv4.fromString("169.254.0.2"))
@@ -107,7 +107,7 @@ public class VpnTest {
 
         // Router 2 has a port that leads to 10.0.231.0/24 via a VPN
         // and gateway (router2).
-        MidoPort p2 = router2
+        RouterPort p2 = router2
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))

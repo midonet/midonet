@@ -48,7 +48,7 @@ public class Bridge {
 
     public BridgePort addPort() {
         DtoPort port = new DtoPort();
-        return new BridgePort(dto,mgmt.addBridgePort(dto, port));
+        return new BridgePort(mgmt, mgmt.addBridgePort(dto, port));
     }
 
     public UUID getId(){

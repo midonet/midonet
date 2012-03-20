@@ -5,7 +5,8 @@
 package com.midokura.midonet.functional_test;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
+
 import static java.lang.String.format;
 
 import org.junit.After;
@@ -27,7 +28,7 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.MidoPort;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
@@ -55,9 +56,9 @@ public class DeletePortTest {
 
     Router rtr;
     Tenant tenant1;
-    MidoPort p1;
-    MidoPort p2;
-    MidoPort p3;
+    RouterPort p1;
+    RouterPort p2;
+    RouterPort p3;
     TapWrapper tap1;
     TapWrapper tap2;
     OpenvSwitchDatabaseConnectionImpl ovsdb;
@@ -120,7 +121,7 @@ public class DeletePortTest {
     }
 
     @Test
-    public void testPortDelete() 
+    public void testPortDelete()
 	throws InterruptedException, MalformedPacketException {
         short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));

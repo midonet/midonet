@@ -31,7 +31,7 @@ import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.OpenFlowStats;
 import com.midokura.midonet.functional_test.openflow.PortStats;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.MidoPort;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
@@ -88,19 +88,19 @@ public class StatsTest {
         tapIp2 = IntIPv4.fromString("192.168.231.12");
         peerIp = IntIPv4.fromString("192.168.231.13");
 
-        MidoPort p1 = router1.addVmPort().setVMAddress(tapIp1).build();
+        RouterPort p1 = router1.addVmPort().setVMAddress(tapIp1).build();
         tapPort1 = new TapWrapper("statsTestTap1");
         ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
         helper1 = new PacketHelper(MAC.fromString("02:00:bb:bb:00:01"), tapIp1,
                                    tapPort1.getHwAddr(), rtrIp);
 
-        MidoPort p2 = router1.addVmPort().setVMAddress(tapIp2).build();
+        RouterPort p2 = router1.addVmPort().setVMAddress(tapIp2).build();
         tapPort2 = new TapWrapper("statsTestTap2");
         ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
         helper2 = new PacketHelper(MAC.fromString("02:00:bb:bb:00:02"), tapIp2,
                                    tapPort2.getHwAddr(), rtrIp);
 
-        MidoPort p3 = router1.addVmPort().setVMAddress(peerIp).build();
+        RouterPort p3 = router1.addVmPort().setVMAddress(peerIp).build();
         ovsBridge.addInternalPort(p3.port.getId(), "statsTestInt", peerIp, 24);
 
         sleepBecause("we want to wait for the network config to settle", 5);

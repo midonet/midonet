@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura Europe SARL
+ * Copyright 2012 Midokura Europe SARL
  */
 
 package com.midokura.midonet.functional_test.topology;
@@ -16,7 +16,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
-public class MidoPort {
+public class RouterPort {
 
     public static class VMPortBuilder {
         private MidolmanMgmt mgmt;
@@ -42,7 +42,7 @@ public class MidoPort {
             return this;
         }
 
-        public MidoPort build() {
+        public RouterPort build() {
             DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
             DtoRoute rt = new DtoRoute();
             rt.setDstNetworkAddr(p.getLocalNetworkAddress());
@@ -53,7 +53,7 @@ public class MidoPort {
             rt.setNextHopPort(p.getId());
             rt.setWeight(10);
             rt = mgmt.addRoute(router, rt);
-            return new MidoPort(mgmt, p);
+            return new RouterPort(mgmt, p);
         }
     }
 
@@ -92,7 +92,7 @@ public class MidoPort {
             return this;
         }
 
-        public MidoPort build() {
+        public RouterPort build() {
             DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
             for (IntIPv4 dst : routes) {
                 DtoRoute rt = new DtoRoute();
@@ -106,7 +106,7 @@ public class MidoPort {
                 rt.setWeight(10);
                 rt = mgmt.addRoute(router, rt);
             }
-            return new MidoPort(mgmt, p);
+            return new RouterPort(mgmt, p);
         }
     }
 
@@ -156,7 +156,7 @@ public class MidoPort {
             return this;
         }
 
-        public MidoPort build() {
+        public RouterPort build() {
             DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
             vpn = mgmt.addVpn(p, vpn);
             DtoRoute rt = new DtoRoute();
@@ -168,7 +168,7 @@ public class MidoPort {
             rt.setNextHopPort(p.getId());
             rt.setWeight(10);
             rt = mgmt.addRoute(router, rt);
-            MidoPort port = new MidoPort(mgmt, p);
+            RouterPort port = new RouterPort(mgmt, p);
             port.setVpn(vpn);
             return port;
         }
@@ -178,7 +178,7 @@ public class MidoPort {
     public DtoMaterializedRouterPort port;
     private DtoVpn vpn;
 
-    MidoPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port) {
+    RouterPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port) {
         this.mgmt = mgmt;
         this.port = port;
     }

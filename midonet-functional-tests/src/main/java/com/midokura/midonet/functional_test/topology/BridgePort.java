@@ -1,29 +1,29 @@
-package com.midokura.midonet.functional_test.topology;
+/*
+ * Copyright 2012 Midokura Europe SARL
+ */
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+package com.midokura.midonet.functional_test.topology;
 
 import java.util.UUID;
 
-/**
- * Copyright 2011 Midokura Europe SARL
- * User: rossella rossella@midokura.com
- * Date: 12/8/11
- * Time: 2:49 PM
- */
+import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
+
 public class BridgePort {
-        private DtoBridge bridge;
-        private DtoPort port;
+    private MidolmanMgmt mgmt;
+    private DtoPort port;
 
-
-    public BridgePort(DtoBridge bridge, DtoPort port) {
+    public BridgePort(MidolmanMgmt mgmt, DtoPort port) {
+        this.mgmt = mgmt;
         this.port = port;
-        this.bridge = bridge;
-        // port.setNetworkLength(24);
     }
 
     public UUID getId()
     {
         return port.getId();
+    }
+
+    public void delete() {
+        mgmt.delete(port.getUri());
     }
 }

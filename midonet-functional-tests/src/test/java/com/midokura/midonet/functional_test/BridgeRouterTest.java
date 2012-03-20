@@ -1,18 +1,14 @@
 /*
- * Copyright 2011 Midokura Europe SARL
+ * Copyright 2012 Midokura Europe SARL
  */
 
 package com.midokura.midonet.functional_test;
-
-import static java.lang.String.format;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
@@ -21,17 +17,24 @@ import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
+import com.midokura.midonet.functional_test.topology.Bridge;
+import com.midokura.midonet.functional_test.topology.BridgePort;
+import com.midokura.midonet.functional_test.topology.BridgeRouterLink;
 import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static java.lang.String.format;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class PingTest {
+public class BridgeRouterTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PingTest.class);
+    private final static Logger log = LoggerFactory.getLogger(BridgeRouterTest.class);
 
     IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
@@ -76,23 +79,16 @@ public class PingTest {
         log.debug("Building tenant");
         tenant1 = new Tenant.Builder(api).setName("tenant-ping").build();
         rtr = tenant1.addRouter().setName("rtr1").build();
-        log.debug("Done building tenant");
 
-        p1 = rtr.addVmPort().setVMAddress(ip1).build();
-        tap1 = new TapWrapper("pingTestTap1");
-        ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
+        Bridge bridge = tenant1.addBridge().setName("br1").build();
+        ip1 = IntIPv4.fromString("192.168.14.2");
+        BridgePort bPort1 = bridge.addPort();
+        tap1 = new TapWrapper("tapBridge1");
+        ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
-        p2 = rtr.addVmPort().setVMAddress(ip2).build();
-        tap2 = new TapWrapper("pingTestTap2");
-        ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
-
-        p3 = rtr.addVmPort().setVMAddress(ip3).build();
-        ovsBridge.addInternalPort(p3.port.getId(), internalPortName, ip3, 24);
-
-        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1,
-                tap1.getHwAddr(), rtrIp);
-        helper2 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:02"), ip2,
-                tap2.getHwAddr(), rtrIp);
+        // Link the Bridge and Router
+        BridgeRouterLink link = rtr.addBridgeRouterLink(
+                bridge, IntIPv4.fromString("192.168.14.0"));
 
         sleepBecause("we wait for the network configuration to bootup", 5);
     }

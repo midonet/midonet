@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MidoPort;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.PeerRouterLink;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -53,7 +53,7 @@ public class ConfigTearDownTest {
         Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-2").build();
         Router rtr = t.addRouter().setName("rtr1").build();
 
-        MidoPort p1 = rtr.addVmPort().setVMAddress(ip1).build();
+        RouterPort p1 = rtr.addVmPort().setVMAddress(ip1).build();
         rtr.addVmPort().setVMAddress(ip2).build();
         rtr.addVmPort().setVMAddress(ip3).build();
 
@@ -67,17 +67,17 @@ public class ConfigTearDownTest {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
-        MidoPort p1 = router1.addVmPort().setVMAddress(tapAddr1).build();
+        RouterPort p1 = router1.addVmPort().setVMAddress(tapAddr1).build();
 
         IntIPv4 tapAddr2 = IntIPv4.fromString("192.168.66.3");
-        MidoPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
+        RouterPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
 
         // The internal port has private address 192.168.55.5; floating ip
         // 10.0.173.5 is mapped to 192.168.55.5. Treat tapPort1 as the uplink:
         // only packets that go via the uplink use the the floatingIP.
         IntIPv4 privAddr = IntIPv4.fromString("192.168.55.5");
         IntIPv4 pubAddr = IntIPv4.fromString("10.0.173.5");
-        MidoPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
+        RouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 
         tenant1.delete();
