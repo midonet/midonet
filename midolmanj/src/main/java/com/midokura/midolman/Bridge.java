@@ -6,7 +6,10 @@ package com.midokura.midolman;
 
 import java.util.UUID;
 
+import org.openflow.protocol.OFMatch;
+
 import com.midokura.midolman.layer3.Router;
+
 
 public class Bridge implements ForwardingElement {
 
@@ -34,5 +37,9 @@ public class Bridge implements ForwardingElement {
     @Override
     public UUID getId() {
         return null;  // TODO
+    }
+
+    @Override
+    public void freeFlowResources(OFMatch match) {
     }
 }

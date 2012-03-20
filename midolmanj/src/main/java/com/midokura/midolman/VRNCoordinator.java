@@ -13,6 +13,7 @@ import javax.management.JMException;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,6 +174,10 @@ public class VRNCoordinator implements ForwardingElement {
     @Override
     public UUID getId() {
         return null;
+    }
+
+    @Override
+    public void freeFlowResources(OFMatch match) {
     }
 
     @Override
