@@ -9,6 +9,7 @@ import java.util.UUID;
 import javax.management.JMException;
 
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.Ethernet;
@@ -26,6 +27,7 @@ public interface ForwardingElement {
          throws ZkStateSerializationException, StateAccessException,
                 KeeperException, InterruptedException, JMException;
     UUID getId();
+    void freeFlowResources(OFMatch match);
 
     public enum Action {
         BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED;

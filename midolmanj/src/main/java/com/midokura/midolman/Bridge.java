@@ -30,4 +30,9 @@ public class Bridge implements ForwardingElement {
     public void removePort(UUID portId) {
 
     }
+
+    @Override
+    public UUID getId() {
+        return null;  // TODO
+    }
 }

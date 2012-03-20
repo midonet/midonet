@@ -37,6 +37,7 @@ import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.IPv4Set;
+import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
@@ -136,6 +137,7 @@ public class VRNController extends AbstractController
 
     private void handleDhcpRequest(L3DevicePort devPortIn, DHCP request,
             MAC sourceMac) {
+        /* TODO: Break this up, it's too long. */
         byte[] chaddr = request.getClientHardwareAddress();
         if (null == chaddr) {
             log.warn("handleDhcpRequest dropping bootrequest with null chaddr");
@@ -419,18 +421,12 @@ public class VRNController extends AbstractController
                 return;
             }
 
+            // XXX: There will be no more TunneledPktArpCallbacks
             TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
                     totalLen, inPort, data, match, portsAndGw);
-            try {
-                log.debug("onPacketIn: need mac for ip {} on port {}",
+            log.debug("onPacketIn: need mac for ip {} on port {}",
                         IPv4.fromIPv4Address(portsAndGw.nextHopNwAddr),
                         portsAndGw.lastEgressPortId);
-
-                vrn.getMacForIp(portsAndGw.lastEgressPortId,
-                        portsAndGw.nextHopNwAddr, cb);
-            } catch (ZkStateSerializationException e) {
-                log.warn("onPacketIn", e);
-            }
             // The ARP will be completed asynchronously by the callback.
             return;
         }
@@ -511,17 +507,10 @@ public class VRNController extends AbstractController
             if (null != devPortOut) {
                 log.debug("onPacketIn: vrn.process() returned FORWARD to " +
                           "local port {} for {}", devPortOut, fwdInfo);
+                // XXX: There'll be no more LocalPktArpCallbacks.
                 LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
                         totalLen, devPortIn, data, match, fwdInfo, ethPkt,
                         routers);
-                try {
-                    vrn.getMacForIp(fwdInfo.outPortId,
-                            fwdInfo.nextHopNwAddr, cb);
-                } catch (ZkStateSerializationException e) {
-                    log.warn("onPacketIn dropping the packet: ", e);
-                    freeBuffer(bufferId);
-                    freeFlowResources(match, routers);
-                }
             } else { // devPortOut is null; the egress port is remote or multiple.
                 log.debug("onPacketIn: vrn.process() returned FORWARD to "
                         + "remote/multi port {} for {}", fwdInfo.outPortId, fwdInfo);
@@ -985,7 +974,7 @@ public class VRNController extends AbstractController
 
         // First, we ask the last router to undo any transformation it may have
         // applied on the packet.
-        vrn.undoRouterTransformation(tunneledEthPkt);
+        //XXX vrn.undoRouterTransformation(tunneledEthPkt);
         ICMP icmp = new ICMP();
         IPv4 ipPktAtEgress = IPv4.class.cast(tunneledEthPkt.getPayload());
         icmp.setUnreachable(unreachCode, ipPktAtEgress);
@@ -993,7 +982,7 @@ public class VRNController extends AbstractController
         IPv4 ip = new IPv4();
         PortDirectory.RouterPortConfig portConfig;
         try {
-            portConfig = vrn.getPortConfig(lastIngress);
+            portConfig = (PortDirectory.RouterPortConfig)vrn.getPortConfig(lastIngress);
         } catch (Exception e) {
             // Can't send the ICMP if we can't find the last egress port.
             return;
@@ -1020,16 +1009,22 @@ public class VRNController extends AbstractController
             // its router in order to find the network address of the next hop
             // gateway for the packet. Hopefully, the routing logic will agree
             // that the lastIngress port should emit the ICMP.
-            Router rtr;
+            ForwardingElement fe;
             try {
-                rtr = vrn.getRouterByPort(lastIngress);
+                fe = vrn.getForwardingElementByPort(lastIngress);
             } catch (Exception e) {
                 log.warn("Dropping ICMP error message. Don't know where to "
                         + "forward because we failed to retrieve the router "
                         + "that would route it.");
                 return;
             }
-            rtr.process(fwdInfo);
+            try {
+                fe.process(fwdInfo);
+            } catch (StateAccessException e) {
+                log.warn("Dropping ICMP error message. Attempting to forward " +
+                         "it generated a StateAccessException {}", e);
+                return;
+            }
             if (!fwdInfo.action.equals(Action.FORWARD)) {
                 log.warn("Dropping ICMP error message. Don't know where to "
                         + "forward it because router.process didn't return "
@@ -1135,7 +1130,7 @@ public class VRNController extends AbstractController
         // The packet's network address is that of the last ingress port.
         PortDirectory.RouterPortConfig portConfig;
         try {
-            portConfig = vrn.getPortConfig(lastIngress);
+            portConfig = (PortDirectory.RouterPortConfig)vrn.getPortConfig(lastIngress);
         } catch (Exception e) {
             // Can't send the ICMP if we can't find the last ingress port.
             return;
@@ -1222,7 +1217,7 @@ public class VRNController extends AbstractController
         if (null != egressPortId) {
             PortDirectory.RouterPortConfig portConfig;
             try {
-                portConfig = vrn.getPortConfig(egressPortId);
+                portConfig = (PortDirectory.RouterPortConfig)vrn.getPortConfig(egressPortId);
             } catch (Exception e) {
                 return false;
             }
@@ -1293,19 +1288,19 @@ public class VRNController extends AbstractController
         }
     }
 
-    public void freeFlowResources(OFMatch match, Collection<UUID> routers) {
-        for (UUID rtrId : routers) {
+    public void freeFlowResources(OFMatch match, Collection<UUID> forwardingElements) {
+        for (UUID feId : forwardingElements) {
             try {
-                Router rtr = vrn.getRouter(rtrId);
-                rtr.freeFlowResources(match);
+                ForwardingElement fe = vrn.getForwardingElement(feId);
+                fe.freeFlowResources(match);
             } catch (ZkStateSerializationException e) {
-                log.warn("freeFlowResources failed for match {} in router {} -"
+                log.warn("freeFlowResources failed for match {} in FE {} -"
                         + " caught: \n{}",
-                        new Object[] { match, rtrId, e.getStackTrace() });
+                        new Object[] { match, feId, e.getStackTrace() });
             } catch (StateAccessException e) {
-                log.warn("freeFlowResources failed for match {} in router {} -"
+                log.warn("freeFlowResources failed for match {} in FE {} -"
                         + " caught: \n{}",
-                        new Object[] { match, rtrId, e.getStackTrace() });
+                        new Object[] { match, feId, e.getStackTrace() });
             }
         }
     }
@@ -1509,7 +1504,7 @@ public class VRNController extends AbstractController
                 + "nw address {}", new Object[] { portNum, devPort.getId(),
                 IPv4.fromIPv4Address(devPort.getVirtualConfig().portAddr) });
         try {
-            vrn.addPort(devPort);
+            vrn.addPort(portId);
             addServicePort(devPort);
         } catch (Exception e) {
             log.error("addVirtualPort", e);
@@ -1530,7 +1525,7 @@ public class VRNController extends AbstractController
                 + "nw address {}", new Object[] { devPort.getNum(),
                 portId, devPort.getVirtualConfig().portAddr });
         try {
-            vrn.removePort(devPort);
+            vrn.removePort(portId);
         } catch (Exception e) {
             log.error("deleteVirtualPort", e);
         }
