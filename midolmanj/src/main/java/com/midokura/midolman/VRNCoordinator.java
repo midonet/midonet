@@ -180,14 +180,19 @@ public class VRNCoordinator implements ForwardingElement {
     public void freeFlowResources(OFMatch match) {
     }
 
+    private PortConfig getPortConfigByUUID(UUID id) 
+            throws StateAccessException, ZkStateSerializationException {
+        ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(id);
+        return entry.value;
+    }
+
     @Override
     public void addPort(UUID portId) throws
             ZkStateSerializationException, StateAccessException,
             KeeperException, InterruptedException, JMException {
         log.debug("addPort: {}", portId);
-        L3DevicePort port = null;  // XXX: Go from portId to port
-
-        UUID deviceId = port.getVirtualConfig().device_id;
+        PortConfig portCfg = getPortConfigByUUID(portId);
+        UUID deviceId = portCfg.device_id;
         ForwardingElement fe = getForwardingElement(deviceId);
         fe.addPort(portId);
         feByPortId.put(portId, fe);
@@ -199,9 +204,8 @@ public class VRNCoordinator implements ForwardingElement {
             ZkStateSerializationException, StateAccessException,
             KeeperException, InterruptedException, JMException {
         log.debug("removePort: {}", portId);
-        L3DevicePort port = null;  // XXX: Go from portId to port
-
-        ForwardingElement fe = getForwardingElement(port.getVirtualConfig().device_id);
+        PortConfig portCfg = getPortConfigByUUID(portId);
+        ForwardingElement fe = getForwardingElement(portCfg.device_id);
         fe.removePort(portId);
         feByPortId.remove(portId);
         // TODO(pino): we should clean up any router that isn't a value in the
