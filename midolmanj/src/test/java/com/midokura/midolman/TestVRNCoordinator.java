@@ -34,12 +34,12 @@ import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.ForwardingElement.Action;
+import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.layer3.Router.Action;
-import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer3.TestRouter;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;

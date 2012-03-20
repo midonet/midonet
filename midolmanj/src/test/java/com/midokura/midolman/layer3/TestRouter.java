@@ -28,11 +28,11 @@ import org.openflow.protocol.action.OFActionOutput;
 
 import scala.actors.threadpool.Arrays;
 
+import com.midokura.midolman.ForwardingElement.Action;
+import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.layer3.Router.Action;
-import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.ControllerStub;

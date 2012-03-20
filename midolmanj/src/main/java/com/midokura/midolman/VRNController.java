@@ -24,11 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.actors.threadpool.Arrays;
 
+import com.midokura.midolman.ForwardingElement.Action;
+import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Router;
-import com.midokura.midolman.layer3.Router.Action;
-import com.midokura.midolman.layer3.Router.ForwardInfo;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
