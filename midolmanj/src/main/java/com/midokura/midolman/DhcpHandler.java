@@ -10,10 +10,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.DHCP;
 import com.midokura.midolman.packets.DHCPOption;
@@ -21,6 +23,8 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.util.Net;
 
 public class DhcpHandler {
@@ -31,8 +35,10 @@ public class DhcpHandler {
     public DhcpHandler() {
     }
 
-    public void handleDhcpRequest(L3DevicePort devPortIn, DHCP request,
-                                   MAC sourceMac) {
+    public void handleDhcpRequest(UUID inPortId, DHCP request, MAC sourceMac) {
+        // Get the port configuration.
+        PortDirectory.MaterializedRouterPortConfig inPortConfig = null;
+
         /* TODO: Break this up, it's too long. */
         byte[] chaddr = request.getClientHardwareAddress();
         if (null == chaddr) {
@@ -46,7 +52,7 @@ public class DhcpHandler {
         }
         log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
                 + "and ciaddr {}",
-                new Object[] { devPortIn, Net.convertByteMacToString(chaddr),
+                new Object[] { inPortId, Net.convertByteMacToString(chaddr),
                         IPv4.fromIPv4Address(request.getClientIPAddress()) });
 
         // Extract all the options and put them in a map
@@ -121,7 +127,7 @@ public class DhcpHandler {
                 //return;
             } else {
                 // The server id should correspond to this port's address.
-                int ourServId = devPortIn.getVirtualConfig().portAddr;
+                int ourServId = inPortConfig.portAddr;
                 int theirServId = IPv4.toIPv4Address(opt.getData());
                 if (ourServId != theirServId) {
                     log.warn("handleDhcpRequest dropping dhcp REQUEST - client "
@@ -139,7 +145,7 @@ public class DhcpHandler {
             }
             // The requested ip must correspond to the yiaddr in our offer.
             int reqIp = IPv4.toIPv4Address(opt.getData());
-            int offeredIp = devPortIn.getVirtualConfig().localNwAddr;
+            int offeredIp = inPortConfig.localNwAddr;
             // TODO(pino): must keep state and remember the offered ip based
             // on the chaddr or the client id option.
             if (reqIp != offeredIp) {
@@ -162,19 +168,18 @@ public class DhcpHandler {
         reply.setHardwareAddressLength((byte) 6);
         reply.setHardwareType((byte) ARP.HW_TYPE_ETHERNET);
         reply.setClientHardwareAddress(sourceMac);
-        reply.setServerIPAddress(devPortIn.getVirtualConfig().portAddr);
+        reply.setServerIPAddress(inPortConfig.portAddr);
         // TODO(pino): use explicitly assigned address not localNwAddr!!
-        reply.setYourIPAddress(devPortIn.getVirtualConfig().localNwAddr);
+        reply.setYourIPAddress(inPortConfig.localNwAddr);
         // TODO(pino): do we need to include the DNS option?
         opt = new DHCPOption(DHCPOption.Code.MASK.value(),
                 DHCPOption.Code.MASK.length(),
-                IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
-                        .getVirtualConfig().nwLength)));
+                IPv4.toIPv4AddressBytes(~0 << (32 - inPortConfig.nwLength)));
         options.add(opt);
         // Generate the broadcast address... this is nwAddr with 1's in the
         // last 32-nwAddrLength bits.
-        int mask = ~0 >>> devPortIn.getVirtualConfig().nwLength;
-        int bcast = mask | devPortIn.getVirtualConfig().nwAddr;
+        int mask = ~0 >>> inPortConfig.nwLength;
+        int bcast = mask | inPortConfig.nwAddr;
         log.debug("handleDhcpRequest setting bcast addr option to {}",
                 IPv4.fromIPv4Address(bcast));
         opt = new DHCPOption(
@@ -191,13 +196,13 @@ public class DhcpHandler {
         opt = new DHCPOption(
                 DHCPOption.Code.ROUTER.value(),
                 DHCPOption.Code.ROUTER.length(),
-                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+                IPv4.toIPv4AddressBytes(inPortConfig.portAddr));
         options.add(opt);
         // in MidoNet the DHCP server is the same as the router
         opt = new DHCPOption(
                 DHCPOption.Code.SERVER_ID.value(),
                 DHCPOption.Code.SERVER_ID.length(),
-                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
+                IPv4.toIPv4AddressBytes(inPortConfig.portAddr));
         options.add(opt);
         // And finally add the END option.
         opt = new DHCPOption(DHCPOption.Code.END.value(),
@@ -211,7 +216,7 @@ public class DhcpHandler {
         udp.setPayload(reply);
 
         IPv4 ip = new IPv4();
-        ip.setSourceAddress(devPortIn.getVirtualConfig().portAddr);
+        ip.setSourceAddress(inPortConfig.portAddr);
         ip.setDestinationAddress("255.255.255.255");
         ip.setProtocol(UDP.PROTOCOL_NUMBER);
         ip.setPayload(udp);
@@ -220,12 +225,12 @@ public class DhcpHandler {
         eth.setEtherType(IPv4.ETHERTYPE);
         eth.setPayload(ip);
 
-        eth.setSourceMACAddress(devPortIn.getMacAddr());
+        eth.setSourceMACAddress(inPortConfig.getHwAddr());
         eth.setDestinationMACAddress(sourceMac);
 
         log.debug("handleDhcpRequest: sending DHCP reply {} to port {}", eth,
-                devPortIn);
-        devPortIn.send(eth.serialize());
+                inPortId);
+        //devPortIn.send(eth.serialize());
         //sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
     }
 

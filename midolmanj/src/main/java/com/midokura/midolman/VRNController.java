@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import net.spy.memcached.transcoders.IntegerTranscoder;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
@@ -24,29 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.actors.threadpool.Arrays;
 
-import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer3.ReplicatedRoutingTable;
-import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.IPv4Set;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
@@ -70,8 +57,6 @@ public class VRNController extends AbstractController
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
     VRNCoordinator vrn;
-    private Map<UUID, L3DevicePort> devPortById;
-    private Map<Integer, L3DevicePort> devPortByNum;
     short idleFlowExpireSeconds; //package private to allow test access.
 
     private PortService service;
@@ -79,7 +64,7 @@ public class VRNController extends AbstractController
     // Store port num of a port that has a service port.
     private short serviceTargetPort;
     // Track which routers processed an installed flow.
-    private Map<MidoMatch, Set<UUID>> matchToRouters;
+    private Map<MidoMatch, Collection<UUID>> matchToRouters;
     // The controllers which make up the portsets.
     // TODO: Should this be part of PortZkManager?
     private PortSetMap portSetMap;
@@ -101,8 +86,6 @@ public class VRNController extends AbstractController
         this.routeMgr = routeMgr;
         this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, chainMgr,
                 ruleMgr, reactor, cache);
-        this.devPortById = new HashMap<UUID, L3DevicePort>();
-        this.devPortByNum = new HashMap<Integer, L3DevicePort>();
         this.portSetMap = portSetMap;
         portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
@@ -110,7 +93,7 @@ public class VRNController extends AbstractController
         this.service = service;
         this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
-        this.matchToRouters = new HashMap<MidoMatch, Set<UUID>>();
+        this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
         this.dhcpHandler = new DhcpHandler();
     }
 
@@ -157,7 +140,6 @@ public class VRNController extends AbstractController
         int inPort = shortInPort & 0xffff;
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, shortInPort);
-        L3DevicePort devPortOut;
 
         // Rewrite inPort with the service's target port assuming that
         // service flows sent this packet to the OFPP_CONTROLLER.
@@ -170,9 +152,9 @@ public class VRNController extends AbstractController
         }
 
         // Try mapping the port number to a virtual device port.
-        L3DevicePort devPortIn = devPortByNum.get(inPort);
+        UUID inPortId = portNumToUuid.get(inPort);
         // If the port isn't a virtual port and it isn't a tunnel, drop the pkt.
-        if (null == devPortIn && !super.isTunnelPortNum(inPort)) {
+        if (null == inPortId && !super.isTunnelPortNum(inPort)) {
             log.warn("onPacketIn: dropping packet from port {} (not virtual "
                     + "or tunnel): {}", inPort, match);
             // TODO(pino): should we install a drop rule to avoid processing
@@ -197,43 +179,8 @@ public class VRNController extends AbstractController
                 new Object [] { inPort, bufferId, totalLen, ethPkt });
 
         if (super.isTunnelPortNum(inPort)) {
-            log.debug("onPacketIn: got packet from tunnel {}", inPort);
-
-            // TODO: Check for multicast packets we generated ourself for a
-            // group we're in, and drop them.
-
-            // TODO: Check for the broadcast address, and if so use the
-            // broadcast
-            // ethernet address for the dst MAC.
-            // We can check the broadcast address by looking up the gateway in
-            // Zookeeper to get the prefix length of its network.
-
-            // TODO: Do address spoofing prevention: if the source
-            // address doesn't match the vport's, drop the flow.
-
-            // Extract the gateway IP and vport uuid.
-            DecodedMacAddrs portsAndGw = decodeMacAddrs(match
-                    .getDataLayerSource(), match.getDataLayerDestination());
-
-            log.debug("onPacketIn: from tunnel port {} decoded mac {}",
-                    inPort, portsAndGw);
-
-            // If we don't own the egress port, there was a forwarding mistake.
-            devPortOut = devPortById.get(portsAndGw.lastEgressPortId);
-
-            if (null == devPortOut) {
-                log.warn("onPacketIn: the egress port {} is not local", portsAndGw.lastEgressPortId);
-                // TODO: raise an exception or install a Blackhole?
-                return;
-            }
-
-            // XXX: There will be no more TunneledPktArpCallbacks
-            TunneledPktArpCallback cb = new TunneledPktArpCallback(bufferId,
-                    totalLen, inPort, data, match, portsAndGw);
-            log.debug("onPacketIn: need mac for ip {} on port {}",
-                        IPv4.fromIPv4Address(portsAndGw.nextHopNwAddr),
-                        portsAndGw.lastEgressPortId);
-            // The ARP will be completed asynchronously by the callback.
+            forwardTunneledPkt(match,  bufferId, totalLen, inPort, data,
+                    matchingTunnelId);
             return;
         }
 
@@ -246,8 +193,8 @@ public class VRNController extends AbstractController
                     DHCP dhcp = (DHCP) udp.getPayload();
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
                         log.debug("onPacketIn: got a DHCP bootrequest");
-                        dhcpHandler.handleDhcpRequest(devPortIn, dhcp,
-                                ethPkt.getSourceMACAddress());
+                        dhcpHandler.handleDhcpRequest(
+                                inPortId, dhcp, ethPkt.getSourceMACAddress());
                         freeBuffer(bufferId);
                         return;
                     }
@@ -255,17 +202,8 @@ public class VRNController extends AbstractController
             }
         }
 
-        // Drop the packet if it's not addressed to an L2 mcast address or
-        // the ingress port's own address.
-        // TODO(pino): check this with Jacob.
-        if (!ethPkt.getDestinationMACAddress().equals(devPortIn.getMacAddr())
-                && !ethPkt.isMcast()) {
-            log.warn("onPacketIn: dlDst {} not mcast nor virtual port's addr", ethPkt.getDestinationMACAddress());
-            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, ICMP_EXPIRY_SECONDS);
-            return;
-        }
         ForwardInfo fwdInfo = new ForwardInfo();
-        fwdInfo.inPortId = devPortIn.getId();
+        fwdInfo.inPortId = inPortId;
         fwdInfo.flowMatch = match;
         fwdInfo.matchIn = match.clone();
         fwdInfo.pktIn = ethPkt;
@@ -299,8 +237,6 @@ public class VRNController extends AbstractController
             log.debug("onPacketIn: vrn.process() returned BLACKHOLE for {}", fwdInfo);
             installBlackhole(flowMatch, bufferId, NO_IDLE_TIMEOUT,
                     ICMP_EXPIRY_SECONDS);
-            notifyFlowAdded(match, flowMatch, devPortIn.getId(), fwdInfo,
-                    routers);
             freeFlowResources(match, routers);
             return;
         case CONSUMED:
@@ -309,14 +245,11 @@ public class VRNController extends AbstractController
             return;
         case FORWARD:
             // If the egress port is local, ARP and forward the packet.
-            devPortOut = devPortById.get(fwdInfo.outPortId);
-            if (null != devPortOut) {
+            Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
+            if (null != outPortNum) {
                 log.debug("onPacketIn: vrn.process() returned FORWARD to " +
-                          "local port {} for {}", devPortOut, fwdInfo);
-                // XXX: There'll be no more LocalPktArpCallbacks.
-                LocalPktArpCallback cb = new LocalPktArpCallback(bufferId,
-                        totalLen, devPortIn, data, match, fwdInfo, ethPkt,
-                        routers);
+                          "local port {} for {}", outPortNum, fwdInfo);
+                forwardLocalPacket(fwdInfo, bufferId, totalLen, data, outPortNum);
             } else { // devPortOut is null; the egress port is remote or multiple.
                 log.debug("onPacketIn: vrn.process() returned FORWARD to "
                         + "remote/multi port {} for {}", fwdInfo.outPortId, fwdInfo);
@@ -386,13 +319,7 @@ public class VRNController extends AbstractController
 
                 log.debug("onPacketIn: FORWARDing to tunnel port {}",
                         tunPortNum);
-                MAC[] dlHeaders = getDlHeadersForTunnel(
-                        ShortUUID.UUID32toInt(fwdInfo.inPortId),
-                        ShortUUID.UUID32toInt(fwdInfo.outPortId),
-                        fwdInfo.nextHopNwAddr);
-
-                fwdInfo.matchOut.setDataLayerSource(dlHeaders[0]);
-                fwdInfo.matchOut.setDataLayerDestination(dlHeaders[1]);
+                // Map the tunnel id to a portSetId.
 
                 List<OFAction> ofActions = makeActionsForFlow(match,
                         fwdInfo.matchOut, tunPortNum.shortValue());
@@ -565,89 +492,32 @@ public class VRNController extends AbstractController
         return result;
     }
 
-    private class TunneledPktArpCallback implements Callback<MAC> {
-        public TunneledPktArpCallback(int bufferId, int totalLen, int inPort,
-                byte[] data, MidoMatch match, DecodedMacAddrs portsAndGw) {
-            super();
-            this.bufferId = bufferId;
-            this.totalLen = totalLen;
-            this.inPort = inPort;
-            this.data = data;
-            this.match = match;
-            this.portsAndGw = portsAndGw;
+    public void forwardTunneledPkt(MidoMatch match, int bufferId, int totalLen,
+            int inPort, byte[] data, long tunnelId) {
+        // TODO(pino): move the check for 'local' outPort here from onPacketIn
+        log.debug("onPacketIn: got packet from tunnel {}", inPort);
+
+        // TODO(pino): convert the tunnelId to a vport destination
+        UUID destPortId = null;
+        // TODO(pino): Is the destination a PortSet or a single port?
+        // If it's a single port, make sure it's local.
+        Integer destPortNum = portUuidToNumberMap.get(destPortId);
+        if (null == destPortNum) {
+            log.warn("onPacketIn: tunneled packet's egress port {} is " +
+                    "not local", destPortId);
+            // TODO(pino): install a DROP flow entry.
         }
 
-        int bufferId;
-        int totalLen;
-        int inPort;
-        byte[] data;
-        MidoMatch match;
-        DecodedMacAddrs portsAndGw;
+        log.debug("onPacketIn: from tunnel port {} to vport {}, OF# {}",
+                new Object[] {inPort, destPortId, destPortNum} );
 
-        @Override
-        public void call(MAC mac) {
-            String nwDstStr = IPv4.fromIPv4Address(match
-                    .getNetworkDestination());
-            if (null != mac) {
-                log.debug("TunneledPktArpCallback.call: Mac resolved for tunneled packet to {}", nwDstStr);
-                L3DevicePort devPort = devPortById
-                        .get(portsAndGw.lastEgressPortId);
+        // TODO(pino): wildcard everything except inPort and tunnelId?
+        // Do the flows really need to be finer-grained?
 
-                if (null == devPort) {
-                    log.warn("TunneledPktArpCallback.call: port {} is no longer local", portsAndGw.lastEgressPortId);
-                    // TODO(pino): do we need to do anything for this?
-                    // The port was removed while we waited for the ARP.
-                    return;
-                }
-
-                MidoMatch newMatch = match.clone();
-                // TODO(pino): get the port's mac address from the ZK config.
-                newMatch.setDataLayerSource(devPort.getMacAddr());
-                newMatch.setDataLayerDestination(mac);
-                List<OFAction> ofActions = makeActionsForFlow(match, newMatch,
-                        devPort.getNum());
-                boolean useWildcards = true; // TODO: get this from config.
-                if (useWildcards) {
-                    // TODO: Should we check for non-load-balanced routes and
-                    // wild-card flows matching them on layer 3 and lower?
-                    // inPort, dlType, nwSrc.
-                    match = makeWildcardedFromTunnel(match);
-                }
-
-                // If this is an ICMP error message from a peer controller,
-                // don't install a flow match, just send the packet
-                if (ShortUUID.UUID32toInt(portsAndGw.lastIngressPortId) == ICMP_TUNNEL) {
-                    log.debug("TunneledPktArpCallback.call: forward ICMP without installing flow");
-                    VRNController.super.controllerStub.sendPacketOut(
-                            bufferId, (short)inPort, ofActions, data);
-                } else {
-                    log.debug("TunneledPktArpCallback.call: forward and install flow {}", match);
-                    addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                            NO_HARD_TIMEOUT, true, ofActions, (short)inPort, data);
-                }
-            } else {
-                log.debug("TunneledPktArpCallback.call: ARP timed out for tunneled packet to {}, send ICMP",
-                        nwDstStr);
-                installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
-                        ICMP_EXPIRY_SECONDS);
-                // Send an ICMP !H
-                ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
-                Ethernet ethPkt = new Ethernet();
-                try {
-                    ethPkt.deserialize(bb);
-                } catch (MalformedPacketException ex) {
-                    // Packet could not be deserialized: Drop it.
-                    log.warn("TunneledPktArpCallback.call: dropping malformed "
-                            + "packet from port {}.  {}", inPort, ex.getMessage());
-                    freeBuffer(bufferId);
-                    return;
-                }
-
-                //sendICMPforTunneledPkt(ICMP.UNREACH_CODE.UNREACH_HOST, ethPkt,
-                //        portsAndGw.lastIngressPortId,
-                //        portsAndGw.lastEgressPortId);
-            }
-        }
+        // TODO(pino): should controller-generated ARP/ICMP install flows?
+        List<OFAction> ofActions = null;
+        addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
+                NO_HARD_TIMEOUT, true, ofActions, (short)inPort, data);
     }
 
     private void addFlowAndSendPacket(int bufferId, OFMatch match,
@@ -664,79 +534,19 @@ public class VRNController extends AbstractController
                     actions, data);
     }
 
-    private class LocalPktArpCallback implements Callback<MAC> {
-        public LocalPktArpCallback(int bufferId, int totalLen,
-                L3DevicePort devPortIn, byte[] data, MidoMatch match,
-                ForwardInfo fwdInfo, Ethernet ethPkt, Set<UUID> traversedRouters) {
-            super();
-            this.bufferId = bufferId;
-            this.totalLen = totalLen;
-            this.inPort = devPortIn;
-            this.data = data;
-            this.match = match;
-            this.fwdInfo = fwdInfo;
-            this.ethPkt = ethPkt;
-            this.traversedRouters = traversedRouters;
-        }
+    public void forwardLocalPacket(ForwardInfo fwdInfo, int bufferId,
+            int totalLen, byte[] data, int outPortNum) {
 
-        int bufferId;
-        int totalLen;
-        L3DevicePort inPort;
-        byte[] data;
-        MidoMatch match;
-        ForwardInfo fwdInfo;
-        Ethernet ethPkt;
-        Set<UUID> traversedRouters;
+        List<OFAction> ofActions = makeActionsForFlow(fwdInfo.flowMatch,
+                fwdInfo.matchOut, (short)outPortNum);
+        // TODO(pino): wildcard some of the match's fields.
 
-        @Override
-        public void call(MAC mac) {
-            String nwDstStr = IPv4.fromIPv4Address(match
-                    .getNetworkDestination());
-            if (null != mac) {
-                log.debug("LocalPktArpCallback.call: mac resolved for local packet to {}", nwDstStr);
-
-                L3DevicePort devPort = devPortById.get(fwdInfo.outPortId);
-                if (null == devPort) {
-                    log.warn("LocalPktArpCallback.call: port is no longer local");
-                    freeFlowResources(match, traversedRouters);
-                    freeBuffer(bufferId);
-                    // TODO(pino): do we need to do anything for this?
-                    // The port was removed while we waited for the ARP.
-                    return;
-                }
-                log.debug("LocalPktArpCallback.call: forward and install flow");
-
-                fwdInfo.matchOut.setDataLayerSource(devPort.getMacAddr());
-                fwdInfo.matchOut.setDataLayerDestination(mac);
-                List<OFAction> ofActions = makeActionsForFlow(match,
-                        fwdInfo.matchOut, devPort.getNum());
-                boolean useWildcards = false; // TODO: get this from config.
-                if (useWildcards) {
-                    // TODO: Should we check for non-load-balanced routes and
-                    // wild-card flows matching them on layer 3 and lower?
-                    // inPort, dlType, nwSrc.
-                    match = makeWildcarded(match);
-                }
-                // Track the routers for this flow so we can free resources
-                // when the flow is removed.
-                matchToRouters.put(match, traversedRouters);
-                addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                        NO_HARD_TIMEOUT, true, ofActions, inPort.getNum(),
-                        data);
-            } else {
-                log.debug("ARP timed out for local packet to {} - send ICMP",
-                        nwDstStr);
-                installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
-                        ICMP_EXPIRY_SECONDS);
-                freeFlowResources(match, traversedRouters);
-                // Send an ICMP !H
-                //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_HOST, inPort
-                //        .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-                //        fwdInfo.outPortId);
-            }
-            notifyFlowAdded(match, fwdInfo.matchOut, inPort.getId(), fwdInfo,
-                    traversedRouters);
-        }
+        // Track the routers for this flow so we can free resources
+        // when the flow is removed.
+        matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+        addFlowAndSendPacket(bufferId, fwdInfo.flowMatch, idleFlowExpireSeconds,
+                NO_HARD_TIMEOUT, true, ofActions, 0 /* inPort? */, data);
+        // TODO(pino): free flow resources for non-forwarded packets.
     }
 
     private void sendUnbufferedPacketFromPort(Ethernet ethPkt, short portNum) {
@@ -746,12 +556,6 @@ public class VRNController extends AbstractController
         log.debug("sendUnbufferedPacketFromPort {}", ethPkt);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
                 OFPort.OFPP_NONE.getValue(), actions, ethPkt.serialize());
-    }
-
-    private void notifyFlowAdded(MidoMatch origMatch, MidoMatch flowMatch,
-            UUID inPortId, ForwardInfo fwdInfo, Set<UUID> routers) {
-        // TODO Auto-generated method stub
-
     }
 
     private void installBlackhole(MidoMatch flowMatch, int bufferId,
@@ -922,9 +726,10 @@ public class VRNController extends AbstractController
             ZkStateSerializationException, IOException, StateAccessException {
         // If the materiazlied router port isn't discovered yet, try
         // setting flows between BGP peers later.
-        if (devPortById.containsKey(portId)) {
+
+        if (portUuidToNumberMap.containsKey(portId)) {
             service.start(datapathId, portNum,
-                          devPortById.get(portId).getNum());
+                    portUuidToNumberMap.get(portId).shortValue());
         } else {
             if (!portServicesById.containsKey(portId)) {
                 portServicesById.put(portId, new ArrayList<Runnable>());
@@ -934,7 +739,7 @@ public class VRNController extends AbstractController
                 public void run() {
                     try {
                         service.start(datapathId, portNum,
-                                      devPortById.get(portId).getNum());
+                                portUuidToNumberMap.get(portId).shortValue());
                     } catch (Exception e) {
                         log.warn("startPortService", e);
                     }
@@ -953,11 +758,10 @@ public class VRNController extends AbstractController
         }
     }
 
-    private void addServicePort(L3DevicePort port) throws StateAccessException,
+    private void addServicePort(UUID portId) throws StateAccessException,
             ZkStateSerializationException, KeeperException {
-        Set<String> servicePorts = service.getPorts(port.getId());
+        Set<String> servicePorts = service.getPorts(portId);
         if (!servicePorts.isEmpty()) {
-            UUID portId = port.getId();
             if (portServicesById.containsKey(portId)) {
                 for (Runnable watcher : portServicesById.get(portId)) {
                     watcher.run();
@@ -965,7 +769,7 @@ public class VRNController extends AbstractController
                 return;
             }
         }
-        service.addPort(datapathId, port.getId(), port.getMacAddr());
+        service.addPort(datapathId, portId, null /*MacAddr*/);
     }
 
     @Override
@@ -979,56 +783,27 @@ public class VRNController extends AbstractController
     }
 
     @Override
-    protected void addVirtualPort(int portNum, String name, MAC addr,
-            UUID portId) {
-        L3DevicePort devPort = devPortByNum.get(portNum);
-        if (null != devPort) {
-            log.error("addVirtualPort num:{} name:{} was already added.",
-                    portNum, name);
-            return;
-        }
-
-        try {
-            devPort = new L3DevicePort(portMgr, routeMgr, portId,
-                    (short)portNum, addr, super.controllerStub);
-        } catch (Exception e) {
-            log.error("addVirtualPort", e);
-            return;
-        }
-        devPortById.put(portId, devPort);
-        devPortByNum.put(portNum, devPort);
-
-        log.info("addVirtualPort number {} bound to vport {} with "
-                + "nw address {}", new Object[] { portNum, devPort.getId(),
-                IPv4.fromIPv4Address(devPort.getVirtualConfig().portAddr) });
+    protected void addVirtualPort(
+            int portNum, String name, MAC addr, UUID portId) {
+        log.info("addVirtualPort number {} bound to vport {}", portNum, portId);
         try {
             vrn.addPort(portId);
-            addServicePort(devPort);
+            addServicePort(portId);
         } catch (Exception e) {
             log.error("addVirtualPort", e);
         }
-        setFlowsForHandlingDhcpInController(devPort.getNum());
+        setFlowsForHandlingDhcpInController((short)portNum);
     }
 
     @Override
     protected void deleteVirtualPort(int portNum, UUID portId) {
-        L3DevicePort devPort = devPortByNum.get(portNum);
-        if (null == devPort) {
-            log.error("deleteVirtualPort num:{} uuid:{} was never added.",
-                    portNum, portId);
-            return;
-        }
-        // TODO(pino): should we check that the devPort's uuid == portId?
-        log.info("deletePort number {} bound to virtual port {} with "
-                + "nw address {}", new Object[] { devPort.getNum(),
-                portId, devPort.getVirtualConfig().portAddr });
+        log.info("deletePort number {} bound to virtual port {}",
+                portNum, portId);
         try {
             vrn.removePort(portId);
         } catch (Exception e) {
             log.error("deleteVirtualPort", e);
         }
-        devPortById.remove(portId);
-        devPortByNum.remove(portNum);
     }
 
     @Override

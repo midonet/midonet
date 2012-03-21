@@ -30,7 +30,7 @@ public interface ForwardingElement {
     void freeFlowResources(OFMatch match);
 
     public enum Action {
-        BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED;
+        BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED, DROP;
     }
 
     /* ForwardingElements create and partially populate an instance of

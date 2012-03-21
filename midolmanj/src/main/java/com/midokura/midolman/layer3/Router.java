@@ -299,6 +299,15 @@ public class Router implements ForwardingElement, RouterMBean {
 
     @Override
     public void process(ForwardInfo fwdInfo) {
+        // TODO(pino, jlm): drop the packet if it's not addressed to an L2
+        // mcast address or the ingress port's own address ?
+        /*if (!ethPkt.getDestinationMACAddress().equals(devPortIn.getMacAddr())
+                && !ethPkt.isMcast()) {
+            log.warn("onPacketIn: dlDst {} not mcast nor virtual port's addr", ethPkt.getDestinationMACAddress());
+            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, ICMP_EXPIRY_SECONDS);
+            return;
+        }*/
+
         log.debug("{} process fwdInfo {}", this, fwdInfo);
 
         // Handle ARP first.
@@ -404,6 +413,9 @@ public class Router implements ForwardingElement, RouterMBean {
                 .getNetworkDestination() : rt.nextHopGateway;
         fwdInfo.action = Action.FORWARD;
         return;
+
+        // TODO(pino, jlm): Check for the broadcast address, and if so use the
+        // broadcast ethernet address for the dst MAC.
     }
 
     @Override
