@@ -8,10 +8,8 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.management.JMException;
@@ -24,10 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.ForwardingElement;
-import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.VRNController;
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
@@ -39,16 +35,13 @@ import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.ReplicatedMap;
-import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.util.ShortUUID;
 
 /**
  * This class coordinates the routing logic for a single virtual router. It

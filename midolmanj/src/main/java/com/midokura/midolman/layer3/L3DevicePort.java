@@ -1,4 +1,4 @@
-package com.midokura.midolman;
+package com.midokura.midolman.layer3;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +16,6 @@ import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.NoStatePathException;
@@ -49,15 +48,15 @@ public class L3DevicePort {
     private RoutesWatcher routesWatcher;
     private PortDirectory.MaterializedRouterPortConfig portCfg;
     private Set<Listener> listeners;
-    
+
     private final Logger log;
 
     public L3DevicePort(PortZkManager portMgr, RouteZkManager routeMgr,
             UUID portId, short portNum, MAC mac, ControllerStub stub)
             throws Exception {
-        
+
         log = LoggerFactory.getLogger(L3DevicePort.class.getCanonicalName() + '.' + portId);
-        
+
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
         this.portId = portId;

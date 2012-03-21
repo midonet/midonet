@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
-import com.midokura.midolman.L3DevicePort;
+import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;

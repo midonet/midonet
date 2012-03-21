@@ -30,7 +30,6 @@ import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
-import com.midokura.midolman.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer4.NatLeaseManager;
@@ -44,7 +43,6 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -641,7 +639,7 @@ public class TestRouter {
     /**
      * Check that the router does/doesn't reply to an ARP request for the given
      * target protocol address.
-     * 
+     *
      * @param portId
      *            The port at which the ARP request is received.
      * @param arpTpa
@@ -861,12 +859,12 @@ public class TestRouter {
         // uplink (e.g. 144.0.16.3).
         UUID port11Id = portNumToId.get(11);
         Ethernet badEthToUplink = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:01"),
                 MAC.fromString("02:00:11:22:00:64"), 0x0a0001d2, 0x90001003,
                 (short) 1111, (short) 2222, payload);
         // This packet has a good source address and is always routed correctly.
         Ethernet goodEthToUplink = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:01"),
                 MAC.fromString("02:00:11:22:00:64"), 0x0a000104, 0x90001003,
                 (short) 1111, (short) 2222, payload);
         fInfo = routePacket(port11Id, badEthToUplink);
@@ -923,7 +921,7 @@ public class TestRouter {
 
         // Send a packet 10.0.2.5 from the uplink.
         Ethernet ethToQuarantined = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:01"),
                 MAC.fromString("02:00:11:22:00:a3"), 0x94001006, 0x0a000205,
                 (short) 1111, (short) 2222, payload);
         fInfo = routePacket(port11Id, ethToQuarantined);
@@ -947,7 +945,7 @@ public class TestRouter {
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port21Id = portNumToId.get(21);
         Ethernet ethToExtAddr = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:01"),
                 MAC.fromString("02:00:11:22:00:85"), 0x0a000206, extNwAddr,
                 (short) 80, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port21Id, ethToExtAddr);
@@ -958,7 +956,7 @@ public class TestRouter {
         // Now send a packet from 192.11.11.10 to the dnat-ed address
         // (180.0.0.1:80).
         Ethernet ethToPublicAddr = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"), 
+                MAC.fromString("02:00:11:22:00:01"),
                 MAC.fromString("02:00:11:22:00:cf"), extNwAddr, publicDnatAddr,
                 (short) 2222, (short) 80, payload);
         fInfo = routePacket(uplinkId, ethToPublicAddr);
