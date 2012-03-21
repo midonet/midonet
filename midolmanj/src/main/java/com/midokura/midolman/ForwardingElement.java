@@ -68,7 +68,7 @@ public interface ForwardingElement {
                    ", pktIn=" + pktIn + ", matchIn=" + matchIn +
                    ", action=" + action + ", outPortId=" + outPortId +
                    ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
-                    + matchOut + ", trackConnection=" + trackConnection + 
+                    + matchOut + ", trackConnection=" + trackConnection +
                    ", depth=" + depth + "]";
         }
     }

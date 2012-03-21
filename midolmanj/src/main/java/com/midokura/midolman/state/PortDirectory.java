@@ -75,6 +75,14 @@ public class PortDirectory {
             this.portAddr = Net.convertStringAddressToInt(addr);
         }
 
+        public MAC getHwAddr() {
+            return hwAddr;
+        }
+
+        public void setHwAddr(MAC hwAddr) {
+            this.hwAddr = hwAddr;
+        }
+
         public Set<Route> getRoutes() { return routes; }
         public void setRoutes(Set<Route> routes) { this.routes = routes; }
 

@@ -155,7 +155,7 @@ public class TestVRNController {
         Directory portLocSubdir =
                 dir.getSubDirectory(pathMgr.getVRNPortLocationsPath());
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
-        Directory portSetSubdir = 
+        Directory portSetSubdir =
                 dir.getSubDirectory(pathMgr.getPortSetsPath());
         PortSetMap portSetMap = new PortSetMap(portSetSubdir);
 
@@ -825,7 +825,8 @@ public class TestVRNController {
         eth.setDestinationMACAddress(dlDst);
         eth.setSourceMACAddress(dlSrc);
         eth.setEtherType(ARP.ETHERTYPE);
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, null));
+        Router rtr = null; // TODO(pino): fix this.
+        Assert.assertFalse(rtr.canSendICMP(eth, null));
 
         // Make a normal UDP packet from a host on router2's second port
         // to a host on router0's second port. This can trigger ICMP.
@@ -837,54 +838,54 @@ public class TestVRNController {
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         eth = TestRouter.makeUDP(dlSrc, dlDst, nwSrc, nwDst, (short) 2345,
                 (short) 1221, payload);
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, null));
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertTrue(rtr.canSendICMP(eth, null));
+        Assert.assertTrue(rtr.canSendICMP(eth, dstPortId));
 
         // Now change the destination address to router0's second port's
         // broadcast address.
         IPv4 origIpPkt = IPv4.class.cast(eth.getPayload());
         origIpPkt.setDestinationAddress(0x0a0001ff);
         // Still triggers ICMP if we don't supply the output port.
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, null));
+        Assert.assertTrue(rtr.canSendICMP(eth, null));
         // Still triggers ICMP if we supply the wrong output port.
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth,
+        Assert.assertTrue(rtr.canSendICMP(eth,
                 ShortUUID.intTo32BitUUID(portNumToIntId.get(10))));
         // Doesn't trigger ICMP if we supply the output port.
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertFalse(rtr.canSendICMP(eth, dstPortId));
 
         // Now change the destination address to a multicast address.
         origIpPkt.setDestinationAddress((225 << 24) + 0x000001ff);
         Assert.assertTrue(origIpPkt.isMcast());
         // Won't trigger ICMP regardless of the output port id.
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertFalse(rtr.canSendICMP(eth, null));
+        Assert.assertFalse(rtr.canSendICMP(eth, dstPortId));
 
         // Now change the network dst address back to normal and then change
         // the ethernet dst address to a multicast/broadcast.
         origIpPkt.setDestinationAddress(nwDst);
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth,
+        Assert.assertTrue(rtr.canSendICMP(eth,
                 ShortUUID.intTo32BitUUID(portNumToIntId.get((int) dstPort))));
         // Use any address that has an odd number if first byte.
         MAC mcastMac = MAC.fromString("07:cd:cd:ab:ab:34");
         eth.setDestinationMACAddress(mcastMac);
         Assert.assertTrue(eth.isMcast());
         // Won't trigger ICMP regardless of the output port id.
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertFalse(rtr.canSendICMP(eth, null));
+        Assert.assertFalse(rtr.canSendICMP(eth, dstPortId));
 
         // Now change the ethernet dst address back to normal and then change
         // the ip packet's fragment offset.
         eth.setDestinationMACAddress(dlDst);
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertTrue(rtr.canSendICMP(eth, dstPortId));
         origIpPkt.setFragmentOffset((short) 3);
         // Won't trigger ICMP regardless of the output port id.
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertFalse(rtr.canSendICMP(eth, null));
+        Assert.assertFalse(rtr.canSendICMP(eth, dstPortId));
 
         // Change the fragment offset back to zero. Then make and ICMP error in
         // response to the original UDP.
         origIpPkt.setFragmentOffset((short) 0);
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertTrue(rtr.canSendICMP(eth, dstPortId));
         ICMP icmp = new ICMP();
         icmp.setUnreachable(ICMP.UNREACH_CODE.UNREACH_HOST, origIpPkt);
         // The icmp packet will be emitted from the lastIngress port:
@@ -900,8 +901,8 @@ public class TestVRNController {
         eth.setSourceMACAddress(MAC.fromString("02:a1:b2:c3:d4:e5"));
         eth.setDestinationMACAddress(MAC.fromString("02:a1:b2:c3:d4:e6"));
         // ICMP errors can't trigger ICMP errors.
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, null));
-        Assert.assertFalse(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertFalse(rtr.canSendICMP(eth, null));
+        Assert.assertFalse(rtr.canSendICMP(eth, dstPortId));
 
         // Make an ICMP echo request. Verify it can trigger ICMP errors.
         icmp = new ICMP();
@@ -922,8 +923,8 @@ public class TestVRNController {
         eth.setEtherType(IPv4.ETHERTYPE);
         eth.setDestinationMACAddress(MAC.fromString("02:cd:ef:01:23:45"));
         eth.setSourceMACAddress(MAC.fromString("02:cd:ef:01:23:46"));
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, null));
-        Assert.assertTrue(vrnCtrl.canSendICMP(eth, dstPortId));
+        Assert.assertTrue(rtr.canSendICMP(eth, null));
+        Assert.assertTrue(rtr.canSendICMP(eth, dstPortId));
     }
 
     @Test

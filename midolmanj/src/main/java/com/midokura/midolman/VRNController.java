@@ -85,6 +85,7 @@ public class VRNController extends AbstractController
     private PortSetMap portSetMap;
     // The local OVS ports in a portset.
     private Map<UUID, Set<Short>> localPortSetSlices;
+    private DhcpHandler dhcpHandler;
 
     public VRNController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
@@ -93,7 +94,7 @@ public class VRNController extends AbstractController
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
             String externalIdKey, PortService service, PortSetMap portSetMap) {
-        super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr, 
+        super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr,
               externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
         this.portMgr = portMgr;
@@ -110,17 +111,18 @@ public class VRNController extends AbstractController
         this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Set<UUID>>();
+        this.dhcpHandler = new DhcpHandler();
     }
 
     /*
      * Setup a flow that sends all DHCP request packets to
      * the controller.
      */
-    private void setFlowsForHandlingDhcpInController(L3DevicePort devPortIn) {
-        log.debug("setFlowsForHandlingDhcpInController: on port {}", devPortIn);
+    private void setFlowsForHandlingDhcpInController(short portNum) {
+        log.debug("setFlowsForHandlingDhcpInController: on port {}", portNum);
 
         MidoMatch match = new MidoMatch();
-        match.setInputPort(devPortIn.getNum());
+        match.setInputPort(portNum);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
         match.setTransportSource((short) 68);
@@ -135,202 +137,6 @@ public class VRNController extends AbstractController
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
 
-    private void handleDhcpRequest(L3DevicePort devPortIn, DHCP request,
-            MAC sourceMac) {
-        /* TODO: Break this up, it's too long. */
-        byte[] chaddr = request.getClientHardwareAddress();
-        if (null == chaddr) {
-            log.warn("handleDhcpRequest dropping bootrequest with null chaddr");
-            return;
-        }
-        if (chaddr.length != 6) {
-            log.warn("handleDhcpRequest dropping bootrequest with chaddr "
-                    + "with length {} greater than 6.", chaddr.length);
-            return;
-        }
-        log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
-                + "and ciaddr {}",
-                new Object[] { devPortIn, Net.convertByteMacToString(chaddr),
-                        IPv4.fromIPv4Address(request.getClientIPAddress()) });
-
-        // Extract all the options and put them in a map
-        Map<Byte, DHCPOption> reqOptions = new HashMap<Byte, DHCPOption>();
-        Set<Byte> requestedCodes = new HashSet<Byte>();
-        for (DHCPOption opt : request.getOptions()) {
-            byte code = opt.getCode();
-            reqOptions.put(code, opt);
-            log.debug("handleDhcpRequest found option {}:{}", code,
-                    DHCPOption.codeToName.get(code));
-            if (code == DHCPOption.Code.DHCP_TYPE.value()) {
-                if (opt.getLength() != 1) {
-                    log.warn("handleDhcpRequest dropping bootrequest - "
-                            + "dhcp msg type option has bad length or data.");
-                    return;
-                }
-                log.debug("handleDhcpRequest dhcp msg type {}:{}",
-                        opt.getData()[0],
-                        DHCPOption.msgTypeToName.get(opt.getData()[0]));
-            }
-            if (code == DHCPOption.Code.PRM_REQ_LIST.value()) {
-                if (opt.getLength() <= 0) {
-                    log.warn("handleDhcpRequest dropping bootrequest - "
-                            + "param request list has bad length");
-                    return;
-                }
-                for (int i = 0; i < opt.getLength(); i++) {
-                    byte c = opt.getData()[i];
-                    requestedCodes.add(c);
-                    log.debug("handleDhcpRequest client requested option "
-                            + "{}:{}", c, DHCPOption.codeToName.get(c));
-                }
-            }
-        }
-        DHCPOption typeOpt = reqOptions.get(DHCPOption.Code.DHCP_TYPE.value());
-        if (null == typeOpt) {
-            log.warn("handleDhcpRequest dropping bootrequest - no dhcp msg "
-                    + "type found.");
-            return;
-        }
-        byte msgType = typeOpt.getData()[0];
-        boolean drop = true;
-        List<DHCPOption> options = new ArrayList<DHCPOption>();
-        DHCPOption opt;
-        if (DHCPOption.MsgType.DISCOVER.value() == msgType) {
-            drop = false;
-            // Reply with a dchp OFFER.
-            opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
-                    DHCPOption.Code.DHCP_TYPE.length(),
-                    new byte[] { DHCPOption.MsgType.OFFER.value() });
-            options.add(opt);
-
-        } else if (DHCPOption.MsgType.REQUEST.value() == msgType) {
-            drop = false;
-            // Reply with a dchp ACK.
-            opt = new DHCPOption(DHCPOption.Code.DHCP_TYPE.value(),
-                    DHCPOption.Code.DHCP_TYPE.length(),
-                    new byte[] { DHCPOption.MsgType.ACK.value() });
-            options.add(opt);
-            // http://tools.ietf.org/html/rfc2131 Section 3.1, Step 3:
-            // "The client broadcasts a DHCPREQUEST message that MUST include
-            // the 'server identifier' option to indicate which server is has
-            // selected."
-            // TODO(pino): figure out why Linux doesn't send us the server id
-            // and try re-enabling this code.
-            opt = reqOptions.get(DHCPOption.Code.SERVER_ID
-                    .value());
-            if (null == opt) {
-                log.warn("handleDhcpRequest dropping dhcp REQUEST - no " +
-                		"server id option found.");
-                // TODO(pino): re-enable this.
-                //return;
-            } else {
-                // The server id should correspond to this port's address.
-                int ourServId = devPortIn.getVirtualConfig().portAddr;
-                int theirServId = IPv4.toIPv4Address(opt.getData());
-                if (ourServId != theirServId) {
-                    log.warn("handleDhcpRequest dropping dhcp REQUEST - client "
-                            + "chose server {} not us {}",
-                            IPv4.fromIPv4Address(theirServId),
-                            IPv4.fromIPv4Address(ourServId));
-                }
-            }
-            // The request must contain a requested IP address option.
-            opt = reqOptions.get(DHCPOption.Code.REQUESTED_IP.value());
-            if (null == opt) {
-                log.warn("handleDhcpRequest dropping dhcp REQUEST - no "
-                        + "requested ip option found.");
-                return;
-            }
-            // The requested ip must correspond to the yiaddr in our offer.
-            int reqIp = IPv4.toIPv4Address(opt.getData());
-            int offeredIp = devPortIn.getVirtualConfig().localNwAddr;
-            // TODO(pino): must keep state and remember the offered ip based
-            // on the chaddr or the client id option.
-            if (reqIp != offeredIp) {
-                log.warn("handleDhcpRequest dropping dhcp REQUEST - the " +
-                        "requested ip {} is not the offered yiaddr {}",
-                        IPv4.fromIPv4Address(reqIp), IPv4.fromIPv4Address(offeredIp));
-                // TODO(pino): send a dhcp NAK reply.
-                return;
-            }
-        }
-        if (drop) {
-            log.warn("handleDhcpRequest dropping bootrequest - we don't "
-                    + "handle msg type {}:{}", msgType,
-                    DHCPOption.msgTypeToName.get(msgType));
-            return;
-        }
-        DHCP reply = new DHCP();
-        reply.setOpCode(DHCP.OPCODE_REPLY);
-        reply.setTransactionId(request.getTransactionId());
-        reply.setHardwareAddressLength((byte) 6);
-        reply.setHardwareType((byte) ARP.HW_TYPE_ETHERNET);
-        reply.setClientHardwareAddress(sourceMac);
-        reply.setServerIPAddress(devPortIn.getVirtualConfig().portAddr);
-        // TODO(pino): use explicitly assigned address not localNwAddr!!
-        reply.setYourIPAddress(devPortIn.getVirtualConfig().localNwAddr);
-        // TODO(pino): do we need to include the DNS option?
-        opt = new DHCPOption(DHCPOption.Code.MASK.value(),
-                DHCPOption.Code.MASK.length(),
-                IPv4.toIPv4AddressBytes(~0 << (32 - devPortIn
-                        .getVirtualConfig().nwLength)));
-        options.add(opt);
-        // Generate the broadcast address... this is nwAddr with 1's in the
-        // last 32-nwAddrLength bits.
-        int mask = ~0 >>> devPortIn.getVirtualConfig().nwLength;
-        int bcast = mask | devPortIn.getVirtualConfig().nwAddr;
-        log.debug("handleDhcpRequest setting bcast addr option to {}",
-                IPv4.fromIPv4Address(bcast));
-        opt = new DHCPOption(
-                DHCPOption.Code.BCAST_ADDR.value(),
-                DHCPOption.Code.BCAST_ADDR.length(),
-                IPv4.toIPv4AddressBytes(bcast));
-        options.add(opt);
-        opt = new DHCPOption(
-                DHCPOption.Code.IP_LEASE_TIME.value(),
-                DHCPOption.Code.IP_LEASE_TIME.length(),
-                // This is in seconds... is 1 day enough?
-                IPv4.toIPv4AddressBytes(86400));
-        options.add(opt);
-        opt = new DHCPOption(
-                DHCPOption.Code.ROUTER.value(),
-                DHCPOption.Code.ROUTER.length(),
-                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
-        options.add(opt);
-        // in MidoNet the DHCP server is the same as the router
-        opt = new DHCPOption(
-                DHCPOption.Code.SERVER_ID.value(),
-                DHCPOption.Code.SERVER_ID.length(),
-                IPv4.toIPv4AddressBytes(devPortIn.getVirtualConfig().portAddr));
-        options.add(opt);
-        // And finally add the END option.
-        opt = new DHCPOption(DHCPOption.Code.END.value(),
-                DHCPOption.Code.END.length(), null);
-        options.add(opt);
-        reply.setOptions(options);
-
-        UDP udp = new UDP();
-        udp.setSourcePort((short) 67);
-        udp.setDestinationPort((short) 68);
-        udp.setPayload(reply);
-
-        IPv4 ip = new IPv4();
-        ip.setSourceAddress(devPortIn.getVirtualConfig().portAddr);
-        ip.setDestinationAddress("255.255.255.255");
-        ip.setProtocol(UDP.PROTOCOL_NUMBER);
-        ip.setPayload(udp);
-
-        Ethernet eth = new Ethernet();
-        eth.setEtherType(IPv4.ETHERTYPE);
-        eth.setPayload(ip);
-
-        eth.setSourceMACAddress(devPortIn.getMacAddr());
-        eth.setDestinationMACAddress(sourceMac);
-
-        log.debug("handleDhcpRequest: sending DHCP reply {} to port {}", eth,
-                devPortIn);
-        sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
-    }
 
     public void addGeneratedPacket(Ethernet pkt, UUID originPort) {
         //reactor.submit(new GenPacketContext(pkt, originPort));
@@ -440,7 +246,7 @@ public class VRNController extends AbstractController
                     DHCP dhcp = (DHCP) udp.getPayload();
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
                         log.debug("onPacketIn: got a DHCP bootrequest");
-                        handleDhcpRequest(devPortIn, dhcp,
+                        dhcpHandler.handleDhcpRequest(devPortIn, dhcp,
                                 ethPkt.getSourceMACAddress());
                         freeBuffer(bufferId);
                         return;
@@ -523,7 +329,7 @@ public class VRNController extends AbstractController
                     IPv4Set remoteControllersAddrs = portSetMap.get(fwdInfo.outPortId);
                     if (remoteControllersAddrs == null)
                         log.error("Can't find portset ID {}", fwdInfo.outPortId);
-                    else for (String remoteControllerAddr : 
+                    else for (String remoteControllerAddr :
                             remoteControllersAddrs.getStrings()) {
                         IntIPv4 target = IntIPv4.fromString(remoteControllerAddr);
                         // Skip the local controller.
@@ -546,9 +352,9 @@ public class VRNController extends AbstractController
                                 ICMP_EXPIRY_SECONDS);
                         freeFlowResources(match, routers);
                         // TODO: check whether this is the right error code (host?).
-                        sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
-                                devPortIn.getId(), ethPkt, fwdInfo.inPortId,
-                                fwdInfo.pktIn, fwdInfo.outPortId);
+                        //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
+                        //        devPortIn.getId(), ethPkt, fwdInfo.inPortId,
+                        //        fwdInfo.pktIn, fwdInfo.outPortId);
                         return;
                     }
 
@@ -562,7 +368,7 @@ public class VRNController extends AbstractController
                     return;
                 }
 
-                Integer tunPortNum = 
+                Integer tunPortNum =
                         super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
                 if (null == tunPortNum) {
                     log.warn("onPacketIn:  No tunnel port found for {}",
@@ -572,9 +378,9 @@ public class VRNController extends AbstractController
                             ICMP_EXPIRY_SECONDS);
                     freeFlowResources(match, routers);
                     // TODO: check whether this is the right error code (host?).
-                    sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
-                            devPortIn.getId(), ethPkt, fwdInfo.inPortId,
-                            fwdInfo.pktIn, fwdInfo.outPortId);
+                    //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
+                    //        devPortIn.getId(), ethPkt, fwdInfo.inPortId,
+                    //        fwdInfo.pktIn, fwdInfo.outPortId);
                     return;
                 }
 
@@ -616,9 +422,9 @@ public class VRNController extends AbstractController
                     ICMP_EXPIRY_SECONDS);
             freeFlowResources(match, routers);
             // Send an ICMP
-            sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
-                    .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-                    fwdInfo.outPortId);
+            //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
+            //        .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
+            //        fwdInfo.outPortId);
             // This rule is temporary, don't notify the flow checker.
             return;
         case REJECT:
@@ -629,9 +435,9 @@ public class VRNController extends AbstractController
                     ICMP_EXPIRY_SECONDS);
             freeFlowResources(match, routers);
             // Send an ICMP
-            sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
-                    devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-                    fwdInfo.outPortId);
+            //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
+            //        devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
+            //        fwdInfo.outPortId);
             // This rule is temporary, don't notify the flow checker.
             return;
         default:
@@ -837,9 +643,9 @@ public class VRNController extends AbstractController
                     return;
                 }
 
-                sendICMPforTunneledPkt(ICMP.UNREACH_CODE.UNREACH_HOST, ethPkt,
-                        portsAndGw.lastIngressPortId,
-                        portsAndGw.lastEgressPortId);
+                //sendICMPforTunneledPkt(ICMP.UNREACH_CODE.UNREACH_HOST, ethPkt,
+                //        portsAndGw.lastIngressPortId,
+                //        portsAndGw.lastEgressPortId);
             }
         }
     }
@@ -924,246 +730,13 @@ public class VRNController extends AbstractController
                         ICMP_EXPIRY_SECONDS);
                 freeFlowResources(match, traversedRouters);
                 // Send an ICMP !H
-                sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_HOST, inPort
-                        .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-                        fwdInfo.outPortId);
+                //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_HOST, inPort
+                //        .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
+                //        fwdInfo.outPortId);
             }
             notifyFlowAdded(match, fwdInfo.matchOut, inPort.getId(), fwdInfo,
                     traversedRouters);
         }
-    }
-
-    /**
-     * Send an ICMP Unreachable for a packet that arrived on a materialized port
-     * that is not local to this controller. Equivalently, the packet was
-     * received over a tunnel.
-     *
-     * @param unreachCode
-     *            The ICMP error code of ICMP Unreachable sent by this method.
-     * @param tunneledEthPkt
-     *            The original packet as it was received over the tunnel.
-     * @param lastIngress
-     *            The ingress port of the last router that handled the packet.
-     * @param lastEgress
-     *            The port from which the last router would have emitted the
-     *            packet if it hadn't triggered an ICMP.
-     */
-    private void sendICMPforTunneledPkt(ICMP.UNREACH_CODE unreachCode,
-            Ethernet tunneledEthPkt, UUID lastIngress, UUID lastEgress) {
-        /*
-         * We have a lot less information in the tunneled case compared to
-         * non-tunneled packets. We only have the packet as it would have been
-         * emitted by the egress port, not as it was seen at the ingress port of
-         * the last router that handled the packet. That makes it hard to: 1)
-         * correctly build the ICMP packet. 2) determine the materialized egress
-         * port for the ICMP message. This will require invoking the routing
-         * logic. 3) determine the next-hop gateway data link address. This
-         * requires invoking the routing logic and then ARPing the next hop
-         * gateway network address.
-         */
-
-        // The packet came over a tunnel so its mac addresses were used
-        // to encode Midonet port ids. Set the mac addresses to make
-        // sure they don't run afoul of the ICMP error rules.
-        tunneledEthPkt.setDestinationMACAddress(MAC.fromString("02:00:00:33:44:55"));
-        tunneledEthPkt.setSourceMACAddress(MAC.fromString("02:00:00:33:44:55"));
-        if (!canSendICMP(tunneledEthPkt, lastEgress)) {
-            log.debug("sendICMPforTunneledPkt: cannot send ICMP");
-            return;
-        }
-
-        // First, we ask the last router to undo any transformation it may have
-        // applied on the packet.
-        //XXX vrn.undoRouterTransformation(tunneledEthPkt);
-        ICMP icmp = new ICMP();
-        IPv4 ipPktAtEgress = IPv4.class.cast(tunneledEthPkt.getPayload());
-        icmp.setUnreachable(unreachCode, ipPktAtEgress);
-        // The icmp packet will be emitted from the lastIngress port.
-        IPv4 ip = new IPv4();
-        PortDirectory.RouterPortConfig portConfig;
-        try {
-            portConfig = (PortDirectory.RouterPortConfig)vrn.getPortConfig(lastIngress);
-        } catch (Exception e) {
-            // Can't send the ICMP if we can't find the last egress port.
-            return;
-        }
-        ip.setSourceAddress(portConfig.portAddr);
-        ip.setDestinationAddress(ipPktAtEgress.getSourceAddress());
-        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
-        ip.setPayload(icmp);
-        Ethernet eth = new Ethernet();
-        eth.setEtherType(IPv4.ETHERTYPE);
-        eth.setPayload(ip);
-        // Use fictitious mac addresses before routing.
-        eth.setSourceMACAddress(MAC.fromString("02:a1:b2:c3:d4:e5"));
-        eth.setDestinationMACAddress(MAC.fromString("02:a1:b2:c3:d4:e6"));
-        byte[] data = eth.serialize();
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, (short) 0);
-        ForwardInfo fwdInfo = new ForwardInfo();
-        fwdInfo.flowMatch = match;
-        fwdInfo.matchIn = match.clone();
-        fwdInfo.pktIn = eth;
-        if (portConfig instanceof PortDirectory.MaterializedRouterPortConfig) {
-            // The lastIngress port is materialized. Invoke the routing logic of
-            // its router in order to find the network address of the next hop
-            // gateway for the packet. Hopefully, the routing logic will agree
-            // that the lastIngress port should emit the ICMP.
-            ForwardingElement fe;
-            try {
-                fe = vrn.getForwardingElementByPort(lastIngress);
-            } catch (Exception e) {
-                log.warn("Dropping ICMP error message. Don't know where to "
-                        + "forward because we failed to retrieve the router "
-                        + "that would route it.");
-                return;
-            }
-            try {
-                fe.process(fwdInfo);
-            } catch (StateAccessException e) {
-                log.warn("Dropping ICMP error message. Attempting to forward " +
-                         "it generated a StateAccessException {}", e);
-                return;
-            }
-            if (!fwdInfo.action.equals(Action.FORWARD)) {
-                log.warn("Dropping ICMP error message. Don't know where to "
-                        + "forward it because router.process didn't return "
-                        + "FORWARD action.");
-                return;
-            }
-            if (!fwdInfo.outPortId.equals(lastIngress)) {
-                log.warn("Dropping ICMP error message. Would be emitted from"
-                        + "a materialized port different from the materialized"
-                        + "ingress port of the original packet.");
-                return;
-            }
-        } else {
-            // The lastIngress port is logical. Invoke the routing logic of the
-            // router network, starting from the lastIngress's peer port.
-            // Set the ICMP messages dl addresses to bogus addresses for
-            // routing.
-            Set<UUID> routerIds = new HashSet<UUID>();
-            UUID peer_uuid = ((PortDirectory.LogicalRouterPortConfig) portConfig).peer_uuid;
-            fwdInfo.inPortId = peer_uuid;
-            try {
-                vrn.process(fwdInfo);
-            } catch (Exception e) {
-                log.warn("Dropping ICMP error message. Don't know where to "
-                        + "forward it because vrn.process threw exception.");
-                return;
-            }
-            if (!fwdInfo.action.equals(Action.FORWARD)) {
-                log.warn("Dropping ICMP error message. Don't know where to "
-                        + "forward it because vrn.process didn't return "
-                        + "FORWARD action.");
-                return;
-            }
-        }
-        // TODO(pino): if the match changed, apply the changes to the packet.
-        L3DevicePort devPort = devPortById.get(fwdInfo.outPortId);
-        if (null != devPort) {
-            // The packet came over the tunnel, but the ICMP is being sent to
-            // a local port? This should be rare, let's log it and drop it.
-            log.warn("Dropping ICMP error message. Original packet came from "
-                    + "a tunnel, but the ICMP would be emitted from a local port");
-            return;
-        }
-        // The ICMP will be tunneled. Encode the outPortId and next hop gateway
-        // network address in the ethernet packet's address fields. For non-icmp
-        // packets we usually encode the inPortId too, but it's only needed to
-        // generate ICMPs so in this case it isn't needed. Instead we'll encode
-        // a special value so the other end of the tunnel can recognize this
-        // as a tunneled ICMP.
-        MAC[] dlHeaders = getDlHeadersForTunnel(
-                ICMP_TUNNEL,
-                ShortUUID.UUID32toInt(fwdInfo.outPortId),
-                fwdInfo.nextHopNwAddr);
-
-        eth.setSourceMACAddress(dlHeaders[0]);
-        eth.setDestinationMACAddress(dlHeaders[1]);
-
-        Integer tunNum = super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
-        if (null == tunNum) {
-            log.warn("Dropping ICMP error message. Can't find tunnel to peer"
-                    + "port.");
-            return;
-        }
-        sendUnbufferedPacketFromPort(eth, tunNum.shortValue());
-    }
-
-    /**
-     * Send an ICMP Unreachable for a packet that arrived on a materialized port
-     * local to this controller.
-     *
-     * @param unreachCode
-     *            The ICMP error code of ICMP Unreachable sent by this method.
-     * @param firstIngress
-     *            The materialized port that received the original packet that
-     *            entered the router network.
-     * @param pktAtFirstIngress
-     *            The original packet as seen by the firtIngress port.
-     * @param lastIngress
-     *            The ingress port of the last router that handled the packet.
-     *            May be equal to the firstIngress, but could also be a logical
-     *            port on a different router than firstIngress.
-     * @param pktAtLastIngress
-     *            The original packet as seen when it first entered the last
-     *            router that handled it (and which triggered the ICMP).
-     * @param lastEgress
-     *            The port from which the last router would have emitted the
-     *            packet if it hadn't triggered an ICMP. Null if it isn't known.
-     */
-    private void sendICMPforLocalPkt(ICMP.UNREACH_CODE unreachCode,
-            UUID firstIngress, Ethernet pktAtFirstIngress, UUID lastIngress,
-            Ethernet pktAtLastIngress, UUID lastEgress) {
-        // Use the packet as seen by the last router to decide whether it's ok
-        // to send an ICMP error message.
-        if (!canSendICMP(pktAtLastIngress, lastEgress))
-            return;
-        // Build the ICMP as it would be built by the last router that handled
-        // the original packet.
-        ICMP icmp = new ICMP();
-        icmp.setUnreachable(unreachCode, IPv4.class.cast(pktAtLastIngress
-                .getPayload()));
-        // The following ip packet to route the ICMP to its destination.
-        IPv4 ip = new IPv4();
-        // The packet's network address is that of the last ingress port.
-        PortDirectory.RouterPortConfig portConfig;
-        try {
-            portConfig = (PortDirectory.RouterPortConfig)vrn.getPortConfig(lastIngress);
-        } catch (Exception e) {
-            // Can't send the ICMP if we can't find the last ingress port.
-            return;
-        }
-        // TODO(pino): what do we do if this isn't a public/global address?
-        ip.setSourceAddress(portConfig.portAddr);
-        // At this point, we should be using the source network address
-        // from the ICMP payload as the ICMP's destination network address.
-        // Then we'd have to inject the ICMP message into that last router and
-        // allow it to invoke its routing logic. Instead, we cut corners here
-        // and avoid the routing logic by inverting the fields in the original
-        // packet as seen by the first ingress port.
-        IPv4 ipPktAtFirstIngress = IPv4.class.cast(pktAtFirstIngress
-                .getPayload());
-        ip.setDestinationAddress(ipPktAtFirstIngress.getSourceAddress());
-        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
-        ip.setPayload(icmp);
-        // The following is the Ethernet packet for the ICMP message.
-        Ethernet eth = new Ethernet();
-        eth.setEtherType(IPv4.ETHERTYPE);
-        eth.setPayload(ip);
-        L3DevicePort firstIngressDevPort = devPortById.get(firstIngress);
-        if (null == firstIngressDevPort) {
-            // Can't send the ICMP if we no longer have the first ingress port.
-            return;
-        }
-        eth.setSourceMACAddress(firstIngressDevPort.getMacAddr());
-        eth.setDestinationMACAddress(pktAtFirstIngress.getSourceMACAddress());
-        log.debug("sendICMPforLocalPkt from OFport {}, {} to {}", new Object[] {
-                firstIngressDevPort.getNum(),
-                IPv4.fromIPv4Address(ip.getSourceAddress()),
-                IPv4.fromIPv4Address(ip.getDestinationAddress()) });
-        sendUnbufferedPacketFromPort(eth, firstIngressDevPort.getNum());
     }
 
     private void sendUnbufferedPacketFromPort(Ethernet ethPkt, short portNum) {
@@ -1173,81 +746,6 @@ public class VRNController extends AbstractController
         log.debug("sendUnbufferedPacketFromPort {}", ethPkt);
         controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
                 OFPort.OFPP_NONE.getValue(), actions, ethPkt.serialize());
-    }
-
-    /**
-     * Determine whether a packet can trigger an ICMP error. Per RFC 1812 sec.
-     * 4.3.2.7, some packets should not trigger ICMP errors: 1) Other ICMP
-     * errors. 2) Invalid IP packets. 3) Destined to IP bcast or mcast address.
-     * 4) Destined to a link-layer bcast or mcast. 5) With source network prefix
-     * zero or invalid source. 6) Second and later IP fragments.
-     *
-     * @param ethPkt
-     *            We wish to know whether this packet may trigger an ICMP error
-     *            message.
-     * @param egressPortId
-     *            If known, this is the port that would have emitted the packet.
-     *            It's used to determine whether the packet was addressed to an
-     *            IP (local subnet) broadcast address.
-     * @return True if-and-only-if the packet meets none of the above conditions
-     *         - i.e. it can trigger an ICMP error message.
-     */
-    boolean canSendICMP(Ethernet ethPkt, UUID egressPortId) {
-        if (ethPkt.getEtherType() != IPv4.ETHERTYPE)
-            return false;
-        IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
-        // Ignore ICMP errors.
-        if (ipPkt.getProtocol() == ICMP.PROTOCOL_NUMBER) {
-            ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-            if (icmpPkt.isError()) {
-                log.debug("Don't generate ICMP Unreachable for other ICMP "
-                        + "errors.");
-                return false;
-            }
-        }
-        // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
-        // Ignore packets to IP mcast addresses.
-        if (ipPkt.isMcast()) {
-            log.debug("Don't generate ICMP Unreachable for packets to an IP "
-                    + "multicast address.");
-            return false;
-        }
-        // Ignore packets sent to the local-subnet IP broadcast address of the
-        // intended egress port.
-        if (null != egressPortId) {
-            PortDirectory.RouterPortConfig portConfig;
-            try {
-                portConfig = (PortDirectory.RouterPortConfig)vrn.getPortConfig(egressPortId);
-            } catch (Exception e) {
-                return false;
-            }
-            if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
-                log.debug("Don't generate ICMP Unreachable for packets to "
-                        + "the subnet local broadcast address.");
-                return false;
-            }
-        }
-        // Ignore packets to Ethernet broadcast and multicast addresses.
-        if (ethPkt.isMcast()) {
-            log.debug("Don't generate ICMP Unreachable for packets to "
-                    + "Ethernet broadcast or multicast address.");
-            return false;
-        }
-        // Ignore packets with source network prefix zero or invalid source.
-        // TODO(pino): See RFC 1812 sec. 5.3.7
-        if (ipPkt.getSourceAddress() == 0xffffffff
-                || ipPkt.getDestinationAddress() == 0xffffffff) {
-            log.debug("Don't generate ICMP Unreachable for all-hosts broadcast "
-                    + "packet");
-            return false;
-        }
-        // TODO(pino): check this fragment offset
-        // Ignore datagram fragments other than the first one.
-        if (0 != (ipPkt.getFragmentOffset() & 0x1fff)) {
-            log.debug("Don't generate ICMP Unreachable for IP fragment packet");
-            return false;
-        }
-        return true;
     }
 
     private void notifyFlowAdded(MidoMatch origMatch, MidoMatch flowMatch,
@@ -1509,7 +1007,7 @@ public class VRNController extends AbstractController
         } catch (Exception e) {
             log.error("addVirtualPort", e);
         }
-        setFlowsForHandlingDhcpInController(devPort);
+        setFlowsForHandlingDhcpInController(devPort.getNum());
     }
 
     @Override

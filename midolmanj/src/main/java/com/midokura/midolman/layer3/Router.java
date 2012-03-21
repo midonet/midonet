@@ -8,8 +8,10 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.management.JMException;
@@ -23,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.ForwardingElement;
 import com.midokura.midolman.L3DevicePort;
+import com.midokura.midolman.VRNController;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.ARP;
@@ -35,10 +38,17 @@ import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.ArpTable;
+import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.ReplicatedMap;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.util.ShortUUID;
 
 /**
  * This class coordinates the routing logic for a single virtual router. It
@@ -78,8 +88,8 @@ public class Router implements ForwardingElement, RouterMBean {
     private class PortListener implements L3DevicePort.Listener {
         @Override
         public void configChanged(UUID portId,
-                PortDirectory.MaterializedRouterPortConfig old,
-                PortDirectory.MaterializedRouterPortConfig current) {
+                MaterializedRouterPortConfig old,
+                MaterializedRouterPortConfig current) {
             // Do nothing here. We get the non-routes configuration from the
             // L3DevicePort each time we use it.
         }
@@ -511,7 +521,7 @@ public class Router implements ForwardingElement, RouterMBean {
         // are assumed to be already handled by a switch.)
 
         // First get the ingress port's mac address
-        PortDirectory.MaterializedRouterPortConfig portConfig = devPortIn
+        MaterializedRouterPortConfig portConfig = devPortIn
                 .getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         if (tpa != devPortIn.getVirtualConfig().portAddr
@@ -557,7 +567,7 @@ public class Router implements ForwardingElement, RouterMBean {
         // Verify that the reply was meant for us: tpa is the port's nw addr,
         // and tha is the port's mac.
         UUID inPortId = devPortIn.getId();
-        PortDirectory.MaterializedRouterPortConfig portConfig =
+        MaterializedRouterPortConfig portConfig =
                  devPortIn.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         MAC tha = arpPkt.getTargetHardwareAddress();
@@ -708,7 +718,7 @@ public class Router implements ForwardingElement, RouterMBean {
                     + "{} - was port removed?", this, portId);
             return;
         }
-        PortDirectory.MaterializedRouterPortConfig portConfig = devPort
+        MaterializedRouterPortConfig portConfig = devPort
                 .getVirtualConfig();
 
         ARP arp = new ARP();
@@ -752,6 +762,138 @@ public class Router implements ForwardingElement, RouterMBean {
         log.debug("freeFlowResources: match {}", match);
 
         ruleEngine.freeFlowResources(match);
+    }
+
+    /**
+     * Determine whether a packet can trigger an ICMP error. Per RFC 1812 sec.
+     * 4.3.2.7, some packets should not trigger ICMP errors: 1) Other ICMP
+     * errors. 2) Invalid IP packets. 3) Destined to IP bcast or mcast address.
+     * 4) Destined to a link-layer bcast or mcast. 5) With source network prefix
+     * zero or invalid source. 6) Second and later IP fragments.
+     *
+     * @param ethPkt
+     *            We wish to know whether this packet may trigger an ICMP error
+     *            message.
+     * @param egressPortId
+     *            If known, this is the port that would have emitted the packet.
+     *            It's used to determine whether the packet was addressed to an
+     *            IP (local subnet) broadcast address.
+     * @return True if-and-only-if the packet meets none of the above conditions
+     *         - i.e. it can trigger an ICMP error message.
+     */
+    public boolean canSendICMP(Ethernet ethPkt, UUID egressPortId) {
+        if (ethPkt.getEtherType() != IPv4.ETHERTYPE)
+            return false;
+        IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
+        // Ignore ICMP errors.
+        if (ipPkt.getProtocol() == ICMP.PROTOCOL_NUMBER) {
+            ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
+            if (icmpPkt.isError()) {
+                log.debug("Don't generate ICMP Unreachable for other ICMP "
+                        + "errors.");
+                return false;
+            }
+        }
+        // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
+        // Ignore packets to IP mcast addresses.
+        if (ipPkt.isMcast()) {
+            log.debug("Don't generate ICMP Unreachable for packets to an IP "
+                    + "multicast address.");
+            return false;
+        }
+        // Ignore packets sent to the local-subnet IP broadcast address of the
+        // intended egress port.
+        if (null != egressPortId) {
+            RouterPortConfig portConfig;
+            try {
+                portConfig = null; // Get the port configuration.
+            } catch (Exception e) {
+                return false;
+            }
+            if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
+                log.debug("Don't generate ICMP Unreachable for packets to "
+                        + "the subnet local broadcast address.");
+                return false;
+            }
+        }
+        // Ignore packets to Ethernet broadcast and multicast addresses.
+        if (ethPkt.isMcast()) {
+            log.debug("Don't generate ICMP Unreachable for packets to "
+                    + "Ethernet broadcast or multicast address.");
+            return false;
+        }
+        // Ignore packets with source network prefix zero or invalid source.
+        // TODO(pino): See RFC 1812 sec. 5.3.7
+        if (ipPkt.getSourceAddress() == 0xffffffff
+                || ipPkt.getDestinationAddress() == 0xffffffff) {
+            log.debug("Don't generate ICMP Unreachable for all-hosts broadcast "
+                    + "packet");
+            return false;
+        }
+        // TODO(pino): check this fragment offset
+        // Ignore datagram fragments other than the first one.
+        if (0 != (ipPkt.getFragmentOffset() & 0x1fff)) {
+            log.debug("Don't generate ICMP Unreachable for IP fragment packet");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Send an ICMP error message.
+     *
+     * @param fwdInfo
+     *            The packet context of the packet that triggered the error.
+     * @param unreachCode
+     *            The ICMP error code of ICMP Unreachable sent by this method.
+     */
+    private void sendICMPforLocalPkt(
+            ForwardInfo fwdInfo, ICMP.UNREACH_CODE unreachCode) {
+        // Check whether the original packet is allowed to trigger ICMP.
+        // TODO(do we need the packet as seen by the ingress to this router?
+        if (!canSendICMP(fwdInfo.pktIn, fwdInfo.inPortId))
+            return;
+        // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
+        ICMP icmp = new ICMP();
+        icmp.setUnreachable(
+                unreachCode, IPv4.class.cast(fwdInfo.pktIn.getPayload()));
+        IPv4 ip = new IPv4();
+        ip.setPayload(icmp);
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
+        // The nwDst is the source of triggering IPv4 as seen by this router.
+        ip.setDestinationAddress(fwdInfo.matchIn.getNetworkSource());
+        // The nwSrc is the address of the ingress port.
+        // TODO(pino): get the port configuration.
+        RouterPortConfig portConfig = null;
+        ip.setSourceAddress(portConfig.portAddr);
+        Ethernet eth = new Ethernet();
+        eth.setPayload(ip);
+        eth.setEtherType(IPv4.ETHERTYPE);
+        eth.setSourceMACAddress(portConfig.getHwAddr());
+        // The destination MAC is either the source of the original packet,
+        // or the hwAddr of the gateway that sent us the packet.
+        if (portConfig instanceof LogicalRouterPortConfig) {
+            LogicalRouterPortConfig cfg =
+                    LogicalRouterPortConfig.class.cast(portConfig);
+            // Use cfg.peer_uuid to get the peer port's configuration.
+            PortConfig peerConfig = null;
+            if (peerConfig instanceof LogicalRouterPortConfig)
+                eth.setDestinationMACAddress(
+                        ((LogicalRouterPortConfig) peerConfig).getHwAddr());
+            else if (peerConfig instanceof LogicalBridgePortConfig)
+                eth.setDestinationMACAddress(fwdInfo.pktIn.getSourceMACAddress());
+            else
+                throw new RuntimeException("Unrecognized peer port type.");
+        }
+        else if (portConfig instanceof MaterializedRouterPortConfig)
+            eth.setDestinationMACAddress((fwdInfo.pktIn.getSourceMACAddress()));
+        log.debug("sendICMPforLocalPkt from port {}, {} to {}", new Object[] {
+                fwdInfo.inPortId,
+                IPv4.fromIPv4Address(ip.getSourceAddress()),
+                IPv4.fromIPv4Address(ip.getDestinationAddress()) });
+        // TODO(pino): the controller should be a field set in the constructor.
+        VRNController controller = null;
+        controller.addGeneratedPacket(eth, fwdInfo.inPortId);
     }
 
 }
