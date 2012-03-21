@@ -30,7 +30,14 @@ public interface ForwardingElement {
     void freeFlowResources(OFMatch match);
 
     public enum Action {
-        BLACKHOLE, NOT_IPV4, NO_ROUTE, FORWARD, REJECT, CONSUMED, PAUSED, DROP;
+        DROP,
+        NOT_IPV4,
+        FORWARD,
+        CONSUMED,
+        PAUSED,
+        BLACKHOLE,  // TODO(pino): deprecate this.
+        NO_ROUTE,   // TODO(pino): deprecate this.
+        REJECT;     // TODO(pino): deprecate this.
     }
 
     /* ForwardingElements create and partially populate an instance of
@@ -41,6 +48,14 @@ public interface ForwardingElement {
      * modifications).
      */
     public static class ForwardInfo {
+        // These fields are only needed by the VRNController and kept here
+        // for convenience. We need to redesign this class.
+        public int bufferId;
+        public int totalLen;
+        public int inPortNum;
+        public byte[] data;
+        public long tunnelId;
+
         // These fields are filled by the caller of ForwardingElement.process():
         public UUID inPortId;
         public Ethernet pktIn;
@@ -52,11 +67,12 @@ public interface ForwardingElement {
         public UUID outPortId;
         public int nextHopNwAddr;
         public MidoMatch matchOut; // the match as it exits the ForwardingElement
-        public boolean trackConnection;
         // Used by forwarding elements that want notification when the flow
         // is removed.
         public Collection<UUID> notifyFEs;
         public int depth;  // depth in the VRN simulation
+
+        public int dropTimeSeconds; // only relevant if action is DROP
 
         public ForwardInfo() {
             depth = 0;
@@ -68,8 +84,7 @@ public interface ForwardingElement {
                    ", pktIn=" + pktIn + ", matchIn=" + matchIn +
                    ", action=" + action + ", outPortId=" + outPortId +
                    ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
-                    + matchOut + ", trackConnection=" + trackConnection +
-                   ", depth=" + depth + "]";
+                    + matchOut + ", depth=" + depth + "]";
         }
     }
 

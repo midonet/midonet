@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import net.spy.memcached.transcoders.IntegerTranscoder;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
@@ -35,7 +34,6 @@ import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 
@@ -71,6 +69,7 @@ public class VRNController extends AbstractController
     // The local OVS ports in a portset.
     private Map<UUID, Set<Short>> localPortSetSlices;
     private DhcpHandler dhcpHandler;
+    private Reactor reactor;
 
     public VRNController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
@@ -84,6 +83,7 @@ public class VRNController extends AbstractController
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
+        this.reactor = reactor;
         this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, chainMgr,
                 ruleMgr, reactor, cache);
         this.portSetMap = portSetMap;
@@ -125,13 +125,18 @@ public class VRNController extends AbstractController
         //reactor.submit(new GenPacketContext(pkt, originPort));
     }
 
-    public void continueProcessing(ForwardInfo info) {
-        /*reactor.schedule(new Runnable() {
+    public void continueProcessing(final ForwardInfo fwdInfo) {
+        reactor.submit(new Runnable() {
            public void run() {
-               //vrn.handleProcessResult(ctx);
-               //VRNController.handleSimulationResult(ctx);
+               try {
+                   vrn.handleProcessResult(fwdInfo);
+               } catch (StateAccessException e) {
+                   log.error("Error", e);
+               }
+               if (fwdInfo.action != ForwardingElement.Action.PAUSED)
+                   handleProcessResult(fwdInfo);
            }
-        });*/
+        });
     }
 
     @Override
@@ -149,6 +154,8 @@ public class VRNController extends AbstractController
             log.debug("onPacketIn: rewrite port {} to {}", inPort,
                       serviceTargetPort);
             inPort = serviceTargetPort;
+            // TODO(pino): remove this when we're confident we don't need it.
+            throw new RuntimeException("This shouldn't happen anymore.");
         }
 
         // Try mapping the port number to a virtual device port.
@@ -218,7 +225,20 @@ public class VRNController extends AbstractController
             freeFlowResources(match, routers);
             return;
         }
+        if (fwdInfo.action != ForwardingElement.Action.PAUSED)
+            handleProcessResult(fwdInfo);
+    }
+
+    private void handleProcessResult(ForwardInfo fwdInfo) {
         boolean useWildcards = false; // TODO(pino): replace with real config.
+
+        MidoMatch match = fwdInfo.flowMatch;
+        int bufferId = fwdInfo.bufferId;
+        int totalLen = fwdInfo.totalLen;
+        int inPortNum = fwdInfo.inPortNum;
+        byte[] data = fwdInfo.data;
+        long tunnelId = fwdInfo.tunnelId;
+        Collection<UUID> routers = fwdInfo.notifyFEs;
 
         MidoMatch flowMatch;
         switch (fwdInfo.action) {
@@ -297,7 +317,7 @@ public class VRNController extends AbstractController
                     // when the flow is removed.
                     matchToRouters.put(match, routers);
                     addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                            NO_HARD_TIMEOUT, true, ofActions, inPort, data);
+                            NO_HARD_TIMEOUT, true, ofActions, inPortNum, data);
                     return;
                 }
 
@@ -328,7 +348,7 @@ public class VRNController extends AbstractController
                 // when the flow is removed.
                 matchToRouters.put(match, routers);
                 addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                        NO_HARD_TIMEOUT, true, ofActions, inPort, data);
+                        NO_HARD_TIMEOUT, true, ofActions, inPortNum, data);
             }
             return;
         case NOT_IPV4:
@@ -439,6 +459,7 @@ public class VRNController extends AbstractController
         return m1;
     }
 
+    // TODO(pino) do
     public static MAC[] getDlHeadersForTunnel(
             int lastInPortId, int lastEgPortId, int gwNwAddr) {
         byte[] dlSrc = new byte[6];

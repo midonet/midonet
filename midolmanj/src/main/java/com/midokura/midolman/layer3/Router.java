@@ -349,7 +349,6 @@ public class Router implements ForwardingElement, RouterMBean {
         if (!res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Pre-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
-        fwdInfo.trackConnection = res.trackConnection;
 
         log.debug("{} send pkt to routing table.", this);
         // Do a routing table lookup.
@@ -397,8 +396,6 @@ public class Router implements ForwardingElement, RouterMBean {
         if (!res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Post-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
-        if (!fwdInfo.trackConnection && res.trackConnection)
-            fwdInfo.trackConnection = true;
 
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
