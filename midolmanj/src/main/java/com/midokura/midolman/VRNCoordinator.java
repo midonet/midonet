@@ -180,7 +180,7 @@ public class VRNCoordinator implements ForwardingElement {
     public void freeFlowResources(OFMatch match) {
     }
 
-    private PortConfig getPortConfigByUUID(UUID id) 
+    private PortConfig getPortConfigByUUID(UUID id)
             throws StateAccessException, ZkStateSerializationException {
         ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(id);
         return entry.value;
@@ -271,7 +271,7 @@ public class VRNCoordinator implements ForwardingElement {
                 fwdInfo.inPortId = lcfg.peer_uuid;
                 fwdInfo.outPortId = null;
                 fwdInfo.action = null;
-                fwdInfo.nextHopNwAddr = Route.NO_GATEWAY;
+                //fwdInfo.nextHopNwAddr = Route.NO_GATEWAY;
 
                 // fwd_action was OUTPUT, and port type is logical.  Continue
                 // the simulation.

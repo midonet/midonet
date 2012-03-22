@@ -399,8 +399,8 @@ public class Router implements ForwardingElement, RouterMBean {
 
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
-        fwdInfo.nextHopNwAddr = (Route.NO_GATEWAY == rt.nextHopGateway) ? res.match
-                .getNetworkDestination() : rt.nextHopGateway;
+        //fwdInfo.nextHopNwAddr = (Route.NO_GATEWAY == rt.nextHopGateway) ? res.match
+        //        .getNetworkDestination() : rt.nextHopGateway;
         fwdInfo.action = Action.FORWARD;
         return;
 

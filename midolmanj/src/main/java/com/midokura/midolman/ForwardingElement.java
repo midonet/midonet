@@ -65,7 +65,6 @@ public interface ForwardingElement {
         // These fields are filled by ForwardingElement.process():
         public Action action;
         public UUID outPortId;
-        public int nextHopNwAddr;
         public MidoMatch matchOut; // the match as it exits the ForwardingElement
         // Used by forwarding elements that want notification when the flow
         // is removed.
@@ -83,8 +82,7 @@ public interface ForwardingElement {
             return "ForwardInfo [inPortId=" + inPortId +
                    ", pktIn=" + pktIn + ", matchIn=" + matchIn +
                    ", action=" + action + ", outPortId=" + outPortId +
-                   ", nextHopNwAddr=" + nextHopNwAddr + ", matchOut="
-                    + matchOut + ", depth=" + depth + "]";
+                   ", matchOut=" + matchOut + ", depth=" + depth + "]";
         }
     }
 
