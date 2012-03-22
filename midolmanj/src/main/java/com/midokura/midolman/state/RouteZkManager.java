@@ -21,7 +21,7 @@ import com.midokura.midolman.layer3.Route;
 
 /**
  * Class to manage the routing ZooKeeper data.
- * 
+ *
  * @version 1.6 10 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -33,7 +33,7 @@ public class RouteZkManager extends ZkManager {
     /**
      * Initializes a RouteZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -91,7 +91,7 @@ public class RouteZkManager extends ZkManager {
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new route.
-     * 
+     *
      * @param entry
      *            ZooKeeper node representing a key-value entry of Route UUID
      *            and Route object.
@@ -106,6 +106,7 @@ public class RouteZkManager extends ZkManager {
                                        boolean persistent)
         throws ZkStateSerializationException, StateAccessException {
 
+        // TODO(pino): sanity checking on route - egress belongs to device.
         List<Op> ops = new ArrayList<Op>();
         CreateMode mode = persistent ?
             CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
@@ -135,13 +136,13 @@ public class RouteZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a route deletion.
-     * 
+     *
      * @param entry
      *            Route ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
-     * @throws StateAccessException 
+     * @throws StateAccessException
      */
     public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
             throws ZkStateSerializationException, StateAccessException {
@@ -158,7 +159,7 @@ public class RouteZkManager extends ZkManager {
 
     /**
      * Performs an atomic update on the ZooKeeper to add a new route entry.
-     * 
+     *
      * @param route
      *            Route object to add to the ZooKeeper directory.
      * @param persistent
@@ -193,7 +194,7 @@ public class RouteZkManager extends ZkManager {
 
     /**
      * Gets a ZooKeeper node entry key-value pair of a route with the given ID.
-     * 
+     *
      * @param id
      *            The ID of the route.
      * @return Route object found.
@@ -209,7 +210,7 @@ public class RouteZkManager extends ZkManager {
     /**
      * Gets a ZooKeeper node entry key-value pair of a route with the given ID
      * and sets a watcher on the node.
-     * 
+     *
      * @param id
      *            The ID of the route.
      * @param watcher
@@ -237,7 +238,7 @@ public class RouteZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper router nodes belonging under the router
      * directory with the given ID.
-     * 
+     *
      * @param routerId
      *            The ID of the router to find the routes of.
      * @param watcher
@@ -268,7 +269,7 @@ public class RouteZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper route nodes belonging under the port directory
      * with the given ID.
-     * 
+     *
      * @param portId
      *            The ID of the port to find the routes of.
      * @param watcher
@@ -293,7 +294,7 @@ public class RouteZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper route nodes belonging to a router with the given
      * ID.
-     * 
+     *
      * @param portId
      *            The ID of the router to find the routes of.
      * @return A list of ZooKeeper route nodes.
@@ -331,7 +332,7 @@ public class RouteZkManager extends ZkManager {
     /***
      * Deletes a route and its related data from the ZooKeeper directories
      * atomically.
-     * 
+     *
      * @param id
      *            ID of the route to delete.
      * @throws ZkStateSerializationException

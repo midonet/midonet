@@ -120,23 +120,39 @@ public class VRNController extends AbstractController
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
 
+    private class PacketContinuation implements Runnable {
+        ForwardInfo fwdInfo;
+
+        private PacketContinuation(ForwardInfo fwdInfo) {
+            this.fwdInfo = fwdInfo;
+        }
+
+        @Override
+        public void run() {
+            try {
+                vrn.handleProcessResult(fwdInfo);
+                if (fwdInfo.action != ForwardingElement.Action.PAUSED)
+                    handleProcessResult(fwdInfo);
+            } catch (StateAccessException e) {
+                log.error("Error processing packet.", e);
+            }
+        }
+    }
 
     public void addGeneratedPacket(Ethernet pkt, UUID originPort) {
-        //reactor.submit(new GenPacketContext(pkt, originPort));
+        GeneratedPacketContext pktCtx = new GeneratedPacketContext();
+        pktCtx.data = pkt.serialize();
+        pktCtx.pktIn = pkt;
+
+        pktCtx.action = ForwardingElement.Action.FORWARD;
+        pktCtx.outPortId = originPort;
+        pktCtx.matchOut = new MidoMatch();
+        pktCtx.matchOut.loadFromPacket(pktCtx.data, (short)0);
+        reactor.submit(new PacketContinuation(pktCtx));
     }
 
     public void continueProcessing(final ForwardInfo fwdInfo) {
-        reactor.submit(new Runnable() {
-           public void run() {
-               try {
-                   vrn.handleProcessResult(fwdInfo);
-               } catch (StateAccessException e) {
-                   log.error("Error", e);
-               }
-               if (fwdInfo.action != ForwardingElement.Action.PAUSED)
-                   handleProcessResult(fwdInfo);
-           }
-        });
+        reactor.submit(new PacketContinuation(fwdInfo));
     }
 
     @Override
@@ -233,11 +249,13 @@ public class VRNController extends AbstractController
         boolean useWildcards = false; // TODO(pino): replace with real config.
 
         MidoMatch match = fwdInfo.flowMatch;
-        int bufferId = fwdInfo.bufferId;
-        int totalLen = fwdInfo.totalLen;
-        int inPortNum = fwdInfo.inPortNum;
-        byte[] data = fwdInfo.data;
-        long tunnelId = fwdInfo.tunnelId;
+        OFPacketContext pktCtx = OFPacketContext.class.cast(fwdInfo);
+        // TODO(pino): deal with internally generated packets.
+        int bufferId = pktCtx.bufferId;
+        int totalLen = pktCtx.totalLen;
+        int inPortNum = pktCtx.inPortNum;
+        byte[] data = pktCtx.data;
+        long tunnelId = pktCtx.tunnelId;
         Collection<UUID> routers = fwdInfo.notifyFEs;
 
         MidoMatch flowMatch;
@@ -851,4 +869,15 @@ public class VRNController extends AbstractController
         // Do nothing.
     }
 
+    private static class OFPacketContext extends ForwardInfo {
+        int bufferId;
+        int totalLen;
+        int inPortNum;
+        byte[] data;
+        long tunnelId;
+    }
+
+    private static class GeneratedPacketContext extends ForwardInfo {
+        byte []data;
+    }
 }
