@@ -10,6 +10,12 @@ import org.openflow.protocol.OFMatch;
 
 public class Bridge implements ForwardingElement {
 
+    private UUID deviceId;
+
+    public Bridge(UUID id) {
+        deviceId = id;
+    }
+
     /*
      * Bridge logical ports should be listed separately from other bridge ports
      * under the bridge in BridgeZkManager.
@@ -66,7 +72,7 @@ public class Bridge implements ForwardingElement {
 
     @Override
     public UUID getId() {
-        return null;  // TODO
+        return deviceId;
     }
 
     @Override

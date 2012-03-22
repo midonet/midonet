@@ -141,8 +141,18 @@ public class VRNCoordinator implements ForwardingElement {
         if (null != fe)
             return fe;
         log.debug("Creating new forwarding element instance for {}", deviceId);
-        // XXX: Create router or bridge.
         Cache cache = new CacheWithPrefix(this.cache, deviceId.toString());
+        // XXX: Create router or bridge.
+        if (true)
+            fe = createRouter(deviceId);
+        else
+            fe = new Bridge(deviceId);
+        forwardingElements.put(deviceId, fe);
+        return fe;
+    }
+
+    private ForwardingElement createRouter(UUID deviceId)
+            throws StateAccessException {
         NatMapping natMap = new NatLeaseManager(routerMgr, deviceId, cache,
                 reactor);
         RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, deviceId,
@@ -154,9 +164,7 @@ public class VRNCoordinator implements ForwardingElement {
         table.addWatcher(routerWatcher);
         ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(deviceId));
         arpTable.start();
-        fe = new Router(deviceId, ruleEngine, table, arpTable, reactor);
-        forwardingElements.put(deviceId, fe);
-        return fe;
+        return new Router(deviceId, ruleEngine, table, arpTable, reactor);
     }
 
     public ForwardingElement getForwardingElementByPort(UUID portId)
