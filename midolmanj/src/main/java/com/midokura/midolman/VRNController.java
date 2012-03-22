@@ -249,8 +249,17 @@ public class VRNController extends AbstractController
         boolean useWildcards = false; // TODO(pino): replace with real config.
 
         MidoMatch match = fwdInfo.flowMatch;
+        if (fwdInfo instanceof GeneratedPacketContext) {
+            log.info("Done processing generated packet: {}", fwdInfo);
+            // TODO(pino): deal with internally generated packets.
+            return;
+        }
+        if (!(fwdInfo instanceof OFPacketContext)) {
+            log.error("Packet context neither generated nor openflow: {}",
+                      fwdInfo);
+            return;
+        }
         OFPacketContext pktCtx = OFPacketContext.class.cast(fwdInfo);
-        // TODO(pino): deal with internally generated packets.
         int bufferId = pktCtx.bufferId;
         int totalLen = pktCtx.totalLen;
         int inPortNum = pktCtx.inPortNum;

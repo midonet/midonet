@@ -202,7 +202,7 @@ public class TestRouter {
                                     (byte) 0x00, (byte) 0x00, (byte) 0x00,
                                     (byte) 0x00, (byte) portNum }),
                             controllerStub);
-                    rtr.addPort(devPort);
+                    rtr.addRouterPort(devPort);
                 }
             } // end for-loop on j
         } // end for-loop on i

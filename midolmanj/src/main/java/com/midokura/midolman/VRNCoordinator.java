@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Router;
@@ -196,6 +197,22 @@ public class VRNCoordinator implements ForwardingElement {
         ForwardingElement fe = getForwardingElement(deviceId);
         fe.addPort(portId);
         feByPortId.put(portId, fe);
+    }
+
+    // Add a materialized port to a router in the VRN.
+    public void addRouterPort(L3DevicePort port) throws
+            ZkStateSerializationException, StateAccessException,
+            KeeperException, InterruptedException, JMException {
+        log.debug("addRouterPort: {}", port);
+
+        UUID routerId = port.getVirtualConfig().device_id;
+        ForwardingElement rtr = getForwardingElement(routerId);
+        if (!(rtr instanceof Router)) {
+            log.error("called addRouterPort() for a non-router");
+            return;
+        }
+        ((Router) rtr).addRouterPort(port);
+        feByPortId.put(port.getId(), rtr);
     }
 
     // This should only be called for materialized ports, not logical ports.

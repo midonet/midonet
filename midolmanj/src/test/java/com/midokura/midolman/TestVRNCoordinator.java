@@ -136,11 +136,12 @@ public class TestVRNCoordinator {
                 routeMgr.create(rt);
                 // All the ports will be local to this controller.
                 L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
-                        portId, portNum, new MAC(new byte[] { (byte) 0x02, (byte) 0x00,
+                        portId, portNum, new MAC(new byte[] { (byte) 0x02, 
                                 (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                (byte) portNum }), controllerStub);
+                                (byte) 0x00, (byte) portNum }),
+                        controllerStub);
                 devPorts.add(devPort);
-                vrn.addPort(portId);
+                vrn.addRouterPort(devPort);
             }
         }
         // Now add the logical links between router 0 and 1.

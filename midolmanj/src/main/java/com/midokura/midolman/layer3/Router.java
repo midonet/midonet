@@ -61,7 +61,7 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-@MXBean
+//@MXBean // FIXME: this throws NotCompliantMBeanExceptions ATM
 public class Router implements ForwardingElement {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
@@ -147,10 +147,10 @@ public class Router implements ForwardingElement {
         arpTable.addWatcher(new ArpWatcher());
         try {
             objectName = new ObjectName(
-                    "com.midokura.midolman.layer3:type=Router,name="
-                            + routerId);
-            ManagementFactory.getPlatformMBeanServer()
-                    .registerMBean(this, objectName);
+                    "com.midokura.midolman.layer3:type=Router,name="+ routerId);
+            // FIXME: this throws NotCompliantMBeanExceptions ATM
+            // ManagementFactory.getPlatformMBeanServer()
+            //         .registerMBean(this, objectName);
         } catch (JMException e) {
             throw new RuntimeException(e);
         }
@@ -175,7 +175,7 @@ public class Router implements ForwardingElement {
     }
 
     // This should only be called for materialized ports, not logical ports.
-    public void addPort(L3DevicePort port) throws KeeperException,
+    public void addRouterPort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.put(port.getId(), port);
         log.debug("{} addPort {} with number {}", new Object[] { this,
