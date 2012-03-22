@@ -96,8 +96,11 @@ public class PortDirectory {
         }
     }
 
-    public static class LogicalBridgePortConfig extends BridgePortConfig {
+    public static class LogicalBridgePortConfig
+            extends BridgePortConfig implements LogicalPortConfig {
         public UUID peer_uuid;
+
+        public UUID peerId() { return peer_uuid; }
 
         // Default constructor for the Jackson deserialization.
         public LogicalBridgePortConfig() { super(); }
@@ -133,8 +136,11 @@ public class PortDirectory {
         }
     }
 
-    public static class LogicalRouterPortConfig extends RouterPortConfig {
+    public static class LogicalRouterPortConfig
+            extends RouterPortConfig implements LogicalPortConfig {
         public UUID peer_uuid;
+
+        public UUID peerId() { return peer_uuid; }
 
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,

@@ -272,12 +272,11 @@ public class VRNCoordinator implements ForwardingElement {
                 fwdInfo.action = Action.BLACKHOLE;
                 return;
             }
-            if (cfg instanceof PortDirectory.LogicalRouterPortConfig) { //XXX
-                PortDirectory.LogicalRouterPortConfig lcfg =
-                    PortDirectory.LogicalRouterPortConfig.class.cast(cfg);
-                ForwardingElement fe = getForwardingElementByPort(lcfg.peer_uuid);
-                log.debug("Packet exited router on logical port to "
-                        + "router {}", fe.getId().toString());
+            if (cfg instanceof LogicalPortConfig) {
+                LogicalPortConfig lcfg = (LogicalPortConfig) cfg;
+                ForwardingElement fe = getForwardingElementByPort(lcfg.peerId());
+                log.debug("Packet exited FE on logical port to FE {}",
+                          fe.getId().toString());
                 if (fwdInfo.notifyFEs.contains(fe.getId())) {
                     log.warn("Detected a routing loop.");
                     fwdInfo.action = Action.BLACKHOLE;
@@ -285,10 +284,9 @@ public class VRNCoordinator implements ForwardingElement {
                 }
                 fwdInfo.matchIn = fwdInfo.matchOut;
                 fwdInfo.matchOut = null;
-                fwdInfo.inPortId = lcfg.peer_uuid;
+                fwdInfo.inPortId = lcfg.peerId();
                 fwdInfo.outPortId = null;
                 fwdInfo.action = null;
-                //fwdInfo.nextHopNwAddr = Route.NO_GATEWAY;
 
                 // fwd_action was OUTPUT, and port type is logical.  Continue
                 // the simulation.
