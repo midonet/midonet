@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.management.JMException;
 import javax.management.ObjectName;
+import javax.management.MXBean;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -60,7 +61,8 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-public class Router implements ForwardingElement, RouterMBean {
+@MXBean
+public class Router implements ForwardingElement {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
@@ -886,8 +888,7 @@ public class Router implements ForwardingElement, RouterMBean {
                 eth.setDestinationMACAddress(fwdInfo.pktIn.getSourceMACAddress());
             else
                 throw new RuntimeException("Unrecognized peer port type.");
-        }
-        else if (portConfig instanceof MaterializedRouterPortConfig)
+        } else if (portConfig instanceof MaterializedRouterPortConfig)
             eth.setDestinationMACAddress((fwdInfo.pktIn.getSourceMACAddress()));
         log.debug("sendICMPforLocalPkt from port {}, {} to {}", new Object[] {
                 fwdInfo.inPortId,

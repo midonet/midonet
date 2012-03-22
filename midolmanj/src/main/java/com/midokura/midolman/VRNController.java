@@ -878,6 +878,6 @@ public class VRNController extends AbstractController
     }
 
     private static class GeneratedPacketContext extends ForwardInfo {
-        byte []data;
+        byte[] data;
     }
 }
