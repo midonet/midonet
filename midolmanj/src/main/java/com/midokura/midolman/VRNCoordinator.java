@@ -142,6 +142,8 @@ public class VRNCoordinator implements ForwardingElement {
 
     protected ForwardingElement getForwardingElement(UUID deviceId)
             throws StateAccessException, KeeperException {
+        // TODO: Track down why we're throwing a KeeperException, as these
+        // should never escape StateAccessException.
         ForwardingElement fe = forwardingElements.get(deviceId);
         if (null != fe)
             return fe;
