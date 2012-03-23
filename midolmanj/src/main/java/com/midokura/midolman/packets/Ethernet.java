@@ -47,10 +47,10 @@ public class Ethernet extends BasePacket {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Ethernet [dlSrc=");
-        sb.append(null == sourceMACAddress ? "null" : 
+        sb.append(null == sourceMACAddress ? "null" :
                         Net.convertByteMacToString(sourceMACAddress));
         sb.append(", dlDst=").append(
-                null == destinationMACAddress ? "null" : 
+                null == destinationMACAddress ? "null" :
                         Net.convertByteMacToString(destinationMACAddress));
         sb.append(", etherType=").append(etherType).append(", payload=");
         sb.append(null == payload ? "null" : payload.toString());
@@ -270,9 +270,31 @@ public class Ethernet extends BasePacket {
     public static boolean isMcast(MAC mac) {
         return isMcast(mac.getAddress());
     }
-    
+
     private static boolean isMcast(byte[] mac) {
         return 0 != (mac[0] & 0x01);
+    }
+
+    public boolean isBroadcast() {
+        return isBroadcast(destinationMACAddress);
+    }
+
+    public static boolean isBroadcast(MAC mac) {
+        return isBroadcast(mac.getAddress());
+    }
+
+    private static boolean isBroadcast(byte[] mac) {
+        if (mac.length != 6) {
+            return false;
+        }
+
+        for (int i=0; i<6; i++) {
+            if (mac[i] != 0xFF) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /* (non-Javadoc)

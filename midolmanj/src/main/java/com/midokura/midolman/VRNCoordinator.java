@@ -146,7 +146,7 @@ public class VRNCoordinator implements ForwardingElement {
         if (true)
             fe = createRouter(deviceId);
         else
-            fe = new Bridge(deviceId);
+            //fe = new Bridge(deviceId);
         forwardingElements.put(deviceId, fe);
         return fe;
     }
