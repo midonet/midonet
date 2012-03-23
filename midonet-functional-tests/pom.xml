@@ -10,8 +10,8 @@
         <version>12.06-SNAPSHOT</version>
     </parent>
 
-    <groupId>${parent.groupId}</groupId>
-    <version>${parent.version}</version>
+    <groupId>com.midokura</groupId>
+    <version>12.06-SNAPSHOT</version>
     <artifactId>midonet-functional-tests</artifactId>
     <packaging>jar</packaging>
 
@@ -245,18 +245,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.6.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>2.9.0-1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.midokura</groupId>
-            <artifactId>midokura-util</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

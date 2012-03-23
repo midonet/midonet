@@ -10,8 +10,8 @@
         <version>12.06-SNAPSHOT</version>
     </parent>
 
-    <groupId>${parent.groupId}</groupId>
-    <version>${parent.version}</version>
+    <groupId>com.midokura</groupId>
+    <version>12.06-SNAPSHOT</version>
     <artifactId>midolmanj-mgmt</artifactId>
     <packaging>war</packaging>
 
