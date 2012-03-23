@@ -6,9 +6,8 @@ package com.midokura.midolman;
 
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.ZkPathManager;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
@@ -26,21 +25,16 @@ public class Bridge implements ForwardingElement {
     UUID bridgeId;
     Set<UUID> localPorts = new HashSet<UUID>();
     private MacPortMap macPortMap;
+    private BridgeZkManager bridgeZkManager;
 
-    public Bridge(UUID bridgeId, Directory directory, String basepath) throws KeeperException {
+    public Bridge(UUID bridgeId, MacPortMap macPortMap_,
+                  BridgeZkManager bridgeZkManager_) throws KeeperException {
 
         this.bridgeId = bridgeId;
 
-        ZkPathManager pathManager = new ZkPathManager(basepath);
-
         // To get bridgeConfig, to get GRE key
-        //BridgeZkManager bridgeZkManager = new BridgeZkManager(directory, basepath);
-
-        Directory macPortDir =
-                directory.getSubDirectory(
-                        pathManager.getBridgeMacPortsPath(bridgeId));
-
-        macPortMap = new MacPortMap(macPortDir);
+        bridgeZkManager = bridgeZkManager_;
+        macPortMap = macPortMap_;
     }
 
     /*

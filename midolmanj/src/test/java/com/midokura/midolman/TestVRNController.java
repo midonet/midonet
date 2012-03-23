@@ -114,6 +114,7 @@ public class TestVRNController {
         greMgr = new GreZkManager(dir, basePath);
         bridgeMgr = new BridgeZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
+        BridgeZkManager bridgeMgr = new BridgeZkManager(dir, basePath);
 
         // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);
@@ -139,9 +140,9 @@ public class TestVRNController {
         cache = new MockCache(reactor, cacheExpireSecs);
         vrnCtrl = new VRNController(datapathId, networkId,
                 5 /* greKey */, portLocMap, idleFlowTimeoutSeconds,
-                localNwIP, portMgr, routerMgr, routeMgr, chainMgr, ruleMgr,
-                ovsdb, reactor, cache, "midonet", service, portSetMap, greMgr,
-                bridgeMgr);
+                localNwIP, portMgr, routerMgr, routeMgr, bridgeMgr,
+                chainMgr, ruleMgr, ovsdb, reactor, cache, "midonet", service,
+                portSetMap);
         vrnCtrl.setControllerStub(controllerStub);
 
         /*

@@ -47,6 +47,7 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -97,7 +98,8 @@ public class TestVRNCoordinator {
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
         vrn = new VRNCoordinator(new UUID(19, 19), portMgr, routerMgr,
-                routeMgr, new ChainZkManager(dir, basePath),
+                routeMgr, new BridgeZkManager(dir, basePath),
+                new ChainZkManager(dir, basePath),
                 new RuleZkManager(dir, basePath), reactor, createCache());
 
         /*

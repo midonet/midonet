@@ -178,6 +178,7 @@ public class ControllerTrampoline implements Controller {
                         portMgr,
                         new RouterZkManager(directory, basePath),
                         routeMgr,
+                        new BridgeZkManager(directory, basePath),
                         new ChainZkManager(directory, basePath),
                         new RuleZkManager(directory, basePath),
                         ovsdb,

@@ -46,6 +46,7 @@ public class VRNCoordinator implements ForwardingElement {
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
     private RouterZkManager routerMgr;
+    private BridgeZkManager bridgeMgr;
     private Reactor reactor;
     private Cache cache;
     private Map<UUID, ForwardingElement> forwardingElements;
@@ -59,12 +60,13 @@ public class VRNCoordinator implements ForwardingElement {
 
     public VRNCoordinator(UUID netId, PortZkManager portMgr,
             RouterZkManager routerMgr, RouteZkManager routeMgr,
-            ChainZkManager chainMgr, RuleZkManager ruleMgr, Reactor reactor,
-            Cache cache) {
+            BridgeZkManager bridgeMgr, ChainZkManager chainMgr,
+            RuleZkManager ruleMgr, Reactor reactor, Cache cache) {
         this.netId = netId;
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
         this.routerMgr = routerMgr;
+        this.bridgeMgr = bridgeMgr;
         this.chainZkMgr = chainMgr;
         this.ruleZkMgr = ruleMgr;
         this.reactor = reactor;
@@ -149,9 +151,15 @@ public class VRNCoordinator implements ForwardingElement {
         if (true)
             fe = createRouter(deviceId);
         else
-            //fe = new Bridge(deviceId);
+            fe = createBridge(deviceId);
         forwardingElements.put(deviceId, fe);
         return fe;
+    }
+
+    private ForwardingElement createBridge(UUID deviceId)
+            throws StateAccessException, KeeperException {
+        // XXX: Construct a MacPortMap.
+        return new Bridge(deviceId, null, bridgeMgr);
     }
 
     private ForwardingElement createRouter(UUID deviceId)

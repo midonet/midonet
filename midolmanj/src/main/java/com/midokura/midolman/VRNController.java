@@ -77,10 +77,10 @@ public class VRNController extends AbstractController
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
             IntIPv4 localNwAddr, PortZkManager portMgr,
             RouterZkManager routerMgr, RouteZkManager routeMgr,
-            ChainZkManager chainMgr, RuleZkManager ruleMgr,
-            OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
-            String externalIdKey, PortService service, PortSetMap portSetMap,
-            GreZkManager greMgr, BridgeZkManager bridgeMgr) {
+            BridgeZkManager bridgeMgr, ChainZkManager chainMgr,
+            RuleZkManager ruleMgr, OpenvSwitchDatabaseConnection ovsdb,
+            Reactor reactor, Cache cache, String externalIdKey,
+            PortService service, PortSetMap portSetMap) {
         super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr,
                 externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
@@ -89,7 +89,7 @@ public class VRNController extends AbstractController
         this.greMgr = greMgr;
         this.bridgeMgr = bridgeMgr;
         this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, routeMgr,
-                chainMgr, ruleMgr, reactor, cache);
+                bridgeMgr, chainMgr, ruleMgr, reactor, cache);
         this.portSetMap = portSetMap;
         portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
