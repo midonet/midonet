@@ -20,7 +20,8 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 public interface ForwardingElement {
 
-    void process(ForwardInfo fwdInfo) throws StateAccessException;
+    void process(ForwardInfo fwdInfo)
+         throws StateAccessException, KeeperException;
     void addPort(UUID portId)
          throws ZkStateSerializationException, StateAccessException,
                 KeeperException, InterruptedException, JMException;

@@ -49,7 +49,7 @@ public class L3DevicePort {
     private final Logger log;
 
     public L3DevicePort(PortZkManager portMgr, RouteZkManager routeMgr,
-            UUID portId) throws Exception {
+            UUID portId) throws KeeperException, StateAccessException {
 
         log = LoggerFactory.getLogger(
                 L3DevicePort.class.getCanonicalName() + '.' + portId);
@@ -68,26 +68,18 @@ public class L3DevicePort {
         public void run() {
             try {
                 updatePortConfig();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                log.warn("PortWatcher.run", e);
-            } catch (ClassNotFoundException e) {
+            } catch (StateAccessException e) {
                 // TODO Auto-generated catch block
                 log.warn("PortWatcher.run", e);
             } catch (KeeperException e) {
-                // TODO Auto-generated catch block
-                log.warn("PortWatcher.run", e);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                log.warn("PortWatcher.run", e);
-            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 log.warn("PortWatcher.run", e);
             }
         }
     }
 
-    private void updatePortConfig() throws Exception {
+    private void updatePortConfig()
+            throws KeeperException, StateAccessException {
         ZkNodeEntry<UUID, PortConfig> entry = null;
         try {
             entry = portMgr.get(portId, portWatcher);
@@ -98,8 +90,8 @@ public class L3DevicePort {
         }
         PortConfig cfg = entry.value;
         if (!(cfg instanceof PortDirectory.MaterializedRouterPortConfig))
-            throw new Exception("L3DevicePort's virtual configuration isn't "
-                    + "a MaterializedRouterPortConfig.");
+            throw new RuntimeException("L3DevicePort's virtual configuration " +
+                    "isn't a MaterializedRouterPortConfig.");
         PortDirectory.MaterializedRouterPortConfig oldCfg = portCfg;
         portCfg = PortDirectory.MaterializedRouterPortConfig.class.cast(cfg);
         // Keep the old routes.

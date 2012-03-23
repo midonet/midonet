@@ -126,7 +126,8 @@ public class TestRouter {
         rTable = new ReplicatedRoutingTable(rtrId, routerMgr
                 .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
         ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(rtrId));
-        rtr = new Router(rtrId, ruleEngine, rTable, arpTable, reactor);
+        rtr = new Router(rtrId, ruleEngine, rTable, arpTable, reactor, portMgr,
+                         routeMgr);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.
@@ -197,12 +198,7 @@ public class TestRouter {
 
                 if (1 != j) {
                     // Except for the first port, add them locally.
-                    L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
-                            portId);
-                    MAC unused = new MAC(new byte[] { (byte) 0x02,
-                                    (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                    (byte) 0x00, (byte) portNum });
-                    rtr.addRouterPort(devPort);
+                    rtr.addPort(portId);
                 }
             } // end for-loop on j
         } // end for-loop on i
@@ -347,8 +343,7 @@ public class TestRouter {
         fInfo = routePacket(port3Id, eth);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a00010b);
         // Now have the local controller remove port 12.
-        L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
-        rtr.removePort(devPort12);
+        rtr.removePort(port12Id);
         fInfo = routePacket(port3Id, eth);
         checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
     }

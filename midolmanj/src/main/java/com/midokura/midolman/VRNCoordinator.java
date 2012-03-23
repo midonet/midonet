@@ -44,6 +44,7 @@ public class VRNCoordinator implements ForwardingElement {
     private ChainZkManager chainZkMgr;
     private RuleZkManager ruleZkMgr;
     private PortZkManager portMgr;
+    private RouteZkManager routeMgr;
     private RouterZkManager routerMgr;
     private Reactor reactor;
     private Cache cache;
@@ -57,10 +58,12 @@ public class VRNCoordinator implements ForwardingElement {
     private Map<UUID, PortConfig> portIdToConfig;
 
     public VRNCoordinator(UUID netId, PortZkManager portMgr,
-            RouterZkManager routerMgr, ChainZkManager chainMgr,
-            RuleZkManager ruleMgr, Reactor reactor, Cache cache) {
+            RouterZkManager routerMgr, RouteZkManager routeMgr,
+            ChainZkManager chainMgr, RuleZkManager ruleMgr, Reactor reactor,
+            Cache cache) {
         this.netId = netId;
         this.portMgr = portMgr;
+        this.routeMgr = routeMgr;
         this.routerMgr = routerMgr;
         this.chainZkMgr = chainMgr;
         this.ruleZkMgr = ruleMgr;
@@ -136,7 +139,7 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     protected ForwardingElement getForwardingElement(UUID deviceId)
-            throws StateAccessException {
+            throws StateAccessException, KeeperException {
         ForwardingElement fe = forwardingElements.get(deviceId);
         if (null != fe)
             return fe;
@@ -152,7 +155,7 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     private ForwardingElement createRouter(UUID deviceId)
-            throws StateAccessException {
+            throws StateAccessException, KeeperException {
         NatMapping natMap = new NatLeaseManager(routerMgr, deviceId, cache,
                 reactor);
         RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, deviceId,
@@ -164,11 +167,12 @@ public class VRNCoordinator implements ForwardingElement {
         table.addWatcher(routerWatcher);
         ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(deviceId));
         arpTable.start();
-        return new Router(deviceId, ruleEngine, table, arpTable, reactor);
+        return new Router(deviceId, ruleEngine, table, arpTable, reactor,
+                          portMgr, routeMgr);
     }
 
     public ForwardingElement getForwardingElementByPort(UUID portId)
-            throws StateAccessException {
+            throws StateAccessException, KeeperException {
         ForwardingElement fe = feByPortId.get(portId);
         if (null != fe)
             return fe;
@@ -207,6 +211,7 @@ public class VRNCoordinator implements ForwardingElement {
         feByPortId.put(portId, fe);
     }
 
+    /*
     // Add a materialized port to a router in the VRN.
     public void addRouterPort(L3DevicePort port) throws
             ZkStateSerializationException, StateAccessException,
@@ -222,6 +227,7 @@ public class VRNCoordinator implements ForwardingElement {
         ((Router) rtr).addRouterPort(port);
         feByPortId.put(port.getId(), rtr);
     }
+    */
 
     // This should only be called for materialized ports, not logical ports.
     @Override
@@ -238,7 +244,8 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     @Override
-    public void process(ForwardInfo fwdInfo) throws StateAccessException {
+    public void process(ForwardInfo fwdInfo)
+            throws StateAccessException, KeeperException {
         log.debug("process: fwdInfo {} traversedRouters {}", fwdInfo,
                   fwdInfo.notifyFEs);
 
@@ -246,7 +253,8 @@ public class VRNCoordinator implements ForwardingElement {
         processOneFE(fwdInfo);
     }
 
-    protected void processOneFE(ForwardInfo fwdInfo) throws StateAccessException {
+    protected void processOneFE(ForwardInfo fwdInfo)
+            throws StateAccessException, KeeperException {
         ForwardingElement fe = getForwardingElementByPort(fwdInfo.inPortId);
         if (null == fe)
             throw new RuntimeException("Packet arrived on a port that hasn't "
@@ -268,7 +276,7 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     protected void handleProcessResult(ForwardInfo fwdInfo)
-            throws StateAccessException {
+            throws StateAccessException, KeeperException {
         if (fwdInfo.action.equals(Action.FORWARD)) {
             // Get the port's configuration to see if it's logical.
             PortConfig cfg = getPortConfig(fwdInfo.outPortId);

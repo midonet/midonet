@@ -36,11 +36,14 @@ import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.ReplicatedMap;
+import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
@@ -73,6 +76,9 @@ public class Router implements ForwardingElement {
 
     public static final String PRE_ROUTING = "pre_routing";
     public static final String POST_ROUTING = "post_routing";
+
+    private PortZkManager portMgr;
+    private RouteZkManager routeMgr;
 
     /**
      * Router uses one instance of this class to get a callback when there are
@@ -135,7 +141,8 @@ public class Router implements ForwardingElement {
 
     public Router(UUID routerId, RuleEngine ruleEngine,
                   ReplicatedRoutingTable table, ArpTable arpTable,
-                  Reactor reactor) {
+                  Reactor reactor, PortZkManager portMgr,
+                  RouteZkManager routeMgr) {
         this.routerId = routerId;
         this.ruleEngine = ruleEngine;
         this.table = table;
@@ -176,26 +183,26 @@ public class Router implements ForwardingElement {
     }
 
     // This should only be called for materialized ports, not logical ports.
-    public void addRouterPort(L3DevicePort port) throws KeeperException,
-            InterruptedException {
-        devicePorts.put(port.getId(), port);
-        //log.debug("{} addPort {} with number {}", new Object[] { this,
-        //        port.getId(), port.getNum() });
+    @Override
+    public void addPort(UUID portId) throws KeeperException,
+            InterruptedException, StateAccessException {
+        L3DevicePort port = new L3DevicePort(portMgr, routeMgr, portId);
+        devicePorts.put(portId, port);
         port.addListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
             log.debug("{} adding route {} to table", this, rt);
             table.addRoute(rt);
         }
-        arpCallbackLists.put(port.getId(),
+        arpCallbackLists.put(portId,
                 new HashMap<Integer, List<Callback<MAC>>>());
     }
 
     // This should only be called for materialized ports, not logical ports.
-    public void removePort(L3DevicePort port) throws KeeperException,
+    @Override
+    public void removePort(UUID portId) throws KeeperException,
             InterruptedException {
-        devicePorts.remove(port.getId());
-        //log.debug("{} removePort {} with number", new Object[] { this,
-        //        port.getId(), port.getNum() });
+        L3DevicePort port = devicePorts.get(portId);
+        devicePorts.remove(portId);
         port.removeListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
             log.debug("{} removing route {} from table", this, rt);
@@ -205,7 +212,7 @@ public class Router implements ForwardingElement {
                 log.warn("removePort got NoNodeException removing route.");
             }
         }
-        arpCallbackLists.remove(port.getId());
+        arpCallbackLists.remove(portId);
     }
 
     /**
@@ -409,16 +416,6 @@ public class Router implements ForwardingElement {
 
         // TODO(pino, jlm): Check for the broadcast address, and if so use the
         // broadcast ethernet address for the dst MAC.
-    }
-
-    @Override
-    public void addPort(UUID portId) {
-
-    }
-
-    @Override
-    public void removePort(UUID portId) {
-
     }
 
     private void processICMPtoLocal(Ethernet ethPkt, L3DevicePort port) {

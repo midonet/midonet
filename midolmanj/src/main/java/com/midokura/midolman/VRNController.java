@@ -79,8 +79,8 @@ public class VRNController extends AbstractController
                 externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
         this.reactor = reactor;
-        this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, chainMgr,
-                ruleMgr, reactor, cache);
+        this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, routeMgr,
+                chainMgr, ruleMgr, reactor, cache);
         this.portSetMap = portSetMap;
         portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
@@ -109,6 +109,8 @@ public class VRNController extends AbstractController
                 vrn.handleProcessResult(fwdInfo);
                 if (fwdInfo.action != ForwardingElement.Action.PAUSED)
                     handleProcessResult(fwdInfo);
+            } catch (KeeperException e) {
+                log.error("Error processing packet.", e);
             } catch (StateAccessException e) {
                 log.error("Error processing packet.", e);
             }
@@ -536,6 +538,10 @@ public class VRNController extends AbstractController
             try {
                 ForwardingElement fe = vrn.getForwardingElement(feId);
                 fe.freeFlowResources(match);
+            } catch (KeeperException e) {
+                log.warn("freeFlowResources failed for match {} in FE {} -"
+                        + " caught: \n{}",
+                        new Object[] { match, feId, e.getStackTrace() });
             } catch (ZkStateSerializationException e) {
                 log.warn("freeFlowResources failed for match {} in FE {} -"
                         + " caught: \n{}",

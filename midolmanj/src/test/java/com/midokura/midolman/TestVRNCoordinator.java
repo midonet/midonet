@@ -25,6 +25,7 @@ import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -96,8 +97,8 @@ public class TestVRNCoordinator {
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
         vrn = new VRNCoordinator(new UUID(19, 19), portMgr, routerMgr,
-                new ChainZkManager(dir, basePath), new RuleZkManager(dir,
-                        basePath), reactor, createCache());
+                routeMgr, new ChainZkManager(dir, basePath),
+                new RuleZkManager(dir, basePath), reactor, createCache());
 
         /*
          * Create 3 routers such that:
@@ -135,13 +136,15 @@ public class TestVRNCoordinator {
                         Route.NO_GATEWAY, 2, null, rtrId);
                 routeMgr.create(rt);
                 // All the ports will be local to this controller.
+                // TODO: Should we construct this here, given that the Router
+                // will construct a clone?
                 L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
                         portId);
                 MAC mac = new MAC(new byte[] { (byte) 0x02,
                         (byte) 0x00, (byte) 0x00, (byte) 0x00,
                         (byte) 0x00, (byte) portNum });
                 devPorts.add(devPort);
-                vrn.addRouterPort(devPort);
+                vrn.addPort(portId);
             }
         }
         // Now add the logical links between router 0 and 1.
@@ -198,7 +201,8 @@ public class TestVRNCoordinator {
 
     @Test
     public void testOneRouterBlackhole() throws StateAccessException,
-            ZkStateSerializationException, IOException, JMException {
+            ZkStateSerializationException, IOException, JMException,
+            KeeperException {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -217,7 +221,7 @@ public class TestVRNCoordinator {
 
     @Test
     public void testOneRouterReject() throws ZkStateSerializationException,
-            StateAccessException, IOException, JMException {
+            StateAccessException, IOException, JMException, KeeperException {
         // Send a packet to router0's first materialized port to a destination
         // that's rejected.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -236,7 +240,8 @@ public class TestVRNCoordinator {
 
     @Test
     public void testOneRouterForward() throws StateAccessException,
-            ZkStateSerializationException, IOException, JMException {
+            ZkStateSerializationException, IOException, JMException,
+            KeeperException {
         // Send a packet to router0's first materialized port to a destination
         // reachable from its second materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -257,7 +262,8 @@ public class TestVRNCoordinator {
 
     @Test
     public void testTwoRoutersForward() throws StateAccessException,
-            ZkStateSerializationException, IOException, JMException {
+            ZkStateSerializationException, IOException, JMException,
+            KeeperException {
         // Send a packet to router1's first materialized port to a destination
         // reachable from router0's first materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -279,7 +285,8 @@ public class TestVRNCoordinator {
 
     @Test
     public void testThreeRoutersForward() throws StateAccessException,
-            ZkStateSerializationException, IOException, JMException {
+            ZkStateSerializationException, IOException, JMException,
+            KeeperException {
         // Send a packet to router1's second materialized port to a destination
         // reachable from router2's second materialized port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
@@ -330,7 +337,7 @@ public class TestVRNCoordinator {
     @Test @Ignore
     public void testJmxConnection()
             throws JMException, IOException, ZkStateSerializationException,
-                   StateAccessException {
+                   StateAccessException, KeeperException {
         JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://");
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         JMXConnectorServer cs =
