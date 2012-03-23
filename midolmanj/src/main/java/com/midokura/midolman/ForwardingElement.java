@@ -43,6 +43,7 @@ public interface ForwardingElement {
 
     // For use by Bridge and Router ForwardingElements.
     public interface PacketContext {
+        boolean isGeneratedPacket();
         UUID getInPortId();
         Ethernet getPktIn();
         MidoMatch getMatchIn();   // The return value should not be modified.
@@ -80,23 +81,23 @@ public interface ForwardingElement {
         public Ethernet pktIn;
         public MidoMatch flowMatch; // (original) match of any eventual flows
         public MidoMatch matchIn; // the match as it enters the ForwardingElement
+        public boolean internallyGenerated = false;
 
         // These fields are filled by ForwardingElement.process():
         public Action action;
         public UUID outPortId;
         public MidoMatch matchOut; // the match as it exits the ForwardingElement
         // Used by FEs that want notification when the flow is removed.
-        public Collection<UUID> notifyFEs;
+        public Collection<UUID> notifyFEs = new HashSet<UUID>();
         // Used by the VRNCoordinator to detect loops.
-        public Collection<UUID> traversedFEs;
-        public int depth;  // depth in the VRN simulation
+        public Collection<UUID> traversedFEs = new HashSet<UUID>();
+        public int depth = 0;  // depth in the VRN simulation
 
         public int dropTimeSeconds; // only relevant if action is DROP
 
-        public ForwardInfo() {
-            notifyFEs = new HashSet<UUID>();
-            traversedFEs = new HashSet<UUID>();
-            depth = 0;
+        public ForwardInfo() {}
+        public ForwardInfo(boolean internallyGenerated) {
+            this.internallyGenerated = internallyGenerated;
         }
 
         @Override
@@ -140,6 +141,11 @@ public interface ForwardingElement {
         @Override
         public void setDropTimeSeconds(int dropTimeSeconds) {
             this.dropTimeSeconds = dropTimeSeconds;
+        }
+
+        @Override
+        public boolean isGeneratedPacket() {
+            return internallyGenerated;
         }
 
         @Override

@@ -35,7 +35,7 @@ public class DhcpHandler {
     public DhcpHandler() {
     }
 
-    public void handleDhcpRequest(UUID inPortId, DHCP request, MAC sourceMac) {
+    public boolean handleDhcpRequest(UUID inPortId, DHCP request, MAC sourceMac) {
         // Get the port configuration.
         PortDirectory.MaterializedRouterPortConfig inPortConfig = null;
 
@@ -43,12 +43,12 @@ public class DhcpHandler {
         byte[] chaddr = request.getClientHardwareAddress();
         if (null == chaddr) {
             log.warn("handleDhcpRequest dropping bootrequest with null chaddr");
-            return;
+            return true;
         }
         if (chaddr.length != 6) {
             log.warn("handleDhcpRequest dropping bootrequest with chaddr "
                     + "with length {} greater than 6.", chaddr.length);
-            return;
+            return true;
         }
         log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
                 + "and ciaddr {}",
@@ -67,7 +67,7 @@ public class DhcpHandler {
                 if (opt.getLength() != 1) {
                     log.warn("handleDhcpRequest dropping bootrequest - "
                             + "dhcp msg type option has bad length or data.");
-                    return;
+                    return true;
                 }
                 log.debug("handleDhcpRequest dhcp msg type {}:{}",
                         opt.getData()[0],
@@ -77,7 +77,7 @@ public class DhcpHandler {
                 if (opt.getLength() <= 0) {
                     log.warn("handleDhcpRequest dropping bootrequest - "
                             + "param request list has bad length");
-                    return;
+                    return true;
                 }
                 for (int i = 0; i < opt.getLength(); i++) {
                     byte c = opt.getData()[i];
@@ -91,7 +91,7 @@ public class DhcpHandler {
         if (null == typeOpt) {
             log.warn("handleDhcpRequest dropping bootrequest - no dhcp msg "
                     + "type found.");
-            return;
+            return true;
         }
         byte msgType = typeOpt.getData()[0];
         boolean drop = true;
@@ -124,7 +124,7 @@ public class DhcpHandler {
                 log.warn("handleDhcpRequest dropping dhcp REQUEST - no " +
                         "server id option found.");
                 // TODO(pino): re-enable this.
-                //return;
+                //return true;
             } else {
                 // The server id should correspond to this port's address.
                 int ourServId = inPortConfig.portAddr;
@@ -141,7 +141,7 @@ public class DhcpHandler {
             if (null == opt) {
                 log.warn("handleDhcpRequest dropping dhcp REQUEST - no "
                         + "requested ip option found.");
-                return;
+                return true;
             }
             // The requested ip must correspond to the yiaddr in our offer.
             int reqIp = IPv4.toIPv4Address(opt.getData());
@@ -153,14 +153,14 @@ public class DhcpHandler {
                         "requested ip {} is not the offered yiaddr {}",
                         IPv4.fromIPv4Address(reqIp), IPv4.fromIPv4Address(offeredIp));
                 // TODO(pino): send a dhcp NAK reply.
-                return;
+                return true;
             }
         }
         if (drop) {
             log.warn("handleDhcpRequest dropping bootrequest - we don't "
                     + "handle msg type {}:{}", msgType,
                     DHCPOption.msgTypeToName.get(msgType));
-            return;
+            return true;
         }
         DHCP reply = new DHCP();
         reply.setOpCode(DHCP.OPCODE_REPLY);
@@ -232,6 +232,7 @@ public class DhcpHandler {
                 inPortId);
         //devPortIn.send(eth.serialize());
         //sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
+        return true;
     }
 
 }

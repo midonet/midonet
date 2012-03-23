@@ -29,13 +29,12 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.Net;
-import com.midokura.midolman.util.ShortUUID;
 
 public class VRNController extends AbstractController
     implements ServiceFlowController {
@@ -46,14 +45,12 @@ public class VRNController extends AbstractController
     // TODO(pino): This constant should be declared in openflow...
     public static final short NO_HARD_TIMEOUT = 0;
     public static final short NO_IDLE_TIMEOUT = 0;
-    // TODO(pino)
+    public static final short TEMPORARY_DROP_SECONDS = 5;
     public static final short ICMP_EXPIRY_SECONDS = 5;
     private static final short FLOW_PRIORITY = 0;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
     public static final int ICMP_TUNNEL = 0x05;
 
-    private PortZkManager portMgr;
-    private RouteZkManager routeMgr;
     VRNCoordinator vrn;
     short idleFlowExpireSeconds; //package private to allow test access.
 
@@ -79,10 +76,8 @@ public class VRNController extends AbstractController
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
             String externalIdKey, PortService service, PortSetMap portSetMap) {
         super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr,
-              externalIdKey);
+                externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
-        this.portMgr = portMgr;
-        this.routeMgr = routeMgr;
         this.reactor = reactor;
         this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, chainMgr,
                 ruleMgr, reactor, cache);
@@ -97,29 +92,10 @@ public class VRNController extends AbstractController
         this.dhcpHandler = new DhcpHandler();
     }
 
-    /*
-     * Setup a flow that sends all DHCP request packets to
-     * the controller.
+    /**
+     * This inner class is used to re-launch processing of un-PAUSED packets
+     * in the main thread. This also support re-pausing packets.
      */
-    private void setFlowsForHandlingDhcpInController(short portNum) {
-        log.debug("setFlowsForHandlingDhcpInController: on port {}", portNum);
-
-        MidoMatch match = new MidoMatch();
-        match.setInputPort(portNum);
-        match.setDataLayerType(IPv4.ETHERTYPE);
-        match.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
-        match.setTransportSource((short) 68);
-        match.setTransportDestination((short) 67);
-
-        List<OFAction> actions = new ArrayList<OFAction>();
-        actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
-                (short) 1024));
-
-        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
-                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
-                ControllerStub.UNBUFFERED_ID, false, false, false, actions);
-    }
-
     private class PacketContinuation implements Runnable {
         ForwardInfo fwdInfo;
 
@@ -139,18 +115,30 @@ public class VRNController extends AbstractController
         }
     }
 
+    /**
+     * For use by ForwardingElements. Invoke simulation for an internally-
+     * generated packet. The simulation should start at the port where the
+     * packet leaves the device that generated it.
+     *
+     * @param pkt
+     *      The packet to inject into the virtual network.
+     * @param originPort
+     *      The port from which the packet is emitted. This may be a logical
+     *      or materialized port.
+     */
     public void addGeneratedPacket(Ethernet pkt, UUID originPort) {
-        GeneratedPacketContext pktCtx = new GeneratedPacketContext();
-        pktCtx.data = pkt.serialize();
-        pktCtx.pktIn = pkt;
-
-        pktCtx.action = ForwardingElement.Action.FORWARD;
-        pktCtx.outPortId = originPort;
-        pktCtx.matchOut = new MidoMatch();
-        pktCtx.matchOut.loadFromPacket(pktCtx.data, (short)0);
-        reactor.submit(new PacketContinuation(pktCtx));
+        reactor.submit(new PacketContinuation(
+                new GeneratedPacketContext(pkt, originPort)));
     }
 
+    /**
+     * The ForwardingElement that PAUSED a packet should use this method to
+     * release ownership of the ForwardInfo and trigger the continuation of the
+     * simulation of the packet's traversal of the virtual network.
+     *
+     * @param fwdInfo
+     *      The packet context of a previously PAUSED packet.
+     */
     public void continueProcessing(final ForwardInfo fwdInfo) {
         reactor.submit(new PacketContinuation(fwdInfo));
     }
@@ -162,6 +150,7 @@ public class VRNController extends AbstractController
         MidoMatch match = new MidoMatch();
         match.loadFromPacket(data, shortInPort);
 
+        // TODO(pino, 3/23/2012): OVS bug work-around? I don't get the comments.
         // Rewrite inPort with the service's target port assuming that
         // service flows sent this packet to the OFPP_CONTROLLER.
         // TODO(yoshi): replace this with better mechanism such as ARP proxy
@@ -170,42 +159,42 @@ public class VRNController extends AbstractController
             log.debug("onPacketIn: rewrite port {} to {}", inPort,
                       serviceTargetPort);
             inPort = serviceTargetPort;
-            // TODO(pino): remove this when we're confident we don't need it.
+            // TODO(pino, 3/23/2012): prove newer OVS doesn't trigger this.
             throw new RuntimeException("This shouldn't happen anymore.");
         }
 
-        // Try mapping the port number to a virtual device port.
-        UUID inPortId = portNumToUuid.get(inPort);
-        // If the port isn't a virtual port and it isn't a tunnel, drop the pkt.
-        if (null == inPortId && !super.isTunnelPortNum(inPort)) {
-            log.warn("onPacketIn: dropping packet from port {} (not virtual "
-                    + "or tunnel): {}", inPort, match);
-            // TODO(pino): should we install a drop rule to avoid processing
-            // all the packets from this port?
-            freeBuffer(bufferId);
+        // Handle tunneled packets.
+        if (super.isTunnelPortNum(inPort)) {
+            forwardTunneledPkt(match,  bufferId, inPort, data, matchingTunnelId);
             return;
         }
 
+        // The packet isn't from a tunnel port.
+        UUID inPortId = portNumToUuid.get(inPort);
+        if (null == inPortId) {
+            log.warn("onPacketIn: received a packet from port {}. " +
+                    "The port is not a tunnel nor virtual.", inPort, match);
+            // Drop all packets received on this port for a while.
+            MidoMatch flowMatch = new MidoMatch();
+            flowMatch.setInputPort(shortInPort);
+            installDropFlowEntry(flowMatch, bufferId, NO_IDLE_TIMEOUT,
+                    TEMPORARY_DROP_SECONDS);
+            return;
+        }
         ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
         Ethernet ethPkt = new Ethernet();
         try {
             ethPkt.deserialize(bb);
         } catch(MalformedPacketException ex) {
             // Packet could not be deserialized: Drop it.
-            log.warn("onPacketIn: dropping malformed packet from port {}.  "
-                    + "{}", inPort, ex.getMessage());
-            freeBuffer(bufferId);
+            log.warn("onPacketIn: malformed packet from port {}: {}",
+                    inPort, ex.getMessage());
+            installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
+                    TEMPORARY_DROP_SECONDS);
             return;
         }
-
         log.debug("onPacketIn: port {} received buffer {} of size {} - {}",
                 new Object [] { inPort, bufferId, totalLen, ethPkt });
-
-        if (super.isTunnelPortNum(inPort)) {
-            forwardTunneledPkt(match,  bufferId, totalLen, inPort, data,
-                    matchingTunnelId);
-            return;
-        }
 
         // check if the packet is a DHCP request
         if (ethPkt.getEtherType() == IPv4.ETHERTYPE) {
@@ -216,220 +205,242 @@ public class VRNController extends AbstractController
                     DHCP dhcp = (DHCP) udp.getPayload();
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
                         log.debug("onPacketIn: got a DHCP bootrequest");
-                        dhcpHandler.handleDhcpRequest(
-                                inPortId, dhcp, ethPkt.getSourceMACAddress());
-                        freeBuffer(bufferId);
-                        return;
+                        if (dhcpHandler.handleDhcpRequest(inPortId, dhcp,
+                                ethPkt.getSourceMACAddress())) {
+                            freeBuffer(bufferId);
+                            return;
+                        }
                     }
                 }
             }
         }
 
-        ForwardInfo fwdInfo = new ForwardInfo();
+        // Send the packet to the network simulation.
+        OFPacketContext fwdInfo = new OFPacketContext(
+                bufferId, data, inPort, totalLen, matchingTunnelId);
         fwdInfo.inPortId = inPortId;
         fwdInfo.flowMatch = match;
         fwdInfo.matchIn = match.clone();
         fwdInfo.pktIn = ethPkt;
-        Set<UUID> routers = new HashSet<UUID>();
-        // TODO(pino, jlm): make sure notifyFEs is used in the rest of the class
-        fwdInfo.notifyFEs = routers;
         try {
             vrn.process(fwdInfo);
         } catch (Exception e) {
             log.warn("onPacketIn dropping packet: ", e);
             freeBuffer(bufferId);
-            freeFlowResources(match, routers);
+            freeFlowResources(match, fwdInfo.notifyFEs);
             return;
         }
         if (fwdInfo.action != ForwardingElement.Action.PAUSED)
             handleProcessResult(fwdInfo);
     }
 
-    private void handleProcessResult(ForwardInfo fwdInfo) {
-        boolean useWildcards = false; // TODO(pino): replace with real config.
-
-        MidoMatch match = fwdInfo.flowMatch;
-        if (fwdInfo instanceof GeneratedPacketContext) {
-            log.info("Done processing generated packet: {}", fwdInfo);
-            // TODO(pino): deal with internally generated packets.
-            return;
-        }
-        if (!(fwdInfo instanceof OFPacketContext)) {
-            log.error("Packet context neither generated nor openflow: {}",
-                      fwdInfo);
-            return;
-        }
-        OFPacketContext pktCtx = OFPacketContext.class.cast(fwdInfo);
-        int bufferId = pktCtx.bufferId;
-        int totalLen = pktCtx.totalLen;
-        int inPortNum = pktCtx.inPortNum;
-        byte[] data = pktCtx.data;
-        long tunnelId = pktCtx.tunnelId;
-        Collection<UUID> routers = fwdInfo.notifyFEs;
-
-        MidoMatch flowMatch;
-        switch (fwdInfo.action) {
-        case BLACKHOLE:
-            // TODO(pino): the following wildcarding seems too aggressive.
-            // If wildcards are enabled, wildcard everything but nw_src and
-            // nw_dst.
-            // This is meant to protect against DOS attacks by preventing ipc's
-            // to
-            // the Openfaucet controller if mac addresses or tcp ports are
-            // cycled.
-            if (useWildcards)
-                flowMatch = makeWildcarded(match);
-            else
-                flowMatch = match;
-            log.debug("onPacketIn: vrn.process() returned BLACKHOLE for {}", fwdInfo);
-            installBlackhole(flowMatch, bufferId, NO_IDLE_TIMEOUT,
-                    ICMP_EXPIRY_SECONDS);
-            freeFlowResources(match, routers);
-            return;
-        case CONSUMED:
-            log.debug("onPacketIn: vrn.process() returned CONSUMED for {}", fwdInfo);
-            freeBuffer(bufferId);
-            return;
-        case FORWARD:
-            // If the egress port is local, ARP and forward the packet.
-            Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
-            if (null != outPortNum) {
-                log.debug("onPacketIn: vrn.process() returned FORWARD to " +
-                          "local port {} for {}", outPortNum, fwdInfo);
-                forwardLocalPacket(fwdInfo, bufferId, totalLen, data, outPortNum);
-            } else { // devPortOut is null; the egress port is remote or multiple.
-                log.debug("onPacketIn: vrn.process() returned FORWARD to "
-                        + "remote/multi port {} for {}", fwdInfo.outPortId, fwdInfo);
-
-                if (portSetMap.containsKey(fwdInfo.outPortId)) {
-                    Set<Short> outPorts = new HashSet<Short>();
-                    // Add local OVS ports.
-                    if (localPortSetSlices.containsKey(fwdInfo.outPortId))
-                        outPorts.addAll(localPortSetSlices.get(fwdInfo.outPortId));
-                    IPv4Set remoteControllersAddrs = portSetMap.get(fwdInfo.outPortId);
-                    if (remoteControllersAddrs == null)
-                        log.error("Can't find portset ID {}", fwdInfo.outPortId);
-                    else for (String remoteControllerAddr :
-                            remoteControllersAddrs.getStrings()) {
-                        IntIPv4 target = IntIPv4.fromString(remoteControllerAddr);
-                        // Skip the local controller.
-                        if (target.equals(publicIp))
-                            continue;
-                        Integer portNum = tunnelPortNumOfPeer(target);
-                        if (portNum != null) {
-                            outPorts.add(new Short(portNum.shortValue()));
-                        } else {
-                            log.warn("onPacketIn:  No OVS tunnel port found " +
-                                     "for Controller at {}", remoteControllerAddr);
-                        }
-                    }
-
-                    if (outPorts.size() == 0) {
-                        log.warn("onPacketIn:  No OVS ports or tunnels found " +
-                                 "for portset {}", fwdInfo.outPortId);
-
-                        installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
-                                ICMP_EXPIRY_SECONDS);
-                        freeFlowResources(match, routers);
-                        // TODO: check whether this is the right error code (host?).
-                        //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
-                        //        devPortIn.getId(), ethPkt, fwdInfo.inPortId,
-                        //        fwdInfo.pktIn, fwdInfo.outPortId);
-                        return;
-                    }
-
-                    List<OFAction> ofActions = makeActionsForFlow(match,
-                            fwdInfo.matchOut, outPorts);
-                    // Track the routers for this flow so we can free resources
-                    // when the flow is removed.
-                    matchToRouters.put(match, routers);
-                    addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                            NO_HARD_TIMEOUT, true, ofActions, inPortNum, data);
-                    return;
-                }
-
-                Integer tunPortNum =
-                        super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
-                if (null == tunPortNum) {
-                    log.warn("onPacketIn:  No tunnel port found for {}",
-                            fwdInfo.outPortId);
-
-                    installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
-                            ICMP_EXPIRY_SECONDS);
-                    freeFlowResources(match, routers);
-                    // TODO: check whether this is the right error code (host?).
-                    //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET,
-                    //        devPortIn.getId(), ethPkt, fwdInfo.inPortId,
-                    //        fwdInfo.pktIn, fwdInfo.outPortId);
-                    return;
-                }
-
-                log.debug("onPacketIn: FORWARDing to tunnel port {}",
-                        tunPortNum);
-                // Map the tunnel id to a portSetId.
-
-                List<OFAction> ofActions = makeActionsForFlow(match,
-                        fwdInfo.matchOut, tunPortNum.shortValue());
-                // TODO(pino): should we do any wildcarding here?
-                // Track the routers for this flow so we can free resources
-                // when the flow is removed.
-                matchToRouters.put(match, routers);
-                addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                        NO_HARD_TIMEOUT, true, ofActions, inPortNum, data);
+    public void forwardTunneledPkt(MidoMatch match, int bufferId,
+                                   int inPort, byte[] data, long tunnelId) {
+        log.debug("forwardTunneledPkt: received from tunnel {} with id {}",
+                inPort, tunnelId);
+        // Convert the tunnelId to a UUID.
+        UUID destPortId = new UUID(0, tunnelId);
+        Set<Short> outPorts = new HashSet<Short>();
+        if (portSetMap.containsKey(destPortId)) { // multiple egress
+            log.debug("forwardTunneledPkt: to PortSet.");
+            // Add local OVS ports.
+            if (localPortSetSlices.containsKey(destPortId))
+                outPorts.addAll(localPortSetSlices.get(destPortId));
+        } else { // single egress
+            Integer portNum =
+                    super.portUuidToNumberMap.get(destPortId);
+            if (null == portNum) {
+                log.warn("forwardTunneledPkt unrecognized egress port.");
+            } else {
+                log.debug("forwardTunneledPkt: to single egress.");
+                outPorts.add(portNum.shortValue());
             }
+        }
+        if (outPorts.size() == 0) {
+            log.warn("forwardTunneledPkt: DROP - no OVS ports to output to.");
+            installDropFlowEntry(match, bufferId,
+                    NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+            return;
+        }
+        log.debug("forwardTunneledPkt: sending to ports {}", outPorts);
+        // TODO(pino): avoid installing flows for controller-generated ARP/ICMP?
+        // TODO(pino): wildcard everything except inPort and tunnelId?
+        List<OFAction> actions = makeActionsForFlow(match, match, outPorts, 0);
+        addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
+                NO_HARD_TIMEOUT, false, actions, data, tunnelId);
+    }
+
+    private void handleProcessResult(ForwardInfo fwdInfo) {
+        // TODO: should we assert that fwdInfo.action != PAUSED?
+
+        OFPacketContext ofPktCtx = null;
+        GeneratedPacketContext genPktCtx = null;
+        if (fwdInfo.isGeneratedPacket())
+            genPktCtx = GeneratedPacketContext.class.cast(fwdInfo);
+        else
+            ofPktCtx = OFPacketContext.class.cast(fwdInfo);
+
+        Collection<UUID> routers = fwdInfo.notifyFEs;
+        switch (fwdInfo.action) {
+        case DROP:
+            log.debug("handleProcessResult: DROP {}", fwdInfo);
+            if (null != ofPktCtx)
+                installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId
+                        , NO_IDLE_TIMEOUT, (short)fwdInfo.dropTimeSeconds);
+            freeFlowResources(fwdInfo.flowMatch, routers);
             return;
         case NOT_IPV4:
-            log.debug("onPacketIn: vrn.process() returned NOT_IPV4, " +
-                      "ethertype is {}", match.getDataLayerType());
-            // Wildcard everything but dl_type. One rule per EtherType.
-            short dlType = match.getDataLayerType();
-            match = new MidoMatch();
-            match.setDataLayerType(dlType);
-            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT ,NO_HARD_TIMEOUT);
+            log.debug("handleProcessResult: NOT_IPV4 {}", fwdInfo);
+            if (null != ofPktCtx) {
+                // Wildcard everything but dl_type and dl_dst. We only want to
+                // drop the NOT_IPV4 flows that are passing through routers.
+                MidoMatch flowMatch;
+                flowMatch = new MidoMatch();
+                flowMatch.setDataLayerType(
+                        fwdInfo.flowMatch.getDataLayerType());
+                flowMatch.setDataLayerDestination(
+                        fwdInfo.flowMatch.getDataLayerDestination());
+                // The flow should be temporary because the topology might
+                // change so that the router is no longer in the packet's path.
+                installDropFlowEntry(flowMatch, ofPktCtx.bufferId,
+                        NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+            }
+            freeFlowResources(fwdInfo.flowMatch, routers);
             return;
-        case NO_ROUTE:
-            log.debug("onPacketIn: vrn.process() returned NO_ROUTE for {}",
-                    fwdInfo);
-            // Intentionally use an exact match for this drop rule.
-            // TODO(pino): wildcard the L2 fields.
-            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
-                    ICMP_EXPIRY_SECONDS);
-            freeFlowResources(match, routers);
-            // Send an ICMP
-            //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_NET, devPortIn
-            //        .getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-            //        fwdInfo.outPortId);
-            // This rule is temporary, don't notify the flow checker.
+        case CONSUMED:
+            log.debug("handleProcessResult: CONSUMED {}", fwdInfo);
+            if (null != ofPktCtx)
+                freeBuffer(ofPktCtx.bufferId);
             return;
-        case REJECT:
-            log.debug("onPacketIn: vrn.process() returned REJECT for {}",
-                    fwdInfo);
-            // Intentionally use an exact match for this drop rule.
-            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT,
-                    ICMP_EXPIRY_SECONDS);
-            freeFlowResources(match, routers);
-            // Send an ICMP
-            //sendICMPforLocalPkt(ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB,
-            //        devPortIn.getId(), ethPkt, fwdInfo.inPortId, fwdInfo.pktIn,
-            //        fwdInfo.outPortId);
-            // This rule is temporary, don't notify the flow checker.
+        case FORWARD:
+            forwardLocalPacket(fwdInfo);
             return;
         default:
-            log.error("onPacketIn: vrn.process() returned unrecognized action {}",
+            log.error("handleProcessResult: unrecognized action {}",
                     fwdInfo.action);
-            throw new RuntimeException("Unrecognized forwarding Action type " + fwdInfo.action);
+            throw new RuntimeException("Unrecognized forwarding Action "
+                    + fwdInfo.action);
+        }
+    }
+
+    private void forwardLocalPacket(ForwardInfo fwdInfo) {
+        OFPacketContext ofPktCtx = null;
+        GeneratedPacketContext genPktCtx = null;
+        if (fwdInfo.isGeneratedPacket())
+            genPktCtx = GeneratedPacketContext.class.cast(fwdInfo);
+        else
+            ofPktCtx = OFPacketContext.class.cast(fwdInfo);
+
+        // Is the egress a locally installed virtual port?
+        List<OFAction> actions;
+        Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
+        if (null != outPortNum) {
+            log.debug("forwardPacket: FORWARD to local {}: {}",
+                    outPortNum, fwdInfo);
+            actions = makeActionsForFlow(fwdInfo.flowMatch,
+                    fwdInfo.matchOut, outPortNum.shortValue(), 0);
+            // TODO(pino): wildcard some of the match's fields.
+
+            if (null != ofPktCtx) {
+                // Remember the routers that need flow-removal notification.
+                matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+                addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
+                        idleFlowExpireSeconds, NO_HARD_TIMEOUT,
+                        fwdInfo.notifyFEs.size() > 0, actions,
+                        ofPktCtx.data, 0);
+            } else { // generated packet
+                controllerStub.sendPacketOut(
+                        ControllerStub.UNBUFFERED_ID,
+                        OFPort.OFPP_NONE.getValue(),
+                        actions, genPktCtx.data);
+                // TODO(pino): free the flow resources for generated packets?
+            }
+            return;
+        }
+        // the egress port is either remote or multiple.
+        Set<Short> outPorts = new HashSet<Short>();
+        if (portSetMap.containsKey(fwdInfo.outPortId)) { // multiple egress
+            log.debug("forwardPacket: FORWARD to PortSet {}: {}",
+                    fwdInfo.outPortId, fwdInfo);
+            // Add local OVS ports.
+            if (localPortSetSlices.containsKey(fwdInfo.outPortId))
+                outPorts.addAll(localPortSetSlices.get(fwdInfo.outPortId));
+            IPv4Set controllersAddrs = portSetMap.get(fwdInfo.outPortId);
+            if (controllersAddrs == null)
+                log.error("forwardPacket: no hosts for portset ID {}",
+                        fwdInfo.outPortId);
+            else for (String controllerAddr : controllersAddrs.getStrings()) {
+                IntIPv4 target = IntIPv4.fromString(controllerAddr);
+                // Skip the local controller.
+                if (target.equals(publicIp))
+                    continue;
+                Integer portNum = tunnelPortNumOfPeer(target);
+                if (portNum != null)
+                    outPorts.add(portNum.shortValue());
+                else
+                    log.warn("forwardPacket: No OVS tunnel port found " +
+                             "for Controller at {}", controllerAddr);
+            }
+        } else { // single egress
+            Integer tunPortNum =
+                    super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
+            if (null == tunPortNum) {
+                IntIPv4 intAddress = portLocMap.get(fwdInfo.outPortId);
+                log.warn("forwardPacket: No tunnel to port {} and host {}",
+                        fwdInfo.outPortId, intAddress);
+            } else
+                outPorts.add(tunPortNum.shortValue());
+        }
+        if (outPorts.size() == 0) {
+            log.warn("forwardPacket: DROP - no OVS ports to output to.");
+            if (null != ofPktCtx)
+                installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId,
+                         NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+            freeFlowResources(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+            return;
+        }
+        log.debug("forwardPacket: sending to ports {}", outPorts);
+        actions = makeActionsForFlow(fwdInfo.flowMatch, fwdInfo.matchOut,
+                outPorts, (int)fwdInfo.outPortId.getLeastSignificantBits());
+        if (null != ofPktCtx) {
+            // Track the routers for this flow so we can free resources
+            // when the flow is removed.
+            boolean removalNotification = !fwdInfo.notifyFEs.isEmpty();
+            if (removalNotification)
+                matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+            addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
+                    idleFlowExpireSeconds, NO_HARD_TIMEOUT,
+                    removalNotification, actions, ofPktCtx.data, 0);
+        } else { // generated packet
+            controllerStub.sendPacketOut(
+                    ControllerStub.UNBUFFERED_ID, OFPort.OFPP_NONE.getValue(),
+                    actions, genPktCtx.data);
+            // TODO(pino): free the flow resources for generated packets?
         }
     }
 
     private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
-            MidoMatch newMatch, short outPortNum) {
+            MidoMatch newMatch, short outPortNum, int setTunnelId) {
         Set<Short> portSet = new HashSet<Short>();
         portSet.add(outPortNum);
-        return makeActionsForFlow(origMatch, newMatch, portSet);
+        return makeActionsForFlow(origMatch, newMatch, portSet, setTunnelId);
     }
 
+    /**
+     * Create an action list that transforms origMatch into newMatch, sets
+     * the tunnelId (if not zero) and outputs to a set of OF ports.
+     *
+     * @param origMatch
+     * @param newMatch
+     * @param outPorts
+     *      The set of OF port numbers for which output actions should be added.
+     * @param setTunnelId
+     *      Ignored it zero. Otherwise, an action to set the tunnelId is added.
+     * @return
+     *      An ordered list of actions that ends with all the output actions.
+     */
     private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
-            MidoMatch newMatch, Set<Short> outPorts) {
+            MidoMatch newMatch, Set<Short> outPorts, int setTunnelId) {
         // Create OF actions for fields that changed from original to last
         // match.
         List<OFAction> actions = new ArrayList<OFAction>();
@@ -474,6 +485,8 @@ public class VRNController extends AbstractController
                     .getTransportDestination());
             actions.add(action);
         }
+        if (0 != setTunnelId)
+            actions.add(new NxActionSetTunnelKey32(setTunnelId));
         for (Short outPortNum : outPorts) {
             action = new OFActionOutput(outPortNum.shortValue(), (short) 0);
             actions.add(action);
@@ -481,146 +494,25 @@ public class VRNController extends AbstractController
         return actions;
     }
 
-    private MidoMatch makeWildcardedFromTunnel(MidoMatch m1) {
-        // TODO Auto-generated method stub
-        return m1;
-    }
-
-    // TODO(pino) do
-    public static MAC[] getDlHeadersForTunnel(
-            int lastInPortId, int lastEgPortId, int gwNwAddr) {
-        byte[] dlSrc = new byte[6];
-        byte[] dlDst = new byte[6];
-
-        // Set the data layer source and destination:
-        // The ingress port is used as the high 32 bits of the source mac.
-        // The egress port is used as the low 32 bits of the dst mac.
-        // The high 16 bits of the gwNwAddr are the low 16 bits of the src mac.
-        // The low 16 bits of the gwNwAddr are the high 16 bits of the dst mac.
-        for (int i = 0; i < 4; i++)
-            dlSrc[i] = (byte) (lastInPortId >> (3 - i) * 8);
-        dlSrc[4] = (byte) (gwNwAddr >> 24);
-        dlSrc[5] = (byte) (gwNwAddr >> 16);
-        dlDst[0] = (byte) (gwNwAddr >> 8);
-        dlDst[1] = (byte) (gwNwAddr);
-        for (int i = 2; i < 6; i++)
-            dlDst[i] = (byte) (lastEgPortId >> (5 - i) * 8);
-
-        return new MAC[] {new MAC(dlSrc), new MAC(dlDst)};
-    }
-
-    public static class DecodedMacAddrs {
-        UUID lastIngressPortId;
-        UUID lastEgressPortId;
-        int nextHopNwAddr;
-
-        public String toString() {
-            return String.format("DecodedMacAddrs: ingress %s egress %s nextHopIp %s",
-                    lastIngressPortId,
-                    lastEgressPortId,
-                    Net.convertIntAddressToString(nextHopNwAddr));
-        }
-    }
-
-    public static DecodedMacAddrs decodeMacAddrs(final byte[] src,
-            final byte[] dst) {
-        DecodedMacAddrs result = new DecodedMacAddrs();
-        int port32BitId = 0;
-        for (int i = 0; i < 4; i++)
-            port32BitId |= (src[i] & 0xff) << ((3 - i) * 8);
-        result.lastIngressPortId = ShortUUID.intTo32BitUUID(port32BitId);
-        result.nextHopNwAddr = (src[4] & 0xff) << 24;
-        result.nextHopNwAddr |= (src[5] & 0xff) << 16;
-        result.nextHopNwAddr |= (dst[0] & 0xff) << 8;
-        result.nextHopNwAddr |= (dst[1] & 0xff);
-        port32BitId = 0;
-        for (int i = 2; i < 6; i++)
-            port32BitId |= (dst[i] & 0xff) << (5 - i) * 8;
-        result.lastEgressPortId = ShortUUID.intTo32BitUUID(port32BitId);
-        return result;
-    }
-
-    public void forwardTunneledPkt(MidoMatch match, int bufferId, int totalLen,
-            int inPort, byte[] data, long tunnelId) {
-        // TODO(pino): move the check for 'local' outPort here from onPacketIn
-        log.debug("onPacketIn: got packet from tunnel {}", inPort);
-
-        // TODO(pino): convert the tunnelId to a vport destination
-        UUID destPortId = null;
-        // TODO(pino): Is the destination a PortSet or a single port?
-        // If it's a single port, make sure it's local.
-        Integer destPortNum = portUuidToNumberMap.get(destPortId);
-        if (null == destPortNum) {
-            log.warn("onPacketIn: tunneled packet's egress port {} is " +
-                    "not local", destPortId);
-            // TODO(pino): install a DROP flow entry.
-        }
-
-        log.debug("onPacketIn: from tunnel port {} to vport {}, OF# {}",
-                new Object[] {inPort, destPortId, destPortNum} );
-
-        // TODO(pino): wildcard everything except inPort and tunnelId?
-        // Do the flows really need to be finer-grained?
-
-        // TODO(pino): should controller-generated ARP/ICMP install flows?
-        List<OFAction> ofActions = null;
-        addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                NO_HARD_TIMEOUT, true, ofActions, (short)inPort, data);
-    }
-
     private void addFlowAndSendPacket(int bufferId, OFMatch match,
             short idleTimeoutSecs, short hardTimeoutSecs,
-            boolean sendFlowRemove, List<OFAction> actions, int inPort,
-            byte[] data) {
+            boolean sendFlowRemove, List<OFAction> actions,
+            byte[] data, long matchingTunnelId) {
         controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs,
                 hardTimeoutSecs, FLOW_PRIORITY, bufferId, sendFlowRemove,
-                false, false, actions);
-        // If packet was unbuffered, we need to explicitly send it otherwise the
-        // flow won't be applied to it.
+                false, false, actions, matchingTunnelId);
+        // Unbuffered packets need to be explicitly sent.
         if (bufferId == ControllerStub.UNBUFFERED_ID)
             controllerStub.sendPacketOut(bufferId, OFPort.OFPP_NONE.getValue(),
                     actions, data);
     }
 
-    public void forwardLocalPacket(ForwardInfo fwdInfo, int bufferId,
-            int totalLen, byte[] data, int outPortNum) {
-
-        List<OFAction> ofActions = makeActionsForFlow(fwdInfo.flowMatch,
-                fwdInfo.matchOut, (short)outPortNum);
-        // TODO(pino): wildcard some of the match's fields.
-
-        // Track the routers for this flow so we can free resources
-        // when the flow is removed.
-        matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
-        addFlowAndSendPacket(bufferId, fwdInfo.flowMatch, idleFlowExpireSeconds,
-                NO_HARD_TIMEOUT, true, ofActions, 0 /* inPort? */, data);
-        // TODO(pino): free flow resources for non-forwarded packets.
-    }
-
-    private void sendUnbufferedPacketFromPort(Ethernet ethPkt, short portNum) {
-        OFActionOutput action = new OFActionOutput(portNum, (short) 0);
-        List<OFAction> actions = new ArrayList<OFAction>();
-        actions.add(action);
-        log.debug("sendUnbufferedPacketFromPort {}", ethPkt);
-        controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
-                OFPort.OFPP_NONE.getValue(), actions, ethPkt.serialize());
-    }
-
-    private void installBlackhole(MidoMatch flowMatch, int bufferId,
-            short idleTimeout, short hardTimeout) {
-        // TODO(pino): can we just send a null list instead of an empty list?
-        List<OFAction> actions = new ArrayList<OFAction>();
-        controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
-                hardTimeout, (short) 0, bufferId, true, false, false,
-                actions);
-        // Note that if the packet was buffered, then the datapath will apply
-        // the flow and drop it. If the packet was unbuffered, we don't need
-        // to do anything.
-    }
-
-    private MidoMatch makeWildcarded(MidoMatch origMatch) {
-        // TODO Auto-generated method stub
-        return origMatch;
+    private void installDropFlowEntry(MidoMatch flowMatch, int bufferId,
+                                      short idleTimeout, short hardTimeout) {
+        if (bufferId != ControllerStub.UNBUFFERED_ID)
+            controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
+                    hardTimeout, (short) 0, bufferId, true, false, false,
+                    new ArrayList<OFAction>());
     }
 
     @Override
@@ -639,6 +531,7 @@ public class VRNController extends AbstractController
     }
 
     public void freeFlowResources(OFMatch match, Collection<UUID> forwardingElements) {
+        // TODO(pino): are FEs mapping the correct match for invalidation?
         for (UUID feId : forwardingElements) {
             try {
                 ForwardingElement fe = vrn.getForwardingElement(feId);
@@ -830,6 +723,29 @@ public class VRNController extends AbstractController
         // Do nothing.
     }
 
+    /*
+    * Setup a flow that sends all DHCP request packets to the controller.
+    * This is needed because we want the entire packet, not just a sample.
+    */
+    private void setFlowsForHandlingDhcpInController(short portNum) {
+        log.debug("setFlowsForHandlingDhcpInController: on port {}", portNum);
+
+        MidoMatch match = new MidoMatch();
+        match.setInputPort(portNum);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol(UDP.PROTOCOL_NUMBER);
+        match.setTransportSource((short) 68);
+        match.setTransportDestination((short) 67);
+
+        List<OFAction> actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(OFPort.OFPP_CONTROLLER.getValue(),
+                (short) 1024));
+
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                NO_HARD_TIMEOUT, SERVICE_FLOW_PRIORITY,
+                ControllerStub.UNBUFFERED_ID, false, false, false, actions);
+    }
+
     @Override
     protected void addVirtualPort(
             int portNum, String name, MAC addr, UUID portId) {
@@ -884,9 +800,30 @@ public class VRNController extends AbstractController
         int inPortNum;
         byte[] data;
         long tunnelId;
+
+        private OFPacketContext(int bufferId, byte[] data, int inPortNum,
+                                int totalLen, long tunnelId) {
+            super(false);
+            this.bufferId = bufferId;
+            this.data = data;
+            this.inPortNum = inPortNum;
+            this.totalLen = totalLen;
+            this.tunnelId = tunnelId;
+        }
     }
 
     private static class GeneratedPacketContext extends ForwardInfo {
         byte[] data;
+
+        private GeneratedPacketContext(Ethernet pkt, UUID originPort) {
+            super(true);
+            this.data = pkt.serialize();
+            this.pktIn = pkt;
+
+            this.action = ForwardingElement.Action.FORWARD;
+            this.outPortId = originPort;
+            this.matchOut = new MidoMatch();
+            this.matchOut.loadFromPacket(this.data, (short)0);
+        }
     }
 }
