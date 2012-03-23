@@ -40,10 +40,7 @@ public class L3DevicePort {
 
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
-    private short portNum;
     private UUID portId;
-    private MAC mac;
-    private ControllerStub stub;
     private PortWatcher portWatcher;
     private RoutesWatcher routesWatcher;
     private PortDirectory.MaterializedRouterPortConfig portCfg;
@@ -52,17 +49,14 @@ public class L3DevicePort {
     private final Logger log;
 
     public L3DevicePort(PortZkManager portMgr, RouteZkManager routeMgr,
-            UUID portId, short portNum, MAC mac, ControllerStub stub)
-            throws Exception {
+            UUID portId) throws Exception {
 
-        log = LoggerFactory.getLogger(L3DevicePort.class.getCanonicalName() + '.' + portId);
+        log = LoggerFactory.getLogger(
+                L3DevicePort.class.getCanonicalName() + '.' + portId);
 
         this.portMgr = portMgr;
         this.routeMgr = routeMgr;
         this.portId = portId;
-        this.portNum = portNum;
-        this.mac = mac;
-        this.stub = stub;
         this.portWatcher = new PortWatcher();
         this.routesWatcher = new RoutesWatcher();
         listeners = new HashSet<Listener>();
@@ -159,19 +153,8 @@ public class L3DevicePort {
         return portId;
     }
 
-    public short getNum() {
-        return portNum;
-    }
-
     public MAC getMacAddr() {
-        return mac;
-    }
-
-    public void send(byte[] pktData) {
-        List<OFAction> actions = new ArrayList<OFAction>();
-        actions.add(new OFActionOutput(portNum, (short) 0));
-        stub.sendPacketOut(ControllerStub.UNBUFFERED_ID, OFPort.OFPP_NONE
-                .getValue(), actions, pktData);
+        return portCfg.getHwAddr();
     }
 
     public PortDirectory.MaterializedRouterPortConfig getVirtualConfig() {
@@ -188,7 +171,6 @@ public class L3DevicePort {
 
     @Override
     public String toString() {
-        return "L3DevicePort [portNum=" + portNum + ", portId=" + portId + ", mac=" + mac
-                + ", portCfg=" + portCfg + "]";
+        return "L3DevicePort [portId=" + portId + ", portCfg=" + portCfg + "]";
     }
 }

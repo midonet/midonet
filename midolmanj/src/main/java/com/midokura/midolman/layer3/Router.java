@@ -131,6 +131,7 @@ public class Router implements ForwardingElement {
     private Reactor reactor;
     private LoadBalancer loadBalancer;
     private final ObjectName objectName;
+    private final VRNController controller = null;
 
     public Router(UUID routerId, RuleEngine ruleEngine,
                   ReplicatedRoutingTable table, ArpTable arpTable,
@@ -178,8 +179,8 @@ public class Router implements ForwardingElement {
     public void addRouterPort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.put(port.getId(), port);
-        log.debug("{} addPort {} with number {}", new Object[] { this,
-                port.getId(), port.getNum() });
+        //log.debug("{} addPort {} with number {}", new Object[] { this,
+        //        port.getId(), port.getNum() });
         port.addListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
             log.debug("{} adding route {} to table", this, rt);
@@ -193,8 +194,8 @@ public class Router implements ForwardingElement {
     public void removePort(L3DevicePort port) throws KeeperException,
             InterruptedException {
         devicePorts.remove(port.getId());
-        log.debug("{} removePort {} with number", new Object[] { this,
-                port.getId(), port.getNum() });
+        //log.debug("{} removePort {} with number", new Object[] { this,
+        //        port.getId(), port.getNum() });
         port.removeListener(portListener);
         for (Route rt : port.getVirtualConfig().getRoutes()) {
             log.debug("{} removing route {} from table", this, rt);
@@ -452,7 +453,7 @@ public class Router implements ForwardingElement {
         log.debug("processICMPtoLocal sending echo reply from {} to {}",
                 IPv4.fromIPv4Address(port.getVirtualConfig().portAddr),
                 IPv4.fromIPv4Address(ipPkt.getSourceAddress()));
-        port.send(ethReply.serialize());
+        controller.addGeneratedPacket(ethReply, port.getId());
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
@@ -562,7 +563,7 @@ public class Router implements ForwardingElement {
         pkt.setEtherType(ARP.ETHERTYPE);
 
         // Now send it from the port.
-        devPortIn.send(pkt.serialize());
+        controller.addGeneratedPacket(pkt, devPortIn.getId());
     }
 
     private void processArpReply(ARP arpPkt, L3DevicePort devPortIn) {
@@ -745,7 +746,7 @@ public class Router implements ForwardingElement {
 
         // Now send it from the port.
         log.debug("generateArpRequest: sending {}", pkt);
-        devPort.send(pkt.serialize());
+        controller.addGeneratedPacket(pkt, devPort.getId());
         try {
             ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
             long now = reactor.currentTimeMillis();

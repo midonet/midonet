@@ -198,10 +198,10 @@ public class TestRouter {
                 if (1 != j) {
                     // Except for the first port, add them locally.
                     L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
-                            portId, (short) portNum, new MAC(new byte[] { (byte) 0x02,
+                            portId);
+                    MAC unused = new MAC(new byte[] { (byte) 0x02,
                                     (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                    (byte) 0x00, (byte) portNum }),
-                            controllerStub);
+                                    (byte) 0x00, (byte) portNum });
                     rtr.addRouterPort(devPort);
                 }
             } // end for-loop on j
@@ -382,7 +382,8 @@ public class TestRouter {
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         MockControllerStub.Packet pktRecord = controllerStub.sentPackets.get(0);
         Assert.assertEquals(1, pktRecord.actions.size());
-        OFAction ofAction = new OFActionOutput(devPort23.getNum(), (short) 0);
+        OFAction ofAction = new OFActionOutput(
+                (short)0 /*devPort23.getNum()*/, (short) 0);
         Assert.assertTrue(ofAction.equals(pktRecord.actions.get(0)));
         Assert.assertEquals(controllerStub.UNBUFFERED_ID, pktRecord.bufferId);
         Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pktRecord.inPort);
@@ -489,7 +490,8 @@ public class TestRouter {
         L3DevicePort devPort2 = rtr.devicePorts.get(port2Id);
         MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
         Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(devPort2.getNum(), (short) 0);
+        OFAction ofAction = new OFActionOutput(
+                (short)0 /*devPort2.getNum()*/, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         Ethernet expectedArp = makeArpRequest(devPort2.getMacAddr(), devPort2
@@ -661,7 +663,8 @@ public class TestRouter {
             Assert.assertEquals(1, controllerStub.sentPackets.size());
             MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
             L3DevicePort devPort = rtr.devicePorts.get(portId);
-            OFAction ofAction = new OFActionOutput(devPort.getNum(), (short) 0);
+            OFAction ofAction = new OFActionOutput(
+                    (short)0 /*devPort.getNum()*/, (short) 0);
             Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
             Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
             Ethernet expArpReply = makeArpReply(devPort.getMacAddr(), arpSha,

@@ -136,10 +136,10 @@ public class TestVRNCoordinator {
                 routeMgr.create(rt);
                 // All the ports will be local to this controller.
                 L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
-                        portId, portNum, new MAC(new byte[] { (byte) 0x02, 
-                                (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                                (byte) 0x00, (byte) portNum }),
-                        controllerStub);
+                        portId);
+                MAC mac = new MAC(new byte[] { (byte) 0x02,
+                        (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                        (byte) 0x00, (byte) portNum });
                 devPorts.add(devPort);
                 vrn.addRouterPort(devPort);
             }
@@ -312,7 +312,8 @@ public class TestVRNCoordinator {
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
         Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(devPort.getNum(), (short) 0);
+        OFAction ofAction = new OFActionOutput(
+                (short)0 /*devPort.getNum()*/, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         Ethernet expectedArp = TestRouter.makeArpRequest(devPort.getMacAddr(),
