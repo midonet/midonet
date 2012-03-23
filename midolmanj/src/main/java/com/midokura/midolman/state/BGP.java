@@ -2,14 +2,11 @@ package com.midokura.midolman.state;
 
 import java.net.InetAddress;
 
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.util.Net;
-
 public class BGP {
     /*
      * The bgp is a list of BGP information dictionaries enabled on this port.
      * The keys for the dictionary are:
-     * 
+     *
      * local_port: local TCP port number for BGP, as a positive integer.
      * local_as: local AS number that belongs to, as a positive integer.
      * peer_addr: IPv4 address of the peer, as a human-readable string.
@@ -29,7 +26,7 @@ public class BGP {
     public InetAddress[] advertisedNetworkAddrs;
     // This should be Byte[] not byte[] because of Jackson will produce a byte
     // array
-    // string in the case of you specify this propoerty as byte[].
+    // string in the case of you specify this property as byte[].
     public Byte[] advertisedNetworkLengths;
 
     public BGP(short localPort, int localAS, InetAddress peerAddr,

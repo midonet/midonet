@@ -165,7 +165,7 @@ class TestBgpVtyConnection {
 
             // Create advertising routes.
             val nwAddr = "10.8.8.0"
-            val prefixLen = 24
+            val prefixLen:Byte = 24
             var newAdRoute = new AdRouteConfig(
                 bgpId, InetAddress.getByName(nwAddr), prefixLen)
             val newAdRouteId = adRouteMgr.create(newAdRoute)
@@ -193,7 +193,7 @@ class TestBgpVtyConnection {
             assertEquals(localAs, vtyConn.getAs)
             // Update advertising route
             val nwAddr = "192.168.30.0"
-            val prefixLen = 24
+            val prefixLen:Byte = 24
             var updateAdRoute = new AdRouteConfig(
                 bgpId, InetAddress.getByName(nwAddr), prefixLen)
             adRouteMgr.update(new ZkNodeEntry(adRouteId, updateAdRoute))

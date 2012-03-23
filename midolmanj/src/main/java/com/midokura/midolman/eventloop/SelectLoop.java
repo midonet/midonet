@@ -41,6 +41,7 @@ public class SelectLoop implements Reactor {
         selector = SelectorProvider.provider().openSelector();
         this.timeout = 0;
 
+
         this.executor = executor;
     }
 

@@ -112,6 +112,7 @@ public class BridgeTest {
         sleepBecause("we need the network to boot up", 5);
     }
 
+
     @After
     public void tearDown() {
         removeTapWrapper(tap1);

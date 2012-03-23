@@ -19,7 +19,6 @@ import java.util.Arrays;
 
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 import static com.midokura.midolman.agent.commands.executors.CommandProperty.*;
-import static com.midokura.midolman.agent.commands.executors.CommandProperty.address;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;

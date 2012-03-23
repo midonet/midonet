@@ -24,7 +24,7 @@ import java.net.{Socket, SocketException}
 import java.util.{UUID, Timer, TimerTask}
 
 import com.fasterxml.jackson.module.scala.ScalaModule
-import org.codehaus.jackson.{JsonNode, JsonFactory, JsonGenerator, JsonParser}
+import org.codehaus.jackson.{JsonNode, JsonFactory}
 import org.codehaus.jackson.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode}
 import org.codehaus.jackson.map.ObjectMapper
 import org.openflow.protocol.OFPort
@@ -32,18 +32,16 @@ import org.slf4j.LoggerFactory
 
 import OpenvSwitchDatabaseConsts._
 import java.io._
-import java.util.concurrent.{
-  ArrayBlockingQueue, BlockingQueue, ConcurrentHashMap, TimeUnit}
+import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue, ConcurrentHashMap}
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
 
 /**
  * Static methods and constants for OpenvSwitchDatabaseConnection.
  */
 object OpenvSwitchDatabaseConnectionImpl {
-    import OpenvSwitchDatabaseConnectionImpl._
     private final val echo_interval = 1000
     private final val log = LoggerFactory.getLogger(this.getClass)
-    private final val OVSDBConnectionLostId: String = "connection_lost"
+    private final val OVSDBConnectionLostId = "connection_lost"
 
     /**
      * Generates a new UUID to identify a newly added row.
@@ -85,7 +83,7 @@ object OpenvSwitchDatabaseConnectionImpl {
     /**
      * Create a where clause to select a bridge given its identifier.
      *
-     * @param bridgeId If a string, the name of the bridge.  If an integer,
+     * @param bridgeName If a string, the name of the bridge.  If an integer,
      *                 the datapath identifier of the bridge.
      */
     def bridgeWhereClause(bridgeName: String): List[List[String]] = {
@@ -139,9 +137,7 @@ object OpenvSwitchDatabaseConnectionImpl {
     /**
      * Converts an Open vSwitch DB map into a Map.
      *
-     * @param table   The name of the table containing the row to select.
-     * @param where   The JSON-encodable 'where' clause to be matched by the row.
-     * @param columns The List of columns to return.
+     * @param ovsMap is the ovsMap we wish to convert
      * @return The Map from the key to the JsonNode.
      */
     def ovsMapToMap(ovsMap: JsonNode): Map[String, JsonNode] = {
@@ -169,7 +165,7 @@ object OpenvSwitchDatabaseConnectionImpl {
 
     /**
      * Converts ObjectNode to Map.
-     * @param node The ObjectNode to convert.
+     * @param objectNode The ObjectNode to convert.
      * @return An Map from the keys to the values of JsonNode.
      */
     implicit def objectNodeToMap(objectNode: ObjectNode): Map[String, JsonNode] =
@@ -177,16 +173,16 @@ object OpenvSwitchDatabaseConnectionImpl {
          yield (entry.getKey -> entry.getValue)).toMap[String, JsonNode]
 
     private def delBridgeTransaction(bridgeUUID: String, ports: JsonNode,
-                                     tx: Transaction, 
+                                     tx: Transaction,
                                      select: (String, List[List[_]],
                                               List[String]) => JsonNode) {
         dbt(bridgeUUID, ports, tx, select);
     }
-                                     
+
     // Short name to avoid "File name too long" error for .class of nested
     // anonymous function when named "delBridgeTransaction".
     private def dbt(bridgeUUID: String, ports: JsonNode,
-                    tx: Transaction, 
+                    tx: Transaction,
                     select: (String, List[List[_]], List[String]) => JsonNode) {
         tx.delete(TableBridge, Some(bridgeUUID))
         // The 'Open_vSwitch' table should contain only one row, so pass
@@ -266,7 +262,7 @@ object OpenvSwitchDatabaseConnectionImpl {
         /**
          * Get a JSON-encodable representation of this transaction's changes
          *
-         * @param id An unambigous JSON-RPC request ID assigned to the
+         * @param requestId An unambigous JSON-RPC request ID assigned to the
          *           new request.
          * @return A Scala value that can be encoded into JSON to represent
          *         this transaction in a JSON-RPC call to a DB.
@@ -445,29 +441,32 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private val timer = new Timer()
     @volatile private var continue = true
 
-    { val me = new Thread(this); me.setDaemon(true); me.start }
+    { val me = new Thread(this); me.setDaemon(true); me.start() }
 
     timer.scheduleAtFixedRate(new TimerTask() {
-        override def run(): Unit =
+        override def run() {
             OpenvSwitchDatabaseConnectionImpl.this.synchronized {
-            val transact = Map(
-                "method" -> "echo",
-                "params" -> objectMapper.createArrayNode, "id" -> "echo")
-            try {
-                jsonGenerator.synchronized {
-                    objectMapper.writeValue(jsonGenerator, transact)
-                    jsonGenerator.flush
+                val transact = Map(
+                    "method" -> "echo",
+                    "params" -> objectMapper.createArrayNode, "id" -> "echo")
+                try {
+                    jsonGenerator.synchronized {
+                        objectMapper.writeValue(jsonGenerator, transact)
+                        jsonGenerator.flush()
+                    }
+                } catch {
+                    case e: EOFException => {
+                        log.warn("echo", e); throw e
+                    }
+                    case e: IOException => {
+                        log.warn("echo", e); throw e
+                    }
                 }
-            } catch {
-                case e: EOFException =>
-                    { log.warn("echo", e); throw e }
-                case e: IOException =>
-                    { log.warn("echo", e); throw e }
             }
         }
     }, 0, echo_interval)
 
-    def stop { timer.cancel; continue = false }
+    def stop() { timer.cancel(); continue = false }
 
     /**
      * Apply a operation to the database.
@@ -493,7 +492,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             try {
               jsonGenerator.synchronized {
                   objectMapper.writeValue(jsonGenerator, request)
-                  jsonGenerator.flush
+                  jsonGenerator.flush()
               }
             } catch {
                 case e: EOFException =>
@@ -568,7 +567,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param e The exception thrown by operations related with the OVSDB
      *          connection.
      */
-    private def stopConnection(e: Exception) = {
+    private def stopConnection(e: Exception) {
         stop
         log.info("run: %s".format(e.getClass.getName), e)
         for ((_, queue) <- pendingJsonRpcRequests) {
@@ -617,7 +616,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param table   The name of the table containing the rows to select.
      * @param where   The JSON-encodable 'where' clause to be matched by the
      *                rows.
-     * @param columns The list of columns to return.
+     * @param column The list of columns to return.
      * @return The list of selected rows.
      */
     private def select(table: String, where: List[List[_]],
@@ -667,7 +666,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } return bridgeUUID.getTextValue
 
-        return ""
+        ""
     }
 
     /**
@@ -688,7 +687,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } return bridgeUUID.getTextValue
 
-        return ""
+        ""
     }
 
     /**
@@ -721,7 +720,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * Add an external ID.
          *
          * @param key The key of the external ID entry.
-         * @param key The value of the external ID entry.
+         * @param value The value of the external ID entry.
          * @return This BridgeBuilder instance.
          */
         override def externalId(key: String, value: String) = {
@@ -739,12 +738,12 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             this.datapathId = longToDatapathId(datapathId)
             this
         }
-        
+
         /**
          * Add an other config.
          *
          * @param key The key of the other config entry.
-         * @param key The value of the other config entry.
+         * @param value The value of the other config entry.
          * @return This BridgeBuilder instance.
          */
         override def otherConfig(key: String, value: String) = {
@@ -812,7 +811,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
          * Add an external id.
          *
          * @param key The key of the external id entry.
-         * @param key The value of the external id entry.
+         * @param value The value of the external id entry.
          * @return This SBridgeBuilder instance.
          */
         override def externalId(key: String, value: String) = {
@@ -957,7 +956,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def localGateway(localGateway: String) = {
             ctrlRow += (ColumnLocalGateway -> localGateway); this
         }
-        override def build() = {
+        override def build() {
             val bridgeUUID: String = if (!bridgeName.isEmpty) {
                 getBridgeUUID(bridgeName)
             } else {
@@ -1022,8 +1021,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 uuid = qosRow.get("uuid") if uuid != null
                 qosUUID = uuid.get(1) if qosUUID != null
             } return qosUUID.getTextValue
-            return ""
+
+            ""
         }
+
         def update(qosUUID: String): QosBuilder = {
             val tx = new Transaction(database)
             val qosRows = select(TableQos, whereUUIDEquals(qosUUID),
@@ -1103,8 +1104,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 uuid = queueRow.get("uuid") if uuid != null
                 queueUUID = uuid.get(1) if queueUUID != null
             } return queueUUID.getTextValue
-            return ""
+
+            ""
         }
+
         def update(queueUUID: String) = {
             val tx = new Transaction(database)
             val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
@@ -1337,7 +1340,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param portName The name of the port to delete.
      */
-    override def delPort(portName: String) = {
+    override def delPort(portName: String) {
         val tx: Transaction = new Transaction(database)
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID, ColumnInterfaces))
@@ -1449,7 +1452,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             new ControllerBuilderImpl(bridgeName=bridgeName, target=target)
 
     private def delBridgeOpenflowControllers(
-        bridgeRows: JsonNode, bridge: String) = {
+        bridgeRows: JsonNode, bridge: String) {
         val tx = new Transaction(database)
 
         for {
@@ -1491,7 +1494,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param bridgeId The datapath identifier of the bridge.
      */
-    override def delBridgeOpenflowControllers(bridgeId: Long) = {
+    override def delBridgeOpenflowControllers(bridgeId: Long) {
         val bridgeRows =
             select(TableBridge, whereUUIDEquals(getBridgeUUID(bridgeId)),
                    List(ColumnUUID, ColumnController))
@@ -1535,7 +1538,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param bridgeName The name of the bridge.
      */
-    override def delBridgeOpenflowControllers(bridgeName: String) = {
+    override def delBridgeOpenflowControllers(bridgeName: String) {
         val bridgeRows =
             select(TableBridge, whereUUIDEquals(getBridgeUUID(bridgeName)),
                    List(ColumnUUID, ColumnController))
@@ -1598,7 +1601,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
     def dumpInterfaceTable(): Iterable[(String, String)] = {
         val interfaceRows = select(TableInterface, List(), List(ColumnUUID, ColumnName));
-        return for {
+
+        for {
             row <- interfaceRows
             jsonName = row.get(ColumnName)
         } yield (if (jsonName == null) "<null>" else jsonName.getTextValue,
@@ -1606,9 +1610,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     def dumpBridgeTable(): Iterable[(String, String, JsonNode)] = {
-        val bridgeRows = select(TableBridge, List(), 
+        val bridgeRows = select(TableBridge, List(),
                                 List(ColumnUUID, ColumnName, ColumnPorts));
-        return for {
+        for {
             row <- bridgeRows
             jsonName = row.get(ColumnName)
         } yield (if (jsonName == null) "<null>" else jsonName.getTextValue,
@@ -1624,7 +1628,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
     def dumpQosTable(): Iterable[(String, String, JsonNode)] = {
         val interfaceRows = select(TableQos, List(), List(ColumnUUID, ColumnType, ColumnExternalIds));
-        return for {
+
+        for {
             row <- interfaceRows
         } yield (row.get(ColumnUUID).get(1).getTextValue,
                  row.get(ColumnType).getTextValue,
@@ -1703,10 +1708,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             }
             return isEmpty
         }
-        return true
+
+        true
     }
 
-    private def delBridge(bridgeRows: Iterator[JsonNode], bridge: String) = {
+    private def delBridge(bridgeRows: Iterator[JsonNode], bridge: String) {
         val tx = new Transaction(database)
 
         for {
@@ -1714,7 +1720,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             _uuid = bridgeRow.get(ColumnUUID) if _uuid != null
             bridgeUUID = _uuid.get(1) if bridgeUUID != null
         } {
-            delBridgeTransaction(bridgeUUID.getTextValue, 
+            delBridgeTransaction(bridgeUUID.getTextValue,
                                  bridgeRow.get(ColumnPorts), tx, this.select)
         }
 
@@ -1740,7 +1746,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param bridgeId The datapath identifier of the bridge to delete.
      */
-    override def delBridge(bridgeId: Long) = {
+    override def delBridge(bridgeId: Long) {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeId),
                                 List(ColumnUUID, ColumnPorts))
         if (bridgeRows.isEmpty)
@@ -1753,7 +1759,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param bridgeName The name of the bridge
      */
-    override def delBridge(bridgeName: String) = {
+    override def delBridge(bridgeName: String) {
         val bridgeRows = select(TableBridge, bridgeWhereClause(bridgeName),
                                 List(ColumnUUID, ColumnPorts))
         if (bridgeRows.isEmpty)
@@ -1777,7 +1783,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             datapathId = bridgeRow.get(ColumnDatapathId) if datapathId != null
         } return datapathId.getValueAsText
 
-        return ""
+        ""
     }
 
     /**
@@ -1804,7 +1810,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal.getTextValue
             }
         }
-        return null
+
+        null
     }
 
     /**
@@ -1830,7 +1837,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal.getTextValue
             }
         }
-        return null
+
+        null
     }
 
     private def getPortExternalId(
@@ -1892,7 +1900,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 }
             }
         }
-        return null
+
+        null
     }
 
     /**
@@ -1918,7 +1927,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 return externalIdVal.getTextValue
             }
         }
-        return null
+
+        null
     }
 
     /**
@@ -2020,9 +2030,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     /**
      * Delete a QoS.
      *
-     * @param qos_uuid The UUID of the QoS to delete.
+     * @param qosUUID The UUID of the QoS to delete.
      */
-    override def delQos(qosUUID: String) = {
+    override def delQos(qosUUID: String) {
         delQos(qosUUID, false)
     }
 
@@ -2032,7 +2042,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * The QoS is removed from any port on which it is set. If deleteQueue is
      * True, delete all queues bound to the QoS.
      *
-     * @param qos_uuid The UUID of the QoS to delete.
+     * @param qosUUID The UUID of the QoS to delete.
      * @param deleteQueues The flag whether queues the QoS has will be deleted or
      *        not. Defaults to False, i.e., no queues bound to the QoS will be
      *        deleted.
@@ -2075,7 +2085,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param portName The name of the port to be added.
      * @param qosUUID The UUID of the QoS to add.
      */
-    override def setPortQos(portName: String, qosUUID: String) = {
+    override def setPortQos(portName: String, qosUUID: String) {
         val tx = new Transaction(database)
         val portRows = select(TablePort, List(List(ColumnName, "==", portName)),
                               List(ColumnUUID))
@@ -2099,7 +2109,9 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param portName The name of the port to be added.
      */
-    override def unsetPortQos(portName: String) = clearQos(portName, false)
+    override def unsetPortQos(portName: String) {
+        clearQos(portName, false)
+    }
 
 
     /**
@@ -2157,7 +2169,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *              i.e., burst will not be updated.
      * @param priority The priority of the queue (for linux-hfsc). Defaults to
      *                 None, i.e., priority will not be updated.
-     * @param external_ids The key-value pairs for use by external frameworks.
+     * @param externalIds The key-value pairs for use by external frameworks.
      *                     Defaults to an empty Map. i.e., external ids will not
      *                     be updated.
      * @return A builder to reset optional parameters of the queue and update it
@@ -2187,7 +2199,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      *
      * @param queueUUID The uuid of the queue to be deleted.
      */
-    override def delQueue(queueUUID: String) = {
+    override def delQueue(queueUUID: String) {
         val tx = new Transaction(database)
         val queueRows = select(TableQueue, whereUUIDEquals(queueUUID),
                                List(ColumnUUID))
@@ -2259,7 +2271,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 ifUUID = _ifUUID.get(1).getTextValue if ifUUID != null
             } return getPortNumByInterfaceUUID(ifUUID)
         }
-        return OFPort.OFPP_NONE.getValue
+
+        OFPort.OFPP_NONE.getValue
     }
 
     /**
@@ -2288,7 +2301,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 ifUUID = _ifUUID.get(1).getTextValue if ifUUID != null
             } portNums += getPortNumByInterfaceUUID(ifUUID)
         }
-        return mutable.Set(portNums.map((x) => (x: java.lang.Short)) : _*)
+
+        mutable.Set(portNums.map((x) => (x: java.lang.Short)) : _*)
     }
 
     /**
@@ -2307,7 +2321,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             val ofPort = ifRow.get(ColumnOfPort).getValueAsInt
             return ofPort.toShort
         }
-        return OFPort.OFPP_NONE.getValue
+
+        OFPort.OFPP_NONE.getValue
     }
 
     /**
@@ -2325,7 +2340,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
              _uuid = portRow.get(ColumnUUID) if _uuid != null
              portUUID = _uuid.get(1) if portUUID != null
         } return portUUID.getValueAsText
-        return ""
+
+        ""
     }
 
     /**
@@ -2385,7 +2401,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             return queues.filter(
                     _._2.get(1).getValueAsText == queueUUID).head._1.toInt
         }
-        return -1
+
+        -1
     }
 
    /**
@@ -2417,7 +2434,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                 }
             }
         }
-        return None
+
+        None
     }
 
     /**
@@ -2431,7 +2449,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def getQueueUUIDByQueueNum(qosUUID: String, queueNum: Long): Option[String] = {
         val queueRow = getQueueRowByQueueNum(qosUUID, queueNum)
-        return if (!queueRow.isEmpty)
+
+        if (!queueRow.isEmpty)
                    Some(queueRow.get.get(ColumnUUID).get(1).getTextValue)
                else
                    None
@@ -2460,7 +2479,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                    else
                        None
         }
-        return None
+
+        None
     }
 
     /**
@@ -2469,7 +2489,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     override def close() {
         this.stop
         try {
-            socket.close
+            socket.close()
         } catch {
             case e: IOException => { log.warn("close", e) }
         }

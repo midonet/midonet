@@ -66,7 +66,7 @@ public final class NodeAgent {
     private Thread watcherThread;
 
     @Inject
-    private NodeCommandWatcher cmdWatcher;
+    NodeCommandWatcher cmdWatcher;
 
     /**
      * Private constructor so we can control the creation process.

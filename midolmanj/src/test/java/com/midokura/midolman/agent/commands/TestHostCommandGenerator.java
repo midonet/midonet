@@ -24,9 +24,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 
 import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 
@@ -44,7 +42,7 @@ public class TestHostCommandGenerator {
         newInterface.setName("wrong$interface%name!");
 
         HostCommandGenerator hostCommandGenerator = new HostCommandGenerator();
-        HostDirectory.Command command = hostCommandGenerator.createUpdateCommand(currentInterface, newInterface);
+        hostCommandGenerator.createUpdateCommand(currentInterface, newInterface);
     }
 
     @Test

@@ -14,10 +14,8 @@ import static junit.framework.Assert.fail;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
- * Date: 11/17/11
- * Time: 12:11 PM
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 11/17/11
  */
 public abstract class AbstractLibvirtTest {
 

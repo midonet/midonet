@@ -112,7 +112,7 @@ public class TestDHCP extends JerseyTest {
         assertThat("We expect 2 listed subnets.", subnets, arrayWithSize(2));
         assertThat("We expect the listed subnets to match those we created.",
                 subnets, arrayContainingInAnyOrder(
-                                equalTo(subnet1), equalTo(subnet2)));
+                subnet1, subnet2));
 
         // Delete the first subnet
         response = resource().uri(subnet1.getUri())
@@ -127,7 +127,7 @@ public class TestDHCP extends JerseyTest {
         assertThat("We expect 1 listed subnet after the delete",
                 subnets, arrayWithSize(1));
         assertThat("The listed subnet should be the one that wasn't deleted.",
-                subnets, arrayContainingInAnyOrder(equalTo(subnet2)));
+                subnets, arrayContainingInAnyOrder(subnet2));
 
         // Test GET of a non-existing subnet (the deleted first subnet).
         response = resource().uri(subnet1.getUri())
@@ -169,7 +169,7 @@ public class TestDHCP extends JerseyTest {
         DtoDhcpSubnet[] subnets = response.getEntity(DtoDhcpSubnet[].class);
         assertThat("We expect 1 listed subnets.", subnets, arrayWithSize(1));
         assertThat("We expect the listed subnets to match the one we created.",
-                subnets, arrayContainingInAnyOrder(equalTo(subnet)));
+                subnets, arrayContainingInAnyOrder(subnet));
 
         // Now delete the subnet.
         response = resource().uri(subnet.getUri()).delete(ClientResponse.class);
@@ -292,11 +292,11 @@ public class TestDHCP extends JerseyTest {
                 .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
+
         DtoDhcpHost[] hosts = response.getEntity(DtoDhcpHost[].class);
         assertThat("We expect 2 listed hosts.", hosts, arrayWithSize(2));
         assertThat("We expect the listed hosts to match those we created.",
-                hosts, arrayContainingInAnyOrder(
-                    equalTo(host1), equalTo(host2)));
+                hosts, arrayContainingInAnyOrder(host2, host1));
 
         // Now try to create a new host with host1's mac address. This should
         // fail.
@@ -326,8 +326,7 @@ public class TestDHCP extends JerseyTest {
         hosts = response.getEntity(DtoDhcpHost[].class);
         assertThat("We expect 2 listed hosts.", hosts, arrayWithSize(2));
         assertThat("We expect the listed hosts to match those we created.",
-                hosts, arrayContainingInAnyOrder(
-                equalTo(host1), equalTo(host2)));
+                hosts, arrayContainingInAnyOrder(host1, host2));
 
         // Now delete one of the host assignments.
         response = resource().uri(host1.getUri()).delete(ClientResponse.class);
@@ -341,7 +340,6 @@ public class TestDHCP extends JerseyTest {
         assertThat("We expect 1 listed host after the delete",
                 hosts, arrayWithSize(1));
         assertThat("The listed hosts should be the one that wasn't deleted.",
-                hosts, arrayContainingInAnyOrder(equalTo(host2)));
-
+                hosts, arrayContainingInAnyOrder(host2));
     }
 }
