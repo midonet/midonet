@@ -24,7 +24,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.command.NodeCommandWatcher;
+import com.midokura.midolman.agent.commands.executors.NodeCommandWatcher;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;

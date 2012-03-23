@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.midokura.midolman.agent.command.CommandProperty;
+import com.midokura.midolman.agent.commands.executors.CommandProperty;
 
 /**
  * ZooKeeper state objects definitions for Host and Interface data.

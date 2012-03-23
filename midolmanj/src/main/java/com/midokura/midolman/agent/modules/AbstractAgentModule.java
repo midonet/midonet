@@ -7,7 +7,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
 import com.google.inject.Scopes;
-import com.midokura.midolman.agent.command.CommandInterpreter;
+import com.midokura.midolman.agent.commands.executors.CommandInterpreter;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;
 import com.midokura.midolman.agent.scanner.DefaultInterfaceScanner;

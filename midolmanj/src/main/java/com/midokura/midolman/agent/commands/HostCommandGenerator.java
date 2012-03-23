@@ -3,8 +3,7 @@
  */
 package com.midokura.midolman.agent.commands;
 
-import com.midokura.midolman.agent.command.CommandProperty;
-import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.agent.commands.executors.CommandProperty;
 import com.midokura.midolman.packets.MAC;
 
 import org.hamcrest.Description;
@@ -19,8 +18,8 @@ import java.net.InetAddress;
 import java.util.Arrays;
 
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
-import static com.midokura.midolman.agent.command.CommandProperty.*;
-import static com.midokura.midolman.agent.command.CommandProperty.address;
+import static com.midokura.midolman.agent.commands.executors.CommandProperty.*;
+import static com.midokura.midolman.agent.commands.executors.CommandProperty.address;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;

@@ -4,7 +4,7 @@
 
 package com.midokura.midolman.agent.commands;
 
-import com.midokura.midolman.agent.command.CommandProperty;
+import com.midokura.midolman.agent.commands.executors.CommandProperty;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.packets.MAC;
 import org.junit.Test;
