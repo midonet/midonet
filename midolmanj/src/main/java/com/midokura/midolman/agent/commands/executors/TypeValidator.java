@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman.agent.command;
+package com.midokura.midolman.agent.commands.executors;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.packets.IPv4;
 
 public abstract class TypeValidator<T> {
 

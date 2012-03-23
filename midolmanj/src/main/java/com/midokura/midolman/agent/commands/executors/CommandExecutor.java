@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.agent.command;
+package com.midokura.midolman.agent.commands.executors;
 
 import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand;
 

@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman.agent.command;
+package com.midokura.midolman.agent.commands.executors;
 
 import com.midokura.midolman.util.Sudo;
 import org.slf4j.Logger;

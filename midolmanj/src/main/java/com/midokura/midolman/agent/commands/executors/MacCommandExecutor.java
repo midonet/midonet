@@ -2,13 +2,10 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman.agent.command;
+package com.midokura.midolman.agent.commands.executors;
 
 import java.util.List;
 import static java.lang.String.format;
-
-import com.midokura.midolman.util.Sudo;
-import com.midokura.util.process.ProcessHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +29,7 @@ public class MacCommandExecutor extends AbstractCommandExecutor<String> {
         try {
 
             List<String> stdOut =
-                executeCommandLine(String.format("ip link show %s", targetName));
+                executeCommandLine(format("ip link show %s", targetName));
 
             log.debug("Stdout: " + stdOut);
             boolean wasUp = stdOut.size() > 0 && stdOut.get(0).matches(".*state UP.*");

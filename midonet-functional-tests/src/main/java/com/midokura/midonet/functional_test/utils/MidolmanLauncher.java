@@ -139,7 +139,7 @@ public class MidolmanLauncher {
         // target/dependencies folder (check the midolmanj/pom.xml to see how
         // they are copied in there)
         File []midolmanJars =
-            new File(midonetFolder, "midolmanj/target/dependencies").listFiles(
+            new File(midonetFolder, "midolmanj/target/dep").listFiles(
                 new FileFilter() {
                     @Override
                     public boolean accept(File pathName) {
