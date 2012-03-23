@@ -190,7 +190,7 @@ public class BridgeZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         return get(id, null);
     }
 

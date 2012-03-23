@@ -77,6 +77,8 @@ public class TestVRNController {
     private RouteZkManager routeMgr;
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
+    private GreZkManager greMgr;
+    private BridgeZkManager bridgeMgr;
     private MockCache cache;
     private int cacheExpireSecs; // This should be an even number.
     private MockOpenvSwitchDatabaseConnection ovsdb;
@@ -109,6 +111,8 @@ public class TestVRNController {
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
         bgpMgr = new BgpZkManager(dir, basePath);
+        greMgr = new GreZkManager(dir, basePath);
+        bridgeMgr = new BridgeZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
         // Now build the network's port to location map.
@@ -136,7 +140,8 @@ public class TestVRNController {
         vrnCtrl = new VRNController(datapathId, networkId,
                 5 /* greKey */, portLocMap, idleFlowTimeoutSeconds,
                 localNwIP, portMgr, routerMgr, routeMgr, chainMgr, ruleMgr,
-                ovsdb, reactor, cache, "midonet", service, portSetMap);
+                ovsdb, reactor, cache, "midonet", service, portSetMap, greMgr,
+                bridgeMgr);
         vrnCtrl.setControllerStub(controllerStub);
 
         /*

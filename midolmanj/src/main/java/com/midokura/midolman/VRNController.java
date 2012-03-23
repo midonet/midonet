@@ -34,6 +34,8 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.GreZkManager.GreKey;
 import com.midokura.midolman.util.Cache;
 
 public class VRNController extends AbstractController
@@ -67,6 +69,9 @@ public class VRNController extends AbstractController
     private Map<UUID, Set<Short>> localPortSetSlices;
     private DhcpHandler dhcpHandler;
     private Reactor reactor;
+    private PortZkManager portMgr;
+    private GreZkManager greMgr;
+    private BridgeZkManager bridgeMgr;
 
     public VRNController(long datapathId, UUID deviceId, int greKey,
             PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
@@ -74,11 +79,15 @@ public class VRNController extends AbstractController
             RouterZkManager routerMgr, RouteZkManager routeMgr,
             ChainZkManager chainMgr, RuleZkManager ruleMgr,
             OpenvSwitchDatabaseConnection ovsdb, Reactor reactor, Cache cache,
-            String externalIdKey, PortService service, PortSetMap portSetMap) {
+            String externalIdKey, PortService service, PortSetMap portSetMap,
+            GreZkManager greMgr, BridgeZkManager bridgeMgr) {
         super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr,
                 externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
         this.reactor = reactor;
+        this.portMgr = portMgr;
+        this.greMgr = greMgr;
+        this.bridgeMgr = bridgeMgr;
         this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, routeMgr,
                 chainMgr, ruleMgr, reactor, cache);
         this.portSetMap = portSetMap;
@@ -240,8 +249,16 @@ public class VRNController extends AbstractController
                                    int inPort, byte[] data, long tunnelId) {
         log.debug("forwardTunneledPkt: received from tunnel {} with id {}",
                 inPort, tunnelId);
-        // Convert the tunnelId to a UUID.
-        UUID destPortId = new UUID(0, tunnelId);
+        // Convert the tunnelId to a UUID. The tunnelId is a GRE key, use
+        // GreZkManager to find the owner UUID.
+        UUID destPortId;
+        try {
+            ZkNodeEntry<Integer, GreKey> entry = greMgr.get((int)tunnelId);
+            destPortId = entry.value.ownerId;
+        } catch (StateAccessException e) {
+            // TODO(pino): drop the flow.
+            return;
+        }
         Set<Short> outPorts = new HashSet<Short>();
         if (portSetMap.containsKey(destPortId)) { // multiple egress
             log.debug("forwardTunneledPkt: to PortSet.");
@@ -333,9 +350,9 @@ public class VRNController extends AbstractController
         else
             ofPktCtx = OFPacketContext.class.cast(fwdInfo);
 
-        // Is the egress a locally installed virtual port?
         List<OFAction> actions;
         Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
+        // Is the egress a locally installed virtual port?
         if (null != outPortNum) {
             log.debug("forwardPacket: FORWARD to local {}: {}",
                     outPortNum, fwdInfo);
@@ -361,6 +378,7 @@ public class VRNController extends AbstractController
         }
         // the egress port is either remote or multiple.
         Set<Short> outPorts = new HashSet<Short>();
+        int greKey;
         if (portSetMap.containsKey(fwdInfo.outPortId)) { // multiple egress
             log.debug("forwardPacket: FORWARD to PortSet {}: {}",
                     fwdInfo.outPortId, fwdInfo);
@@ -383,6 +401,15 @@ public class VRNController extends AbstractController
                     log.warn("forwardPacket: No OVS tunnel port found " +
                              "for Controller at {}", controllerAddr);
             }
+            // Extract the greKey from the Bridge config (only PortSet for now).
+            // TODO(pino): cache the BridgeConfigs to reduce ZK calls.
+            try {
+                ZkNodeEntry<UUID, BridgeConfig> entry = bridgeMgr.get(fwdInfo.outPortId);
+                greKey = entry.value.greKey;
+            } catch (StateAccessException e) {
+                // TODO(pino): drop this flow.
+                return;
+            }
         } else { // single egress
             Integer tunPortNum =
                     super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
@@ -392,6 +419,16 @@ public class VRNController extends AbstractController
                         fwdInfo.outPortId, intAddress);
             } else
                 outPorts.add(tunPortNum.shortValue());
+            // Extract the greKey from the PortConfig
+            // TODO(pino): cache the PortConfigs to reduce ZK calls.
+            try {
+                ZkNodeEntry<UUID, PortConfig> entry =
+                        portMgr.get(fwdInfo.outPortId);
+                greKey = entry.value.greKey;
+            } catch (StateAccessException e) {
+                // TODO(pino): drop this flow.
+                return;
+            }
         }
         if (outPorts.size() == 0) {
             log.warn("forwardPacket: DROP - no OVS ports to output to.");
@@ -403,7 +440,7 @@ public class VRNController extends AbstractController
         }
         log.debug("forwardPacket: sending to ports {}", outPorts);
         actions = makeActionsForFlow(fwdInfo.flowMatch, fwdInfo.matchOut,
-                outPorts, (int)fwdInfo.outPortId.getLeastSignificantBits());
+                outPorts, greKey);
         if (null != ofPktCtx) {
             // Track the routers for this flow so we can free resources
             // when the flow is removed.

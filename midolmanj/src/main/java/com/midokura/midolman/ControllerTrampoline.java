@@ -140,6 +140,8 @@ public class ControllerTrampoline implements Controller {
                 RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
                 BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
                 AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
+                GreZkManager greMgr = new GreZkManager(directory, basePath);
+                BridgeZkManager bridgeMgr = new BridgeZkManager(directory, basePath);
 
                 PortService bgpPortService =
                     initializeBgpPortService(reactor, ovsdb,
@@ -183,7 +185,9 @@ public class ControllerTrampoline implements Controller {
                         cache,
                         externalIdKey,
                         bgpPortService,
-                        portSetMap);
+                        portSetMap,
+                        greMgr,
+                        bridgeMgr);
             } else {
                 BridgeConfig bridgeConfig;
                 try {
