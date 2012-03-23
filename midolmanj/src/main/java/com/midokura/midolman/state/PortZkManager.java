@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.util.ShortUUID;
+import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
  * Class to manage the port ZooKeeper data.
@@ -30,6 +30,7 @@ public class PortZkManager extends ZkManager {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortZkManager.class);
+    private final GreZkManager greZkManager;
 
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
@@ -42,6 +43,7 @@ public class PortZkManager extends ZkManager {
      */
     public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        greZkManager = new GreZkManager(zk, basePath);
     }
 
     private List<Op> prepareRouterPortCreate(
@@ -92,7 +94,7 @@ public class PortZkManager extends ZkManager {
     }
 
     public List<Op> preparePortCreate(UUID id, PortConfig portNode)
-            throws ZkStateSerializationException {
+            throws StateAccessException {
         return preparePortCreate(new ZkNodeEntry<UUID, PortConfig>(id, portNode));
     }
 
@@ -108,7 +110,11 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public List<Op> preparePortCreate(ZkNodeEntry<UUID, PortConfig> entry)
-            throws ZkStateSerializationException {
+            throws StateAccessException {
+        // Create a new GRE key. Hide this from outside.
+        ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
+        entry.value.greKey = gre.key;
+
         if (entry.value instanceof PortDirectory.BridgePortConfig) {
             return prepareBridgePortCreate(entry);
         } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
@@ -142,7 +148,7 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareRouterPortDelete(ZkNodeEntry<UUID, PortConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             BgpZkManager bgpManager = new BgpZkManager(zk, pathManager
@@ -233,17 +239,24 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public List<Op> preparePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
+        List<Op> res;
         if (entry.value instanceof PortDirectory.LogicalBridgePortConfig ||
                 entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
-            return prepareLinkDelete(entry);
+            res = prepareLinkDelete(entry);
         } else if (entry.value instanceof PortDirectory.BridgePortConfig) {
-            return prepareBridgePortDelete(entry);
+            res = prepareBridgePortDelete(entry);
         } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
-            return prepareRouterPortDelete(entry);
+            res = prepareRouterPortDelete(entry);
         } else {
             throw new IllegalArgumentException("Unsupported port type");
         }
+        // Delete GRE
+        GreKey gre = new GreKey(entry.key);
+        res.addAll(greZkManager
+                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
+                        entry.value.greKey, gre)));
+        return res;
     }
 
     /**
@@ -257,10 +270,7 @@ public class PortZkManager extends ZkManager {
      */
     public UUID create(PortConfig port) throws StateAccessException,
             ZkStateSerializationException {
-        // TODO(pino) - port UUIDs should be created using a sequential
-        // persistent
-        // create in a ZK directory.
-        UUID id = ShortUUID.generate32BitUUID();
+        UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, PortConfig> portNode =
                 new ZkNodeEntry<UUID, PortConfig>(id, port);
         multi(preparePortCreate(portNode));
@@ -271,8 +281,8 @@ public class PortZkManager extends ZkManager {
             PortDirectory.LogicalRouterPortConfig localPort,
             PortDirectory.LogicalRouterPortConfig peerPort)
             throws StateAccessException, ZkStateSerializationException {
-        localPort.peer_uuid = ShortUUID.generate32BitUUID();
-        peerPort.peer_uuid = ShortUUID.generate32BitUUID();
+        localPort.peer_uuid = UUID.randomUUID();
+        peerPort.peer_uuid = UUID.randomUUID();
 
         ZkNodeEntry<UUID, PortConfig> localPortEntry = new ZkNodeEntry<UUID, PortConfig>(
                 peerPort.peer_uuid, localPort);

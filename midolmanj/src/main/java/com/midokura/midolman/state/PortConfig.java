@@ -14,4 +14,5 @@ public abstract class PortConfig {
     // Default constructor for the Jackson deserialization.
     PortConfig() { super(); }
     public UUID device_id;
+    public int greKey;
 }

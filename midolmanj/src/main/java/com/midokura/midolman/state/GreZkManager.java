@@ -15,7 +15,7 @@ import org.apache.zookeeper.Op;
 
 /**
  * Class to manage the GRE ZooKeeper data.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -27,18 +27,18 @@ public class GreZkManager extends ZkManager {
             super();
         }
 
-        public GreKey(UUID bridgeId) {
+        public GreKey(UUID ownerId) {
             super();
-            this.bridgeId = bridgeId;
+            this.ownerId = ownerId;
         }
 
-        public UUID bridgeId;
+        public UUID ownerId;
     }
 
     /**
      * Initializes a GreZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -55,7 +55,7 @@ public class GreZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a gre update.
-     * 
+     *
      * @param gre
      *            GreKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
@@ -97,7 +97,7 @@ public class GreZkManager extends ZkManager {
 
     /***
      * Constructs a list of operations to perform in a gre deletion.
-     * 
+     *
      * @param entry
      *            ZK entry of the gre to delete.
      */
@@ -109,7 +109,7 @@ public class GreZkManager extends ZkManager {
 
     /**
      * Performs an atomic update on the ZooKeeper to add a new GRE key.
-     * 
+     *
      * @return The ID of the newly created GRE.
      * @throws KeeperException
      *             ZooKeeper error occurred.

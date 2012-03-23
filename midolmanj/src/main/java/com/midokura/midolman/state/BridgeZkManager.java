@@ -53,7 +53,7 @@ public class BridgeZkManager extends ZkManager {
     }
 
     public List<Op> prepareBridgeCreate(UUID id, BridgeConfig bridgeNode)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         return prepareBridgeCreate(new ZkNodeEntry<UUID, BridgeConfig>(id,
                 bridgeNode));
     }
@@ -73,7 +73,7 @@ public class BridgeZkManager extends ZkManager {
      */
     public List<Op> prepareBridgeCreate(
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         GreZkManager greZkManager = new GreZkManager(zk, pathManager
                 .getBasePath());
 
@@ -105,13 +105,12 @@ public class BridgeZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the bridge.
-        gre.value.bridgeId = bridgeNode.key;
+        gre.value.ownerId = bridgeNode.key;
         ops.addAll(greZkManager.prepareGreUpdate(gre));
         return ops;
     }
 
-    public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException {
         return prepareBridgeDelete(get(id));
     }
 
@@ -129,7 +128,7 @@ public class BridgeZkManager extends ZkManager {
      *             ZooKeeper was unresponsive.
      */
     public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         PortZkManager portZkManager = new PortZkManager(zk, pathManager
                 .getBasePath());

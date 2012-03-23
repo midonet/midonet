@@ -75,8 +75,8 @@ public class RouterLinkDaoAdapter implements RouterLinkDao {
                     "Invalid connection.  The router ports are already connected.");
         }
 
-        UUID portId = ShortUUID.generate32BitUUID();
-        UUID peerPortId = ShortUUID.generate32BitUUID();
+        UUID portId = UUID.randomUUID();
+        UUID peerPortId = UUID.randomUUID();
         port.setId(portId);
         port.setPeerId(peerPortId);
         List<Op> ops = opService.buildLink(port.getId(), port.toConfig(),
@@ -102,10 +102,8 @@ public class RouterLinkDaoAdapter implements RouterLinkDao {
                     "This router and bridge are already connected.");
         }
 
-        // TODO(pino): these are logical ports so they don't need to be 32 bits.
-        // TODO(pino): port ID generation should be centralized somewhere.
-        UUID portId = ShortUUID.generate32BitUUID();
-        UUID peerPortId = ShortUUID.generate32BitUUID();
+        UUID portId = UUID.randomUUID();
+        UUID peerPortId = UUID.randomUUID();
         port.setId(portId);
         port.setPeerId(peerPortId);
         List<Op> ops = opService.buildBridgeLink(port.getId(), port.toConfig(),

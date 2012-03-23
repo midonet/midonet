@@ -78,7 +78,7 @@ public class PortDaoAdapter implements PortDao {
     public UUID create(Port port) throws StateAccessException {
         log.debug("PortDaoAdapter.create entered: port={}", port);
 
-        UUID id = ShortUUID.generate32BitUUID();
+        UUID id = UUID.randomUUID();
         port.setId(id);
         List<Op> ops = opService.buildCreate(port.getId(), port.toConfig(),
                 port.toMgmtConfig());
