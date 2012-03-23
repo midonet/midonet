@@ -142,7 +142,7 @@ public class TestVRNController {
                 5 /* greKey */, portLocMap, idleFlowTimeoutSeconds,
                 localNwIP, portMgr, routerMgr, routeMgr, bridgeMgr,
                 chainMgr, ruleMgr, ovsdb, reactor, cache, "midonet", service,
-                portSetMap);
+                portSetMap, greMgr);
         vrnCtrl.setControllerStub(controllerStub);
 
         /*

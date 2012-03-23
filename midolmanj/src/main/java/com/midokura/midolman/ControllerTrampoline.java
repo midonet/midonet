@@ -178,7 +178,7 @@ public class ControllerTrampoline implements Controller {
                         portMgr,
                         new RouterZkManager(directory, basePath),
                         routeMgr,
-                        new BridgeZkManager(directory, basePath),
+                        bridgeMgr,
                         new ChainZkManager(directory, basePath),
                         new RuleZkManager(directory, basePath),
                         ovsdb,
@@ -187,8 +187,7 @@ public class ControllerTrampoline implements Controller {
                         externalIdKey,
                         bgpPortService,
                         portSetMap,
-                        greMgr,
-                        bridgeMgr);
+                        greMgr);
             } else {
                 BridgeConfig bridgeConfig;
                 try {

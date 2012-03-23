@@ -80,7 +80,7 @@ public class VRNController extends AbstractController
             BridgeZkManager bridgeMgr, ChainZkManager chainMgr,
             RuleZkManager ruleMgr, OpenvSwitchDatabaseConnection ovsdb,
             Reactor reactor, Cache cache, String externalIdKey,
-            PortService service, PortSetMap portSetMap) {
+            PortService service, PortSetMap portSetMap, GreZkManager greMgr) {
         super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr,
                 externalIdKey);
         this.idleFlowExpireSeconds = idleFlowExpireSeconds;
