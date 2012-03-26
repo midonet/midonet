@@ -159,7 +159,8 @@ public class VRNCoordinator implements ForwardingElement {
     private ForwardingElement createBridge(UUID deviceId)
             throws StateAccessException, KeeperException {
         // XXX: Construct a MacPortMap.
-        return new Bridge(deviceId, null, bridgeMgr);
+        MacPortMap macPortMap = null;
+        return new Bridge(macPortMap, 5000, null);
     }
 
     private ForwardingElement createRouter(UUID deviceId)

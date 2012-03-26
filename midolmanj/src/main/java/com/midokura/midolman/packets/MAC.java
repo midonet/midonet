@@ -39,6 +39,10 @@ public class MAC implements Cloneable {
         return new MAC(Ethernet.toMACAddress(str));
     }
 
+    public boolean unicast() {
+        return 0 == (address[0] & 0x1);
+    }
+
     @Override
     public String toString() {
         return Net.convertByteMacToString(address);
