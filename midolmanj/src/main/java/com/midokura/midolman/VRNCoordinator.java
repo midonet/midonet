@@ -213,8 +213,8 @@ public class VRNCoordinator implements ForwardingElement {
             KeeperException, InterruptedException, JMException {
         log.debug("removePort: {}", portId);
         PortConfig portCfg = getPortConfigByUUID(portId);
-        FEType feType = feTypeOfPort(portCfg);
-        ForwardingElement fe = getForwardingElement(portCfg.device_id, feType);
+        ForwardingElement fe = getForwardingElement(portCfg.device_id,
+                                                    FEType.DontConstruct);
         fe.removePort(portId);
         feByPortId.remove(portId);
         // TODO(pino): we should clean up any router that isn't a value in the
