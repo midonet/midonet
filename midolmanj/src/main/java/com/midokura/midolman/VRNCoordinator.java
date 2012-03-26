@@ -140,8 +140,10 @@ public class VRNCoordinator implements ForwardingElement {
             watcher.call(routerId);
     }
 
-    protected ForwardingElement getForwardingElement(UUID deviceId)
-            throws StateAccessException, KeeperException {
+    protected enum FEType { Router, Bridge, DontConstruct }
+
+    protected ForwardingElement getForwardingElement(UUID deviceId,
+            FEType feType) throws StateAccessException, KeeperException {
         // TODO: Track down why we're throwing a KeeperException, as these
         // should never escape StateAccessException.
         ForwardingElement fe = forwardingElements.get(deviceId);
@@ -149,12 +151,23 @@ public class VRNCoordinator implements ForwardingElement {
             return fe;
         log.debug("Creating new forwarding element instance for {}", deviceId);
         Cache cache = new CacheWithPrefix(this.cache, deviceId.toString());
-        // XXX: Create router or bridge.
-        if (true)
+        switch (feType) {
+          case Router:
             fe = createRouter(deviceId);
-        else
+            break;
+          case Bridge:
             fe = createBridge(deviceId);
-        forwardingElements.put(deviceId, fe);
+            break;
+          case DontConstruct:
+            fe = null;
+            break;
+          default:
+            log.error("getForwardingElement: Unknown FEType {}", feType);
+            fe = null;
+            break;
+        }
+        if (fe != null)
+            forwardingElements.put(deviceId, fe);
         return fe;
     }
 
@@ -182,6 +195,17 @@ public class VRNCoordinator implements ForwardingElement {
                           portMgr, routeMgr);
     }
 
+    protected FEType feTypeOfPort(PortConfig cfg) {
+        if (cfg instanceof PortDirectory.RouterPortConfig)
+            return FEType.Router;
+        else if (cfg instanceof PortDirectory.BridgePortConfig)
+            return FEType.Bridge;
+        else {
+            log.error("feTypeOfPort: Unknown PortConfig type for {}", cfg);
+            return FEType.DontConstruct;
+        }
+    }
+
     public ForwardingElement getForwardingElementByPort(UUID portId)
             throws StateAccessException, KeeperException {
         ForwardingElement fe = feByPortId.get(portId);
@@ -189,7 +213,8 @@ public class VRNCoordinator implements ForwardingElement {
             return fe;
         PortConfig cfg = getPortConfig(portId);
         // TODO(pino): throw an exception if the config isn't found.
-        fe = getForwardingElement(cfg.device_id);
+        FEType feType = feTypeOfPort(cfg);
+        fe = getForwardingElement(cfg.device_id, feType);
         feByPortId.put(cfg.device_id, fe);
         return fe;
     }
@@ -222,28 +247,11 @@ public class VRNCoordinator implements ForwardingElement {
         log.debug("addPort: {}", portId);
         PortConfig portCfg = getPortConfigByUUID(portId);
         UUID deviceId = portCfg.device_id;
-        ForwardingElement fe = getForwardingElement(deviceId);
+        FEType feType = feTypeOfPort(portCfg);
+        ForwardingElement fe = getForwardingElement(deviceId, feType);
         fe.addPort(portId);
         feByPortId.put(portId, fe);
     }
-
-    /*
-    // Add a materialized port to a router in the VRN.
-    public void addRouterPort(L3DevicePort port) throws
-            ZkStateSerializationException, StateAccessException,
-            KeeperException, InterruptedException, JMException {
-        log.debug("addRouterPort: {}", port);
-
-        UUID routerId = port.getVirtualConfig().device_id;
-        ForwardingElement rtr = getForwardingElement(routerId);
-        if (!(rtr instanceof Router)) {
-            log.error("called addRouterPort() for a non-router");
-            return;
-        }
-        ((Router) rtr).addRouterPort(port);
-        feByPortId.put(port.getId(), rtr);
-    }
-    */
 
     // This should only be called for materialized ports, not logical ports.
     @Override
@@ -252,7 +260,8 @@ public class VRNCoordinator implements ForwardingElement {
             KeeperException, InterruptedException, JMException {
         log.debug("removePort: {}", portId);
         PortConfig portCfg = getPortConfigByUUID(portId);
-        ForwardingElement fe = getForwardingElement(portCfg.device_id);
+        FEType feType = feTypeOfPort(portCfg);
+        ForwardingElement fe = getForwardingElement(portCfg.device_id, feType);
         fe.removePort(portId);
         feByPortId.remove(portId);
         // TODO(pino): we should clean up any router that isn't a value in the

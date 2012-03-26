@@ -574,7 +574,8 @@ public class VRNController extends AbstractController
         // TODO(pino): are FEs mapping the correct match for invalidation?
         for (UUID feId : forwardingElements) {
             try {
-                ForwardingElement fe = vrn.getForwardingElement(feId);
+                ForwardingElement fe = vrn.getForwardingElement(feId, 
+                        VRNCoordinator.FEType.DontConstruct);
                 fe.freeFlowResources(match,
                         portNumToUuid.get(U16.f(match.getInputPort())));
             } catch (KeeperException e) {
