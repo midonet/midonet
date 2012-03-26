@@ -87,8 +87,13 @@ public class PortZkManager extends ZkManager {
                     "Could not serialize PortConfig", e, PortConfig.class);
         }
 
-        ops.add(Op.create(pathManager.getBridgePortPath(
-                portNode.value.device_id, portNode.key), null,
+        String bridgePortPath =
+                portNode.value instanceof PortDirectory.LogicalBridgePortConfig
+                        ? pathManager.getBridgeLogicalPortPath(
+                        portNode.value.device_id, portNode.key)
+                        : pathManager.getBridgePortPath(
+                        portNode.value.device_id, portNode.key);
+        ops.add(Op.create(bridgePortPath, null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
@@ -199,8 +204,13 @@ public class PortZkManager extends ZkManager {
     private List<Op> prepareBridgePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getBridgePortPath(entry.value.device_id,
-                entry.key), -1));
+        String bridgePortPath =
+                entry.value instanceof PortDirectory.LogicalBridgePortConfig
+                        ? pathManager.getBridgeLogicalPortPath(
+                        entry.value.device_id, entry.key)
+                        : pathManager.getBridgePortPath(
+                        entry.value.device_id, entry.key);
+        ops.add(Op.delete(bridgePortPath, -1));
         ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
         return ops;
     }
@@ -403,7 +413,7 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public List<ZkNodeEntry<UUID, PortConfig>> listBridgePorts(UUID bridgeId)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         return listBridgePorts(bridgeId, null);
     }
 
@@ -421,9 +431,27 @@ public class PortZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public List<ZkNodeEntry<UUID, PortConfig>> listBridgePorts(UUID bridgeId,
-            Runnable watcher) throws StateAccessException,
-            ZkStateSerializationException {
+            Runnable watcher) throws StateAccessException {
         return listPorts(pathManager.getBridgePortsPath(bridgeId), watcher);
+    }
+
+    /**
+     * Gets a list of ZooKeeper port nodes belonging to a bridge with the given
+     * ID.
+     *
+     * @param bridgeId
+     *            The ID of the bridge to find the ports of.
+     * @return A list of ZooKeeper port nodes.
+     * @param watcher
+     *            The watcher to set on the changes to the ports for this
+     *            router.
+     * @throws StateAccessException
+     *             Serialization error occurred.
+     */
+    public List<ZkNodeEntry<UUID, PortConfig>> listBridgeLogicalPorts(
+            UUID bridgeId, Runnable watcher) throws StateAccessException {
+        return listPorts(
+                pathManager.getBridgeLogicalPortsPath(bridgeId), watcher);
     }
 
     /**

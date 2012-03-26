@@ -20,15 +20,14 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.ZkNodeEntry;
 
 
 public class BridgeFE implements ForwardingElement {
@@ -40,6 +39,8 @@ public class BridgeFE implements ForwardingElement {
     MacPortMap macPortMap;
     long mac_port_timeout;
     Reactor reactor;
+    PortZkManager portMgr;
+    private Runnable logicalPortsWatcher;
 
     @Override
     public void process(ForwardInfo fwdInfo)
@@ -172,7 +173,7 @@ public class BridgeFE implements ForwardingElement {
 
     HashMap<MacPort, Integer> flowCount;
 
-    BridgeControllerWatcher macToPortWatcher;
+    MacPortWatcher macToPortWatcher;
 
     static private class MacPort {
         // Pair<Mac, Port>
@@ -201,7 +202,7 @@ public class BridgeFE implements ForwardingElement {
         }
     }
 
-    private class BridgeControllerWatcher implements
+    private class MacPortWatcher implements
             ReplicatedMap.Watcher<MAC, UUID> {
         public void processChange(MAC key, UUID old_uuid, UUID new_uuid) {
             /* Update callback for the MacPortMap */
@@ -209,18 +210,18 @@ public class BridgeFE implements ForwardingElement {
             /* If the new port is local, the flow updates have already been
              * applied, and we return immediately. */
             if (port_is_local(new_uuid)) {
-                log.info("BridgeControllerWatcher.processChange: port {} is " +
+                log.info("MacPortWatcher.processChange: port {} is " +
                          "local, returning without taking action", new_uuid);
                 return;
             }
-            log.info("BridgeControllerWatcher.processChange: mac {} changed "
+            log.info("MacPortWatcher.processChange: mac {} changed "
                       + "from port {} to port {}", new Object[] {
                       key, old_uuid, new_uuid});
 
             /* If the MAC's old port was local, we need to invalidate its
              * flows. */
             if (port_is_local(old_uuid)) {
-                log.debug("BridgeControllerWatcher.processChange: Old port " +
+                log.debug("MacPortWatcher.processChange: Old port " +
                           "was local.  Invalidating its flows.");
                 invalidateFlowsFromMac(key);
             }
@@ -235,9 +236,29 @@ public class BridgeFE implements ForwardingElement {
         mac_port_timeout = macPortTimeoutMillis;
         delayedDeletes = new HashMap<MAC, PortFuture>();
         flowCount = new HashMap<MacPort, Integer>();
-        macToPortWatcher = new BridgeControllerWatcher();
+        macToPortWatcher = new MacPortWatcher();
         macPortMap.addWatcher(macToPortWatcher);
+        this.portMgr = new PortZkManager(null, null);
         this.reactor = reactor;
+        this.logicalPortsWatcher = new Runnable() {
+            public void run() {
+                updateLogicalPorts();
+            }
+        };
+        updateLogicalPorts();
+    }
+
+    private void updateLogicalPorts() {
+        List<ZkNodeEntry<UUID, PortConfig>> ports;
+        try {
+            ports = portMgr.listBridgeLogicalPorts(
+                    bridgeId, logicalPortsWatcher);
+        } catch (StateAccessException e) {
+            // TODO(pino): if we get a NoPathException give up.
+            // TODO(pino): what about other excepetion types?
+            return;
+        }
+
     }
 
     private void expireMacPortEntry(final MAC mac, UUID port, boolean delete) {

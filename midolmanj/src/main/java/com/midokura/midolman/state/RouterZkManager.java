@@ -25,7 +25,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
  * Class to manage the router ZooKeeper data.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -37,7 +37,7 @@ public class RouterZkManager extends ZkManager {
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -50,7 +50,7 @@ public class RouterZkManager extends ZkManager {
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new router.
-     * 
+     *
      * @param routerNode
      *            ZooKeeper node representing a key-value entry of router UUID
      *            and RouterConfig object.
@@ -79,16 +79,15 @@ public class RouterZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a router deletion.
-     * 
-     * @param entry
-     *            Router ZooKeeper entry to delete.
+     *
+     * @param id
+     *            The ID of a virtual router to delete.
      * @return A list of Op objects representing the operations to perform.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      * @throws StateAccessException
      */
-    public List<Op> prepareRouterDelete(UUID id)
-            throws ZkStateSerializationException, StateAccessException {
+    public List<Op> prepareRouterDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         String basePath = pathManager.getBasePath();
         ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
@@ -155,7 +154,7 @@ public class RouterZkManager extends ZkManager {
 
     /**
      * Performs an atomic update on the ZooKeeper to add a new router entry.
-     * 
+     *
      * @param router
      *            Router object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
@@ -173,7 +172,7 @@ public class RouterZkManager extends ZkManager {
     /***
      * Deletes a router and its related data from the ZooKeeper directories
      * atomically.
-     * 
+     *
      * @param id
      *            ID of the router to delete.
      * @throws ZkStateSerializationException

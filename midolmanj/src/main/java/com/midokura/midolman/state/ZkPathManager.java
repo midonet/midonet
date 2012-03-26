@@ -209,6 +209,18 @@ public class ZkPathManager {
      *
      * @param bridgeId
      *            Bridge UUID
+     * @return /bridges/bridgeId/logical-ports
+     */
+    public String getBridgeLogicalPortsPath(UUID bridgeId) {
+        return new StringBuilder(getBridgePath(bridgeId))
+                .append("/logical-ports").toString();
+    }
+
+    /**
+     * Get ZK bridge port path.
+     *
+     * @param bridgeId
+     *            Bridge UUID
      * @param portId
      *            Port UUID.
      * @return /bridges/bridgeId/ports/portId
@@ -216,6 +228,20 @@ public class ZkPathManager {
     public String getBridgePortPath(UUID bridgeId, UUID portId) {
         return new StringBuilder(getBridgePortsPath(bridgeId)).append("/")
                 .append(portId).toString();
+    }
+
+    /**
+     * Get ZK bridge port path.
+     *
+     * @param bridgeId
+     *            Bridge UUID
+     * @param portId
+     *            Port UUID.
+     * @return /bridges/bridgeId/logical-ports/portId
+     */
+    public String getBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
+        return new StringBuilder(getBridgeLogicalPortsPath(bridgeId))
+                .append("/").append(portId).toString();
     }
 
     /**
