@@ -98,10 +98,7 @@ public class TestVRNCoordinator {
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
-        vrn = new VRNCoordinator(new UUID(19, 19), portMgr, routerMgr,
-                routeMgr, new BridgeZkManager(dir, basePath),
-                new ChainZkManager(dir, basePath),
-                new RuleZkManager(dir, basePath), reactor, createCache());
+        vrn = new VRNCoordinator(dir, basePath, reactor, createCache());
 
         /*
          * Create 3 routers such that:

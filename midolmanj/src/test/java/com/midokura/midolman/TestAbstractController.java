@@ -50,7 +50,7 @@ class AbstractControllerTester extends AbstractController {
     short flowExpireSeconds;
     short idleFlowExpireSeconds;
     OFAction[] flowActions = {};
- 
+
     public Logger log = LoggerFactory.getLogger(
             AbstractControllerTester.class);
 
@@ -63,8 +63,8 @@ class AbstractControllerTester extends AbstractController {
             short flowExpireSeconds,
             long idleFlowExpireMillis,
             IntIPv4 internalIp) {
-        super(datapathId, switchUuid, greKey, ovsdb, dict, internalIp, 
-              "midonet");
+        // TODO(pino): pass a real Directory and String basePath.
+        super(datapathId, null, null, ovsdb, internalIp, "midonet");
         virtualPortsAdded = new ArrayList<UUID>();
         virtualPortsRemoved = new ArrayList<UUID>();
         tunnelPortsAdded = new ArrayList<IntIPv4>();
@@ -121,7 +121,7 @@ class AbstractControllerTester extends AbstractController {
         numClearCalls++;
     }
 
-    @Override 
+    @Override
     protected void portMoved(UUID portUuid, IntIPv4 oldAddr, IntIPv4 newAddr) {
         // Do nothing.
     }
@@ -268,7 +268,7 @@ public class TestAbstractController {
                           controller.virtualPortsAdded.toArray());
         assertArrayEquals(new String[] { },
                           ovsdb.deletedPorts.toArray());
-        MockControllerStub stub = 
+        MockControllerStub stub =
                 (MockControllerStub) controller.controllerStub;
         assertEquals(0, stub.deletedFlows.size());
         controller.onConnectionMade();
@@ -277,7 +277,7 @@ public class TestAbstractController {
         assertArrayEquals(new String[] { port2.getName() },
                           ovsdb.deletedPorts.toArray());
         assertEquals(1, stub.deletedFlows.size());
-        assertEquals(OFMatch.OFPFW_ALL, 
+        assertEquals(OFMatch.OFPFW_ALL,
                      stub.deletedFlows.get(0).match.getWildcards());
     }
 
@@ -424,7 +424,7 @@ public class TestAbstractController {
 
     @Test
     public void testMakeGREPortName() {
-        assertEquals("tne1234ff0011aa", 
+        assertEquals("tne1234ff0011aa",
                      controller.makeGREPortName(new IntIPv4(0xff0011aa)));
     }
 
@@ -446,7 +446,7 @@ public class TestAbstractController {
         port.setName(grePortName);
         controller.onPortStatus(port, OFPortReason.OFPPR_ADD);
         log.debug("peerIP: {}", peerIP);
-        assertEquals(new Integer(54), 
+        assertEquals(new Integer(54),
                      controller.tunnelPortNumOfPeer(peerIP));
     }
 
@@ -575,7 +575,7 @@ public class TestAbstractController {
 
         assertEquals(1, controllerStub.addedFlows.size());
         assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
-        assertArrayEquals(new OFAction[]{}, 
+        assertArrayEquals(new OFAction[]{},
                           controllerStub.addedFlows.get(0).actions.toArray());
         assertEquals(0, controllerStub.sentPackets.size());
         assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -592,7 +592,7 @@ public class TestAbstractController {
         assertArrayEquals(pktData, controllerStub.sentPackets.get(0).data);
     }
 
-    @Test 
+    @Test
     public void testTCPDropAndNotDrop() {
         //TCP xport = new TCP();
         // Can't construct a TCP packet with the packets package because
@@ -605,7 +605,7 @@ public class TestAbstractController {
         short dstPort = (short)36911;
 
         /* Real Ethernet [IP/TCP] frame sniffed off the net. */
-        String frameHexDump = 
+        String frameHexDump =
                 "109add4c6f490018e7dd1cb408004500015f2f8d4000f106b777cc9812" +
                 "c4c0a8018f01bb902f5385670e2c5417cb50189ffeb183000017030101" +
                 "320c06e1c9e3d422b90c91caf2a4f773c1a8996b1f435586f21c8b03f3" +
@@ -644,7 +644,7 @@ public class TestAbstractController {
 
         assertEquals(1, controllerStub.addedFlows.size());
         assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
-        assertArrayEquals(new OFAction[]{}, 
+        assertArrayEquals(new OFAction[]{},
                           controllerStub.addedFlows.get(0).actions.toArray());
         assertEquals(0, controllerStub.sentPackets.size());
         assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -699,7 +699,7 @@ public class TestAbstractController {
         expectMatch.setTransportDestination((short)52956);
         assertEquals(1, controllerStub.addedFlows.size());
         assertEquals(expectMatch, controllerStub.addedFlows.get(0).match);
-        assertArrayEquals(flowActions, 
+        assertArrayEquals(flowActions,
                           controllerStub.addedFlows.get(0).actions.toArray());
         assertEquals(0, controllerStub.droppedPktBufIds.size());
         assertEquals(1, controllerStub.sentPackets.size());

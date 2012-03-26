@@ -138,11 +138,8 @@ public class TestVRNController {
         cacheExpireSecs = 60; // Use an even number.
         idleFlowTimeoutSeconds = 20;
         cache = new MockCache(reactor, cacheExpireSecs);
-        vrnCtrl = new VRNController(datapathId, networkId,
-                5 /* greKey */, portLocMap, idleFlowTimeoutSeconds,
-                localNwIP, portMgr, routerMgr, routeMgr, bridgeMgr,
-                chainMgr, ruleMgr, ovsdb, reactor, cache, "midonet", service,
-                portSetMap, greMgr);
+        vrnCtrl = new VRNController(datapathId, dir, basePath, localNwIP, ovsdb,
+                reactor, cache, "midonet", service);
         vrnCtrl.setControllerStub(controllerStub);
 
         /*

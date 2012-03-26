@@ -169,80 +169,13 @@ public class ControllerTrampoline implements Controller {
                 vpnAgent.start();
 
                 newController = new VRNController(
-                        datapathId,
-                        deviceId,
-                        config.configurationAt("vrn").getInt("router_network_gre_key"),
-                        portLocationMap,
-                        (short)(idleFlowExpireMillis/1000),
-                        localNwAddr,
-                        portMgr,
-                        new RouterZkManager(directory, basePath),
-                        routeMgr,
-                        bridgeMgr,
-                        new ChainZkManager(directory, basePath),
-                        new RuleZkManager(directory, basePath),
-                        ovsdb,
-                        reactor,
-                        cache,
-                        externalIdKey,
-                        bgpPortService,
-                        portSetMap,
-                        greMgr);
+                        datapathId, directory, basePath, localNwAddr, ovsdb,
+                        reactor, cache, externalIdKey, bgpPortService);
             } else {
-                BridgeConfig bridgeConfig;
-                try {
-                    bridgeConfig = bridgeMgr.get(deviceId).value;
-                } catch (Exception e) {
-                    log.info("can't handle this datapath, disconnecting", e);
-                    controllerStub.close();
-                    return;
-                }
-                log.info("Creating Bridge {}", uuid);
-
-                Directory portLocationDirectory =
-                    directory.getSubDirectory(
-                            pathMgr.getBridgePortLocationsPath(deviceId));
-
-                PortToIntNwAddrMap portLocationMap =
-                    new PortToIntNwAddrMap(portLocationDirectory);
-
-                Directory macPortDir =
-                    directory.getSubDirectory(
-                            pathMgr.getBridgeMacPortsPath(deviceId));
-                MacPortMap macPortMap = new MacPortMap(macPortDir);
-
-                long idleFlowExpireMillis = config.configurationAt("openflow")
-                                                  .getLong("flow_idle_expire_millis");
-                long flowExpireMillis = config.configurationAt("openflow")
-                                              .getLong("flow_expire_millis");
-                long macPortTimeoutMillis = config.configurationAt("bridge")
-                                                  .getLong("mac_port_mapping_expire_millis");
-
-                IntIPv4 localNwAddr =
-                    IntIPv4.fromString(config.configurationAt("openflow")
-                                             .getString("public_ip_address"));
-
-                newController = new BridgeController(
-                        datapathId,
-                        deviceId,
-                        bridgeConfig.greKey,
-                        portLocationMap,
-                        macPortMap,
-                        flowExpireMillis,
-                        idleFlowExpireMillis,
-                        localNwAddr,
-                        macPortTimeoutMillis,
-                        ovsdb,
-                        reactor,
-                        externalIdKey);
+                log.error("Unrecognized OF switch.");
             }
-            controllerStub.setController(newController);
-            controllerStub = null;
-            newController.onConnectionMade();
-
-            //ObjectName on = new ObjectName("com.midokura.midolman:type=Controller,name=" + deviceId);
-            //ManagementFactory.getPlatformMBeanServer().registerMBean(newController, on);
-
+        } catch (StateAccessException e) {
+            log.warn("ZK error", e);
         } catch (KeeperException e) {
             log.warn("ZK error", e);
         } catch (IOException e) {

@@ -52,7 +52,6 @@ public class VRNController extends AbstractController
     public static final short ICMP_EXPIRY_SECONDS = 5;
     private static final short FLOW_PRIORITY = 0;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
-    public static final int ICMP_TUNNEL = 0x05;
 
     VRNCoordinator vrn;
     short idleFlowExpireSeconds; //package private to allow test access.
@@ -74,25 +73,24 @@ public class VRNController extends AbstractController
     private GreZkManager greMgr;
     private BridgeZkManager bridgeMgr;
 
-    public VRNController(long datapathId, UUID deviceId, int greKey,
-            PortToIntNwAddrMap dict, short idleFlowExpireSeconds,
-            IntIPv4 localNwAddr, PortZkManager portMgr,
-            RouterZkManager routerMgr, RouteZkManager routeMgr,
-            BridgeZkManager bridgeMgr, ChainZkManager chainMgr,
-            RuleZkManager ruleMgr, OpenvSwitchDatabaseConnection ovsdb,
+    public VRNController(long datapathId, Directory zkDir, String zkBasePath,
+            IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
             Reactor reactor, Cache cache, String externalIdKey,
-            PortService service, PortSetMap portSetMap, GreZkManager greMgr) {
-        super(datapathId, deviceId, greKey, ovsdb, dict, localNwAddr,
-                externalIdKey);
-        this.idleFlowExpireSeconds = idleFlowExpireSeconds;
+            PortService service) throws StateAccessException {
+        super(datapathId, zkDir, zkBasePath, ovsdb, localNwAddr, externalIdKey);
         this.reactor = reactor;
-        this.portMgr = portMgr;
-        this.greMgr = greMgr;
-        this.bridgeMgr = bridgeMgr;
-        this.vrn = new VRNCoordinator(deviceId, portMgr, routerMgr, routeMgr,
-                bridgeMgr, chainMgr, ruleMgr, reactor, cache);
-        this.portSetMap = portSetMap;
-        portSetMap.start();
+        this.portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.greMgr = new GreZkManager(zkDir, zkBasePath);
+        this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
+        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache);
+        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
+        try {
+            this.portSetMap =
+                    new PortSetMap(zkDir.getSubDirectory(pathMgr.getPortSetsPath()));
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
+        this.portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.service = service;

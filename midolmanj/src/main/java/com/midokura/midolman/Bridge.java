@@ -27,6 +27,7 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
@@ -35,6 +36,7 @@ import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkPathManager;
 
 
 public class Bridge implements ForwardingElement {
@@ -260,17 +262,25 @@ public class Bridge implements ForwardingElement {
         }
     }
 
-    public Bridge(MacPortMap mac_port_map, long macPortTimeoutMillis,
-                  Reactor reactor) {
-        macPortMap = mac_port_map;
-        mac_port_timeout = macPortTimeoutMillis;
+    public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
+                  Reactor reactor) throws StateAccessException {
+        this.bridgeId = bridgeId;
+        this.reactor = reactor;
+        portMgr = new PortZkManager(zkDir, zkBasePath);
         delayedDeletes = new HashMap<MAC, PortFuture>();
         flowCount = new HashMap<MacPort, Integer>();
+        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
+        MacPortMap macPortMap = null;
+        try {
+            macPortMap = new MacPortMap(zkDir.getSubDirectory(
+                    pathMgr.getBridgeMacPortsPath(bridgeId)));
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
         macToPortWatcher = new MacPortWatcher();
         macPortMap.addWatcher(macToPortWatcher);
-        this.portMgr = new PortZkManager(null, null);
-        this.reactor = reactor;
-        this.logicalPortsWatcher = new Runnable() {
+        // TODO(pino): how should clear() handle this field?
+        logicalPortsWatcher = new Runnable() {
             public void run() {
                 updateLogicalPorts();
             }

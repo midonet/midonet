@@ -46,7 +46,6 @@ public class VRNCoordinator implements ForwardingElement {
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
     private RouterZkManager routerMgr;
-    private BridgeZkManager bridgeMgr;
     private Reactor reactor;
     private Cache cache;
     private Map<UUID, ForwardingElement> forwardingElements;
@@ -57,28 +56,23 @@ public class VRNCoordinator implements ForwardingElement {
     private Callback<UUID> routerWatcher;
     // TODO(pino): use Guava's CacheBuilder here.
     private Map<UUID, PortConfig> portIdToConfig;
+    private Directory zkDir;
+    private String zkBasePath;
 
-    public VRNCoordinator(UUID netId, PortZkManager portMgr,
-            RouterZkManager routerMgr, RouteZkManager routeMgr,
-            BridgeZkManager bridgeMgr, ChainZkManager chainMgr,
-            RuleZkManager ruleMgr, Reactor reactor, Cache cache) {
-        this.netId = netId;
-        this.portMgr = portMgr;
-        this.routeMgr = routeMgr;
-        this.routerMgr = routerMgr;
-        this.bridgeMgr = bridgeMgr;
-        this.chainZkMgr = chainMgr;
-        this.ruleZkMgr = ruleMgr;
+    public VRNCoordinator(Directory zkDir, String zkBasePath,
+                          Reactor reactor, Cache cache) {
+        this.zkDir = zkDir;
+        this.zkBasePath = zkBasePath;
+        this.portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
+        this.routerMgr = new RouterZkManager(zkDir, zkBasePath);
+        this.chainZkMgr = new ChainZkManager(zkDir, zkBasePath);
+        this.ruleZkMgr = new RuleZkManager(zkDir, zkBasePath);
         this.reactor = reactor;
         this.cache = cache;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
         this.watchers = new HashSet<Callback<UUID>>();
-        routerWatcher = new Callback<UUID>() {
-            public void call(UUID routerId) {
-                notifyWatchers(routerId);
-            }
-        };
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
     }
@@ -130,16 +124,6 @@ public class VRNCoordinator implements ForwardingElement {
         watchers.add(watcher);
     }
 
-    public void removeWatcher(Callback<UUID> watcher) {
-        watchers.remove(watcher);
-    }
-
-    private void notifyWatchers(UUID routerId) {
-        for (Callback<UUID> watcher : watchers)
-            // TODO(pino): should this be scheduled instead of directly called?
-            watcher.call(routerId);
-    }
-
     protected enum FEType { Router, Bridge, DontConstruct }
 
     protected ForwardingElement getForwardingElement(UUID deviceId,
@@ -153,10 +137,10 @@ public class VRNCoordinator implements ForwardingElement {
         Cache cache = new CacheWithPrefix(this.cache, deviceId.toString());
         switch (feType) {
           case Router:
-            fe = createRouter(deviceId);
+            fe = new Router(deviceId, zkDir, zkBasePath, reactor, cache);
             break;
           case Bridge:
-            fe = createBridge(deviceId);
+            fe = new Bridge(deviceId, zkDir, zkBasePath, reactor);
             break;
           case DontConstruct:
             fe = null;
@@ -169,30 +153,6 @@ public class VRNCoordinator implements ForwardingElement {
         if (fe != null)
             forwardingElements.put(deviceId, fe);
         return fe;
-    }
-
-    private ForwardingElement createBridge(UUID deviceId)
-            throws StateAccessException, KeeperException {
-        // XXX: Construct a MacPortMap.
-        MacPortMap macPortMap = null;
-        return new Bridge(macPortMap, 5000, null);
-    }
-
-    private ForwardingElement createRouter(UUID deviceId)
-            throws StateAccessException, KeeperException {
-        NatMapping natMap = new NatLeaseManager(routerMgr, deviceId, cache,
-                reactor);
-        RuleEngine ruleEngine = new RuleEngine(chainZkMgr, ruleZkMgr, deviceId,
-                natMap);
-        ruleEngine.addWatcher(routerWatcher);
-        ReplicatedRoutingTable table = new ReplicatedRoutingTable(deviceId,
-                routerMgr.getRoutingTableDirectory(deviceId),
-                CreateMode.EPHEMERAL);
-        table.addWatcher(routerWatcher);
-        ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(deviceId));
-        arpTable.start();
-        return new Router(deviceId, ruleEngine, table, arpTable, reactor,
-                          portMgr, routeMgr);
     }
 
     protected FEType feTypeOfPort(PortConfig cfg) {

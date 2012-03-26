@@ -119,15 +119,8 @@ public class TestRouter {
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
-        NatMapping natMap = new NatLeaseManager(routerMgr, rtrId, cache,
-                reactor);
-        ruleEngine = new RuleEngine(new ChainZkManager(dir, basePath),
-                new RuleZkManager(dir, basePath), rtrId, natMap);
-        rTable = new ReplicatedRoutingTable(rtrId, routerMgr
-                .getRoutingTableDirectory(rtrId), CreateMode.EPHEMERAL);
-        ArpTable arpTable = new ArpTable(routerMgr.getArpTableDirectory(rtrId));
-        rtr = new Router(rtrId, ruleEngine, rTable, arpTable, reactor, portMgr,
-                         routeMgr);
+        rTable = null; // TODO(pino): get a handle on the router's table.
+        rtr = new Router(rtrId, dir, basePath, reactor, cache);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

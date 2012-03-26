@@ -44,6 +44,7 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
@@ -94,18 +95,13 @@ public abstract class AbstractController
         }
     }
 
-    public AbstractController(
-            long datapathId,
-            UUID switchUuid,
-            int greKey,
-            OpenvSwitchDatabaseConnection ovsdb,
-            PortToIntNwAddrMap portLocMap,
-            IntIPv4 internalIp,
-            String externalIdKey) {
+    public AbstractController(long datapathId, Directory zkDir,
+            String zkBasePath, OpenvSwitchDatabaseConnection ovsdb,
+            IntIPv4 internalIp, String externalIdKey) {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
-        this.greKey = greKey;
-        this.portLocMap = portLocMap;
+        this.greKey = 0; // TODO(pino): get rid of this.
+        this.portLocMap = null; // TODO(pino): build this.
         this.externalIdKey = externalIdKey;
         publicIp = internalIp;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
@@ -272,7 +268,7 @@ public abstract class AbstractController
         // virtual devices. Service ports are recognized thanks to an OVS
         // 'externalId' whose key is 'midolman_port_id' and whose value is a
         // virtual port UUID.
-        // 
+        //
         // OF ports that are not recognized as one of these three types are
         // ignored by the controller and packets received on them are dropped.
 

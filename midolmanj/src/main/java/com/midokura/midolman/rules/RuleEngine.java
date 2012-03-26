@@ -23,6 +23,7 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -73,13 +74,12 @@ public class RuleEngine {
     private RouterWatcher rtrWatcher;
     private Set<Callback<UUID>> watchers;
 
-    public RuleEngine(ChainZkManager zkChainMgr, RuleZkManager zkRuleMgr,
-            UUID rtrId, NatMapping natMap) throws StateAccessException,
-            ZkStateSerializationException {
+    public RuleEngine(Directory zkDir, String zkBasePath, UUID rtrId,
+                      NatMapping natMap) throws StateAccessException {
         this.rtrId = rtrId;
         rtrIdStr = rtrId.toString();
-        this.zkChainMgr = zkChainMgr;
-        this.zkRuleMgr = zkRuleMgr;
+        this.zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
+        this.zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
         this.natMap = natMap;
         chainNameToUUID = new HashMap<String, UUID>();
         chainIdToName = new HashMap<UUID, String>();
@@ -209,7 +209,7 @@ public class RuleEngine {
     }
 
     /**
-     * 
+     *
      * @param chainName
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It
@@ -297,7 +297,7 @@ public class RuleEngine {
 
     public void freeFlowResources(OFMatch match) {
         log.debug("freeFlowResources: match {}", match);
-        
+
         natMap.freeFlowResources(match);
     }
 }

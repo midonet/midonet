@@ -16,6 +16,7 @@ import javax.management.JMException;
 import javax.management.ObjectName;
 import javax.management.MXBean;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.openflow.protocol.OFMatch;
@@ -25,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.ForwardingElement;
 import com.midokura.midolman.VRNController;
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer4.NatLeaseManager;
+import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
@@ -33,17 +36,12 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.ArpCacheEntry;
-import com.midokura.midolman.state.ArpTable;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.state.ReplicatedMap;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback;
 import com.midokura.midolman.util.Net;
 
@@ -139,18 +137,23 @@ public class Router implements ForwardingElement {
     private final ObjectName objectName;
     private final VRNController controller = null;
 
-    public Router(UUID routerId, RuleEngine ruleEngine,
-                  ReplicatedRoutingTable table, ArpTable arpTable,
-                  Reactor reactor, PortZkManager portMgr,
-                  RouteZkManager routeMgr) {
+    public Router(UUID routerId, Directory zkDir, String zkBasePath,
+                  Reactor reactor, Cache cache) throws StateAccessException {
         this.routerId = routerId;
-        this.ruleEngine = ruleEngine;
-        this.table = table;
-        this.devicePorts = new HashMap<UUID, L3DevicePort>();
-        this.portListener = new PortListener();
-        this.arpTable = arpTable;
-        this.arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback<MAC>>>>();
         this.reactor = reactor;
+
+        portMgr = new PortZkManager(zkDir, zkBasePath);
+        RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
+        ruleEngine = new RuleEngine(zkDir, zkBasePath, routerId,
+                new NatLeaseManager(routerMgr, routerId, cache, reactor));
+        table = new ReplicatedRoutingTable(routerId,
+                routerMgr.getRoutingTableDirectory(routerId),
+                CreateMode.EPHEMERAL);
+        arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
+        arpTable.start();
+        devicePorts = new HashMap<UUID, L3DevicePort>();
+        portListener = new PortListener();
+        arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback<MAC>>>>();
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
         try {

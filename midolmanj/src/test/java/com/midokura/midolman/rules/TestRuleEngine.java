@@ -149,7 +149,8 @@ public class TestRuleEngine {
 
         rtrId = routerMgr.create();
         natMap = new MockNatMapping();
-        engine = new RuleEngine(chainMgr, ruleMgr, rtrId, natMap);
+        // TODO(pino): is a random router ID ok here?
+        engine = new RuleEngine(dir, basePath, UUID.randomUUID(), natMap);
         c1Id = chainMgr.create(new ChainConfig("Chain1", rtrId));
         c2Id = chainMgr.create(new ChainConfig("Chain2", rtrId));
         c3Id = chainMgr.create(new ChainConfig("Chain3", rtrId));
