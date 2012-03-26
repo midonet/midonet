@@ -29,7 +29,8 @@ public interface ForwardingElement {
          throws ZkStateSerializationException, StateAccessException,
                 KeeperException, InterruptedException, JMException;
     UUID getId();
-    void freeFlowResources(OFMatch match);
+    void freeFlowResources(OFMatch match, UUID inPortId);
+    void destroy();
 
     public enum Action {
         DROP,

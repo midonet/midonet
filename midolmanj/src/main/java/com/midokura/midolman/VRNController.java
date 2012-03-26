@@ -20,6 +20,7 @@ import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.action.*;
+import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.actors.threadpool.Arrays;
@@ -574,7 +575,8 @@ public class VRNController extends AbstractController
         for (UUID feId : forwardingElements) {
             try {
                 ForwardingElement fe = vrn.getForwardingElement(feId);
-                fe.freeFlowResources(match);
+                fe.freeFlowResources(match,
+                        portNumToUuid.get(U16.f(match.getInputPort())));
             } catch (KeeperException e) {
                 log.warn("freeFlowResources failed for match {} in FE {} -"
                         + " caught: \n{}",

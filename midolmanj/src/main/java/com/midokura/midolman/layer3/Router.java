@@ -165,6 +165,7 @@ public class Router implements ForwardingElement {
     }
 
     // TODO(pino): call this from Network when VRN is torn down.
+    @Override
     public void destroy() {
         try {
             ManagementFactory.getPlatformMBeanServer()
@@ -178,6 +179,7 @@ public class Router implements ForwardingElement {
         return routerId.toString();
     }
 
+    @Override
     public UUID getId() {
         return routerId;
     }
@@ -760,7 +762,8 @@ public class Router implements ForwardingElement {
         }
     }
 
-    public void freeFlowResources(OFMatch match) {
+    @Override
+    public void freeFlowResources(OFMatch match, UUID inPortId) {
         log.debug("freeFlowResources: match {}", match);
 
         ruleEngine.freeFlowResources(match);

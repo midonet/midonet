@@ -198,7 +198,12 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     @Override
-    public void freeFlowResources(OFMatch match) {
+    public void freeFlowResources(OFMatch match, UUID inPortId) {
+    }
+
+    @Override
+    public void destroy() {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     private PortConfig getPortConfigByUUID(UUID id)

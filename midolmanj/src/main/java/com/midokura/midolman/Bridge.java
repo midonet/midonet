@@ -134,8 +134,14 @@ public class Bridge implements ForwardingElement {
     }
 
     @Override
-    public void freeFlowResources(OFMatch match) {
+    public void freeFlowResources(OFMatch match, UUID inPortId) {
         // don't do here, as we don't deal with flows here
+    }
+
+    @Override
+    public void destroy() {
+
+
     }
 
     private void drop (ForwardInfo forwardInfo) {
