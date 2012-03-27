@@ -58,25 +58,19 @@ public class ControllerTrampoline implements Controller {
     private ZkPathManager pathMgr;
     private Reactor reactor;
     private String externalIdKey;
-
-    private BridgeZkManager bridgeMgr;
     private ControllerStub controllerStub;
 
     /* directory is the "midonet root", not zkConnection.getRootDirectory() */
     public ControllerTrampoline(HierarchicalConfiguration config,
             OpenvSwitchDatabaseConnection ovsdb, Directory directory,
             Reactor reactor) throws KeeperException {
-
         this.config = config;
         this.ovsdb = ovsdb;
         this.directory = directory;
         this.reactor = reactor;
         this.basePath = config.configurationAt("midolman")
                               .getString("midolman_root_key");
-
         this.pathMgr = new ZkPathManager(basePath);
-        this.bridgeMgr = new BridgeZkManager(directory, basePath);
-
         externalIdKey = config.configurationAt("openvswitch")
                               .getString("midolman_ext_id_key", "midolman-vnet");
     }
@@ -104,48 +98,25 @@ public class ControllerTrampoline implements Controller {
                 log.warn("onConnectionMade: datapath {} connected but has no relevant external id, ignore it", datapathId);
                 return;
             }
-
             UUID deviceId = UUID.fromString(uuid);
-
-
             log.info("onConnectionMade: DP with UUID {}", deviceId);
 
-            // TODO: is this the right way to check that a DP is for a VRN?
-            // ----- No.  We should have a directory of VRN UUIDs in ZooKeeper,
-            //       just like for Bridges and Routers.
-            Controller newController;
             if (uuid.equals(config.configurationAt("vrn")
                                   .getString("router_network_id"))) {
                 Directory portLocationDirectory =
                     directory.getSubDirectory(pathMgr.getVRNPortLocationsPath());
 
-                PortToIntNwAddrMap portLocationMap =
-                        new PortToIntNwAddrMap(portLocationDirectory);
-
-                Directory portSetDirectory =
-                    directory.getSubDirectory(pathMgr.getPortSetsPath());
-
-                PortSetMap portSetMap = new PortSetMap(portSetDirectory);
-
-                long idleFlowExpireMillis = config.configurationAt("openflow")
-                                                  .getLong("flow_idle_expire_millis");
-
                 IntIPv4 localNwAddr =
                     IntIPv4.fromString(config.configurationAt("openflow")
                                              .getString("public_ip_address"));
 
-                Cache cache = CacheFactory.create(config);
-
                 PortZkManager portMgr = new PortZkManager(directory, basePath);
-                RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
-                BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
-                AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
-                GreZkManager greMgr = new GreZkManager(directory, basePath);
-                BridgeZkManager bridgeMgr = new BridgeZkManager(directory, basePath);
 
                 PortService bgpPortService =
                     initializeBgpPortService(reactor, ovsdb,
-                                             portMgr, routeMgr, bgpMgr, adRouteMgr);
+                            portMgr, new RouteZkManager(directory, basePath),
+                            new BgpZkManager(directory, basePath),
+                            new AdRouteZkManager(directory, basePath));
 
                 // Create VPN port agent for OpenVPN.
                 VpnZkManager vpnMgr = new VpnZkManager(directory, basePath);
@@ -168,9 +139,12 @@ public class ControllerTrampoline implements Controller {
                 vpnAgent.setPortService(VpnType.OPENVPN_TCP_CLIENT, openVpnSvc);
                 vpnAgent.start();
 
-                newController = new VRNController(
+                Controller newController = new VRNController(
                         datapathId, directory, basePath, localNwAddr, ovsdb,
-                        reactor, cache, externalIdKey, bgpPortService);
+                        reactor, CacheFactory.create(config), externalIdKey, bgpPortService);
+                controllerStub.setController(newController);
+                controllerStub = null;
+                newController.onConnectionMade();
             } else {
                 log.error("Unrecognized OF switch.");
             }

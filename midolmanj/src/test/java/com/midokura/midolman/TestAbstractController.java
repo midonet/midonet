@@ -38,6 +38,7 @@ import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
 
 
@@ -62,7 +63,7 @@ class AbstractControllerTester extends AbstractController {
             PortToIntNwAddrMap dict,
             short flowExpireSeconds,
             long idleFlowExpireMillis,
-            IntIPv4 internalIp) {
+            IntIPv4 internalIp) throws StateAccessException {
         // TODO(pino): pass a real Directory and String basePath.
         super(datapathId, null, null, ovsdb, internalIp, "midonet");
         virtualPortsAdded = new ArrayList<UUID>();
@@ -188,7 +189,7 @@ public class TestAbstractController {
     public Logger log = LoggerFactory.getLogger(TestAbstractController.class);
 
     @Before
-    public void setUp() {
+    public void setUp() throws StateAccessException {
         dp_id = 43;
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
@@ -210,7 +211,7 @@ public class TestAbstractController {
 
         port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);
-        port1.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 37 });
+        port1.setHardwareAddress(new byte[]{10, 12, 13, 14, 15, 37});
         port1uuid = UUID.randomUUID();
         ovsdb.setPortExternalId(dp_id, 37, "midonet", port1uuid.toString());
 
@@ -264,18 +265,18 @@ public class TestAbstractController {
         features.setPorts(portList);
         controller.setFeatures(features);
         controller.onConnectionLost();
-        assertArrayEquals(new OFPhysicalPort[] { },
-                          controller.virtualPortsAdded.toArray());
-        assertArrayEquals(new String[] { },
-                          ovsdb.deletedPorts.toArray());
+        assertArrayEquals(new OFPhysicalPort[]{},
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new String[]{},
+                ovsdb.deletedPorts.toArray());
         MockControllerStub stub =
                 (MockControllerStub) controller.controllerStub;
         assertEquals(0, stub.deletedFlows.size());
         controller.onConnectionMade();
-        assertArrayEquals(new UUID[] { port1uuid },
-                          controller.virtualPortsAdded.toArray());
-        assertArrayEquals(new String[] { port2.getName() },
-                          ovsdb.deletedPorts.toArray());
+        assertArrayEquals(new UUID[]{port1uuid},
+                controller.virtualPortsAdded.toArray());
+        assertArrayEquals(new String[]{port2.getName()},
+                ovsdb.deletedPorts.toArray());
         assertEquals(1, stub.deletedFlows.size());
         assertEquals(OFMatch.OFPFW_ALL,
                      stub.deletedFlows.get(0).match.getWildcards());
@@ -296,9 +297,9 @@ public class TestAbstractController {
                 controller.tunnelPortsAdded.toArray());
         controller.onPortStatus(port1, OFPortReason.OFPPR_ADD);
         controller.onPortStatus(port2, OFPortReason.OFPPR_ADD);
-        assertArrayEquals(new UUID[] { port1uuid },
+        assertArrayEquals(new UUID[]{port1uuid},
                 controller.virtualPortsAdded.toArray());
-        assertArrayEquals(new IntIPv4[] { port2peer },
+        assertArrayEquals(new IntIPv4[]{port2peer},
                 controller.tunnelPortsAdded.toArray());
         assertEquals(port1uuid, controller.portNumToUuid.get(37));
         assertNull(controller.portNumToUuid.get(47));
@@ -317,9 +318,9 @@ public class TestAbstractController {
         assertNull(portLocMap.get(port3uuid));
         port3.setConfig(0);
         controller.onPortStatus(port3, OFPortReason.OFPPR_MODIFY);
-        assertArrayEquals(new UUID[] { port1uuid, port3uuid },
+        assertArrayEquals(new UUID[]{port1uuid, port3uuid},
                 controller.virtualPortsAdded.toArray());
-        assertArrayEquals(new IntIPv4[] { port2peer },
+        assertArrayEquals(new IntIPv4[]{port2peer},
                 controller.tunnelPortsAdded.toArray());
         assertEquals(localIp, portLocMap.get(port1uuid));
         assertEquals(localIp, portLocMap.get(port3uuid));
@@ -331,7 +332,7 @@ public class TestAbstractController {
         controller.onPortStatus(port2, OFPortReason.OFPPR_MODIFY);
         assertNull(controller.portNumToUuid.get(47));
         assertEquals("10.0.17.35",
-                     controller.peerOfTunnelPortNum(47).toString());
+                controller.peerOfTunnelPortNum(47).toString());
     }
 
     @Test
@@ -418,8 +419,8 @@ public class TestAbstractController {
         assertArrayEquals(new UUID[] { },
                           controller.virtualPortsRemoved.toArray());
         controller.onPortStatus(port3, OFPortReason.OFPPR_DELETE);
-        assertArrayEquals(new UUID[] { },
-                          controller.virtualPortsRemoved.toArray());
+        assertArrayEquals(new UUID[]{},
+                controller.virtualPortsRemoved.toArray());
     }
 
     @Test
@@ -490,11 +491,6 @@ public class TestAbstractController {
         mockDir.delete(path3);
         assertEquals(2, ovsdb.deletedPorts.size());
         assertEquals("tne1234ff0011ac", ovsdb.deletedPorts.get(1));
-    }
-
-    @Test
-    public void testGetGreKey() {
-        assertEquals(0xe1234, controller.getGreKey());
     }
 
     @Test

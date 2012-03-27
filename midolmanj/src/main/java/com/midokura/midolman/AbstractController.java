@@ -48,6 +48,8 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
 
 public abstract class AbstractController
         implements Controller {
@@ -73,7 +75,6 @@ public abstract class AbstractController
 
     private OpenvSwitchDatabaseConnection ovsdb;
 
-    protected int greKey;
     protected IntIPv4 publicIp;
     protected String externalIdKey;
 
@@ -97,11 +98,19 @@ public abstract class AbstractController
 
     public AbstractController(long datapathId, Directory zkDir,
             String zkBasePath, OpenvSwitchDatabaseConnection ovsdb,
-            IntIPv4 internalIp, String externalIdKey) {
+            IntIPv4 internalIp, String externalIdKey)
+            throws StateAccessException {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
-        this.greKey = 0; // TODO(pino): get rid of this.
-        this.portLocMap = null; // TODO(pino): build this.
+        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
+        try {
+            // TODO(pino, jlm): use a PortLocMap per device instead of global.
+            this.portLocMap = new PortToIntNwAddrMap(
+                    zkDir.getSubDirectory(pathMgr.getVRNPortLocationsPath()));
+            portLocMap.addWatcher(listener);
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
         this.externalIdKey = externalIdKey;
         publicIp = internalIp;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
@@ -110,8 +119,6 @@ public abstract class AbstractController
         peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
         downPorts = new HashSet<Integer>();
         listener = new PortLocMapListener(this);
-        if (portLocMap != null)
-            portLocMap.addWatcher(listener);
     }
 
     @Override
@@ -438,19 +445,18 @@ public abstract class AbstractController
     }
 
     private boolean isGREPortOfKey(String portName) {
-        if (portName == null || portName.length() != 15)
+        if (portName == null || portName.length() != 10)
             return false;
-        String greString = String.format("tn%05x", greKey);
-        return portName.startsWith(greString);
+        return portName.startsWith("tn");
     }
 
     protected IntIPv4 peerIpOfGrePortName(String portName) {
-        String hexAddress = portName.substring(7, 15);
+        String hexAddress = portName.substring(2, 10);
         return new IntIPv4((new BigInteger(hexAddress, 16)).intValue());
     }
 
     public String makeGREPortName(IntIPv4 address) {
-        return String.format("tn%05x%08x", greKey, address.address);
+        return String.format("tn%08x", address.address);
     }
 
     private boolean portLocMapContainsPeer(IntIPv4 peerAddress) {
@@ -493,7 +499,7 @@ public abstract class AbstractController
                 if (!ovsdb.hasPort(grePortName)) {
                     ovsdb.addGrePort(datapathId, grePortName,
                                      newAddr.toString())
-                         .key(greKey)
+                         .keyFlow()
                          .localIp(publicIp.toString())
                          .build();
                 }
@@ -568,10 +574,6 @@ public abstract class AbstractController
             log.debug("addFlowAndPacketOut: sending packet");
             controllerStub.sendPacketOut(bufferId, inPort, actionList, data);
         }
-    }
-
-    public int getGreKey() {
-        return greKey;
     }
 
     public Integer tunnelPortNumOfPeer(IntIPv4 peerIP) {
