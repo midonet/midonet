@@ -12,6 +12,8 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,21 +24,21 @@ public class PortSetMap {
     private final static Logger log = LoggerFactory.getLogger(PortSetMap.class);
 
     private Directory dir;
+    private String basePath;
+    private ZkPathManager pathMgr;
     private boolean running;
     private Map<UUID, IPv4Set> map;
     private DirectoryWatcher myWatcher;
     private CreateMode createMode;
 
-    public PortSetMap(Directory dir) {
-        construct(dir, CreateMode.EPHEMERAL);
+    public PortSetMap(Directory dir, String basePath) {
+        this(dir, basePath, CreateMode.EPHEMERAL);
     }
 
-    public PortSetMap(Directory dir, CreateMode mode) {
-        construct(dir, mode);
-    }
-
-    private void construct(Directory dir, CreateMode mode) {
+    public PortSetMap(Directory dir, String basePath, CreateMode mode) {
         this.dir = dir;
+        this.basePath = basePath;
+        this.pathMgr = new ZkPathManager(basePath);
         this.createMode = mode;
         this.running = false;
         this.map = new HashMap<UUID, IPv4Set>();
@@ -67,19 +69,29 @@ public class PortSetMap {
 
     public void createPortSet(UUID key)
             throws KeeperException, InterruptedException {
-        dir.add(key.toString(), null, CreateMode.PERSISTENT);
-        Directory subdir = dir.getSubDirectory(key.toString());
+        String portSetPath = pathMgr.getPortSetPath(key);
+        dir.add(portSetPath, null, CreateMode.PERSISTENT);
+        Directory subdir = dir.getSubDirectory(portSetPath);
         IPv4Set newSet = new IPv4Set(subdir, createMode);
         map.put(key, newSet);
         newSet.start();
     }
 
-    public void addIPv4AddrToSet(UUID key, IntIPv4 addr) 
+    public Op preparePortSetCreate(UUID key) {
+        return Op.create(pathMgr.getPortSetPath(key),
+                null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
+    public Op preparePortSetDelete(UUID key) {
+        return Op.delete(pathMgr.getPortSetPath(key), -1);
+    }
+
+    public void addIPv4AddrToSet(UUID key, IntIPv4 addr)
             throws KeeperException, InterruptedException,
                    InvalidStateOperationException {
         IPv4Set ipv4Set = map.get(key);
         if (ipv4Set == null) {
-            throw new InvalidStateOperationException("No portset with ID " + 
+            throw new InvalidStateOperationException("No portset with ID " +
                                                      key.toString());
         }
         ipv4Set.add(addr);
@@ -93,7 +105,7 @@ public class PortSetMap {
 
             Set<String> curPaths = null;
             try {
-                curPaths = dir.getChildren("/", this);
+                curPaths = dir.getChildren(pathMgr.getPortSetsPath(), this);
             } catch (KeeperException e) {
                 log.error("DirectoryWatcher.run", e);
                 throw new RuntimeException(e);
@@ -109,7 +121,8 @@ public class PortSetMap {
                 if (!map.containsKey(key)) {
                     Directory subdir;
                     try {
-                        subdir = dir.getSubDirectory(key.toString());
+                        subdir = dir.getSubDirectory(
+                                pathMgr.getPortSetPath(key));
                     } catch (KeeperException e) {
                         log.error("DirectoryWatcher.run", e);
                         throw new RuntimeException(e);

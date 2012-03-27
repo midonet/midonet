@@ -83,13 +83,7 @@ public class VRNController extends AbstractController
         this.greMgr = new GreZkManager(zkDir, zkBasePath);
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache);
-        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
-        try {
-            this.portSetMap =
-                    new PortSetMap(zkDir.getSubDirectory(pathMgr.getPortSetsPath()));
-        } catch (KeeperException e) {
-            throw new StateAccessException(e);
-        }
+        this.portSetMap = new PortSetMap(zkDir, zkBasePath);
         this.portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
@@ -572,7 +566,7 @@ public class VRNController extends AbstractController
         // TODO(pino): are FEs mapping the correct match for invalidation?
         for (UUID feId : forwardingElements) {
             try {
-                ForwardingElement fe = vrn.getForwardingElement(feId, 
+                ForwardingElement fe = vrn.getForwardingElement(feId,
                         VRNCoordinator.FEType.DontConstruct);
                 fe.freeFlowResources(match,
                         portNumToUuid.get(U16.f(match.getInputPort())));

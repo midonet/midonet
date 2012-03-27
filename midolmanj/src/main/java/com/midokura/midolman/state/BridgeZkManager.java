@@ -25,6 +25,8 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
  */
 public class BridgeZkManager extends ZkManager {
 
+    private PortSetMap portSetMap;
+
     public static class BridgeConfig {
 
         public BridgeConfig() {
@@ -48,8 +50,11 @@ public class BridgeZkManager extends ZkManager {
      * @param basePath
      *            The root path.
      */
-    public BridgeZkManager(Directory zk, String basePath) {
+    public BridgeZkManager(Directory zk, String basePath)
+            throws StateAccessException {
         super(zk, basePath);
+        ZkPathManager pathMgr = new ZkPathManager(basePath);
+        this.portSetMap = new PortSetMap(zk, basePath);
     }
 
     public List<Op> prepareBridgeCreate(UUID id, BridgeConfig bridgeNode)
@@ -107,6 +112,9 @@ public class BridgeZkManager extends ZkManager {
                 .getBridgePortLocationsPath(bridgeNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        // Add a port-set for this bridge
+        ops.add(portSetMap.preparePortSetCreate(bridgeNode.key));
+
         // Update GreKey to reference the bridge.
         gre.value.ownerId = bridgeNode.key;
         ops.addAll(greZkManager.prepareGreUpdate(gre));
@@ -159,6 +167,9 @@ public class BridgeZkManager extends ZkManager {
         ops.addAll(greZkManager
                 .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
                         entry.value.greKey, gre)));
+
+        // Delete this bridge's port-set
+        ops.add(portSetMap.preparePortSetDelete(entry.key));
 
         // Delete the bridge
         ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));

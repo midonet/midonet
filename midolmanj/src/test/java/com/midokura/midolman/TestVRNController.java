@@ -121,9 +121,7 @@ public class TestVRNController {
         Directory portLocSubdir =
                 dir.getSubDirectory(pathMgr.getVRNPortLocationsPath());
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
-        Directory portSetSubdir =
-                dir.getSubDirectory(pathMgr.getPortSetsPath());
-        PortSetMap portSetMap = new PortSetMap(portSetSubdir);
+        PortSetMap portSetMap = new PortSetMap(dir, basePath);
 
         // Now create the Open vSwitch database connection
         ovsdb = new MockOpenvSwitchDatabaseConnection();

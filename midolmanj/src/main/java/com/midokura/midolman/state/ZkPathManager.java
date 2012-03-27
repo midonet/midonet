@@ -146,15 +146,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK port sets path.
-     *
-     * @return /port_sets
-     */
-    public String getPortSetsPath() {
-        return new StringBuilder(basePath).append("/port_sets").toString();
-    }
-
-    /**
      * Get ZK port path.
      *
      * @param id
@@ -164,6 +155,25 @@ public class ZkPathManager {
     public String getPortPath(UUID id) {
         return new StringBuilder(getPortsPath()).append("/").append(id)
                 .toString();
+    }
+
+    /**
+     * Get ZK port sets path.
+     *
+     * @return /port_sets
+     */
+    public String getPortSetsPath() {
+        return new StringBuilder(basePath).append("/port_sets").toString();
+    }
+
+    /**
+     * Get ZK port sets path.
+     *
+     * @return /port_sets/id
+     */
+    public String getPortSetPath(UUID id) {
+        return new StringBuilder(getPortSetsPath())
+                .append("/").append(id).toString();
     }
 
     /**
