@@ -98,7 +98,8 @@ public class TestVRNCoordinator {
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
-        vrn = new VRNCoordinator(dir, basePath, reactor, createCache());
+        // TODO(pino): pass a MockVRNController to the coordinator.
+        vrn = new VRNCoordinator(dir, basePath, reactor, createCache(), null);
 
         /*
          * Create 3 routers such that:

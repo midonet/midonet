@@ -32,8 +32,6 @@ import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.layer4.NatLeaseManager;
-import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
@@ -53,7 +51,6 @@ import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.Directory;
@@ -120,7 +117,8 @@ public class TestRouter {
         Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
         rTable = null; // TODO(pino): get a handle on the router's table.
-        rtr = new Router(rtrId, dir, basePath, reactor, cache);
+        // TODO(pino): pass a MockVRNController to the Router.
+        rtr = new Router(rtrId, dir, basePath, reactor, cache, null);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

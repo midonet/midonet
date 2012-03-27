@@ -66,12 +66,12 @@ public class Bridge implements ForwardingElement {
     private VRNController controller;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
-                  Reactor reactor) throws StateAccessException {
+                  Reactor reactor, VRNController ctrl) throws StateAccessException {
         this.bridgeId = bridgeId;
         this.reactor = reactor;
+        controller = ctrl;
         portMgr = new PortZkManager(zkDir, zkBasePath);
         ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
-        MacPortMap macPortMap = null;
         try {
             macPortMap = new MacPortMap(zkDir.getSubDirectory(
                     pathMgr.getBridgeMacPortsPath(bridgeId)));

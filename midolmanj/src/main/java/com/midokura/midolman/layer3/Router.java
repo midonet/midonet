@@ -135,13 +135,13 @@ public class Router implements ForwardingElement {
     private Reactor reactor;
     private LoadBalancer loadBalancer;
     private final ObjectName objectName;
-    private final VRNController controller = null;
+    private final VRNController controller;
 
     public Router(UUID routerId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, Cache cache) throws StateAccessException {
+                  Reactor reactor, Cache cache, VRNController ctrl) throws StateAccessException {
         this.routerId = routerId;
         this.reactor = reactor;
-
+        this.controller = ctrl;
         portMgr = new PortZkManager(zkDir, zkBasePath);
         RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
         ruleEngine = new RuleEngine(zkDir, zkBasePath, routerId,

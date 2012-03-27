@@ -20,8 +20,6 @@ import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router;
-import com.midokura.midolman.layer4.NatLeaseManager;
-import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.util.Cache;
@@ -81,7 +79,8 @@ public class TestRouterZkManager {
         Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
         rTable = null; // TODO(pino): get a handle to the router's table.
-        rtr = new Router(rtrId, dir, basePath, reactor, cache);
+        // TODO(pino): pass a MockVRNController to the Router.
+        rtr = new Router(rtrId, dir, basePath, reactor, cache, null);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

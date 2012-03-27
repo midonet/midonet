@@ -107,6 +107,7 @@ public abstract class AbstractController
             // TODO(pino, jlm): use a PortLocMap per device instead of global.
             this.portLocMap = new PortToIntNwAddrMap(
                     zkDir.getSubDirectory(pathMgr.getVRNPortLocationsPath()));
+            listener = new PortLocMapListener(this);
             portLocMap.addWatcher(listener);
         } catch (KeeperException e) {
             throw new StateAccessException(e);
@@ -118,7 +119,6 @@ public abstract class AbstractController
         tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();
         peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
         downPorts = new HashSet<Integer>();
-        listener = new PortLocMapListener(this);
     }
 
     @Override

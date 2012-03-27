@@ -82,7 +82,7 @@ public class VRNController extends AbstractController
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.greMgr = new GreZkManager(zkDir, zkBasePath);
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
-        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache);
+        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this);
         this.portSetMap = new PortSetMap(zkDir, zkBasePath);
         this.portSetMap.start();
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
