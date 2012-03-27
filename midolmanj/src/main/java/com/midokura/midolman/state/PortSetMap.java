@@ -86,15 +86,32 @@ public class PortSetMap {
         return Op.delete(pathMgr.getPortSetPath(key), -1);
     }
 
-    public void addIPv4AddrToSet(UUID key, IntIPv4 addr)
-            throws KeeperException, InterruptedException,
-                   InvalidStateOperationException {
+    public void addIPv4Addr(UUID key, IntIPv4 addr)
+            throws StateAccessException {
         IPv4Set ipv4Set = map.get(key);
         if (ipv4Set == null) {
-            throw new InvalidStateOperationException("No portset with ID " +
-                                                     key.toString());
+            throw new StateAccessException("No portset with ID " +
+                    key.toString());
         }
-        ipv4Set.add(addr);
+        try {
+            ipv4Set.add(addr);
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
+    }
+
+    public void deleteIPv4Addr(UUID key, IntIPv4 addr)
+            throws StateAccessException {
+        IPv4Set ipv4Set = map.get(key);
+        if (ipv4Set == null) {
+            throw new StateAccessException("No portset with ID " +
+                    key.toString());
+        }
+        try {
+            ipv4Set.remove(addr);
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
     }
 
     private class DirectoryWatcher implements Runnable {

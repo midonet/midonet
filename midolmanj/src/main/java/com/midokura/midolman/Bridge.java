@@ -7,6 +7,7 @@ package com.midokura.midolman;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,9 +53,41 @@ public class Bridge implements ForwardingElement {
     private Runnable logicalPortsWatcher;
     private Set<ZkNodeEntry<UUID, PortConfig>> logicalPorts =
             Collections.emptySet();
-    private Map<MAC, UUID> rtrMacToLogicalPortId = Collections.emptyMap();
-    private Map<IntIPv4, MAC> rtrIpToMac = Collections.emptyMap();
-    private Map<UUID, IntIPv4> brPortIdToRtrPortIp = Collections.emptyMap();
+    private Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
+    private Map<IntIPv4, MAC> rtrIpToMac = new HashMap<IntIPv4, MAC>();
+    private Map<UUID, IntIPv4> brPortIdToRtrPortIp =
+            new HashMap<UUID, IntIPv4>();
+    // The delayed deletes for macPortMap.
+    private Map<MAC, PortFuture> delayedDeletes =
+            new HashMap<MAC, PortFuture>();
+    private Map<MacPort, Integer> flowCount = new HashMap<MacPort, Integer>();
+    private MacPortWatcher macToPortWatcher;
+    private Set<UUID> localPorts = new HashSet<UUID>();
+    private VRNController controller;
+
+    public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
+                  Reactor reactor) throws StateAccessException {
+        this.bridgeId = bridgeId;
+        this.reactor = reactor;
+        portMgr = new PortZkManager(zkDir, zkBasePath);
+        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
+        MacPortMap macPortMap = null;
+        try {
+            macPortMap = new MacPortMap(zkDir.getSubDirectory(
+                    pathMgr.getBridgeMacPortsPath(bridgeId)));
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
+        macToPortWatcher = new MacPortWatcher();
+        macPortMap.addWatcher(macToPortWatcher);
+        // TODO(pino): how should clear() handle this field?
+        logicalPortsWatcher = new Runnable() {
+            public void run() {
+                updateLogicalPorts();
+            }
+        };
+        updateLogicalPorts();
+    }
 
     @Override
     public void process(ForwardInfo fwdInfo)
@@ -129,11 +162,17 @@ public class Bridge implements ForwardingElement {
             KeeperException, InterruptedException, JMException {
         // TODO(pino): controller invals by local portNum - so no-op here?
         invalidateFlowsToPortUuid(portId);
+        localPorts.add(portId);
+        if (localPorts.size() == 1)
+            controller.subscribePortSet(bridgeId);
     }
 
     @Override
     public void removePort(UUID portId) throws StateAccessException,
             KeeperException, InterruptedException, JMException {
+        localPorts.remove(portId);
+        if (localPorts.size() == 0)
+            controller.unsubscribePortSet(bridgeId);
         // TODO(pino): controller invals by local portNum - so no-op here?
         // TODO(pino): we'll automatically get flow removal notifications.
         log.info("removePort - delete MAC-port entries for port {}", portId);
@@ -194,18 +233,47 @@ public class Bridge implements ForwardingElement {
         }
     }
 
+    @Override
+    public void destroy() {
+        // TODO(pino): do we really need to do flow invalidation?
+        // TODO: if the FE is being destroyed, it should have no flows left?
+        // TODO: alternatively, everything is being shut down...
+        log.info("clear");
+
+        // Entries in macPortMap we own are either live with flows, in which
+        // case they're in flowCount; or are expiring, in which case they're
+        // in delayedDeletes.
+        for (MacPort macPort : flowCount.keySet()) {
+            log.info("clear: Deleting MAC-Port entry {} :: {}", macPort.mac,
+                    macPort.port);
+            expireMacPortEntry(macPort.mac, macPort.port, true);
+        }
+        flowCount.clear();
+        for (Map.Entry<MAC, PortFuture> entry : delayedDeletes.entrySet()) {
+            log.info("clear: Deleting MAC-Port entry {} :: {}", entry.getKey(),
+                    entry.getValue().port);
+            expireMacPortEntry(entry.getKey(), entry.getValue().port, true);
+            entry.getValue().future.cancel(false);
+        }
+        delayedDeletes.clear();
+
+        macPortMap.removeWatcher(macToPortWatcher);
+        macPortMap.stop();
+        // .stop() includes a .clear() of the underlying map, so we don't
+        // need to clear out the entries here.
+
+        // Clear all flows.
+        MidoMatch match = new MidoMatch();
+        // TODO(pino): controller needs to expose ability for FEs to invalidate?
+        //controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
+    }
+
     static private class PortFuture {
         // Pair<Port, Future>
         public UUID port;
         public Future future;
         public PortFuture(UUID p, Future f) { port = p; future = f; }
     }
-    // The delayed deletes for macPortMap.
-    HashMap<MAC, PortFuture> delayedDeletes;
-
-    HashMap<MacPort, Integer> flowCount;
-
-    MacPortWatcher macToPortWatcher;
 
     static private class MacPort {
         // Pair<Mac, Port>
@@ -260,32 +328,6 @@ public class Bridge implements ForwardingElement {
 
             invalidateFlowsToMac(key);
         }
-    }
-
-    public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
-                  Reactor reactor) throws StateAccessException {
-        this.bridgeId = bridgeId;
-        this.reactor = reactor;
-        portMgr = new PortZkManager(zkDir, zkBasePath);
-        delayedDeletes = new HashMap<MAC, PortFuture>();
-        flowCount = new HashMap<MacPort, Integer>();
-        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
-        MacPortMap macPortMap = null;
-        try {
-            macPortMap = new MacPortMap(zkDir.getSubDirectory(
-                    pathMgr.getBridgeMacPortsPath(bridgeId)));
-        } catch (KeeperException e) {
-            throw new StateAccessException(e);
-        }
-        macToPortWatcher = new MacPortWatcher();
-        macPortMap.addWatcher(macToPortWatcher);
-        // TODO(pino): how should clear() handle this field?
-        logicalPortsWatcher = new Runnable() {
-            public void run() {
-                updateLogicalPorts();
-            }
-        };
-        updateLogicalPorts();
     }
 
     private void updateLogicalPorts() {
@@ -457,40 +499,5 @@ public class Bridge implements ForwardingElement {
         List<MAC> macs = macPortMap.getByValue(port_uuid);
         for (MAC mac : macs)
             invalidateFlowsToMac(mac);
-    }
-
-    @Override
-    public void destroy() {
-        // TODO(pino): do we really need to do flow invalidation?
-        // TODO: if the FE is being destroyed, it should have no flows left?
-        // TODO: alternatively, everything is being shut down...
-        log.info("clear");
-
-        // Entries in macPortMap we own are either live with flows, in which
-        // case they're in flowCount; or are expiring, in which case they're
-        // in delayedDeletes.
-        for (MacPort macPort : flowCount.keySet()) {
-            log.info("clear: Deleting MAC-Port entry {} :: {}", macPort.mac,
-                     macPort.port);
-            expireMacPortEntry(macPort.mac, macPort.port, true);
-        }
-        flowCount.clear();
-        for (Map.Entry<MAC, PortFuture> entry : delayedDeletes.entrySet()) {
-            log.info("clear: Deleting MAC-Port entry {} :: {}", entry.getKey(),
-                     entry.getValue().port);
-            expireMacPortEntry(entry.getKey(), entry.getValue().port, true);
-            entry.getValue().future.cancel(false);
-        }
-        delayedDeletes.clear();
-
-        macPortMap.removeWatcher(macToPortWatcher);
-        macPortMap.stop();
-        // .stop() includes a .clear() of the underlying map, so we don't
-        // need to clear out the entries here.
-
-        // Clear all flows.
-        MidoMatch match = new MidoMatch();
-        // TODO(pino): controller needs to expose ability for FEs to invalidate?
-        //controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 }

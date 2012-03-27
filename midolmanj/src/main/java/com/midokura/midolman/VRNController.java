@@ -94,6 +94,16 @@ public class VRNController extends AbstractController
         this.dhcpHandler = new DhcpHandler();
     }
 
+    public void subscribePortSet(UUID portSetID)
+            throws StateAccessException {
+        portSetMap.addIPv4Addr(portSetID, publicIp);
+    }
+
+    public void unsubscribePortSet(UUID portSetID)
+            throws StateAccessException {
+        portSetMap.deleteIPv4Addr(portSetID, publicIp);
+    }
+
     /**
      * This inner class is used to re-launch processing of un-PAUSED packets
      * in the main thread. This also support re-pausing packets.

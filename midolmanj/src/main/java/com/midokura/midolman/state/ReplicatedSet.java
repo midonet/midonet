@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedSet<T> {
-    
+
     private final static Logger log = LoggerFactory.getLogger(ReplicatedSet.class);
 
     public interface Watcher<T1> {
@@ -95,7 +95,7 @@ public abstract class ReplicatedSet<T> {
         strings.clear();
     }
 
-    public void add(T item) throws KeeperException, InterruptedException {
+    public void add(T item) throws KeeperException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         String path = "/" + encode(item);
@@ -105,14 +105,24 @@ public abstract class ReplicatedSet<T> {
             // If the route already exists, we overwrite it to make sure it
             // belongs to us. Otherwise it may disappear later.
             if (createMode.equals(CreateMode.EPHEMERAL))
-                dir.update(path, null);
+                try {
+                    dir.update(path, null);
+                } catch (InterruptedException e1) {
+                    log.error("Interrupted", e1);
+                }
+        } catch (InterruptedException e) {
+            log.error("Interrupted should never happen.", e);
         }
     }
 
-    public void remove(T item) throws KeeperException, InterruptedException {
+    public void remove(T item) throws KeeperException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
-        dir.delete("/" + encode(item));
+        try {
+            dir.delete("/" + encode(item));
+        } catch (InterruptedException e) {
+            log.error("Interrupted should never happen.", e);
+        }
     }
 
     public Set<String> getStrings() {
