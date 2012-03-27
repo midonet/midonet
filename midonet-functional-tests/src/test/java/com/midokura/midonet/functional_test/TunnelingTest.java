@@ -66,9 +66,8 @@ public class TunnelingTest {
         if (ovsdb.hasBridge("smoke-br2"))
             ovsdb.delBridge("smoke-br2");
 
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", OvsBridge.L3UUID,
-                "tcp:127.0.0.1:6657");
+        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
+        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-tunneling").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();

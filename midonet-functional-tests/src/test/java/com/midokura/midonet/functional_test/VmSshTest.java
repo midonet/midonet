@@ -61,7 +61,7 @@ public class VmSshTest {
                                                       12344);
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("VmSshTest");
 

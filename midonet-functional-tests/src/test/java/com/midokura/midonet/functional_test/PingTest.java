@@ -67,7 +67,7 @@ public class PingTest {
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
 
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         // Add a service controller to OVS bridge 1.
         ovsBridge.addServiceController(6640);
         svcController = new ServiceController(6640);

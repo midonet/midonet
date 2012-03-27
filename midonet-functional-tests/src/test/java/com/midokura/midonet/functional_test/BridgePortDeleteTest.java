@@ -79,9 +79,8 @@ public class BridgePortDeleteTest {
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br", bridge1.getId());
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", bridge1.getId(),
-                                   "tcp:127.0.0.1:6657");
+        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
+        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
 
         // Add a service controller to OVS bridge 1.
         ovsBridge1.addServiceController(6640);

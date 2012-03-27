@@ -100,8 +100,7 @@ public class NxmTest {
             ovsdb.delBridge("nxm-br");
         // Create a single Controller.
         controller1 = new PrimaryController(8888, proto);
-        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br", dummyID,
-                "tcp:127.0.0.1:8888");
+        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br", "tcp:127.0.0.1:8888");
         // Create two ports on bridge1.
         tap1 = new TapWrapper("nxmtap1");
         ovsBridge1.addSystemPort(dummyID, tap1.getName());
@@ -154,10 +153,8 @@ public class NxmTest {
         controller1 = new PrimaryController(8889, proto);
         controller2 = new PrimaryController(8890, proto);
         // Create two OVS bridges
-        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br1", dummyID,
-                "tcp:127.0.0.1:8889");
-        ovsBridge2 = new OvsBridge(ovsdb, "nxm-br2", dummyID,
-                "tcp:127.0.0.1:8890");
+        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br1", "tcp:127.0.0.1:8889");
+        ovsBridge2 = new OvsBridge(ovsdb, "nxm-br2", "tcp:127.0.0.1:8890");
 
         // Create one port on each bridge.
         tap1 = new TapWrapper("nxmtap1");

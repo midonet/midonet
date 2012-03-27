@@ -65,7 +65,7 @@ public class FloatingIpTest {
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
 
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-floating-ip")
                                           .build();

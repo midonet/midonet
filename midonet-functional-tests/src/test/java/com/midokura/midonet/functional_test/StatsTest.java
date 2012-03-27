@@ -75,7 +75,7 @@ public class StatsTest {
         // First clean up left-overs from previous incomplete tests.
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br", OvsBridge.L3UUID);
+        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         ovsBridge.addServiceController(6640);
         Thread.sleep(1000);
         svcController = new ServiceController(6640);

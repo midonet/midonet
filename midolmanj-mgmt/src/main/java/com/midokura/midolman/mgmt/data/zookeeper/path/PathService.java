@@ -61,6 +61,7 @@ public class PathService {
         pathSet.add(pathManager.getPortsPath());
         pathSet.add(pathManager.getChainsPath());
         pathSet.add(pathManager.getGrePath());
+        pathSet.add(pathManager.getPortSetsPath());
         pathSet.add(pathManager.getRulesPath());
         pathSet.add(pathManager.getRoutesPath());
         pathSet.add(pathManager.getBgpPath());
