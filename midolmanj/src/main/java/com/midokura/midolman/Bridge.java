@@ -165,12 +165,14 @@ public class Bridge implements ForwardingElement {
         localPorts.add(portId);
         if (localPorts.size() == 1)
             controller.subscribePortSet(bridgeId);
+        controller.addLocalPortToSet(bridgeId, portId);
     }
 
     @Override
     public void removePort(UUID portId) throws StateAccessException,
             KeeperException, InterruptedException, JMException {
         localPorts.remove(portId);
+        controller.removeLocalPortFromSet(bridgeId, portId);
         if (localPorts.size() == 0)
             controller.unsubscribePortSet(bridgeId);
         // TODO(pino): controller invals by local portNum - so no-op here?

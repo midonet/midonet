@@ -97,11 +97,35 @@ public class VRNController extends AbstractController
     public void subscribePortSet(UUID portSetID)
             throws StateAccessException {
         portSetMap.addIPv4Addr(portSetID, publicIp);
+        localPortSetSlices.put(portSetID, new HashSet<Short>());
     }
 
     public void unsubscribePortSet(UUID portSetID)
             throws StateAccessException {
         portSetMap.deleteIPv4Addr(portSetID, publicIp);
+        localPortSetSlices.remove(portSetID);
+    }
+
+    public void addLocalPortToSet(UUID portSetID, UUID portID) {
+        Set<Short> portSetSlice = localPortSetSlices.get(portSetID);
+        if (null == portSetSlice) {
+            log.error("addLocalPortToSet - no PortSet for {}", portSetID);
+            return;
+        }
+        Integer portNum = portUuidToNumberMap.get(portID);
+        if (null != portNum)
+            portSetSlice.add(portNum.shortValue());
+    }
+
+    public void removeLocalPortFromSet(UUID portSetID, UUID portID) {
+        Set<Short> portSetSlice = localPortSetSlices.get(portSetID);
+        if (null == portSetSlice) {
+            log.error("removeLocalPortFromSet - no PortSet for {}", portSetID);
+            return;
+        }
+        Integer portNum = portUuidToNumberMap.get(portID);
+        if (null != portNum)
+            portSetSlice.remove(portNum.shortValue());
     }
 
     /**

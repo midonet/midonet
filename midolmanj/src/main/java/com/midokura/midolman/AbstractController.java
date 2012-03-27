@@ -219,7 +219,8 @@ public abstract class AbstractController
     private void _deleteVirtualPort(int portNum, UUID uuid) {
         log.info("_deleteVirtualPort num:{} id:{}", portNum, uuid);
         deleteFlowsByPort(portNum);
-        // First notify the subclass then update the maps.
+        // First notify the subclass then update the maps. The order
+        // is important we may still need the portNum-portUUID mapping.
         deleteVirtualPort(portNum, uuid);
         portNumToUuid.remove(portNum);
         portUuidToNumberMap.remove(uuid);
