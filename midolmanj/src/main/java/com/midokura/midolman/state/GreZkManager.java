@@ -120,6 +120,12 @@ public class GreZkManager extends ZkManager {
             throws StateAccessException {
         String path = addPersistentSequential(pathManager.getGrePath(), null);
         int key = extractGreKeyFromPath(path);
+        // We don't use Zero as a valid GRE key because our PacketIn method
+        // uses that value to denote "The Tunnel ID wasn't set".
+        if (0 == key) {
+            path = addPersistentSequential(pathManager.getGrePath(), null);
+            key = extractGreKeyFromPath(path);
+        }
         return new ZkNodeEntry<Integer, GreKey>(key, new GreKey());
     }
 

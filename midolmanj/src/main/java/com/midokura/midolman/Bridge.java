@@ -80,6 +80,7 @@ public class Bridge implements ForwardingElement {
         }
         macToPortWatcher = new MacPortWatcher();
         macPortMap.addWatcher(macToPortWatcher);
+        macPortMap.start();
         // TODO(pino): how should clear() handle this field?
         logicalPortsWatcher = new Runnable() {
             public void run() {
