@@ -59,9 +59,11 @@ public class VRNCoordinator implements ForwardingElement {
     private Directory zkDir;
     private String zkBasePath;
     private VRNController ctrl;
+    private PortSetMap portSetMap;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath,
-                          Reactor reactor, Cache cache, VRNController ctrl) {
+                          Reactor reactor, Cache cache, VRNController ctrl,
+                          PortSetMap portSetMap) {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
@@ -72,6 +74,7 @@ public class VRNCoordinator implements ForwardingElement {
         this.reactor = reactor;
         this.cache = cache;
         this.ctrl = ctrl;
+        this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
         this.watchers = new HashSet<Callback<UUID>>();
@@ -135,7 +138,7 @@ public class VRNCoordinator implements ForwardingElement {
         ForwardingElement fe = forwardingElements.get(deviceId);
         if (null != fe)
             return fe;
-        log.debug("Creating new forwarding element instance for {}", deviceId);
+        log.debug("Getting forwarding element instance for {}", deviceId);
         Cache cache = new CacheWithPrefix(this.cache, deviceId.toString());
         switch (feType) {
           case Router:
@@ -254,7 +257,7 @@ public class VRNCoordinator implements ForwardingElement {
             // materialized port.
             log.warn("More than {} FEs traversed; probably a loop; " +
                      "giving up.", MAX_HOPS);
-            fwdInfo.action = Action.BLACKHOLE;
+            fwdInfo.action = Action.DROP;
             return;
         }
         fe.process(fwdInfo);
@@ -265,14 +268,17 @@ public class VRNCoordinator implements ForwardingElement {
     protected void handleProcessResult(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
         if (fwdInfo.action.equals(Action.FORWARD)) {
-            // Get the port's configuration to see if it's logical.
+            // If the outPort is a PortSet, the simulation is finished.
+            if (portSetMap.containsKey(fwdInfo.outPortId))
+                return;
+            // If the port is logical, the simulation continues.
             PortConfig cfg = getPortConfig(fwdInfo.outPortId);
             if (null == cfg) {
                 // Either the config wasn't found or it's not a router port.
                 log.error("Packet forwarded to a portId that either "
                         + "has null config or not forwarding element type.");
                 // TODO(pino): throw exception instead?
-                fwdInfo.action = Action.BLACKHOLE;
+                fwdInfo.action = Action.DROP;
                 return;
             }
             if (cfg instanceof LogicalPortConfig) {
@@ -282,7 +288,7 @@ public class VRNCoordinator implements ForwardingElement {
                           fe.getId().toString());
                 if (fwdInfo.notifyFEs.contains(fe.getId())) {
                     log.warn("Detected a routing loop.");
-                    fwdInfo.action = Action.BLACKHOLE;
+                    fwdInfo.action = Action.DROP;
                     return;
                 }
                 fwdInfo.matchIn = fwdInfo.matchOut;
