@@ -11,29 +11,17 @@ import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.ForwardingElement.Action;
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer3.L3DevicePort;
-import com.midokura.midolman.layer3.ReplicatedRoutingTable;
-import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Router;
-import com.midokura.midolman.layer4.NatLeaseManager;
-import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
-import com.midokura.midolman.util.Net;
 
 public class VRNCoordinator implements ForwardingElement {
 

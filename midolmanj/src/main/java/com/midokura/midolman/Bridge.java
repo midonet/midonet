@@ -110,6 +110,7 @@ public class Bridge implements ForwardingElement {
             // M/bcast addresses are never learned so the outport is null.
             // Otherwise send to a single port.
             fwdInfo.action = Action.FORWARD;
+            fwdInfo.matchOut = fwdInfo.matchIn.clone();
             if (outPort == null) {
                 // If the destination is a unicast, is it a router's MAC?
                 if (srcDlAddress.unicast() &&
@@ -311,7 +312,8 @@ public class Bridge implements ForwardingElement {
 
             /* If the new port is local, the flow updates have already been
              * applied, and we return immediately. */
-            if (port_is_local(new_uuid)) {
+            if (portIsLocal(new_uuid)) {
+                // TODO(pino): agree with devs about having method name in log.
                 log.info("MacPortWatcher.processChange: port {} is " +
                          "local, returning without taking action", new_uuid);
                 return;
@@ -322,7 +324,7 @@ public class Bridge implements ForwardingElement {
 
             /* If the MAC's old port was local, we need to invalidate its
              * flows. */
-            if (port_is_local(old_uuid)) {
+            if (portIsLocal(old_uuid)) {
                 log.debug("MacPortWatcher.processChange: Old port " +
                           "was local.  Invalidating its flows.");
                 invalidateFlowsFromMac(key);
@@ -491,9 +493,8 @@ public class Bridge implements ForwardingElement {
         //controllerStub.sendFlowModDelete(match, false, (short) 0, nonePort);
     }
 
-    private boolean port_is_local(UUID port) {
-        // TODO(pino): check a local map of IDs reported by addPort
-        return false;
+    private boolean portIsLocal(UUID port) {
+        return localPorts.contains(port);
     }
 
     private void invalidateFlowsToPortUuid(UUID port_uuid) {
