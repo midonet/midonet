@@ -26,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.KeystoneClient;
+import com.midokura.midolman.mgmt.auth.KeystoneClientFactory;
 import com.midokura.midolman.mgmt.auth.TenantUser;
+import com.midokura.midolman.mgmt.config.InvalidConfigException;
 
 /**
  * Servlet filter for Keystone authentication.
@@ -105,11 +107,7 @@ public final class KeystoneAuthFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
         // Initialize member variables.
         log.debug("Initializing KeystoneAuthFilter.");
-        String protocol = filterConfig.getInitParameter("service_protocol");
-        String host = filterConfig.getInitParameter("service_host");
-        int port = Integer.parseInt(filterConfig
-                .getInitParameter("service_port"));
-        this.client = new KeystoneClient(protocol, host, port);
+        this.client = KeystoneClientFactory.create(filterConfig);
         this.client.setAdminToken(filterConfig.getInitParameter("admin_token"));
     }
 
