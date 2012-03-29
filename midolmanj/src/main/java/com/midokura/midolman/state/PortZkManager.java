@@ -119,17 +119,24 @@ public class PortZkManager extends ZkManager {
         // Create a new GRE key. Hide this from outside.
         ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
         entry.value.greKey = gre.key;
+        List<Op> ops = new ArrayList<Op>();
 
         if (entry.value instanceof PortDirectory.BridgePortConfig) {
-            return prepareBridgePortCreate(entry);
-        } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
-            return prepareRouterPortCreate(entry);
-        } else if (entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
+            ops.addAll(prepareBridgePortCreate(entry));
+        } else if (entry.value
+                instanceof PortDirectory.MaterializedRouterPortConfig) {
+            ops.addAll(prepareRouterPortCreate(entry));
+        } else if (entry.value
+                instanceof PortDirectory.LogicalRouterPortConfig) {
             throw new IllegalArgumentException(
                     "A single logical port cannot be created.");
         } else {
             throw new IllegalArgumentException("Unsupported port type");
         }
+        // Update GreKey to reference the port.
+        gre.value.ownerId = entry.key;
+        ops.addAll(greZkManager.prepareGreUpdate(gre));
+        return ops;
     }
 
     public List<Op> preparePortCreateLink(
