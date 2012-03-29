@@ -34,7 +34,8 @@ public class FuncTest {
                                  "Location");
     }
 
-    static final AppDescriptor appDesc = new WebAppDescriptor.Builder()
+    static final WebAppDescriptor.Builder getBuilder() {
+        return new WebAppDescriptor.Builder()
             .addFilter(CrossOriginResourceSharingFilter.class, "cors",
                        corsFilterInitParams)
             .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
@@ -51,7 +52,10 @@ public class FuncTest {
             .contextParam("zk_conn_string", "").contextParam("zk_timeout", "0")
             .contextParam("zk_root", "/test/midolman")
             .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
-            .contextPath("/test").clientConfig(config).build();
+            .contextPath("/test").clientConfig(config);
+    }
+
+    static final AppDescriptor appDesc = getBuilder().build();
 
     public static UUID getUuidFromLocation(URI location) {
         String[] tmp = location.toString().split("/");
