@@ -135,6 +135,15 @@ public final class KeystoneAuthFilter implements Filter {
         // Ask the Keystone server if the token is valid.
         log.debug("Filtering request for Keystone authentication.");
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
+
+        // Don't check X-Auth-Token if the method is OPTIONS because
+        // preflight request is automatically done by the browser and there
+        // is no way that the client code can set the token for the request.
+        String method = req.getMethod();
+        if (method.equals("OPTIONS")) {
+            return;
+        }
+
         String token = req.getHeader("X-Auth-Token"); // Get token.
         if (token == null) {
             token = req.getHeader("HTTP_X_AUTH_TOKEN");
