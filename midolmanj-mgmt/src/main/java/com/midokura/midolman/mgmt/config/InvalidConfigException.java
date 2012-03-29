@@ -5,7 +5,7 @@
  */
 package com.midokura.midolman.mgmt.config;
 
-public class InvalidConfigException extends Exception {
+public class InvalidConfigException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
