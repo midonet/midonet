@@ -330,6 +330,11 @@ public class Router implements ForwardingElement {
         }
         // Check if it's addressed to the port itself.
         L3DevicePort devPort = devicePorts.get(fwdInfo.inPortId);
+        // TODO(pino, abel):
+        // 1) Get the RouterPortConfig for fwdInfo.inPortId
+        // 2) Check whether packet is for PortConfig.IPaddress
+        // 3) If packet is ICMP reply to it.
+        // 4) OPTIONAL: handle ICMP echo request to "far" port after post-routing.
         if (null != devPort && devPort.getVirtualConfig().portAddr ==
                 fwdInfo.matchIn.getNetworkDestination()) {
             log.debug("process: received pkt addressed to the ingress port.");
@@ -358,6 +363,10 @@ public class Router implements ForwardingElement {
             return;
         }
         if (res.action.equals(RuleResult.Action.REJECT)) {
+            // TODO(pino, abel):
+            // 1) Call sendICMP(ForwardInfo, admin-prohibited).
+            // 2) that guys calls controller.addGeneratedPacket(inPortId, pkt)
+            // 3) action = DROP, return.
             fwdInfo.action = Action.REJECT;
             return;
         }
@@ -369,6 +378,7 @@ public class Router implements ForwardingElement {
         // Do a routing table lookup.
         Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {
+            // TODO(pino, abel): send ICMP unreachable
             fwdInfo.action = Action.NO_ROUTE;
             return;
         }
@@ -377,6 +387,7 @@ public class Router implements ForwardingElement {
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.REJECT)) {
+            // TODO(pino, abel): send ICMP unreachable.
             fwdInfo.action = Action.REJECT;
             return;
         }
@@ -814,7 +825,8 @@ public class Router implements ForwardingElement {
         if (null != egressPortId) {
             RouterPortConfig portConfig;
             try {
-                portConfig = null; // Get the port configuration.
+                // TODO(pino, abel): Get the port configuration.
+                portConfig = null;
             } catch (Exception e) {
                 return false;
             }
@@ -858,7 +870,7 @@ public class Router implements ForwardingElement {
     private void sendICMPforLocalPkt(
             ForwardInfo fwdInfo, ICMP.UNREACH_CODE unreachCode) {
         // Check whether the original packet is allowed to trigger ICMP.
-        // TODO(do we need the packet as seen by the ingress to this router?
+        // TODO(pino, abel): do we need the packet as seen by the ingress to this router?
         if (!canSendICMP(fwdInfo.pktIn, fwdInfo.inPortId))
             return;
         // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
@@ -871,7 +883,7 @@ public class Router implements ForwardingElement {
         // The nwDst is the source of triggering IPv4 as seen by this router.
         ip.setDestinationAddress(fwdInfo.matchIn.getNetworkSource());
         // The nwSrc is the address of the ingress port.
-        // TODO(pino): get the port configuration.
+        // TODO(pino, abel): get the port configuration.
         RouterPortConfig portConfig = null;
         ip.setSourceAddress(portConfig.portAddr);
         Ethernet eth = new Ethernet();
@@ -898,8 +910,6 @@ public class Router implements ForwardingElement {
                 fwdInfo.inPortId,
                 IPv4.fromIPv4Address(ip.getSourceAddress()),
                 IPv4.fromIPv4Address(ip.getDestinationAddress()) });
-        // TODO(pino): the controller should be a field set in the constructor.
-        VRNController controller = null;
         controller.addGeneratedPacket(eth, fwdInfo.inPortId);
     }
 
