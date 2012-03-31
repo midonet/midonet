@@ -34,6 +34,7 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class BridgeRouterTest {
 
@@ -107,9 +108,11 @@ public class BridgeRouterTest {
         // First arp for router's mac.
         MAC vmMac = MAC.fromString("02:00:00:00:00:c1");
         assertThat("The ARP request was sent properly",
-                   tap1.send(PacketHelper.makeArpRequest(vmMac, ip1, rtrIp)));
+                tap1.send(PacketHelper.makeArpRequest(vmMac, ip1, rtrIp)));
 
         byte[] received = tap1.recv();
+        assertThat("We expected a package that we didn't get.",
+                received, notNullValue());
         Ethernet eth = new Ethernet();
         eth.deserialize(ByteBuffer.wrap(received, 0, received.length));
         // Now that we know the router's MAC we can create the packet helper.

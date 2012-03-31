@@ -773,7 +773,7 @@ public class VRNController extends AbstractController
     }
 
     private void addServicePort(UUID portId) throws StateAccessException,
-            ZkStateSerializationException, KeeperException {
+            KeeperException {
         Set<String> servicePorts = service.getPorts(portId);
         if (!servicePorts.isEmpty()) {
             if (portServicesById.containsKey(portId)) {
@@ -825,7 +825,11 @@ public class VRNController extends AbstractController
         log.info("addVirtualPort number {} bound to vport {}", portNum, portId);
         try {
             vrn.addPort(portId);
-            addServicePort(portId);
+            // TODO(pino): check with Yoshi - services only apply to L3 ports.
+            ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId);
+            if (entry.value instanceof
+                    PortDirectory.MaterializedRouterPortConfig)
+                addServicePort(portId);
         } catch (Exception e) {
             log.error("addVirtualPort", e);
         }
