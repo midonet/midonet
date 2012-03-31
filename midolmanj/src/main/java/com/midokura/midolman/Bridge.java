@@ -95,67 +95,61 @@ public class Bridge implements ForwardingElement {
             throws StateAccessException, KeeperException {
         MAC srcDlAddress = new MAC(fwdInfo.matchIn.getDataLayerSource());
         MAC dstDlAddress = new MAC(fwdInfo.matchIn.getDataLayerDestination());
-        // TODO(pino): detect whether the dst MAC is another forwarding element.
-        UUID outPort = macPortMap.get(dstDlAddress);
-        log.info(outPort == null ? "no port found for dst MAC"
-                : "dst MAC is on port " + outPort.toString());
 
-        boolean srcAddressIsMcast = Ethernet.isMcast(srcDlAddress);
-        if (srcAddressIsMcast) {
+        // Drop the packet if it's L2 source is a multicast address.
+        if (Ethernet.isMcast(srcDlAddress)) {
             fwdInfo.action = Action.DROP;
             fwdInfo.dropTimeSeconds = DROP_SECONDS;
             log.info("multicast src MAC, dropping packet");
             return;
-        } else {
-            // Flood if the dst MAC is multi/broadcast or if unlearned unicast.
-            // M/bcast addresses are never learned so the outport is null.
-            // Otherwise send to a single port.
-            fwdInfo.action = Action.FORWARD;
-            fwdInfo.matchOut = fwdInfo.matchIn.clone();
-            if (outPort == null) {
-                // If the destination is a unicast, is it a router's MAC?
-                if (srcDlAddress.unicast() &&
-                        rtrMacToLogicalPortId.containsKey(dstDlAddress)) {
-                    fwdInfo.outPortId = rtrMacToLogicalPortId.get(dstDlAddress);
-                }
-                // Otherwise, if it's an IPv4 ARP, is it for a router's IP?
-                else if (Ethernet.isBroadcast(srcDlAddress)
-                        && fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE
-                        && ((ARP)fwdInfo.pktIn.getPayload())
-                                .getProtocolType() == IPv4.ETHERTYPE
-                        && rtrIpToMac.containsKey(new IntIPv4(
-                                fwdInfo.matchIn.getNetworkDestination()))) {
-                    MAC rtrMAC = rtrIpToMac.get(new IntIPv4(
-                            fwdInfo.matchIn.getNetworkDestination()));
-                    fwdInfo.outPortId = rtrMacToLogicalPortId.get(rtrMAC);
-                }
-                // Otherwise, flood. Use the Bridge's own ID as the PortSet ID.
-                else {
-                    log.info("flooding packet to {} to port set {}",
-                            dstDlAddress, bridgeId);
-                    // TODO(pino): how/when is the bridge's PortSet set up?
-                    fwdInfo.outPortId = bridgeId;
-                }
-            } else {
-                log.info("forward packet to {} to port {}",
-                        dstDlAddress, outPort);
-                fwdInfo.outPortId = outPort;
+        }
+        fwdInfo.action = Action.FORWARD;
+        fwdInfo.matchOut = fwdInfo.matchIn.clone();
+        fwdInfo.outPortId = null;
+        // Is the destination a multicast address?
+        if (Ethernet.isMcast(dstDlAddress)) {
+            // If it's an IPv4 ARP, is it for a router's IP?
+            if (Ethernet.isBroadcast(dstDlAddress)
+                    && fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE
+                    && ((ARP)fwdInfo.pktIn.getPayload()).getProtocolType()
+                            == IPv4.ETHERTYPE
+                    && rtrIpToMac.containsKey(new IntIPv4(
+                            fwdInfo.matchIn.getNetworkDestination()))) {
+                MAC rtrMAC = rtrIpToMac.get(new IntIPv4(
+                        fwdInfo.matchIn.getNetworkDestination()));
+                fwdInfo.outPortId = rtrMacToLogicalPortId.get(rtrMAC);
+            } else { // Not an ARP request for a router's port's address
+                // Flood to materialized ports only. Routers drop non-ARP
+                // packets with multicast destination. Use the Bridge's own ID
+                // as the PortSet ID.
+                log.info("flooding packet to {} to port set {}",
+                        dstDlAddress, bridgeId);
+                fwdInfo.outPortId = bridgeId;
             }
+        } else { // It's a unicast.
+            // Is the MAC associated with a materialized port?
+            fwdInfo.outPortId = macPortMap.get(dstDlAddress);
+            // Otherwise, is the MAC associated with a logical port?
+            if (null == fwdInfo.outPortId)
+                fwdInfo.outPortId = rtrMacToLogicalPortId.get(dstDlAddress);
+            // Otherwise, flood the packet.
+            if (null == fwdInfo.outPortId)
+                fwdInfo.outPortId = bridgeId;
         }
-        // Now do mac-address learning.
-        // TODO(pino): detect whether the source is another forwarding element.
-        UUID mappedPortUuid = macPortMap.get(srcDlAddress);
-        if (!fwdInfo.inPortId.equals(mappedPortUuid)) {
-            // The MAC changed port:  invalidate old flows before installing
-            // a new flowmod for this MAC.
-            invalidateFlowsFromMac(srcDlAddress);
-            invalidateFlowsToMac(srcDlAddress);
+        // Do mac-address learning if the source is not another FE.
+        if (!rtrMacToLogicalPortId.containsKey(srcDlAddress)) {
+            UUID mappedPortUuid = macPortMap.get(srcDlAddress);
+            if (!fwdInfo.inPortId.equals(mappedPortUuid)) {
+                // The MAC changed port:  invalidate old flows before installing
+                // a new flowmod for this MAC.
+                invalidateFlowsFromMac(srcDlAddress);
+                invalidateFlowsToMac(srcDlAddress);
+            }
+            // Learn the MAC source address.
+            increaseMacPortFlowCount(srcDlAddress, fwdInfo.getInPortId());
+            // We don't need flow removal notification for flows from FEs.
+            fwdInfo.notifyFEs.add(bridgeId);
         }
-
-        // Learn the MAC source address.
-        // TODO(pino): no removal notification for flows from other FEs.
-        increaseMacPortFlowCount(srcDlAddress, fwdInfo.getInPortId());
-        fwdInfo.notifyFEs.add(bridgeId);
         return;
     }
 
