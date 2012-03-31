@@ -289,7 +289,7 @@ public class Ethernet extends BasePacket {
         }
 
         for (int i=0; i<6; i++) {
-            if (mac[i] != 0xFF) {
+            if ((mac[i] & 0xFF) != 0xFF) {
                 return false;
             }
         }

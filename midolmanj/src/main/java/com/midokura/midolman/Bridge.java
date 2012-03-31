@@ -107,6 +107,17 @@ public class Bridge implements ForwardingElement {
         fwdInfo.matchOut = fwdInfo.matchIn.clone();
         fwdInfo.outPortId = null;
         // Is the destination a multicast address?
+        log.debug("{} {} {}", new Object[] {
+                rtrIpToMac, rtrMacToLogicalPortId, brPortIdToRtrPortIp });
+        log.debug("{} {} {} {} {}", new Object[] {
+                dstDlAddress,
+                Ethernet.isBroadcast(dstDlAddress),
+                fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE,
+                ((ARP)fwdInfo.pktIn.getPayload()).getProtocolType()
+                        == IPv4.ETHERTYPE,
+                rtrIpToMac.containsKey(new IntIPv4(
+                        fwdInfo.matchIn.getNetworkDestination()))
+        });
         if (Ethernet.isMcast(dstDlAddress)) {
             // If it's an IPv4 ARP, is it for a router's IP?
             if (Ethernet.isBroadcast(dstDlAddress)

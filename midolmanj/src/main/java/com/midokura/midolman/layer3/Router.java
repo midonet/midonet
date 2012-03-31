@@ -311,6 +311,7 @@ public class Router implements ForwardingElement {
 
         MAC hwDst = new MAC(fwdInfo.matchIn.getDataLayerDestination());
         ZkNodeEntry<UUID, PortConfig> portCfg = portMgr.get(fwdInfo.inPortId);
+        log.debug("Received forwardInfo {} on port {}", fwdInfo, portCfg);
         RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
 
         if (Ethernet.isBroadcast(hwDst)) {
