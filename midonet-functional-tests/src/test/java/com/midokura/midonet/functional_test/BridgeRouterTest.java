@@ -42,7 +42,6 @@ public class BridgeRouterTest {
     IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
     IntIPv4 subnetAddr = IntIPv4.fromString("192.168.231.0", 24);
-    String internalPortName = "pingTestInt";
 
     Router rtr;
     Tenant tenant1;
@@ -62,7 +61,7 @@ public class BridgeRouterTest {
             "Open_vSwitch", "127.0.0.1", 12344);
 
         api = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start("PingTest");
+        midolman = MidolmanLauncher.start(this.getClass().getSimpleName());
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
@@ -92,9 +91,6 @@ public class BridgeRouterTest {
     @After
     public void tearDown() throws Exception {
         removeTapWrapper(tap1);
-        if (ovsBridge != null) {
-            ovsBridge.deletePort(internalPortName);
-        }
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
