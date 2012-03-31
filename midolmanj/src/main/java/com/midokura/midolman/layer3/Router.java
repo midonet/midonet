@@ -231,29 +231,27 @@ public class Router implements ForwardingElement {
      * @param nwAddr
      * @param cb
      */
-    public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb) {
+    public void getMacForIp(UUID portId, int nwAddr, Callback<MAC> cb)
+            throws StateAccessException {
         IntIPv4 intNwAddr = new IntIPv4(nwAddr);
         log.debug("getMacForIp: port {} ip {}", portId, intNwAddr);
 
-        L3DevicePort devPort = devicePorts.get(portId);
+        PortConfig portCfg = portMgr.get(portId).value;
+        RouterPortConfig rtrPortConfig = RouterPortConfig.class.cast(portCfg);
         String nwAddrStr = intNwAddr.toString();
-        if (null == devPort) {
-            log.warn("getMacForIp: {} cannot get mac for {} on port {} - " +
-                     "port not local.", new Object[] {this, nwAddrStr, portId});
-
-            throw new IllegalArgumentException(String.format("%s cannot get "
-                    + "mac for %s on port %s - port not local.", this,
-                    nwAddrStr, portId.toString()));
-        }
-        // The nwAddr should be in the port's localNwAddr/localNwLength.
-        int shift = 32 - devPort.getVirtualConfig().localNwLength;
-        if ((nwAddr >>> shift) != (devPort.getVirtualConfig().localNwAddr >>> shift)) {
-            log.warn("getMacForIp: {} cannot get mac for {} - address not in " +
-                     "network segment of port {}",
-                     new Object[] { this, nwAddrStr, portId });
-            // TODO(pino): should this call be invoked asynchronously?
-            cb.call(null);
-            return;
+        if (rtrPortConfig instanceof MaterializedRouterPortConfig) {
+            MaterializedRouterPortConfig mPortConfig =
+                    MaterializedRouterPortConfig.class.cast(rtrPortConfig);
+            // The nwAddr should be in the port's localNwAddr/localNwLength.
+            int shift = 32 - mPortConfig.localNwLength;
+            if ((nwAddr >>> shift) != (mPortConfig.localNwAddr >>> shift)) {
+                log.warn("getMacForIp: {} cannot get mac for {} - address not in " +
+                         "network segment of port {}",
+                         new Object[] { this, nwAddrStr, portId });
+                // TODO(pino): should this call be invoked asynchronously?
+                cb.call(null);
+                return;
+            }
         }
         ArpCacheEntry entry = arpTable.get(intNwAddr);
         long now = reactor.currentTimeMillis();
@@ -262,7 +260,7 @@ public class Router implements ForwardingElement {
                 // Note that ARP-ing to refresh a stale entry doesn't retry.
                 log.debug("getMacForIp: {} getMacForIp refreshing ARP cache entry for {}",
                         this, nwAddrStr);
-                generateArpRequest(nwAddr, portId);
+                generateArpRequest(nwAddr, portId, rtrPortConfig);
             }
             // TODO(pino): should this call be invoked asynchronously?
             cb.call(entry.macAddr);
@@ -286,7 +284,7 @@ public class Router implements ForwardingElement {
             cbLists.put(nwAddr, cbList);
             log.debug("getMacForIp: {} getMacForIp generating ARP request for {}", this,
                     nwAddrStr);
-            generateArpRequest(nwAddr, portId);
+            generateArpRequest(nwAddr, portId, rtrPortConfig);
             try {
                 arpTable.put(intNwAddr,
                     new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
@@ -297,8 +295,8 @@ public class Router implements ForwardingElement {
                 log.error("InterruptedException adding ARP table entry", e);
             }
             // Schedule ARP retry and expiration.
-            reactor.schedule(new ArpRetry(nwAddr, portId), ARP_RETRY_MILLIS,
-                    TimeUnit.MILLISECONDS);
+            reactor.schedule(new ArpRetry(nwAddr, portId, rtrPortConfig),
+                    ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
             reactor.schedule(new ArpExpiration(nwAddr, portId),
                     ARP_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         }
@@ -507,7 +505,8 @@ public class Router implements ForwardingElement {
         controller.addGeneratedPacket(ethReply, fwdInfo.inPortId);
     }
 
-    private void processArp(Ethernet etherPkt, UUID inPortId) {
+    private void processArp(Ethernet etherPkt, UUID inPortId)
+            throws StateAccessException {
         log.debug("processArp: etherPkt {} from port {}", etherPkt, inPortId);
 
         if (!(etherPkt.getPayload() instanceof ARP)) {
@@ -522,24 +521,20 @@ public class Router implements ForwardingElement {
                     this, arpPkt.getProtocolType());
             return;
         }
-        L3DevicePort devPort = devicePorts.get(inPortId);
-        if (null == devPort) {
-            log.warn("{} ignoring an ARP on {} - port is not local.", this,
-                    inPortId);
-            return;
-        }
+        PortConfig portCfg = portMgr.get(inPortId).value;
+        RouterPortConfig rtrPortConfig = RouterPortConfig.class.cast(portCfg);
         if (arpPkt.getOpCode() == ARP.OP_REQUEST) {
             // ARP requests should broadcast or multicast. Ignore otherwise.
             // TODO(pino): ok to accept if it's addressed to us?
             if (etherPkt.isMcast()
-                    || devPort.getMacAddr().equals(
+                    || rtrPortConfig.getHwAddr().equals(
                             etherPkt.getDestinationMACAddress()))
-                processArpRequest(arpPkt, devPort);
+                processArpRequest(arpPkt, inPortId, rtrPortConfig);
             else
                 log.warn("{} ignoring an ARP with a non-bcast/mcast dlDst {}",
                         this, etherPkt.getDestinationMACAddress());
         } else if (arpPkt.getOpCode() == ARP.OP_REPLY)
-            processArpReply(arpPkt, devPort);
+            processArpReply(arpPkt, inPortId, rtrPortConfig);
 
         // We ignore any other ARP packets: they may be malicious, bogus,
         // gratuitous ARP announcement requests, etc.
@@ -565,8 +560,10 @@ public class Router implements ForwardingElement {
         return !inNw;
     }
 
-    private void processArpRequest(ARP arpPkt, L3DevicePort devPortIn) {
-        log.debug("processArpRequest: arpPkt {} from port {}", arpPkt, devPortIn);
+    private void processArpRequest(ARP arpPkt, UUID inPortId,
+                                   RouterPortConfig rtrPortConfig) {
+        log.debug("processArpRequest: arpPkt {} from port {}",
+                arpPkt, rtrPortConfig);
 
         // If the request is for the ingress port's own address, it's for us.
         // Respond with the port's Mac address.
@@ -577,12 +574,18 @@ public class Router implements ForwardingElement {
         // are assumed to be already handled by a switch.)
 
         // First get the ingress port's mac address
-        MaterializedRouterPortConfig portConfig = devPortIn
-                .getVirtualConfig();
+        boolean drop = true;
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
-        if (tpa != devPortIn.getVirtualConfig().portAddr
-                && !spoofL2Network(tpa, portConfig.nwAddr, portConfig.nwLength,
-                        portConfig.localNwAddr, portConfig.localNwLength)) {
+        if (tpa == rtrPortConfig.portAddr)
+            drop = false;
+        else if (rtrPortConfig instanceof MaterializedRouterPortConfig) {
+            MaterializedRouterPortConfig mPortConfig =
+                    MaterializedRouterPortConfig.class.cast(rtrPortConfig);
+            if (spoofL2Network(tpa, mPortConfig.nwAddr, mPortConfig.nwLength,
+                    mPortConfig.localNwAddr, mPortConfig.localNwLength))
+                drop = false;
+        }
+        if (drop) {
             // It's an ARP for someone else. Ignore it.
             return;
         }
@@ -594,7 +597,7 @@ public class Router implements ForwardingElement {
         arp.setHardwareAddressLength((byte) 6);
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REPLY);
-        MAC portMac = devPortIn.getMacAddr();
+        MAC portMac = rtrPortConfig.getHwAddr();
         arp.setSenderHardwareAddress(portMac);
         arp.setSenderProtocolAddress(arpPkt.getTargetProtocolAddress());
         arp.setTargetHardwareAddress(arpPkt.getSenderHardwareAddress());
@@ -614,21 +617,20 @@ public class Router implements ForwardingElement {
         pkt.setEtherType(ARP.ETHERTYPE);
 
         // Now send it from the port.
-        controller.addGeneratedPacket(pkt, devPortIn.getId());
+        controller.addGeneratedPacket(pkt, inPortId);
     }
 
-    private void processArpReply(ARP arpPkt, L3DevicePort devPortIn) {
-        log.debug("processArpReply: arpPkt {} from port {}", arpPkt, devPortIn);
+    private void processArpReply(ARP arpPkt, UUID inPortId,
+                                 RouterPortConfig rtrPortConfig) {
+        log.debug("processArpReply: arpPkt {} from port {}",
+                arpPkt, rtrPortConfig);
 
         // Verify that the reply was meant for us: tpa is the port's nw addr,
         // and tha is the port's mac.
-        UUID inPortId = devPortIn.getId();
-        MaterializedRouterPortConfig portConfig =
-                 devPortIn.getVirtualConfig();
         int tpa = IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress());
         MAC tha = arpPkt.getTargetHardwareAddress();
-        if (tpa != portConfig.portAddr
-                || !tha.equals(devPortIn.getMacAddr())) {
+        if (tpa != rtrPortConfig.portAddr
+                || !tha.equals(rtrPortConfig.getHwAddr())) {
             log.debug("{} ignoring ARP reply because its tpa or tha don't "
                     + "match ip addr or mac of port {}", this, inPortId);
             return;
@@ -735,11 +737,13 @@ public class Router implements ForwardingElement {
         int nwAddr;
         UUID portId;
         String nwAddrStr;
+        RouterPortConfig rtrPortConfig;
 
-        ArpRetry(int nwAddr, UUID inPortId) {
+        ArpRetry(int nwAddr, UUID inPortId, RouterPortConfig rtrPortConfig) {
             this.nwAddr = nwAddr;
             nwAddrStr = IPv4.fromIPv4Address(nwAddr);
             this.portId = inPortId;
+            this.rtrPortConfig = rtrPortConfig;
         }
 
         @Override
@@ -759,23 +763,15 @@ public class Router implements ForwardingElement {
             // Re-ARP and schedule again.
             log.debug("{} retry ARP request for {} on port {}", new Object[] {
                     this, nwAddrStr, portId });
-            generateArpRequest(nwAddr, portId);
+            generateArpRequest(nwAddr, portId, rtrPortConfig);
             reactor.schedule(this, ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
         }
     }
 
-    private void generateArpRequest(int nwAddr, UUID portId) {
+    private void generateArpRequest(int nwAddr, UUID portId,
+                                    RouterPortConfig rtrPortConfig) {
         log.debug("generateArpRequest: ip {} port {}",
                   Net.convertIntAddressToString(nwAddr), portId);
-
-        L3DevicePort devPort = devicePorts.get(portId);
-        if (null == devPort) {
-            log.warn("{} generateArpRequest could not find device port for "
-                    + "{} - was port removed?", this, portId);
-            return;
-        }
-        MaterializedRouterPortConfig portConfig = devPort
-                .getVirtualConfig();
 
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
@@ -783,11 +779,11 @@ public class Router implements ForwardingElement {
         arp.setHardwareAddressLength((byte) 6);
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REQUEST);
-        MAC portMac = devPort.getMacAddr();
+        MAC portMac = rtrPortConfig.getHwAddr();
         arp.setSenderHardwareAddress(portMac);
         arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"));
         arp.setSenderProtocolAddress(IPv4
-                .toIPv4AddressBytes(portConfig.portAddr));
+                .toIPv4AddressBytes(rtrPortConfig.portAddr));
         arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwAddr));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
@@ -797,7 +793,7 @@ public class Router implements ForwardingElement {
 
         // Now send it from the port.
         log.debug("generateArpRequest: sending {}", pkt);
-        controller.addGeneratedPacket(pkt, devPort.getId());
+        controller.addGeneratedPacket(pkt, portId);
         try {
             ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
             long now = reactor.currentTimeMillis();

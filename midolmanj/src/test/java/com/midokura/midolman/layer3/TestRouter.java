@@ -453,7 +453,7 @@ public class TestRouter {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testArpRequestNonLocalPort() {
+    public void testArpRequestNonLocalPort() throws StateAccessException {
         // Try to get the MAC for a nwAddr on port 11 (i.e. in 10.0.1.4/30).
         // Port 11 is not local to this controller (it was never added to the
         // router as a L3DevicePort). So the router can't ARP to it.
@@ -463,7 +463,7 @@ public class TestRouter {
     }
 
     @Test
-    public void testArpRequestNonLocalAddress() {
+    public void testArpRequestNonLocalAddress() throws StateAccessException {
         // Try to get the MAC via port 12 for an address that isn't in that
         // port's local network segment (i.e. not in 10.0.1.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
@@ -474,7 +474,7 @@ public class TestRouter {
     }
 
     @Test
-    public void testArpRequestGeneration() {
+    public void testArpRequestGeneration() throws StateAccessException {
         // Try to get the MAC for a nwAddr on port 2 (i.e. in 10.0.0.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
         UUID port2Id = portNumToId.get(2);
@@ -545,7 +545,7 @@ public class TestRouter {
     }
 
     @Test
-    public void testArpReplyProcessing() {
+    public void testArpReplyProcessing() throws StateAccessException {
         // Try to get the MAC for a nwAddr on port 2 (i.e. in 10.0.0.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
         UUID port2Id = portNumToId.get(2);
