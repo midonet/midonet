@@ -44,6 +44,7 @@ public class BridgeRouterTest {
     IntIPv4 subnetAddr = IntIPv4.fromString("192.168.231.0", 24);
 
     Router rtr;
+    BridgeRouterLink link;
     Tenant tenant1;
     RouterPort p1;
     TapWrapper tap1;
@@ -82,8 +83,7 @@ public class BridgeRouterTest {
         ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
         // Link the Bridge and Router
-        BridgeRouterLink link = rtr.addBridgeRouterLink(
-                bridge, subnetAddr);
+        link = rtr.addBridgeRouterLink(bridge, subnetAddr);
 
         sleepBecause("we wait for the network configuration to bootup", 5);
     }
@@ -93,6 +93,8 @@ public class BridgeRouterTest {
         removeTapWrapper(tap1);
         removeBridge(ovsBridge);
         stopMidolman(midolman);
+        if (null != link)
+            link.delete();
         removeTenant(tenant1);
         stopMidolmanMgmt(api);
     }
