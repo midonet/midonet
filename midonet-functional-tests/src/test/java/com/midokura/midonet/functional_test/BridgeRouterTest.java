@@ -4,6 +4,8 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.nio.ByteBuffer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
@@ -38,20 +41,14 @@ public class BridgeRouterTest {
 
     IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-    IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-    IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
+    IntIPv4 subnetAddr = IntIPv4.fromString("192.168.231.0", 24);
     String internalPortName = "pingTestInt";
 
     Router rtr;
     Tenant tenant1;
     RouterPort p1;
-    RouterPort p2;
-    RouterPort p3;
     TapWrapper tap1;
-    TapWrapper tap2;
     OpenvSwitchDatabaseConnectionImpl ovsdb;
-    PacketHelper helper1;
-    PacketHelper helper2;
     MidolmanMgmt api;
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
@@ -81,21 +78,19 @@ public class BridgeRouterTest {
         rtr = tenant1.addRouter().setName("rtr1").build();
 
         Bridge bridge = tenant1.addBridge().setName("br1").build();
-        ip1 = IntIPv4.fromString("192.168.14.2");
         BridgePort bPort1 = bridge.addPort();
         tap1 = new TapWrapper("tapBridge1");
         ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
         // Link the Bridge and Router
         BridgeRouterLink link = rtr.addBridgeRouterLink(
-                bridge, IntIPv4.fromString("192.168.14.0"));
+                bridge, subnetAddr);
 
         sleepBecause("we wait for the network configuration to bootup", 5);
     }
 
     @After
     public void tearDown() throws Exception {
-        removeTapWrapper(tap2);
         removeTapWrapper(tap1);
         if (ovsBridge != null) {
             ovsBridge.deletePort(internalPortName);
@@ -112,30 +107,26 @@ public class BridgeRouterTest {
         byte[] request;
 
         // First arp for router's mac.
+        MAC vmMac = MAC.fromString("02:00:00:00:00:c1");
         assertThat("The ARP request was sent properly",
-                   tap1.send(helper1.makeArpRequest()));
+                   tap1.send(PacketHelper.makeArpRequest(vmMac, ip1, rtrIp)));
 
-        helper1.checkArpReply(tap1.recv());
+        byte[] received = tap1.recv();
+        Ethernet eth = new Ethernet();
+        eth.deserialize(ByteBuffer.wrap(received, 0, received.length));
+        // Now that we know the router's MAC we can create the packet helper.
+        PacketHelper helper = new PacketHelper(vmMac, ip1,
+                eth.getSourceMACAddress(), rtrIp);
+        helper.checkArpReply(received);
 
         // Ping router's port.
-        request = helper1.makeIcmpEchoRequest(rtrIp);
+        request = helper.makeIcmpEchoRequest(rtrIp);
         assertThat(
             format("The tap %s should have sent the packet", tap1.getName()),
             tap1.send(request));
 
         // Note: Midolman's virtual router currently does not ARP before
         // responding to ICMP echo requests addressed to its own port.
-        PacketHelper.checkIcmpEchoReply(request, tap1.recv());
-
-        // Ping internal port p3.
-        request = helper1.makeIcmpEchoRequest(ip3);
-        assertThat("The tap should have sent the packet again",
-                tap1.send(request));
-        // Note: the virtual router ARPs before delivering the reply packet.
-        helper1.checkArpRequest(tap1.recv());
-        assertThat("The tap should have sent the packet again",
-                tap1.send(helper1.makeArpReply()));
-        // Finally, the icmp echo reply from the peer.
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
         assertNoMorePacketsOnTap(tap1);
