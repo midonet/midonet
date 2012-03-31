@@ -52,7 +52,7 @@ public class Bridge implements ForwardingElement {
     PortZkManager portMgr;
     private Runnable logicalPortsWatcher;
     private Set<ZkNodeEntry<UUID, PortConfig>> logicalPorts =
-            Collections.emptySet();
+            new HashSet<ZkNodeEntry<UUID, PortConfig>>();
     private Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
     private Map<IntIPv4, MAC> rtrIpToMac = new HashMap<IntIPv4, MAC>();
     private Map<UUID, IntIPv4> brPortIdToRtrPortIp =
@@ -337,7 +337,7 @@ public class Bridge implements ForwardingElement {
 
     private void updateLogicalPorts() {
         Set<ZkNodeEntry<UUID, PortConfig>> oldPorts = logicalPorts;
-        logicalPorts = Collections.emptySet();
+        logicalPorts = new HashSet<ZkNodeEntry<UUID, PortConfig>>();
         try {
             logicalPorts.addAll(portMgr.listBridgeLogicalPorts(
                     bridgeId, logicalPortsWatcher));
@@ -346,7 +346,8 @@ public class Bridge implements ForwardingElement {
             // TODO(pino): what about other excepetion types?
             return;
         }
-        Set<ZkNodeEntry<UUID, PortConfig>> diff = Collections.emptySet();
+        Set<ZkNodeEntry<UUID, PortConfig>> diff =
+                new HashSet<ZkNodeEntry<UUID, PortConfig>>();
         // First find the ports that have been removed.
         diff.addAll(oldPorts);
         diff.removeAll(logicalPorts);
