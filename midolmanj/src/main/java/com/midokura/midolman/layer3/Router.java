@@ -421,7 +421,7 @@ public class Router implements ForwardingElement {
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
         // Drop packet addressed to the outPort's own IP.
-        portCfg = portMgr.get(fwdInfo.outPortId);
+        portCfg = portMgr.get(fwdInfo.outPortId).value;
         rtrPortCfg = RouterPortConfig.class.cast(portCfg);
         IntIPv4 outPortIP = new IntIPv4(rtrPortCfg.portAddr);
         if (nwDst.equals(outPortIP)) {
