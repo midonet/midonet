@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.state;
 
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.util.Net;
 
 public class PortDirectory {
+    public static Random rand = new Random(System.currentTimeMillis());
 
     public static class BridgePortConfig extends PortConfig {
         public BridgePortConfig(UUID device_id) {
@@ -52,6 +54,10 @@ public class PortDirectory {
             this.nwLength = networkLength;
             this.portAddr = portAddr;
             this.routes = routes;
+            byte[] macBytes = new byte[6];
+            rand.nextBytes(macBytes);
+            macBytes[0] = 0x02;
+            this.hwAddr = new MAC(macBytes);
         }
 
         // Default constructor for the Jackson deserialization.
