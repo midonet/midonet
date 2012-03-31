@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.management.JMException;
 import javax.management.ObjectName;
-import javax.management.MXBean;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -27,18 +26,18 @@ import com.midokura.midolman.ForwardingElement;
 import com.midokura.midolman.VRNController;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
-import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.ICMP.UNREACH_CODE;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.util.Cache;
@@ -142,7 +141,8 @@ public class Router implements ForwardingElement {
         this.routerId = routerId;
         this.reactor = reactor;
         this.controller = ctrl;
-        portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
         RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
         ruleEngine = new RuleEngine(zkDir, zkBasePath, routerId,
                 new NatLeaseManager(routerMgr, routerId, cache, reactor));
@@ -306,93 +306,88 @@ public class Router implements ForwardingElement {
     }
 
     @Override
-    public void process(ForwardInfo fwdInfo) {
-        // TODO(pino, jlm): drop the packet if it's not addressed to an L2
-        // mcast address or the ingress port's own address ?
-        /*if (!ethPkt.getDestinationMACAddress().equals(devPortIn.getMacAddr())
-                && !ethPkt.isMcast()) {
-            log.warn("onPacketIn: dlDst {} not mcast nor virtual port's addr", ethPkt.getDestinationMACAddress());
-            installBlackhole(match, bufferId, NO_IDLE_TIMEOUT, ICMP_EXPIRY_SECONDS);
-            return;
-        }*/
-
+    public void process(ForwardInfo fwdInfo) throws StateAccessException {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
 
-        // Handle ARP first.
-        if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
-            processArp(fwdInfo.pktIn, fwdInfo.inPortId);
-            fwdInfo.action = Action.CONSUMED;
+        MAC hwDst = new MAC(fwdInfo.matchIn.getDataLayerDestination());
+        ZkNodeEntry<UUID, PortConfig> portCfg = portMgr.get(fwdInfo.inPortId);
+        RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
+
+        if (Ethernet.isBroadcast(hwDst)) {
+            // Handle ARP.
+            if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
+                processArp(fwdInfo.pktIn, fwdInfo.inPortId);
+                fwdInfo.action = Action.CONSUMED;
+                return;
+            } else {
+                // Otherwise drop the packet.
+                fwdInfo.action = Action.DROP;
+                return;
+            }
+        }
+        // Drop the packet if it isn't addressed to the inPort's MAC.
+        if (!hwDst.equals(rtrPortCfg.getHwAddr())) {
+            fwdInfo.action = Action.DROP;
+            log.warn("dlDst {} neither bcast nor inPort's addr", hwDst);
             return;
         }
+
+        // Drop the packet if it isn't IPv4.
         if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE) {
             fwdInfo.action = Action.NOT_IPV4;
             return;
         }
-        // Check if it's addressed to the port itself.
-        L3DevicePort devPort = devicePorts.get(fwdInfo.inPortId);
-        // TODO(pino, abel):
-        // 1) Get the RouterPortConfig for fwdInfo.inPortId
-        // 2) Check whether packet is for PortConfig.IPaddress
-        // 3) If packet is ICMP reply to it.
-        // 4) OPTIONAL: handle ICMP echo request to "far" port after post-routing.
-        if (null != devPort && devPort.getVirtualConfig().portAddr ==
-                fwdInfo.matchIn.getNetworkDestination()) {
-            log.debug("process: received pkt addressed to the ingress port.");
-            // Handle ICMP only for now.
-            if (fwdInfo.matchIn.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER)
-                processICMPtoLocal(fwdInfo.pktIn, devPort);
-            // Packets addressed to the port should not be routed. Consume them.
-            fwdInfo.action = Action.CONSUMED;
+
+        // Is the packet addressed to the inPort's own IP?
+        IntIPv4 nwDst = new IntIPv4(fwdInfo.matchIn.getNetworkDestination());
+        IntIPv4 inPortIP = new IntIPv4(rtrPortCfg.portAddr);
+        if (nwDst.equals(inPortIP)) {
+            // Handle ICMP echo requests.
+            if (isIcmpEchoRequest(fwdInfo.matchIn)) {
+                sendIcmpEchoReplyFromInPort(fwdInfo, rtrPortCfg);
+            } else { // Otherwise drop the packet.
+                fwdInfo.action = Action.DROP;
+            }
             return;
         }
 
-        log.debug(
-                "{} apply pre-routing rules on pkt from port {} from {} to {}",
-                new Object[] {
-                        this,
-                        null == fwdInfo.inPortId ? "ICMP" : fwdInfo.inPortId,
-                        IPv4.fromIPv4Address(fwdInfo.matchIn.getNetworkSource()),
-                        IPv4.fromIPv4Address(fwdInfo.matchIn
-                                .getNetworkDestination()) });
         // Apply pre-routing rules. Clone the original match in order to avoid
         // changing it.
+        log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
         RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.flowMatch,
                 fwdInfo.matchIn, fwdInfo.inPortId, null);
         if (res.action.equals(RuleResult.Action.DROP)) {
-            fwdInfo.action = Action.BLACKHOLE;
+            fwdInfo.action = Action.DROP;
             return;
         }
         if (res.action.equals(RuleResult.Action.REJECT)) {
-            // TODO(pino, abel):
-            // 1) Call sendICMP(ForwardInfo, admin-prohibited).
-            // 2) that guys calls controller.addGeneratedPacket(inPortId, pkt)
-            // 3) action = DROP, return.
-            fwdInfo.action = Action.REJECT;
+            fwdInfo.action = Action.DROP;
+            sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_FILTER_PROHIB);
             return;
         }
         if (!res.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Pre-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
 
-        log.debug("{} send pkt to routing table.", this);
+        log.debug("{} send to forwarding table {}", this, fwdInfo);
         // Do a routing table lookup.
         Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {
-            // TODO(pino, abel): send ICMP unreachable
-            fwdInfo.action = Action.NO_ROUTE;
+            sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_NET);
+            fwdInfo.action = Action.DROP;
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.BLACKHOLE)) {
-            fwdInfo.action = Action.BLACKHOLE;
+            fwdInfo.action = Action.DROP;
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.REJECT)) {
-            // TODO(pino, abel): send ICMP unreachable.
-            fwdInfo.action = Action.REJECT;
+            sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_FILTER_PROHIB);
+            fwdInfo.action = Action.DROP;
             return;
         }
         if (!rt.nextHop.equals(Route.NextHop.PORT))
-            throw new RuntimeException("Routing table returned next hop "
+            throw new RuntimeException("Forwarding table returned next hop "
                     + "that isn't one of BLACKHOLE, NO_ROUTE, PORT or REJECT.");
         if (null == rt.nextHopPort) {
             log.error(
@@ -400,23 +395,23 @@ public class Router implements ForwardingElement {
                     this);
             // TODO(pino): should we remove this route?
             // For now just drop packets that match this route.
-            fwdInfo.action = Action.BLACKHOLE;
+            fwdInfo.action = Action.DROP;
             return;
         }
 
-        log.debug("{} pkt next hop {} and egress port {} - applying "
-                + "post-routing.", new Object[] { this,
-                IPv4.fromIPv4Address(rt.nextHopGateway),
-                rt.nextHopPort });
         // Apply post-routing rules.
+        log.debug("{} pkt next hop {} and egress port {} - apply post-routing.",
+                new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
+                rt.nextHopPort });
         res = ruleEngine.applyChain(POST_ROUTING, fwdInfo.flowMatch, res.match,
                 fwdInfo.inPortId, rt.nextHopPort);
         if (res.action.equals(RuleResult.Action.DROP)) {
-            fwdInfo.action = Action.BLACKHOLE;
+            fwdInfo.action = Action.DROP;
             return;
         }
         if (res.action.equals(RuleResult.Action.REJECT)) {
-            fwdInfo.action = Action.REJECT;
+            sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_FILTER_PROHIB);
+            fwdInfo.action = Action.DROP;
             return;
         }
         if (!res.action.equals(RuleResult.Action.ACCEPT))
@@ -425,26 +420,70 @@ public class Router implements ForwardingElement {
 
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
-        //fwdInfo.nextHopNwAddr = (Route.NO_GATEWAY == rt.nextHopGateway) ? res.match
-        //        .getNetworkDestination() : rt.nextHopGateway;
-        fwdInfo.action = Action.FORWARD;
-        return;
-
-        // TODO(pino, jlm): Check for the broadcast address, and if so use the
-        // broadcast ethernet address for the dst MAC.
+        // Drop packet addressed to the outPort's own IP.
+        portCfg = portMgr.get(fwdInfo.outPortId);
+        rtrPortCfg = RouterPortConfig.class.cast(portCfg);
+        IntIPv4 outPortIP = new IntIPv4(rtrPortCfg.portAddr);
+        if (nwDst.equals(outPortIP)) {
+            fwdInfo.action = Action.DROP;
+            return;
+        }
+        // Set the hwSrc and hwDst before forwarding the packet.
+        fwdInfo.matchOut.setDataLayerSource(rtrPortCfg.getHwAddr());
+        fwdInfo.action = Action.PAUSED;
+        ArpCallback cb = new ArpCallback(fwdInfo, true);
+        getMacForIp(fwdInfo.outPortId, fwdInfo.matchOut.getNetworkDestination(),
+                cb);
+        // If the callback hasn't yet been called, when it's called later this
+        // will signal that it needs to call VRNController.continueProcessing.
+        cb.inMethodProcess = false;
     }
 
-    private void processICMPtoLocal(Ethernet ethPkt, L3DevicePort port) {
-        IPv4 ipPkt = (IPv4)ethPkt.getPayload();
+    private boolean isIcmpEchoRequest(OFMatch match) {
+        return match.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER
+                && (match.getTransportSource() & 0xff) == ICMP.TYPE_ECHO_REQUEST
+                && (match.getTransportDestination() & 0xff) == ICMP.CODE_NONE;
+    }
+
+    private class ArpCallback implements Callback<MAC> {
+        boolean inMethodProcess;
+        ForwardInfo fwdInfo;
+
+        private ArpCallback(ForwardInfo fwdInfo, boolean inMethodProcess) {
+            this.fwdInfo = fwdInfo;
+            this.inMethodProcess = inMethodProcess;
+        }
+
+        @Override
+        public void call(MAC value) {
+            if (null == value) {
+                fwdInfo.action = Action.DROP;
+                sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_HOST);
+            } else {
+                fwdInfo.matchOut.setDataLayerDestination(value);
+                fwdInfo.action = Action.FORWARD;
+            }
+            if (!inMethodProcess)
+                controller.continueProcessing(fwdInfo);
+        }
+    }
+
+    private void sendIcmpEchoReplyFromInPort(ForwardInfo fwdInfo,
+                                             RouterPortConfig inPortCfg) {
+        // Use the Ethernet packet only for the ICMP payload. Use the match
+        // to fill the L2-L3 fields of the echo reply. The pktIn is the original
+        // Ethernet packet sent by OpenFlow onPacketIn.
+        IPv4 ipPkt = (IPv4)fwdInfo.pktIn.getPayload();
         if (ipPkt.getProtocol() != ICMP.PROTOCOL_NUMBER) {
-            log.debug("processICMPtoLocal drop pkt with nwProto != ICMP");
+            // This should never happen.
+            log.error("Not an ICMP echo request.");
             return;
         }
         ICMP icmpPkt = (ICMP)ipPkt.getPayload();
-        // Only handle ICMP echo requests: type 8, code 0
         if (icmpPkt.getType() != ICMP.TYPE_ECHO_REQUEST ||
                 icmpPkt.getCode() != ICMP.CODE_NONE) {
-            log.debug("processICMPtoLocal drop pkt; only handle echo request.");
+            // This should never happen.
+            log.error("ICMP is not an echo request.");
             return;
         }
         // Generate the echo reply.
@@ -454,19 +493,18 @@ public class Router implements ForwardingElement {
         IPv4 ipReply = new IPv4();
         ipReply.setPayload(icmpReply);
         ipReply.setProtocol(ICMP.PROTOCOL_NUMBER);
-        // TODO(pino): should we verify that this IP address would be
-        // routed to this port? And drop the packet if that's not the case?
-        ipReply.setDestinationAddress(ipPkt.getSourceAddress());
-        ipReply.setSourceAddress(port.getVirtualConfig().portAddr);
+        ipReply.setDestinationAddress(fwdInfo.matchIn.getNetworkSource());
+        ipReply.setSourceAddress(inPortCfg.portAddr);
         Ethernet ethReply = new Ethernet();
         ethReply.setPayload(ipReply);
-        ethReply.setDestinationMACAddress(ethPkt.getSourceMACAddress());
-        ethReply.setSourceMACAddress(port.getMacAddr());
+        ethReply.setDestinationMACAddress(
+                new MAC(fwdInfo.matchIn.getDataLayerSource()));
+        ethReply.setSourceMACAddress(inPortCfg.getHwAddr());
         ethReply.setEtherType(IPv4.ETHERTYPE);
-        log.debug("processICMPtoLocal sending echo reply from {} to {}",
-                IPv4.fromIPv4Address(port.getVirtualConfig().portAddr),
-                IPv4.fromIPv4Address(ipPkt.getSourceAddress()));
-        controller.addGeneratedPacket(ethReply, port.getId());
+        log.debug("sending echo reply from {} to {}",
+                IPv4.fromIPv4Address(ipReply.getSourceAddress()),
+                IPv4.fromIPv4Address(ipReply.getDestinationAddress()));
+        controller.addGeneratedPacket(ethReply, fwdInfo.inPortId);
     }
 
     private void processArp(Ethernet etherPkt, UUID inPortId) {
@@ -868,7 +906,7 @@ public class Router implements ForwardingElement {
      *            The ICMP error code of ICMP Unreachable sent by this method.
      */
     private void sendICMPforLocalPkt(
-            ForwardInfo fwdInfo, ICMP.UNREACH_CODE unreachCode) {
+            ForwardInfo fwdInfo, UNREACH_CODE unreachCode) {
         // Check whether the original packet is allowed to trigger ICMP.
         // TODO(pino, abel): do we need the packet as seen by the ingress to this router?
         if (!canSendICMP(fwdInfo.pktIn, fwdInfo.inPortId))

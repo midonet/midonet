@@ -38,9 +38,6 @@ public interface ForwardingElement {
         FORWARD,
         CONSUMED,
         PAUSED,
-        BLACKHOLE,  // TODO(pino): deprecate this.
-        NO_ROUTE,   // TODO(pino): deprecate this.
-        REJECT;     // TODO(pino): deprecate this.
     }
 
     // For use by Bridge and Router ForwardingElements.

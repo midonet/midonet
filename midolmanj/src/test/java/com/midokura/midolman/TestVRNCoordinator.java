@@ -216,7 +216,8 @@ public class TestVRNCoordinator {
         vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
-        TestRouter.checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
 
     @Test
@@ -235,7 +236,8 @@ public class TestVRNCoordinator {
         vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
-        TestRouter.checkForwardInfo(fInfo, Action.REJECT, null, 0);
+        // TODO(pino): changed REJECT to DROP, check ICMP was sent.
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
 
     @Test

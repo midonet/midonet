@@ -236,7 +236,12 @@ public class TestRouter {
         fInfo.flowMatch = match;
         fInfo.matchIn = match;
         fInfo.pktIn = ethPkt;
-        rtr.process(fInfo);
+        try {
+            rtr.process(fInfo);
+        } catch (StateAccessException e) {
+            // TODO(pino): clean this up.
+            e.printStackTrace();
+        }
         return fInfo;
     }
 
@@ -291,7 +296,8 @@ public class TestRouter {
                 MAC.fromString("02:00:11:22:00:01"), 0x0b0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
         ForwardInfo fInfo = routePacket(uplinkId, eth);
-        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
 
     @Test
@@ -304,7 +310,8 @@ public class TestRouter {
                 MAC.fromString("02:00:11:22:00:01"), 0x0c0000ab,
                 0x0a000207, (short) 1234, (short) 4321, payload);
         ForwardInfo fInfo = routePacket(uplinkId, eth);
-        checkForwardInfo(fInfo, Action.REJECT, null, 0);
+        // TODO(pino): changed REJECT to DROP, check ICMP was sent.
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
 
     @Test
@@ -320,7 +327,8 @@ public class TestRouter {
                 MAC.fromString("02:00:11:22:00:01"), 0x0a00000f,
                 0x0a05000a, (short) 1234, (short) 4321, payload);
         ForwardInfo fInfo = routePacket(port3Id, eth);
-        checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
+        // TODO(pino): changed NO_ROUTE to DROP, check ICMP was sent.
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
 
         // Try forwarding between down-links.
         // Make a packet that comes in on port 3 (dlDst set to port 3's mac,
@@ -336,7 +344,8 @@ public class TestRouter {
         // Now have the local controller remove port 12.
         rtr.removePort(port12Id);
         fInfo = routePacket(port3Id, eth);
-        checkForwardInfo(fInfo, Action.NO_ROUTE, null, 0);
+        // TODO(pino): changed NO_ROUTE to DROP, check ICMP was sent.
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
 
     @Test
@@ -866,15 +875,18 @@ public class TestRouter {
         // the 'good' ones are still forwarded.
         createRules();
         fInfo = routePacket(port23Id, badEthTo12);
-        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
+        checkForwardInfo(fInfo, Action.DROP, null, 0);
         fInfo = routePacket(port23Id, goodEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port12Id, badEthTo2);
-        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
+        checkForwardInfo(fInfo, Action.DROP, null, 0);
         fInfo = routePacket(port12Id, goodEthTo2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
         fInfo = routePacket(port11Id, badEthToUplink);
-        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
+        checkForwardInfo(fInfo, Action.DROP, null, 0);
         fInfo = routePacket(port11Id, goodEthToUplink);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
 
@@ -920,9 +932,11 @@ public class TestRouter {
         // After adding the filtering rules these packets are dropped.
         createRules();
         fInfo = routePacket(port11Id, ethTo21);
-        checkForwardInfo(fInfo, Action.BLACKHOLE, null, 0);
+        // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
+        checkForwardInfo(fInfo, Action.DROP, null, 0);
         fInfo = routePacket(uplinkId, ethToQuarantined);
-        checkForwardInfo(fInfo, Action.REJECT, null, 0);
+        // TODO(pino): changed REJECT to DROP, check ICMP was sent.
+        checkForwardInfo(fInfo, Action.DROP, null, 0);
         deleteRules();
     }
 
