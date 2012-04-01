@@ -147,6 +147,8 @@ public class VRNController extends AbstractController
                 vrn.handleProcessResult(fwdInfo);
                 if (fwdInfo.action != ForwardingElement.Action.PAUSED)
                     handleProcessResult(fwdInfo);
+                else
+                    log.debug("Pausing packet simulation.");
             } catch (KeeperException e) {
                 log.error("Error processing packet.", e);
             } catch (StateAccessException e) {
@@ -274,6 +276,8 @@ public class VRNController extends AbstractController
         }
         if (fwdInfo.action != ForwardingElement.Action.PAUSED)
             handleProcessResult(fwdInfo);
+        else
+            log.debug("Pausing packet simulation.");
     }
 
     public void forwardTunneledPkt(MidoMatch match, int bufferId,
@@ -363,6 +367,7 @@ public class VRNController extends AbstractController
                 freeBuffer(ofPktCtx.bufferId);
             return;
         case FORWARD:
+            log.debug("forward the packet.");
             forwardLocalPacket(fwdInfo);
             return;
         default:
@@ -435,13 +440,16 @@ public class VRNController extends AbstractController
             // Extract the greKey from the Bridge config (only PortSet for now).
             // TODO(pino): cache the BridgeConfigs to reduce ZK calls.
             try {
-                ZkNodeEntry<UUID, BridgeConfig> entry = bridgeMgr.get(fwdInfo.outPortId);
+                ZkNodeEntry<UUID, BridgeConfig> entry =
+                        bridgeMgr.get(fwdInfo.outPortId);
                 greKey = entry.value.greKey;
             } catch (StateAccessException e) {
                 // TODO(pino): drop this flow.
+                log.error("Got error mapping the port set to a GRE key.", e);
                 return;
             }
         } else { // single egress
+            log.debug("FORWARD to single egress.");
             Integer tunPortNum =
                     super.portUuidToTunnelPortNumber(fwdInfo.outPortId);
             if (null == tunPortNum) {
@@ -458,6 +466,7 @@ public class VRNController extends AbstractController
                 greKey = entry.value.greKey;
             } catch (StateAccessException e) {
                 // TODO(pino): drop this flow.
+                log.error("Got error trying to map the port to a GRE key.", e);
                 return;
             }
         }
@@ -478,10 +487,12 @@ public class VRNController extends AbstractController
             boolean removalNotification = !fwdInfo.notifyFEs.isEmpty();
             if (removalNotification)
                 matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+            log.debug("installing a flow entry for this packet.");
             addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                     idleFlowExpireSeconds, NO_HARD_TIMEOUT,
                     removalNotification, actions, ofPktCtx.data, 0);
         } else { // generated packet
+            log.debug("Not installing a flow entry for this generated packet.");
             controllerStub.sendPacketOut(
                     ControllerStub.UNBUFFERED_ID, OFPort.OFPP_NONE.getValue(),
                     actions, genPktCtx.data);

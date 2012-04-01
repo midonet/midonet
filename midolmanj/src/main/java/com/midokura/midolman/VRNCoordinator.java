@@ -255,7 +255,9 @@ public class VRNCoordinator implements ForwardingElement {
 
     protected void handleProcessResult(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
+        log.debug("Process the FE's response {}", fwdInfo);
         if (fwdInfo.action.equals(Action.FORWARD)) {
+            log.debug("The FE is forwarding the packet from a port.");
             // If the outPort is a PortSet, the simulation is finished.
             if (portSetMap.containsKey(fwdInfo.outPortId)) {
                 log.debug("FE output to port set {}", fwdInfo.outPortId);
@@ -292,11 +294,11 @@ public class VRNCoordinator implements ForwardingElement {
                 processOneFE(fwdInfo);
                 return;
             }
+            log.debug("Packet exited FE on materialized port or set.");
         }
         // If we got here, return fwd_action to the caller. One of
         // these holds:
         // 1) the action is OUTPUT and the port type is not logical OR
         // 2) the action is not OUTPUT
-        return;
     }
 }
