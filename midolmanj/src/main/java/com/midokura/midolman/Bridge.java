@@ -93,6 +93,7 @@ public class Bridge implements ForwardingElement {
     @Override
     public void process(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
+        log.debug("Simulating packet traversing L2 bridge.");
         MAC srcDlAddress = new MAC(fwdInfo.matchIn.getDataLayerSource());
         MAC dstDlAddress = new MAC(fwdInfo.matchIn.getDataLayerDestination());
 

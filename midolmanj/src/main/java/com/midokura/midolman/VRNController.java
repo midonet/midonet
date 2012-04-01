@@ -142,6 +142,7 @@ public class VRNController extends AbstractController
 
         @Override
         public void run() {
+            log.debug("continue simulation of {}", fwdInfo);
             try {
                 vrn.handleProcessResult(fwdInfo);
                 if (fwdInfo.action != ForwardingElement.Action.PAUSED)
@@ -166,6 +167,7 @@ public class VRNController extends AbstractController
      *      or materialized port.
      */
     public void addGeneratedPacket(Ethernet pkt, UUID originPort) {
+        log.debug("Schedule simulation of packet output from {}", originPort);
         reactor.submit(new PacketContinuation(
                 new GeneratedPacketContext(pkt, originPort)));
     }
@@ -179,6 +181,7 @@ public class VRNController extends AbstractController
      *      The packet context of a previously PAUSED packet.
      */
     public void continueProcessing(final ForwardInfo fwdInfo) {
+        log.debug("Schedule simulation of paused packet {}", fwdInfo);
         reactor.submit(new PacketContinuation(fwdInfo));
     }
 

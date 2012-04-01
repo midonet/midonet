@@ -257,8 +257,10 @@ public class VRNCoordinator implements ForwardingElement {
             throws StateAccessException, KeeperException {
         if (fwdInfo.action.equals(Action.FORWARD)) {
             // If the outPort is a PortSet, the simulation is finished.
-            if (portSetMap.containsKey(fwdInfo.outPortId))
+            if (portSetMap.containsKey(fwdInfo.outPortId)) {
+                log.debug("FE output to port set {}", fwdInfo.outPortId);
                 return;
+            }
             // If the port is logical, the simulation continues.
             PortConfig cfg = getPortConfig(fwdInfo.outPortId);
             if (null == cfg) {
