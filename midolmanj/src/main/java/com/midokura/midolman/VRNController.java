@@ -149,9 +149,7 @@ public class VRNController extends AbstractController
                     handleProcessResult(fwdInfo);
                 else
                     log.debug("Pausing packet simulation.");
-            } catch (KeeperException e) {
-                log.error("Error processing packet.", e);
-            } catch (StateAccessException e) {
+            } catch (Exception e) {
                 log.error("Error processing packet.", e);
             }
         }
@@ -390,20 +388,23 @@ public class VRNController extends AbstractController
         Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
         // Is the egress a locally installed virtual port?
         if (null != outPortNum) {
-            log.debug("forwardPacket: FORWARD to local {}: {}",
-                    outPortNum, fwdInfo);
             actions = makeActionsForFlow(fwdInfo.flowMatch,
                     fwdInfo.matchOut, outPortNum.shortValue(), 0);
             // TODO(pino): wildcard some of the match's fields.
+            log.debug("FORWARD {} to OF port {} with actions {}",
+                    new Object[] { fwdInfo, outPortNum, actions });
 
             if (null != ofPktCtx) {
                 // Remember the routers that need flow-removal notification.
+                log.debug("Installing a new flow entry for {}.",
+                        fwdInfo.flowMatch);
                 matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
                 addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                         idleFlowExpireSeconds, NO_HARD_TIMEOUT,
                         fwdInfo.notifyFEs.size() > 0, actions,
                         ofPktCtx.data, 0);
             } else { // generated packet
+                log.debug("Forwarding a generated packet.");
                 controllerStub.sendPacketOut(
                         ControllerStub.UNBUFFERED_ID,
                         OFPort.OFPP_NONE.getValue(),
@@ -915,6 +916,7 @@ public class VRNController extends AbstractController
             this.outPortId = originPort;
             this.matchOut = new MidoMatch();
             this.matchOut.loadFromPacket(this.data, (short)0);
+            this.flowMatch = this.matchOut.clone();
         }
     }
 }
