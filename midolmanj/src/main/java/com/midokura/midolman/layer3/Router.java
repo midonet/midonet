@@ -343,6 +343,8 @@ public class Router implements ForwardingElement {
             // Handle ICMP echo requests.
             if (isIcmpEchoRequest(fwdInfo.matchIn)) {
                 sendIcmpEchoReplyFromInPort(fwdInfo, rtrPortCfg);
+                fwdInfo.action = Action.CONSUMED;
+                // TODO(pino): drop flow for a while to prevent DOS attacks?
             } else { // Otherwise drop the packet.
                 fwdInfo.action = Action.DROP;
             }
