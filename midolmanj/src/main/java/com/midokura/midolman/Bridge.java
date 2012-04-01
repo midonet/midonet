@@ -91,6 +91,13 @@ public class Bridge implements ForwardingElement {
     }
 
     @Override
+    public String toString() {
+        return "Bridge{" +
+                "bridgeId=" + bridgeId +
+                '}';
+    }
+
+    @Override
     public void process(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
         log.debug("Simulating packet traversing L2 bridge.");
@@ -207,7 +214,7 @@ public class Bridge implements ForwardingElement {
 
     @Override
     public UUID getId() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return bridgeId;
     }
 
     @Override

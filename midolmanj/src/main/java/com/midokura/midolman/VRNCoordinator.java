@@ -276,8 +276,7 @@ public class VRNCoordinator implements ForwardingElement {
             if (cfg instanceof LogicalPortConfig) {
                 LogicalPortConfig lcfg = (LogicalPortConfig) cfg;
                 ForwardingElement fe = getForwardingElementByPort(lcfg.peerId());
-                log.debug("Packet exited FE on logical port to FE {}",
-                          fe.getId().toString());
+                log.debug("Packet exited FE on logical port to FE {}", fe);
                 if (fwdInfo.notifyFEs.contains(fe.getId())) {
                     log.warn("Detected a routing loop.");
                     fwdInfo.action = Action.DROP;
