@@ -198,8 +198,6 @@ public class Router implements ForwardingElement {
             log.debug("{} adding route {} to table", this, rt);
             table.addRoute(rt);
         }
-        arpCallbackLists.put(portId,
-                new HashMap<Integer, List<Callback<MAC>>>());
     }
 
     // This should only be called for materialized ports, not logical ports.
@@ -217,6 +215,7 @@ public class Router implements ForwardingElement {
                 log.warn("removePort got NoNodeException removing route.");
             }
         }
+        // TODO(pino): Any pending callbacks won't get called. Is that correct?
         arpCallbackLists.remove(portId);
     }
 
@@ -248,7 +247,6 @@ public class Router implements ForwardingElement {
                 log.warn("getMacForIp: {} cannot get mac for {} - address not in " +
                          "network segment of port {}",
                          new Object[] { this, nwAddrStr, portId });
-                // TODO(pino): should this call be invoked asynchronously?
                 cb.call(null);
                 return;
             }
@@ -273,10 +271,9 @@ public class Router implements ForwardingElement {
         Map<Integer, List<Callback<MAC>>> cbLists =
                         arpCallbackLists.get(portId);
         if (null == cbLists) {
-            // This should never happen.
-            log.error("getMacForIp: {} getMacForIp found null arpCallbacks map "
-                    + "for port {} but arpCache was not null", this, portId);
-            cb.call(null);
+            // TODO(pino): remove this map of lists when it becomes empty again.
+            cbLists = new HashMap<Integer, List<Callback<MAC>>>();
+            arpCallbackLists.put(portId, cbLists);
         }
         List<Callback<MAC>> cbList = cbLists.get(nwAddr);
         if (null == cbList) {

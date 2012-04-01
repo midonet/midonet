@@ -173,6 +173,16 @@ public class BridgeRouterTest {
         received = tap2.recv();
         assertThat("We expected a package that we didn't get.",
                 received, notNullValue());
+        // The router ARP before delivering the packet.
+        helper2.checkArpRequest(received);
+        // Send the ARP reply.
+        assertThat(
+                format("The tap %s should have sent the packet",
+                        tap2.getName()), tap2.send(helper2.makeArpReply()));
+        // Now tap2 should receive the ICMP that was sent from tap1.
+        received = tap2.recv();
+        assertThat("We expected a package that we didn't get.",
+                received, notNullValue());
         helper2.checkIcmpEchoRequest(request, received);
     }
 }
