@@ -45,11 +45,15 @@ public class PacketHelper {
     MAC gwMac;
     IntIPv4 gwIp;
 
-    public PacketHelper(MAC mac, IntIPv4 ip, MAC peerMac, IntIPv4 peerIp) {
+    public PacketHelper(MAC mac, IntIPv4 ip, IntIPv4 gwIp) {
         this.epMac = mac;
         this.epIp = ip;
-        this.gwMac = peerMac;
-        this.gwIp = peerIp;
+        this.gwMac = null; // set after the MAC is resolved via ARP.
+        this.gwIp = gwIp;
+    }
+
+    public void setGwMac(MAC gwMac) {
+        this.gwMac = gwMac;
     }
 
     /**
@@ -87,11 +91,11 @@ public class PacketHelper {
      * @param recv is a byte array containing the arp reply we want to check
      * @throws MalformedPacketException
      */
-    public void checkArpReply(byte[] recv) throws MalformedPacketException {
-        checkArpReply(recv, gwMac, gwIp, epMac, epIp);
+    public MAC checkArpReply(byte[] recv) throws MalformedPacketException {
+        checkArpReply(recv, gwIp, epMac, epIp);
     }
 
-    public static void checkArpReply(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
+    public static MAC checkArpReply(byte[] recv, IntIPv4 nwSrc,
             MAC dlDst, IntIPv4 nwDst) throws MalformedPacketException {
         assertThat("We actually have a packet buffer", recv, notNullValue());
 
@@ -100,8 +104,7 @@ public class PacketHelper {
         pkt.deserialize(bb);
         assertThat("The packet ether type is ARP",
                    pkt.getEtherType(), equalTo(ARP.ETHERTYPE));
-        assertThat("The packet source MAC is consistent with the sender",
-                   pkt.getSourceMACAddress(), equalTo(dlSrc));
+        MAC dlSrc = pkt.getSourceMACAddress();
         assertThat("The packet destination MAC is consistent with the target",
                    pkt.getDestinationMACAddress(), equalTo(dlDst));
 
@@ -136,6 +139,7 @@ public class PacketHelper {
                                    equalTo(
                                        IPv4.toIPv4AddressBytes(nwDst.address)))
                    ));
+        return dlSrc;
     }
 
     /**
@@ -171,7 +175,7 @@ public class PacketHelper {
      * Check that the packet is an ARP request from the gateway to the endpoint.
      *
      * @param recv the arp request that we received
-     * @throws MalformedPacketException 
+     * @throws MalformedPacketException
      */
     public void checkArpRequest(byte[] recv) throws MalformedPacketException {
         checkArpRequest(recv, gwMac, gwIp, epIp);

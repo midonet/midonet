@@ -147,11 +147,9 @@ public class VpnTest {
         IntIPv4 ip2 = IntIPv4.fromString("10.0.232.4");
         IntIPv4 rtr2 = IntIPv4.fromString("10.0.232.1");
         PacketHelper helper1 = new PacketHelper(
-                MAC.fromString("02:00:00:dd:dd:01"), ip1, tapPort1.getHwAddr(),
-                rtr1);
+                MAC.fromString("02:00:00:dd:dd:01"), ip1, rtr1);
         PacketHelper helper2 = new PacketHelper(
-                MAC.fromString("02:00:00:dd:dd:02"), ip2, tapPort2.getHwAddr(),
-                rtr2);
+                MAC.fromString("02:00:00:dd:dd:02"), ip2, rtr2);
         byte[] sent;
 
         sent = helper1.makeIcmpEchoRequest(ip2);

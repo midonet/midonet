@@ -35,20 +35,16 @@ public class PingTest {
 
     IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-    IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
     String internalPortName = "pingTestInt";
 
     Router rtr;
     Tenant tenant1;
     RouterPort p1;
-    RouterPort p2;
     RouterPort p3;
     TapWrapper tap1;
-    TapWrapper tap2;
     OpenvSwitchDatabaseConnectionImpl ovsdb;
     PacketHelper helper1;
-    PacketHelper helper2;
     MidolmanMgmt api;
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
@@ -82,24 +78,17 @@ public class PingTest {
         tap1 = new TapWrapper("pingTestTap1");
         ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
 
-        p2 = rtr.addVmPort().setVMAddress(ip2).build();
-        tap2 = new TapWrapper("pingTestTap2");
-        ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
-
         p3 = rtr.addVmPort().setVMAddress(ip3).build();
         ovsBridge.addInternalPort(p3.port.getId(), internalPortName, ip3, 24);
 
-        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1,
-                tap1.getHwAddr(), rtrIp);
-        helper2 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:02"), ip2,
-                tap2.getHwAddr(), rtrIp);
+        helper1 = new PacketHelper(
+                MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
 
         sleepBecause("we wait for the network configuration to bootup", 5);
     }
 
     @After
     public void tearDown() throws Exception {
-        removeTapWrapper(tap2);
         removeTapWrapper(tap1);
         if (ovsBridge != null) {
             ovsBridge.deletePort(internalPortName);
@@ -119,7 +108,8 @@ public class PingTest {
         assertThat("The ARP request was sent properly",
                    tap1.send(helper1.makeArpRequest()));
 
-        helper1.checkArpReply(tap1.recv());
+        MAC rtrMac = helper1.checkArpReply(tap1.recv());
+        helper1.setGwMac(rtrMac);
 
         // Ping router's port.
         request = helper1.makeIcmpEchoRequest(rtrIp);

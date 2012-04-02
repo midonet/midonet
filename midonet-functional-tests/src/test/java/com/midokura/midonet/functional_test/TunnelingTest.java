@@ -78,7 +78,7 @@ public class TunnelingTest {
         ovsBridge1.addSystemPort(p1.port.getId(), tapPort1.getName());
 
         helper1 = new PacketHelper(MAC.fromString("02:00:aa:33:00:01"), ip1,
-                tapPort1.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
+                IntIPv4.fromString("192.168.231.1"));
 
         ip2 = IntIPv4.fromString("192.168.231.3");
         RouterPort p2 = router1.addVmPort().setVMAddress(ip2).build();
@@ -86,7 +86,7 @@ public class TunnelingTest {
         ovsBridge2.addSystemPort(p2.port.getId(), tapPort2.getName());
 
         helper2 = new PacketHelper(MAC.fromString("02:00:aa:33:00:02"), ip2,
-                tapPort2.getHwAddr(), IntIPv4.fromString("192.168.231.1"));
+                IntIPv4.fromString("192.168.231.1"));
 
         sleepBecause("wait for the network config to settle", 5);
     }

@@ -76,15 +76,15 @@ public class FloatingIpTest {
         tapPort1 = new TapWrapper("flIpTestTap1");
         ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
         rtrIp = IntIPv4.fromString("192.168.66.1");
-        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"),
-                                   tapAddr1, tapPort1.getHwAddr(), rtrIp);
+        helper1 = new PacketHelper(
+                MAC.fromString("02:00:00:aa:aa:01"), tapAddr1, rtrIp);
 
         IntIPv4 tapAddr2 = IntIPv4.fromString("192.168.66.3");
         RouterPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
         tapPort2 = new TapWrapper("flIpTestTap2");
         ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
-        helper2 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:02"),
-                                   tapAddr2, tapPort2.getHwAddr(), rtrIp);
+        helper2 = new PacketHelper(
+                MAC.fromString("02:00:00:aa:aa:02"), tapAddr2, rtrIp);
 
         // The internal port has private address 192.168.55.5; floating ip
         // 10.0.173.5 is mapped to 192.168.55.5. Treat tapPort1 as the uplink:

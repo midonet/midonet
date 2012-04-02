@@ -308,6 +308,13 @@ public class Router implements ForwardingElement {
         PortConfig portCfg = portMgr.get(fwdInfo.inPortId).value;
         RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
 
+        // Drop the packet if it isn't IPv4.
+        if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE
+                && fwdInfo.matchIn.getDataLayerType() != ARP.ETHERTYPE) {
+            fwdInfo.action = Action.NOT_IPV4;
+            return;
+        }
+
         if (Ethernet.isBroadcast(hwDst)) {
             // Handle ARP requests.
             if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
@@ -332,12 +339,6 @@ public class Router implements ForwardingElement {
         if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
             // TODO(pino): ok to also processes ARP requests sent to our MAC?
             processArp(fwdInfo.pktIn, fwdInfo.inPortId);
-        }
-
-        // Drop the packet if it isn't IPv4.
-        if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE) {
-            fwdInfo.action = Action.NOT_IPV4;
-            return;
         }
 
         // Is the packet addressed to the inPort's own IP?

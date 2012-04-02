@@ -102,10 +102,10 @@ public class DeletePortTest {
         p3 = rtr.addVmPort().setVMAddress(ip3).build();
         ovsBridge.addInternalPort(p3.port.getId(), INT_PORT_NAME, ip3, 24);
 
-        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1,
-                                   tap1.getHwAddr(), rtrIp);
-        helper2 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:02"), ip2,
-                                   tap2.getHwAddr(), rtrIp);
+        helper1 = new PacketHelper(
+                MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
+        helper2 = new PacketHelper(
+                MAC.fromString("02:00:00:aa:aa:02"), ip2, rtrIp);
 
         sleepBecause("the network config should boot up", 5);
     }

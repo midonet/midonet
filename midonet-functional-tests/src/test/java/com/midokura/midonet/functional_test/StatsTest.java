@@ -91,14 +91,14 @@ public class StatsTest {
         RouterPort p1 = router1.addVmPort().setVMAddress(tapIp1).build();
         tapPort1 = new TapWrapper("statsTestTap1");
         ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
-        helper1 = new PacketHelper(MAC.fromString("02:00:bb:bb:00:01"), tapIp1,
-                                   tapPort1.getHwAddr(), rtrIp);
+        helper1 = new PacketHelper(
+                MAC.fromString("02:00:bb:bb:00:01"), tapIp1, rtrIp);
 
         RouterPort p2 = router1.addVmPort().setVMAddress(tapIp2).build();
         tapPort2 = new TapWrapper("statsTestTap2");
         ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
-        helper2 = new PacketHelper(MAC.fromString("02:00:bb:bb:00:02"), tapIp2,
-                                   tapPort2.getHwAddr(), rtrIp);
+        helper2 = new PacketHelper(
+                MAC.fromString("02:00:bb:bb:00:02"), tapIp2, rtrIp);
 
         RouterPort p3 = router1.addVmPort().setVMAddress(peerIp).build();
         ovsBridge.addInternalPort(p3.port.getId(), "statsTestInt", peerIp, 24);

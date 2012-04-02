@@ -83,6 +83,11 @@ public class BridgeTest {
         svcController = new ServiceController(6640);
         waitForBridgeToConnect(svcController);
 
+        // Add a service controller to OVS bridge 2.
+        ovsBridge2.addServiceController(6641);
+        svcController = new ServiceController(6641);
+        waitForBridgeToConnect(svcController);
+
         ip1 = IntIPv4.fromString("192.168.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         bPort1 = bridge1.addPort();
