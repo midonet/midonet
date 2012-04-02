@@ -92,7 +92,7 @@ public class VRNController extends AbstractController
         this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
-        this.dhcpHandler = new DhcpHandler();
+        this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this);
     }
 
     public void subscribePortSet(UUID portSetID)
@@ -127,6 +127,19 @@ public class VRNController extends AbstractController
         Integer portNum = portUuidToNumberMap.get(portID);
         if (null != portNum)
             portSetSlice.remove(portNum.shortValue());
+    }
+
+    // TODO(pino): fix this quick hack that's used for DHCP replies.
+    public void sendPacket(byte[] packet, UUID portId) {
+        Integer portNum = portUuidToNumberMap.get(portId);
+        if (null == portNum) {
+            log.error("Can't find the OF port number for this virtual port.");
+            return;
+        }
+        List<OFAction> actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput(portNum.shortValue(), (short) 0));
+        controllerStub.sendPacketOut(ControllerStub.UNBUFFERED_ID,
+                OFPort.OFPP_NONE.getValue(), actions, packet);
     }
 
     /**
@@ -247,8 +260,13 @@ public class VRNController extends AbstractController
                     DHCP dhcp = (DHCP) udp.getPayload();
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
                         log.debug("onPacketIn: got a DHCP bootrequest");
-                        if (dhcpHandler.handleDhcpRequest(inPortId, dhcp,
-                                ethPkt.getSourceMACAddress())) {
+                        try {
+                            if (dhcpHandler.handleDhcpRequest(inPortId, dhcp,
+                                    ethPkt.getSourceMACAddress())) {
+                                freeBuffer(bufferId);
+                                return;
+                            }
+                        } catch (StateAccessException e) {
                             freeBuffer(bufferId);
                             return;
                         }

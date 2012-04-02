@@ -32,12 +32,19 @@ public class BridgeDhcpZkManager extends ZkManager {
         public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
                       List<Opt121> opt121Routes) {
             this.subnetAddr = subnetAddr;
+            // TODO(pino): remove this hard-coded server IP. Make configurable.
+            this.serverAddr = new IntIPv4(subnetAddr.getAddress() + 123,
+                    subnetAddr.getMaskLength());
             this.defaultGateway = defaultGateway;
             this.opt121Routes = opt121Routes;
         }
 
         public IntIPv4 getDefaultGateway() {
             return defaultGateway;
+        }
+
+        public IntIPv4 getServerAddr() {
+            return serverAddr;
         }
 
         public List<Opt121> getOpt121Routes() {
@@ -58,6 +65,10 @@ public class BridgeDhcpZkManager extends ZkManager {
 
         public void setSubnetAddr(IntIPv4 subnetAddr) {
             this.subnetAddr = subnetAddr;
+        }
+
+        public void setServerAddr(IntIPv4 serverAddr) {
+            this.serverAddr = serverAddr;
         }
     }
 

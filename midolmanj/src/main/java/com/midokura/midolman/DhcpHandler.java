@@ -15,16 +15,20 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.DHCP;
 import com.midokura.midolman.packets.DHCPOption;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.state.BridgeDhcpZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
 
 public class DhcpHandler {
@@ -32,14 +36,69 @@ public class DhcpHandler {
     private static final Logger log = LoggerFactory
             .getLogger(DhcpHandler.class);
 
-    public DhcpHandler() {
+    private PortZkManager portMgr;
+    private BridgeDhcpZkManager dhcpMgr;
+    private VRNController controller;
+
+    public DhcpHandler(Directory zkDir, String zkBasePath, VRNController ctrl) {
+        this.portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.dhcpMgr = new BridgeDhcpZkManager(zkDir, zkBasePath);
+        this.controller = ctrl;
     }
 
-    public boolean handleDhcpRequest(UUID inPortId, DHCP request, MAC sourceMac) {
+    public boolean handleDhcpRequest(UUID inPortId, DHCP request,
+            MAC sourceMac) throws StateAccessException {
+        // These fields are decided based on the port configuration.
+        // DHCP is handled differently for bridge and router ports.
+        IntIPv4 serverAddr = null;
+        MAC serverMac = null;
+        IntIPv4 routerAddr = null;
+        IntIPv4 yiaddr = null;
+        IntIPv4 nwAddr = null;
         // Get the port configuration.
-        PortDirectory.MaterializedRouterPortConfig inPortConfig = null;
-
-        /* TODO: Break this up, it's too long. */
+        PortConfig config = portMgr.get(inPortId).value;
+        if (config instanceof PortDirectory.BridgePortConfig) {
+            UUID bridgeId = config.device_id;
+            List<BridgeDhcpZkManager.Subnet> subnets =
+                    dhcpMgr.getSubnets(bridgeId);
+            // Look for the sourceMac in the list of hosts in each subnet.
+            boolean foundHost = false;
+            for (BridgeDhcpZkManager.Subnet sub : subnets) {
+                List<BridgeDhcpZkManager.Host> hosts =
+                        dhcpMgr.getHosts(bridgeId, sub.getSubnetAddr());
+                for (BridgeDhcpZkManager.Host host : hosts) {
+                    if (host.getMac().equals(sourceMac)) {
+                        foundHost = true;
+                        serverAddr = sub.getServerAddr();
+                        serverMac = MAC.fromString("02:a8:9c:de:39:27");
+                        routerAddr = sub.getDefaultGateway();
+                        yiaddr = host.getIp();
+                        nwAddr = sub.getSubnetAddr();
+                        break;
+                    }
+                }
+                if (foundHost)
+                    break;
+            }
+            if (!foundHost) {
+                // Couldn't find a static DHCP host assignment for this mac.
+                return false;
+            }
+        }
+        else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
+            PortDirectory.MaterializedRouterPortConfig rtrPortConfig =
+                    PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+            serverAddr = new IntIPv4(rtrPortConfig.portAddr);
+            serverMac = rtrPortConfig.getHwAddr();
+            routerAddr = serverAddr;
+            yiaddr = new IntIPv4(rtrPortConfig.localNwAddr);
+            nwAddr = new IntIPv4(rtrPortConfig.nwAddr,
+                    rtrPortConfig.nwLength);
+        }
+        else {
+            // Unsupported port type.
+            return false;
+        }
         byte[] chaddr = request.getClientHardwareAddress();
         if (null == chaddr) {
             log.warn("handleDhcpRequest dropping bootrequest with null chaddr");
@@ -127,7 +186,7 @@ public class DhcpHandler {
                 //return true;
             } else {
                 // The server id should correspond to this port's address.
-                int ourServId = inPortConfig.portAddr;
+                int ourServId = serverAddr.getAddress();
                 int theirServId = IPv4.toIPv4Address(opt.getData());
                 if (ourServId != theirServId) {
                     log.warn("handleDhcpRequest dropping dhcp REQUEST - client "
@@ -145,7 +204,7 @@ public class DhcpHandler {
             }
             // The requested ip must correspond to the yiaddr in our offer.
             int reqIp = IPv4.toIPv4Address(opt.getData());
-            int offeredIp = inPortConfig.localNwAddr;
+            int offeredIp = yiaddr.getAddress();
             // TODO(pino): must keep state and remember the offered ip based
             // on the chaddr or the client id option.
             if (reqIp != offeredIp) {
@@ -168,18 +227,18 @@ public class DhcpHandler {
         reply.setHardwareAddressLength((byte) 6);
         reply.setHardwareType((byte) ARP.HW_TYPE_ETHERNET);
         reply.setClientHardwareAddress(sourceMac);
-        reply.setServerIPAddress(inPortConfig.portAddr);
+        reply.setServerIPAddress(serverAddr.getAddress());
         // TODO(pino): use explicitly assigned address not localNwAddr!!
-        reply.setYourIPAddress(inPortConfig.localNwAddr);
+        reply.setYourIPAddress(yiaddr.getAddress());
         // TODO(pino): do we need to include the DNS option?
         opt = new DHCPOption(DHCPOption.Code.MASK.value(),
                 DHCPOption.Code.MASK.length(),
-                IPv4.toIPv4AddressBytes(~0 << (32 - inPortConfig.nwLength)));
+                IPv4.toIPv4AddressBytes(~0 << (32 - nwAddr.getMaskLength())));
         options.add(opt);
         // Generate the broadcast address... this is nwAddr with 1's in the
         // last 32-nwAddrLength bits.
-        int mask = ~0 >>> inPortConfig.nwLength;
-        int bcast = mask | inPortConfig.nwAddr;
+        int mask = ~0 >>> nwAddr.getMaskLength();
+        int bcast = mask | nwAddr.getAddress();
         log.debug("handleDhcpRequest setting bcast addr option to {}",
                 IPv4.fromIPv4Address(bcast));
         opt = new DHCPOption(
@@ -196,13 +255,13 @@ public class DhcpHandler {
         opt = new DHCPOption(
                 DHCPOption.Code.ROUTER.value(),
                 DHCPOption.Code.ROUTER.length(),
-                IPv4.toIPv4AddressBytes(inPortConfig.portAddr));
+                IPv4.toIPv4AddressBytes(routerAddr.getAddress()));
         options.add(opt);
         // in MidoNet the DHCP server is the same as the router
         opt = new DHCPOption(
                 DHCPOption.Code.SERVER_ID.value(),
                 DHCPOption.Code.SERVER_ID.length(),
-                IPv4.toIPv4AddressBytes(inPortConfig.portAddr));
+                IPv4.toIPv4AddressBytes(serverAddr.getAddress()));
         options.add(opt);
         // And finally add the END option.
         opt = new DHCPOption(DHCPOption.Code.END.value(),
@@ -216,7 +275,7 @@ public class DhcpHandler {
         udp.setPayload(reply);
 
         IPv4 ip = new IPv4();
-        ip.setSourceAddress(inPortConfig.portAddr);
+        ip.setSourceAddress(serverAddr.getAddress());
         ip.setDestinationAddress("255.255.255.255");
         ip.setProtocol(UDP.PROTOCOL_NUMBER);
         ip.setPayload(udp);
@@ -225,13 +284,13 @@ public class DhcpHandler {
         eth.setEtherType(IPv4.ETHERTYPE);
         eth.setPayload(ip);
 
-        eth.setSourceMACAddress(inPortConfig.getHwAddr());
+        eth.setSourceMACAddress(serverMac);
         eth.setDestinationMACAddress(sourceMac);
 
         log.debug("handleDhcpRequest: sending DHCP reply {} to port {}", eth,
                 inPortId);
-        //devPortIn.send(eth.serialize());
-        //sendUnbufferedPacketFromPort(eth, devPortIn.getNum());
+
+        controller.sendPacket(eth.serialize(), inPortId);
         return true;
     }
 
