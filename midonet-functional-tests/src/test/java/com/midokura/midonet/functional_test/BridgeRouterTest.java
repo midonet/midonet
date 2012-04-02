@@ -84,22 +84,22 @@ public class BridgeRouterTest {
         rtr = tenant1.addRouter().setName("rtr1").build();
 
         // Create a virtual L2 bridge with one tap port.
-        Bridge bridge = tenant1.addBridge().setName("br1").build();
-        BridgePort bPort = bridge.addPort();
+        Bridge bridge1 = tenant1.addBridge().setName("br1").build();
+        BridgePort bPort1 = bridge1.addPort();
         tap1 = new TapWrapper("tapBridge1");
-        ovsBridge.addSystemPort(bPort.getId(), tap1.getName());
+        ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
         // Link the Bridge and Router
-        link1 = rtr.addBridgeRouterLink(bridge, subnetAddr1);
+        link1 = rtr.addBridgeRouterLink(bridge1, subnetAddr1);
 
         // Create another virtual L2 bridge with one tap port.
-        bridge = tenant1.addBridge().setName("br2").build();
-        bPort = bridge.addPort();
+        Bridge bridge2 = tenant1.addBridge().setName("br2").build();
+        BridgePort bPort2 = bridge2.addPort();
         tap2 = new TapWrapper("tapBridge2");
-        ovsBridge.addSystemPort(bPort.getId(), tap2.getName());
+        ovsBridge.addSystemPort(bPort2.getId(), tap2.getName());
 
         // Link the Bridge and Router
-        link2 = rtr.addBridgeRouterLink(bridge, subnetAddr2);
+        link2 = rtr.addBridgeRouterLink(bridge2, subnetAddr2);
 
         sleepBecause("we wait for the network configuration to bootup", 5);
     }

@@ -309,7 +309,7 @@ public class Router implements ForwardingElement {
         RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
 
         if (Ethernet.isBroadcast(hwDst)) {
-            // Handle ARP.
+            // Handle ARP requests.
             if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
                 processArp(fwdInfo.pktIn, fwdInfo.inPortId);
                 fwdInfo.action = Action.CONSUMED;
@@ -320,11 +320,18 @@ public class Router implements ForwardingElement {
                 return;
             }
         }
+
         // Drop the packet if it isn't addressed to the inPort's MAC.
         if (!hwDst.equals(rtrPortCfg.getHwAddr())) {
             fwdInfo.action = Action.DROP;
             log.warn("dlDst {} neither bcast nor inPort's addr", hwDst);
             return;
+        }
+
+        // Handle ARP replies.
+        if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
+            // TODO(pino): ok to also processes ARP requests sent to our MAC?
+            processArp(fwdInfo.pktIn, fwdInfo.inPortId);
         }
 
         // Drop the packet if it isn't IPv4.
