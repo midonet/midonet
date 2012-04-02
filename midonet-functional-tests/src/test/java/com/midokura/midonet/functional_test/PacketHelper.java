@@ -45,10 +45,16 @@ public class PacketHelper {
     MAC gwMac;
     IntIPv4 gwIp;
 
+    // This constructor can be used when the gwMac isn't known. Call setGwMac
+    // when the gwMac is finally known.
     public PacketHelper(MAC mac, IntIPv4 ip, IntIPv4 gwIp) {
+        this(mac, ip, null, gwIp);
+    }
+
+    public PacketHelper(MAC mac, IntIPv4 ip, MAC gwMac, IntIPv4 gwIp) {
         this.epMac = mac;
         this.epIp = ip;
-        this.gwMac = null; // set after the MAC is resolved via ARP.
+        this.gwMac = gwMac;
         this.gwIp = gwIp;
     }
 
@@ -92,7 +98,7 @@ public class PacketHelper {
      * @throws MalformedPacketException
      */
     public MAC checkArpReply(byte[] recv) throws MalformedPacketException {
-        checkArpReply(recv, gwIp, epMac, epIp);
+        return checkArpReply(recv, gwIp, epMac, epIp);
     }
 
     public static MAC checkArpReply(byte[] recv, IntIPv4 nwSrc,

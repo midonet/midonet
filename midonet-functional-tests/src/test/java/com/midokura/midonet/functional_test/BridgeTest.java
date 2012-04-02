@@ -106,7 +106,6 @@ public class BridgeTest {
         tap3 = new TapWrapper("tapBridge3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
-
         helper1_3 = new PacketHelper(mac1, ip1, mac3, ip3);
         helper3_1 = new PacketHelper(mac3, ip3, mac1, ip1);
 
