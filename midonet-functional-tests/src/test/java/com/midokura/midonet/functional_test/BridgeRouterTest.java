@@ -133,6 +133,7 @@ public class BridgeRouterTest {
                 received, notNullValue());
         Ethernet eth = new Ethernet();
         eth.deserialize(ByteBuffer.wrap(received, 0, received.length));
+        // TODO(pino): verify this is an ARP reply from rtrIp1
         // Now that we know the router's MAC we can create the packet helper.
         PacketHelper helper1 = new PacketHelper(vmMac1, ip1,
                 eth.getSourceMACAddress(), rtrIp1);

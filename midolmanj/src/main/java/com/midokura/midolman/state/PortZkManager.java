@@ -263,16 +263,13 @@ public class PortZkManager extends ZkManager {
             res = prepareLinkDelete(entry);
         } else if (entry.value instanceof PortDirectory.BridgePortConfig) {
             res = prepareBridgePortDelete(entry);
+            res.addAll(greZkManager.prepareGreDelete(entry.value.greKey));
         } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
             res = prepareRouterPortDelete(entry);
+            res.addAll(greZkManager.prepareGreDelete(entry.value.greKey));
         } else {
             throw new IllegalArgumentException("Unsupported port type");
         }
-        // Delete GRE
-        GreKey gre = new GreKey(entry.key);
-        res.addAll(greZkManager
-                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
-                        entry.value.greKey, gre)));
         return res;
     }
 

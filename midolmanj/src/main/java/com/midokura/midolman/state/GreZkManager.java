@@ -12,6 +12,8 @@ import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class to manage the GRE ZooKeeper data.
@@ -20,6 +22,8 @@ import org.apache.zookeeper.Op;
  * @author Ryu Ishimoto
  */
 public class GreZkManager extends ZkManager {
+    private final static Logger log = LoggerFactory
+            .getLogger(GreZkManager.class);
 
     public static class GreKey {
 
@@ -90,11 +94,6 @@ public class GreZkManager extends ZkManager {
         return new ZkNodeEntry<Integer, GreKey>(new Integer(key), gre);
     }
 
-    public List<Op> prepareGreDelete(int key) throws StateAccessException,
-            ZkStateSerializationException {
-        return prepareGreDelete(get(key));
-    }
-
     /***
      * Constructs a list of operations to perform in a gre deletion.
      *
@@ -102,8 +101,14 @@ public class GreZkManager extends ZkManager {
      *            ZK entry of the gre to delete.
      */
     public List<Op> prepareGreDelete(ZkNodeEntry<Integer, GreKey> entry) {
+        return prepareGreDelete(entry.key);
+    }
+
+    public List<Op> prepareGreDelete(int greKey) {
+        String path = pathManager.getGreKeyPath(greKey);
+        log.debug("Preparing to delete: " + path);
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getGreKeyPath(entry.key), -1));
+        ops.add(Op.delete(path, -1));
         return ops;
     }
 
