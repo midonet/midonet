@@ -11,6 +11,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoVpn.VpnType;
@@ -150,8 +153,20 @@ public class VpnTest {
                 MAC.fromString("02:00:00:dd:dd:01"), ip1, rtr1);
         PacketHelper helper2 = new PacketHelper(
                 MAC.fromString("02:00:00:dd:dd:02"), ip2, rtr2);
-        byte[] sent;
 
+        // First arp for router1's mac.
+        assertThat("The ARP request was sent properly",
+                tapPort1.send(helper1.makeArpRequest()));
+        MAC rtrMac = helper1.checkArpReply(tapPort1.recv());
+        helper1.setGwMac(rtrMac);
+
+        // First arp for router2's mac.
+        assertThat("The ARP request was sent properly",
+                tapPort2.send(helper2.makeArpRequest()));
+        rtrMac = helper2.checkArpReply(tapPort2.recv());
+        helper2.setGwMac(rtrMac);
+
+        byte[] sent;
         sent = helper1.makeIcmpEchoRequest(ip2);
         assertTrue(tapPort1.send(sent));
         // Note: the virtual router ARPs before delivering the IPv4 packet.
