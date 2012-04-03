@@ -34,7 +34,23 @@ public enum NxmType {
     NXM_OF_ARP_SPA(0, (byte) 16, (short) 4, true, OfArpSrcPacketNxmEntry.class),
     NXM_OF_ARP_TPA(0, (byte) 17, (short) 4, true, OfArpTargetPacketNxmEntry.class),
     NXM_NX_TUN_ID(1, (byte) 16, (short) 8, true, OfNxTunIdNxmEntry.class),
-    NXM_NX_COOKIE(1, (byte) 30, (short) 8, true, OfNxCookieNxmEntry.class);
+    NXM_NX_COOKIE(1, (byte) 30, (short) 8, true, OfNxCookieNxmEntry.class),
+    NXM_REGISTER_O(1, (byte) 0, (short) 4, false, OfRegister0NxmEntry.class),
+    NXM_REGISTER_1(1, (byte) 1, (short) 4, false, OfRegister1NxmEntry.class),
+    NXM_REGISTER_2(1, (byte) 2, (short) 4, false, OfRegister2NxmEntry.class),
+    NXM_REGISTER_3(1, (byte) 3, (short) 4, false, OfRegister3NxmEntry.class),
+    NXM_REGISTER_4(1, (byte) 4, (short) 4, false, OfRegister4NxmEntry.class),
+    NXM_REGISTER_5(1, (byte) 5, (short) 4, false, OfRegister5NxmEntry.class),
+    NXM_REGISTER_6(1, (byte) 6, (short) 4, false, OfRegister6NxmEntry.class),
+    NXM_REGISTER_7(1, (byte) 7, (short) 4, false, OfRegister7NxmEntry.class),
+    NXM_REGISTER_W_0(1, (byte) 0, (short) 4, true, OfRegisterWide0NxmEntry.class),
+    NXM_REGISTER_W_1(1, (byte) 1, (short) 4, true, OfRegisterWide1NxmEntry.class),
+    NXM_REGISTER_W_2(1, (byte) 2, (short) 4, true, OfRegisterWide2NxmEntry.class),
+    NXM_REGISTER_W_3(1, (byte) 3, (short) 4, true, OfRegisterWide3NxmEntry.class),
+    NXM_REGISTER_W_4(1, (byte) 4, (short) 4, true, OfRegisterWide4NxmEntry.class),
+    NXM_REGISTER_W_5(1, (byte) 5, (short) 4, true, OfRegisterWide5NxmEntry.class),
+    NXM_REGISTER_W_6(1, (byte) 6, (short) 4, true, OfRegisterWide6NxmEntry.class),
+    NXM_REGISTER_W_7(1, (byte) 7, (short) 4, true, OfRegisterWide7NxmEntry.class);
 
     private static final Map<Integer, NxmType> lookup;
 

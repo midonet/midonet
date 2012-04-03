@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.openflow.nxm;
 
-import java.nio.ByteBuffer;
-
 public class OfEthTypeNxmEntry extends ShortNomaskNxmEntry {
 
     public OfEthTypeNxmEntry(short ethType) {
