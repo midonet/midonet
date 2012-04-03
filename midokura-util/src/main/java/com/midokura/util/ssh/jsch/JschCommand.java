@@ -1,7 +1,7 @@
 /*
 * Copyright 2011 Midokura Europe SARL
 */
-package com.midokura.tools.ssh.jsch;
+package com.midokura.util.ssh.jsch;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -13,10 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@midokura.com>
- * <p/>
- * Date: 12/14/11
- * Time: 3:03 PM
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 12/14/11
  */
 public class JschCommand {
 
@@ -33,7 +31,7 @@ public class JschCommand {
         this.userInfo = userInfo;
     }
 
-    protected Session getJschSession(int timeout) throws JSchException {
+    public Session getJschSession(int timeout) throws JSchException {
         JSch jsch = new JSch();
         Session session = null;
         session = jsch.getSession(username, hostname, port);

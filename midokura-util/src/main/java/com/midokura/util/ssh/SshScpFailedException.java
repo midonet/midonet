@@ -1,4 +1,4 @@
-package com.midokura.tools.ssh;
+package com.midokura.util.ssh;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@midokura.com>

@@ -1,11 +1,11 @@
 /*
 * Copyright 2011 Midokura Europe SARL
 */
-package com.midokura.tools.ssh;
+package com.midokura.util.ssh;
 
-import com.midokura.tools.ssh.jsch.JschCopyFileCommand;
-import com.midokura.tools.ssh.jsch.JschRemoteCommand;
-import com.midokura.tools.ssh.jsch.PasswordCredentialsUserInfo;
+import com.midokura.util.ssh.jsch.JschCopyFileCommand;
+import com.midokura.util.ssh.jsch.JschRemoteCommand;
+import com.midokura.util.ssh.jsch.PasswordCredentialsUserInfo;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@gmail.com>
@@ -14,7 +14,7 @@ import com.midokura.tools.ssh.jsch.PasswordCredentialsUserInfo;
  * Time: 5:34 PM
  */
 public class SshHelper {
-    
+
     public static SendFileCommandBuilder copyFileTo(final String localFileName,
                                                     final String remoteFileName)
     {
@@ -26,7 +26,7 @@ public class SshHelper {
             }
         };
     }
-    
+
     public static SendFileCommandBuilder copyFileFrom(String localFileName,
                                                       String remoteFileName)
     {
@@ -94,7 +94,7 @@ public class SshHelper {
 
         boolean runWithTimeout(int timeout);
     }
-    
+
     public interface RemoteCommandBuilder {
 
         RemoteCommandBuilder onHost(String hostname);

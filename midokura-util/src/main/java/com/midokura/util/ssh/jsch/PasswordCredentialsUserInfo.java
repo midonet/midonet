@@ -1,7 +1,7 @@
 /*
 * Copyright 2011 Midokura Europe SARL
 */
-package com.midokura.tools.ssh.jsch;
+package com.midokura.util.ssh.jsch;
 
 import com.jcraft.jsch.UserInfo;
 

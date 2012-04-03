@@ -30,7 +30,7 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.ssh.SshHelper;
+import com.midokura.util.ssh.SshHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 
 /**

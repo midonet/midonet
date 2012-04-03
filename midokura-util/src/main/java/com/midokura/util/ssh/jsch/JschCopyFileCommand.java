@@ -1,10 +1,9 @@
 /**
  * Copyright 2011 Midokura Europe SARL
  */
-package com.midokura.tools.ssh.jsch;
+package com.midokura.util.ssh.jsch;
 
-import com.midokura.tools.ssh.SshCommandExecutionFailedException;
-import com.midokura.tools.ssh.SshScpFailedException;
+import com.midokura.util.ssh.SshScpFailedException;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -20,10 +19,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@midokura.com>
- * <p/>
- * Date: 12/14/11
- * Time: 3:02 PM
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 12/14/11
  */
 public class JschCopyFileCommand extends JschCommand {
 
@@ -42,7 +39,7 @@ public class JschCopyFileCommand extends JschCommand {
             session = getJschSession(timeout);
 
             String command = "";
-            
+
             if ( directCopy ) {
                 command = "scp -p -t " + remoteFile;
             } else {
@@ -83,8 +80,8 @@ public class JschCopyFileCommand extends JschCommand {
         if ( checkAck(chanIn) != 0 )
             return false;
 
-        File localFile = new File(localFileName); 
-        
+        File localFile = new File(localFileName);
+
         // send "C0644 filesize filename", where filename should not include '/'
         String command =
             String.format("C0644 %d %s\n", localFile.length(), localFile.getName());

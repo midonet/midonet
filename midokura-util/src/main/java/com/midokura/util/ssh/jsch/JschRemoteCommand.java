@@ -1,20 +1,17 @@
 /*
 * Copyright 2011 Midokura Europe SARL
 */
-package com.midokura.tools.ssh.jsch;
+package com.midokura.util.ssh.jsch;
 
 import com.jcraft.jsch.*;
-import com.midokura.tools.ssh.SshCommandExecutionFailedException;
+import com.midokura.util.ssh.SshCommandExecutionFailedException;
 import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
- * Date: 11/24/11
- * Time: 5:42 PM
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
+ *         Date: 11/24/11
  */
 public class JschRemoteCommand extends JschCommand {
 

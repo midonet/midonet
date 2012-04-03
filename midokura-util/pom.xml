@@ -83,6 +83,13 @@
     </build>
 
     <dependencies>
+        <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.45</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>

@@ -1,7 +1,7 @@
 /*
 * Copyright 2011 Midokura Europe SARL
 */
-package com.midokura.tools.ssh;
+package com.midokura.util.ssh;
 
 /**
  * Author: Toader Mihai Claudiu <mtoader@gmail.com>
