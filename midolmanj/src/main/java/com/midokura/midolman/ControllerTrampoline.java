@@ -154,8 +154,6 @@ public class ControllerTrampoline implements Controller {
             log.warn("ZK error", e);
         } catch (IOException e) {
             log.warn("IO error", e);
-        //} catch (JMException e) {
-        //    log.warn("JMX error", e);
         }
     }
 
@@ -245,7 +243,8 @@ public class ControllerTrampoline implements Controller {
     @Override
     public void onFlowRemoved(OFMatch match, long cookie, short priority, OFFlowRemovedReason reason, int durationSeconds, int durationNanoseconds, short idleTimeout, long packetCount, long byteCount) {
         log.warn("onFlowRemoved");
-//        throw new UnsupportedOperationException();
+        // TODO: Fix what's causing these to be sent to the trampoline.
+        // throw new UnsupportedOperationException();
     }
 
     @Override
