@@ -322,7 +322,7 @@ public class Router implements ForwardingElement {
             // OpenFlow uses NetworkProtocol to encode the ARP opcode.
             if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE
                     && fwdInfo.matchIn.getNetworkProtocol() == ARP.OP_REQUEST) {
-                processArpReply(ARP.class.cast(fwdInfo.pktIn.getPayload()),
+                processArpRequest(ARP.class.cast(fwdInfo.pktIn.getPayload()),
                         fwdInfo.inPortId, rtrPortCfg);
                 fwdInfo.action = Action.CONSUMED;
             } else {
@@ -521,44 +521,6 @@ public class Router implements ForwardingElement {
                 IPv4.fromIPv4Address(ipReply.getSourceAddress()),
                 IPv4.fromIPv4Address(ipReply.getDestinationAddress()));
         controller.addGeneratedPacket(ethReply, fwdInfo.inPortId);
-    }
-
-    private void processArp(Ethernet etherPkt, UUID inPortId)
-            throws StateAccessException {
-        log.debug("processArp: etherPkt {} from port {}", etherPkt, inPortId);
-
-        if (!(etherPkt.getPayload() instanceof ARP)) {
-            log.warn("{} ignoring packet with ARP ethertype but non-ARP "
-                    + "payload.", this);
-            return;
-        }
-        ARP arpPkt = (ARP) etherPkt.getPayload();
-        // Discard the arp if its protocol type is not IP.
-        if (arpPkt.getProtocolType() != ARP.PROTO_TYPE_IP) {
-            log.warn("{} ignoring an ARP packet with protocol type {}",
-                    this, arpPkt.getProtocolType());
-            return;
-        }
-        PortConfig portCfg = portMgr.get(inPortId).value;
-        RouterPortConfig rtrPortConfig = RouterPortConfig.class.cast(portCfg);
-        if (arpPkt.getOpCode() == ARP.OP_REQUEST) {
-            // ARP requests should broadcast or multicast. Ignore otherwise.
-            // TODO(pino): ok to accept if it's addressed to us?
-            if (etherPkt.isMcast()
-                    || rtrPortConfig.getHwAddr().equals(
-                            etherPkt.getDestinationMACAddress()))
-                processArpRequest(arpPkt, inPortId, rtrPortConfig);
-            else
-                log.warn("{} ignoring an ARP with a non-bcast/mcast dlDst {}",
-                        this, etherPkt.getDestinationMACAddress());
-        } else if (arpPkt.getOpCode() == ARP.OP_REPLY)
-            processArpReply(arpPkt, inPortId, rtrPortConfig);
-
-        // We ignore any other ARP packets: they may be malicious, bogus,
-        // gratuitous ARP announcement requests, etc.
-        // TODO(pino): above comment ported from Python, but I don't get it
-        // since there are only two possible ARP operations. Was this meant to
-        // go somewhere else?
     }
 
     private static boolean spoofL2Network(int hostNwAddr, int nwAddr,

@@ -538,7 +538,7 @@ public abstract class AbstractController
         if (data.getEtherType() == ARP.ETHERTYPE) {
             ARP packet = ARP.class.cast(data.getPayload());
             // OpenFlow uses NetworkProtocol to encode the ARP opcode.
-            match.setNetworkProtocol((byte)packet.getProtocolType());
+            match.setNetworkProtocol((byte)packet.getOpCode());
             if (packet.getProtocolType() == ARP.PROTO_TYPE_IP) {
                 match.setNetworkSource(
                         IPv4.toIPv4Address(packet.getSenderProtocolAddress()));
