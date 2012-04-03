@@ -118,6 +118,13 @@ public class FloatingIpTest {
     public void testFloatingIp() throws MalformedPacketException {
         byte[] request;
 
+        // First arp for router's mac.
+        assertThat("The ARP request was sent properly",
+                tapPort1.send(helper1.makeArpRequest()));
+        MAC rtrMac = helper1.checkArpReply(tapPort1.recv());
+        // Now set the GW MAC so that other packets can be generated.
+        helper1.setGwMac(rtrMac);
+
         // ICMP echo request to the floatingIP from tapPort1.
         request = helper1.makeIcmpEchoRequest(pubAddr);
         assertThat("The ICMP request was sent successfully",
@@ -140,6 +147,13 @@ public class FloatingIpTest {
         PacketHelper.checkIcmpEchoReply(request, tapPort1.recv(), pubAddr);
 
         // ICMP echo request to the private IP from tapPort2.
+        // First arp for router's mac.
+        assertThat("The ARP request was sent properly",
+                tapPort2.send(helper2.makeArpRequest()));
+        rtrMac = helper2.checkArpReply(tapPort2.recv());
+        // Now set the GW MAC so that other packets can be generated.
+        helper2.setGwMac(rtrMac);
+
         request = helper2.makeIcmpEchoRequest(privAddr);
         assertTrue(tapPort2.send(request));
         // Midolman's virtual router ARPs before delivering the response.
