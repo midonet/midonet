@@ -18,6 +18,7 @@ public class OfRegisterWide4NxmEntry extends IntNomaskNxmEntry {
 
     @Override
     public NxmType getNxmType() {
-        return NxmType.NXM_REGISTER_O;
+        return NxmType.NXM_REGISTER_W_4;
+
     }
 }

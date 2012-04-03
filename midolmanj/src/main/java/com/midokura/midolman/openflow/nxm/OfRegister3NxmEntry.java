@@ -18,6 +18,6 @@ public class OfRegister3NxmEntry extends IntNomaskNxmEntry {
 
     @Override
     public NxmType getNxmType() {
-        return NxmType.NXM_REGISTER_O;
+        return NxmType.NXM_REGISTER_3;
     }
 }

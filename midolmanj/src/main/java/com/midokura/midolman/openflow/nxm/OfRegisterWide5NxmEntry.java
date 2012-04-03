@@ -18,6 +18,6 @@ public class OfRegisterWide5NxmEntry extends IntNomaskNxmEntry {
 
     @Override
     public NxmType getNxmType() {
-        return NxmType.NXM_REGISTER_O;
+        return NxmType.NXM_REGISTER_W_5;
     }
 }
