@@ -7,9 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -18,21 +15,19 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TunnelingTest {
 
@@ -54,7 +49,7 @@ public class TunnelingTest {
     OvsBridge ovsBridge2;
 
     @Before
-    public void setUp() throws InterruptedException, IOException {
+    public void setUp() throws Exception, IOException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -68,6 +63,8 @@ public class TunnelingTest {
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
         ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
+        ovsBridge1.addServiceController(6640);
+        waitForBridgeToConnect(new ServiceController(6640));
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-tunneling").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
@@ -109,13 +106,15 @@ public class TunnelingTest {
         // First arp for router's mac from port1.
         assertThat("An ARP packet was successfully sent via the first tap port",
                    tapPort1.send(helper1.makeArpRequest()));
-        helper1.checkArpReply(tapPort1.recv());
+        MAC gwMac = helper1.checkArpReply(tapPort1.recv());
+        helper1.setGwMac(gwMac);
 
         // Arp for router's mac from port2.
         assertThat(
-            "An ARP packet was successfully sent via the second tap port",
-            tapPort2.send(helper2.makeArpRequest()));
-        helper2.checkArpReply(tapPort2.recv());
+                "An ARP packet was successfully sent via the second tap port",
+                tapPort2.send(helper2.makeArpRequest()));
+        gwMac = helper2.checkArpReply(tapPort2.recv());
+        helper2.setGwMac(gwMac);
 
         byte[] icmpRequest;
 
