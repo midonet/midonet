@@ -59,7 +59,6 @@ public class BridgePortDeleteTest {
     TapWrapper tap1;
     TapWrapper tap2;
     OvsBridge ovsBridge1;
-    OvsBridge ovsBridge2;
     ServiceController svcController;
 
     @Before
@@ -80,7 +79,6 @@ public class BridgePortDeleteTest {
         bridge1 = tenant1.addBridge().setName("br1").build();
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
 
         // Add a service controller to OVS bridge 1.
         ovsBridge1.addServiceController(6640);
@@ -104,7 +102,6 @@ public class BridgePortDeleteTest {
         removeTapWrapper(tap2);
 
         removeBridge(ovsBridge1);
-        removeBridge(ovsBridge2);
 
         stopMidolman(midolman1);
         stopMidolman(midolman2);
@@ -121,8 +118,8 @@ public class BridgePortDeleteTest {
 
         // Send broadcast from Mac1/port1.
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
-        assertThat("The ARP packet was sent properly.",tap1.send(pkt));
-        assertThat("The received package is the same as the one sent",
+        assertThat("The ARP packet was sent properly.", tap1.send(pkt));
+        assertThat("The received packet is the same as the one sent",
                    tap2.recv(), equalTo(pkt));
 
         // There should now be one flow that outputs to ALL.
@@ -133,8 +130,12 @@ public class BridgePortDeleteTest {
         assertThat("We should have only one FlowStats object.",
                    fstats, hasSize(1));
 
+        short portNum1 =
+            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        short portNum2 =
+            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
         FlowStats flow1 = fstats.get(0);
-        flow1.expectCount(1).expectOutputAction(OFPort.OFPP_ALL.getValue());
+        flow1.expectCount(1).expectOutputAction(portNum2);
 
         // Send unicast from Mac2/port2 to mac1.
         pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
@@ -155,8 +156,6 @@ public class BridgePortDeleteTest {
                    fstats, hasSize(1));
 
         FlowStats flow2 = fstats.get(0);
-        short portNum1 =
-            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         flow2.expectCount(1).expectOutputAction(portNum1);
 
         // The first flow should not have changed.
