@@ -314,6 +314,7 @@ public class PacketHelper {
         ICMP icmp = new ICMP();
         icmp.setEchoRequest(id, seq, data);
         IPv4 ip = new IPv4();
+        ip.setTtl((byte)12);
         ip.setPayload(icmp);
         ip.setProtocol(ICMP.PROTOCOL_NUMBER);
         ip.setSourceAddress(nwSrc.address);
