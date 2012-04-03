@@ -305,8 +305,7 @@ public class PacketHelper {
     }
 
     public static byte[] makeIcmpEchoRequest(MAC dlSrc, IntIPv4 nwSrc,
-                                             MAC dlDst,
-                                             IntIPv4 nwDst) {
+                                             MAC dlDst, IntIPv4 nwDst) {
         short id = (short) rand.nextInt();
         short seq = (short) rand.nextInt();
         byte[] data = new byte[17];

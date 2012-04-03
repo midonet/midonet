@@ -6,7 +6,6 @@ package com.midokura.midonet.functional_test;
 
 import java.util.List;
 
-
 import static java.lang.String.format;
 
 import org.junit.After;
@@ -106,6 +105,20 @@ public class DeletePortTest {
                 MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
         helper2 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:02"), ip2, rtrIp);
+
+        // First arp for router's mac.
+        assertThat("The ARP request was sent properly",
+                   tap1.send(helper1.makeArpRequest()));
+
+        MAC rtrMac = helper1.checkArpReply(tap1.recv());
+        helper1.setGwMac(rtrMac);
+
+        // First arp for router's mac.
+        assertThat("The ARP request was sent properly",
+                   tap2.send(helper2.makeArpRequest()));
+
+        rtrMac = helper2.checkArpReply(tap2.recv());
+        helper2.setGwMac(rtrMac);
 
         sleepBecause("the network config should boot up", 5);
     }
