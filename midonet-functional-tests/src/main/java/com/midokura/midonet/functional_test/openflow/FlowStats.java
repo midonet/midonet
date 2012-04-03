@@ -5,6 +5,8 @@
 package com.midokura.midonet.functional_test.openflow;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import junit.framework.Assert;
 
@@ -64,6 +66,20 @@ public class FlowStats {
         return this;
     }
 
+    public FlowStats expectOutputActions(Set<Short> portNums) {
+        List<OFAction> actions = stat.getActions();
+        Assert.assertTrue(actions.size() >= portNums.size());
+        Set<Short> actual = new HashSet<Short>();
+        for (int i = 1; i <= portNums.size(); i++) {
+            OFAction act = actions.get(actions.size() - i);
+            Assert.assertEquals(OFActionType.OUTPUT, act.getType());
+            OFActionOutput outAct = OFActionOutput.class.cast(act);
+            actual.add(new Short(outAct.getPort()));
+        }
+        Assert.assertEquals(portNums, actual);
+        return this;
+    }
+
     public FlowStats expectOutputAction(short portNum) {
         List<OFAction> actions = stat.getActions();
         Assert.assertTrue(actions.size() > 0);
@@ -73,4 +89,5 @@ public class FlowStats {
         Assert.assertEquals(portNum, outAct.getPort());
         return this;
     }
+
 }

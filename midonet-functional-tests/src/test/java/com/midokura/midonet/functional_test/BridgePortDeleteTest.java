@@ -5,6 +5,8 @@
 package com.midokura.midonet.functional_test;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,16 +50,18 @@ public class BridgePortDeleteTest {
     Tenant tenant1;
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
     IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
+    IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
     OpenvSwitchDatabaseConnectionImpl ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
-    MidolmanLauncher midolman2;
     BridgePort bPort1;
     BridgePort bPort2;
+    BridgePort bPort3;
     Bridge bridge1;
     TapWrapper tap1;
     TapWrapper tap2;
+    TapWrapper tap3;
     OvsBridge ovsBridge1;
     ServiceController svcController;
 
@@ -68,17 +72,16 @@ public class BridgePortDeleteTest {
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default, "BridgePortDeleteTest-smoke_br");
-        midolman2 = MidolmanLauncher.start(Without_Bgp, "BridgePortDeleteTest-smoke_br2");
 
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        if (ovsdb.hasBridge("smoke-br2"))
-            ovsdb.delBridge("smoke-br2");
+        if (ovsdb.hasBridge("portdel-br"))
+            ovsdb.delBridge("portdel-br");
+        if (ovsdb.hasBridge("portdel-br2"))
+            ovsdb.delBridge("portdel-br2");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
+        ovsBridge1 = new OvsBridge(ovsdb, "portdel-br");
 
         // Add a service controller to OVS bridge 1.
         ovsBridge1.addServiceController(6640);
@@ -93,6 +96,10 @@ public class BridgePortDeleteTest {
         tap2 = new TapWrapper("tapBridgeDel2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
+        bPort3 = bridge1.addPort();
+        tap3 = new TapWrapper("tapBridgeDel3");
+        ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
+
         sleepBecause("we want the network config to boot up properly", 5);
     }
 
@@ -100,11 +107,11 @@ public class BridgePortDeleteTest {
     public void tearDown() {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
+        removeTapWrapper(tap3);
 
         removeBridge(ovsBridge1);
 
         stopMidolman(midolman1);
-        stopMidolman(midolman2);
 
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
@@ -115,12 +122,15 @@ public class BridgePortDeleteTest {
         // Use different MAC addrs from other tests (unlearned MACs).
         MAC mac1 = MAC.fromString("02:00:00:00:aa:01");
         MAC mac2 = MAC.fromString("02:00:00:00:aa:02");
+        MAC mac3 = MAC.fromString("02:00:00:00:aa:03");
 
         // Send broadcast from Mac1/port1.
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         assertThat("The ARP packet was sent properly.", tap1.send(pkt));
         assertThat("The received packet is the same as the one sent",
                    tap2.recv(), equalTo(pkt));
+        assertThat("The received packet is the same as the one sent",
+                   tap3.recv(), equalTo(pkt));
 
         // There should now be one flow that outputs to ALL.
         Thread.sleep(1000);
@@ -134,8 +144,14 @@ public class BridgePortDeleteTest {
             ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         short portNum2 =
             ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        short portNum3 =
+            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap3.getName()));
         FlowStats flow1 = fstats.get(0);
-        flow1.expectCount(1).expectOutputAction(portNum2);
+        Set<Short> expected = new HashSet<Short>();
+        // port 1 is the ingress port, so not output to.
+        expected.add(portNum2);
+        expected.add(portNum3);
+        flow1.expectCount(1).expectOutputActions(expected);
 
         // Send unicast from Mac2/port2 to mac1.
         pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
