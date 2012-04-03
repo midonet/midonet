@@ -916,10 +916,16 @@ public class Router implements ForwardingElement {
         // The destination MAC is either the source of the original packet,
         // or the hwAddr of the gateway that sent us the packet.
         if (portConfig instanceof LogicalRouterPortConfig) {
-            LogicalRouterPortConfig cfg =
+            LogicalRouterPortConfig lcfg =
                     LogicalRouterPortConfig.class.cast(portConfig);
             // Use cfg.peer_uuid to get the peer port's configuration.
-            PortConfig peerConfig = portMgr.get(cfg.peerId();
+            PortConfig peerConfig = null;
+            try {
+                peerConfig = portMgr.get(lcfg.peerId()).value;
+            } catch (StateAccessException e) {
+                log.error("Failed to get the peer port's config from ZK.", e);
+                return;
+            }
             if (peerConfig instanceof LogicalRouterPortConfig)
                 eth.setDestinationMACAddress(
                         ((LogicalRouterPortConfig) peerConfig).getHwAddr());
@@ -927,13 +933,13 @@ public class Router implements ForwardingElement {
                 eth.setDestinationMACAddress(fwdInfo.pktIn.getSourceMACAddress());
             else
                 throw new RuntimeException("Unrecognized peer port type.");
-        } else if (portConfig instanceof MaterializedRouterPortConfig)
+        } else if (portConfig instanceof MaterializedRouterPortConfig) {
             eth.setDestinationMACAddress((fwdInfo.pktIn.getSourceMACAddress()));
+        }
         log.debug("sendICMPforLocalPkt from port {}, {} to {}", new Object[] {
                 fwdInfo.inPortId,
                 IPv4.fromIPv4Address(ip.getSourceAddress()),
                 IPv4.fromIPv4Address(ip.getDestinationAddress()) });
         controller.addGeneratedPacket(eth, fwdInfo.inPortId);
     }
-
 }
