@@ -839,9 +839,11 @@ public class Router implements ForwardingElement {
         if (null != egressPortId) {
             RouterPortConfig portConfig;
             try {
-                // TODO(pino, abel): Get the port configuration.
-                portConfig = null;
+                PortConfig cfg = portMgr.get(egressPortId).value;
+                portConfig =
+                        RouterPortConfig.class.cast(cfg);
             } catch (Exception e) {
+                log.error("Failed to get the egress port's config from ZK.", e);
                 return false;
             }
             if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
@@ -897,8 +899,15 @@ public class Router implements ForwardingElement {
         // The nwDst is the source of triggering IPv4 as seen by this router.
         ip.setDestinationAddress(fwdInfo.matchIn.getNetworkSource());
         // The nwSrc is the address of the ingress port.
-        // TODO(pino, abel): get the port configuration.
-        RouterPortConfig portConfig = null;
+        PortConfig cfg = null;
+        try {
+            cfg = portMgr.get(fwdInfo.inPortId).value;
+        } catch (StateAccessException e) {
+            log.error("Failed to get the inPort's config from ZK.", e);
+            return;
+        }
+        RouterPortConfig portConfig =
+                RouterPortConfig.class.cast(cfg);
         ip.setSourceAddress(portConfig.portAddr);
         Ethernet eth = new Ethernet();
         eth.setPayload(ip);
@@ -910,7 +919,7 @@ public class Router implements ForwardingElement {
             LogicalRouterPortConfig cfg =
                     LogicalRouterPortConfig.class.cast(portConfig);
             // Use cfg.peer_uuid to get the peer port's configuration.
-            PortConfig peerConfig = null;
+            PortConfig peerConfig = portMgr.get(cfg.peerId();
             if (peerConfig instanceof LogicalRouterPortConfig)
                 eth.setDestinationMACAddress(
                         ((LogicalRouterPortConfig) peerConfig).getHwAddr());
