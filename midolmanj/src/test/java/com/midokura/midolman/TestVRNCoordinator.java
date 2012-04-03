@@ -188,9 +188,8 @@ public class TestVRNCoordinator {
     }
 
     public static ForwardInfo prepareFwdInfo(UUID inPortId, Ethernet ethPkt) {
-        byte[] pktData = ethPkt.serialize();
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(pktData, (short) 0);
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                ethPkt, (short)0);
         ForwardInfo fInfo = new ForwardInfo();
         fInfo.inPortId = inPortId;
         fInfo.flowMatch = match;

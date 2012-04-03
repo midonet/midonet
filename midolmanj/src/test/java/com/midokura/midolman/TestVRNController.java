@@ -316,8 +316,8 @@ public class TestVRNController {
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPort.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
@@ -402,8 +402,8 @@ public class TestVRNController {
 
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPort.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
@@ -442,8 +442,8 @@ public class TestVRNController {
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPort.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
@@ -493,8 +493,8 @@ public class TestVRNController {
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertTrue(8765 == controllerStub.droppedPktBufIds.get(0));
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -533,8 +533,8 @@ public class TestVRNController {
         // Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
-        match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
                 9896, true, actions);
@@ -562,9 +562,8 @@ public class TestVRNController {
         // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
-
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
         MAC[] dlHeaders = null; //VRNController.getDlHeadersForTunnel(
                 //portNumToIntId.get(20), portNumToIntId.get(21), 0x0a020145);
         List<OFAction> actions = new ArrayList<OFAction>();
@@ -606,9 +605,8 @@ public class TestVRNController {
         // TODO: Check sentPacket.actions
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
-
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
         // The last ingress port is router2's logical port.
         MAC[] dlHeaders = null; //VRNController.getDlHeadersForTunnel(
                 //ShortUUID.UUID32toInt(portOn2to0), portNumToIntId.get(21),
@@ -658,8 +656,8 @@ public class TestVRNController {
 
         // A flow was installed.
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
 
         // Encode the logical router port as the last ingress.
         MAC[] dlHeaders = null; //VRNController.getDlHeadersForTunnel(
@@ -932,8 +930,8 @@ public class TestVRNController {
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertTrue(8765 == controllerStub.droppedPktBufIds.get(0));
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, inPortNum);
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, inPortNum);
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -964,8 +962,7 @@ public class TestVRNController {
         vrnCtrl.onPacketIn(4444, data.length, inPortNum, data);
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
-        match = new MidoMatch();
-        match.loadFromPacket(data, inPortNum);
+        match = AbstractController.createMatchFromPacket(eth, inPortNum);
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
                 4444, true, actions);
@@ -1066,8 +1063,8 @@ public class TestVRNController {
                 IPv4.class.cast(eth.getPayload()), dlHeaders[0], dlHeaders[1],
                 0x0a020101, 0x0a020133, pkt.data);
         // Now check the Drop Flow.
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, inPortNum);
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, inPortNum);
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
                 VRNController.ICMP_EXPIRY_SECONDS, 32331, true,
@@ -1139,8 +1136,8 @@ public class TestVRNController {
                 IPv4.class.cast(eth.getPayload()), dlHeaders[0], dlHeaders[1],
                 rtr2LogPortNwAddr, srcNwAddr, pkt.data);
         // Now check the Drop Flow.
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, tunnelPort);
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, tunnelPort);
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
                 VRNController.ICMP_EXPIRY_SECONDS, 32331, true,
@@ -1202,8 +1199,8 @@ public class TestVRNController {
                 new MAC(phyPortIn.getHardwareAddress()), mac, 0xc0a80102,
                 0x0a010005, pkt.data);
         // Now check the Drop Flow.
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, phyPortIn.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
                 VRNController.ICMP_EXPIRY_SECONDS, 123456, true,
@@ -1342,8 +1339,8 @@ public class TestVRNController {
                 phyPortOut.getPortNumber(), arpData);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, uplinkPhyPort.getPortNumber());
         MidoMatch fwdMatch = match; // use this later to call onFlowRemoved()
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
@@ -1404,9 +1401,9 @@ public class TestVRNController {
                 uplinkPhyPort.getPortNumber(), arpData);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
-        match = new MidoMatch();
         // The return packet's ingress is router1's first port.
-        match.loadFromPacket(data, phyPortOut.getPortNumber());
+        match = AbstractController.createMatchFromPacket(
+                eth, phyPortOut.getPortNumber());
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -1560,8 +1557,8 @@ public class TestVRNController {
                 phyPortOut.getPortNumber(), arpData);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, uplinkPhyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -1616,9 +1613,9 @@ public class TestVRNController {
                 uplinkPhyPort.getPortNumber(), arpData);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
-        match = new MidoMatch();
         // The return packet's ingress is router1's first port.
-        match.loadFromPacket(data, phyPortOut.getPortNumber());
+        match = AbstractController.createMatchFromPacket(
+                eth, phyPortOut.getPortNumber());
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -1658,9 +1655,9 @@ public class TestVRNController {
         // flow is installed and this packet is emitted from the uplink.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(3, controllerStub.addedFlows.size());
-        match = new MidoMatch();
         // The return packet's ingress is router1's first port.
-        match.loadFromPacket(data, phyPortOut.getPortNumber());
+        match = AbstractController.createMatchFromPacket(
+                eth, phyPortOut.getPortNumber());
         actions.clear();
         ofAction = new OFActionDataLayerSource();
         ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
@@ -1758,8 +1755,8 @@ public class TestVRNController {
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, uplinkPhyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
@@ -1802,9 +1799,9 @@ public class TestVRNController {
                 uplinkPhyPort.getPortNumber(), arpData);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
-        match = new MidoMatch();
+        match = AbstractController.createMatchFromPacket(
+                eth, phyPortRtr2.getPortNumber());
         MidoMatch fwdMatch = match; // Use this later for onFlowRemoved()
-        match.loadFromPacket(data, phyPortRtr2.getPortNumber());
         actions.clear();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
@@ -1869,8 +1866,8 @@ public class TestVRNController {
                 phyPortRtr2.getPortNumber(), arpData);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(3, controllerStub.addedFlows.size());
-        match = new MidoMatch();
-        match.loadFromPacket(data, uplinkPhyPort.getPortNumber());
+        match = AbstractController.createMatchFromPacket(
+                eth, uplinkPhyPort.getPortNumber());
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();

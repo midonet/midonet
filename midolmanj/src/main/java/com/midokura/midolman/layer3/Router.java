@@ -308,24 +308,28 @@ public class Router implements ForwardingElement {
         PortConfig portCfg = portMgr.get(fwdInfo.inPortId).value;
         RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
 
-        // Drop the packet if it isn't IPv4.
+        // Process packets that are either IPv4 or ARP with proto IPv4.
         if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE
-                && fwdInfo.matchIn.getDataLayerType() != ARP.ETHERTYPE) {
+            && !(fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE
+                     && ARP.class.cast(fwdInfo.pktIn.getPayload())
+                        .getProtocolType() == IPv4.ETHERTYPE)) {
             fwdInfo.action = Action.NOT_IPV4;
             return;
         }
 
         if (Ethernet.isBroadcast(hwDst)) {
-            // Handle ARP requests.
-            if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
-                processArp(fwdInfo.pktIn, fwdInfo.inPortId);
+            // Handle ARP/IPv4 requests.
+            // OpenFlow uses NetworkProtocol to encode the ARP opcode.
+            if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE
+                    && fwdInfo.matchIn.getNetworkProtocol() == ARP.OP_REQUEST) {
+                processArpReply(ARP.class.cast(fwdInfo.pktIn.getPayload()),
+                        fwdInfo.inPortId, rtrPortCfg);
                 fwdInfo.action = Action.CONSUMED;
-                return;
             } else {
                 // Otherwise drop the packet.
                 fwdInfo.action = Action.DROP;
-                return;
             }
+            return;
         }
 
         // Drop the packet if it isn't addressed to the inPort's MAC.
@@ -335,10 +339,17 @@ public class Router implements ForwardingElement {
             return;
         }
 
-        // Handle ARP replies.
+        // Handle ARP replies drop other ARPs.
         if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
-            // TODO(pino): ok to also processes ARP requests sent to our MAC?
-            processArp(fwdInfo.pktIn, fwdInfo.inPortId);
+            // OpenFlow uses NetworkProtocol to encode the ARP opcode.
+            if (fwdInfo.matchIn.getNetworkProtocol() == ARP.OP_REPLY) {
+                processArpReply(ARP.class.cast(fwdInfo.pktIn.getPayload()),
+                        fwdInfo.inPortId, rtrPortCfg);
+                fwdInfo.action = Action.CONSUMED;
+            } else {
+                fwdInfo.action = Action.DROP;
+            }
+            return;
         }
 
         // Is the packet addressed to the inPort's own IP?

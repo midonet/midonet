@@ -202,8 +202,26 @@ public class VRNController extends AbstractController
     public void onPacketIn(int bufferId, int totalLen, short shortInPort,
             byte[] data, long matchingTunnelId) {
         int inPort = shortInPort & 0xffff;
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(data, shortInPort);
+        ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
+        Ethernet ethPkt = new Ethernet();
+        try {
+            ethPkt.deserialize(bb);
+        } catch(MalformedPacketException ex) {
+            // Packet could not be deserialized: Drop it.
+            log.warn("onPacketIn: malformed packet from port {}: {}",
+                    inPort, ex.getMessage());
+            MidoMatch m = new MidoMatch();
+            // Usually we avoid OFMatch.loadFromPacket, but here we can't use
+            // AbstractController.createMatchFromPacket.
+            m.loadFromPacket(data, shortInPort);
+            installDropFlowEntry(m, bufferId, NO_IDLE_TIMEOUT,
+                    TEMPORARY_DROP_SECONDS);
+            return;
+        }
+        log.debug("onPacketIn: port {} received buffer {} of size {} - {}",
+                new Object [] { inPort, bufferId, totalLen, ethPkt });
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                ethPkt, shortInPort);
 
         // TODO(pino, 3/23/2012): OVS bug work-around? I don't get the comments.
         // Rewrite inPort with the service's target port assuming that
@@ -236,20 +254,6 @@ public class VRNController extends AbstractController
                     TEMPORARY_DROP_SECONDS);
             return;
         }
-        ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
-        Ethernet ethPkt = new Ethernet();
-        try {
-            ethPkt.deserialize(bb);
-        } catch(MalformedPacketException ex) {
-            // Packet could not be deserialized: Drop it.
-            log.warn("onPacketIn: malformed packet from port {}: {}",
-                    inPort, ex.getMessage());
-            installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
-                    TEMPORARY_DROP_SECONDS);
-            return;
-        }
-        log.debug("onPacketIn: port {} received buffer {} of size {} - {}",
-                new Object [] { inPort, bufferId, totalLen, ethPkt });
 
         // check if the packet is a DHCP request
         if (ethPkt.getEtherType() == IPv4.ETHERTYPE) {
@@ -932,8 +936,8 @@ public class VRNController extends AbstractController
 
             this.action = ForwardingElement.Action.FORWARD;
             this.outPortId = originPort;
-            this.matchOut = new MidoMatch();
-            this.matchOut.loadFromPacket(this.data, (short)0);
+            this.matchOut = AbstractController.createMatchFromPacket(
+                    pkt, (short) 0);
             this.flowMatch = this.matchOut.clone();
         }
     }

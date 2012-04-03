@@ -37,6 +37,7 @@ import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
@@ -50,6 +51,7 @@ import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.ReplicatedMap.Watcher;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.Net;
 
 public abstract class AbstractController
         implements Controller {
@@ -523,7 +525,7 @@ public abstract class AbstractController
     abstract protected void portMoved(UUID portUuid, IntIPv4 oldAddr,
                                       IntIPv4 newAddr);
 
-    protected OFMatch createMatchFromPacket(Ethernet data, short inPort) {
+    public static MidoMatch createMatchFromPacket(Ethernet data, short inPort) {
         MidoMatch match = new MidoMatch();
         if (inPort != -1)
             match.setInputPort(inPort);
@@ -533,7 +535,17 @@ public abstract class AbstractController
         // See if wildcarding the VLAN fields results in the matches working.
         // match.setDataLayerVirtualLan(data.getVlanID());
         // match.setDataLayerVirtualLanPriorityCodePoint(data.getPriorityCode());
-        if (data.getEtherType() == IPv4.ETHERTYPE) {
+        if (data.getEtherType() == ARP.ETHERTYPE) {
+            ARP packet = ARP.class.cast(data.getPayload());
+            // OpenFlow uses NetworkProtocol to encode the ARP opcode.
+            match.setNetworkProtocol((byte)packet.getProtocolType());
+            if (packet.getProtocolType() == ARP.PROTO_TYPE_IP) {
+                match.setNetworkSource(
+                        IPv4.toIPv4Address(packet.getSenderProtocolAddress()));
+                match.setNetworkDestination(
+                        IPv4.toIPv4Address(packet.getTargetProtocolAddress()));
+            }
+        } else if (data.getEtherType() == IPv4.ETHERTYPE) {
             IPv4 packet = (IPv4) data.getPayload();
             // Should we wildcard TOS, so that packets differing in TOS
             // are considered part of the same flow?  Going with "yes"

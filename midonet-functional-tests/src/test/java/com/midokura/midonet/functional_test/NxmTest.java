@@ -5,6 +5,7 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,12 +19,15 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 
+import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.openflow.PrimaryController;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.PacketIn;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.Protocol;
@@ -83,19 +87,8 @@ public class NxmTest {
             ovsdb.close();
     }
 
-    public static OFMatch makeFlowMatch(OFMatch match) {
-        MidoMatch flowMatch = new MidoMatch();
-        flowMatch.setInputPort(match.getInputPort());
-        flowMatch.setDataLayerDestination(match.getDataLayerDestination());
-        flowMatch.setDataLayerSource(match.getDataLayerSource());
-        flowMatch.setDataLayerType(match.getDataLayerType());
-        flowMatch.setNetworkDestination(match.getNetworkDestination());
-        flowMatch.setNetworkSource(match.getNetworkSource());
-        return flowMatch;
-    }
-
     @Test
-    public void testArpNoTunnel() throws InterruptedException, IOException {
+    public void testArpNoTunnel() throws InterruptedException, IOException, MalformedPacketException {
         if (ovsdb.hasBridge("nxm-br"))
             ovsdb.delBridge("nxm-br");
         // Create a single Controller.
@@ -119,14 +112,15 @@ public class NxmTest {
         assertEquals(controller1.getPortNum(tap1.getName()), pktIn.inPort);
         assertArrayEquals(arp, pktIn.packet);
 
-        OFMatch match = new OFMatch();
-        match.loadFromPacket(arp, pktIn.inPort);
-        OFMatch flMatch = makeFlowMatch(match);
+        Ethernet eth = new Ethernet();
+        eth.deserialize(ByteBuffer.wrap(pktIn.packet));
+        OFMatch match = AbstractController.createMatchFromPacket(
+                eth, pktIn.inPort);
         // Send this flow to tap2.
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(controller1.getPortNum(tap2.getName()),
                 (short) 0));
-        controller1.getStub().sendFlowModAdd(flMatch, 0, (short)0, (short)0,
+        controller1.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
                 (short)0, pktIn.bufferId, false, false, false, actions);
         // If the packet was buffered in OVS, it should go directly to tap2.
         if (pktIn.bufferId != PrimaryController.UNBUFFERED_ID)
@@ -143,7 +137,7 @@ public class NxmTest {
     }
 
     @Test
-    public void testIpWithTunnel() throws IOException, InterruptedException {
+    public void testIpWithTunnel() throws IOException, InterruptedException, MalformedPacketException {
         if (ovsdb.hasBridge("nxm-br1"))
             ovsdb.delBridge("nxm-br1");
         if (ovsdb.hasBridge("nxm-br2"))
@@ -184,9 +178,10 @@ public class NxmTest {
         assertArrayEquals(ipPkt, pktIn.packet);
 
         // Send this flow out of bridge1's GRE port.
-        OFMatch match = new OFMatch();
-        match.loadFromPacket(ipPkt, pktIn.inPort);
-        OFMatch flMatch = makeFlowMatch(match);
+        Ethernet eth = new Ethernet();
+        eth.deserialize(ByteBuffer.wrap(ipPkt));
+        OFMatch match = AbstractController.createMatchFromPacket(
+                eth, pktIn.inPort);
         List<OFAction> actions = new ArrayList<OFAction>();
         // Any modifying actions must come before the output action.
         if (proto.equals(Protocol.NXM)) {
@@ -195,7 +190,7 @@ public class NxmTest {
         }
         actions.add(new OFActionOutput(controller1.getPortNum("nxmgre1"),
                 (short) 0));
-        controller1.getStub().sendFlowModAdd(flMatch, 0, (short)0, (short)0,
+        controller1.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
                 (short)0, pktIn.bufferId, false, false, false, actions);
 
         // The packet arrives at bridge2's GRE port and then to controller2.
@@ -221,9 +216,10 @@ public class NxmTest {
         */
 
         // Install a flow entry on bridge2 that forwards to tap2.
-        match = new OFMatch();
-        match.loadFromPacket(ipPkt, pktIn.inPort);
-        flMatch = makeFlowMatch(match);
+        eth = new Ethernet();
+        eth.deserialize(ByteBuffer.wrap(ipPkt));
+        match = AbstractController.createMatchFromPacket(
+                eth, pktIn.inPort);
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(controller2.getPortNum(tap2.getName()),
                 (short) 0));

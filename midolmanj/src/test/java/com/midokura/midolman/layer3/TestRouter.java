@@ -28,6 +28,7 @@ import org.openflow.protocol.action.OFActionOutput;
 
 import scala.actors.threadpool.Arrays;
 
+import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.eventloop.MockReactor;
@@ -228,9 +229,8 @@ public class TestRouter {
     }
 
     public ForwardInfo routePacket(UUID inPortId, Ethernet ethPkt) {
-        byte[] pktData = ethPkt.serialize();
-        MidoMatch match = new MidoMatch();
-        match.loadFromPacket(pktData, (short) 0);
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                ethPkt, (short) 0);
         ForwardInfo fInfo = new ForwardInfo();
         fInfo.inPortId = inPortId;
         fInfo.flowMatch = match;
