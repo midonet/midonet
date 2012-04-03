@@ -44,8 +44,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBe
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 
-// TODO(pino): re-enable this test after committing NXM
-@Ignore
 public class StatsTest {
 
     private final static Logger log = LoggerFactory.getLogger(StatsTest.class);
@@ -66,7 +64,8 @@ public class StatsTest {
     static OvsBridge ovsBridge;
 
     @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
+    public static void setUp() throws InterruptedException, IOException,
+                         MalformedPacketException {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -136,7 +135,8 @@ public class StatsTest {
         // Arp for router's mac.
         assertThat("The ARP request package was sent via tapPort1",
                    tapPort1.send(helper1.makeArpRequest()), equalTo(true));
-        helper1.checkArpReply(tapPort1.recv());
+        MAC rtrMac = helper1.checkArpReply(tapPort1.recv());
+        helper1.setGwMac(rtrMac);
 
         // Check updated port stats
         statsForPort1.refresh()
@@ -204,6 +204,11 @@ public class StatsTest {
             .expectRx(0).expectTx(0)
             .expectRxDrop(0).expectTxDrop(0);
 
+        // Get MAC for router
+        assertTrue(tapPort2.send(helper2.makeArpRequest()));
+        MAC rtrMac2 = helper2.checkArpReply(tapPort2.recv());
+        helper2.setGwMac(rtrMac2);
+
         // Ping internal port from tap1.
         for (int i = 0; i < 5; i++) {
             request = helper2.makeIcmpEchoRequest(tapIp1);
@@ -214,7 +219,7 @@ public class StatsTest {
         // Sleep to give OVS a chance to update its stats.
         sleepBecause("wait for OVS to update it's stats", 1);
         statsForPort2.refresh()
-                     .expectRx(5).expectTx(0)
+                     .expectRx(6).expectTx(1)
                      .expectRxDrop(0).expectTxDrop(0);
 
         statsForPort1.refresh()
