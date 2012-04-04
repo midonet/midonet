@@ -309,6 +309,20 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
+    public DtoDhcpSubnet addDhcpSubnet(DtoBridge dtoBridge,
+                                       DtoDhcpSubnet dhcpSubnet) {
+        URI uri = post(dtoBridge.getDhcpSubnets(), dhcpSubnet);
+        return get(uri, DtoDhcpSubnet.class);
+    }
+
+    @Override
+    public DtoDhcpHost addDhcpSubnetHost(DtoDhcpSubnet dtoSubnet,
+                                         DtoDhcpHost host) {
+        URI uri = post(dtoSubnet.getHosts(), host);
+        return get(uri, DtoDhcpHost.class);
+    }
+
+    @Override
     public void deleteVpn(DtoVpn vpn) {
         delete(vpn.getUri());
     }

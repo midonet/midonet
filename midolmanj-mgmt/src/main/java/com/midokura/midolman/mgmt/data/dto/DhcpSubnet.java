@@ -90,6 +90,7 @@ public class DhcpSubnet extends RelativeUriResource {
         return dtoSub;
     }
 
+
     public Subnet toSubnet() {
         List<Opt121> routes = new ArrayList<Opt121>();
         if (null != getOpt121Routes()) {
@@ -101,5 +102,15 @@ public class DhcpSubnet extends RelativeUriResource {
                 null == defaultGateway
                         ? null : IntIPv4.fromString(defaultGateway),
                 routes);
+    }
+
+    @Override
+    public String toString() {
+        return "DhcpSubnet{" +
+            "subnetPrefix='" + subnetPrefix + '\'' +
+            ", subnetLength=" + subnetLength +
+            ", defaultGateway='" + defaultGateway + '\'' +
+            ", opt121Routes=" + opt121Routes +
+            '}';
     }
 }

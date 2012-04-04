@@ -13,11 +13,16 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 
 public class BridgeDhcpZkManager extends ZkManager {
+
+    private static final Logger log = LoggerFactory
+        .getLogger(BridgeDhcpZkManager.class);
 
     public static class Subnet {
         IntIPv4 subnetAddr;
@@ -69,6 +74,16 @@ public class BridgeDhcpZkManager extends ZkManager {
 
         public void setServerAddr(IntIPv4 serverAddr) {
             this.serverAddr = serverAddr;
+        }
+
+        @Override
+        public String toString() {
+            return "Subnet{" +
+                "subnetAddr=" + subnetAddr +
+                ", serverAddr=" + serverAddr +
+                ", defaultGateway=" + defaultGateway +
+                ", opt121Routes=" + opt121Routes +
+                '}';
         }
     }
 
@@ -168,8 +183,8 @@ public class BridgeDhcpZkManager extends ZkManager {
                     "Could not serialize dhcp subnet", e, Subnet.class);
         }
         ops.add(Op.create(pathManager.getBridgeDhcpHostsPath(
-                bridgeId, subnet.getSubnetAddr()), null,
-                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            bridgeId, subnet.getSubnetAddr()), null,
+                          ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         multi(ops);
     }
 

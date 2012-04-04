@@ -6,6 +6,8 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -21,6 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midolman.util.Serializer;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
+import com.midokura.util.functors.TreeNode;
+import com.midokura.util.functors.TreeNodeFunctors;
+import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
 /**
  * Abstract base class for ZkManagers.
@@ -334,5 +341,56 @@ public class ZkManager {
     public Op getSetDataOp(String path, byte[] data) {
         log.debug("ZkManager.getDeleteOp entered: path={}", path);
         return Op.setData(path, data, -1);
+    }
+
+    protected List<Op> getRecursiveDeleteOps(String root)
+        throws StateAccessException {
+
+        try {
+            return recursiveBottomUpFold(new ZKTreeNode(root),
+                                         new DeleteZookeeperPathOp(),
+                                         new ArrayList<Op>());
+        } catch (StateAccessException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new StateAccessException(e);
+        }
+    }
+
+    protected class ZKTreeNode implements TreeNode<String> {
+        String value;
+
+        private ZKTreeNode(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public List<TreeNode<String>> getChildren() throws Exception {
+            Set<String> childNames = ZkManager.this.getChildren(value);
+
+            LinkedList<TreeNode<String>> childTreeNodes =
+                new LinkedList<TreeNode<String>>();
+
+            return CollectionFunctors.adapt(childNames, childTreeNodes,
+                new Functor<String, TreeNode<String>>() {
+                    @Override
+                    public TreeNode<String> apply(String arg0) {
+                        return new ZKTreeNode(value + "/" + arg0);
+                    }
+                });
+        }
+    }
+
+    protected static class DeleteZookeeperPathOp
+        implements com.midokura.util.functors.Functor<String, Op> {
+        @Override
+        public Op apply(String arg0) {
+            return Op.delete(arg0, -1);
+        }
     }
 }

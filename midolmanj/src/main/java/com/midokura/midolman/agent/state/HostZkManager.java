@@ -4,6 +4,7 @@
 package com.midokura.midolman.agent.state;
 
 import java.io.IOException;
+import java.lang.String;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -70,8 +71,9 @@ public class HostZkManager extends ZkManager {
                 getPersistentCreateOp(pathManager.getHostCommandsPath(hostId),
                                       null));
             createMulti.add(
-                getPersistentCreateOp(pathManager.getHostCommandErrorLogsPath(hostId),
-                                      null));
+                getPersistentCreateOp(
+                    pathManager.getHostCommandErrorLogsPath(hostId),
+                    null));
 
             multi(createMulti);
         } catch (IOException e) {
@@ -124,7 +126,8 @@ public class HostZkManager extends ZkManager {
         }
         if (exists(pathManager.getHostCommandErrorLogsPath(id))) {
             delMulti.addAll(
-                getRecursiveDeleteOps(pathManager.getHostCommandErrorLogsPath(id)));
+                getRecursiveDeleteOps(
+                    pathManager.getHostCommandErrorLogsPath(id)));
         }
         if (exists(pathManager.getHostInterfacesPath(id))) {
             delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
@@ -139,7 +142,7 @@ public class HostZkManager extends ZkManager {
 
         try {
             String path = addPersistentSequential(
-                    pathManager.getHostCommandsPath(hostId), serialize(command));
+                pathManager.getHostCommandsPath(hostId), serialize(command));
 
             int idx = path.lastIndexOf('/');
             return Integer.parseInt(path.substring(idx + 1));
@@ -191,7 +194,7 @@ public class HostZkManager extends ZkManager {
     }
 
     public List<ZkNodeEntry<Integer, HostDirectory.Command>> listCommands(
-            UUID hostId, Runnable watcher) throws StateAccessException {
+        UUID hostId, Runnable watcher) throws StateAccessException {
         List<ZkNodeEntry<Integer, HostDirectory.Command>> result =
             new ArrayList<ZkNodeEntry<Integer, HostDirectory.Command>>();
 
@@ -208,16 +211,6 @@ public class HostZkManager extends ZkManager {
         }
 
         return result;
-    }
-
-    private List<Op> getRecursiveDeleteOps(String root)
-        throws StateAccessException {
-        return recursiveBottomUpFold(root, new Functor<String, Op>() {
-            @Override
-            public Op process(String node) {
-                return Op.delete(node, -1);
-            }
-        }, new ArrayList<Op>());
     }
 
     /**
@@ -342,11 +335,12 @@ public class HostZkManager extends ZkManager {
         multi(delete);
     }
 
-    public void setCommandErrorLogEntry(UUID hostId, HostDirectory.ErrorLogItem errorLog)
-            throws StateAccessException {
+    public void setCommandErrorLogEntry(UUID hostId,
+                                        HostDirectory.ErrorLogItem errorLog)
+        throws StateAccessException {
         String path = pathManager.getHostCommandErrorLogsPath(hostId) + "/"
-                + String.format("%010d", errorLog.getCommandId());
-        if(!(exists(path))){
+            + String.format("%010d", errorLog.getCommandId());
+        if (!(exists(path))) {
             addPersistent(path, null);
         }
         try {
@@ -355,31 +349,33 @@ public class HostZkManager extends ZkManager {
 
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not serialize host metadata for id: " + hostId,
-                    e, HostDirectory.Metadata.class);
+                "Could not serialize host metadata for id: " + hostId,
+                e, HostDirectory.Metadata.class);
         }
     }
 
-    public ZkNodeEntry<Integer, HostDirectory.ErrorLogItem> getErrorLogData(UUID hostId,
-                    Integer logId) throws StateAccessException {
+    public ZkNodeEntry<Integer, HostDirectory.ErrorLogItem> getErrorLogData(
+        UUID hostId,
+        Integer logId) throws StateAccessException {
         try {
             byte[] data = get(pathManager.getHostCommandErrorLogPath(hostId,
                                                                      logId));
 
             return new ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>(
-                    logId, deserialize(data, HostDirectory.ErrorLogItem.class)
+                logId, deserialize(data, HostDirectory.ErrorLogItem.class)
             );
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not deserialize host error log data id: " +
-                            hostId + " / " + logId, e, HostDirectory.ErrorLogItem.class);
+                "Could not deserialize host error log data id: " +
+                    hostId + " / " + logId, e,
+                HostDirectory.ErrorLogItem.class);
         }
     }
 
-    public List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>> listErrorLogs(
-            UUID hostId) throws StateAccessException {
+    public List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>>
+    listErrorLogs(UUID hostId) throws StateAccessException {
         List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>> result =
-                new ArrayList<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>>();
+            new ArrayList<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>>();
 
         String hostLogsPath = pathManager.getHostCommandErrorLogsPath(hostId);
         Set<String> logs = getChildren(hostLogsPath, null);
@@ -395,27 +391,4 @@ public class HostZkManager extends ZkManager {
 
         return result;
     }
-    interface Functor<S, T> {
-        public T process(S node);
-    }
-
-    private <T> List<T> recursiveBottomUpFold(String root,
-                                              Functor<String, T> func,
-                                              List<T> acc)
-        throws StateAccessException {
-
-        Set<String> children = getChildren(root);
-
-        for (String child : children) {
-            recursiveBottomUpFold(root + "/" + child, func, acc);
-        }
-
-        T processedRoot = func.process(root);
-        if (processedRoot != null) {
-            acc.add(processedRoot);
-        }
-
-        return acc;
-    }
-
 }

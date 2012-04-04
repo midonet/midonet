@@ -86,6 +86,7 @@ public class BridgeDhcpResource {
                            @Context Authorizer authorizer) throws StateAccessException,
             UnauthorizedException {
 
+        log.debug("!!!! subnet: " + subnet);
         DhcpDao dao = daoFactory.getDhcpDao();
         try {
             if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE,

@@ -19,6 +19,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class TestDHCP extends JerseyTest {
 
@@ -48,6 +49,26 @@ public class TestDHCP extends JerseyTest {
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
                 .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+    }
+
+    @Test
+    public void testGatewaySetting() throws Exception {
+        ClientResponse response;
+
+        DtoDhcpSubnet subnet1 = new DtoDhcpSubnet();
+        subnet1.setSubnetPrefix("172.31.0.0");
+        subnet1.setSubnetLength(24);
+        subnet1.setDefaultGateway("172.31.0.1");
+        response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+
+        assertEquals(201, response.getStatus());
+
+        DtoDhcpSubnet[] subnets =
+            resource().uri(bridge.getDhcpSubnets())
+                .type(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
+                .get(DtoDhcpSubnet[].class);
     }
 
     @Test

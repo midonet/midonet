@@ -51,6 +51,9 @@ public class Bridge {
         return new BridgePort(mgmt, mgmt.addBridgePort(dto, port));
     }
 
+    public Subnet.Builder newDhcpSubnet() {
+        return new Subnet.Builder(this.mgmt, this.dto);
+    }
     public UUID getId(){
         return dto.getId();
     }

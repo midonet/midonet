@@ -252,11 +252,13 @@ public class DhcpHandler {
                 // This is in seconds... is 1 day enough?
                 IPv4.toIPv4AddressBytes(86400));
         options.add(opt);
-        opt = new DHCPOption(
-                DHCPOption.Code.ROUTER.value(),
-                DHCPOption.Code.ROUTER.length(),
-                IPv4.toIPv4AddressBytes(routerAddr.getAddress()));
-        options.add(opt);
+        if (routerAddr != null) {
+            opt = new DHCPOption(
+                    DHCPOption.Code.ROUTER.value(),
+                    DHCPOption.Code.ROUTER.length(),
+                    IPv4.toIPv4AddressBytes(routerAddr.getAddress()));
+            options.add(opt);
+        }
         // in MidoNet the DHCP server is the same as the router
         opt = new DHCPOption(
                 DHCPOption.Code.SERVER_ID.value(),

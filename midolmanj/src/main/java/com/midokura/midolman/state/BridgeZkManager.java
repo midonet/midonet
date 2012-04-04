@@ -145,6 +145,8 @@ public class BridgeZkManager extends ZkManager {
                 .getBasePath());
         GreZkManager greZkManager = new GreZkManager(zk, pathManager
                 .getBasePath());
+        BridgeDhcpZkManager dhcpZkManager =
+            new BridgeDhcpZkManager(zk, pathManager.getBasePath());
 
         // Delete the ports.
         // Note: we do not delete logical ports here or their peers will remain
@@ -154,13 +156,16 @@ public class BridgeZkManager extends ZkManager {
         for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
             ops.addAll(portZkManager.preparePortDelete(portEntry));
         }
-        ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
-        ops.add(Op.delete(
-                pathManager.getBridgeLogicalPortsPath(entry.key), -1));
-        ops.add(Op.delete(pathManager.getBridgeDhcpPath(entry.key), -1));
-        ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
-        ops.add(Op.delete(
-                pathManager.getBridgePortLocationsPath(entry.key), -1));
+        ops.add(
+            Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
+        ops.add(
+            Op.delete(pathManager.getBridgeLogicalPortsPath(entry.key), -1));
+        ops.addAll(
+            getRecursiveDeleteOps(pathManager.getBridgeDhcpPath(entry.key)));
+        ops.add(
+            Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
+        ops.add(
+            Op.delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
 
         // Delete GRE
         GreKey gre = new GreKey(entry.key);
