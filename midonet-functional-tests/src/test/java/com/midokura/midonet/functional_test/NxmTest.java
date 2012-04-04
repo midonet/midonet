@@ -204,8 +204,9 @@ public class NxmTest {
 
         // TODO(pino): re-enable this code
         /*
-        // Send the packet again to test the flow installed at controller1.
-        assertTrue(tap1.send(ipPkt));
+        // Send a second packet to test the flow installed at controller1.
+        byte[] ipPkt2 = helper.makeIcmpEchoRequest(helper.gwIp);
+        assertTrue(tap1.send(ipPkt2));
         // The packet again goes to controller2.
         pktIn = controller2.getNextPacket();
         assertNotNull(pktIn);

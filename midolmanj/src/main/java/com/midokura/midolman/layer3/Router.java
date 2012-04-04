@@ -822,15 +822,15 @@ public class Router implements ForwardingElement {
         if (ipPkt.getProtocol() == ICMP.PROTOCOL_NUMBER) {
             ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
             if (icmpPkt.isError()) {
-                log.debug("Don't generate ICMP Unreachable for other ICMP "
-                        + "errors.");
+                log.debug("Not generating ICMP Unreachable for an ICMP "
+                        + "error packet.");
                 return false;
             }
         }
         // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
         // Ignore packets to IP mcast addresses.
         if (ipPkt.isMcast()) {
-            log.debug("Don't generate ICMP Unreachable for packets to an IP "
+            log.debug("Not generating ICMP Unreachable for packet to an IP "
                     + "multicast address.");
             return false;
         }
@@ -847,14 +847,14 @@ public class Router implements ForwardingElement {
                 return false;
             }
             if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
-                log.debug("Don't generate ICMP Unreachable for packets to "
+                log.debug("Not generating ICMP Unreachable for packet to "
                         + "the subnet local broadcast address.");
                 return false;
             }
         }
         // Ignore packets to Ethernet broadcast and multicast addresses.
         if (ethPkt.isMcast()) {
-            log.debug("Don't generate ICMP Unreachable for packets to "
+            log.debug("Not generating ICMP Unreachable for packet to "
                     + "Ethernet broadcast or multicast address.");
             return false;
         }
@@ -862,14 +862,14 @@ public class Router implements ForwardingElement {
         // TODO(pino): See RFC 1812 sec. 5.3.7
         if (ipPkt.getSourceAddress() == 0xffffffff
                 || ipPkt.getDestinationAddress() == 0xffffffff) {
-            log.debug("Don't generate ICMP Unreachable for all-hosts broadcast "
+            log.debug("Not generating ICMP Unreachable for all-hosts broadcast "
                     + "packet");
             return false;
         }
         // TODO(pino): check this fragment offset
         // Ignore datagram fragments other than the first one.
         if (0 != (ipPkt.getFragmentOffset() & 0x1fff)) {
-            log.debug("Don't generate ICMP Unreachable for IP fragment packet");
+            log.debug("Not generating ICMP Unreachable for IP fragment packet");
             return false;
         }
         return true;
