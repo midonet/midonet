@@ -171,10 +171,10 @@ public class TestVRNCoordinator {
         routeMgr.create(rt);
         // Now add the logical links between router 0 and 2.
         // First from 0 to 2
-        logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(routerIds
-                .get(0), 0xc0a80100, 30, 0xc0a80101, null, null, null);
-        logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(routerIds
-                .get(2), 0xc0a80100, 30, 0xc0a80102, null, null, null);
+        logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
+                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, null, null, null);
+        logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
+                routerIds.get(2), 0xc0a80100, 30, 0xc0a80102, null, null, null);
         idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
         UUID portOn0to2 = idPair.key;
         UUID portOn2to0 = idPair.value;

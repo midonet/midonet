@@ -1,3 +1,6 @@
+// IMPORTED EXTERNAL-PARTY-AUTHORED CODE
+// Who owns the copyright?  What is the license?
+
 package com.midokura.midolman.packets;
 
 import java.nio.ByteBuffer;
@@ -69,7 +72,7 @@ public class Ethernet extends BasePacket {
      * @param destinationMACAddress the destinationMACAddress to set
      */
     public Ethernet setDestinationMACAddress(MAC destinationMACAddress) {
-        this.destinationMACAddress = destinationMACAddress.address;
+        this.destinationMACAddress = destinationMACAddress.getAddress();
         return this;
     }
 
@@ -84,7 +87,7 @@ public class Ethernet extends BasePacket {
      * @param sourceMACAddress the sourceMACAddress to set
      */
     public Ethernet setSourceMACAddress(MAC sourceMACAddress) {
-        this.sourceMACAddress = sourceMACAddress.address;
+        this.sourceMACAddress = sourceMACAddress.getAddress();
         return this;
     }
 

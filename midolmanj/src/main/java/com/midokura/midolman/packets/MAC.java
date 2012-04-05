@@ -11,8 +11,7 @@ import com.midokura.midolman.util.Net;
 
 public class MAC implements Cloneable {
 
-    // TODO(pino): make this private. Can't be final because of deserialization.
-    byte[] address;
+    private byte[] address;
 
     /* Default constructor for deserialization. */
     public MAC() {
