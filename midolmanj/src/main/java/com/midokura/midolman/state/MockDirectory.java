@@ -69,6 +69,8 @@ public class MockDirectory implements Directory {
         String addChild(String name, byte[] data, CreateMode mode,
                         boolean multi)
                 throws NodeExistsException, NoChildrenForEphemeralsException {
+            if (enableDebugLog)
+                log.debug("addChild {} => {}", name, data);
             if (!mode.isSequential() && children.containsKey(name))
                 throw new NodeExistsException(path + '/' + name);
             if (this.mode.isEphemeral())
@@ -86,6 +88,8 @@ public class MockDirectory implements Directory {
         }
 
         void setData(byte[] data, boolean multi) {
+            if (enableDebugLog)
+                log.debug("[child]setData => {}", data);
             this.data = data;
             notifyDataWatchers(multi);
         }
@@ -150,6 +154,7 @@ public class MockDirectory implements Directory {
 
     private Node rootNode;
     private Set<Runnable> multiDataWatchers;
+    public boolean enableDebugLog = false;
 
     private MockDirectory(Node root, Set<Runnable> multiWatchers) {
         rootNode = root;
@@ -175,6 +180,8 @@ public class MockDirectory implements Directory {
             String path_elem = path[i];
             curNode = curNode.getChild(path_elem);
         }
+        if (enableDebugLog)
+            log.debug("get {} => {}", path, curNode);
         return curNode;
     }
 
@@ -182,6 +189,8 @@ public class MockDirectory implements Directory {
                        boolean multi)
             throws NoNodeException, NodeExistsException,
             NoChildrenForEphemeralsException {
+        if (enableDebugLog)
+            log.debug("add {} => {}", relativePath, data);
         if (!relativePath.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with '/'");
         }

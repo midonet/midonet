@@ -120,7 +120,9 @@ public class TestVRNController {
         UUID networkId = new UUID(1, 1);
         Directory portLocSubdir =
                 dir.getSubDirectory(pathMgr.getVRNPortLocationsPath());
+        ((MockDirectory)portLocSubdir).enableDebugLog = true;
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
+        portLocMap.start();
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
 
         // Now create the Open vSwitch database connection
@@ -198,7 +200,6 @@ public class TestVRNController {
                             portId.toString());
                     phyPort.setName("port" + Integer.toString(portNum));
                     underlayIp = localNwIP;
-                    portLocMap.put(portId, underlayIp);  //XXX
                 } else {
                     // Odd-numbered ports are remote. Place port num x at
                     // 192.168.1.x.

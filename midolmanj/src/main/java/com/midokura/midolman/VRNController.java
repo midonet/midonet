@@ -304,7 +304,7 @@ public class VRNController extends AbstractController
                                    int inPort, byte[] data, long tunnelId) {
         log.debug("Tunnel {} with GRE key {} received pkt with match {}",
                 new Object[] {inPort, tunnelId, match });
-        // Convert the tunnelId to a UUID. The tunnelId is a GRE key, use
+        // Convert the tunnelId to a UUID.  The tunnelId is a GRE key, use
         // GreZkManager to find the owner UUID.
         UUID destPortId;
         try {
