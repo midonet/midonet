@@ -298,9 +298,14 @@ public class TestVRNController {
         // Send to a non-existent port.
         vrnCtrl.onPacketIn(55, data.length, (short)1234, data);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
-        Assert.assertTrue(55 == controllerStub.droppedPktBufIds.get(0));
+        // Verify it's installed a drop rule.
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch match = new MidoMatch();
+        match.setInputPort((short)1234);
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, true,
+                new ArrayList<OFAction>());
     }
 
     @Test

@@ -206,7 +206,7 @@ public class VRNController extends AbstractController
         Ethernet ethPkt = new Ethernet();
         try {
             ethPkt.deserialize(bb);
-        } catch(MalformedPacketException ex) {
+        } catch (MalformedPacketException ex) {
             // Packet could not be deserialized: Drop it.
             log.warn("onPacketIn: malformed packet from port {}: {}",
                     inPort, ex.getMessage());
@@ -238,7 +238,7 @@ public class VRNController extends AbstractController
 
         // Handle tunneled packets.
         if (super.isTunnelPortNum(inPort)) {
-            forwardTunneledPkt(match,  bufferId, inPort, data, matchingTunnelId);
+            forwardTunneledPkt(match, bufferId, inPort, data, matchingTunnelId);
             return;
         }
 
@@ -617,6 +617,7 @@ public class VRNController extends AbstractController
             controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
                     hardTimeout, (short) 0, bufferId, true, false, false,
                     new ArrayList<OFAction>());
+        // TODO: Why are we setting sendFlowRemove = true here?
     }
 
     @Override
