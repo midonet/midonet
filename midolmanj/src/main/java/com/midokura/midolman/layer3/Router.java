@@ -71,6 +71,8 @@ public class Router implements ForwardingElement {
     public static final long ARP_EXPIRATION_MILLIS = 3600 * 1000;
     public static final long ARP_STALE_MILLIS = 1800 * 1000;
 
+    public static final short DROP_TIMEOUT = 5;
+
     public static final String PRE_ROUTING = "pre_routing";
     public static final String POST_ROUTING = "post_routing";
 
@@ -390,15 +392,18 @@ public class Router implements ForwardingElement {
         Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {
             sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_NET);
+            fwdInfo.dropTimeSeconds = DROP_TIMEOUT;
             fwdInfo.action = Action.DROP;
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.BLACKHOLE)) {
+            fwdInfo.dropTimeSeconds = DROP_TIMEOUT;
             fwdInfo.action = Action.DROP;
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.REJECT)) {
             sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_FILTER_PROHIB);
+            fwdInfo.dropTimeSeconds = DROP_TIMEOUT;
             fwdInfo.action = Action.DROP;
             return;
         }

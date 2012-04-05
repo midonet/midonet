@@ -309,6 +309,29 @@ public class TestVRNController {
     }
 
     @Test
+    public void testWrongMAC() {
+        // Send a packet to a MAC which isn't the router's.
+        // Should be ignored (ie, dropped): Maybe from a physical learning
+        // switch or a hub.
+        byte[] payload = { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        OFPhysicalPort phyPort = phyPorts.get(0).get(0);
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:31:41:51:61:01"),
+                MAC.fromString("02:31:41:51:61:f1"),
+                0x0a000005, 0x0a000004, (short) 101, (short) 212, payload);
+        byte[] data = eth.serialize();
+        vrnCtrl.onPacketIn(55, data.length, phyPort.getPortNumber(), data);
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPort.getPortNumber());
+        List<OFAction> actions = new ArrayList<OFAction>();
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                VRNController.NO_IDLE_TIMEOUT, (short) 0,
+                55, true, actions);
+    }
+
+    @Test
     public void testOneRouterBlackhole() {
         // Send a packet to router0's first materialized port to a destination
         // that's blackholed.
@@ -327,7 +350,7 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 55, true, actions);
+                Router.DROP_TIMEOUT, 55, true, actions);
     }
 
     @Test

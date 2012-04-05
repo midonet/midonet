@@ -104,7 +104,8 @@ public interface ForwardingElement {
             return "ForwardInfo [inPortId=" + inPortId +
                    ", pktIn=" + pktIn + ", matchIn=" + matchIn +
                    ", action=" + action + ", outPortId=" + outPortId +
-                   ", matchOut=" + matchOut + ", depth=" + depth + "]";
+                   ", matchOut=" + matchOut + ", depth=" + depth +
+                   ", dropTime=" + dropTimeSeconds + "s]";
         }
 
         @Override

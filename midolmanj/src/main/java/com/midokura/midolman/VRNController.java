@@ -359,8 +359,8 @@ public class VRNController extends AbstractController
         case DROP:
             log.debug("handleProcessResult: DROP {}", fwdInfo);
             if (null != ofPktCtx)
-                installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId
-                        , NO_IDLE_TIMEOUT, (short)fwdInfo.dropTimeSeconds);
+                installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId,
+                        NO_IDLE_TIMEOUT, (short)fwdInfo.dropTimeSeconds);
             freeFlowResources(fwdInfo.flowMatch, routers);
             return;
         case NOT_IPV4:
