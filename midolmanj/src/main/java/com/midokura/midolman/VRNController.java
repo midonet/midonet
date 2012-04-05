@@ -377,7 +377,7 @@ public class VRNController extends AbstractController
                 // The flow should be temporary because the topology might
                 // change so that the router is no longer in the packet's path.
                 installDropFlowEntry(flowMatch, ofPktCtx.bufferId,
-                        NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+                        NO_IDLE_TIMEOUT, NO_HARD_TIMEOUT);
             }
             freeFlowResources(fwdInfo.flowMatch, routers);
             return;

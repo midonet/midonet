@@ -283,7 +283,7 @@ public class TestVRNController {
     public static void checkInstalledFlow(MockControllerStub.Flow flow,
             OFMatch match, short idleTimeoutSecs, short hardTimeoutSecs,
             int bufferId, boolean sendFlowRemove, List<OFAction> actions) {
-        Assert.assertTrue(match.equals(flow.match));
+        Assert.assertEquals(match, flow.match);
         Assert.assertEquals(idleTimeoutSecs, flow.idleTimeoutSecs);
         Assert.assertEquals(hardTimeoutSecs, flow.hardTimeoutSecs);
         Assert.assertEquals(bufferId, flow.bufferId);
@@ -390,9 +390,10 @@ public class TestVRNController {
         ByteBuffer bb = ByteBuffer.wrap(new byte[100], 0, 100);
         payload.deserialize(bb);
         OFPhysicalPort phyPort = phyPorts.get(0).get(0);
+        MAC dstMac = new MAC(phyPort.getHardwareAddress());
         Ethernet eth = new Ethernet();
         eth.setSourceMACAddress(MAC.fromString("02:ab:cd:ef:01:23"));
-        eth.setDestinationMACAddress(new MAC(phyPort.getHardwareAddress()));
+        eth.setDestinationMACAddress(dstMac);
         eth.setEtherType((short) 0x86dd); // IPv6
         byte[] data = eth.serialize();
         vrnCtrl.onPacketIn(123456, data.length, phyPort.getPortNumber(), data);
@@ -401,6 +402,7 @@ public class TestVRNController {
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         MidoMatch match = new MidoMatch();
         match.setDataLayerType((short) 0x86dd);
+        match.setDataLayerDestination(dstMac);
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
