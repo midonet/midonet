@@ -120,6 +120,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+		<version>2.7</version>
             </plugin>
 
 
@@ -344,6 +345,31 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <!--
+            This will allow proper dependency resolution when running the build
+            like:
+                mvn -P functional-tests test -Dtest=XXXTest
+
+            We are actually dependent on a war file and when maven resolves the
+            jar dependency it will always look into the local repository and
+            this means we always need to run mvn install before running a
+            functional test. This allows as to fix that by forcing a proper
+            local dependency of the mgmt jar when running with this profile.
+            Note that maven3 will complain about this.
+        -->
+        <profile>
+            <id>functional-tests</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.midokura</groupId>
+                    <artifactId>midolmanj-mgmt</artifactId>
+                    <version>12.06-SNAPSHOT</version>
+                    <scope>system</scope>
+                    <systemPath>${project.basedir}/../midolmanj-mgmt/target/midolmanj-mgmt-12.06-SNAPSHOT.jar</systemPath>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 
