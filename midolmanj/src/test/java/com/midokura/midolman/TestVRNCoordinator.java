@@ -129,8 +129,12 @@ public class TestVRNCoordinator {
                 int portNw = routerNw + (j << 8);
                 int portAddr = portNw + 1;
                 short portNum = (short) (i * 10 + j);
+                MAC mac = new MAC(new byte[] { (byte) 0x02,
+                        (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                        (byte) 0x00, (byte) portNum });
                 portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                        rtrId, portNw, 24, portAddr, null /*XXX: Use MAC below*/, null, portNw, 24, null);
+                        rtrId, portNw, 24, portAddr, mac, null, portNw, 24,
+                        null);
                 UUID portId = portMgr.create(portConfig);
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId,
                         Route.NO_GATEWAY, 2, null, rtrId);
@@ -140,9 +144,6 @@ public class TestVRNCoordinator {
                 // will construct a clone?
                 L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
                         portId);
-                MAC mac = new MAC(new byte[] { (byte) 0x02,
-                        (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                        (byte) 0x00, (byte) portNum });
                 devPorts.add(devPort);
                 vrn.addPort(portId);
             }
