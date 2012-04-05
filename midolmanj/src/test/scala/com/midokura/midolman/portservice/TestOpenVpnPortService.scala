@@ -98,14 +98,14 @@ object TestOpenVpnPortService
         val pubPortConfig = new PortDirectory.MaterializedRouterPortConfig(
             pRouterId, Net.convertStringAddressToInt(pubPortNw),
             pubPortNwLength, Net.convertStringAddressToInt(pubPortAddr), null,
-            Net.convertStringAddressToInt(pubPortNw), pubPortNwLength, null)
+            null, Net.convertStringAddressToInt(pubPortNw), pubPortNwLength, null)
         pubPortId = portMgr.create(pubPortConfig)
 
         // Create a private port config.
         val priPortConfig = new PortDirectory.MaterializedRouterPortConfig(
             pRouterId, Net.convertStringAddressToInt(priPortNw),
             priPortNwLength, Net.convertStringAddressToInt(priPortAddr), null,
-            Net.convertStringAddressToInt(priPortNw), priPortNwLength, null)
+            null, Net.convertStringAddressToInt(priPortNw), priPortNwLength, null)
         priPortId = portMgr.create(priPortConfig)
 
         // Create an UDP server vpn config.

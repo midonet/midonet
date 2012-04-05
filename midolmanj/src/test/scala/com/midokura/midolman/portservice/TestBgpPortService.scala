@@ -96,7 +96,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
         // Create a materialized router port config.
         portConfig = new PortDirectory.MaterializedRouterPortConfig(
             routerId, Net.convertStringAddressToInt(portNwAddr),
-            portNwLength, Net.convertStringAddressToInt(portAddr), null,
+            portNwLength, Net.convertStringAddressToInt(portAddr), null, null,
             Net.convertStringAddressToInt(portNwAddr), portNwLength, null)
         portId = portMgr.create(portConfig)
 

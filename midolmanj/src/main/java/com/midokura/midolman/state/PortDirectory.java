@@ -48,16 +48,21 @@ public class PortDirectory {
         public transient Set<Route> routes;
 
         public RouterPortConfig(UUID device_id, int networkAddr,
-                int networkLength, int portAddr, Set<Route> routes) {
+                int networkLength, int portAddr, Set<Route> routes,
+                MAC mac) {
             super(device_id);
             this.nwAddr = networkAddr;
             this.nwLength = networkLength;
             this.portAddr = portAddr;
             this.routes = routes;
-            byte[] macBytes = new byte[6];
-            rand.nextBytes(macBytes);
-            macBytes[0] = 0x02;
-            this.hwAddr = new MAC(macBytes);
+            if (mac == null) {
+                // TODO: Use the midokura OUI.
+                byte[] macBytes = new byte[6];
+                rand.nextBytes(macBytes);
+                macBytes[0] = 0x02;
+                this.hwAddr = new MAC(macBytes);
+            } else
+                this.hwAddr = mac;
         }
 
         // Default constructor for the Jackson deserialization.
@@ -150,8 +155,8 @@ public class PortDirectory {
 
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
-                UUID peer_uuid) {
-            super(device_id, networkAddr, networkLength, portAddr, routes);
+                UUID peer_uuid, MAC mac) {
+            super(device_id, networkAddr, networkLength, portAddr, routes, mac);
             this.peer_uuid = peer_uuid;
         }
 
@@ -190,9 +195,9 @@ public class PortDirectory {
         public transient Set<BGP> bgps;
 
         public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
-                int networkLength, int portAddr, Set<Route> routes,
+                int networkLength, int portAddr, MAC mac, Set<Route> routes,
                 int localNetworkAddr, int localNetworkLength, Set<BGP> bgps) {
-            super(device_id, networkAddr, networkLength, portAddr, routes);
+            super(device_id, networkAddr, networkLength, portAddr, routes, mac);
             this.localNwAddr = localNetworkAddr;
             this.localNwLength = localNetworkLength;
             setBgps(bgps);

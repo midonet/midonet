@@ -127,8 +127,10 @@ public class TestRouter {
         uplinkGatewayAddr = 0x0a0b0c0d;
         uplinkPortAddr = 0xb4000102; // 180.0.1.2
         int nwAddr = 0x00000000; // 0.0.0.0/0
-        PortDirectory.MaterializedRouterPortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                rtrId, nwAddr, 0, uplinkPortAddr, null, nwAddr, 0, null);
+        PortDirectory.MaterializedRouterPortConfig portConfig =
+                new PortDirectory.MaterializedRouterPortConfig(
+                        rtrId, nwAddr, 0, uplinkPortAddr, null, null, nwAddr,
+                        0, null);
         uplinkId = portMgr.create(portConfig);
         uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, uplinkId,
                 uplinkGatewayAddr, 1, null, rtrId);
@@ -154,8 +156,8 @@ public class TestRouter {
                 // The port will route to 10.0.<i>.<j*4>/30
                 int segmentAddr = nwAddr + (j * 4);
                 portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                        rtrId, nwAddr, 24, portAddr, null, segmentAddr, 30,
-                        null);
+                        rtrId, nwAddr, 24, portAddr, null, null, segmentAddr,
+                        30, null);
                 portConfigs.put(portNum, portConfig);
                 UUID portId = portMgr.create(portConfig);
                 // Map the port number to the portId for later use.

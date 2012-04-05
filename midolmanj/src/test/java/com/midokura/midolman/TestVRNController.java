@@ -179,8 +179,11 @@ public class TestVRNController {
                 int portNw = routerNw + (j << 8);
                 int portAddr = portNw + 1;
                 short portNum = (short) (i * 10 + j);
+                MAC mac = new MAC(new byte[] { (byte) 0x02,
+                        (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
+                        (byte) portNum });
                 portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                        rtrId, portNw, 24, portAddr, null, portNw, 24, null);
+                        rtrId, portNw, 24, portAddr, mac, null, portNw, 24, null);
                 UUID portId = portMgr.create(portConfig);
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId,
                         Route.NO_GATEWAY, 2, null, rtrId);
@@ -190,9 +193,7 @@ public class TestVRNController {
                 phyPorts.get(i).add(phyPort);
                 phyPort.setPortNumber(portNum);
                 portNumToUuid.put(new Short(portNum), portId);
-                phyPort.setHardwareAddress(new byte[] { (byte) 0x02,
-                        (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
-                        (byte) portNum });
+                phyPort.setHardwareAddress(mac.getAddress());
                 IntIPv4 underlayIp;
                 if (0 == portNum % 2) {
                     // Even-numbered ports will be local to the controller.
@@ -233,10 +234,14 @@ public class TestVRNController {
 
         // Now add the logical links between router 0 and 1.
         // First from 0 to 1
-        PortDirectory.LogicalRouterPortConfig logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
-                routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, null, null);
-        PortDirectory.LogicalRouterPortConfig logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
-                routerIds.get(1), 0xc0a80100, 30, 0xc0a80102, null, null);
+        PortDirectory.LogicalRouterPortConfig logPortConfig1 =
+                new PortDirectory.LogicalRouterPortConfig(
+                        routerIds.get(0), 0xc0a80100, 30, 0xc0a80101,
+                        null, null, null);
+        PortDirectory.LogicalRouterPortConfig logPortConfig2 =
+                new PortDirectory.LogicalRouterPortConfig(
+                        routerIds.get(1), 0xc0a80100, 30, 0xc0a80102,
+                        null, null, null);
         ZkNodeEntry<UUID, UUID> idPair = portMgr.createLink(logPortConfig1,
                 logPortConfig2);
         UUID portOn0to1 = idPair.key;
@@ -253,9 +258,10 @@ public class TestVRNController {
         rtr2LogPortNwAddr = 0xc0a80102;
         logPortConfig1 = new PortDirectory.LogicalRouterPortConfig(
                 routerIds.get(0), 0xc0a80100, 30, rtr0to2LogPortNwAddr, null,
-                null);
+                null, null);
         logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
-                routerIds.get(2), 0xc0a80100, 30, rtr2LogPortNwAddr, null, null);
+                routerIds.get(2), 0xc0a80100, 30, rtr2LogPortNwAddr, null,
+                null, null);
         idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
         portOn0to2 = idPair.key;
         portOn2to0 = idPair.value;
@@ -1246,7 +1252,7 @@ public class TestVRNController {
 
         PortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
                 routerIds.get(0), p2pUplinkNwAddr, 30, uplinkPortAddr, null,
-                0xc0a80004, 30, null);
+                null, 0xc0a80004, 30, null);
         uplinkId = portMgr.create(portConfig);
         Route rt = new Route(0, 0, 0, 0, NextHop.PORT, uplinkId,
                 uplinkGatewayAddr, 1, null, routerIds.get(0));

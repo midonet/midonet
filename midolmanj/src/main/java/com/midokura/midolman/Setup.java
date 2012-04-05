@@ -1,3 +1,5 @@
+// Copyright 2012 Midokura Inc.
+
 package com.midokura.midolman;
 
 import java.io.FileReader;
@@ -304,7 +306,7 @@ public class Setup implements Watcher {
             int portNw = routerNw + (j << 8);
             int portAddr = portNw + 1;
             portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                    deviceId, portNw, 24, portAddr, null, portNw, 24, null);
+                    deviceId, portNw, 24, portAddr, null, null, portNw, 24, null);
             portId = portMgr.create(portConfig);
             log.info("Created a router port with id {} that routes to {}",
                     portId.toString(), IPv4.fromIPv4Address(portNw));
