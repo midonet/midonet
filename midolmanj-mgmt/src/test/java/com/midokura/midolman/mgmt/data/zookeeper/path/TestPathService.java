@@ -57,8 +57,10 @@ public class TestPathService {
                 rootPath + "/agent_port");
         Mockito.when(managerMock.getAgentVpnPath()).thenReturn(
                 rootPath + "/agent_vpn");
-        Mockito.when(managerMock.getHostsPath()).thenReturn(
-                rootPath + "/hosts");
+        Mockito.when(managerMock.getHostsPath())
+                .thenReturn(rootPath + "/hosts");
+        Mockito.when(managerMock.getPortSetsPath()).thenReturn(
+                rootPath + "/port_sets");
     }
 
     private void setUpBuilderMock() {
@@ -104,7 +106,7 @@ public class TestPathService {
         Set<String> pathSet = service.getInitialPaths();
 
         String[] paths = pathSet.toArray(new String[pathSet.size()]);
-        Assert.assertEquals(24, paths.length);
+        Assert.assertEquals(25, paths.length);
         Assert.assertEquals("/base", paths[0]);
         Assert.assertEquals(rootPath, paths[1]);
         Assert.assertEquals(rootPath + "/ad_routes", paths[2]);
@@ -116,20 +118,21 @@ public class TestPathService {
         Assert.assertEquals(rootPath + "/chains", paths[8]);
         Assert.assertEquals(rootPath + "/gre", paths[9]);
         Assert.assertEquals(rootPath + "/hosts", paths[10]);
-        Assert.assertEquals(rootPath + "/ports", paths[11]);
-        Assert.assertEquals(rootPath + "/routers", paths[12]);
-        Assert.assertEquals(rootPath + "/routes", paths[13]);
-        Assert.assertEquals(rootPath + "/rules", paths[14]);
-        Assert.assertEquals(rootPath + "/vpn", paths[15]);
-        Assert.assertEquals(rootPath + "/vrn_port_locations", paths[16]);
+        Assert.assertEquals(rootPath + "/port_sets", paths[11]);
+        Assert.assertEquals(rootPath + "/ports", paths[12]);
+        Assert.assertEquals(rootPath + "/routers", paths[13]);
+        Assert.assertEquals(rootPath + "/routes", paths[14]);
+        Assert.assertEquals(rootPath + "/rules", paths[15]);
+        Assert.assertEquals(rootPath + "/vpn", paths[16]);
+        Assert.assertEquals(rootPath + "/vrn_port_locations", paths[17]);
 
-        Assert.assertEquals(altRootPath, paths[17]);
-        Assert.assertEquals(altRootPath + "/bridges", paths[18]);
-        Assert.assertEquals(altRootPath + "/chains", paths[19]);
-        Assert.assertEquals(altRootPath + "/ports", paths[20]);
-        Assert.assertEquals(altRootPath + "/routers", paths[21]);
-        Assert.assertEquals(altRootPath + "/tenants", paths[22]);
-        Assert.assertEquals(altRootPath + "/vifs", paths[23]);
+        Assert.assertEquals(altRootPath, paths[18]);
+        Assert.assertEquals(altRootPath + "/bridges", paths[19]);
+        Assert.assertEquals(altRootPath + "/chains", paths[20]);
+        Assert.assertEquals(altRootPath + "/ports", paths[21]);
+        Assert.assertEquals(altRootPath + "/routers", paths[22]);
+        Assert.assertEquals(altRootPath + "/tenants", paths[23]);
+        Assert.assertEquals(altRootPath + "/vifs", paths[24]);
 
     }
 }
