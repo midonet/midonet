@@ -40,7 +40,7 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
 import com.midokura.midolman.util.Cache;
 
 public class VRNController extends AbstractController
-    implements ServiceFlowController {
+    implements ServiceFlowController, VRNControllerIface {
 
     private static final Logger log = LoggerFactory
             .getLogger(VRNController.class);
