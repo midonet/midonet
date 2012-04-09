@@ -504,8 +504,36 @@ public class TestVRNController {
         byte[] data = eth.serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, data.length,
                 phyPortIn.getPortNumber(), data);
-        // The router will have to ARP, so no flows installed yet, but one
-        // unbuffered packet should have been emitted.
+        // router2 will have to ARP, so no flows installed yet, but one
+        // unbuffered packet should have been queued.
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        // Expect 3 delayed calls: Send ARP, retry ARP, expire ARP.
+        Assert.assertEquals(3, reactor.calls.size());
+        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+                          PacketContinuation);
+        PacketContinuation pktCont =
+            (PacketContinuation) reactor.calls.peek().runnable;
+        // Check pktCont.fwdInfo
+        Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
+        Assert.assertEquals(portNumToUuid.get(phyPortOut.getPortNumber()),
+                            pktCont.fwdInfo.outPortId);
+        byte[] arpData = TestRouter.makeArpRequest(
+                new MAC(phyPortOut.getHardwareAddress()), 0x0a020001,
+                0x0a020008).serialize();
+        byte[] pktData = pktCont.fwdInfo.pktIn.serialize();
+        // XXX: dump bytes
+        System.out.print("|");
+        for (byte b : arpData)
+            System.out.printf(" %02X", b);
+        System.out.print("|\n|");
+        for (byte b : pktData)
+            System.out.printf(" %02X", b);
+        System.out.print("|\n");
+        Assert.assertArrayEquals(arpData, pktCont.fwdInfo.pktIn.serialize());
+
+        // XXX: Drain the DelayedCall queue.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -515,9 +543,6 @@ public class TestVRNController {
                 (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        byte[] arpData = TestRouter.makeArpRequest(
-                new MAC(phyPortOut.getHardwareAddress()), 0x0a020001,
-                0x0a020008).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
         // Now send an ARP reply. The flow should be installed as a result,
@@ -561,16 +586,14 @@ public class TestVRNController {
             Assert.assertTrue(actions.get(i).equals(pkt.actions.get(i)));
 
         // Send a packet to router0's first port to the same address on
-        // router2's
-        // first port. No ARP will be needed this time so the flow gets
-        // installed immediately. No additional sent/dropped packets.
+        // router2's first port.  No ARP will be needed this time so the
+        // flow gets installed immediately.  No additional sent/dropped packets.
         phyPortIn = phyPorts.get(0).get(0);
-        eth = TestRouter.makeUDP(MAC.fromString("02:44:33:ff:22:01"), new MAC(
-                phyPortIn.getHardwareAddress()), 0x0a0000d4, 0x0a020008,
-                (short) 101, (short) 212, payload);
+        eth = TestRouter.makeUDP(MAC.fromString("02:44:33:ff:22:01"),
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a0000d4,
+                0x0a020008, (short) 101, (short) 212, payload);
         data = eth.serialize();
-        vrnCtrl.onPacketIn(9896, data.length, phyPortIn.getPortNumber(),
-                data);
+        vrnCtrl.onPacketIn(9896, data.length, phyPortIn.getPortNumber(), data);
         // Assert.assertEquals(2, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
@@ -583,7 +606,7 @@ public class TestVRNController {
 
     @Test
     public void testOneRouterOutputRemote() {
-        // Send a packet to router2's first port to an address on router2's
+        // Send a packet from router2's first port to an address on router2's
         // second port.
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
         OFPhysicalPort phyPortIn = phyPorts.get(2).get(0);
@@ -591,16 +614,25 @@ public class TestVRNController {
                 new MAC(phyPortIn.getHardwareAddress()), 0x0a020012,
                 0x0a020145, (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
-        vrnCtrl.onPacketIn(999, data.length, phyPortIn.getPortNumber(),
-                data);
-        // No packets dropped, and the buffered packet sent.
+        vrnCtrl.onPacketIn(999, data.length, phyPortIn.getPortNumber(), data);
+        // No packets dropped, and the buffered packet paused on an ARP.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet sentPacket = controllerStub.sentPackets
-                .get(0);
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, reactor.calls.size());
+        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+                          PacketContinuation);
+        PacketContinuation pktCont =
+            (PacketContinuation) reactor.calls.peek().runnable;
+        Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
+        Assert.assertEquals(portNumToUuid.get(phyPortIn.getPortNumber()),
+                            pktCont.fwdInfo.outPortId);
+        //XXX
+        /*
+        MockControllerStub.Packet sentPacket = controllerStub.sentPackets.get(0);
         Assert.assertEquals(999, sentPacket.bufferId);
         Assert.assertEquals(OFPort.OFPP_NONE.getValue(), sentPacket.inPort);
         // TODO: Check sentPacket.actions
+        */
 
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = AbstractController.createMatchFromPacket(
@@ -608,12 +640,12 @@ public class TestVRNController {
         MAC[] dlHeaders = null;
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(dlHeaders[0]
-                .getAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                dlHeaders[0].getAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction)
-                .setDataLayerAddress(dlHeaders[1].getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                dlHeaders[1].getAddress());
         actions.add(ofAction);
         // Router2's second port is reachable via the tunnel OF port number 21.
         ofAction = new OFActionOutput((short) 21, (short) 0);
@@ -1067,8 +1099,9 @@ public class TestVRNController {
         Assert.assertArrayEquals(arpData, pkt.data);
         // If we let another 50 seconds go by another ARP request will have
         // been emitted, but also an ICMP !H and a 'drop' flow installed.
-        reactor.incrementTime(Router.ARP_TIMEOUT_MILLIS
-                - Router.ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
+        reactor.incrementTime(
+                Router.ARP_TIMEOUT_MILLIS - Router.ARP_RETRY_MILLIS,
+                TimeUnit.MILLISECONDS);
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(4, controllerStub.sentPackets.size());
@@ -1683,8 +1716,8 @@ public class TestVRNController {
                 eth, phyPortOut.getPortNumber());
         actions.clear();
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                uplinkPhyPort.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
         ((OFActionDataLayerDestination) ofAction)

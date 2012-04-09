@@ -63,10 +63,11 @@ public class Bridge implements ForwardingElement {
     private Map<MacPort, Integer> flowCount = new HashMap<MacPort, Integer>();
     private MacPortWatcher macToPortWatcher;
     private Set<UUID> localPorts = new HashSet<UUID>();
-    private VRNController controller;
+    private VRNControllerIface controller;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, VRNController ctrl) throws StateAccessException {
+                  Reactor reactor, VRNControllerIface ctrl)
+            throws StateAccessException {
         this.bridgeId = bridgeId;
         this.reactor = reactor;
         controller = ctrl;

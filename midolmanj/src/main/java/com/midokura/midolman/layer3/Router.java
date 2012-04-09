@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.ForwardingElement;
-import com.midokura.midolman.VRNController;
+import com.midokura.midolman.VRNControllerIface;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.packets.ARP;
@@ -136,10 +136,11 @@ public class Router implements ForwardingElement {
     private Reactor reactor;
     private LoadBalancer loadBalancer;
     private final ObjectName objectName;
-    private final VRNController controller;
+    private final VRNControllerIface controller;
 
     public Router(UUID routerId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, Cache cache, VRNController ctrl) throws StateAccessException {
+                  Reactor reactor, Cache cache, VRNControllerIface ctrl)
+            throws StateAccessException {
         this.routerId = routerId;
         this.reactor = reactor;
         this.controller = ctrl;

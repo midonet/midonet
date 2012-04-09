@@ -47,6 +47,7 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
@@ -69,6 +70,7 @@ public class TestVRNCoordinator {
     private List<UUID> routerIds;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
+    private MockVRNController controller;
 
     protected Cache createCache() {
         return new MockCache();
@@ -95,10 +97,11 @@ public class TestVRNCoordinator {
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
-        // TODO(pino): pass a MockVRNController to the coordinator.
+        controller = new MockVRNController(679, dir, basePath, null,
+                   IntIPv4.fromString("192.168.200.200"), "externalIdKey");
         // TODO(pino): create a PortSetMap to pass to the coordinator.
-        vrn = new VRNCoordinator(dir, basePath, reactor, createCache(), null,
-                null);
+        vrn = new VRNCoordinator(dir, basePath, reactor, createCache(),
+                controller, null);
 
         /*
          * Create 3 routers such that:

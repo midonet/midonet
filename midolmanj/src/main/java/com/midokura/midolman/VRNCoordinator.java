@@ -46,11 +46,11 @@ public class VRNCoordinator implements ForwardingElement {
     private Map<UUID, PortConfig> portIdToConfig;
     private Directory zkDir;
     private String zkBasePath;
-    private VRNController ctrl;
+    private VRNControllerIface ctrl;
     private PortSetMap portSetMap;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath,
-                          Reactor reactor, Cache cache, VRNController ctrl,
+                          Reactor reactor, Cache cache, VRNControllerIface ctrl,
                           PortSetMap portSetMap) {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
