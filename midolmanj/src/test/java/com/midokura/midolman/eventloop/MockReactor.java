@@ -10,21 +10,22 @@ import java.util.concurrent.TimeoutException;
 
 public class MockReactor implements Reactor {
     
-    PriorityQueue<DelayedCall> calls = new PriorityQueue<DelayedCall>();
+    // public so that unittests can access.
+    public PriorityQueue<DelayedCall> calls = new PriorityQueue<DelayedCall>();
     long currentTimeMillis;
     
-    class DelayedCall implements ScheduledFuture {
-        Runnable runnable;
+    public class DelayedCall implements ScheduledFuture {
+        public Runnable runnable;
         long executeAfterTimeMillis;
         boolean canceled;
         boolean completed;
         
-        DelayedCall(Runnable runnable, long delayMillis) {
+        private DelayedCall(Runnable runnable, long delayMillis) {
             this.runnable = runnable;
             this.executeAfterTimeMillis = currentTimeMillis + delayMillis;
         }
 
-        void complete() {
+        private void complete() {
             if (!canceled) {
                 completed = true;
                 
@@ -34,7 +35,9 @@ public class MockReactor implements Reactor {
         
         @Override
         public long getDelay(TimeUnit arg0) {
-            long delay = arg0.convert(executeAfterTimeMillis - currentTimeMillis, TimeUnit.MILLISECONDS);
+            long delay = arg0.convert(
+                             executeAfterTimeMillis - currentTimeMillis,
+                             TimeUnit.MILLISECONDS);
             if (delay < 0) {
                 return 0;
             }
@@ -43,7 +46,8 @@ public class MockReactor implements Reactor {
         
         @Override
         public int compareTo(Delayed arg0) {
-            long diff = this.executeAfterTimeMillis - ((DelayedCall) arg0).executeAfterTimeMillis;
+            long diff = this.executeAfterTimeMillis -
+                            ((DelayedCall) arg0).executeAfterTimeMillis;
             if (diff > 0) return 1;
             if (diff < 0) return -1;
             return 0;
@@ -90,8 +94,10 @@ public class MockReactor implements Reactor {
     }
 
     @Override
-    public ScheduledFuture schedule(Runnable runnable, long delay, TimeUnit unit) {
-        DelayedCall dc = new DelayedCall(runnable, TimeUnit.MILLISECONDS.convert(delay, unit));
+    public ScheduledFuture schedule(Runnable runnable, long delay,
+                                    TimeUnit unit) {
+        DelayedCall dc = new DelayedCall(runnable, 
+                                 TimeUnit.MILLISECONDS.convert(delay, unit));
         calls.add(dc);
         return dc;
     }
@@ -101,7 +107,8 @@ public class MockReactor implements Reactor {
         
         currentTimeMillis += intervalMillis;
         
-        while (!calls.isEmpty() && calls.peek().executeAfterTimeMillis <= currentTimeMillis) {
+        while (!calls.isEmpty() &&
+               calls.peek().executeAfterTimeMillis <= currentTimeMillis) {
             calls.remove().complete();
         }
     }

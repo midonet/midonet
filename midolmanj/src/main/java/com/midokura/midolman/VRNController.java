@@ -146,7 +146,7 @@ public class VRNController extends AbstractController
      * This inner class is used to re-launch processing of un-PAUSED packets
      * in the main thread. This also support re-pausing packets.
      */
-    private class PacketContinuation implements Runnable {
+    class PacketContinuation implements Runnable {
         ForwardInfo fwdInfo;
 
         private PacketContinuation(ForwardInfo fwdInfo) {
@@ -163,7 +163,7 @@ public class VRNController extends AbstractController
                 else
                     log.debug("Pausing packet simulation.");
             } catch (Exception e) {
-                log.error("Error processing packet.", e);
+                log.error("Error processing packet:", e);
             }
         }
     }
