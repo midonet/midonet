@@ -430,10 +430,10 @@ public class TestVRNController {
                           PacketContinuation);
         PacketContinuation pktCont =
             (PacketContinuation) reactor.calls.peek().runnable;
-        // Check pktCont
+        // Check pktCont.fwdInfo
         Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
-        // XXX: Check outPortId
-        
+        Assert.assertEquals(portNumToUuid.get(phyPort.getPortNumber()),
+                            pktCont.fwdInfo.outPortId);
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
                 IPv4.class.cast(eth.getPayload()),
                 new MAC(phyPort.getHardwareAddress()), mac, 0x0a000001,
