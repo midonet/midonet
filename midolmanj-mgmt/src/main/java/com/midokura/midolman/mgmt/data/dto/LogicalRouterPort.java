@@ -133,7 +133,7 @@ public class LogicalRouterPort extends RouterPort {
                 Net.convertStringAddressToInt(this.getNetworkAddress()),
                 this.getNetworkLength(), Net.convertStringAddressToInt(this
                         .getPortAddress()), new HashSet<Route>(),
-                this.getPeerId());
+                this.getPeerId(), null);
     }
 
     /**
@@ -144,7 +144,7 @@ public class LogicalRouterPort extends RouterPort {
                 this.getPeerRouterId(), Net.convertStringAddressToInt(this
                         .getNetworkAddress()), this.getNetworkLength(),
                 Net.convertStringAddressToInt(this.getPeerPortAddress()),
-                new HashSet<Route>(), this.getId());
+                new HashSet<Route>(), this.getId(), null);
     }
 
     /**

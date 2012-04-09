@@ -129,7 +129,7 @@ public class MaterializedRouterPort extends RouterPort {
         return new PortDirectory.MaterializedRouterPortConfig(
                 this.getDeviceId(), Net.convertStringAddressToInt(this
                         .getNetworkAddress()), this.getNetworkLength(),
-                Net.convertStringAddressToInt(this.getPortAddress()),
+                Net.convertStringAddressToInt(this.getPortAddress()), null,
                 new HashSet<Route>(), Net.convertStringAddressToInt(this
                         .getLocalNetworkAddress()),
                 this.getLocalNetworkLength(), new HashSet<BGP>());

@@ -102,7 +102,7 @@ public class BridgeRouterPort extends RouterPort {
                 Net.convertStringAddressToInt(this.getNetworkAddress()),
                 this.getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPortAddress()), new HashSet<com.midokura.midolman.layer3.Route>(),
-                this.getPeerId());
+                this.getPeerId(), null);
     }
 
     /**
