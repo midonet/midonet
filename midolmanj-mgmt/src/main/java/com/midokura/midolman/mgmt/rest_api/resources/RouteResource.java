@@ -1,7 +1,6 @@
 /*
- * @(#)RouteResource        1.6 11/09/10
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -22,20 +21,16 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for ports.
- *
- * @version 1.6 08 Sept 2011
- * @author Ryu Ishimoto
  */
 public class RouteResource {
     /*
@@ -58,35 +53,24 @@ public class RouteResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.routeAuthorized(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to delete this route.");
+        }
 
         RouteDao dao = daoFactory.getRouteDao();
         try {
-            if (!authorizer.routeAuthorized(context, AuthAction.WRITE, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to delete this route.");
-            }
             dao.delete(id);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
     }
 
@@ -105,8 +89,6 @@ public class RouteResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A Route object.
      */
     @GET
@@ -116,27 +98,18 @@ public class RouteResource {
     public Route get(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-            throws StateAccessException, UnauthorizedException {
+            throws StateAccessException {
+
+        if (!authorizer.routeAuthorized(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this route.");
+        }
 
         RouteDao dao = daoFactory.getRouteDao();
-        Route route = null;
-        try {
-            if (!authorizer.routeAuthorized(context, AuthAction.READ, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this route.");
-            }
-            route = dao.get(id);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        Route route = dao.get(id);
+        if (route != null) {
+            route.setBaseUri(uriInfo.getBaseUri());
         }
-        route.setBaseUri(uriInfo.getBaseUri());
         return route;
     }
 }

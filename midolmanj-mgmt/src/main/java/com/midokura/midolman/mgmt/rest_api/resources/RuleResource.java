@@ -1,7 +1,6 @@
 /*
- * @(#)RuleResource        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -22,20 +21,16 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for rules.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 public class RuleResource {
 
@@ -55,35 +50,24 @@ public class RuleResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.ruleAuthorized(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to delete this rule.");
+        }
 
         RuleDao dao = daoFactory.getRuleDao();
         try {
-            if (!authorizer.ruleAuthorized(context, AuthAction.WRITE, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to delete this rule.");
-            }
             dao.delete(id);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
     }
 
@@ -102,8 +86,6 @@ public class RuleResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A Rule object.
      */
     @GET
@@ -112,28 +94,18 @@ public class RuleResource {
             MediaType.APPLICATION_JSON })
     public Rule get(@PathParam("id") UUID id, @Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.ruleAuthorized(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this rule.");
+        }
 
         RuleDao dao = daoFactory.getRuleDao();
-        Rule rule = null;
-        try {
-            if (!authorizer.ruleAuthorized(context, AuthAction.READ, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this rule.");
-            }
-            rule = dao.get(id);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        Rule rule = dao.get(id);
+        if (rule != null) {
+            rule.setBaseUri(uriInfo.getBaseUri());
         }
-        rule.setBaseUri(uriInfo.getBaseUri());
         return rule;
     }
 }

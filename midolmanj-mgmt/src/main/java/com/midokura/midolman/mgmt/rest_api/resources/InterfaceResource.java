@@ -1,3 +1,7 @@
+/*
+ * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
+ */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
@@ -21,13 +25,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.commands.DataValidationException;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -58,8 +62,6 @@ public class InterfaceResource {
      * @return Response object with 201 status code set if successful.
      * @throws com.midokura.midolman.state.StateAccessException
      *          Data access error.
-     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
-     *          Authentication/authorization error.
      */
     @POST
     @Consumes({VendorMediaType.APPLICATION_INTERFACE_JSON,
@@ -69,10 +71,10 @@ public class InterfaceResource {
                            @Context UriInfo uriInfo,
                            @Context DaoFactory daoFactory,
                            @Context Authorizer authorizer)
-        throws StateAccessException, UnauthorizedException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException(
+            throw new ForbiddenHttpException(
                 "Not authorized to create an interface.");
         }
 
@@ -82,20 +84,16 @@ public class InterfaceResource {
             HostCommand hostCommand =
                 hostDao.createCommandForInterfaceUpdate(hostId, null, anInterface);
 
-            hostCommand.setBaseUri(uriInfo.getBaseUri());
+            if (hostCommand != null) {
+                hostCommand.setBaseUri(uriInfo.getBaseUri());
+            }
 
             return Response
                 .ok(hostCommand, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
                 .location(hostCommand.getUri())
                 .build();
         } catch (DataValidationException e) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity(e.getMessage())
-                .build();
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+            throw new BadRequestHttpException(e.getMessage());
         }
     }
 
@@ -107,7 +105,6 @@ public class InterfaceResource {
      * @param daoFactory  Data access factory object.
      * @param authorizer  Authorizer object.
      * @throws StateAccessException  Data access error.
-     * @throws UnauthorizedException Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
@@ -115,10 +112,10 @@ public class InterfaceResource {
                        @Context SecurityContext context,
                        @Context DaoFactory daoFactory,
                        @Context Authorizer authorizer)
-        throws StateAccessException, UnauthorizedException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException("Not authorized to delete tenant.");
+            throw new ForbiddenHttpException("Not authorized to delete tenant.");
         }
 
         HostDao dao = daoFactory.getHostDao();
@@ -127,12 +124,6 @@ public class InterfaceResource {
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
     }
 
@@ -145,7 +136,6 @@ public class InterfaceResource {
      * @param authorizer Authorizer object.
      * @return A list of Interface objects.
      * @throws StateAccessException  Data access error.
-     * @throws UnauthorizedException Authentication/authorization error.
      */
     @GET
     @Produces({VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
@@ -154,31 +144,23 @@ public class InterfaceResource {
                                 @Context UriInfo uriInfo,
                                 @Context DaoFactory daoFactory,
                                 @Context Authorizer authorizer)
-        throws UnauthorizedException, StateAccessException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException("Not authorized to view tenants.");
+            throw new ForbiddenHttpException("Not authorized to view tenants.");
         }
 
         HostDao dao = daoFactory.getHostDao();
 
-        try {
-            List<Interface> interfaces = dao.listInterfaces(hostId);
+        List<Interface> interfaces = dao.listInterfaces(hostId);
 
-            if (interfaces != null) {
-                for (Interface aInterface : interfaces) {
-                    aInterface.setBaseUri(uriInfo.getBaseUri());
-                }
+        if (interfaces != null) {
+            for (Interface aInterface : interfaces) {
+                aInterface.setBaseUri(uriInfo.getBaseUri());
             }
-
-            return interfaces;
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
+
+        return interfaces;
     }
 
     /**
@@ -191,7 +173,6 @@ public class InterfaceResource {
      * @param authorizer Authorizer object.
      * @return A Tenant object.
      * @throws StateAccessException  Data access error.
-     * @throws UnauthorizedException Authentication/authorization error.
      */
     @GET
     @Path("{id}")
@@ -202,27 +183,21 @@ public class InterfaceResource {
                          @Context UriInfo uriInfo,
                          @Context DaoFactory daoFactory,
                          @Context Authorizer authorizer)
-        throws UnauthorizedException, StateAccessException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException(
+            throw new ForbiddenHttpException(
                 "Not authorized to get node interface data.");
         }
 
-        try {
-            HostDao dao = daoFactory.getHostDao();
+        HostDao dao = daoFactory.getHostDao();
 
-            Interface anInterface = dao.getInterface(hostId, id);
+        Interface anInterface = dao.getInterface(hostId, id);
 
+        if (anInterface != null) {
             anInterface.setBaseUri(uriInfo.getBaseUri());
-            return anInterface;
-        } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
         }
+        return anInterface;
     }
 
     /**
@@ -235,7 +210,6 @@ public class InterfaceResource {
      * @param authorizer Authorizer object.
      * @return A Tenant object.
      * @throws StateAccessException  Data access error.
-     * @throws UnauthorizedException Authentication/authorization error.
      */
     @PUT
     @Path("{id}")
@@ -245,10 +219,10 @@ public class InterfaceResource {
                            @Context UriInfo uriInfo,
                            @Context DaoFactory daoFactory,
                            @Context Authorizer authorizer)
-        throws UnauthorizedException, StateAccessException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException(
+            throw new ForbiddenHttpException(
                 "Not authorized to get node interface data.");
         }
 
@@ -267,16 +241,7 @@ public class InterfaceResource {
                     .location(command.getUri())
                     .build();
         } catch (DataValidationException e) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity(e.getMessage())
-                .build();
-        } catch (StateAccessException e) {
-            log.error("Error accessing data", e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error", e);
-            throw new UnknownRestApiException(e);
+            throw new BadRequestHttpException(e.getMessage());
         }
     }
 }

@@ -23,11 +23,10 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -62,7 +61,7 @@ public class TestRuleResource {
         verify(daoMock, times(1)).delete(id);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         doReturn(false).when(authMock).ruleAuthorized(contextMock,
@@ -91,15 +90,6 @@ public class TestRuleResource {
         resource.delete(id, contextMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnknownRestApiException.class)
-    public void testDeleteUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).ruleAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doThrow(RuntimeException.class).when(daoMock).delete(id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
-
     private Rule getRule(URI baseUri) {
         Rule rule = new Rule();
         rule.setBaseUri(baseUri);
@@ -123,7 +113,7 @@ public class TestRuleResource {
         Assert.assertEquals(uri, result.getBaseUri());
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testGetUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         doReturn(false).when(authMock).ruleAuthorized(contextMock,
@@ -137,15 +127,6 @@ public class TestRuleResource {
         doReturn(true).when(authMock).ruleAuthorized(contextMock,
                 AuthAction.READ, id);
         doThrow(StateAccessException.class).when(daoMock).get(id);
-        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testGetUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).ruleAuthorized(contextMock,
-                AuthAction.READ, id);
-        doThrow(RuntimeException.class).when(daoMock).get(id);
         resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
     }
 }

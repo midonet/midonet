@@ -27,11 +27,11 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
 import com.midokura.midolman.mgmt.data.dto.Vif;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -75,13 +75,13 @@ public class TestVifResource {
         return vifs;
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = BadRequestHttpException.class)
     public void testCreateNoPort() throws Exception {
         Vif vif = getVif(null, null);
         resource.create(vif, uriInfoMock, contextMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testCreateUnauthorized() throws Exception {
         Vif vif = getVif(null, UUID.randomUUID());
         doReturn(false).when(authMock).vifAuthorized(contextMock,
@@ -95,15 +95,6 @@ public class TestVifResource {
         doReturn(true).when(authMock).vifAuthorized(contextMock,
                 AuthAction.WRITE, vif.getPortId());
         doThrow(StateAccessException.class).when(daoMock).create(vif);
-        resource.create(vif, uriInfoMock, contextMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testCreateUnknownError() throws Exception {
-        Vif vif = getVif(null, UUID.randomUUID());
-        doReturn(true).when(authMock).vifAuthorized(contextMock,
-                AuthAction.WRITE, vif.getPortId());
-        doThrow(RuntimeException.class).when(daoMock).create(vif);
         resource.create(vif, uriInfoMock, contextMock, factoryMock, authMock);
     }
 
@@ -135,7 +126,7 @@ public class TestVifResource {
         verify(daoMock, times(1)).delete(id);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         Vif vif = getVif(null, UUID.randomUUID());
@@ -164,17 +155,6 @@ public class TestVifResource {
         resource.delete(id, contextMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnknownRestApiException.class)
-    public void testDeleteUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        Vif vif = getVif(null, UUID.randomUUID());
-        doReturn(vif).when(daoMock).get(id);
-        doReturn(true).when(authMock).vifAuthorized(contextMock,
-                AuthAction.WRITE, vif.getPortId());
-        doThrow(RuntimeException.class).when(daoMock).delete(id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
-
     @Test
     public void testGetSuccess() throws Exception {
         UUID id = UUID.randomUUID();
@@ -192,7 +172,7 @@ public class TestVifResource {
         Assert.assertEquals(uri, result.getBaseUri());
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testGetUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         Vif vif = getVif(null, UUID.randomUUID());
@@ -213,18 +193,7 @@ public class TestVifResource {
         resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnknownRestApiException.class)
-    public void testGetUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        Vif vif = getVif(null, UUID.randomUUID());
-        doReturn(vif).when(daoMock).get(id);
-        doReturn(true).when(authMock).vifAuthorized(contextMock,
-                AuthAction.READ, vif.getPortId());
-        doThrow(RuntimeException.class).when(daoMock).get(id);
-        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testListUnauthorized() throws Exception {
         doReturn(false).when(authMock).isAdmin(contextMock);
         resource.list(contextMock, uriInfoMock, factoryMock, authMock);
@@ -234,13 +203,6 @@ public class TestVifResource {
     public void testListDataAccessError() throws Exception {
         doReturn(true).when(authMock).isAdmin(contextMock);
         doThrow(StateAccessException.class).when(daoMock).list();
-        resource.list(contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testListUnknownError() throws Exception {
-        doReturn(true).when(authMock).isAdmin(contextMock);
-        doThrow(RuntimeException.class).when(daoMock).list();
         resource.list(contextMock, uriInfoMock, factoryMock, authMock);
     }
 

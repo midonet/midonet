@@ -1,7 +1,6 @@
 /*
- * @(#)RouterLinkResource        1.6 12/1/11
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -21,19 +20,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -41,8 +36,6 @@ import com.midokura.midolman.state.StateAccessException;
  */
 public class RouterLinkResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RouterLinkResource.class);
     private UUID routerId = null;
 
     /**
@@ -70,8 +63,6 @@ public class RouterLinkResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @returns Response object with 201 status code set if successful. Body is
      *          set to PeerRouterLink.
      */
@@ -82,31 +73,20 @@ public class RouterLinkResource {
             MediaType.APPLICATION_JSON })
     public Response create(LogicalRouterPort port, @Context UriInfo uriInfo,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
+                port.getDeviceId(), port.getPeerRouterId())) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to link these routers.");
+        }
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
         port.setDeviceId(routerId);
-        PeerRouterLink peerRouter = null;
-        try {
-            if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
-                    port.getDeviceId(), port.getPeerRouterId())) {
-                throw new UnauthorizedException(
-                        "Not authorized to link these routers.");
-            }
-            peerRouter = dao.create(port);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        PeerRouterLink peerRouter = dao.create(port);
+        if (peerRouter != null) {
+            peerRouter.setBaseUri(uriInfo.getBaseUri());
         }
-
-        peerRouter.setBaseUri(uriInfo.getBaseUri());
         return Response.created(peerRouter.getUri()).entity(peerRouter).build();
     }
 
@@ -123,34 +103,21 @@ public class RouterLinkResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID peerId,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
+                routerId, peerId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to unlink these routers.");
+        }
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
-        try {
-            if (!authorizer.routerLinkAuthorized(context, AuthAction.WRITE,
-                    routerId, peerId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to unlink these routers.");
-            }
-            dao.delete(routerId, peerId);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
-        }
+        dao.delete(routerId, peerId);
     }
 
     /**
@@ -168,8 +135,6 @@ public class RouterLinkResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A PeerRouterLink object.
      */
     @GET
@@ -179,28 +144,19 @@ public class RouterLinkResource {
     public PeerRouterLink get(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-            throws StateAccessException, UnauthorizedException {
+            throws StateAccessException {
+
+        if (!authorizer.routerLinkAuthorized(context, AuthAction.READ,
+                routerId, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this router link.");
+        }
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
-        PeerRouterLink link = null;
-        try {
-            if (!authorizer.routerLinkAuthorized(context, AuthAction.READ,
-                    routerId, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this router link.");
-            }
-            link = dao.get(routerId, id);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        PeerRouterLink link = dao.get(routerId, id);
+        if (link != null) {
+            link.setBaseUri(uriInfo.getBaseUri());
         }
-        link.setBaseUri(uriInfo.getBaseUri());
         return link;
     }
 
@@ -217,8 +173,6 @@ public class RouterLinkResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A list of PeerRouterLink objects.
      */
     @GET
@@ -226,31 +180,19 @@ public class RouterLinkResource {
             MediaType.APPLICATION_JSON })
     public List<PeerRouterLink> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
 
-        RouterLinkDao dao = daoFactory.getRouterLinkDao();
-        List<PeerRouterLink> links = null;
-        try {
-            if (!authorizer.routerAuthorized(
-                    context, AuthAction.READ, routerId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view these router links.");
-            }
-            links = dao.list(routerId);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        if (!authorizer.routerAuthorized(context, AuthAction.READ, routerId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view these router links.");
         }
 
-        for (UriResource resource : links) {
-            resource.setBaseUri(uriInfo.getBaseUri());
+        RouterLinkDao dao = daoFactory.getRouterLinkDao();
+        List<PeerRouterLink> links = dao.list(routerId);
+        if (links != null) {
+            for (UriResource resource : links) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
         }
         return links;
     }

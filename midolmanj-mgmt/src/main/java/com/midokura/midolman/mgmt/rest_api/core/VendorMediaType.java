@@ -1,19 +1,16 @@
 /*
- * @(#)VendorMediaType        1.6 11/11/11
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.core;
 
 /**
  * Vendor media types
- *
- * @version 1.6 11 Nov 2011
- * @author Ryu Ishimoto
  */
 public class VendorMediaType {
 
     public static final String APPLICATION_JSON = "application/vnd.com.midokura.midolman.mgmt.Application+json";
+    public static final String APPLICATION_ERROR_JSON = "application/vnd.com.midokura.midolman.mgmt.Error+json";
     public static final String APPLICATION_TENANT_JSON = "application/vnd.com.midokura.midolman.mgmt.Tenant+json";
     public static final String APPLICATION_TENANT_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Tenant+json";
     public static final String APPLICATION_ROUTER_JSON = "application/vnd.com.midokura.midolman.mgmt.Router+json";

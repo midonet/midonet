@@ -1,7 +1,6 @@
 /*
- * @(#)BgpResource        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -22,21 +21,17 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for bgps.
- *
- * @version 1.6 11 Sept 2011
- * @author Yoshi Tamura
  */
 public class BgpResource {
     /*
@@ -59,35 +54,24 @@ public class BgpResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to delete this BGP.");
+        }
 
         BgpDao dao = daoFactory.getBgpDao();
         try {
-            if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to delete this BGP.");
-            }
             dao.delete(id);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
     }
 
@@ -106,8 +90,6 @@ public class BgpResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A BGP object.
      */
     @GET
@@ -116,28 +98,17 @@ public class BgpResource {
             MediaType.APPLICATION_JSON })
     public Bgp get(@PathParam("id") UUID id, @Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.bgpAuthorized(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException("Not authorized to view this BGP.");
+        }
 
         BgpDao dao = daoFactory.getBgpDao();
-        Bgp bgp = null;
-        try {
-            if (!authorizer.bgpAuthorized(context, AuthAction.READ, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this BGP.");
-            }
-            bgp = dao.get(id);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        Bgp bgp = dao.get(id);
+        if (bgp != null) {
+            bgp.setBaseUri(uriInfo.getBaseUri());
         }
-        bgp.setBaseUri(uriInfo.getBaseUri());
         return bgp;
     }
 

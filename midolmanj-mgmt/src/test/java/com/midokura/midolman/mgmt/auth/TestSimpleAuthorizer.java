@@ -505,7 +505,7 @@ public class TestSimpleAuthorizer {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
 
-        when(AuthChecker.isProvider(contextMock)).thenReturn(false);
+        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
         doReturn(tenant1).when(tenantDaoMock).getByRouter(id);
         when(AuthChecker.isUserPrincipal(contextMock, tenant1.getId()))
                 .thenReturn(true);
@@ -524,7 +524,7 @@ public class TestSimpleAuthorizer {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
 
-        when(AuthChecker.isProvider(contextMock)).thenReturn(false);
+        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
         doReturn(tenant1).when(tenantDaoMock).getByRouter(id);
         when(AuthChecker.isUserPrincipal(contextMock, tenant1.getId()))
                 .thenReturn(true);

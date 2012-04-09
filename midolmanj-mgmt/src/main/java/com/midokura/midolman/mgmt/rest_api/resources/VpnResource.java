@@ -1,7 +1,6 @@
 /*
- * @(#)VpnResource        1.6 11/10/25
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -22,20 +21,16 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Root resource class for vpns.
- *
- * @version 1.6 11 Sept 2011
- * @author Yoshi Tamura
  */
 public class VpnResource {
     /*
@@ -58,35 +53,24 @@ public class VpnResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.vpnAuthorized(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to delete this VPN.");
+        }
 
         VpnDao dao = daoFactory.getVpnDao();
         try {
-            if (!authorizer.vpnAuthorized(context, AuthAction.WRITE, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to delete this VPN.");
-            }
             dao.delete(id);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
     }
 
@@ -105,8 +89,6 @@ public class VpnResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A Vpn object.
      */
     @GET
@@ -115,29 +97,17 @@ public class VpnResource {
             MediaType.APPLICATION_JSON })
     public Vpn get(@PathParam("id") UUID id, @Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
 
-        Vpn vpn = null;
-        VpnDao dao = daoFactory.getVpnDao();
-        try {
-            if (!authorizer.vpnAuthorized(context, AuthAction.READ, id)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this VPN.");
-            }
-            vpn = dao.get(id);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        if (!authorizer.vpnAuthorized(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException("Not authorized to view this VPN.");
         }
 
-        vpn.setBaseUri(uriInfo.getBaseUri());
+        VpnDao dao = daoFactory.getVpnDao();
+        Vpn vpn = dao.get(id);
+        if (vpn != null) {
+            vpn.setBaseUri(uriInfo.getBaseUri());
+        }
         return vpn;
     }
 }

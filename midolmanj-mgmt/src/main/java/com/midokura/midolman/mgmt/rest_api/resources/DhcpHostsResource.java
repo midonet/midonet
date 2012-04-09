@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
  */
 
 package com.midokura.midolman.mgmt.rest_api.resources;
@@ -7,6 +8,7 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,14 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.DhcpDao;
 import com.midokura.midolman.mgmt.data.dto.DhcpHost;
 import com.midokura.midolman.mgmt.data.dto.RelativeUriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -64,40 +65,27 @@ public class DhcpHostsResource {
      *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
-     *             Authentication/authorization error.
      * @returns Response object with 201 status code set if successful.
      */
     @POST
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(DhcpHost host, @Context SecurityContext context,
-                           @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                           @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to configure DHCP for this bridge.");
+        }
 
         DhcpDao dao = daoFactory.getDhcpDao();
-        try {
-            if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE,
-                    bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to configure DHCP for this bridge.");
-            }
-            dao.createHost(bridgeId, subnet, host);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
-        }
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
-                uriInfo.getBaseUri(), bridgeId, subnet);
-        return Response.created(ResourceUriBuilder.getDhcpHost(
-                dhcpUri, host.getMacAddr())).build();
+        dao.createHost(bridgeId, subnet, host);
+        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(uriInfo.getBaseUri(),
+                bridgeId, subnet);
+        return Response.created(
+                ResourceUriBuilder.getDhcpHost(dhcpUri, host.getMacAddr()))
+                .build();
     }
 
     /**
@@ -115,8 +103,6 @@ public class DhcpHostsResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A DhcpHost object.
      */
     @GET
@@ -126,32 +112,21 @@ public class DhcpHostsResource {
     public DhcpHost get(@PathParam("mac") String mac,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-            throws StateAccessException, UnauthorizedException {
+            throws StateAccessException {
 
-        DhcpDao dao = daoFactory.getDhcpDao();
-        DhcpHost host = null;
-        // The mac in the URI uses '-' instead of ':'
-        mac = ResourceUriBuilder.macFromUri(mac);
-        try {
-            if (!authorizer.bridgeAuthorized(context, AuthAction.READ,
-                    bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this bridge's dhcp config.");
-            }
-            host = dao.getHost(bridgeId, subnet, mac);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this bridge's dhcp config.");
         }
 
-        host.setParentUri(ResourceUriBuilder.getBridgeDhcp(
-                uriInfo.getBaseUri(), bridgeId, subnet));
+        // The mac in the URI uses '-' instead of ':'
+        mac = ResourceUriBuilder.macFromUri(mac);
+        DhcpDao dao = daoFactory.getDhcpDao();
+        DhcpHost host = dao.getHost(bridgeId, subnet, mac);
+        if (host != null) {
+            host.setParentUri(ResourceUriBuilder.getBridgeDhcp(
+                    uriInfo.getBaseUri(), bridgeId, subnet));
+        }
         return host;
     }
 
@@ -170,8 +145,6 @@ public class DhcpHostsResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      */
     @PUT
     @Path("/{mac}")
@@ -179,31 +152,19 @@ public class DhcpHostsResource {
             MediaType.APPLICATION_JSON })
     public Response update(@PathParam("mac") String mac, DhcpHost host,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
 
-        DhcpDao dao = daoFactory.getDhcpDao();
+        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to update this bridge's dhcp config.");
+        }
+
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macFromUri(mac);
         // Make sure that the DhcpHost has the same mac address as the URI.
         host.setMacAddr(mac);
-        try {
-            if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE,
-                    bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to update this bridge's dhcp config.");
-            }
-            dao.updateHost(bridgeId, subnet, host);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
-        }
+        DhcpDao dao = daoFactory.getDhcpDao();
+        dao.updateHost(bridgeId, subnet, host);
         return Response.ok().build();
     }
 
@@ -220,39 +181,27 @@ public class DhcpHostsResource {
      *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
-     *             Authentication/authorization error.
      */
     @DELETE
     @Path("/{mac}")
     public void delete(@PathParam("mac") String mac,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
-            throws StateAccessException, UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
 
-        DhcpDao dao = daoFactory.getDhcpDao();
+        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to delete dhcp configuration of "
+                            + "this bridge.");
+        }
+
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macFromUri(mac);
+        DhcpDao dao = daoFactory.getDhcpDao();
         try {
-            if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE,
-                    bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to delete dhcp configuration of " +
-                                "this bridge.");
-            }
             dao.deleteHost(bridgeId, subnet, mac);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
     }
 
@@ -269,40 +218,28 @@ public class DhcpHostsResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A list of DhcpHost objects.
      */
     @GET
     @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON })
     public List<DhcpHost> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view DHCP config of this bridge.");
+        }
 
         DhcpDao dao = daoFactory.getDhcpDao();
-        List<DhcpHost> hosts = null;
-        try {
-            if (!authorizer
-                    .bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view DHCP config of this bridge.");
+        List<DhcpHost> hosts = dao.getHosts(bridgeId, subnet);
+
+        if (hosts != null) {
+            URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
+                    uriInfo.getBaseUri(), bridgeId, subnet);
+            for (RelativeUriResource resource : hosts) {
+                resource.setParentUri(dhcpUri);
             }
-            hosts = dao.getHosts(bridgeId, subnet);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
-        }
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
-                uriInfo.getBaseUri(), bridgeId, subnet);
-        for (RelativeUriResource resource : hosts) {
-            resource.setParentUri(dhcpUri);
         }
         return hosts;
     }

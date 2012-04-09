@@ -1,7 +1,5 @@
 /*
- * @(#)RouterTableResource        1.6 12/1/11
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -20,12 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -38,7 +38,7 @@ public class HostCommandResource {
     private final static Logger log =
         LoggerFactory.getLogger(HostCommandResource.class);
 
-    private UUID hostId;
+    private final UUID hostId;
 
     public HostCommandResource(UUID hostId) {
         this.hostId = hostId;
@@ -51,29 +51,21 @@ public class HostCommandResource {
                                   @Context UriInfo uriInfo,
                                   @Context DaoFactory daoFactory,
                                   @Context Authorizer authorizer)
-        throws UnauthorizedException, StateAccessException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException("Not authorized to view hosts.");
+            throw new ForbiddenHttpException("Not authorized to view hosts.");
         }
 
         HostDao dao = daoFactory.getHostDao();
-        try {
 
-            List<HostCommand> hostCommands = dao.listCommands(hostId);
-
+        List<HostCommand> hostCommands = dao.listCommands(hostId);
+        if (hostCommands != null) {
             for (HostCommand hostCommand : hostCommands) {
                 hostCommand.setBaseUri(uriInfo.getBaseUri());
             }
-
-            return hostCommands;
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
+        return hostCommands;
     }
 
     /**
@@ -86,7 +78,6 @@ public class HostCommandResource {
      * @param authorizer Authorizer object.
      * @return A Host object.
      * @throws StateAccessException  Data access error.
-     * @throws UnauthorizedException Authentication/authorization error.
      */
     @GET
     @Path("{id}")
@@ -97,27 +88,18 @@ public class HostCommandResource {
                            @Context UriInfo uriInfo,
                            @Context DaoFactory daoFactory,
                            @Context Authorizer authorizer)
-        throws StateAccessException, UnauthorizedException {
-        try {
+        throws StateAccessException {
 
-            HostDao hostDao = daoFactory.getHostDao();
-            if (!authorizer.isAdmin(context)) {
-                throw new UnauthorizedException(
-                    "Not authorized to view this command.");
-            }
-            HostCommand host = hostDao.getCommand(hostId, id);
-            host.setBaseUri(uriInfo.getBaseUri());
-            return host;
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        if (!authorizer.isAdmin(context)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to view this command.");
         }
+
+        HostDao hostDao = daoFactory.getHostDao();
+
+        HostCommand host = hostDao.getCommand(hostId, id);
+        host.setBaseUri(uriInfo.getBaseUri());
+        return host;
     }
 
     /**
@@ -130,7 +112,6 @@ public class HostCommandResource {
      * @return Response object with 204 status code set if successful and 403
      *         is the deletion could not be executed.
      * @throws StateAccessException  Data access error.
-     * @throws UnauthorizedException Authentication/authorization error.
      */
     @DELETE
     @Path("{id}")
@@ -138,32 +119,21 @@ public class HostCommandResource {
                            @Context SecurityContext context,
                            @Context DaoFactory daoFactory,
                            @Context Authorizer authorizer)
-        throws StateAccessException, UnauthorizedException {
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new UnauthorizedException(
+            throw new ForbiddenHttpException(
                 "Not authorized to delete this bridge.");
         }
 
         HostDao hostDao = daoFactory.getHostDao();
-        Response response;
         try {
-
             hostDao.deleteCommand(hostId, id);
-
-            return Response.noContent().build();
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
-            response = Response.noContent().build();
-        } catch (StateAccessException e) {
-            log.error("State Access Exception while deleting an host command");
-            throw new UnknownRestApiException(e);
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
         }
 
-        return response;
+        return Response.noContent().build();
     }
 }

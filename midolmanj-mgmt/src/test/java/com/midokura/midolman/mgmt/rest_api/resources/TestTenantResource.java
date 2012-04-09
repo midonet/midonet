@@ -26,11 +26,10 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -71,7 +70,7 @@ public class TestTenantResource {
         return tenants;
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testCreateUnauthorized() throws Exception {
         Tenant tenant = getTenant(null);
         doReturn(false).when(authMock).isAdmin(contextMock);
@@ -83,14 +82,6 @@ public class TestTenantResource {
         Tenant tenant = getTenant(null);
         doReturn(true).when(authMock).isAdmin(contextMock);
         doThrow(StateAccessException.class).when(daoMock).create(tenant);
-        resource.create(tenant, contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testCreateUnknownError() throws Exception {
-        Tenant tenant = getTenant(null);
-        doReturn(true).when(authMock).isAdmin(contextMock);
-        doThrow(RuntimeException.class).when(daoMock).create(tenant);
         resource.create(tenant, contextMock, uriInfoMock, factoryMock, authMock);
     }
 
@@ -117,7 +108,7 @@ public class TestTenantResource {
         verify(daoMock, times(1)).delete(id);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         String id = UUID.randomUUID().toString();
         doReturn(false).when(authMock).isAdmin(contextMock);
@@ -140,14 +131,6 @@ public class TestTenantResource {
         resource.delete(id, contextMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnknownRestApiException.class)
-    public void testDeleteUnknownError() throws Exception {
-        String id = UUID.randomUUID().toString();
-        doReturn(true).when(authMock).isAdmin(contextMock);
-        doThrow(RuntimeException.class).when(daoMock).delete(id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
-
     @Test
     public void testGetSuccess() throws Exception {
         String id = UUID.randomUUID().toString();
@@ -165,7 +148,7 @@ public class TestTenantResource {
         Assert.assertEquals(uri, t.getBaseUri());
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testGetUnauthorized() throws Exception {
         String id = UUID.randomUUID().toString();
         doReturn(false).when(authMock).tenantAuthorized(contextMock,
@@ -182,16 +165,7 @@ public class TestTenantResource {
         resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnknownRestApiException.class)
-    public void testGetUnknownError() throws Exception {
-        String id = UUID.randomUUID().toString();
-        doReturn(true).when(authMock).tenantAuthorized(contextMock,
-                AuthAction.READ, id);
-        doThrow(RuntimeException.class).when(daoMock).get(id);
-        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testListUnauthorized() throws Exception {
         doReturn(false).when(authMock).isAdmin(contextMock);
         resource.list(contextMock, uriInfoMock, factoryMock, authMock);
@@ -201,13 +175,6 @@ public class TestTenantResource {
     public void testListDataAccessError() throws Exception {
         doReturn(true).when(authMock).isAdmin(contextMock);
         doThrow(StateAccessException.class).when(daoMock).list();
-        resource.list(contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testListUnknownError() throws Exception {
-        doReturn(true).when(authMock).isAdmin(contextMock);
-        doThrow(RuntimeException.class).when(daoMock).list();
         resource.list(contextMock, uriInfoMock, factoryMock, authMock);
     }
 

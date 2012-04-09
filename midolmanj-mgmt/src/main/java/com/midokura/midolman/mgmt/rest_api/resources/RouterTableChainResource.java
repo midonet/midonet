@@ -1,7 +1,6 @@
 /*
- * @(#)RouterTableChainResource        1.6 12/1/11
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -17,19 +16,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -37,8 +32,6 @@ import com.midokura.midolman.state.StateAccessException;
  */
 public class RouterTableChainResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RouterTableChainResource.class);
     private final UUID routerId;
     private final ChainTable table;
 
@@ -70,8 +63,6 @@ public class RouterTableChainResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A Chain object.
      */
     @GET
@@ -81,28 +72,18 @@ public class RouterTableChainResource {
     public Chain get(@PathParam("name") String name,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-            throws StateAccessException, UnauthorizedException {
+            throws StateAccessException {
+
+        if (!authorizer.routerAuthorized(context, AuthAction.READ, routerId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view chain of this router.");
+        }
 
         ChainDao dao = daoFactory.getChainDao();
-        Chain chain = null;
-        try {
-            if (!authorizer
-                    .routerAuthorized(context, AuthAction.READ, routerId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view chain of this router.");
-            }
-            chain = dao.get(routerId, table, name);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        Chain chain = dao.get(routerId, table, name);
+        if (chain != null) {
+            chain.setBaseUri(uriInfo.getBaseUri());
         }
-        chain.setBaseUri(uriInfo.getBaseUri());
         return chain;
     }
 
@@ -119,8 +100,6 @@ public class RouterTableChainResource {
      *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
-     * @throws UnauthorizedException
-     *             Authentication/authorization error.
      * @return A list of Chain objects.
      */
     @GET
@@ -128,30 +107,19 @@ public class RouterTableChainResource {
             MediaType.APPLICATION_JSON })
     public List<Chain> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.routerAuthorized(context, AuthAction.READ, routerId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view chains of this router.");
+        }
 
         ChainDao dao = daoFactory.getChainDao();
-        List<Chain> chains = null;
-        try {
-            if (!authorizer
-                    .routerAuthorized(context, AuthAction.READ, routerId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view chains of this router.");
+        List<Chain> chains = dao.list(routerId, table);
+        if (chains != null) {
+            for (UriResource resource : chains) {
+                resource.setBaseUri(uriInfo.getBaseUri());
             }
-            chains = dao.list(routerId, table);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
-        }
-        for (UriResource resource : chains) {
-            resource.setBaseUri(uriInfo.getBaseUri());
         }
         return chains;
     }

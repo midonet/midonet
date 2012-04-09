@@ -143,7 +143,7 @@ public class ApplicationResource {
      * @return HostResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.HOSTS)
-    public HostResource getHostResource(){
+    public HostResource getHostResource() {
         return new HostResource();
     }
 

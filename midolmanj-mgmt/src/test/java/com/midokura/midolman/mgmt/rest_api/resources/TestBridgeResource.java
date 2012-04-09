@@ -24,11 +24,10 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -63,7 +62,7 @@ public class TestBridgeResource {
         verify(daoMock, times(1)).delete(id);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         doReturn(false).when(authMock).bridgeAuthorized(contextMock,
@@ -92,15 +91,6 @@ public class TestBridgeResource {
         resource.delete(id, contextMock, factoryMock, authMock);
     }
 
-    @Test(expected = UnknownRestApiException.class)
-    public void testDeleteUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).bridgeAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doThrow(RuntimeException.class).when(daoMock).delete(id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
-
     private Bridge getBridge(URI baseUri) {
         Bridge bridge = new Bridge();
         bridge.setBaseUri(baseUri);
@@ -124,7 +114,7 @@ public class TestBridgeResource {
         Assert.assertEquals(uri, result.getBaseUri());
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testGetUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         doReturn(false).when(authMock).bridgeAuthorized(contextMock,
@@ -138,15 +128,6 @@ public class TestBridgeResource {
         doReturn(true).when(authMock).bridgeAuthorized(contextMock,
                 AuthAction.READ, id);
         doThrow(StateAccessException.class).when(daoMock).get(id);
-        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testGetUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).bridgeAuthorized(contextMock,
-                AuthAction.READ, id);
-        doThrow(RuntimeException.class).when(daoMock).get(id);
         resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
     }
 
@@ -168,7 +149,7 @@ public class TestBridgeResource {
         verify(daoMock, times(1)).update(bridge);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenHttpException.class)
     public void testUpdateUnauthorized() throws Exception {
         UUID id = UUID.randomUUID();
         URI uri = URI.create("http://www.foo.com");
@@ -186,17 +167,6 @@ public class TestBridgeResource {
         doReturn(true).when(authMock).bridgeAuthorized(contextMock,
                 AuthAction.WRITE, id);
         doThrow(StateAccessException.class).when(daoMock).update(bridge);
-        resource.update(id, bridge, contextMock, factoryMock, authMock);
-    }
-
-    @Test(expected = UnknownRestApiException.class)
-    public void testUpdateUnknownError() throws Exception {
-        UUID id = UUID.randomUUID();
-        URI uri = URI.create("http://www.foo.com");
-        Bridge bridge = getBridge(uri);
-        doReturn(true).when(authMock).bridgeAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doThrow(RuntimeException.class).when(daoMock).update(bridge);
         resource.update(id, bridge, contextMock, factoryMock, authMock);
     }
 }

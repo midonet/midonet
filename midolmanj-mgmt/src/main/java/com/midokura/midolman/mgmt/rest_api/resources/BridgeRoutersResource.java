@@ -1,38 +1,29 @@
 /*
  * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 import java.util.UUID;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
+
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.UnauthorizedException;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeLinkDao;
-import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
 import com.midokura.midolman.mgmt.data.dto.BridgeRouterLink;
-import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
-import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.UnknownRestApiException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -40,8 +31,6 @@ import com.midokura.midolman.state.StateAccessException;
  */
 public class BridgeRoutersResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(BridgeRoutersResource.class);
     private UUID bridgeId = null;
 
     /**
@@ -69,8 +58,6 @@ public class BridgeRoutersResource {
      *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
-     *             Authentication/authorization error.
      * @return A PeerRouterLink object.
      */
     @GET
@@ -80,28 +67,19 @@ public class BridgeRoutersResource {
     public BridgeRouterLink get(@PathParam("id") UUID routerId,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-            throws StateAccessException, UnauthorizedException {
+            throws StateAccessException {
+
+        if (!authorizer.routerBridgeLinkAuthorized(context, AuthAction.READ,
+                routerId, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this bridge to router link.");
+        }
 
         BridgeLinkDao dao = daoFactory.getBridgeLinkDao();
-        BridgeRouterLink link = null;
-        try {
-            if (!authorizer.routerBridgeLinkAuthorized(context,
-                    AuthAction.READ, routerId, bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this bridge to router link.");
-            }
-            link = dao.getRouterLink(bridgeId, routerId);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        BridgeRouterLink link = dao.getRouterLink(bridgeId, routerId);
+        if (link != null) {
+            link.setBaseUri(uriInfo.getBaseUri());
         }
-        link.setBaseUri(uriInfo.getBaseUri());
         return link;
     }
 
@@ -118,8 +96,6 @@ public class BridgeRoutersResource {
      *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @throws com.midokura.midolman.mgmt.auth.UnauthorizedException
-     *             Authentication/authorization error.
      * @return A list of BridgeRouterLink objects.
      */
     @GET
@@ -127,31 +103,18 @@ public class BridgeRoutersResource {
             MediaType.APPLICATION_JSON })
     public List<BridgeRouterLink> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException,
-            UnauthorizedException {
+            @Context Authorizer authorizer) throws StateAccessException {
 
-        BridgeLinkDao dao = daoFactory.getBridgeLinkDao();
-        List<BridgeRouterLink> links = null;
-        try {
-            if (!authorizer.bridgeAuthorized(
-                    context, AuthAction.READ, bridgeId)) {
-                throw new UnauthorizedException(
-                        "Not authorized to view this bridge's links.");
-            }
-            links = dao.listRouterLinks(bridgeId);
-        } catch (StateAccessException e) {
-            log.error("StateAccessException error.");
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.error("UnauthorizedException error.");
-            throw e;
-        } catch (Exception e) {
-            log.error("Unhandled error.");
-            throw new UnknownRestApiException(e);
+        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this bridge's links.");
         }
-
-        for (UriResource resource : links) {
-            resource.setBaseUri(uriInfo.getBaseUri());
+        BridgeLinkDao dao = daoFactory.getBridgeLinkDao();
+        List<BridgeRouterLink> links = dao.listRouterLinks(bridgeId);
+        if (links != null) {
+            for (UriResource resource : links) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
         }
         return links;
     }
