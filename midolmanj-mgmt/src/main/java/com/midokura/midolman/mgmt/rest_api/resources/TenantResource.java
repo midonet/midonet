@@ -31,6 +31,7 @@ import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -204,9 +205,11 @@ public class TenantResource {
 
         TenantDao dao = daoFactory.getTenantDao();
         Tenant tenant = dao.get(id);
-        if (tenant != null) {
-            tenant.setBaseUri(uriInfo.getBaseUri());
+        if (tenant == null) {
+            throw new NotFoundHttpException(
+                    "The requested tenant was not found.");
         }
+        tenant.setBaseUri(uriInfo.getBaseUri());
         return tenant;
     }
 }

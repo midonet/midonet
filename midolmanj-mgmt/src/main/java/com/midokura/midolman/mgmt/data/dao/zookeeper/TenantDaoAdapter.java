@@ -1,7 +1,6 @@
 /*
- * @(#)TenantDaoAdapter        1.6 12/1/10
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -21,13 +20,11 @@ import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Tenant DAO data adapter.
- *
- * @version 1.6 10 Jan 2012
- * @author Ryu Ishimoto
  */
 public class TenantDaoAdapter implements TenantDao {
 
@@ -105,8 +102,12 @@ public class TenantDaoAdapter implements TenantDao {
     public Tenant get(String id) throws StateAccessException {
         log.debug("TenantDaoAdapter.get entered: id={}", id);
 
-        // Call get just to see if we get StateAccessException.
-        zkDao.getData(id);
+        try {
+            // Call get just to see if we get StateAccessException.
+            zkDao.getData(id);
+        } catch (NoStatePathException e) {
+            return null;
+        }
         Tenant tenant = new Tenant(id);
 
         log.debug("TenantDaoAdapter.get existing: tenant={}", tenant);

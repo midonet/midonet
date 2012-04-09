@@ -30,6 +30,7 @@ import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -146,6 +147,15 @@ public class TestTenantResource {
 
         Assert.assertEquals(tenant, t);
         Assert.assertEquals(uri, t.getBaseUri());
+    }
+
+    @Test(expected = NotFoundHttpException.class)
+    public void testGetNotFound() throws Exception {
+        String id = UUID.randomUUID().toString();
+        doReturn(true).when(authMock).tenantAuthorized(contextMock,
+                AuthAction.READ, id);
+        doReturn(null).when(daoMock).get(id);
+        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
     }
 
     @Test(expected = ForbiddenHttpException.class)
