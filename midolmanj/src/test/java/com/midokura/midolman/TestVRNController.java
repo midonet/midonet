@@ -426,21 +426,18 @@ public class TestVRNController {
         // This time along with the 'drop' flow, we expect an ICMP !N addressed
         // to the source of the UDP.
         Assert.assertEquals(1, reactor.calls.size());
-        Assert.assertTrue(reactor.calls.peek().runnable instanceof PacketContinuation);
-        PacketContinuation pktCont = (PacketContinuation) reactor.calls.peek().runnable;
-        /* XXX: Check pktCont 
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
-        Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(phyPort.getPortNumber(),
-                (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
+        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+                          PacketContinuation);
+        PacketContinuation pktCont =
+            (PacketContinuation) reactor.calls.peek().runnable;
+        // Check pktCont
+        Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
+        // XXX: Check outPortId
+        
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
                 IPv4.class.cast(eth.getPayload()),
                 new MAC(phyPort.getHardwareAddress()), mac, 0x0a000001,
-                0x0a000005, pkt.data);
-        */
+                0x0a000005, pktCont.fwdInfo.pktIn.serialize());
 
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());

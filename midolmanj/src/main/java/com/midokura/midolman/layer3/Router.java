@@ -889,10 +889,12 @@ public class Router implements ForwardingElement {
      * @param unreachCode
      *            The ICMP error code of ICMP Unreachable sent by this method.
      */
+    // TODO: Why is this "forLocalPkt"?  As opposed to ...?
     private void sendICMPforLocalPkt(
             ForwardInfo fwdInfo, UNREACH_CODE unreachCode) {
         // Check whether the original packet is allowed to trigger ICMP.
-        // TODO(pino, abel): do we need the packet as seen by the ingress to this router?
+        // TODO(pino, abel): do we need the packet as seen by the ingress to
+        // this router?
         if (!canSendICMP(fwdInfo.pktIn, fwdInfo.inPortId))
             return;
         // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
