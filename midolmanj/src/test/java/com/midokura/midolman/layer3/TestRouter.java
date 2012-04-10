@@ -31,6 +31,7 @@ import scala.actors.threadpool.Arrays;
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.MockVRNController;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.openflow.ControllerStub;
@@ -41,6 +42,7 @@ import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.Condition;
@@ -77,6 +79,7 @@ public class TestRouter {
     private UUID uplinkId;
     private int uplinkGatewayAddr;
     private int uplinkPortAddr;
+    private MAC uplinkMacAddr;
     private Route uplinkRoute;
     private Router rtr;
     private RuleEngine ruleEngine;
@@ -88,8 +91,9 @@ public class TestRouter {
     private UUID srcFilterChainId;
     private int publicDnatAddr;
     private int internDnatAddr;
-    ChainZkManager chainMgr;
-    RuleZkManager ruleMgr;
+    private MockVRNController controller;
+    private ChainZkManager chainMgr;
+    private RuleZkManager ruleMgr;
 
     protected Cache createCache() {
         return new MockCache();
@@ -101,12 +105,14 @@ public class TestRouter {
         ZkPathManager pathMgr = new ZkPathManager(basePath);
         Directory dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
-        // Add the paths for rules and chains
+        // Add the various paths.
         dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getGrePath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getVRNPortLocationsPath(), null, CreateMode.PERSISTENT);
         PortZkManager portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
@@ -117,9 +123,13 @@ public class TestRouter {
         // TODO(pino): replace the following with a real implementation.
         Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
-        rTable = null; // TODO(pino): get a handle on the router's table.
-        // TODO(pino): pass a MockVRNController to the Router.
-        rtr = new Router(rtrId, dir, basePath, reactor, cache, null);
+        rTable = new ReplicatedRoutingTable(rtrId,
+                     routerMgr.getRoutingTableDirectory(rtrId),
+                     CreateMode.EPHEMERAL);
+        rTable.start();
+        controller = new MockVRNController(679, dir, basePath, null,
+                IntIPv4.fromString("192.168.200.200"), "externalIdKey");
+        rtr = new Router(rtrId, dir, basePath, reactor, cache, controller);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.
@@ -127,10 +137,11 @@ public class TestRouter {
         uplinkGatewayAddr = 0x0a0b0c0d;
         uplinkPortAddr = 0xb4000102; // 180.0.1.2
         int nwAddr = 0x00000000; // 0.0.0.0/0
+        uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02");
         PortDirectory.MaterializedRouterPortConfig portConfig =
                 new PortDirectory.MaterializedRouterPortConfig(
-                        rtrId, nwAddr, 0, uplinkPortAddr, null, null, nwAddr,
-                        0, null);
+                        rtrId, nwAddr, 0, uplinkPortAddr, uplinkMacAddr, null,
+                        nwAddr, 0, null);
         uplinkId = portMgr.create(portConfig);
         uplinkRoute = new Route(nwAddr, 0, nwAddr, 0, NextHop.PORT, uplinkId,
                 uplinkGatewayAddr, 1, null, rtrId);
@@ -270,6 +281,13 @@ public class TestRouter {
                 devPort23.getMacAddr(), 0x0a00020c, 0x11223344, (short) 1111,
                 (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port23Id, eth);
+        // ARPs for the upstream router.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        // Send ARP reply from the next hop addr, 10.11.12.13.
+        Ethernet arp = makeArpReply(MAC.fromString("02:04:06:08:0a:0c"),
+                uplinkMacAddr, uplinkGatewayAddr, uplinkPortAddr);
+        routePacket(uplinkId, arp);
+        // Now original pkt gets forwarded.
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
     }
 

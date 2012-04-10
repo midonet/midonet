@@ -80,8 +80,14 @@ public class ReplicatedRoutingTable {
         watchers = new HashSet<Callback<UUID>>();
         routeSet = new ReplicatedRouteSet(routeDir, createMode);
         routeSet.addWatcher(new MyWatcher());
-        // TODO(pino): perhaps move this into a start method?
+    }
+
+    public void start() {
         routeSet.start();
+    }
+
+    public void stop() {
+        routeSet.stop();
     }
 
     public void addWatcher(Callback<UUID> watcher) {

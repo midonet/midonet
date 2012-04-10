@@ -295,15 +295,36 @@ public class TestVRNCoordinator {
         Ethernet eth = TestRouter.makeUDP(
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0100cc, 0x0a0000aa, (short) 101, (short) 212, payload);
-        ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs = new HashSet<UUID>();
-        fInfo.notifyFEs = traversedRtrs;
-        vrn.process(fInfo);
-        Assert.assertEquals(2, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
-        TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
+        ForwardInfo fInfo1 = prepareFwdInfo(ingrDevPort.getId(), eth);
+        Set<UUID> traversedRtrs1 = new HashSet<UUID>();
+        fInfo1.notifyFEs = traversedRtrs1;
+        vrn.process(fInfo1);
+        // The packet gets paused for ARP, but only at router0, it's traversed
+        // router1.
+        Assert.assertEquals(Action.PAUSED, fInfo1.action);
+        Assert.assertEquals(1, traversedRtrs1.size());
+        Assert.assertTrue(traversedRtrs1.contains(routerIds.get(1)));
+        
+        // Construct an ARP reply for 0x0a0000aa.
+        MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
+                                             (byte) 2, (byte) 3, (byte) 3 });
+        Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
+                                egrDevPort.getMacAddr(), 0x0a0000aa,
+                                egrDevPort.getVirtualConfig().portAddr);
+        ForwardInfo arpFInfo = prepareFwdInfo(egrDevPort.getId(), arpReply);
+        vrn.process(arpFInfo);
+
+        // Now a packet sent from 0x0a0100cc to 0x0a0000aa should get all the
+        // way through.
+        ForwardInfo fInfo2 = prepareFwdInfo(ingrDevPort.getId(), eth);
+        Set<UUID> traversedRtrs2 = new HashSet<UUID>();
+        fInfo2.notifyFEs = traversedRtrs2;
+        vrn.process(fInfo2);
+        TestRouter.checkForwardInfo(fInfo2, Action.FORWARD, egrDevPort.getId(),
                 0x0a0000aa);
+        Assert.assertEquals(2, traversedRtrs2.size());
+        Assert.assertTrue(traversedRtrs2.contains(routerIds.get(0)));
+        Assert.assertTrue(traversedRtrs2.contains(routerIds.get(1)));
     }
 
     @Test

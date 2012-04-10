@@ -152,6 +152,7 @@ public class Router implements ForwardingElement {
         table = new ReplicatedRoutingTable(routerId,
                 routerMgr.getRoutingTableDirectory(routerId),
                 CreateMode.EPHEMERAL);
+        table.start();
         arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
         arpTable.start();
         devicePorts = new HashMap<UUID, L3DevicePort>();
@@ -246,10 +247,20 @@ public class Router implements ForwardingElement {
                     MaterializedRouterPortConfig.class.cast(rtrPortConfig);
             // The nwAddr should be in the port's localNwAddr/localNwLength.
             int shift = 32 - mPortConfig.localNwLength;
-            if ((nwAddr >>> shift) != (mPortConfig.localNwAddr >>> shift)) {
-                log.warn("getMacForIp: {} cannot get mac for {} - address not in " +
-                         "network segment of port {}",
-                         new Object[] { this, nwAddrStr, portId });
+            // Shifts by 32 in java are no-ops (see 
+            // http://www.janeg.ca/scjp/oper/shift.html), so special case
+            // nwLength=0 <=> shift=32 to always match.
+            if ((nwAddr >>> shift) != (mPortConfig.localNwAddr >>> shift) &&
+                    shift != 32) {
+                log.warn("getMacForIp: {} cannot get mac for {} - address not "+
+                         "in network segment of port {} ({}/{})",
+                         new Object[] { this, nwAddrStr, portId, 
+                             mPortConfig.localNwAddr, mPortConfig.localNwLength
+                         });
+                log.warn("({} >>> {}) == {} != ({} >>> {}) == {}", new Object[]
+                         { nwAddr, shift, nwAddr >>> shift,
+                           mPortConfig.localNwAddr, shift,
+                           mPortConfig.localNwAddr >>> shift });
                 cb.call(null);
                 return;
             }
@@ -454,9 +465,10 @@ public class Router implements ForwardingElement {
         // Set the hwSrc and hwDst before forwarding the packet.
         fwdInfo.matchOut.setDataLayerSource(rtrPortCfg.getHwAddr());
         fwdInfo.action = Action.PAUSED;
+        int nextHopIP = rt.nextHopGateway != 0 ? rt.nextHopGateway 
+                                  : fwdInfo.matchOut.getNetworkDestination();
         ArpCallback cb = new ArpCallback(fwdInfo, true);
-        getMacForIp(fwdInfo.outPortId, fwdInfo.matchOut.getNetworkDestination(),
-                cb);
+        getMacForIp(fwdInfo.outPortId, nextHopIP, cb);
         // If the callback hasn't yet been called, when it's called later this
         // will signal that it needs to call VRNController.continueProcessing.
         cb.inMethodProcess = false;
