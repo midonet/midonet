@@ -217,7 +217,7 @@ public class SimpleAuthorizer implements Authorizer {
         log.debug("SimpleAuthorizer.routerLinkAuthorized entered: id=" + id
                 + ",action=" + action);
 
-        if (AuthChecker.isProvider(context)) {
+        if (AuthChecker.isAdmin(context)) {
             return true;
         }
 
@@ -240,7 +240,7 @@ public class SimpleAuthorizer implements Authorizer {
             AuthAction action, UUID routerId, UUID bridgeId)
             throws StateAccessException {
 
-        if (AuthChecker.isProvider(context)) {
+        if (AuthChecker.isAdmin(context)) {
             return true;
         }
 

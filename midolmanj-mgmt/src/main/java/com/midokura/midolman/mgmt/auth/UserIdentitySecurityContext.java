@@ -1,7 +1,5 @@
 /*
- * @(#)TenantUserSecurityContext        1.6 12/1/8
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.auth;
 
@@ -12,15 +10,12 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 /**
- * Security Context wrapper that uses TenantUser class.
- *
- * @version 1.6 8 Jan 2012
- * @author Ryu Ishimoto
+ * Security Context wrapper that uses UserIdentity class.
  */
-public class TenantUserSecurityContext implements SecurityContext {
+public class UserIdentitySecurityContext implements SecurityContext {
 
     private Principal principal = null;
-    private TenantUser tenantUser = null;
+    private UserIdentity userIdentity = null;
 
     @Context
     UriInfo uriInfo;
@@ -28,19 +23,19 @@ public class TenantUserSecurityContext implements SecurityContext {
     /**
      * Constructor
      *
-     * @param tenantUser
-     *            TenantUser object.
+     * @param userIdentity
+     *            UserIdentity object.
      */
-    public TenantUserSecurityContext(final TenantUser tenantUser) {
-        if (tenantUser != null) {
+    public UserIdentitySecurityContext(final UserIdentity userIdentity) {
+        if (userIdentity != null) {
             principal = new Principal() {
                 @Override
                 public String getName() {
-                    return tenantUser.getTenantId();
+                    return userIdentity.getTenantId();
                 }
             };
         }
-        this.tenantUser = tenantUser;
+        this.userIdentity = userIdentity;
     }
 
     /*
@@ -50,14 +45,14 @@ public class TenantUserSecurityContext implements SecurityContext {
      */
     @Override
     public String getAuthenticationScheme() {
-        return "Keystone";
+        return "token";
     }
 
     /**
-     * @return The TenantUser object.
+     * @return The UserIdentity object.
      */
-    public TenantUser getTenantUser() {
-        return tenantUser;
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
     }
 
     /*
@@ -88,18 +83,18 @@ public class TenantUserSecurityContext implements SecurityContext {
      */
     @Override
     public boolean isUserInRole(String role) {
-        if (tenantUser == null) {
+        if (userIdentity == null) {
             return false;
         }
-        return tenantUser.isRole(role);
+        return userIdentity.hasRole(role);
     }
 
     /**
-     * @param tenantUser
-     *            　TenantUser object to set.
+     * @param userIdentity
+     *            　UserIdentity object to set.
      */
-    public void setTenantUser(TenantUser tenantUser) {
-        this.tenantUser = tenantUser;
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
 }

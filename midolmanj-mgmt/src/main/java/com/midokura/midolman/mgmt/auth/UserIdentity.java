@@ -1,23 +1,23 @@
 /*
- * @(#)TenantUser        1.6 11/11/15
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.auth;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-public class TenantUser {
+import com.midokura.util.StringUtil;
+
+/**
+ * Class that holds the identity information of a user.
+ */
+public class UserIdentity {
+
     private String tenantId = null;
     private String tenantName = null;
     private String userId = null;
     private String token = null;
-    private List<String> roles = null;
-
-    public TenantUser() {
-        roles = new ArrayList<String>();
-    }
+    private final Set<String> roles = new HashSet<String>();
 
     /**
      * @return the tenantId
@@ -65,33 +65,53 @@ public class TenantUser {
     }
 
     /**
-     * @return the roles
+     * @param role
+     *            Role to add.
      */
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    /**
-     * @param roles
-     *            the roles to set
-     */
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
-    }
-
     public void addRole(String role) {
         this.roles.add(role);
     }
 
-    public boolean isRole(String role) {
+    /**
+     * @param role
+     *            Role to check.
+     * @return True if the user has this role.
+     */
+    public boolean hasRole(String role) {
         return roles.contains(role);
     }
 
+    /**
+     * Get the tenant name.
+     *
+     * @return tenantName.
+     */
     public String getTenantName() {
         return tenantName;
     }
 
+    /**
+     * Set the tenant name.
+     *
+     * @param tenantName
+     */
     public void setTenantName(String tenantName) {
         this.tenantName = tenantName;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("UserIdentity: userId=" + this.userId);
+        sb.append(", token=" + this.token);
+        sb.append(", tenantId=" + this.tenantId);
+        sb.append(", tenantName=" + this.tenantName);
+        sb.append(", roles=" + StringUtil.join(this.roles, '|'));
+        return sb.toString();
     }
 }

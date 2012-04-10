@@ -1,7 +1,6 @@
 /*
- * @(#)AuthChecker        1.6 12/1/8
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.auth;
 
@@ -11,9 +10,6 @@ import javax.ws.rs.core.SecurityContext;
 
 /**
  * Class to check authorization.
- *
- * @version 1.6 8 Jan 2012
- * @author Ryu Ishimoto
  */
 public class AuthChecker {
 
@@ -28,19 +24,7 @@ public class AuthChecker {
      * @return True if admin.
      */
     public static boolean isAdmin(SecurityContext context) {
-        return (context.isUserInRole(AuthRole.ADMIN.toString()));
-    }
-
-    /**
-     * Checks whether the user sending the request is service provider.
-     *
-     * @param context
-     *            Request context.
-     * @return True if provider.
-     */
-    public static boolean isProvider(SecurityContext context) {
-        return (isAdmin(context) || context.isUserInRole(AuthRole.PROVIDER
-                .toString()));
+        return (context.isUserInRole(AuthRole.ADMIN));
     }
 
     /**

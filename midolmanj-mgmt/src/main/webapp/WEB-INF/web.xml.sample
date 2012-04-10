@@ -33,29 +33,44 @@
     <param-value>/midonet/v1/midolman-mgmt</param-value>
   </context-param>
   <filter>
-    <filter-name>keystone_auth</filter-name>
+    <filter-name>auth</filter-name>
     <description>
-      This filter authenticates the request by checking the
-      token sent via Keystone.
+      This filter authenticates the request by validating the token.
     </description>
     <filter-class>
-      com.midokura.midolman.mgmt.servlet.KeystoneAuthFilter
+      com.midokura.midolman.mgmt.servlet.AuthFilter
     </filter-class>
     <init-param>
-      <param-name>service_protocol</param-name>
+      <param-name>auth_client</param-name>
+      <param-value>com.midokura.midolman.mgmt.auth.keystone.KeystoneClient</param-value>
+    </init-param>
+    <init-param>
+      <param-name>keystone_service_protocol</param-name>
       <param-value>http</param-value>
     </init-param>
     <init-param>
-      <param-name>service_host</param-name>
+      <param-name>keystone_service_host</param-name>
       <param-value>127.0.0.1</param-value>
     </init-param>
     <init-param>
-      <param-name>service_port</param-name>
+      <param-name>keystone_service_port</param-name>
       <param-value>35357</param-value>
     </init-param>
     <init-param>
-      <param-name>admin_token</param-name>
+      <param-name>keystone_admin_token</param-name>
       <param-value>999888777666</param-value>
+    </init-param>
+    <init-param>
+      <param-name>keystone_admin_role</param-name>
+      <param-value>mido_admin</param-value>
+    </init-param>
+    <init-param>
+      <param-name>keystone_tenant_admin_role</param-name>
+      <param-value>mido_tenant_admin</param-value>
+    </init-param>
+    <init-param>
+      <param-name>keystone_tenant_user_role</param-name>
+      <param-value>mido_tenant_user</param-value>
     </init-param>
   </filter>
   <filter>
@@ -84,7 +99,7 @@
     </init-param>
   </filter>
   <filter-mapping>
-    <filter-name>keystone_auth</filter-name>
+    <filter-name>auth</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
@@ -106,7 +121,7 @@
     </init-param>
     <init-param>
       <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
-      <param-value>com.midokura.midolman.mgmt.auth.KeystoneAuthFilter</param-value>
+      <param-value>com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter</param-value>
       <!-- Use the below filter to skip auth -->
       <!-- param-value>com.midokura.midolman.mgmt.auth.NoAuthFilter</param-value -->
     </init-param>

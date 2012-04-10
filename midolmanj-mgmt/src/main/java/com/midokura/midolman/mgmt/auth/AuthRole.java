@@ -1,33 +1,29 @@
 /*
- * @(#)AuthRole.java        1.6 12/1/8
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.auth;
 
 /**
- * Enum that defines user roles.
- *
- * @version 1.6 8 Jan 2012
- * @author Ryu Ishimoto
+ * Class that defines roles.
  */
-public enum AuthRole {
+public class AuthRole {
 
-    ADMIN("Admin"), PROVIDER("Provider");
-
-    private final String value;
-
-    private AuthRole(String val) {
-        this.value = val;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Enum#toString()
+    /**
+     * Super admin role of the system.
      */
-    @Override
-    public String toString() {
-        return value;
-    }
+    public static final String ADMIN = "admin";
+
+
+    /**
+     * Tenant admin role.
+     */
+    public static final String TENANT_ADMIN = "tenantadmin";
+
+
+    /**
+     * Tenant user role.
+     */
+    public static final String TENANT_USER = "tenantuser";
+
 }

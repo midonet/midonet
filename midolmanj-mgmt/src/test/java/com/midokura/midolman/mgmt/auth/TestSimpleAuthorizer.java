@@ -476,7 +476,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testRouterLinkAuthorizedProvider() throws Exception {
-        when(AuthChecker.isProvider(contextMock)).thenReturn(true);
+        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.routerLinkAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID(), UUID.randomUUID());
         Assert.assertTrue(result);
@@ -487,7 +487,7 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isProvider(contextMock)).thenReturn(false);
+        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
         doReturn(tenant).when(tenantDaoMock).getByRouter(id);
         when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
