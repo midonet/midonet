@@ -129,6 +129,7 @@ public class TestBridgeDaoAdapter {
         UUID id = UUID.randomUUID();
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig("foo", "bar");
 
+        doReturn(true).when(daoMock).exists(id);
         doReturn(mgmtConfig).when(daoMock).getMgmtData(id);
 
         Bridge bridge = adapter.get(id);
@@ -136,6 +137,16 @@ public class TestBridgeDaoAdapter {
         Assert.assertEquals(id, bridge.getId());
         Assert.assertEquals(mgmtConfig.tenantId, bridge.getTenantId());
         Assert.assertEquals(mgmtConfig.name, bridge.getName());
+    }
+
+    @Test
+    public void testGetNotExist() throws Exception {
+        UUID id = UUID.randomUUID();
+        doReturn(false).when(daoMock).exists(id);
+
+        Bridge bridge = adapter.get(id);
+
+        Assert.assertNull(bridge);
     }
 
     @Test

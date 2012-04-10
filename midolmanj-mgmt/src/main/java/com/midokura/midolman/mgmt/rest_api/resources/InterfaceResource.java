@@ -32,6 +32,7 @@ import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -193,10 +194,12 @@ public class InterfaceResource {
         HostDao dao = daoFactory.getHostDao();
 
         Interface anInterface = dao.getInterface(hostId, id);
-
-        if (anInterface != null) {
-            anInterface.setBaseUri(uriInfo.getBaseUri());
+        if (anInterface == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        anInterface.setBaseUri(uriInfo.getBaseUri());
+
         return anInterface;
     }
 

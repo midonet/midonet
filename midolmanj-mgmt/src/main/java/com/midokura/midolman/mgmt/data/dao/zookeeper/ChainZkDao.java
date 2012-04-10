@@ -1,7 +1,6 @@
 /*
- * @(#)ChainZkDao        1.6 11/12/25
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -25,9 +24,6 @@ import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for chain data.
- *
- * @version 1.6 25 Dec 2011
- * @author Ryu Ishimoto
  */
 public class ChainZkDao {
 
@@ -51,6 +47,25 @@ public class ChainZkDao {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
+    }
+
+    /**
+     * Checks whether a chain exists with the given ID.
+     *
+     * @param id
+     *            Chain ID
+     * @return True if chain exists.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        log.debug("ChainZkDao.exists entered: id={}", id);
+
+        String path = pathBuilder.getChainPath(id);
+        boolean exists = zkDao.exists(path);
+
+        log.debug("ChainZkDao.exists exiting: exists=" + exists);
+        return exists;
     }
 
     /**

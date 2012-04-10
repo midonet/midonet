@@ -33,6 +33,7 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -150,14 +151,16 @@ public class VifResource {
 
         VifDao dao = daoFactory.getVifDao();
         Vif vif = dao.get(id);
-        if (vif != null) {
-            if (!authorizer.vifAuthorized(context, AuthAction.READ,
-                    vif.getPortId())) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view this VIF.");
-            }
-            vif.setBaseUri(uriInfo.getBaseUri());
+        if (vif == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        if (!authorizer
+                .vifAuthorized(context, AuthAction.READ, vif.getPortId())) {
+            throw new ForbiddenHttpException("Not authorized to view this VIF.");
+        }
+        vif.setBaseUri(uriInfo.getBaseUri());
+
         return vif;
     }
 

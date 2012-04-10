@@ -28,6 +28,7 @@ import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -94,6 +95,7 @@ public class HostResource {
         if (host != null) {
             host.setBaseUri(uriInfo.getBaseUri());
         }
+
         return host;
     }
 

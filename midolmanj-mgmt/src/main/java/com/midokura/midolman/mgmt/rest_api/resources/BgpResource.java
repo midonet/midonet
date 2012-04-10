@@ -27,6 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -106,9 +107,12 @@ public class BgpResource {
 
         BgpDao dao = daoFactory.getBgpDao();
         Bgp bgp = dao.get(id);
-        if (bgp != null) {
-            bgp.setBaseUri(uriInfo.getBaseUri());
+        if (bgp == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        bgp.setBaseUri(uriInfo.getBaseUri());
+
         return bgp;
     }
 

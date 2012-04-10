@@ -154,6 +154,7 @@ public class TestChainDaoAdapter {
 
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
+        when(daoMock.exists(id)).thenReturn(true);
 
         when(opServiceMock.buildDelete(id, true)).thenReturn(ops);
         adapter.delete(id);
@@ -170,6 +171,7 @@ public class TestChainDaoAdapter {
 
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
+        when(daoMock.exists(id)).thenReturn(true);
 
         adapter.delete(id);
     }
@@ -194,6 +196,7 @@ public class TestChainDaoAdapter {
 
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
+        when(daoMock.exists(id)).thenReturn(true);
 
         Chain chain = adapter.get(id);
 
@@ -216,6 +219,7 @@ public class TestChainDaoAdapter {
         when(
                 daoMock.getNameData(config.routerId, mgmtConfig.table,
                         config.name)).thenReturn(nameConfig);
+        when(daoMock.exists(id)).thenReturn(true);
 
         Chain chain = adapter.get(config.routerId, mgmtConfig.table,
                 config.name);
@@ -234,6 +238,7 @@ public class TestChainDaoAdapter {
         ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
         Rule rule = createTestRule(UUID.randomUUID(), id);
 
+        when(daoMock.exists(id)).thenReturn(true);
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(ruleDaoMock.get(rule.getId())).thenReturn(rule);
@@ -276,6 +281,7 @@ public class TestChainDaoAdapter {
         when(daoMock.getIds(routerId, ChainTable.NAT)).thenReturn(ids);
         when(daoMock.getData(any(UUID.class))).thenReturn(config);
         when(daoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
+        when(daoMock.exists(any(UUID.class))).thenReturn(true);
 
         List<Chain> chains = adapter.list(routerId, ChainTable.NAT);
 

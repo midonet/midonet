@@ -1,7 +1,6 @@
 /*
- * @(#)VifZkDao        1.6 12/1/6
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -21,9 +20,6 @@ import com.midokura.midolman.state.ZkManager;
 
 /**
  * Proxy class to access ZooKeeper for VIF data.
- *
- * @version 1.6 6 Jan 2012
- * @author Ryu Ishimoto
  */
 public class VifZkDao {
 
@@ -47,6 +43,25 @@ public class VifZkDao {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
+    }
+
+    /**
+     * Checks whether a VIF exists with the given ID.
+     *
+     * @param id
+     *            vif ID
+     * @return True if vif exists.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        log.debug("VifZkDao.exists entered: id={}", id);
+
+        String path = pathBuilder.getVifPath(id);
+        boolean exists = zkDao.exists(path);
+
+        log.debug("VifZkDao.exists exiting: exists=" + exists);
+        return exists;
     }
 
     /**

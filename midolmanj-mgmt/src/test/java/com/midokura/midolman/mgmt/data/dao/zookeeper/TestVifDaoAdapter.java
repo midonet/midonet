@@ -118,6 +118,7 @@ public class TestVifDaoAdapter {
         VifConfig config = createTestVifConfig(UUID.randomUUID());
 
         doReturn(config).when(daoMock).getData(id);
+        doReturn(true).when(daoMock).exists(id);
 
         Vif vif = adapter.get(id);
 

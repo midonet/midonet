@@ -1,7 +1,6 @@
 /*
- * @(#)RouterDaoAdapter        1.6 12/1/10
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -29,9 +28,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Router ZK DAO adapter
- *
- * @version 1.6 10 Jan 2012
- * @author Ryu Ishimoto
  */
 public class RouterDaoAdapter implements RouterDao {
 
@@ -114,8 +110,11 @@ public class RouterDaoAdapter implements RouterDao {
     public Router get(UUID id) throws StateAccessException {
         log.debug("RouterDaoAdapter.get entered: id={}", id);
 
-        RouterMgmtConfig config = zkDao.getMgmtData(id);
-        Router router = new Router(id, config.name, config.tenantId);
+        Router router = null;
+        if (zkDao.exists(id)) {
+            RouterMgmtConfig config = zkDao.getMgmtData(id);
+            router = new Router(id, config.name, config.tenantId);
+        }
 
         log.debug("RouterDaoAdapter.get existing: router={}", router);
         return router;

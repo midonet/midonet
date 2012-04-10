@@ -27,6 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -105,9 +106,12 @@ public class ChainResource {
 
         ChainDao dao = daoFactory.getChainDao();
         Chain chain = dao.get(id);
-        if (chain != null) {
-            chain.setBaseUri(uriInfo.getBaseUri());
+        if (chain == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        chain.setBaseUri(uriInfo.getBaseUri());
+
         return chain;
     }
 

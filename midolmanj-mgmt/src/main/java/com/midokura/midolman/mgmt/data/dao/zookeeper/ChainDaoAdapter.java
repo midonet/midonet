@@ -1,7 +1,6 @@
 /*
- * @(#)ChainDaoAdapter        1.6 11/12/2
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -30,9 +29,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Chain ZK DAO adapter.
- *
- * @version 1.6 2 Dec 2011
- * @author Ryu Ishimoto
  */
 public class ChainDaoAdapter implements ChainDao {
 
@@ -127,7 +123,7 @@ public class ChainDaoAdapter implements ChainDao {
             DtoRuleChain.ChainTable table = Enum.valueOf(
                     DtoRuleChain.ChainTable.class, entry.getKey().name());
             for (String name : entry.getValue()) {
-                Chain chain = new Chain(UUID.randomUUID(), routerId,  table,
+                Chain chain = new Chain(UUID.randomUUID(), routerId, table,
                         name);
                 chains.add(chain);
             }
@@ -148,9 +144,12 @@ public class ChainDaoAdapter implements ChainDao {
     public Chain get(UUID id) throws StateAccessException {
         log.debug("ChainDaoAdapter.get entered: id={}", id);
 
-        ChainConfig config = zkDao.getData(id);
-        ChainMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-        Chain chain = new Chain(id, config, mgmtConfig);
+        Chain chain = null;
+        if (zkDao.exists(id)) {
+            ChainMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
+            ChainConfig config = zkDao.getData(id);
+            chain = new Chain(id, config, mgmtConfig);
+        }
 
         log.debug("ChainDaoAdapter.get existing: chain={}", chain);
         return chain;

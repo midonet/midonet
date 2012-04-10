@@ -27,6 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -99,9 +100,12 @@ public class RouterResource {
 
         RouterDao dao = daoFactory.getRouterDao();
         Router router = dao.get(id);
-        if (router != null) {
-            router.setBaseUri(uriInfo.getBaseUri());
+        if (router == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        router.setBaseUri(uriInfo.getBaseUri());
+
         return router;
     }
 

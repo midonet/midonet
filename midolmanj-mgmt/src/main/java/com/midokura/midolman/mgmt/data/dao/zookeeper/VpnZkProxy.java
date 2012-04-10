@@ -1,7 +1,6 @@
 /*
- * @(#)VpnZkProxy        1.6 11/10/25
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
@@ -12,6 +11,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
@@ -67,8 +67,11 @@ public class VpnZkProxy implements VpnDao {
      */
     @Override
     public Vpn get(UUID id) throws StateAccessException {
-        // TODO: Throw NotFound exception here.
-        return new Vpn(id, dataAccessor.get(id).value);
+        try {
+            return new Vpn(id, dataAccessor.get(id).value);
+        } catch (NoStatePathException e) {
+            return null;
+        }
     }
 
     /*

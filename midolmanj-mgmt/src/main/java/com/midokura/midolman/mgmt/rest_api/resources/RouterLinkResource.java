@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.data.dto.PeerRouterLink;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -154,9 +155,12 @@ public class RouterLinkResource {
 
         RouterLinkDao dao = daoFactory.getRouterLinkDao();
         PeerRouterLink link = dao.get(routerId, id);
-        if (link != null) {
-            link.setBaseUri(uriInfo.getBaseUri());
+        if (link == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        link.setBaseUri(uriInfo.getBaseUri());
+
         return link;
     }
 

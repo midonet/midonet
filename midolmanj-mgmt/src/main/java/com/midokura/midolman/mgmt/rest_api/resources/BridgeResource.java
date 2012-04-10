@@ -30,6 +30,7 @@ import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -111,9 +112,12 @@ public class BridgeResource {
 
         BridgeDao dao = daoFactory.getBridgeDao();
         Bridge bridge = dao.get(id);
-        if (bridge != null) {
-            bridge.setBaseUri(uriInfo.getBaseUri());
+        if (bridge == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        bridge.setBaseUri(uriInfo.getBaseUri());
+
         return bridge;
     }
 

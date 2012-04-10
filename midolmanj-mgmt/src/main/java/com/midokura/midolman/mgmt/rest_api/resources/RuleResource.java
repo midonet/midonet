@@ -26,6 +26,7 @@ import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -103,9 +104,12 @@ public class RuleResource {
 
         RuleDao dao = daoFactory.getRuleDao();
         Rule rule = dao.get(id);
-        if (rule != null) {
-            rule.setBaseUri(uriInfo.getBaseUri());
+        if (rule == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        rule.setBaseUri(uriInfo.getBaseUri());
+
         return rule;
     }
 }

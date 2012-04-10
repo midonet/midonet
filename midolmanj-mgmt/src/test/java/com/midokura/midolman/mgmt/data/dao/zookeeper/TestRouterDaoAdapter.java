@@ -38,7 +38,6 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 
 public class TestRouterDaoAdapter {
 
@@ -138,12 +137,23 @@ public class TestRouterDaoAdapter {
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig("foo", "bar");
 
         doReturn(mgmtConfig).when(daoMock).getMgmtData(id);
+        doReturn(true).when(daoMock).exists(id);
 
         Router router = adapter.get(id);
 
         Assert.assertEquals(id, router.getId());
         Assert.assertEquals(mgmtConfig.tenantId, router.getTenantId());
         Assert.assertEquals(mgmtConfig.name, router.getName());
+    }
+
+    @Test
+    public void testGetNotExist() throws Exception {
+        UUID id = UUID.randomUUID();
+        doReturn(false).when(daoMock).exists(id);
+
+        Router router = adapter.get(id);
+
+        Assert.assertNull(router);
     }
 
     @Test

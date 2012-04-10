@@ -95,8 +95,11 @@ public class VifDaoAdapter implements VifDao {
     public Vif get(UUID id) throws StateAccessException {
         log.debug("VifDaoAdapter.get entered: id={}", id);
 
-        VifConfig config = zkDao.getData(id);
-        Vif vif = new Vif(id, config.portId);
+        Vif vif = null;
+        if (zkDao.exists(id)) {
+            VifConfig config = zkDao.getData(id);
+            vif = new Vif(id, config.portId);
+        }
 
         log.debug("VifDaoAdapter.get existing: vif={}", vif);
         return vif;

@@ -239,6 +239,7 @@ public class TestPortDaoAdapter {
         PortConfig config = createTestLogicalRouterPortConfig(
                 UUID.randomUUID(), UUID.randomUUID());
         doReturn(config).when(daoMock).getData(id);
+        doReturn(true).when(daoMock).exists(id);
 
         Port port = adapter.get(id);
 
@@ -255,6 +256,7 @@ public class TestPortDaoAdapter {
         PortMgmtConfig mgmtConfig = createTestMgmtConfig(UUID.randomUUID());
         doReturn(config).when(daoMock).getData(id);
         doReturn(mgmtConfig).when(daoMock).getMgmtData(id);
+        doReturn(true).when(daoMock).exists(id);
 
         Port port = adapter.get(id);
 
@@ -271,6 +273,7 @@ public class TestPortDaoAdapter {
         PortMgmtConfig mgmtConfig = createTestMgmtConfig(UUID.randomUUID());
         doReturn(config).when(daoMock).getData(id);
         doReturn(mgmtConfig).when(daoMock).getMgmtData(id);
+        doReturn(true).when(daoMock).exists(id);
 
         Port port = adapter.get(id);
 

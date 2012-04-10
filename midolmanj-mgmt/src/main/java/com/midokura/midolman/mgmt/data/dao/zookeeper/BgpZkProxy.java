@@ -1,9 +1,7 @@
 /*
- * @(#)BgpZkProxy        1.6 11/09/11
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
-
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
@@ -19,6 +17,7 @@ import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 
@@ -76,8 +75,11 @@ public class BgpZkProxy implements BgpDao {
      */
     @Override
     public Bgp get(UUID id) throws StateAccessException {
-        // TODO: Throw NotFound exception here.
-        return new Bgp(id, dataAccessor.get(id).value);
+        try {
+            return new Bgp(id, dataAccessor.get(id).value);
+        } catch (NoStatePathException e) {
+            return null;
+        }
     }
 
     /*

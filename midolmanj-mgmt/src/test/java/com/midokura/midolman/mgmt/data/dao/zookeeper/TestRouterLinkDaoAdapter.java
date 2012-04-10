@@ -155,6 +155,7 @@ public class TestRouterLinkDaoAdapter {
         PeerRouterConfig config = new PeerRouterConfig(id, peerId);
 
         doReturn(config).when(daoMock).getRouterLinkData(id, peerId);
+        doReturn(true).when(daoMock).routerLinkExists(id, peerId);
 
         PeerRouterLink link = adapter.get(id, peerId);
 

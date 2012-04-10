@@ -1,7 +1,6 @@
 /*
- * @(#)PortDaoAdapter        1.6 12/1/9
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -30,13 +29,9 @@ import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.util.ShortUUID;
 
 /**
  * Port ZK DAO adapter.
- *
- * @version 1.6 9 Jan 2012
- * @author Ryu Ishimoto
  */
 public class PortDaoAdapter implements PortDao {
 
@@ -105,8 +100,8 @@ public class PortDaoAdapter implements PortDao {
                     "Cannot delete a port with VIF plugged in.");
         }
 
-        if (port instanceof LogicalRouterPort ||
-                port instanceof LogicalBridgePort) {
+        if (port instanceof LogicalRouterPort
+                || port instanceof LogicalBridgePort) {
             throw new UnsupportedOperationException(
                     "Cannot delete a logical port without deleting the link.");
         }
@@ -139,17 +134,20 @@ public class PortDaoAdapter implements PortDao {
     public Port get(UUID id) throws StateAccessException {
         log.debug("PortDaoAdapter.get entered: id={}", id);
 
-        PortConfig config = zkDao.getData(id);
         Port port = null;
-        if (config instanceof LogicalRouterPortConfig) {
-            port = new LogicalRouterPort(id, (LogicalRouterPortConfig) config);
-        } else {
-            PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-            if (config instanceof MaterializedRouterPortConfig) {
-                port = new MaterializedRouterPort(id, mgmtConfig,
-                        (MaterializedRouterPortConfig) config);
+        if (zkDao.exists(id)) {
+            PortConfig config = zkDao.getData(id);
+            if (config instanceof LogicalRouterPortConfig) {
+                port = new LogicalRouterPort(id,
+                        (LogicalRouterPortConfig) config);
             } else {
-                port = new BridgePort(id, mgmtConfig, config);
+                PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
+                if (config instanceof MaterializedRouterPortConfig) {
+                    port = new MaterializedRouterPort(id, mgmtConfig,
+                            (MaterializedRouterPortConfig) config);
+                } else {
+                    port = new BridgePort(id, mgmtConfig, config);
+                }
             }
         }
 

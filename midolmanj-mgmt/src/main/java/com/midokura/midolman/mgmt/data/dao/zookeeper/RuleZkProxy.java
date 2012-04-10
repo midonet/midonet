@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -66,7 +67,11 @@ public class RuleZkProxy implements RuleDao {
      */
     @Override
     public Rule get(UUID id) throws StateAccessException {
-        return new Rule(id, dataAccessor.get(id).value);
+        try {
+            return new Rule(id, dataAccessor.get(id).value);
+        } catch (NoStatePathException e) {
+            return null;
+        }
     }
 
     /*

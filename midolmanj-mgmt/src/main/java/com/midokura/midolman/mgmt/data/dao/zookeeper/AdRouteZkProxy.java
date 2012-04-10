@@ -1,7 +1,6 @@
 /*
- * @(#)AdRouteZkProxy        1.6 11/09/11
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
@@ -14,6 +13,7 @@ import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 
@@ -56,7 +56,11 @@ public class AdRouteZkProxy implements AdRouteDao {
      */
     @Override
     public AdRoute get(UUID id) throws StateAccessException {
-        return new AdRoute(id, dataAccessor.get(id).value);
+        try {
+            return new AdRoute(id, dataAccessor.get(id).value);
+        } catch (NoStatePathException e) {
+            return null;
+        }
     }
 
     /*

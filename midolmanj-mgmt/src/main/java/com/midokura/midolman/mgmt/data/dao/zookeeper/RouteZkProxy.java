@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -64,7 +65,11 @@ public class RouteZkProxy implements RouteDao {
      */
     @Override
     public Route get(UUID id) throws StateAccessException {
-        return new Route(id, dataAccessor.get(id).value);
+        try {
+            return new Route(id, dataAccessor.get(id).value);
+        } catch (NoStatePathException e) {
+            return null;
+        }
     }
 
     /*

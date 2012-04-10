@@ -1,7 +1,6 @@
 /*
- * @(#)BridgeDaoAdapter        1.6 12/1/10
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -25,9 +24,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Bridge ZK DAO adapter
- *
- * @version 1.6 10 Jan 2012
- * @author Ryu Ishimoto
  */
 public class BridgeDaoAdapter implements BridgeDao {
 
@@ -138,8 +134,11 @@ public class BridgeDaoAdapter implements BridgeDao {
     public Bridge get(UUID id) throws StateAccessException {
         log.debug("BridgeDaoAdapter.get entered: id={}", id);
 
-        BridgeMgmtConfig config = zkDao.getMgmtData(id);
-        Bridge bridge = new Bridge(id, config.name, config.tenantId);
+        Bridge bridge = null;
+        if (zkDao.exists(id)) {
+            BridgeMgmtConfig config = zkDao.getMgmtData(id);
+            bridge = new Bridge(id, config.name, config.tenantId);
+        }
 
         log.debug("BridgeDaoAdapter.get exiting: bridge={}", bridge);
         return bridge;

@@ -26,6 +26,7 @@ import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -105,9 +106,12 @@ public class VpnResource {
 
         VpnDao dao = daoFactory.getVpnDao();
         Vpn vpn = dao.get(id);
-        if (vpn != null) {
-            vpn.setBaseUri(uriInfo.getBaseUri());
+        if (vpn == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        vpn.setBaseUri(uriInfo.getBaseUri());
+
         return vpn;
     }
 }

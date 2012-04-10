@@ -54,6 +54,28 @@ public class TestBridgeZkDao {
     }
 
     @Test
+    public void testExists() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(pathBuilderMock.getBridgePath(id)).thenReturn(dummyPath);
+        when(zkDaoMock.exists(dummyPath)).thenReturn(true);
+
+        boolean exists = dao.exists(id);
+
+        Assert.assertTrue(exists);
+    }
+
+    @Test
+    public void testNotExists() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(pathBuilderMock.getBridgePath(id)).thenReturn(dummyPath);
+        when(zkDaoMock.exists(dummyPath)).thenReturn(false);
+
+        boolean exists = dao.exists(id);
+
+        Assert.assertFalse(exists);
+    }
+
+    @Test
     public void testGetDataSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         when(pathBuilderMock.getBridgePath(id)).thenReturn(dummyPath);

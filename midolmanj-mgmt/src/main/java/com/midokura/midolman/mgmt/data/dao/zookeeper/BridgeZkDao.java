@@ -1,7 +1,6 @@
 /*
- * @(#)BridgeZkDao        1.6 12/1/6
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -23,9 +22,6 @@ import com.midokura.midolman.state.ZkManager;
 
 /**
  * Proxy class to access ZooKeeper for bridge data.
- *
- * @version 1.6 6 Jan 2012
- * @author Ryu Ishimoto
  */
 public class BridgeZkDao {
 
@@ -50,6 +46,25 @@ public class BridgeZkDao {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
+    }
+
+    /**
+     * Checks whether a bridge exists with the given ID.
+     *
+     * @param id
+     *            Bridge ID
+     * @return True if bridge exists.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        log.debug("BridgeZkDao.exists entered: id={}", id);
+
+        String path = pathBuilder.getBridgePath(id);
+        boolean exists = zkDao.exists(path);
+
+        log.debug("BridgeZkDao.exists exiting: exists=" + exists);
+        return exists;
     }
 
     /**
@@ -136,8 +151,7 @@ public class BridgeZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public Set<String> getRouterIds(UUID bridgeId)
-            throws StateAccessException {
+    public Set<String> getRouterIds(UUID bridgeId) throws StateAccessException {
         String path = pathBuilder.getBridgeRoutersPath(bridgeId);
         return zkDao.getChildren(path, null);
     }
@@ -153,8 +167,8 @@ public class BridgeZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public PeerRouterConfig getBridgeRouterLinkData(
-            UUID bridgeId, UUID routerId) throws StateAccessException {
+    public PeerRouterConfig getBridgeRouterLinkData(UUID bridgeId, UUID routerId)
+            throws StateAccessException {
         String path = pathBuilder.getBridgeRouterPath(bridgeId, routerId);
         byte[] data = zkDao.get(path);
         return serializer.deserializePeer(data);

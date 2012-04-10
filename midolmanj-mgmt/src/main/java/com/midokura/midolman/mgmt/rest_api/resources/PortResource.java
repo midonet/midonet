@@ -27,6 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -106,9 +107,12 @@ public class PortResource {
 
         PortDao dao = daoFactory.getPortDao();
         Port port = dao.get(id);
-        if (port != null) {
-            port.setBaseUri(uriInfo.getBaseUri());
+        if (port == null) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
         }
+        port.setBaseUri(uriInfo.getBaseUri());
+
         return port;
     }
 
