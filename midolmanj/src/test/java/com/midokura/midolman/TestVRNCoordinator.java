@@ -266,6 +266,19 @@ public class TestVRNCoordinator {
         vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
+        // Router ARPs, verify it PAUSED the packet.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+
+        // Feed the router an ARP reply, verify it forwards the packet now.
+        // Construct an ARP reply for 0x0a000105.
+        MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
+                                             (byte) 2, (byte) 3, (byte) 3 });
+        Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
+                                egrDevPort.getMacAddr(), 0x0a000105,
+                                egrDevPort.getVirtualConfig().portAddr);
+        ForwardInfo arpFInfo = prepareFwdInfo(egrDevPort.getId(), arpReply);
+        vrn.process(arpFInfo);
+        // Original packet should now get forwarded.
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
                 0x0a000105);
     }

@@ -42,8 +42,8 @@ import com.midokura.midolman.util.Cache;
 public class VRNController extends AbstractController
     implements ServiceFlowController, VRNControllerIface {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(VRNController.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(VRNController.class);
 
     // TODO(pino): This constant should be declared in openflow...
     public static final short NO_HARD_TIMEOUT = 0;
