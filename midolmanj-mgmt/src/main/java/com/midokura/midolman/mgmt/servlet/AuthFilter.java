@@ -35,6 +35,8 @@ import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 public final class AuthFilter implements Filter {
 
     private final static Logger log = LoggerFactory.getLogger(AuthFilter.class);
+    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
     private AuthClient client = null;
 
     /**
@@ -53,9 +55,6 @@ public final class AuthFilter implements Filter {
         this.client = AuthClientFactory.create(filterConfig);
         log.debug("AuthFilter: Initialized.");
     }
-
-    private static ObjectMapper objectMapper = new ObjectMapper();
-    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
 
     private String generateJsonError(int code, String msg) throws IOException {
         ErrorEntity err = new ErrorEntity();
@@ -105,6 +104,7 @@ public final class AuthFilter implements Filter {
         // preflight request is automatically done by the browser and there
         // is no way that the client code can set the token for the request.
         if (method.equals(HttpSupport.OPTIONS_METHOD)) {
+            chain.doFilter(request, response);
             return;
         }
 
