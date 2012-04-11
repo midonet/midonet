@@ -151,6 +151,10 @@ public class L3DevicePort {
         return portCfg.getHwAddr();
     }
 
+    public int getIPAddr() {
+        return portCfg.portAddr;
+    }
+
     public PortDirectory.MaterializedRouterPortConfig getVirtualConfig() {
         return portCfg;
     }

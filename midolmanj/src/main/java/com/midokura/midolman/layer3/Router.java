@@ -464,14 +464,45 @@ public class Router implements ForwardingElement {
         }
         // Set the hwSrc and hwDst before forwarding the packet.
         fwdInfo.matchOut.setDataLayerSource(rtrPortCfg.getHwAddr());
+        // If sending to a logical router port, just grab the MAC from
+        // that port's PortConfig.  Else we have to ARP for the next hop's
+        // MAC, unless it's already in our ARP cache.
+        MAC peerMac = getPeerMac(rtrPortCfg);
+        if (peerMac != null) {
+            fwdInfo.action = Action.FORWARD;
+            fwdInfo.matchOut.setDataLayerDestination(peerMac);
+            return;
+        }
         fwdInfo.action = Action.PAUSED;
-        int nextHopIP = rt.nextHopGateway != 0 ? rt.nextHopGateway 
-                                  : fwdInfo.matchOut.getNetworkDestination();
+        int nextHopIP = rt.nextHopGateway;
+        if (nextHopIP == 0 || nextHopIP == -1)
+            nextHopIP = fwdInfo.matchOut.getNetworkDestination();
         ArpCallback cb = new ArpCallback(fwdInfo, true);
         getMacForIp(fwdInfo.outPortId, nextHopIP, cb);
         // If the callback hasn't yet been called, when it's called later this
         // will signal that it needs to call VRNController.continueProcessing.
         cb.inMethodProcess = false;
+    }
+
+    // If the peer exists and is a RouterPortConfig, return its MAC; else null.
+    private MAC getPeerMac(RouterPortConfig rpCfg) {
+        if (!(rpCfg instanceof LogicalRouterPortConfig))
+            return null;
+        UUID peerId = LogicalRouterPortConfig.class.cast(rpCfg).peer_uuid;
+        PortConfig pc;
+        try {
+            pc = portMgr.get(peerId).value;
+        } catch (NullPointerException e) {
+            log.error("No portConfig for {}'s peer port {} in ZK.",
+                IPv4.fromIPv4Address(rpCfg.portAddr), peerId);
+            return null;        
+        } catch (StateAccessException e) {
+            log.error("ZK error fetching config for port {}: {}", peerId, e);
+            return null;
+        }
+        if (!(pc instanceof RouterPortConfig))
+            return null;
+        return RouterPortConfig.class.cast(pc).hwAddr;
     }
 
     private boolean isIcmpEchoRequest(OFMatch match) {
@@ -781,8 +812,8 @@ public class Router implements ForwardingElement {
         MAC portMac = rtrPortConfig.getHwAddr();
         arp.setSenderHardwareAddress(portMac);
         arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"));
-        arp.setSenderProtocolAddress(IPv4
-                .toIPv4AddressBytes(rtrPortConfig.portAddr));
+        arp.setSenderProtocolAddress(
+                IPv4.toIPv4AddressBytes(rtrPortConfig.portAddr));
         arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwAddr));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
@@ -859,8 +890,7 @@ public class Router implements ForwardingElement {
             RouterPortConfig portConfig;
             try {
                 PortConfig cfg = portMgr.get(egressPortId).value;
-                portConfig =
-                        RouterPortConfig.class.cast(cfg);
+                portConfig = RouterPortConfig.class.cast(cfg);
             } catch (Exception e) {
                 log.error("Failed to get the egress port's config from ZK.", e);
                 return false;

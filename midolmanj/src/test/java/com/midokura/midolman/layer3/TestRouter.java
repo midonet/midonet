@@ -155,7 +155,8 @@ public class TestRouter {
         // 21, 22, 23 will be in subnet 10.0.2.0/24
         // Each of the ports 'spoofs' a /30 range of its subnet, for example
         // port 21 will route to 10.0.2.4/30, 22 to 10.0.2.8/30, etc.
-        portConfigs = new HashMap<Integer, PortDirectory.MaterializedRouterPortConfig>();
+        portConfigs = new HashMap<Integer,
+                                  PortDirectory.MaterializedRouterPortConfig>();
         portNumToId = new HashMap<Integer, UUID>();
         for (int i = 0; i < 3; i++) {
             // Nw address is 10.0.<i>.0/24
@@ -304,6 +305,13 @@ public class TestRouter {
                 devPort23.getMacAddr(), 0x0a00020d, 0x0a000109, (short) 1111,
                 (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port23Id, eth);
+        // Verify got paused to ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
+        Ethernet arp = makeArpReply(MAC.fromString("02:04:06:08:0a:0c"),
+                devPort12.getMacAddr(), 0x0a000109, devPort12.getIPAddr());
+        routePacket(port12Id, arp);
+        // Now original pkt gets forwarded.
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
     }
 
