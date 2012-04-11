@@ -364,10 +364,17 @@ public class TestRouter {
         // (i.e. inside 10.0.1.8/30).
         UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort3 = rtr.devicePorts.get(port3Id);
-        eth = makeUDP(MAC.fromString("02:00:11:22:00:01"), devPort3
-                .getMacAddr(), 0x0a00000e, 0x0a00010b, (short) 1111,
+        eth = makeUDP(MAC.fromString("02:00:11:22:00:01"), 
+                devPort3.getMacAddr(), 0x0a00000e, 0x0a00010b, (short) 1111,
                 (short) 2222, payload);
         fInfo = routePacket(port3Id, eth);
+        // Verify paused on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
+        Ethernet arp = makeArpReply(MAC.fromString("02:04:06:08:0a:0c"),
+                devPort12.getMacAddr(), 0x0a00010b, devPort12.getIPAddr());
+        routePacket(port12Id, arp);
+        // Now original pkt gets forwarded.
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a00010b);
         // Now have the local controller remove port 12.
         rtr.removePort(port12Id);
