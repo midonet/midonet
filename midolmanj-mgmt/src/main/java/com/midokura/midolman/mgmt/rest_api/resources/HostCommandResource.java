@@ -6,6 +6,9 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,6 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
@@ -45,6 +49,7 @@ public class HostCommandResource {
     }
 
     @GET
+    @PermitAll
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<HostCommand> list(@Context SecurityContext context,
@@ -80,6 +85,7 @@ public class HostCommandResource {
      * @throws StateAccessException  Data access error.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_JSON,
                   MediaType.APPLICATION_JSON})
@@ -114,6 +120,7 @@ public class HostCommandResource {
      * @throws StateAccessException  Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public Response delete(@PathParam("id") Integer id,
                            @Context SecurityContext context,

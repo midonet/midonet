@@ -5,6 +5,8 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -29,6 +31,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
@@ -37,6 +40,8 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoHostCommand;
 import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.servlet.AuthFilter;
+import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
@@ -67,6 +72,12 @@ public class TestHostCommand extends JerseyTest {
     private DtoHost dtoHost;
     private URI baseUri;
 
+    static final Map<String, String> authFilterInitParams = new HashMap<String, String>();
+    static {
+        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
+                NoAuthClient.class.getName());
+    }
+
     public TestHostCommand() {
         super(createWebApp());
 
@@ -76,12 +87,16 @@ public class TestHostCommand extends JerseyTest {
     private static AppDescriptor createWebApp() {
         return
             new WebAppDescriptor.Builder()
+                .addFilter(AuthFilter.class, "auth", authFilterInitParams)
                 .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
                 .initParam(
                     "com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+                    "com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter")
                 .initParam("javax.ws.rs.Application",
                            "com.midokura.midolman.mgmt.rest_api.RestApplication")
+                .initParam(
+                    "com.sun.jersey.spi.container.ResourceFilters",
+                    "com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory")
                 .contextParam("version", "1")
                 .contextParam("datastore_service",
                               "com.midokura.midolman.mgmt.data.StaticMockDaoFactory")

@@ -6,6 +6,8 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,6 +22,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
@@ -53,6 +56,7 @@ public class RouterResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -85,6 +89,7 @@ public class RouterResource {
      * @return A Router object.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_JSON,
             MediaType.APPLICATION_JSON })
@@ -198,6 +203,7 @@ public class RouterResource {
      *             Data access error.
      */
     @PUT
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
             MediaType.APPLICATION_JSON })

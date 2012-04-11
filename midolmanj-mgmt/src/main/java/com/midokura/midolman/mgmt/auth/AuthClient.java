@@ -15,6 +15,7 @@ public interface AuthClient {
      *            Token to validate.
      * @return UserIdentity object if valid if token is valid, null if invalid.
      */
-    public UserIdentity getUserIdentityByToken(String token);
+    public UserIdentity getUserIdentityByToken(String token)
+            throws AuthException;
 
 }

@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -66,6 +67,7 @@ public class RouterTableChainResource {
      * @return A Chain object.
      */
     @GET
+    @PermitAll
     @Path("{name}")
     @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
             MediaType.APPLICATION_JSON })
@@ -103,6 +105,7 @@ public class RouterTableChainResource {
      * @return A list of Chain objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Chain> list(@Context SecurityContext context,

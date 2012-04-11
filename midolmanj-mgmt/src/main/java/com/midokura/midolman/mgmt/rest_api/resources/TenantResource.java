@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
@@ -64,6 +66,7 @@ public class TenantResource {
      * @returns Response object with 201 status code set if successful.
      */
     @POST
+    @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Tenant tenant, @Context SecurityContext context,
@@ -95,6 +98,7 @@ public class TenantResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") String id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -153,6 +157,7 @@ public class TenantResource {
      * @returns A list of Tenant objects.
      */
     @GET
+    @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Tenant> list(@Context SecurityContext context,
@@ -191,6 +196,7 @@ public class TenantResource {
      * @return A Tenant object.
      */
     @GET
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })

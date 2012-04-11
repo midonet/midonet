@@ -6,35 +6,35 @@ package com.midokura.midolman.mgmt.auth.keystone;
 import com.midokura.midolman.mgmt.auth.AuthException;
 
 /**
- * KeystoneInvalidJsonException class for bad JSON response from Keystone.
+ * KeystoneServerException class for bad JSON response from Keystone.
  */
-public class KeystoneInvalidJsonException extends AuthException {
+public class KeystoneServerException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create a KeystoneInvalidJsonException object with a message.
+     * Create a KeystoneServerException object with a message.
      *
      * @param message
      *            Error message.
      */
-    public KeystoneInvalidJsonException(String message) {
+    public KeystoneServerException(String message) {
         super(message);
     }
 
     /**
-     * Create a KeystoneInvalidJsonException object with no message and wrap a
+     * Create a KeystoneServerException object with no message and wrap a
      * Throwable object.
      *
      * @param e
      *            Throwable object
      */
-    public KeystoneInvalidJsonException(Throwable e) {
+    public KeystoneServerException(Throwable e) {
         super(e);
     }
 
     /**
-     * Create a KeystoneInvalidJsonException object with a message and wrap a
+     * Create a KeystoneServerException object with a message and wrap a
      * Throwable object.
      *
      * @param message
@@ -42,7 +42,7 @@ public class KeystoneInvalidJsonException extends AuthException {
      * @param e
      *            Throwable object
      */
-    public KeystoneInvalidJsonException(String message, Throwable e) {
+    public KeystoneServerException(String message, Throwable e) {
         super(message, e);
     }
 }

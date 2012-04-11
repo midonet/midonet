@@ -6,6 +6,9 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -24,14 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.commands.DataValidationException;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -65,6 +69,7 @@ public class InterfaceResource {
      *          Data access error.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
     public Response create(Interface anInterface,
@@ -108,6 +113,7 @@ public class InterfaceResource {
      * @throws StateAccessException  Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID interfaceId,
                        @Context SecurityContext context,
@@ -139,6 +145,7 @@ public class InterfaceResource {
      * @throws StateAccessException  Data access error.
      */
     @GET
+    @PermitAll
     @Produces({VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<Interface> list(@Context SecurityContext context,
@@ -176,6 +183,7 @@ public class InterfaceResource {
      * @throws StateAccessException  Data access error.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
@@ -215,6 +223,7 @@ public class InterfaceResource {
      * @throws StateAccessException  Data access error.
      */
     @PUT
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public Response update(@PathParam("id") UUID id,
                            Interface newInterfaceData,

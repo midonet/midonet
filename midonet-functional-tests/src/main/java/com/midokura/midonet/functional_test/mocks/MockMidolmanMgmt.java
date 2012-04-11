@@ -1,5 +1,8 @@
 package com.midokura.midonet.functional_test.mocks;
 
+import com.midokura.midolman.mgmt.auth.NoAuthClient;
+import com.midokura.midolman.mgmt.servlet.AuthFilter;
+import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -23,6 +26,8 @@ import javax.ws.rs.core.UriBuilder;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
@@ -37,19 +42,30 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 /* a prime */);
     private int currentPort;
 
+    private static final Map<String, String> authFilterInitParams =
+        new HashMap<String, String>();
+    static {
+        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
+                NoAuthClient.class.getName());
+    }
+
     private static WebAppDescriptor makeAppDescriptor(boolean mockZK) {
         ClientConfig config = new DefaultClientConfig();
         config.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
         WebAppDescriptor ad = new WebAppDescriptor.Builder()
+            .addFilter(AuthFilter.class, "auth", authFilterInitParams)
             .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
             .initParam(
                 "com.sun.jersey.spi.container.ContainerRequestFilters",
-                "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+                "com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter")
             .initParam(
                 "com.sun.jersey.spi.container.ContainerResponseFilters",
                 "com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter")
             .initParam("javax.ws.rs.Application",
                        "com.midokura.midolman.mgmt.rest_api.RestApplication")
+            .initParam(
+                "com.sun.jersey.spi.container.ResourceFilters",
+                "com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory")
             .contextParam("authorizer",
                           "com.midokura.midolman.mgmt.auth.SimpleAuthorizer")
             .contextParam("version", "1.0")

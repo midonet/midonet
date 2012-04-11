@@ -9,6 +9,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.DhcpDao;
@@ -78,6 +81,7 @@ public class BridgeDhcpResource {
      * @returns Response object with 201 status code set if successful.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(DhcpSubnet subnet, @Context SecurityContext context,
@@ -118,6 +122,7 @@ public class BridgeDhcpResource {
      *             Data access error.
      */
     @PUT
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
@@ -156,6 +161,7 @@ public class BridgeDhcpResource {
      * @return A Bridge object.
      */
     @GET
+    @PermitAll
     @Path("/{subnetAddr}")
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
@@ -190,6 +196,7 @@ public class BridgeDhcpResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
     public void delete(@PathParam("subnetAddr") IntIPv4 subnetAddr,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -225,6 +232,7 @@ public class BridgeDhcpResource {
      * @return A list of DhcpSubnet objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON })
     public List<DhcpSubnet> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,

@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -61,6 +62,7 @@ public class BridgeRoutersResource {
      * @return A PeerRouterLink object.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
             MediaType.APPLICATION_JSON })
@@ -99,6 +101,7 @@ public class BridgeRoutersResource {
      * @return A list of BridgeRouterLink objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<BridgeRouterLink> list(@Context SecurityContext context,

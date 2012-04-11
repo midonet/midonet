@@ -120,14 +120,18 @@
       </param-value>
     </init-param>
     <init-param>
+      <!-- Needed to construct proper SecurityContext used in auth -->
       <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
       <param-value>com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter</param-value>
-      <!-- Use the below filter to skip auth -->
-      <!-- param-value>com.midokura.midolman.mgmt.auth.NoAuthFilter</param-value -->
     </init-param>
     <init-param>
       <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
       <param-value>com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter</param-value>
+    </init-param>
+    <init-param>
+      <!-- Needed for RBAC annotations -->
+      <param-name>com.sun.jersey.spi.container.ResourceFilters</param-name>
+      <param-value>com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>

@@ -6,6 +6,8 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
@@ -57,6 +60,7 @@ public class BgpResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -94,6 +98,7 @@ public class BgpResource {
      * @return A BGP object.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_BGP_JSON,
             MediaType.APPLICATION_JSON })

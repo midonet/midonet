@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -24,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.VifDao;
@@ -64,6 +67,7 @@ public class VifResource {
      * @returns Response object with 201 status code set if successful.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_VIF_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Vif vif, @Context UriInfo uriInfo,
@@ -101,6 +105,7 @@ public class VifResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -142,6 +147,7 @@ public class VifResource {
      * @return A VIF object.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_VIF_JSON,
             MediaType.APPLICATION_JSON })
@@ -180,6 +186,7 @@ public class VifResource {
      * @return A list of VIF objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_VIF_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Vif> list(@Context SecurityContext context,

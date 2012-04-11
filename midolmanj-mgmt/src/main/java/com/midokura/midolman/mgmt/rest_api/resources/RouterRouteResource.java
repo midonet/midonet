@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -18,6 +20,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
@@ -63,6 +66,7 @@ public class RouterRouteResource {
      * @returns Response object with 201 status code set if successful.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_ROUTE_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Route route, @Context UriInfo uriInfo,
@@ -97,6 +101,7 @@ public class RouterRouteResource {
      * @return A list of Route objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Route> list(@Context SecurityContext context,

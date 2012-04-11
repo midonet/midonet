@@ -8,20 +8,22 @@ import java.util.Iterator;
 
 import javax.servlet.FilterConfig;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthClient;
+import com.midokura.midolman.mgmt.auth.AuthException;
 import com.midokura.midolman.mgmt.auth.AuthRole;
+import com.midokura.midolman.mgmt.auth.InvalidTokenException;
 import com.midokura.midolman.mgmt.auth.UserIdentity;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
+import com.midokura.util.StringUtil;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -175,23 +177,17 @@ public class KeystoneClient implements AuthClient {
         JsonParser jp = null;
         try {
             jp = factory.createJsonParser(src);
-        } catch (JsonParseException e) {
-            log.debug("KeystoneClient: Could not create JsonParser.");
-            throw new KeystoneInvalidJsonException(e);
         } catch (IOException e) {
-            log.debug("KeystoneClient: IO error while creating JsonParser.");
-            throw new KeystoneInvalidJsonException(e);
+            throw new KeystoneInvalidJsonException(
+                    "Could not parse Keystone response.", e);
         }
 
         JsonNode rootNode = null;
         try {
             rootNode = mapper.readTree(jp);
-        } catch (JsonProcessingException e) {
-            log.debug("KeystoneClient: Could not parse JSON.");
-            throw new KeystoneInvalidJsonException(e);
         } catch (IOException e) {
-            log.debug("KeystoneClient: IO error while parsing JSON.");
-            throw new KeystoneInvalidJsonException(e);
+            throw new KeystoneInvalidJsonException(
+                    "Could not parse Keystone response.", e);
         }
 
         UserIdentity user = new UserIdentity();
@@ -228,11 +224,14 @@ public class KeystoneClient implements AuthClient {
      * .lang.String)
      */
     @Override
-    public UserIdentity getUserIdentityByToken(String token) {
+    public UserIdentity getUserIdentityByToken(String token)
+            throws AuthException {
         log.debug("KeystoneClient: entered getUserIdentityByToken.  Token={}",
                 token);
-        if (token == null) {
-            throw new IllegalArgumentException(token);
+
+        if (StringUtil.isNullOrEmpty(token)) {
+            // Don't allow empty token
+            throw new InvalidTokenException("No token was passed in.");
         }
 
         String url = new StringBuilder(this.serviceUrl).append("/tokens/")
@@ -245,20 +244,19 @@ public class KeystoneClient implements AuthClient {
                     .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
                     .get(String.class);
         } catch (UniformInterfaceException e) {
-            log.warn("KeystoneClient: Invalid request. admin="
-                    + this.adminToken + ", token=" + token);
-            return null;
+            if (e.getResponse().getStatus() == Response.Status.NOT_FOUND
+                    .getStatusCode()) {
+                // This indicates that the token was invalid
+                log.warn("KeystoneClient: Invalid token. {}", token);
+                return null;
+            }
+            throw new KeystoneServerException("Keystone server error.", e);
         } catch (ClientHandlerException e) {
-            log.warn("KeystoneClient: Could not connect. serviceUrl="
-                    + this.serviceUrl + ", token=" + token);
-            return null;
+            throw new KeystoneConnectionException(
+                    "Could not connect to Keystone server. Url="
+                            + this.serviceUrl, e);
         }
 
-        try {
-            return parseJson(response);
-        } catch (KeystoneInvalidJsonException e) {
-            log.error("KeystoneClient: could not parse JSON", e);
-            return null;
-        }
+        return parseJson(response);
     }
 }

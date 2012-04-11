@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthClient;
 import com.midokura.midolman.mgmt.auth.AuthClientFactory;
+import com.midokura.midolman.mgmt.auth.AuthException;
 import com.midokura.midolman.mgmt.auth.UserIdentity;
 import com.midokura.midolman.mgmt.data.dto.ErrorEntity;
 import com.midokura.midolman.mgmt.rest_api.core.HttpSupport;
@@ -113,23 +114,25 @@ public final class AuthFilter implements Filter {
             // For legacy support
             token = req.getHeader("HTTP_X_AUTH_TOKEN");
         }
-        if (token == null) {
+
+        UserIdentity user = null;
+        try {
+            // It will accept null token since client implementations may
+            // want to treat such case differently.
+            user = this.client.getUserIdentityByToken(token);
+        } catch (AuthException ex) {
             setErrorResponse((HttpServletResponse) response,
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "No token was passed in.");
-            log.error("AuthFilter: No token was passed in.");
+                    HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
+            log.error("AuthFilter: auth error occurred. ", ex);
             return;
         }
 
-        UserIdentity user = this.client.getUserIdentityByToken(token);
         if (user != null) {
             req.setAttribute(ServletSupport.USER_IDENTITY_ATTR_KEY, user);
             chain.doFilter(request, response);
         } else {
             setErrorResponse((HttpServletResponse) response,
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "Authentication error");
-            log.error("AuthFilter: Got null with token {}", token);
+                    HttpServletResponse.SC_UNAUTHORIZED, "Authentication error");
         }
 
         log.debug("AuthFilter: exiting doFilter.");

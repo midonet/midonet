@@ -14,16 +14,30 @@ public class AuthRole {
      */
     public static final String ADMIN = "admin";
 
-
     /**
      * Tenant admin role.
      */
-    public static final String TENANT_ADMIN = "tenantadmin";
-
+    public static final String TENANT_ADMIN = "tenant_admin";
 
     /**
      * Tenant user role.
      */
-    public static final String TENANT_USER = "tenantuser";
+    public static final String TENANT_USER = "tenant_user";
 
+    /**
+     * Checks whether a given role is valid.
+     *
+     * @param role
+     *            Role to check
+     * @return True if role is valid
+     */
+    public static boolean isValidRole(String role) {
+        if (role == null) {
+            return false;
+        }
+        String lowerCaseRole = role.toLowerCase();
+        return (lowerCaseRole.equals(ADMIN)
+                || lowerCaseRole.equals(TENANT_ADMIN) || lowerCaseRole
+                    .equals(TENANT_USER));
+    }
 }

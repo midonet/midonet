@@ -8,6 +8,7 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -49,6 +50,7 @@ public class BridgeFilterDbResource {
      * @return A list of FilteringDbEntry objects.
      */
     @GET
+    @PermitAll
     @Produces({ MediaType.APPLICATION_JSON })
     public List<FilteringDbEntry> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,

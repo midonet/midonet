@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -21,6 +23,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterLinkDao;
@@ -68,6 +71,7 @@ public class RouterLinkResource {
      *          set to PeerRouterLink.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
@@ -106,6 +110,7 @@ public class RouterLinkResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID peerId,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -139,6 +144,7 @@ public class RouterLinkResource {
      * @return A PeerRouterLink object.
      */
     @GET
+    @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_JSON,
             MediaType.APPLICATION_JSON })
@@ -180,6 +186,7 @@ public class RouterLinkResource {
      * @return A list of PeerRouterLink objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_ROUTER_LINK_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<PeerRouterLink> list(@Context SecurityContext context,

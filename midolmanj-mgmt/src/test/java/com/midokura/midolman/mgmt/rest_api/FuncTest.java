@@ -1,7 +1,6 @@
 /*
- * @(#)FuncTest        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
@@ -10,8 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.servlet.AuthFilter;
 import com.midokura.midolman.mgmt.servlet.CrossOriginResourceSharingFilter;
+import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -34,17 +36,26 @@ public class FuncTest {
                                  "Location");
     }
 
+    static final Map<String, String> authFilterInitParams = new HashMap<String, String>();
+    static {
+        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
+                NoAuthClient.class.getName());
+    }
+
     static final WebAppDescriptor.Builder getBuilder() {
         return new WebAppDescriptor.Builder()
+            .addFilter(AuthFilter.class, "auth", authFilterInitParams)
             .addFilter(CrossOriginResourceSharingFilter.class, "cors",
                        corsFilterInitParams)
             .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
             .initParam("com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.midokura.midolman.mgmt.auth.NoAuthFilter")
+                    "com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter")
             .initParam("com.sun.jersey.spi.container.ContainerResponseFilters",
                     "com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter")
             .initParam("javax.ws.rs.Application",
                     "com.midokura.midolman.mgmt.rest_api.RestApplication")
+            .initParam("com.sun.jersey.spi.container.ResourceFilters",
+                    "com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory")
             .contextParam("datastore_service",
                     "com.midokura.midolman.mgmt.data.MockDaoFactory")
             .contextParam("authorizer",

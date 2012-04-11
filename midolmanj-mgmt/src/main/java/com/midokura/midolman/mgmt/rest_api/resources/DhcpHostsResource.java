@@ -9,6 +9,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.DhcpDao;
@@ -68,6 +71,7 @@ public class DhcpHostsResource {
      * @returns Response object with 201 status code set if successful.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(DhcpHost host, @Context SecurityContext context,
@@ -106,6 +110,7 @@ public class DhcpHostsResource {
      * @return A DhcpHost object.
      */
     @GET
+    @PermitAll
     @Path("/{mac}")
     @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
             MediaType.APPLICATION_JSON })
@@ -147,6 +152,7 @@ public class DhcpHostsResource {
      *             Data access error.
      */
     @PUT
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{mac}")
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
             MediaType.APPLICATION_JSON })
@@ -183,6 +189,7 @@ public class DhcpHostsResource {
      *             Data access error.
      */
     @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{mac}")
     public void delete(@PathParam("mac") String mac,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -221,6 +228,7 @@ public class DhcpHostsResource {
      * @return A list of DhcpHost objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON })
     public List<DhcpHost> list(@Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,

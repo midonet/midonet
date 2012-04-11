@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -18,6 +20,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
@@ -65,6 +68,7 @@ public class ChainRuleResource {
      * @returns Response object with 201 status code set if successful.
      */
     @POST
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_RULE_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Rule rule, @Context UriInfo uriInfo,
@@ -104,6 +108,7 @@ public class ChainRuleResource {
      * @return A list of Rule objects.
      */
     @GET
+    @PermitAll
     @Produces({ VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Rule> list(@Context SecurityContext context,

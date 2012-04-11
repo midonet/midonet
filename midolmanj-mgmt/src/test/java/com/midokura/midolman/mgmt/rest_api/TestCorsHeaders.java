@@ -1,7 +1,6 @@
 /*
- * @(#)TestCorsHeaders        1.6 12/3/27
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
@@ -9,7 +8,6 @@ import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATI
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +15,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.auth.MockAuthClient;
-import com.midokura.midolman.mgmt.servlet.AuthFilter;
-import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -29,19 +24,11 @@ public class TestCorsHeaders extends JerseyTest {
     private final static Logger log =
         LoggerFactory.getLogger(TestCorsHeaders.class);
 
-    static final Map<String, String> authFilterInitParams = new HashMap<String, String>();
-    static {
-        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
-                MockAuthClient.class.getName());
-    }
-
     private WebResource resource;
     private ClientResponse response;
 
     public TestCorsHeaders() {
-        super(FuncTest.getBuilder()
-                .addFilter(AuthFilter.class, "auth", authFilterInitParams)
-                .build());
+        super(FuncTest.appDesc);
     }
 
     @Test
