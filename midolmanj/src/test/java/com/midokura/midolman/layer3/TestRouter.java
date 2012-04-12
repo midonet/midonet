@@ -482,6 +482,10 @@ public class TestRouter {
         return pkt;
     }
 
+    /*
+     * It is now possible to ARP for addresses out of remote ports, so
+     * this test is mooted.   -- JLM
+     * TODO: Verify whether Pino agrees.
     @Test(expected = IllegalArgumentException.class)
     public void testArpRequestNonLocalPort() throws StateAccessException {
         // Try to get the MAC for a nwAddr on port 11 (i.e. in 10.0.1.4/30).
@@ -491,6 +495,7 @@ public class TestRouter {
         UUID port1Id = portNumToId.get(11);
         rtr.getMacForIp(port1Id, 0x0a000105, cb);
     }
+     */
 
     @Test
     public void testArpRequestNonLocalAddress() throws StateAccessException {
