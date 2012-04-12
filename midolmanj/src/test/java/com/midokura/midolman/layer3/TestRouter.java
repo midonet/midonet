@@ -149,12 +149,13 @@ public class TestRouter {
         // Pretend the uplink port is managed by a remote controller.
         rTable.addRoute(uplinkRoute);
 
-        // Create ports with id 0, 1, 2, 10, 11, 12, 20, 21, 22.
+        // Create ports with id 1, 2, 3, 11, 12, 13, 21, 22, 23.
         // 1, 2, 3 will be in subnet 10.0.0.0/24
         // 11, 12, 13 will be in subnet 10.0.1.0/24
         // 21, 22, 23 will be in subnet 10.0.2.0/24
         // Each of the ports 'spoofs' a /30 range of its subnet, for example
         // port 21 will route to 10.0.2.4/30, 22 to 10.0.2.8/30, etc.
+        // 1, 11, 21 are treated as remote ports, the others as local.
         portConfigs = new HashMap<Integer,
                                   PortDirectory.MaterializedRouterPortConfig>();
         portNumToId = new HashMap<Integer, UUID>();
@@ -174,7 +175,7 @@ public class TestRouter {
                 UUID portId = portMgr.create(portConfig);
                 // Map the port number to the portId for later use.
                 portNumToId.put(portNum, portId);
-                // Default route to port based on destination only. Weight 2.
+                // Default route to port based on destination only.  Weight 2.
                 Route rt = new Route(0, 0, segmentAddr, 30, NextHop.PORT, portId,
                         Route.NO_GATEWAY, 2, null, rtrId);
                 routeMgr.create(rt);
@@ -183,7 +184,7 @@ public class TestRouter {
                     // first port will be treated as remote.
                     rTable.addRoute(rt);
                 }
-                // Anything from 10.0.0.0/16 is allowed through. Weight 1.
+                // Anything from 10.0.0.0/16 is allowed through.  Weight 1.
                 rt = new Route(0x0a000000, 16, segmentAddr, 30, NextHop.PORT,
                         portId, Route.NO_GATEWAY, 1, null, rtrId);
                 routeMgr.create(rt);
@@ -192,7 +193,7 @@ public class TestRouter {
                     // first port will be treated as remote.
                     rTable.addRoute(rt);
                 }
-                // Anything from 11.0.0.0/24 is silently dropped. Weight 1.
+                // Anything from 11.0.0.0/24 is silently dropped.  Weight 1.
                 rt = new Route(0x0b000000, 24, segmentAddr, 30,
                         NextHop.BLACKHOLE, null, 0, 1, null, rtrId);
                 routeMgr.create(rt);
@@ -710,9 +711,9 @@ public class TestRouter {
         UUID postChainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
                 rtr.routerId));
         // Create a bunch of arbitrary rules:
-        // 'down-ports' can only receive packets from hosts 'local' to them.
-        // arbitrarily drop flows to some hosts that are 'quarantined'.
-        // arbitrarily don't allow some ports to communicate with each other.
+        //  * 'down-ports' can only receive packets from hosts 'local' to them.
+        //  * arbitrarily drop flows to some hosts that are 'quarantined'.
+        //  * arbitrarily don't allow some ports to communicate with each other.
         // Apply Dnat.
         Condition cond;
         // Here's the pre-routing chain.
@@ -720,16 +721,16 @@ public class TestRouter {
         // Down-ports can only receive packets from network addresses that are
         // 'local' to them. This chain drops packets that don't conform.
         List<Rule> srcFilterChain = new Vector<Rule>();
-        Iterator<Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig>> iter = portConfigs
-                .entrySet().iterator();
+        Iterator<Map.Entry<Integer, 
+                           PortDirectory.MaterializedRouterPortConfig>> iter = 
+                                        portConfigs.entrySet().iterator();
         int i = 1;
         Rule r;
         while (iter.hasNext()) {
-            Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig> entry = iter
-                    .next();
+            Map.Entry<Integer, PortDirectory.MaterializedRouterPortConfig>
+                                        entry = iter.next();
             UUID portId = portNumToId.get(entry.getKey());
-            PortDirectory.MaterializedRouterPortConfig config = entry
-                    .getValue();
+            PortDirectory.MaterializedRouterPortConfig config = entry.getValue();
             // A down-port can only receive packets from network addresses that
             // are 'local' to the port.
             cond = new Condition();
@@ -838,6 +839,7 @@ public class TestRouter {
         UUID port23Id = portNumToId.get(23);
         UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
+        L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
         Ethernet badEthTo12 = makeUDP(
                 MAC.fromString("02:00:11:22:00:01"), devPort23.getMacAddr(),
                 0x0a000202, 0x0a000109, (short) 1111, (short) 2222, payload);
@@ -846,6 +848,11 @@ public class TestRouter {
                 MAC.fromString("02:00:11:22:00:01"), devPort23.getMacAddr(),
                 0x0a00020f, 0x0a000109, (short) 1111, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port23Id, badEthTo12);
+        // Packet gets hung up, pended on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        Ethernet arp = makeArpReply(MAC.fromString("02:04:06:08:0a:0c"),
+                devPort12.getMacAddr(), 0x0a000109, devPort12.getIPAddr());
+        routePacket(port12Id, arp);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port23Id, goodEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
@@ -854,36 +861,47 @@ public class TestRouter {
         // the expected range (10.0.1.8/30) and a nwDst that matches port 2
         // (i.e. inside 10.0.0.8/30).
         UUID port2Id = portNumToId.get(2);
-        L3DevicePort devPort12 = rtr.devicePorts.get(port12Id);
+        L3DevicePort devPort2 = rtr.devicePorts.get(port2Id);
         Ethernet badEthTo2 = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"), devPort12
-                        .getMacAddr(), 0x0a000103, 0x0a00000a, (short) 1111,
-                (short) 2222, payload);
+                MAC.fromString("02:00:11:22:00:01"), devPort12.getMacAddr(),
+                0x0a000103, 0x0a00000a, (short) 1111, (short) 2222, payload);
         // This packet has a good source address and is always routed correctly.
         Ethernet goodEthTo2 = makeUDP(
                 MAC.fromString("02:00:11:22:00:01"), devPort12.getMacAddr(),
                 0x0a000109, 0x0a00000a, (short) 1111, (short) 2222, payload);
         fInfo = routePacket(port12Id, badEthTo2);
+        // Packet gets hung up, pended on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        Ethernet arp2 = makeArpReply(MAC.fromString("02:04:06:08:0a:de"),
+                devPort2.getMacAddr(), 0x0a00000a, devPort2.getIPAddr());
+        routePacket(port2Id, arp2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
         fInfo = routePacket(port12Id, goodEthTo2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
 
-        // Make a packet that comes in on port 11 but with a nwSrc outside
-        // the expected range (10.0.1.4/30) and a nwDst that matches the
+        // Make a packet that comes in on port 13 but with a nwSrc outside
+        // the expected range (10.0.1.12/30) and a nwDst that matches the
         // uplink (e.g. 144.0.16.3).
-        UUID port11Id = portNumToId.get(11);
+        UUID port13Id = portNumToId.get(13);
+        L3DevicePort devPort13 = rtr.devicePorts.get(port13Id);
         Ethernet badEthToUplink = makeUDP(
                 MAC.fromString("02:00:11:22:00:01"),
-                MAC.fromString("02:00:11:22:00:64"), 0x0a0001d2, 0x90001003,
+                devPort13.getMacAddr(), 0x0a0001d2, 0x90001003,
                 (short) 1111, (short) 2222, payload);
         // This packet has a good source address and is always routed correctly.
         Ethernet goodEthToUplink = makeUDP(
                 MAC.fromString("02:00:11:22:00:01"),
-                MAC.fromString("02:00:11:22:00:64"), 0x0a000104, 0x90001003,
+                devPort13.getMacAddr(), 0x0a00010c, 0x90001003,
                 (short) 1111, (short) 2222, payload);
-        fInfo = routePacket(port11Id, badEthToUplink);
+        fInfo = routePacket(port13Id, badEthToUplink);
+        // Packet gets hung up, pended on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        Ethernet arp3 = makeArpReply(MAC.fromString("02:c4:a6:b8:ea:df"),
+                devPort13.getMacAddr(), uplinkGatewayAddr,
+                devPort13.getIPAddr());
+        routePacket(port13Id, arp3);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
-        fInfo = routePacket(port11Id, goodEthToUplink);
+        fInfo = routePacket(port13Id, goodEthToUplink);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
 
         // After adding the filtering rules the 'bad' packets are dropped but
@@ -899,27 +917,27 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.DROP, null, 0);
         fInfo = routePacket(port12Id, goodEthTo2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
-        fInfo = routePacket(port11Id, badEthToUplink);
+        fInfo = routePacket(port13Id, badEthToUplink);
         // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
         checkForwardInfo(fInfo, Action.DROP, null, 0);
-        fInfo = routePacket(port11Id, goodEthToUplink);
+        fInfo = routePacket(port13Id, goodEthToUplink);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
 
         // Now remove the filterSrcByPortId rules and verify that all the
         // packets are again forwarded.
         deleteRules();
-        // chainMgr.delete(srcFilterChainId);
+        //chainMgr.delete(srcFilterChainId);
         fInfo = routePacket(port23Id, badEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port12Id, goodEthTo2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
-        fInfo = routePacket(port11Id, badEthToUplink);
+        fInfo = routePacket(port13Id, badEthToUplink);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
         fInfo = routePacket(port23Id, goodEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port12Id, badEthTo2);
         checkForwardInfo(fInfo, Action.FORWARD, port2Id, 0x0a00000a);
-        fInfo = routePacket(port11Id, goodEthToUplink);
+        fInfo = routePacket(port13Id, goodEthToUplink);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
     }
 

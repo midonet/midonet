@@ -144,7 +144,7 @@ public class VRNController extends AbstractController
 
     /**
      * This inner class is used to re-launch processing of un-PAUSED packets
-     * in the main thread. This also support re-pausing packets.
+     * in the main thread.  This also supports re-pausing packets.
      */
     class PacketContinuation implements Runnable {
         ForwardInfo fwdInfo;
