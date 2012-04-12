@@ -409,17 +409,12 @@ public class TestRouter {
         ethReq.setSourceMACAddress(senderMac);
         ForwardInfo fInfo = routePacket(port23Id, ethReq);
         Assert.assertEquals(Action.CONSUMED, fInfo.action);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet pktRecord = controllerStub.sentPackets.get(0);
-        Assert.assertEquals(1, pktRecord.actions.size());
-        OFAction ofAction = new OFActionOutput(
-                (short)0 /*devPort23.getNum()*/, (short) 0);
-        Assert.assertTrue(ofAction.equals(pktRecord.actions.get(0)));
-        Assert.assertEquals(controllerStub.UNBUFFERED_ID, pktRecord.bufferId);
-        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pktRecord.inPort);
-        Ethernet ethReply = new Ethernet();
-        ByteBuffer bb = ByteBuffer.wrap(pktRecord.data, 0, pktRecord.data.length);
-        ethReply.deserialize(bb);
+        // Verify controller was requested to send the packet.
+        Assert.assertEquals(1, controller.generatedPackets.size());
+        MockVRNController.GeneratedPacket genPkt = controller.generatedPackets.get(0);
+        // TODO: Verify genPkt was sent on the right port.
+        // Verify genPkt is the desired ping reply.
+        Ethernet ethReply = genPkt.eth;
         Assert.assertEquals(IPv4.ETHERTYPE, ethReply.getEtherType());
         Assert.assertEquals(devPort23.getMacAddr(),
                 ethReply.getSourceMACAddress());

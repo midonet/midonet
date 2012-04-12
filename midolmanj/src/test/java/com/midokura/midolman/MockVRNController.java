@@ -21,12 +21,12 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 public class MockVRNController extends AbstractController
         implements VRNControllerIface {
 
-    static class GeneratedPacket {
-        Ethernet eth;
-        UUID portID;
+    public static class GeneratedPacket {
+        public Ethernet eth;
+        public UUID portID;
     };
 
-    List<GeneratedPacket> generatedPackets;
+    public List<GeneratedPacket> generatedPackets;
 
     public void addGeneratedPacket(Ethernet eth, UUID portID) {
         GeneratedPacket newPkt = new GeneratedPacket();
