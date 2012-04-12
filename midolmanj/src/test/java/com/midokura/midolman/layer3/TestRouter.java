@@ -515,55 +515,43 @@ public class TestRouter {
         UUID port2Id = portNumToId.get(2);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        // There should now be an ARP request in the MockProtocolStub
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        // There should now be an ARP request in the MockVRNController
+        Assert.assertEquals(1, controller.generatedPackets.size());
         L3DevicePort devPort2 = rtr.devicePorts.get(port2Id);
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
-        Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(
-                (short)0 /*devPort2.getNum()*/, (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Ethernet expectedArp = makeArpRequest(devPort2.getMacAddr(), devPort2
-                .getVirtualConfig().portAddr, 0x0a00000a);
-        Assert.assertTrue(Arrays.equals(expectedArp.serialize(), pkt.data));
+        MockVRNController.GeneratedPacket pkt =
+                 controller.generatedPackets.get(0);
+        Assert.assertEquals(port2Id, pkt.portID);
+        Ethernet expectedArp = makeArpRequest(devPort2.getMacAddr(), 
+                devPort2.getIPAddr(), 0x0a00000a);
+        Assert.assertArrayEquals(expectedArp.serialize(), pkt.eth.serialize());
 
         // Verify that a second getMacForIp call doesn't trigger another ARP.
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controller.generatedPackets.size());
 
         // Verify that a getMacForIp call for a different address does trigger
         // another ARP request.
         reactor.incrementTime(2, TimeUnit.SECONDS);
         rtr.getMacForIp(port2Id, 0x0a000009, cb);
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(1, pkt.actions.size());
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Ethernet expectedArp2 = makeArpRequest(devPort2.getMacAddr(), devPort2
-                .getVirtualConfig().portAddr, 0x0a000009);
-        Assert.assertTrue(Arrays.equals(expectedArp2.serialize(), pkt.data));
+        Assert.assertEquals(2, controller.generatedPackets.size());
+        pkt = controller.generatedPackets.get(1);
+        Ethernet expectedArp2 = makeArpRequest(devPort2.getMacAddr(), 
+                devPort2.getIPAddr(), 0x0a000009);
+        Assert.assertArrayEquals(expectedArp2.serialize(), pkt.eth.serialize());
 
-        // Verify that the ARP request for the first address is resent at 10s.
+        // Verify that the ARP request for the first address is re-sent at 10s.
         reactor.incrementTime(7, TimeUnit.SECONDS);
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        Assert.assertEquals(2, controller.generatedPackets.size());
         reactor.incrementTime(1, TimeUnit.SECONDS);
-        Assert.assertEquals(3, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(2);
-        Assert.assertEquals(1, pkt.actions.size());
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertTrue(Arrays.equals(expectedArp.serialize(), pkt.data));
+        Assert.assertEquals(3, controller.generatedPackets.size());
+        pkt = controller.generatedPackets.get(2);
+        Assert.assertArrayEquals(expectedArp.serialize(), pkt.eth.serialize());
 
         // The ARP request for the second address is resent at 12s.
         reactor.incrementTime(2, TimeUnit.SECONDS);
-        Assert.assertEquals(4, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(3);
-        Assert.assertEquals(1, pkt.actions.size());
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertTrue(Arrays.equals(expectedArp2.serialize(), pkt.data));
+        Assert.assertEquals(4, controller.generatedPackets.size());
+        pkt = controller.generatedPackets.get(3);
+        Assert.assertArrayEquals(expectedArp2.serialize(), pkt.eth.serialize());
 
         // Verify that the first ARP times out at 60s and triggers the callback
         // twice (because we called getMacForIp twice for the first address).
