@@ -639,7 +639,7 @@ public class TestRouter {
         // Checks that we correctly respond to a peer's ARP request with
         // an ARP reply.
         // Let's work with port 2 whose subnet is 10.0.0.0/24 and whose segment
-        // is 10.0.0.8/30. Assume the requests are coming from 10.0.0.9.
+        // is 10.0.0.8/30.  Assume the requests are coming from 10.0.0.9.
         int arpSpa = 0x0a000009;
         UUID port2Id = portNumToId.get(2);
         // Check for addresses inside the subnet but outside the segment.
@@ -672,31 +672,23 @@ public class TestRouter {
      */
     public void checkPeerArp(UUID portId, int arpSpa, int arpTpa,
             boolean shouldReply) {
-        controllerStub.sentPackets.clear();
+        controller.generatedPackets.clear();
         MAC arpSha = MAC.fromString("02:aa:aa:aa:aa:01");
         Ethernet eth = makeArpRequest(arpSha, arpSpa, arpTpa);
         ForwardInfo fInfo = routePacket(portId, eth);
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
         if (shouldReply) {
-            Assert.assertEquals(1, controllerStub.sentPackets.size());
-            MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
+            Assert.assertEquals(1, controller.generatedPackets.size());
+            MockVRNController.GeneratedPacket pkt = 
+                        controller.generatedPackets.get(0);
             L3DevicePort devPort = rtr.devicePorts.get(portId);
-            OFAction ofAction = new OFActionOutput(
-                    (short)0 /*devPort.getNum()*/, (short) 0);
-            Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-            Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
+            Assert.assertEquals(portId, pkt.portID);
             Ethernet expArpReply = makeArpReply(devPort.getMacAddr(), arpSha,
                     arpTpa, arpSpa);
-            Assert.assertTrue(Arrays.equals(expArpReply.serialize(), pkt.data));
+            Assert.assertArrayEquals(expArpReply.serialize(), pkt.eth.serialize());
         } else {
-            Assert.assertEquals(0, controllerStub.sentPackets.size());
+            Assert.assertEquals(0, controller.generatedPackets.size());
         }
-    }
-
-    @Ignore
-    @Test
-    public void testPortConfigChanges() {
-        Assert.fail();
     }
 
     private void deleteRules() throws StateAccessException,
