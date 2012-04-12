@@ -572,15 +572,15 @@ public class TestRouter {
         // Try to get the MAC for a nwAddr on port 2 (i.e. in 10.0.0.8/30).
         ArpCompletedCallback cb = new ArpCompletedCallback();
         UUID port2Id = portNumToId.get(2);
-        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controller.generatedPackets.size());
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controller.generatedPackets.size());
         // Now create the ARP response form 10.0.0.10. Make up its mac address,
         // but use port 2's L2 and L3 addresses for the destination.
         L3DevicePort devPort2 = rtr.devicePorts.get(port2Id);
         MAC hostMac = MAC.fromString("02:00:11:22:33:44");
         Ethernet arpReplyPkt = makeArpReply(hostMac, devPort2.getMacAddr(),
-                0x0a00000a, devPort2.getVirtualConfig().portAddr);
+                0x0a00000a, devPort2.getIPAddr());
         ForwardInfo fInfo = routePacket(port2Id, arpReplyPkt);
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
         // Verify that the callback was triggered with the correct mac.
@@ -592,13 +592,13 @@ public class TestRouter {
         reactor.incrementTime(1800, TimeUnit.SECONDS);
         // At this point a call to getMacForIP won't trigger an ARP request.
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controller.generatedPackets.size());
         Assert.assertEquals(2, cb.macsReturned.size());
         Assert.assertTrue(hostMac.equals(cb.macsReturned.get(1)));
         reactor.incrementTime(1, TimeUnit.SECONDS);
         // At this point a call to getMacForIP should trigger an ARP request.
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        Assert.assertEquals(2, controller.generatedPackets.size());
         Assert.assertEquals(3, cb.macsReturned.size());
         Assert.assertTrue(hostMac.equals(cb.macsReturned.get(2)));
         // Let's send an ARP response that refreshes the ARP cache entry.
@@ -608,7 +608,7 @@ public class TestRouter {
         // still be returned. Again, getMacForIp will trigger an ARP request.
         reactor.incrementTime(3599, TimeUnit.SECONDS);
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        Assert.assertEquals(3, controllerStub.sentPackets.size());
+        Assert.assertEquals(3, controller.generatedPackets.size());
         Assert.assertEquals(4, cb.macsReturned.size());
         Assert.assertTrue(hostMac.equals(cb.macsReturned.get(3)));
         // Now we increment the time by 1 second and the cached response
@@ -616,14 +616,14 @@ public class TestRouter {
         // another ARP request and the callback has to wait for the response.
         reactor.incrementTime(1, TimeUnit.SECONDS);
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
-        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        Assert.assertEquals(4, controller.generatedPackets.size());
         // No new callbacks because it waits for the ARP response.
         Assert.assertEquals(4, cb.macsReturned.size());
         // Say someone asks for the same mac again.
         reactor.incrementTime(1, TimeUnit.SECONDS);
         rtr.getMacForIp(port2Id, 0x0a00000a, cb);
         // No new ARP request since only one second passed since the last one.
-        Assert.assertEquals(4, controllerStub.sentPackets.size());
+        Assert.assertEquals(4, controller.generatedPackets.size());
         // Again no new callbacks because it must wait for the ARP response.
         Assert.assertEquals(4, cb.macsReturned.size());
         // Now send the ARP reply and the callback should be triggered twice.
