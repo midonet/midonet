@@ -944,27 +944,39 @@ public class TestRouter {
     @Test
     public void testFilterBadDestinations() throws StateAccessException,
             ZkStateSerializationException, RuleIndexOutOfBoundsException {
-        // Send a packet from port 11 to port 21.
+        // Send a packet from port 13 to port 21.
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
-        UUID port11Id = portNumToId.get(11);
+        UUID port13Id = portNumToId.get(13);
+        L3DevicePort devPort13 = rtr.devicePorts.get(port13Id);
         UUID port21Id = portNumToId.get(21);
+        PortDirectory.MaterializedRouterPortConfig portCfg21 =
+                portConfigs.get(21);
         Ethernet ethTo21 = makeUDP(MAC.fromString("02:00:11:22:00:01"),
-                MAC.fromString("02:00:11:22:00:28"), 0x0a000106,
-                0x0a000207, (short) 1111, (short) 2222, payload);
-        ForwardInfo fInfo = routePacket(port11Id, ethTo21);
+                devPort13.getMacAddr(), 0x0a000106, 0x0a000207,
+                (short) 1111, (short) 2222, payload);
+        ForwardInfo fInfo = routePacket(port13Id, ethTo21);
+        // Gets stuck on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        Ethernet arp = makeArpReply(MAC.fromString("02:04:06:08:0a:0c"),
+                portCfg21.getHwAddr(), 0x0a000207, portCfg21.portAddr);
+        routePacket(port21Id, arp);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, 0x0a000207);
 
         // Send a packet 10.0.2.5 from the uplink.
         Ethernet ethToQuarantined = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"),
-                MAC.fromString("02:00:11:22:00:a3"), 0x94001006, 0x0a000205,
-                (short) 1111, (short) 2222, payload);
-        fInfo = routePacket(port11Id, ethToQuarantined);
+                MAC.fromString("02:00:11:22:00:01"), devPort13.getMacAddr(),
+                0x94001006, 0x0a000205, (short) 1111, (short) 2222, payload);
+        fInfo = routePacket(port13Id, ethToQuarantined);
+        // Gets stuck on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        arp = makeArpReply(MAC.fromString("02:a4:b6:b8:da:dc"),
+                portCfg21.getHwAddr(), 0x0a000205, portCfg21.portAddr);
+        routePacket(port21Id, arp);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, 0x0a000205);
 
         // After adding the filtering rules these packets are dropped.
         createRules();
-        fInfo = routePacket(port11Id, ethTo21);
+        fInfo = routePacket(port13Id, ethTo21);
         // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
         checkForwardInfo(fInfo, Action.DROP, null, 0);
         fInfo = routePacket(uplinkId, ethToQuarantined);
