@@ -993,31 +993,52 @@ public class TestRouter {
         int extNwAddr = 0xc00b0b0a;
         byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
         UUID port21Id = portNumToId.get(21);
-        Ethernet ethToExtAddr = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"),
-                MAC.fromString("02:00:11:22:00:85"), 0x0a000206, extNwAddr,
+        PortDirectory.MaterializedRouterPortConfig portCfg21 =
+                portConfigs.get(21);
+        Ethernet ethToExtAddr = makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                portCfg21.getHwAddr(), 0x0a000206, extNwAddr,
                 (short) 80, (short) 2222, payload);
         ForwardInfo fInfo = routePacket(port21Id, ethToExtAddr);
+        // Pended on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        MAC gatewayMac = MAC.fromString("02:14:96:98:4a:1c");
+        Ethernet arp = makeArpReply(gatewayMac, uplinkMacAddr,
+                                    uplinkGatewayAddr, uplinkPortAddr);
+        routePacket(uplinkId, arp);
         checkForwardInfo(fInfo, Action.FORWARD, uplinkId, uplinkGatewayAddr);
-        // No translation has occurred - the in/out OFMatch's are the same.
-        Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
+        // No translation has occurred - the in/out OFMatch's are the same
+        // except the router has overwritten the MACs.
+        MidoMatch expectedMatch = fInfo.matchIn.clone();
+        expectedMatch.setDataLayerDestination(gatewayMac);
+        expectedMatch.setDataLayerSource(uplinkMacAddr);
+        Assert.assertEquals(expectedMatch, fInfo.matchOut);
 
         // Now send a packet from 192.11.11.10 to the dnat-ed address
         // (180.0.0.1:80).
-        Ethernet ethToPublicAddr = makeUDP(
-                MAC.fromString("02:00:11:22:00:01"),
-                MAC.fromString("02:00:11:22:00:cf"), extNwAddr, publicDnatAddr,
-                (short) 2222, (short) 80, payload);
+        Ethernet ethToPublicAddr = makeUDP(gatewayMac, uplinkMacAddr,
+                extNwAddr, publicDnatAddr, (short) 2222, (short) 80, payload);
         fInfo = routePacket(uplinkId, ethToPublicAddr);
+        // Pended on ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        arp = makeArpReply(MAC.fromString("02:aa:ab:ba:cd:cc"), 
+                           portCfg21.getHwAddr(), internDnatAddr, 
+                           portCfg21.portAddr);
+        routePacket(port21Id, arp);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, internDnatAddr);
-        Assert.assertEquals(internDnatAddr, fInfo.matchOut
-                .getNetworkDestination());
-        Assert.assertEquals(publicDnatAddr, fInfo.matchIn
-                .getNetworkDestination());
+        Assert.assertEquals(internDnatAddr, 
+                fInfo.matchOut.getNetworkDestination());
+        Assert.assertEquals(publicDnatAddr, 
+                fInfo.matchIn.getNetworkDestination());
         // Since the destination UDP port is 80 before and after the mapping,
-        // the match should be the same before/after routing except for nwDst.
+        // the match should be the same before/after routing except for nwDst
+        // and the MACs.
+        MAC dummyMac = new MAC();
         fInfo.matchOut.setNetworkDestination(0);
         fInfo.matchIn.setNetworkDestination(0);
+        fInfo.matchOut.setDataLayerSource(dummyMac);
+        fInfo.matchOut.setDataLayerDestination(dummyMac);
+        fInfo.matchIn.setDataLayerSource(dummyMac);
+        fInfo.matchIn.setDataLayerDestination(dummyMac);
         Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
 
         // Now send the original packet from 10.0.2.6. This time it should
@@ -1028,9 +1049,14 @@ public class TestRouter {
         Assert.assertEquals(internDnatAddr, fInfo.matchIn.getNetworkSource());
         Assert.assertEquals(publicDnatAddr, fInfo.matchOut.getNetworkSource());
         // Since the source UDP port is 80 before and after the mapping,
-        // the match should be the same before/after routing except for nwSrc.
+        // the match should be the same before/after routing except for nwSrc
+        // and the MACs.
         fInfo.matchOut.setNetworkSource(0);
         fInfo.matchIn.setNetworkSource(0);
+        fInfo.matchOut.setDataLayerSource(dummyMac);
+        fInfo.matchOut.setDataLayerDestination(dummyMac);
+        fInfo.matchIn.setDataLayerSource(dummyMac);
+        fInfo.matchIn.setDataLayerDestination(dummyMac);
         Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
         deleteRules();
     }
