@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 import util.Sudo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
+import org.junit.Assume.assumeTrue
 
 /**
  * Simple Scala object that should contain helpers methods to be used by a test
@@ -24,25 +25,27 @@ object TestHelpers {
             TimeUnit.MILLISECONDS.toMillis(500))(condition)
     }
 
-    def waitFor(totalTime: Long, waitTime: Long)(condition: => Boolean): Boolean = {
+    def waitFor(totalTime: Long, waitTime: Long)
+               (condition: => Boolean): Boolean = {
         val start = System.currentTimeMillis();
         val conditionResult = condition
-        if (totalTime - (System.currentTimeMillis() - start) <= 0 || conditionResult) {
+        if (totalTime - (System.currentTimeMillis() - start) <= 0 || 
+                                conditionResult) {
             return conditionResult
         }
 
         Thread.sleep(waitTime)
 
-        waitFor(totalTime - (System.currentTimeMillis() - start), waitTime)(condition);
+        waitFor(totalTime - (System.currentTimeMillis() - start), 
+                waitTime)(condition);
     }
 
-    def assertSudoAccess(command: String) {
-        assertThat("We can't seem to execute commands using sudo.",
-            Sudo.sudoExec(command) == 0)
+    def assumeSudoAccess(command: String) {
+        assumeTrue(Sudo.sudoExec(command) == 0)
     }
 
-    def assertSudoAccess() {
-        assertSudoAccess("true")
+    def assumeSudoAccess() {
+        assumeSudoAccess("true")
     }
 
     def assertCommandFails(command: String) {

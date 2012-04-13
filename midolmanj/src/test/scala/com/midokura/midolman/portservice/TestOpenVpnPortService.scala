@@ -127,7 +127,7 @@ class TestOpenVpnPortService {
         portService.synchronized {
             log.debug("testClear")
             // Skip tests if a user don't have sudo access w/o password.
-            assertSudoAccess("ip link")
+            assumeSudoAccess("ip link")
 
             assertFalse(ovsdb.hasInterface(portName))
             // Add a private tap port with "midolman_port_service=openvpn".
@@ -146,7 +146,7 @@ class TestOpenVpnPortService {
         portService.synchronized {
             log.debug("testAddPort")
             // Skip tests if a user don't have sudo access w/o password.
-            assertSudoAccess("ip link")
+            assumeSudoAccess("ip link")
 
             portService.clear
             assertFalse(ovsdb.hasPort(pubPortName))
@@ -198,7 +198,7 @@ class TestOpenVpnPortService {
         portService.synchronized {
             log.debug("testConfigurePort")
             // Skip tests if a user don't have sudo access w/o password.
-            assertSudoAccess("ip link")
+            assumeSudoAccess("ip link")
 
             portService.clear
             assertFalse(ovsdb.hasPort(pubPortName))
@@ -242,7 +242,7 @@ class TestOpenVpnPortService {
         portService.synchronized {
             log.debug("testDelPort")
             // Skip tests if a user don't have sudo access w/o password.
-            assertSudoAccess("ip link")
+            assumeSudoAccess("ip link")
 
             portService.clear
             assertFalse(ovsdb.hasPort(pubPortName))
@@ -288,7 +288,7 @@ class TestOpenVpnPortService {
             try {
                 log.debug("testStart")
                 // Skip tests if a user don't have sudo access w/o password.
-                assertSudoAccess("ip link")
+                assumeSudoAccess("ip link")
 
                 portService.clear()
                 assertFalse(ovsdb.hasPort(pubPortName))
@@ -331,7 +331,7 @@ class TestOpenVpnPortService {
             try {
                 log.debug("testStartTcpServer")
                 // Skip tests if a user don't have sudo access w/o password.
-                assertSudoAccess("ip link")
+                assumeSudoAccess("ip link")
 
                 portService.clear
                 assertFalse(ovsdb.hasPort(pubPortName))
@@ -380,7 +380,7 @@ class TestOpenVpnPortService {
             try {
                 log.debug("testStop")
                 // Skip tests if a user don't have sudo access w/o password.
-                assertSudoAccess("ip link")
+                assumeSudoAccess("ip link")
 
                 portService.clear
                 assertFalse(ovsdb.hasPort(pubPortName))
