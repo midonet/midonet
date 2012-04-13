@@ -448,14 +448,18 @@ public abstract class AbstractController implements Controller {
     }
 
     private boolean isGREPortOfKey(String portName) {
-        if (portName == null || portName.length() != 10)
-            return false;
-        return portName.startsWith("tn");
+        boolean isKey = (portName != null && portName.length() == 10 &&
+                                portName.startsWith("tn"));
+        log.debug("port name '{}' is considered to be a tunnel? {}",
+                  portName, isKey);
+        return isKey;
     }
 
     protected IntIPv4 peerIpOfGrePortName(String portName) {
         String hexAddress = portName.substring(2, 10);
-        return new IntIPv4((new BigInteger(hexAddress, 16)).intValue());
+        IntIPv4 ip = new IntIPv4((new BigInteger(hexAddress, 16)).intValue());
+        log.debug("tunnel(?) name {} maps to peer IP {}", portName, ip);
+        return ip;
     }
 
     public String makeGREPortName(IntIPv4 address) {

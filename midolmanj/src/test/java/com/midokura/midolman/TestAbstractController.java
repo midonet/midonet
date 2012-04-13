@@ -228,7 +228,7 @@ public class TestAbstractController {
         port2 = new OFPhysicalPort();
         port2.setPortNumber((short) 47);
         port2.setHardwareAddress(new byte[] { 10, 12, 13, 14, 15, 47 });
-        port2.setName("tne12340a001122");
+        port2.setName("tn0a001122");
         port2peer = new IntIPv4(0x0a001122);
 
         port3 = new OFPhysicalPort();
@@ -338,7 +338,7 @@ public class TestAbstractController {
 
     @Test
     public void testModifyPort() {
-        port2.setName("tne12340a001123");
+        port2.setName("tn0a001123");
         controller.onPortStatus(port2, OFPortReason.OFPPR_MODIFY);
         assertNull(controller.portNumToUuid.get(47));
         assertEquals("10.0.17.35",
@@ -435,14 +435,14 @@ public class TestAbstractController {
 
     @Test
     public void testMakeGREPortName() {
-        assertEquals("tne1234ff0011aa",
+        assertEquals("tnff0011aa",
                      controller.makeGREPortName(new IntIPv4(0xff0011aa)));
     }
 
     @Test
     public void testPeerIpOfGrePortName() {
         assertEquals(0xff0011aa,
-                controller.peerIpOfGrePortName("tne1234ff0011aa").address);
+                controller.peerIpOfGrePortName("tnff0011aa").address);
     }
 
     @Test
@@ -473,7 +473,7 @@ public class TestAbstractController {
                                        CreateMode.PERSISTENT_SEQUENTIAL);
         assertEquals(1, ovsdb.addedGrePorts.size());
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
-                            "43", "tne1234ff0011aa", "255.0.17.170")).equals(
+                            "43", "tnff0011aa", "255.0.17.170")).equals(
                    ovsdb.addedGrePorts.get(0)));
         assertEquals(0xff0011aa, portLocMap.get(portUuid).address);
         assertEquals(0, ovsdb.deletedPorts.size());
@@ -484,11 +484,11 @@ public class TestAbstractController {
         mockDir.delete(fullpath1);
         assertEquals(2, ovsdb.addedGrePorts.size());
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
-                            "43", "tne1234ff0011ac", "255.0.17.172")).equals(
+                            "43", "tnff0011ac", "255.0.17.172")).equals(
                    ovsdb.addedGrePorts.get(1)));
         assertEquals(0xff0011ac, portLocMap.get(portUuid).address);
         assertEquals(1, ovsdb.deletedPorts.size());
-        assertEquals("tne1234ff0011aa", ovsdb.deletedPorts.get(0));
+        assertEquals("tnff0011aa", ovsdb.deletedPorts.get(0));
 
         // Port doesn't move.  Verify tunnel not rm'd.
         String path3 = mockDir.add(path2, null,
@@ -500,7 +500,7 @@ public class TestAbstractController {
         log.info("Deleting path {}", path3);
         mockDir.delete(path3);
         assertEquals(2, ovsdb.deletedPorts.size());
-        assertEquals("tne1234ff0011ac", ovsdb.deletedPorts.get(1));
+        assertEquals("tnff0011ac", ovsdb.deletedPorts.get(1));
     }
 
     @Test
