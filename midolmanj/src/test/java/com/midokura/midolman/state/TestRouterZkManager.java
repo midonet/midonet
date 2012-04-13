@@ -69,6 +69,7 @@ public class TestRouterZkManager {
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getGrePath(), null, CreateMode.PERSISTENT);
         PortZkManager portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         routerMgr = new RouterZkManager(dir, basePath);
@@ -78,7 +79,11 @@ public class TestRouterZkManager {
         rtrId = routerMgr.create();
         Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
-        rTable = null; // TODO(pino): get a handle to the router's table.
+        rTable = new ReplicatedRoutingTable(rtrId,
+                        routerMgr.getRoutingTableDirectory(rtrId),
+                        CreateMode.EPHEMERAL);
+        rTable.start();
+        
         // TODO(pino): pass a MockVRNController to the Router.
         rtr = new Router(rtrId, dir, basePath, reactor, cache, null);
         controllerStub = new MockControllerStub();
