@@ -53,8 +53,7 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Net;
 
-public abstract class AbstractController
-        implements Controller {
+public abstract class AbstractController implements Controller {
 
     private final static Logger log =
                         LoggerFactory.getLogger(AbstractController.class);
@@ -101,7 +100,7 @@ public abstract class AbstractController
     public AbstractController(long datapathId, Directory zkDir,
             String zkBasePath, OpenvSwitchDatabaseConnection ovsdb,
             IntIPv4 internalIp, String externalIdKey)
-            throws StateAccessException {
+                throws StateAccessException {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
         ZkPathManager pathMgr = new ZkPathManager(zkBasePath);

@@ -36,9 +36,11 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.TCP;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Net;
 
 
@@ -52,10 +54,9 @@ class AbstractControllerTester extends AbstractController {
     short idleFlowExpireSeconds;
     OFAction[] flowActions = {};
 
-    public Logger log = LoggerFactory.getLogger(
-            AbstractControllerTester.class);
+    public Logger log = LoggerFactory.getLogger(AbstractControllerTester.class);
 
-    public AbstractControllerTester(
+    AbstractControllerTester(
             int datapathId,
             UUID switchUuid,
             int greKey,
@@ -63,9 +64,10 @@ class AbstractControllerTester extends AbstractController {
             PortToIntNwAddrMap dict,
             short flowExpireSeconds,
             long idleFlowExpireMillis,
-            IntIPv4 internalIp) throws StateAccessException {
-        // TODO(pino): pass a real Directory and String basePath.
-        super(datapathId, null, null, ovsdb, internalIp, "midonet");
+            IntIPv4 internalIp,
+            Directory dir,
+            String basePath) throws StateAccessException {
+        super(datapathId, dir, basePath, ovsdb, internalIp, "midonet");
         virtualPortsAdded = new ArrayList<UUID>();
         virtualPortsRemoved = new ArrayList<UUID>();
         tunnelPortsAdded = new ArrayList<IntIPv4>();
@@ -95,7 +97,8 @@ class AbstractControllerTester extends AbstractController {
     }
 
     @Override
-    public void onPacketIn(int bufferId, int totalLen, short inPort, byte[] data) {
+    public void onPacketIn(int bufferId, int totalLen, short inPort, 
+                           byte[] data) {
         onPacketIn(bufferId, totalLen, inPort, data, 0);
     }
 
@@ -189,12 +192,18 @@ public class TestAbstractController {
     public Logger log = LoggerFactory.getLogger(TestAbstractController.class);
 
     @Before
-    public void setUp() throws StateAccessException {
+    public void setUp() throws StateAccessException, KeeperException,
+                               InterruptedException {
         dp_id = 43;
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
+        String basePath = "/midonet";
         mockDir = new MockDirectory();
-        portLocMap = new PortToIntNwAddrMap(mockDir);
+        mockDir.add(basePath, null, CreateMode.PERSISTENT);
+        Setup.createZkDirectoryStructure(mockDir, basePath);
+        ZkPathManager pathMgr = new ZkPathManager(basePath);
+        portLocMap = new PortToIntNwAddrMap(mockDir.getSubDirectory(
+                                pathMgr.getVRNPortLocationsPath()));
 
         localIp = IntIPv4.fromString("192.168.1.50");
         controller = new AbstractControllerTester(
@@ -205,7 +214,8 @@ public class TestAbstractController {
                              portLocMap /* portLocationMap */,
                              (short)300 /* flowExpireSeconds */,
                              60 * 1000 /* idleFlowExpireMillis */,
-                             localIp /* internalIp */);
+                             localIp /* internalIp */,
+                             mockDir, basePath);
         portLocMap.start();
         controller.setControllerStub(controllerStub);
 
