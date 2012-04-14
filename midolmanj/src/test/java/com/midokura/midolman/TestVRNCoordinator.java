@@ -51,6 +51,7 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -63,7 +64,8 @@ import com.midokura.midolman.util.MockCache;
 
 public class TestVRNCoordinator {
 
-    private static final Logger log = LoggerFactory.getLogger(TestVRNCoordinator.class);
+    private static final Logger log = 
+        LoggerFactory.getLogger(TestVRNCoordinator.class);
 
     private VRNCoordinator vrn;
     private List<L3DevicePort> devPorts;
@@ -100,9 +102,9 @@ public class TestVRNCoordinator {
 
         controller = new MockVRNController(679, dir, basePath, null,
                    IntIPv4.fromString("192.168.200.200"), "externalIdKey");
-        // TODO(pino): create a PortSetMap to pass to the coordinator.
+        PortSetMap portSetMap = new PortSetMap(dir, basePath);
         vrn = new VRNCoordinator(dir, basePath, reactor, createCache(),
-                controller, null);
+                controller, portSetMap);
 
         /*
          * Create 3 routers such that:
@@ -299,10 +301,10 @@ public class TestVRNCoordinator {
         Set<UUID> traversedRtrs1 = new HashSet<UUID>();
         fInfo1.notifyFEs = traversedRtrs1;
         vrn.process(fInfo1);
-        // The packet gets paused for ARP, but only at router0, it's traversed
-        // router1.
+        // The packet gets paused for ARP.
         Assert.assertEquals(Action.PAUSED, fInfo1.action);
-        Assert.assertEquals(1, traversedRtrs1.size());
+        Assert.assertEquals(2, traversedRtrs1.size());
+        Assert.assertTrue(traversedRtrs1.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs1.contains(routerIds.get(1)));
         
         // Construct an ARP reply for 0x0a0000aa.
@@ -310,9 +312,12 @@ public class TestVRNCoordinator {
                                              (byte) 2, (byte) 3, (byte) 3 });
         Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
                                 egrDevPort.getMacAddr(), 0x0a0000aa,
-                                egrDevPort.getVirtualConfig().portAddr);
+                                egrDevPort.getIPAddr());
         ForwardInfo arpFInfo = prepareFwdInfo(egrDevPort.getId(), arpReply);
         vrn.process(arpFInfo);
+        // ... and the ARP reply causes the first packet's journey to finish.
+        TestRouter.checkForwardInfo(fInfo1, Action.FORWARD, egrDevPort.getId(),
+                0x0a0000aa);
 
         // Now a packet sent from 0x0a0100cc to 0x0a0000aa should get all the
         // way through.
