@@ -277,7 +277,7 @@ public class TestVRNCoordinator {
                                              (byte) 2, (byte) 3, (byte) 3 });
         Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
                                 egrDevPort.getMacAddr(), 0x0a000105,
-                                egrDevPort.getVirtualConfig().portAddr);
+                                egrDevPort.getIPAddr());
         ForwardInfo arpFInfo = prepareFwdInfo(egrDevPort.getId(), arpReply);
         vrn.process(arpFInfo);
         // Original packet should now get forwarded.
@@ -352,6 +352,12 @@ public class TestVRNCoordinator {
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(2)));
+        // Packet gets stopped by final-hop ARP.
+        Assert.assertEquals(Action.PAUSED, fInfo.action);
+        Ethernet arpReply = TestRouter.makeArpReply(
+                MAC.fromString("02:00:11:22:11:0b"), egrDevPort.getMacAddr(),
+                0x0a020188, egrDevPort.getIPAddr());
+        vrn.process(prepareFwdInfo(egrDevPort.getId(), arpReply));
         TestRouter.checkForwardInfo(fInfo, Action.FORWARD, egrDevPort.getId(),
                 0x0a020188);
     }
@@ -373,7 +379,7 @@ public class TestVRNCoordinator {
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         Ethernet expectedArp = TestRouter.makeArpRequest(devPort.getMacAddr(),
-                devPort.getVirtualConfig().portAddr, 0x0a020123);
+                devPort.getIPAddr(), 0x0a020123);
         Assert.assertArrayEquals(expectedArp.serialize(), pkt.data);
     }
 
@@ -429,8 +435,7 @@ public class TestVRNCoordinator {
             MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
                                              (byte) 2, (byte) 3, (byte) 3 });
             Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
-                        devPort.getMacAddr(), 0x0a020102,
-                        devPort.getVirtualConfig().portAddr);
+                        devPort.getMacAddr(), 0x0a020102, devPort.getIPAddr());
             ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
             Set<UUID> traversedRtrs = new HashSet<UUID>();
             fInfo.notifyFEs = traversedRtrs;
