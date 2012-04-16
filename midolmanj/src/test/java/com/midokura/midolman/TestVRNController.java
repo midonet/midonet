@@ -155,7 +155,8 @@ public class TestVRNController {
          */
         Route rt;
         PortDirectory.MaterializedRouterPortConfig portConfig;
-        List<ReplicatedRoutingTable> rTables = new ArrayList<ReplicatedRoutingTable>();
+        List<ReplicatedRoutingTable> rTables = 
+                new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
             phyPorts.add(new ArrayList<OFPhysicalPort>());
             UUID rtrId = routerMgr.create();
@@ -186,7 +187,8 @@ public class TestVRNController {
                         (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
                         (byte) portNum });
                 portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                        rtrId, portNw, 24, portAddr, mac, null, portNw, 24, null);
+                        rtrId, portNw, 24, portAddr, mac, null, portNw, 24, 
+                        null);
                 UUID portId = portMgr.create(portConfig);
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId,
                         Route.NO_GATEWAY, 2, null, rtrId);
@@ -1265,23 +1267,6 @@ public class TestVRNController {
 
     }
 
-    @Test
-    public void testSetDlHeadersForTunnel() {
-        int inPort = 0xeeffccaa;
-        int outPort = 0xf0e1d2c3;
-        int nwAddr = 0xd4d4d4ff;
-        MAC[] dlHeaders = null; //VRNController.getDlHeadersForTunnel(inPort,
-                //outPort, nwAddr);
-        /*DecodedMacAddrs decoded = VRNController.decodeMacAddrs(
-                dlHeaders[0].getAddress(), dlHeaders[1].getAddress());
-        Assert.assertEquals(inPort,
-                ShortUUID.UUID32toInt(decoded.lastIngressPortId));
-        Assert.assertEquals(outPort,
-                ShortUUID.UUID32toInt(decoded.lastEgressPortId));
-        Assert.assertEquals(nwAddr, decoded.nextHopNwAddr);
-        */
-    }
-
     private void addUplink() throws StateAccessException,
             ZkStateSerializationException {
         // Add an uplink to router0.
@@ -1313,7 +1298,7 @@ public class TestVRNController {
         controllerStub.addedFlows.clear();
     }
 
-    @Test @Ignore /* TODO: Should this be in TestRouter? */
+    @Test
     public void testDnat() throws StateAccessException,
             ZkStateSerializationException, RuleIndexOutOfBoundsException,
             JsonParseException, KeeperException, InterruptedException,
@@ -1352,7 +1337,8 @@ public class TestVRNController {
         cond.tpSrcEnd = natPrivateTpPort;
         chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
                 routerIds.get(0)));
-        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, true /* dnat */);
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, 
+                true /* dnat */);
         ruleMgr.create(r);
         TopologyChecker.checkRouter(routerIds.get(0), basePath, dir);
 
@@ -1402,16 +1388,16 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortOut
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                phyPortOut.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac
-                .getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                mac.getAddress());
         actions.add(ofAction);
         ofAction = new OFActionNetworkLayerDestination();
-        ((OFActionNetworkLayerAddress) ofAction)
-                .setNetworkAddress(natPrivateNwAddr);
+        ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(
+                natPrivateNwAddr);
         actions.add(ofAction);
         ofAction = new OFActionTransportLayerDestination();
         ((OFActionTransportLayer) ofAction).setTransportPort(natPrivateTpPort);
@@ -1464,16 +1450,16 @@ public class TestVRNController {
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                uplinkPhyPort.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction)
-                .setDataLayerAddress(uplinkGatewayMac.getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                uplinkGatewayMac.getAddress());
         actions.add(ofAction);
         ofAction = new OFActionNetworkLayerSource();
-        ((OFActionNetworkLayerAddress) ofAction)
-                .setNetworkAddress(natPublicNwAddr);
+        ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(
+                natPublicNwAddr);
         actions.add(ofAction);
         ofAction = new OFActionTransportLayerSource();
         ((OFActionTransportLayer) ofAction).setTransportPort(natPublicTpPort);
@@ -1494,11 +1480,11 @@ public class TestVRNController {
         // until the controller gets a flowRemoved callback for the orginal
         // forward flow match.
         Set<String> natKeys = new HashSet<String>();
-        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0).toString()
-                + NatLeaseManager.FWD_DNAT_PREFIX, extNwAddr, extTpPort,
+        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0).toString() +
+                NatLeaseManager.FWD_DNAT_PREFIX, extNwAddr, extTpPort,
                 natPublicNwAddr, natPublicTpPort));
-        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0).toString()
-                + NatLeaseManager.REV_DNAT_PREFIX, extNwAddr, extTpPort,
+        natKeys.add(NatLeaseManager.makeCacheKey(routerIds.get(0).toString() +
+                NatLeaseManager.REV_DNAT_PREFIX, extNwAddr, extTpPort,
                 natPrivateNwAddr, natPrivateTpPort));
         checkNatRefresh(natKeys, fwdMatch);
     }
@@ -1623,8 +1609,8 @@ public class TestVRNController {
                 .getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac
-                .getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                mac.getAddress());
         actions.add(ofAction);
         ofAction = new OFActionNetworkLayerDestination();
         ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(internalIp);
@@ -1676,8 +1662,8 @@ public class TestVRNController {
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                uplinkPhyPort.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
         ((OFActionDataLayerDestination) ofAction)
@@ -1721,8 +1707,8 @@ public class TestVRNController {
                 uplinkPhyPort.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction)
-                .setDataLayerAddress(uplinkGatewayMac.getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                uplinkGatewayMac.getAddress());
         actions.add(ofAction);
         ofAction = new OFActionNetworkLayerSource();
         ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(floatingIp);
@@ -1778,8 +1764,8 @@ public class TestVRNController {
         r = new LiteralRule(cond, Action.DROP, chainId, 2);
         ruleMgr.create(r);
 
-        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING, routerIds
-                .get(0)));
+        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING, 
+                                  routerIds.get(0)));
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);
@@ -1789,7 +1775,8 @@ public class TestVRNController {
         cond.nwSrcInv = true;
         cond.nwDstIp = natPublicNwAddr;
         cond.nwDstLength = 32;
-        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, false /* snat */);
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, 
+                               false /* snat */);
         ruleMgr.create(r);
 
         // Send a packet into the uplink directed to the natted addr/port.
@@ -1862,21 +1849,21 @@ public class TestVRNController {
         actions.clear();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(uplinkPhyPort
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                uplinkPhyPort.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction)
-                .setDataLayerAddress(uplinkGatewayMac.getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                uplinkGatewayMac.getAddress());
         actions.add(ofAction);
         ofAction = new OFActionNetworkLayerSource();
-        ((OFActionNetworkLayerAddress) ofAction)
-                .setNetworkAddress(natPublicNwAddr);
+        ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(
+                natPublicNwAddr);
         actions.add(ofAction);
         MockControllerStub.Flow flow = controllerStub.addedFlows.get(1);
         Assert.assertEquals(5, flow.actions.size());
-        OFActionTransportLayerSource tpSrcAction = OFActionTransportLayerSource.class
-                .cast(flow.actions.get(3));
+        OFActionTransportLayerSource tpSrcAction = 
+                OFActionTransportLayerSource.class.cast(flow.actions.get(3));
         short natPublicTpPort = tpSrcAction.getTransportPort();
         Assert.assertTrue(nat.tpStart <= natPublicTpPort);
         Assert.assertTrue(natPublicTpPort <= nat.tpEnd);
@@ -1928,12 +1915,12 @@ public class TestVRNController {
         actions.clear();
         tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortRtr2
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                phyPortRtr2.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(localMac
-                .getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                localMac.getAddress());
         actions.add(ofAction);
         ofAction = new OFActionNetworkLayerDestination();
         ((OFActionNetworkLayerAddress) ofAction).setNetworkAddress(localNwAddr);
@@ -1968,13 +1955,11 @@ public class TestVRNController {
 
         // Create BGP config to the local port0 on router0.
         int routerId = 0;
-        int remotePortNum = 0;
-        UUID portId = null;
-        /*XXX UUID portId = ShortUUID.intTo32BitUUID(portNumToIntId
-                .get(remotePortNum)); */
+        short remotePortNum = 0;
+        UUID portId = portNumToUuid.get(new Short(remotePortNum));
         String remoteAddrString = "192.168.10.1";
-        bgpMgr.create(new BgpConfig(portId, 65104, InetAddress
-                .getByName(remoteAddrString), 12345));
+        bgpMgr.create(new BgpConfig(portId, 65104, 
+                InetAddress.getByName(remoteAddrString), 12345));
 
         // Add the port to the datapath to invoke adding a service port for BGP.
         OFPhysicalPort remotePort = phyPorts.get(routerId).get(remotePortNum);

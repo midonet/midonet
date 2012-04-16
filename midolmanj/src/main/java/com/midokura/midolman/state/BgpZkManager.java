@@ -37,6 +37,7 @@ public class BgpZkManager extends ZkManager {
          * integer.
          */
         public int localAS;
+        // TODO: Why is this an InetAddress instead of an IntIPv4?
         public InetAddress peerAddr;
         public int peerAS;
         public UUID portId;
@@ -160,7 +161,8 @@ public class BgpZkManager extends ZkManager {
 
     public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, BgpConfig>> result = new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
+        List<ZkNodeEntry<UUID, BgpConfig>> result = 
+                new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
         Set<String> bgpIds = getChildren(pathManager.getPortBgpPath(portId),
                 watcher);
         for (String bgpId : bgpIds) {
