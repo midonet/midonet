@@ -584,11 +584,11 @@ public class VRNController extends AbstractController
                     .getTransportSource());
             actions.add(action);
         }
-        if (origMatch.getTransportDestination() != newMatch
-                .getTransportDestination()) {
+        if (origMatch.getTransportDestination() != 
+                newMatch.getTransportDestination()) {
             action = new OFActionTransportLayerDestination();
-            ((OFActionTransportLayer) action).setTransportPort(newMatch
-                    .getTransportDestination());
+            ((OFActionTransportLayer) action).setTransportPort(
+                newMatch.getTransportDestination());
             actions.add(action);
         }
         if (0 != setTunnelId)
