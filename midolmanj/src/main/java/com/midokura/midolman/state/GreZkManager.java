@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
  * @author Ryu Ishimoto
  */
 public class GreZkManager extends ZkManager {
-    private final static Logger log = LoggerFactory
-            .getLogger(GreZkManager.class);
+    private final static Logger log = 
+        LoggerFactory.getLogger(GreZkManager.class);
 
     public static class GreKey {
 

@@ -27,18 +27,16 @@ public class BridgeZkManager extends ZkManager {
 
     private PortSetMap portSetMap;
 
+    // TODO: Do we need this inner class, or can we use the greKey directly
+    // without confusion?
     public static class BridgeConfig {
 
         public BridgeConfig() {
             super();
         }
 
-        public BridgeConfig(int greKey) {
-            super();
-            this.greKey = greKey;
-        }
-
-        public int greKey;
+        // TODO: Make this private with a getter.
+        public int greKey;      // Only set in prepareBridgeCreate
     }
 
     /**
@@ -79,8 +77,8 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeCreate(
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
             throws StateAccessException {
-        GreZkManager greZkManager = new GreZkManager(zk, pathManager
-                .getBasePath());
+        GreZkManager greZkManager = new GreZkManager(zk, 
+                pathManager.getBasePath());
 
         // Create a new GRE key. Hide this from outside.
         ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
@@ -141,10 +139,10 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        PortZkManager portZkManager = new PortZkManager(zk, pathManager
-                .getBasePath());
-        GreZkManager greZkManager = new GreZkManager(zk, pathManager
-                .getBasePath());
+        PortZkManager portZkManager = new PortZkManager(zk, 
+                pathManager.getBasePath());
+        GreZkManager greZkManager = new GreZkManager(zk, 
+                pathManager.getBasePath());
         BridgeDhcpZkManager dhcpZkManager =
             new BridgeDhcpZkManager(zk, pathManager.getBasePath());
 
@@ -169,9 +167,9 @@ public class BridgeZkManager extends ZkManager {
 
         // Delete GRE
         GreKey gre = new GreKey(entry.key);
-        ops.addAll(greZkManager
-                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
-                        entry.value.greKey, gre)));
+        ops.addAll(greZkManager.prepareGreDelete(
+                        new ZkNodeEntry<Integer, GreKey>(
+                                entry.value.greKey, gre)));
 
         // Delete this bridge's port-set
         ops.add(portSetMap.preparePortSetDelete(entry.key));
@@ -197,8 +195,8 @@ public class BridgeZkManager extends ZkManager {
     public UUID create(BridgeConfig bridge) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = new ZkNodeEntry<UUID, BridgeConfig>(
-                id, bridge);
+        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = 
+                new ZkNodeEntry<UUID, BridgeConfig>(id, bridge);
         multi(prepareBridgeCreate(bridgeNode));
         return id;
     }
