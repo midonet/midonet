@@ -82,10 +82,10 @@
       <param-value>Location</param-value>
     </init-param>
   </filter>
-  <!--filter-mapping>
+  <filter-mapping>
     <filter-name>auth</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping-->
+  </filter-mapping>
   <filter-mapping>
     <filter-name>cors</filter-name>
     <url-pattern>/*</url-pattern>
