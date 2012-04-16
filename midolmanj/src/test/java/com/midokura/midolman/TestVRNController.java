@@ -526,7 +526,6 @@ public class TestVRNController {
                 new MAC(phyPortOut.getHardwareAddress()), 0x0a020001,
                 0x0a020008).serialize();
         byte[] pktData = pktCont.fwdInfo.pktIn.serialize();
-        // XXX: dump bytes
         System.out.print("|");
         for (byte b : arpData)
             System.out.printf(" %02X", b);
@@ -536,7 +535,8 @@ public class TestVRNController {
         System.out.print("|\n");
         Assert.assertArrayEquals(arpData, pktCont.fwdInfo.pktIn.serialize());
 
-        // XXX: Drain the DelayedCall queue.
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -559,6 +559,7 @@ public class TestVRNController {
                 0x0a020001).serialize();
         vrnCtrl.onPacketIn(8765, arpData.length,
                 phyPortOut.getPortNumber(), arpData);
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
         Assert.assertTrue(8765 == controllerStub.droppedPktBufIds.get(0));
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -567,12 +568,12 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction tmp = ofAction;
         ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortOut
-                .getHardwareAddress());
+        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(
+                phyPortOut.getHardwareAddress());
         actions.add(ofAction);
         ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac
-                .getAddress());
+        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(
+                mac.getAddress());
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
@@ -670,9 +671,10 @@ public class TestVRNController {
         byte[] data = eth.serialize();
         vrnCtrl.onPacketIn(37654, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets dropped, and the buffered packet sent.
+        // No packets dropped, and the buffered packet queued to be sent.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, reactor.calls.size());
         MockControllerStub.Packet sentPacket = controllerStub.sentPackets
                 .get(0);
         Assert.assertEquals(37654, sentPacket.bufferId);

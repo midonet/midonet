@@ -45,16 +45,18 @@ public class VRNController extends AbstractController
     private static final Logger log =
             LoggerFactory.getLogger(VRNController.class);
 
-    // TODO(pino): This constant should be declared in openflow...
+    // TODO(pino): These constants should be declared in openflow...
     public static final short NO_HARD_TIMEOUT = 0;
     public static final short NO_IDLE_TIMEOUT = 0;
     public static final short TEMPORARY_DROP_SECONDS = 5;
     public static final short ICMP_EXPIRY_SECONDS = 5;
+    public static final short NORMAL_IDLE_TIMEOUT = 20;
     private static final short FLOW_PRIORITY = 0;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
 
     VRNCoordinator vrn;
-    short idleFlowExpireSeconds; //package private to allow test access.
+    // TODO: Should we provide a setter or constructor parameter for this?
+    private short idleFlowExpireSeconds = NORMAL_IDLE_TIMEOUT;
 
     private PortService service;
     private Map<UUID, List<Runnable>> portServicesById;
