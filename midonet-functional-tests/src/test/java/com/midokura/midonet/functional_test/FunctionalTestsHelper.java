@@ -4,6 +4,7 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
@@ -47,8 +48,15 @@ public class FunctionalTestsHelper {
     }
 
     protected static void cleanupZooKeeperData() {
+        // Often zkCli.sh is not in the PATH, use the one from default install otherwise
+        String zkCliPath = "zkCli.sh";
+        List<String> pathList = ProcessHelper.executeCommandLine("which " + zkCliPath);
+        if (pathList.isEmpty()) {
+            zkCliPath = "/usr/share/zookeeper/bin/zkCli.sh";
+        }
+
         ProcessHelper
-                .newProcess("zkCli.sh -server 127.0.0.1:2181 rmr " +
+                .newProcess(zkCliPath + " -server 127.0.0.1:2181 rmr " +
                         " /smoketest")
                 .logOutput(log, "cleaning_zk")
                 .runAndWait();
