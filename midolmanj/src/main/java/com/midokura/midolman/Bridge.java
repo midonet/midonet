@@ -43,7 +43,6 @@ import com.midokura.midolman.state.ZkPathManager;
 public class Bridge implements ForwardingElement {
 
     private final Logger log = LoggerFactory.getLogger(Bridge.class);
-    public static final int DROP_SECONDS = 5;
 
     UUID bridgeId;
     MacPortMap macPortMap;
@@ -108,7 +107,6 @@ public class Bridge implements ForwardingElement {
         // Drop the packet if it's L2 source is a multicast address.
         if (Ethernet.isMcast(srcDlAddress)) {
             fwdInfo.action = Action.DROP;
-            fwdInfo.dropTimeSeconds = DROP_SECONDS;
             log.info("multicast src MAC, dropping packet");
             return;
         }
@@ -159,7 +157,7 @@ public class Bridge implements ForwardingElement {
             // Learn the MAC source address.
             increaseMacPortFlowCount(srcDlAddress, fwdInfo.getInPortId());
             // We don't need flow removal notification for flows from FEs.
-            fwdInfo.notifyFEs.add(bridgeId);
+            fwdInfo.addRemovalNotification(bridgeId);
         }
         return;
     }

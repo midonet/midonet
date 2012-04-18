@@ -24,7 +24,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -58,6 +57,7 @@ import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
@@ -75,6 +75,7 @@ public class TestVRNController {
     private MockReactor reactor;
     private MockControllerStub controllerStub;
     private PortToIntNwAddrMap portLocMap;
+    private Map<UUID, ArpTable> arpTables;
     private BgpZkManager bgpMgr;
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
@@ -95,6 +96,8 @@ public class TestVRNController {
     private UUID portOn2to0;
     private int rtr2LogPortNwAddr;
     private int rtr0to2LogPortNwAddr;
+    private MAC rtr2LogPortMAC;
+    private MAC rtr0to2LogPortMAC;
     private Map<Short, UUID> portNumToUuid;
 
     @Before
@@ -102,6 +105,7 @@ public class TestVRNController {
         phyPorts = new ArrayList<List<OFPhysicalPort>>();
         routerIds = new ArrayList<UUID>();
         portNumToUuid = new HashMap<Short, UUID>();
+        arpTables = new HashMap<UUID, ArpTable>();
         reactor = new MockReactor();
         controllerStub = new MockControllerStub();
 
@@ -155,12 +159,17 @@ public class TestVRNController {
          */
         Route rt;
         PortDirectory.MaterializedRouterPortConfig portConfig;
-        List<ReplicatedRoutingTable> rTables = 
+        List<ReplicatedRoutingTable> rTables =
                 new ArrayList<ReplicatedRoutingTable>();
         for (int i = 0; i < 3; i++) {
             phyPorts.add(new ArrayList<OFPhysicalPort>());
             UUID rtrId = routerMgr.create();
             routerIds.add(rtrId);
+            Directory arpTableDir =
+                    routerMgr.getArpTableDirectory(rtrId);
+            ArpTable arpTable = new ArpTable(arpTableDir);
+            arpTable.start();
+            arpTables.put(rtrId, arpTable);
 
             Directory tableDir = routerMgr.getRoutingTableDirectory(rtrId);
             // Note: we keep our own copy of the replicated routing tables
@@ -187,7 +196,7 @@ public class TestVRNController {
                         (byte) 0xee, (byte) 0xdd, (byte) 0xcc, (byte) 0xff,
                         (byte) portNum });
                 portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                        rtrId, portNw, 24, portAddr, mac, null, portNw, 24, 
+                        rtrId, portNw, 24, portAddr, mac, null, portNw, 24,
                         null);
                 UUID portId = portMgr.create(portConfig);
                 rt = new Route(0, 0, portNw, 24, NextHop.PORT, portId,
@@ -270,6 +279,10 @@ public class TestVRNController {
         idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
         portOn0to2 = idPair.key;
         portOn2to0 = idPair.value;
+        RouterPortConfig pcfg = (RouterPortConfig)portMgr.get(portOn0to2).value;
+        rtr0to2LogPortMAC = pcfg.hwAddr;
+        pcfg = (RouterPortConfig)portMgr.get(portOn2to0).value;
+        rtr2LogPortMAC = pcfg.hwAddr;
         rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2,
                 0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
@@ -315,7 +328,7 @@ public class TestVRNController {
         MidoMatch match = new MidoMatch();
         match.setInputPort((short)1234);
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, true,
+                (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, false,
                 new ArrayList<OFAction>());
     }
 
@@ -338,8 +351,8 @@ public class TestVRNController {
                 eth, phyPort.getPortNumber());
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                VRNController.NO_IDLE_TIMEOUT, (short) 0,
-                55, true, actions);
+                VRNController.NO_IDLE_TIMEOUT,
+                VRNController.TEMPORARY_DROP_SECONDS, 55, false, actions);
     }
 
     @Test
@@ -361,7 +374,7 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                Router.DROP_TIMEOUT, 55, true, actions);
+                VRNController.TEMPORARY_DROP_SECONDS, 55, false, actions);
     }
 
     @Test
@@ -411,7 +424,7 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.NO_HARD_TIMEOUT, 123456, true, actions);
+                VRNController.NO_HARD_TIMEOUT, 123456, false, actions);
     }
 
     @Test
@@ -449,7 +462,7 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 565656, true, actions);
+                VRNController.TEMPORARY_DROP_SECONDS, 565656, false, actions);
     }
 
     @Test
@@ -491,7 +504,7 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 11111, true, actions);
+                VRNController.TEMPORARY_DROP_SECONDS, 11111, false, actions);
     }
 
     @Test
@@ -578,7 +591,7 @@ public class TestVRNController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                ControllerStub.UNBUFFERED_ID, true, actions);
+                ControllerStub.UNBUFFERED_ID, false, actions);
 
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(1);
@@ -605,11 +618,11 @@ public class TestVRNController {
                 eth, phyPortIn.getPortNumber());
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                9896, true, actions);
+                9896, false, actions);
     }
 
     @Test
-    public void testOneRouterOutputRemote() 
+    public void testOneRouterOutputRemote()
             throws StateAccessException, KeeperException, InterruptedException {
         // Send a packet from router2's first port to an address on router2's
         // second port.
@@ -640,12 +653,10 @@ public class TestVRNController {
         // "Answer" the ARP.  Because the output port is supposedly remote,
         // this means to update the ARP cache through the Directory.
         // TODO: Shouldn't there be a test for this in TestRouter?
-        Directory arpTableDir = routerMgr.getArpTableDirectory(routerIds.get(2));
-        ArpTable arpTable = new ArpTable(arpTableDir);
-        arpTable.start();
         long now = reactor.currentTimeMillis();
         MAC dstMac = MAC.fromString("02:dd:dd:dd:0d:a1");
-        arpTable.put(new IntIPv4(0x0a020145), new ArpCacheEntry(
+        arpTables.get(routerIds.get(2)).put(
+                new IntIPv4(0x0a020145), new ArpCacheEntry(
                         dstMac, now + Router.ARP_TIMEOUT_MILLIS,
                         now + Router.ARP_RETRY_MILLIS, now));
         reactor.incrementTime(0, TimeUnit.SECONDS);
@@ -656,14 +667,14 @@ public class TestVRNController {
         OFActionDataLayerSource ofDlSrcAction = new OFActionDataLayerSource();
         ofDlSrcAction.setDataLayerAddress(srcMac.getAddress());
         actions.add(ofDlSrcAction);
-        OFActionDataLayerDestination ofDlDstAction = 
+        OFActionDataLayerDestination ofDlDstAction =
                 new OFActionDataLayerDestination();
         ofDlDstAction.setDataLayerAddress(dstMac.getAddress());
         actions.add(ofDlDstAction);
         // Set the tunnel ID to indicate the output port to use.
         ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
         int tunnelId = tunnelIdEntry.value.greKey;
-        NxActionSetTunnelKey32 ofTunnelIdAction = 
+        NxActionSetTunnelKey32 ofTunnelIdAction =
                 new NxActionSetTunnelKey32(tunnelId);
         actions.add(ofTunnelIdAction);
         // Router2's second port is reachable via the tunnel OF port number 21.
@@ -671,11 +682,11 @@ public class TestVRNController {
         actions.add(ofOutAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT, 999,
-                true, actions);
+                false, actions);
     }
 
     @Test
-    public void testThreeRouterOutputRemote() 
+    public void testThreeRouterOutputRemote()
             throws StateAccessException, KeeperException, InterruptedException {
         // Send a packet to router1's first port to an address on router2's
         // second port.
@@ -721,7 +732,7 @@ public class TestVRNController {
         OFActionDataLayerSource ofDlSrcAction = new OFActionDataLayerSource();
         ofDlSrcAction.setDataLayerAddress(srcMac.getAddress());
         actions.add(ofDlSrcAction);
-        OFActionDataLayerDestination ofDlDstAction = 
+        OFActionDataLayerDestination ofDlDstAction =
                 new OFActionDataLayerDestination();
         ofDlDstAction.setDataLayerAddress(dstMac.getAddress());
         actions.add(ofDlDstAction);
@@ -735,7 +746,7 @@ public class TestVRNController {
         actions.add(ofOutAction); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                37654, true, actions);
+                37654, false, actions);
     }
 
     @Test
@@ -753,38 +764,44 @@ public class TestVRNController {
                 new MAC(phyPortIn.getHardwareAddress()), nwSrc, nwDst,
                 (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
+        // Pre-seed the ARP cache
+        long now = reactor.currentTimeMillis();
+        MAC dstMac = MAC.fromString("02:00:11:22:00:02");
+        arpTables.get(routerIds.get(2)).put(
+                new IntIPv4(0x0a0201e4), new ArpCacheEntry(
+                dstMac, now + Router.ARP_TIMEOUT_MILLIS,
+                now + Router.ARP_RETRY_MILLIS, now));
         vrnCtrl.onPacketIn(22333, data.length, phyPortIn.getPortNumber(),
                 data);
-        // No packets dropped, and the buffered packet sent.
+        // A flow was installed and the packet was forwarded.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet sentPacket = controllerStub.sentPackets
-                .get(0);
-        Assert.assertEquals(22333, sentPacket.bufferId);
-        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), sentPacket.inPort);
-        // TODO: Check sentPacket.actions
-
-        // A flow was installed.
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = AbstractController.createMatchFromPacket(
                 eth, phyPortIn.getPortNumber());
 
-        // Encode the logical router port as the last ingress.
-        MAC[] dlHeaders = null;
+        // The action list should include setting the L2 addresses.
         List<OFAction> actions = new ArrayList<OFAction>();
-        OFAction ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(dlHeaders[0]
-                .getAddress());
-        actions.add(ofAction);
-        ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction)
-                .setDataLayerAddress(dlHeaders[1].getAddress());
-        actions.add(ofAction);
-        ofAction = new OFActionOutput(phyPortOut.getPortNumber(), (short) 0);
-        actions.add(ofAction); // the Output action goes at the end.
+        OFAction action = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource)action).setDataLayerAddress(
+                phyPortOut.getHardwareAddress());
+        actions.add(action);
+        action = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination)action).setDataLayerAddress(
+                dstMac.getAddress());
+        actions.add(action);
+        // There should be an action setting the GRE tunnel id.
+        UUID egressUuid = portNumToUuid.get((short)21);
+        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.value.greKey;
+        NxActionSetTunnelKey32 ofTunnelIdAction =
+                new NxActionSetTunnelKey32(tunnelId);
+        actions.add(ofTunnelIdAction);
+        // the Output action goes at the end.
+        actions.add(new OFActionOutput(phyPortOut.getPortNumber(), (short) 0));
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                22333, true, actions);
+                22333, false, actions);
 
         // Now bring the tunnel down.
         vrnCtrl.onPortStatus(phyPortOut,
@@ -792,98 +809,21 @@ public class TestVRNController {
         // Send the packet again.
         vrnCtrl.onPacketIn(22111, data.length, phyPortIn.getPortNumber(),
                 data);
-        // Since the tunnel is down, a temporary drop flow should have been
-        // installed and an ICMP !N packet sent to the source of the trigger
-        // packet.
+        // Since the tunnel is down and the ARP is already resolved, a temporary
+        // drop flow should have been installed. However, no ICMP error message
+        // is generated.
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // Now check the Drop Flow.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 22111, true,
+                VRNController.TEMPORARY_DROP_SECONDS, 22111, false,
                 new ArrayList<OFAction>());
-        // ICMP !N sent not through a buffer.
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(-1, pkt.bufferId);
-        Assert.assertEquals(1, pkt.actions.size());
-        ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
-        // The ICMP's source address is that of router2's logical port.
-        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar(),
-                IPv4.class.cast(eth.getPayload()),
-                new MAC(phyPortIn.getHardwareAddress()), dlSrc,
-                rtr2LogPortNwAddr, nwSrc, pkt.data);
     }
 
     @Test
-    public void testDeliverTunneledICMP() {
-        // Send a packet into the tunnel port corresponding to router2's
-        // second port and destined for router0's first port. The ethernet
-        // header also encodes that it's an ICMP so that no flow is installed.
-
-        short outPortNum = 0;
-        short tunnelPortNum = 21;
-        int nwDst = 0x0a000041;
-        MAC[] dlHeaders = null;
-        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        // The packet should look like it came from router0's logical port.
-        // Note that the controller's logic trusts the ethernet headers and
-        // doesn't inspect the contents of the packet to verify it's ICMP.
-        Ethernet eth = TestRouter.makeUDP(dlHeaders[0], dlHeaders[1],
-                rtr2LogPortNwAddr, nwDst, (short) 101, (short) 212, payload);
-        byte[] data = eth.serialize();
-        vrnCtrl.onPacketIn(8888, data.length, tunnelPortNum, data);
-        // The router will have to ARP, so no flows installed yet, but one
-        // unbuffered packet should have been emitted.
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
-        Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(0).get(0);
-        byte[] arpData = TestRouter.makeArpRequest(
-                new MAC(phyPortOut.getHardwareAddress()), 0x0a000001, nwDst)
-                .serialize();
-        Assert.assertArrayEquals(arpData, pkt.data);
-
-        // Now send an ARP reply. The ICMP will be delivered as a result but
-        // no flow will be installed.
-        MAC mac = MAC.fromString("02:dd:dd:dd:dd:01");
-        arpData = TestRouter.makeArpReply(mac,
-                new MAC(phyPortOut.getHardwareAddress()), nwDst, 0x0a000001)
-                .serialize();
-        vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
-                phyPortOut.getPortNumber(), arpData);
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(1);
-        List<OFAction> actions = new ArrayList<OFAction>();
-        OFAction tmp = ofAction;
-        ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortOut
-                .getHardwareAddress());
-        actions.add(ofAction);
-        ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac
-                .getAddress());
-        actions.add(ofAction);
-        actions.add(tmp); // the Output action goes at the end.
-        Assert.assertEquals(3, pkt.actions.size());
-        for (int i = 0; i < 3; i++)
-            Assert.assertEquals(actions.get(i), pkt.actions.get(i));
-        Assert.assertEquals(8888, pkt.bufferId);
-        Assert.assertArrayEquals(data, pkt.data);
-    }
-
-    @Test
-    public void testDontSendICMP() {
+    public void testDontSendICMP() throws StateAccessException {
         // Only IPv4 packets trigger ICMPs.
         Ethernet eth = new Ethernet();
         MAC dlSrc = MAC.fromString("02:aa:aa:aa:aa:01");
@@ -891,7 +831,8 @@ public class TestVRNController {
         eth.setDestinationMACAddress(dlDst);
         eth.setSourceMACAddress(dlSrc);
         eth.setEtherType(ARP.ETHERTYPE);
-        Router rtr = null; // TODO(pino): fix this.
+        Router rtr = new Router(routerIds.get(2), dir, basePath, reactor,
+                cache, null);
         Assert.assertFalse(rtr.canSendICMP(eth, null));
 
         // Make a normal UDP packet from a host on router2's second port
@@ -912,9 +853,6 @@ public class TestVRNController {
         origIpPkt.setDestinationAddress(0x0a0001ff);
         // Still triggers ICMP if we don't supply the output port.
         Assert.assertTrue(rtr.canSendICMP(eth, null));
-        // Still triggers ICMP if we supply the wrong output port.
-        /*XXX Assert.assertTrue(rtr.canSendICMP(eth,
-                ShortUUID.intTo32BitUUID(portNumToIntId.get(10))));*/
         // Doesn't trigger ICMP if we supply the output port.
         Assert.assertFalse(rtr.canSendICMP(eth, dstPortId));
 
@@ -993,86 +931,41 @@ public class TestVRNController {
     }
 
     @Test
-    public void testPacketFromTunnel() {
+    public void testPacketFromTunnel() throws StateAccessException {
         // Send a packet into the tunnel port corresponding to router2's
         // second port and destined for router2's first port.
-
         short inPortNum = 21;
         short outPortNum = 20;
-        MAC[] dlHeaders = null;
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
         byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        Ethernet eth = TestRouter.makeUDP(dlHeaders[0], dlHeaders[1],
-                0x0a020133, 0x0a020011, (short) 101, (short) 212, payload);
+        Ethernet eth = TestRouter.makeUDP(
+                new MAC(phyPortOut.getHardwareAddress()),
+                MAC.fromString("02:00:11:44:88:ff"), 0x0a020133,
+                0x0a020011, (short) 101, (short) 212, payload);
         byte[] data = eth.serialize();
-        vrnCtrl.onPacketIn(32331, data.length, inPortNum, data);
-        // The router will have to ARP, so no flows installed yet, but one
-        // unbuffered packet should have been emitted.
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        // Set the GRE tunnel id to represent the destination port
+        UUID egressUuid = portNumToUuid.get((short)20);
+        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.value.greKey;
+        vrnCtrl.onPacketIn(32331, data.length, inPortNum, data, tunnelId);
+        // ARP was resolved by ingress controller. So there should be a flow
+        // installed and a forwarded packet.
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
         Assert.assertEquals(1, pkt.actions.size());
         OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
-        byte[] arpData = TestRouter.makeArpRequest(
-                new MAC(phyPortOut.getHardwareAddress()), 0x0a020001,
-                0x0a020011).serialize();
-        Assert.assertArrayEquals(arpData, pkt.data);
+        Assert.assertEquals(32331, pkt.bufferId);
 
-        // Now send an ARP reply, which is consumed and added to the dropped
-        // packets queue. As a result the flow is installed and the original
-        // packet is sent from the switch.
-        MAC mac = MAC.fromString("02:dd:dd:dd:dd:01");
-        arpData = TestRouter.makeArpReply(mac,
-                new MAC(phyPortOut.getHardwareAddress()), 0x0a020011,
-                0x0a020001).serialize();
-        vrnCtrl.onPacketIn(8765, arpData.length,
-                phyPortOut.getPortNumber(), arpData);
-        Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
-        Assert.assertTrue(8765 == controllerStub.droppedPktBufIds.get(0));
-        Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = AbstractController.createMatchFromPacket(
                 eth, inPortNum);
         List<OFAction> actions = new ArrayList<OFAction>();
-        OFAction tmp = ofAction;
-        ofAction = new OFActionDataLayerSource();
-        ((OFActionDataLayerSource) ofAction).setDataLayerAddress(phyPortOut
-                .getHardwareAddress());
         actions.add(ofAction);
-        ofAction = new OFActionDataLayerDestination();
-        ((OFActionDataLayerDestination) ofAction).setDataLayerAddress(mac
-                .getAddress());
-        actions.add(ofAction);
-        actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                32331, true, actions);
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(actions, pkt.actions);
-        Assert.assertEquals(32331, pkt.bufferId);
-
-        // Now, since the ARP is in the cache, if another packet comes in from
-        // the tunnel for the same destination port and ip address it
-        // immediately results in a newly installed flow and the packet is
-        // sent from the switch.
-        reactor.incrementTime(10, TimeUnit.MINUTES);
-        eth = TestRouter.makeUDP(dlHeaders[0], dlHeaders[1], 0x0a0201ee,
-                0x0a020011, (short) 103, (short) 2122, payload);
-        data = eth.serialize();
-        vrnCtrl.onPacketIn(4444, data.length, inPortNum, data);
-        Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(2, controllerStub.addedFlows.size());
-        match = AbstractController.createMatchFromPacket(eth, inPortNum);
-        checkInstalledFlow(controllerStub.addedFlows.get(1), match,
-                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                4444, true, actions);
-        Assert.assertEquals(3, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(2);
-        Assert.assertEquals(actions, pkt.actions);
-        Assert.assertEquals(4444, pkt.bufferId);
+                32331, false, actions);
     }
 
     public static void checkICMP(char type, char code, IPv4 triggerIPPkt,
@@ -1099,148 +992,6 @@ public class TestVRNController {
     }
 
     @Test
-    public void testPacketFromTunnelMaterializedIngressArpTimeout()
-            throws Exception  {
-        // Send a packet into the tunnel port corresponding to router2's
-        // second port and destined for router2's first port.
-        short inPortNum = 21;
-        short outPortNum = 20;
-        MAC[] dlHeaders = null;
-        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        Ethernet eth = TestRouter.makeUDP(dlHeaders[0], dlHeaders[1],
-                0x0a020133, 0x0a020011, (short) 101, (short) 212, payload);
-        byte[] data = eth.serialize();
-        vrnCtrl.onPacketIn(32331, data.length, inPortNum, data);
-        // The router will have to ARP, so no flows installed yet, but one
-        // unbuffered packet should have been emitted.
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
-        Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(outPortNum, (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
-        byte[] arpData = TestRouter.makeArpRequest(
-                new MAC(phyPortOut.getHardwareAddress()), 0x0a020001,
-                0x0a020011).serialize();
-        Assert.assertArrayEquals(arpData, pkt.data);
-        // If we let 10 seconds go by without an ARP reply, another request
-        // will have been emitted.
-        reactor.incrementTime(Router.ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(2, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(1, pkt.actions.size());
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertArrayEquals(arpData, pkt.data);
-        // If we let another 50 seconds go by another ARP request will have
-        // been emitted, but also an ICMP !H and a 'drop' flow installed.
-        reactor.incrementTime(
-                Router.ARP_TIMEOUT_MILLIS - Router.ARP_RETRY_MILLIS,
-                TimeUnit.MILLISECONDS);
-        Assert.assertEquals(1, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(4, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(2);
-        Assert.assertEquals(1, pkt.actions.size());
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertArrayEquals(arpData, pkt.data);
-        // Now check the ICMP.
-        pkt = controllerStub.sentPackets.get(3);
-        Assert.assertEquals(1, pkt.actions.size());
-        ofAction = new OFActionOutput(inPortNum, (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
-
-        dlHeaders = null;
-        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
-                IPv4.class.cast(eth.getPayload()), dlHeaders[0], dlHeaders[1],
-                0x0a020101, 0x0a020133, pkt.data);
-        // Now check the Drop Flow.
-        MidoMatch match = AbstractController.createMatchFromPacket(
-                eth, inPortNum);
-        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 32331, true,
-                new ArrayList<OFAction>());
-    }
-
-    @Test
-    public void testPacketFromTunnelLogicalIngressArpTimeout()
-            throws Exception {
-        // A packet that entered router0's second port (on a remote host) and
-        // was destined for router2's first port (local) would come over the
-        // tunnel corresponding to router0's first port. The hardware addresses
-        // of the packet would encode router2's logical port as the last ingress
-        // and router2's first port as the last egress.
-
-        short tunnelPort = 1;
-        short outPort = 20;
-        int dstNwAddr = 0x0a020034;
-        // The source ip address must be on router0's second port.
-        int srcNwAddr = 0x0a0001c5;
-        MAC[] dlHeaders = null;
-        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-        Ethernet eth = TestRouter.makeUDP(dlHeaders[0], dlHeaders[1],
-                srcNwAddr, dstNwAddr, (short) 101, (short) 212, payload);
-        byte[] data = eth.serialize();
-        vrnCtrl.onPacketIn(32331, data.length, tunnelPort, data);
-        // The router will have to ARP, so no flows installed yet, but one
-        // unbuffered packet should have been emitted.
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet pkt = controllerStub.sentPackets.get(0);
-        Assert.assertEquals(1, pkt.actions.size());
-        OFAction ofAction = new OFActionOutput(outPort, (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        OFPhysicalPort phyPortOut = phyPorts.get(2).get(0);
-        byte[] arpData = TestRouter
-                .makeArpRequest(new MAC(phyPortOut.getHardwareAddress()),
-                        0x0a020001, dstNwAddr).serialize();
-        Assert.assertArrayEquals(arpData, pkt.data);
-        // If we let 60 seconds go by without an ARP reply, another ARP
-        // will have been emitted as well as an ICMP !H, and a 'drop' flow
-        // will have been installed.
-        reactor.incrementTime(Router.ARP_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(1, controllerStub.addedFlows.size());
-        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(3, controllerStub.sentPackets.size());
-        pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(1, pkt.actions.size());
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertArrayEquals(arpData, pkt.data);
-        // Now check the ICMP.
-        pkt = controllerStub.sentPackets.get(2);
-        Assert.assertEquals(1, pkt.actions.size());
-        ofAction = new OFActionOutput(tunnelPort, (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
-
-        dlHeaders = null;
-        // Note that router2's logical port is the source of the ICMP
-        checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
-                IPv4.class.cast(eth.getPayload()), dlHeaders[0], dlHeaders[1],
-                rtr2LogPortNwAddr, srcNwAddr, pkt.data);
-        // Now check the Drop Flow.
-        MidoMatch match = AbstractController.createMatchFromPacket(
-                eth, tunnelPort);
-        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
-                VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 32331, true,
-                new ArrayList<OFAction>());
-    }
-
-    @Test
     public void testLocalPacketArpTimeout() throws Exception {
         // Send a packet to router1's first port to an address on router2's
         // first port. Note that we traverse 3 routers.
@@ -1254,6 +1005,8 @@ public class TestVRNController {
         byte[] data = eth.serialize();
         vrnCtrl.onPacketIn(123456, data.length, phyPortIn.getPortNumber(),
                 data);
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         // The router will have to ARP, so no flows installed yet, but one
         // unbuffered packet should have been emitted.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
@@ -1270,36 +1023,50 @@ public class TestVRNController {
                 0x0a020008).serialize();
         Assert.assertArrayEquals(arpData, pkt.data);
 
-        // If we let 60 seconds go by another ARP request will have
-        // been emitted, but also an ICMP !H and a 'drop' flow installed.
+        // Pre-seed the ARP cache with the original sender's mac so that the
+        // ICMP doesn't require ARP. Avoid generating a retry by setting it
+        // well in the future.
+        long now = reactor.currentTimeMillis();
+        arpTables.get(routerIds.get(1)).put(
+                new IntIPv4(0x0a010005), new ArpCacheEntry(
+                mac, now + Router.ARP_TIMEOUT_MILLIS,
+                now + Router.ARP_TIMEOUT_MILLIS+1, now));
+
+        // If we let 60 seconds go by the ARP will timeout, an ICMP !H will be
+        // generated and a 'drop' flow installed.
         reactor.incrementTime(Router.ARP_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertEquals(3, controllerStub.sentPackets.size());
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        // Check the ICMP. It was generated by rtr2's logical port so its MAC
+        // addresses should be rewritten by the other routers.
         pkt = controllerStub.sentPackets.get(1);
-        Assert.assertEquals(1, pkt.actions.size());
+        Assert.assertEquals(3, pkt.actions.size());
+        ofAction = new OFActionDataLayerSource();
+        ((OFActionDataLayerSource)ofAction).setDataLayerAddress(
+                phyPortIn.getHardwareAddress());
         Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
-        Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
-        Assert.assertArrayEquals(arpData, pkt.data);
-        // Now check the ICMP.
-        pkt = controllerStub.sentPackets.get(2);
-        Assert.assertEquals(1, pkt.actions.size());
+        ofAction = new OFActionDataLayerDestination();
+        ((OFActionDataLayerDestination)ofAction).setDataLayerAddress(
+                mac.getAddress());
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(1)));
         ofAction = new OFActionOutput(phyPortIn.getPortNumber(), (short) 0);
-        Assert.assertTrue(ofAction.equals(pkt.actions.get(0)));
+        Assert.assertTrue(ofAction.equals(pkt.actions.get(2)));
         Assert.assertEquals(ControllerStub.UNBUFFERED_ID, pkt.bufferId);
         Assert.assertEquals(OFPort.OFPP_NONE.getValue(), pkt.inPort);
         // The network source address is that of the port on router2 that
-        // generated the ICMP (the logical port): 0xc0a80102.
+        // generated the ICMP (the logical port): rtr2LogPortNwAddr.
+        // The MACs of the ICMP (before the actions are applied) are the MACs
+        // on the link between rtr2 and rtr0.
         checkICMP(ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toChar(),
-                IPv4.class.cast(eth.getPayload()),
-                new MAC(phyPortIn.getHardwareAddress()), mac, 0xc0a80102,
-                0x0a010005, pkt.data);
+                IPv4.class.cast(eth.getPayload()), rtr2LogPortMAC,
+                rtr0to2LogPortMAC, rtr2LogPortNwAddr, 0x0a010005, pkt.data);
         // Now check the Drop Flow.
         MidoMatch match = AbstractController.createMatchFromPacket(
                 eth, phyPortIn.getPortNumber());
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 123456, true,
+                VRNController.TEMPORARY_DROP_SECONDS, 123456, false,
                 new ArrayList<OFAction>());
 
     }
@@ -1312,8 +1079,11 @@ public class TestVRNController {
         uplinkGatewayAddr = p2pUplinkNwAddr + 1;
         uplinkPortAddr = p2pUplinkNwAddr + 2;
 
+        MAC mac = MAC.fromString("02:33:55:77:99:11");
+        //new byte[] { (byte) 0x02, (byte) 0xad,
+        //(byte) 0xee, (byte) 0xda, (byte) 0xde, (byte) 0xed });
         PortConfig portConfig = new PortDirectory.MaterializedRouterPortConfig(
-                routerIds.get(0), p2pUplinkNwAddr, 30, uplinkPortAddr, null,
+                routerIds.get(0), p2pUplinkNwAddr, 30, uplinkPortAddr, mac,
                 null, 0xc0a80004, 30, null);
         uplinkId = portMgr.create(portConfig);
         Route rt = new Route(0, 0, 0, 0, NextHop.PORT, uplinkId,
@@ -1323,8 +1093,7 @@ public class TestVRNController {
         uplinkPhyPort = new OFPhysicalPort();
         uplinkPhyPort.setPortNumber((short) 897);
         uplinkPhyPort.setName("uplinkPort");
-        uplinkPhyPort.setHardwareAddress(new byte[] { (byte) 0x02, (byte) 0xad,
-                (byte) 0xee, (byte) 0xda, (byte) 0xde, (byte) 0xed });
+        uplinkPhyPort.setHardwareAddress(mac.getAddress());
         vrnCtrl.onPortStatus(uplinkPhyPort,
                 OFPortStatus.OFPortReason.OFPPR_ADD);
 
@@ -1374,7 +1143,7 @@ public class TestVRNController {
         cond.tpSrcEnd = natPrivateTpPort;
         chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
                 routerIds.get(0)));
-        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, 
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1,
                 true /* dnat */);
         ruleMgr.create(r);
         TopologyChecker.checkRouter(routerIds.get(0), basePath, dir);
@@ -1393,6 +1162,8 @@ public class TestVRNController {
                 uplinkPhyPort.getPortNumber(), data);
         // Two nat mappings should be in the cache (fwd and rev).
         Assert.assertEquals(2, cache.map.size());
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         // The router will have to ARP, so no flows installed yet, but one
         // unbuffered packet should have been emitted.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
@@ -1417,6 +1188,8 @@ public class TestVRNController {
                 0x0a010001).serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 phyPortOut.getPortNumber(), arpData);
+        // Poke the reactor so that the paused packet can be processed.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = AbstractController.createMatchFromPacket(
@@ -1440,6 +1213,7 @@ public class TestVRNController {
         ((OFActionTransportLayer) ofAction).setTransportPort(natPrivateTpPort);
         actions.add(ofAction);
         actions.add(tmp); // the Output action goes at the end.
+        // Note that the installed flow subscribes to the removal notification.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
                 12121, true, actions);
@@ -1459,6 +1233,8 @@ public class TestVRNController {
         Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(3, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -1479,6 +1255,8 @@ public class TestVRNController {
                 uplinkPortAddr).serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 uplinkPhyPort.getPortNumber(), arpData);
+        // Poke the reactor so that the paused packet can be processed.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // The return packet's ingress is router1's first port.
@@ -1504,7 +1282,7 @@ public class TestVRNController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                13131, true, actions);
+                13131, false, actions);
         Assert.assertEquals(4, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
@@ -1609,6 +1387,8 @@ public class TestVRNController {
         byte[] data = eth.serialize();
         vrnCtrl.onPacketIn(12121, data.length,
                 uplinkPhyPort.getPortNumber(), data);
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         // No nat mappings have been added to the cache
         Assert.assertEquals(0, cache.map.size());
         // The router will have to ARP, so no flows installed yet, but one
@@ -1635,6 +1415,8 @@ public class TestVRNController {
                 0x0a010001).serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 phyPortOut.getPortNumber(), arpData);
+        // Poke the reactor to drain the previously paused packet.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch match = AbstractController.createMatchFromPacket(
@@ -1655,7 +1437,7 @@ public class TestVRNController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                12121, true, actions);
+                12121, false, actions);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(1);
         Assert.assertEquals(actions, pkt.actions);
@@ -1671,6 +1453,8 @@ public class TestVRNController {
         Assert.assertEquals(0, cache.map.size());
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(3, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -1691,6 +1475,8 @@ public class TestVRNController {
                 uplinkPortAddr).serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 uplinkPhyPort.getPortNumber(), arpData);
+        // Poke the reactor to drain the previously paused packet.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         // The return packet's ingress is router1's first port.
@@ -1712,7 +1498,7 @@ public class TestVRNController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(1), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                13131, true, actions);
+                13131, false, actions);
         Assert.assertEquals(4, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
@@ -1754,7 +1540,7 @@ public class TestVRNController {
         actions.add(ofAction);
         checkInstalledFlow(controllerStub.addedFlows.get(2), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT, 222,
-                true, actions);
+                false, actions);
         Assert.assertEquals(5, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(4);
         Assert.assertEquals(actions, pkt.actions);
@@ -1801,7 +1587,7 @@ public class TestVRNController {
         r = new LiteralRule(cond, Action.DROP, chainId, 2);
         ruleMgr.create(r);
 
-        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING, 
+        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
                                   routerIds.get(0)));
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
@@ -1812,7 +1598,7 @@ public class TestVRNController {
         cond.nwSrcInv = true;
         cond.nwDstIp = natPublicNwAddr;
         cond.nwDstLength = 32;
-        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1, 
+        r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1,
                                false /* snat */);
         ruleMgr.create(r);
 
@@ -1841,7 +1627,7 @@ public class TestVRNController {
         List<OFAction> actions = new ArrayList<OFAction>();
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
-                VRNController.ICMP_EXPIRY_SECONDS, 12121, true, actions);
+                VRNController.TEMPORARY_DROP_SECONDS, 12121, false, actions);
 
         // Send a packet into router2's port directed to the external addr/port.
         MAC localMac = MAC.fromString("02:89:67:45:23:01");
@@ -1857,6 +1643,8 @@ public class TestVRNController {
         Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no new flows installed yet, but one
         // unbuffered packet should have been emitted.
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
@@ -1878,6 +1666,8 @@ public class TestVRNController {
                 uplinkPortAddr).serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 uplinkPhyPort.getPortNumber(), arpData);
+        // Poke the reactor to drain the previously paused packet.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
         match = AbstractController.createMatchFromPacket(
@@ -1899,7 +1689,7 @@ public class TestVRNController {
         actions.add(ofAction);
         MockControllerStub.Flow flow = controllerStub.addedFlows.get(1);
         Assert.assertEquals(5, flow.actions.size());
-        OFActionTransportLayerSource tpSrcAction = 
+        OFActionTransportLayerSource tpSrcAction =
                 OFActionTransportLayerSource.class.cast(flow.actions.get(3));
         short natPublicTpPort = tpSrcAction.getTransportPort();
         Assert.assertTrue(nat.tpStart <= natPublicTpPort);
@@ -1907,6 +1697,7 @@ public class TestVRNController {
         // Add this into the list of expected actions.
         actions.add(tpSrcAction);
         actions.add(tmp); // the Output action goes at the end.
+        // Note that this installed flow subscribes for removal notifications.
         checkInstalledFlow(flow, match, idleFlowTimeoutSeconds,
                 VRNController.NO_HARD_TIMEOUT, 13131, true, actions);
         Assert.assertEquals(2, controllerStub.sentPackets.size());
@@ -1925,6 +1716,8 @@ public class TestVRNController {
         Assert.assertEquals(2, cache.map.size());
         // The router will have to ARP, so no additional flows installed yet,
         // but another unbuffered packet should have been emitted.
+        // Poke the reactor to drain the queued packet (ARP request).
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(3, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.addedFlows.size());
@@ -1945,6 +1738,8 @@ public class TestVRNController {
                 0x0a020001).serialize();
         vrnCtrl.onPacketIn(ControllerStub.UNBUFFERED_ID, arpData.length,
                 phyPortRtr2.getPortNumber(), arpData);
+        // Poke the reactor to drain the previously paused packet.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(3, controllerStub.addedFlows.size());
         match = AbstractController.createMatchFromPacket(
@@ -1968,7 +1763,7 @@ public class TestVRNController {
         actions.add(tmp); // the Output action goes at the end.
         checkInstalledFlow(controllerStub.addedFlows.get(2), match,
                 idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
-                14141, true, actions);
+                14141, false, actions);
         Assert.assertEquals(4, controllerStub.sentPackets.size());
         pkt = controllerStub.sentPackets.get(3);
         Assert.assertEquals(actions, pkt.actions);
@@ -1995,7 +1790,7 @@ public class TestVRNController {
         short remotePortNum = 0;
         UUID portId = portNumToUuid.get(new Short(remotePortNum));
         String remoteAddrString = "192.168.10.1";
-        bgpMgr.create(new BgpConfig(portId, 65104, 
+        bgpMgr.create(new BgpConfig(portId, 65104,
                 InetAddress.getByName(remoteAddrString), 12345));
 
         // Add the port to the datapath to invoke adding a service port for BGP.
@@ -2145,8 +1940,12 @@ public class TestVRNController {
 
         vrnCtrl.onPacketIn(55, data.length, phyPort.getPortNumber(), data);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
-        Assert.assertEquals(0, controllerStub.addedFlows.size());
-        Assert.assertEquals(1, controllerStub.droppedPktBufIds.size());
-        Assert.assertTrue(55 == controllerStub.droppedPktBufIds.get(0));
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch m = new MidoMatch();
+        m.loadFromPacket(data, (short)0);
+        checkInstalledFlow(controllerStub.addedFlows.get(0), m,
+                (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, false,
+                new ArrayList<OFAction>());
     }
 }

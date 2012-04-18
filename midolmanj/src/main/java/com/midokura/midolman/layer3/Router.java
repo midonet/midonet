@@ -71,8 +71,6 @@ public class Router implements ForwardingElement {
     public static final long ARP_EXPIRATION_MILLIS = 3600 * 1000;
     public static final long ARP_STALE_MILLIS = 1800 * 1000;
 
-    public static final short DROP_TIMEOUT = 5;
-
     public static final String PRE_ROUTING = "pre_routing";
     public static final String POST_ROUTING = "post_routing";
 
@@ -247,14 +245,14 @@ public class Router implements ForwardingElement {
                     MaterializedRouterPortConfig.class.cast(rtrPortConfig);
             // The nwAddr should be in the port's localNwAddr/localNwLength.
             int shift = 32 - mPortConfig.localNwLength;
-            // Shifts by 32 in java are no-ops (see 
+            // Shifts by 32 in java are no-ops (see
             // http://www.janeg.ca/scjp/oper/shift.html), so special case
             // nwLength=0 <=> shift=32 to always match.
             if ((nwAddr >>> shift) != (mPortConfig.localNwAddr >>> shift) &&
                     shift != 32) {
                 log.warn("getMacForIp: {} cannot get mac for {} - address not "+
                          "in network segment of port {} ({}/{})",
-                         new Object[] { this, nwAddrStr, portId, 
+                         new Object[] { this, nwAddrStr, portId,
                              mPortConfig.localNwAddr, mPortConfig.localNwLength
                          });
                 log.warn("({} >>> {}) == {} != ({} >>> {}) == {}", new Object[]
@@ -354,7 +352,7 @@ public class Router implements ForwardingElement {
             return;
         }
 
-        // Handle ARP replies drop other ARPs.
+        // Handle ARP replies, drop other ARPs.
         if (fwdInfo.matchIn.getDataLayerType() == ARP.ETHERTYPE) {
             // OpenFlow uses NetworkProtocol to encode the ARP opcode.
             if (fwdInfo.matchIn.getNetworkProtocol() == ARP.OP_REPLY) {
@@ -387,6 +385,8 @@ public class Router implements ForwardingElement {
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
         RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.flowMatch,
                 fwdInfo.matchIn, fwdInfo.inPortId, null);
+        if (res.trackConnection)
+            fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.DROP;
             return;
@@ -405,18 +405,15 @@ public class Router implements ForwardingElement {
         Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {
             sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_NET);
-            fwdInfo.dropTimeSeconds = DROP_TIMEOUT;
             fwdInfo.action = Action.DROP;
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.BLACKHOLE)) {
-            fwdInfo.dropTimeSeconds = DROP_TIMEOUT;
             fwdInfo.action = Action.DROP;
             return;
         }
         if (rt.nextHop.equals(Route.NextHop.REJECT)) {
             sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_FILTER_PROHIB);
-            fwdInfo.dropTimeSeconds = DROP_TIMEOUT;
             fwdInfo.action = Action.DROP;
             return;
         }
@@ -439,6 +436,8 @@ public class Router implements ForwardingElement {
                 rt.nextHopPort });
         res = ruleEngine.applyChain(POST_ROUTING, fwdInfo.flowMatch, res.match,
                 fwdInfo.inPortId, rt.nextHopPort);
+        if (res.trackConnection)
+            fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
             fwdInfo.action = Action.DROP;
             return;
@@ -495,7 +494,7 @@ public class Router implements ForwardingElement {
         } catch (NullPointerException e) {
             log.error("No portConfig for {}'s peer port {} in ZK.",
                 IPv4.fromIPv4Address(rpCfg.portAddr), peerId);
-            return null;        
+            return null;
         } catch (StateAccessException e) {
             log.error("ZK error fetching config for port {}: {}", peerId, e);
             return null;
@@ -673,6 +672,9 @@ public class Router implements ForwardingElement {
         log.debug("{} received an ARP reply with spa {} and sha {}",
                 new Object[] { this, IPv4.fromIPv4Address(spa), sha });
         long now = reactor.currentTimeMillis();
+        // TODO(pino): maybe avoid doing this if the current MAC in the ARP
+        // TODO:       is the same and the expiration/stale times are close.
+        // TODO:       Avoid unnecessary changes to the shared ARP table.
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
         log.debug("Putting in ARP cache entry for {} on port {}", spa, inPortId);
@@ -789,6 +791,9 @@ public class Router implements ForwardingElement {
             }
             if (null != entry.macAddr)
                 // An answer arrived.
+                return;
+            // Don't retry if the ARP expired.
+            if (entry.expiry <= reactor.currentTimeMillis())
                 return;
             // Re-ARP and schedule again.
             log.debug("{} retry ARP request for {} on port {}", new Object[] {

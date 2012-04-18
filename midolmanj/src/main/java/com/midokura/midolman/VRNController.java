@@ -49,9 +49,8 @@ public class VRNController extends AbstractController
     public static final short NO_HARD_TIMEOUT = 0;
     public static final short NO_IDLE_TIMEOUT = 0;
     public static final short TEMPORARY_DROP_SECONDS = 5;
-    public static final short ICMP_EXPIRY_SECONDS = 5;
     public static final short NORMAL_IDLE_TIMEOUT = 20;
-    private static final short FLOW_PRIORITY = 0;
+    private static final short FLOW_PRIORITY = 10;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
 
     VRNCoordinator vrn;
@@ -293,7 +292,7 @@ public class VRNController extends AbstractController
         } catch (Exception e) {
             log.warn("onPacketIn dropping packet: ", e);
             freeBuffer(bufferId);
-            freeFlowResources(match, fwdInfo.notifyFEs);
+            freeFlowResources(match, fwdInfo.getNotifiedFEs());
             return;
         }
         if (fwdInfo.action != ForwardingElement.Action.PAUSED)
@@ -356,14 +355,13 @@ public class VRNController extends AbstractController
         else
             ofPktCtx = OFPacketContext.class.cast(fwdInfo);
 
-        Collection<UUID> routers = fwdInfo.notifyFEs;
         switch (fwdInfo.action) {
         case DROP:
             log.debug("handleProcessResult: DROP {}", fwdInfo);
             if (null != ofPktCtx)
                 installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId,
-                        NO_IDLE_TIMEOUT, (short)fwdInfo.dropTimeSeconds);
-            freeFlowResources(fwdInfo.flowMatch, routers);
+                        NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+            freeFlowResources(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             return;
         case NOT_IPV4:
             log.debug("handleProcessResult: NOT_IPV4 {}", fwdInfo);
@@ -381,7 +379,7 @@ public class VRNController extends AbstractController
                 installDropFlowEntry(flowMatch, ofPktCtx.bufferId,
                         NO_IDLE_TIMEOUT, NO_HARD_TIMEOUT);
             }
-            freeFlowResources(fwdInfo.flowMatch, routers);
+            freeFlowResources(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             return;
         case CONSUMED:
             log.debug("handleProcessResult: CONSUMED {}", fwdInfo);
@@ -422,11 +420,12 @@ public class VRNController extends AbstractController
                 // Remember the routers that need flow-removal notification.
                 log.debug("Installing a new flow entry for {}.",
                         fwdInfo.flowMatch);
-                matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+                boolean removalNotification = !fwdInfo.getNotifiedFEs().isEmpty();
+                if (removalNotification)
+                    matchToRouters.put(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
                 addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                         idleFlowExpireSeconds, NO_HARD_TIMEOUT,
-                        fwdInfo.notifyFEs.size() > 0, actions,
-                        ofPktCtx.data, 0);
+                        removalNotification, actions, ofPktCtx.data, 0);
             } else { // generated packet
                 log.debug("Forwarding a generated packet.");
                 controllerStub.sendPacketOut(
@@ -500,7 +499,7 @@ public class VRNController extends AbstractController
             if (null != ofPktCtx)
                 installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId,
                          NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
-            freeFlowResources(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+            freeFlowResources(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             return;
         }
         log.debug("forwardPacket: sending to ports {}", outPorts);
@@ -509,9 +508,9 @@ public class VRNController extends AbstractController
         if (null != ofPktCtx) {
             // Track the routers for this flow so we can free resources
             // when the flow is removed.
-            boolean removalNotification = !fwdInfo.notifyFEs.isEmpty();
+            boolean removalNotification = !fwdInfo.getNotifiedFEs().isEmpty();
             if (removalNotification)
-                matchToRouters.put(fwdInfo.flowMatch, fwdInfo.notifyFEs);
+                matchToRouters.put(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             log.debug("installing a flow entry for this packet.");
             addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                     idleFlowExpireSeconds, NO_HARD_TIMEOUT,
@@ -584,7 +583,7 @@ public class VRNController extends AbstractController
                     .getTransportSource());
             actions.add(action);
         }
-        if (origMatch.getTransportDestination() != 
+        if (origMatch.getTransportDestination() !=
                 newMatch.getTransportDestination()) {
             action = new OFActionTransportLayerDestination();
             ((OFActionTransportLayer) action).setTransportPort(
@@ -617,9 +616,8 @@ public class VRNController extends AbstractController
                                       short idleTimeout, short hardTimeout) {
         if (bufferId != ControllerStub.UNBUFFERED_ID)
             controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
-                    hardTimeout, (short) 0, bufferId, true, false, false,
+                    hardTimeout, (short) 0, bufferId, false, false, false,
                     new ArrayList<OFAction>());
-        // TODO: Why are we setting sendFlowRemove = true here?
     }
 
     @Override

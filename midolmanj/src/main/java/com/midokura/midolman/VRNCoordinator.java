@@ -224,10 +224,7 @@ public class VRNCoordinator implements ForwardingElement {
     @Override
     public void process(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
-        log.debug("process: fwdInfo {} traversedRouters {}", fwdInfo,
-                  fwdInfo.notifyFEs);
-
-        fwdInfo.notifyFEs.clear();
+        log.debug("process: fwdInfo {}", fwdInfo);
         processOneFE(fwdInfo);
     }
 
@@ -238,7 +235,7 @@ public class VRNCoordinator implements ForwardingElement {
             throw new RuntimeException("Packet arrived on a port that hasn't "
                     + "been added to the network instance (yet?).");
 
-        fwdInfo.notifyFEs.add(fe.getId());
+        fwdInfo.addTraversedFE(fe.getId());
         fwdInfo.depth++;
         if (fwdInfo.depth > MAX_HOPS) {
             // If we got here, we traversed MAX_HOPS routers without reaching a
@@ -277,7 +274,7 @@ public class VRNCoordinator implements ForwardingElement {
                 LogicalPortConfig lcfg = (LogicalPortConfig) cfg;
                 ForwardingElement fe = getForwardingElementByPort(lcfg.peerId());
                 log.debug("Packet exited FE on logical port to FE {}", fe);
-                if (fwdInfo.notifyFEs.contains(fe.getId())) {
+                if (fwdInfo.feTraversed(fe.getId())) {
                     log.warn("Detected a routing loop.");
                     fwdInfo.action = Action.DROP;
                     return;

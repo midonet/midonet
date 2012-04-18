@@ -64,7 +64,7 @@ import com.midokura.midolman.util.MockCache;
 
 public class TestVRNCoordinator {
 
-    private static final Logger log = 
+    private static final Logger log =
         LoggerFactory.getLogger(TestVRNCoordinator.class);
 
     private VRNCoordinator vrn;
@@ -221,8 +221,7 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a040005, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs = new HashSet<UUID>();
-        fInfo.notifyFEs = traversedRtrs;
+        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
@@ -241,8 +240,7 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a000c05, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs = new HashSet<UUID>();
-        fInfo.notifyFEs = traversedRtrs;
+        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
@@ -263,8 +261,7 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a000105, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs = new HashSet<UUID>();
-        fInfo.notifyFEs = traversedRtrs;
+        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
         Assert.assertEquals(1, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
@@ -298,15 +295,14 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0100cc, 0x0a0000aa, (short) 101, (short) 212, payload);
         ForwardInfo fInfo1 = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs1 = new HashSet<UUID>();
-        fInfo1.notifyFEs = traversedRtrs1;
+        Collection<UUID> traversedRtrs1 = fInfo1.getTraversedFEs();
         vrn.process(fInfo1);
         // The packet gets paused for ARP.
         Assert.assertEquals(Action.PAUSED, fInfo1.action);
         Assert.assertEquals(2, traversedRtrs1.size());
         Assert.assertTrue(traversedRtrs1.contains(routerIds.get(0)));
         Assert.assertTrue(traversedRtrs1.contains(routerIds.get(1)));
-        
+
         // Construct an ARP reply for 0x0a0000aa.
         MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
                                              (byte) 2, (byte) 3, (byte) 3 });
@@ -322,8 +318,8 @@ public class TestVRNCoordinator {
         // Now a packet sent from 0x0a0100cc to 0x0a0000aa should get all the
         // way through.
         ForwardInfo fInfo2 = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs2 = new HashSet<UUID>();
-        fInfo2.notifyFEs = traversedRtrs2;
+        Collection<UUID> traversedRtrs2 = fInfo2.getTraversedFEs();
+
         vrn.process(fInfo2);
         TestRouter.checkForwardInfo(fInfo2, Action.FORWARD, egrDevPort.getId(),
                 0x0a0000aa);
@@ -345,8 +341,7 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0101bb, 0x0a020188, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Set<UUID> traversedRtrs = new HashSet<UUID>();
-        fInfo.notifyFEs = traversedRtrs;
+        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
         Assert.assertEquals(3, traversedRtrs.size());
         Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
@@ -437,8 +432,6 @@ public class TestVRNCoordinator {
             Ethernet arpReply = TestRouter.makeArpReply(remoteMAC,
                         devPort.getMacAddr(), 0x0a020102, devPort.getIPAddr());
             ForwardInfo fInfo = prepareFwdInfo(devPort.getId(), arpReply);
-            Set<UUID> traversedRtrs = new HashSet<UUID>();
-            fInfo.notifyFEs = traversedRtrs;
             vrn.process(fInfo);
             table = (TabularData)mbsc.invoke(oname, "getArpCacheKeys",
                                              ackParams, ackSignature);

@@ -50,7 +50,6 @@ public interface ForwardingElement {
         void addRemovalNotification(UUID deviceId);
         void setAction(Action action);
         void setOutPortId(UUID outPortId);
-        void setDropTimeSeconds(int seconds);
     }
 
     // For use by VRNCoordinator.
@@ -61,6 +60,8 @@ public interface ForwardingElement {
         void setDepth(int depth);
         void addTraversedFE(UUID deviceId);
         boolean feTraversed(UUID deviceId);
+        Collection<UUID> getTraversedFEs();
+        Collection<UUID> getNotifiedFEs();
         int getDepth();
         Action getAction();
         UUID getOutPortId();
@@ -87,12 +88,10 @@ public interface ForwardingElement {
         public UUID outPortId;
         public MidoMatch matchOut; // the match as it exits the ForwardingElement
         // Used by FEs that want notification when the flow is removed.
-        public Collection<UUID> notifyFEs = new HashSet<UUID>();
+        private Collection<UUID> notifyFEs = new HashSet<UUID>();
         // Used by the VRNCoordinator to detect loops.
-        public Collection<UUID> traversedFEs = new HashSet<UUID>();
+        private Collection<UUID> traversedFEs = new HashSet<UUID>();
         public int depth = 0;  // depth in the VRN simulation
-
-        public int dropTimeSeconds; // only relevant if action is DROP
 
         public ForwardInfo() {}
         public ForwardInfo(boolean internallyGenerated) {
@@ -104,8 +103,7 @@ public interface ForwardingElement {
             return "ForwardInfo [inPortId=" + inPortId +
                    ", pktIn=" + pktIn + ", matchIn=" + matchIn +
                    ", action=" + action + ", outPortId=" + outPortId +
-                   ", matchOut=" + matchOut + ", depth=" + depth +
-                   ", dropTime=" + dropTimeSeconds + "s]";
+                   ", matchOut=" + matchOut + ", depth=" + depth + "]";
         }
 
         @Override
@@ -139,8 +137,13 @@ public interface ForwardingElement {
         }
 
         @Override
-        public void setDropTimeSeconds(int dropTimeSeconds) {
-            this.dropTimeSeconds = dropTimeSeconds;
+        public Collection<UUID> getTraversedFEs() {
+            return traversedFEs;
+        }
+
+        @Override
+        public Collection<UUID> getNotifiedFEs() {
+            return notifyFEs;
         }
 
         @Override
