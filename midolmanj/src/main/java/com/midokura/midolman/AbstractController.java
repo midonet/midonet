@@ -103,9 +103,16 @@ public abstract class AbstractController implements Controller {
                 throws StateAccessException {
         this.datapathId = datapathId;
         this.ovsdb = ovsdb;
-        ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
+        this.externalIdKey = externalIdKey;
+        publicIp = internalIp;
+        portUuidToNumberMap = new HashMap<UUID, Integer>();
+        portNumToUuid = new HashMap<Integer, UUID>();
+        tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();
+        peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
+        downPorts = new HashSet<Integer>();
         try {
             // TODO(pino, jlm): use a PortLocMap per device instead of global.
+            ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
             this.portLocMap = new PortToIntNwAddrMap(
                     zkDir.getSubDirectory(pathMgr.getVRNPortLocationsPath()));
             listener = new PortLocMapListener(this);
@@ -114,13 +121,6 @@ public abstract class AbstractController implements Controller {
         } catch (KeeperException e) {
             throw new StateAccessException(e);
         }
-        this.externalIdKey = externalIdKey;
-        publicIp = internalIp;
-        portUuidToNumberMap = new HashMap<UUID, Integer>();
-        portNumToUuid = new HashMap<Integer, UUID>();
-        tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();
-        peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
-        downPorts = new HashSet<Integer>();
     }
 
     @Override
