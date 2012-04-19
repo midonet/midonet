@@ -106,6 +106,8 @@ public class DeletePortTest {
         helper2 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:02"), ip2, rtrIp);
 
+        sleepBecause("the network config should boot up", 5);
+
         // First arp for router's mac.
         assertThat("The ARP request was sent properly",
                    tap1.send(helper1.makeArpRequest()));
@@ -119,8 +121,6 @@ public class DeletePortTest {
 
         rtrMac = helper2.checkArpReply(tap2.recv());
         helper2.setGwMac(rtrMac);
-
-        sleepBecause("the network config should boot up", 5);
     }
 
     @After
