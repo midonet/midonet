@@ -69,6 +69,7 @@ public class FunctionalTestsHelper {
         // Restart ZK to get around the bug where a directory cannot be deleted.
         Sudo.sudoExec("service zookeeper stop");
         Sudo.sudoExec("service zookeeper start");
+        Thread.sleep(2000);
         // Now delete the functional test ZK directory.
         ProcessHelper
                 .newProcess(zkCliPath + " -server 127.0.0.1:2181 rmr " +
