@@ -294,6 +294,9 @@ public class Router implements ForwardingElement {
             log.debug("getMacForIp: {} getMacForIp generating ARP request for {}", this,
                     nwAddrStr);
             generateArpRequest(nwAddr, portId, rtrPortConfig);
+            // TODO(pino): discuss with Jacob. If another controller is trying
+            // TODO:       the ARP at the same time, why not detect it by
+            // TODO:       reading the arpTable and checking for null MAC?
             try {
                 arpTable.put(intNwAddr,
                     new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
@@ -668,24 +671,24 @@ public class Router implements ForwardingElement {
         // existing arp_cache entry?
 
         MAC sha = arpPkt.getSenderHardwareAddress();
-        int spa = IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress());
+        IntIPv4 spa = new IntIPv4(arpPkt.getSenderProtocolAddress());
         log.debug("{} received an ARP reply with spa {} and sha {}",
-                new Object[] { this, IPv4.fromIPv4Address(spa), sha });
+                new Object[] { this, spa, sha });
         long now = reactor.currentTimeMillis();
         // TODO(pino): maybe avoid doing this if the current MAC in the ARP
         // TODO:       is the same and the expiration/stale times are close.
         // TODO:       Avoid unnecessary changes to the shared ARP table.
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
-        log.debug("Putting in ARP cache entry for {} on port {}", spa, inPortId);
+        log.debug("Putting ARP cache entry for {} on port {}", spa, inPortId);
         try {
-            arpTable.put(new IntIPv4(spa), entry);
+            arpTable.put(spa, entry);
         } catch (KeeperException e) {
             log.error("KeeperException storing ARP table entry", e);
         } catch (InterruptedException e) {
             log.error("InterruptedException storing ARP table entry", e);
         }
-        reactor.schedule(new ArpExpiration(spa, inPortId),
+        reactor.schedule(new ArpExpiration(spa.getAddress(), inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
         Map<Integer, List<Callback<MAC>>> cbLists = arpCallbackLists
                 .get(inPortId);
@@ -694,7 +697,7 @@ public class Router implements ForwardingElement {
             return;
         }
 
-        List<Callback<MAC>> cbList = cbLists.remove(spa);
+        List<Callback<MAC>> cbList = cbLists.remove(spa.getAddress());
         if (null != cbList)
             for (Callback<MAC> cb : cbList)
                 cb.call(sha);
