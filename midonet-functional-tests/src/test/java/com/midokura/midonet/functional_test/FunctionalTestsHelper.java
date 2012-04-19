@@ -42,12 +42,19 @@ public class FunctionalTestsHelper {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                cleanupZooKeeperData();
+                try {
+                    cleanupZooKeeperData();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
-    protected static void cleanupZooKeeperData() {
+    protected static void cleanupZooKeeperData()
+            throws IOException, InterruptedException {
         // Often zkCli.sh is not in the PATH, use the one from default install otherwise
         String zkCliPath = "zkCli.sh";
         List<String> pathList = ProcessHelper.executeCommandLine("which " + zkCliPath);
@@ -55,6 +62,14 @@ public class FunctionalTestsHelper {
             zkCliPath = "/usr/share/zookeeper/bin/zkCli.sh";
         }
 
+        //TODO(pino, mtoader): try removing the ZK directory without restarting
+        //TODO:     ZK. If it fails, stop/start/remove, to force the remove,
+        //TODO      then throw an error to identify the bad test.
+
+        // Restart ZK to get around the bug where a directory cannot be deleted.
+        Sudo.sudoExec("service zookeeper stop");
+        Sudo.sudoExec("service zookeeper start");
+        // Now delete the functional test ZK directory.
         ProcessHelper
                 .newProcess(zkCliPath + " -server 127.0.0.1:2181 rmr " +
                         " /smoketest")
