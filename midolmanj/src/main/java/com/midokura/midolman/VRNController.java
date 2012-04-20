@@ -327,8 +327,7 @@ public class VRNController extends AbstractController
             if (localPortSetSlices.containsKey(destPortId))
                 outPorts.addAll(localPortSetSlices.get(destPortId));
         } else { // single egress
-            Integer portNum =
-                    super.portUuidToNumberMap.get(destPortId);
+            Integer portNum = super.portUuidToNumberMap.get(destPortId);
             if (null == portNum) {
                 log.warn("forwardTunneledPkt unrecognized egress port.");
             } else {
@@ -425,9 +424,11 @@ public class VRNController extends AbstractController
                 // Remember the routers that need flow-removal notification.
                 log.debug("Installing a new flow entry for {}.",
                         fwdInfo.flowMatch);
-                boolean removalNotification = !fwdInfo.getNotifiedFEs().isEmpty();
+                boolean removalNotification = !fwdInfo.getNotifiedFEs()
+                                                      .isEmpty();
                 if (removalNotification)
-                    matchToRouters.put(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
+                    matchToRouters.put(fwdInfo.flowMatch,
+                                       fwdInfo.getNotifiedFEs());
                 addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                         idleFlowExpireSeconds, NO_HARD_TIMEOUT,
                         removalNotification, actions, ofPktCtx.data, 0);

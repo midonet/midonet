@@ -248,11 +248,11 @@ public class TestBridge {
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(
                                            IntIPv4.fromString(peerStrList[i])));
-            controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
             if (i < 7) {
                 portMgr.create(new PortDirectory.BridgePortConfig(bridgeUUID),
                                portUuids[i]);
             }
+            controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
         }
 
         numPreinstalledFlows = controllerStub.addedFlows.size();
