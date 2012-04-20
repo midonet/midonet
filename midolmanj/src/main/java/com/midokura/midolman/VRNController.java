@@ -215,9 +215,13 @@ public class VRNController extends AbstractController
             MidoMatch m = new MidoMatch();
             // Usually we avoid OFMatch.loadFromPacket, but here we can't use
             // AbstractController.createMatchFromPacket.
-            m.loadFromPacket(data, shortInPort);
-            installDropFlowEntry(m, bufferId, NO_IDLE_TIMEOUT,
-                    TEMPORARY_DROP_SECONDS);
+            // We can't use OFMatch.loadFromPacket either, as that throws
+            // on a malformed packet.
+            // TODO: Create a match-creating method which works as far as
+            // it can on malformed packets.
+            //m.loadFromPacket(data, shortInPort);
+            //installDropFlowEntry(m, bufferId, NO_IDLE_TIMEOUT,
+            //        TEMPORARY_DROP_SECONDS);
             return;
         }
         log.debug("onPacketIn: port {} received buffer {} of size {} - {}",

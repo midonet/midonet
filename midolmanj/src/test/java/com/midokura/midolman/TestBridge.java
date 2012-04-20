@@ -193,7 +193,6 @@ public class TestBridge {
         zkDir.add(basePath, null, CreateMode.PERSISTENT);
         Setup.createZkDirectoryStructure(zkDir, basePath);
 
-        //UUID bridgeUUID = UUID.randomUUID(); XXX
         portLocMap = new PortToIntNwAddrMap(zkDir.getSubDirectory(
                                 pathMgr.getVRNPortLocationsPath()));
         portLocMap.start();
@@ -201,7 +200,6 @@ public class TestBridge {
         BridgeZkManager bzkm = new BridgeZkManager(zkDir, basePath);
         UUID bridgeUUID = bzkm.create(bcfg);
         String macPortPath = pathMgr.getBridgeMacPortsPath(bridgeUUID);
-        //zkDir.add(macPortPath, null, CreateMode.PERSISTENT); XXX
         macPortMap = new MacPortMap(zkDir.getSubDirectory(macPortPath));
         macPortMap.start();
         
