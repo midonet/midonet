@@ -90,9 +90,9 @@ public class PortZkManager extends ZkManager {
         String bridgePortPath =
                 portNode.value instanceof PortDirectory.LogicalBridgePortConfig
                         ? pathManager.getBridgeLogicalPortPath(
-                        portNode.value.device_id, portNode.key)
+                                portNode.value.device_id, portNode.key)
                         : pathManager.getBridgePortPath(
-                        portNode.value.device_id, portNode.key);
+                                portNode.value.device_id, portNode.key);
         ops.add(Op.create(bridgePortPath, null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
@@ -278,17 +278,23 @@ public class PortZkManager extends ZkManager {
      *
      * @param port
      *            PortConfig object to add to the ZooKeeper directory.
+     * @param id  UUID to use for the port.
      * @return The UUID of the newly created object.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public UUID create(PortConfig port) throws StateAccessException,
+    public UUID create(PortConfig port, UUID id) throws StateAccessException,
             ZkStateSerializationException {
-        UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, PortConfig> portNode =
                 new ZkNodeEntry<UUID, PortConfig>(id, port);
         multi(preparePortCreate(portNode));
         return id;
+    }
+
+    public UUID create(PortConfig port) throws StateAccessException,
+            ZkStateSerializationException {
+        UUID id = UUID.randomUUID();
+        return create(port, id);
     }
 
     public ZkNodeEntry<UUID, UUID> createLink(

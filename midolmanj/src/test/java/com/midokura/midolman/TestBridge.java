@@ -47,7 +47,9 @@ import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Net;
 
@@ -68,6 +70,7 @@ public class TestBridge {
     UUID portUuids[];
     MockReactor reactor;
     final int timeout_ms = 40*1000;
+    int numPreinstalledFlows;
 
     public static final OFAction OUTPUT_ALL_ACTION = 
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
@@ -202,6 +205,7 @@ public class TestBridge {
         String macPortPath = pathMgr.getBridgeMacPortsPath(bridgeUUID);
         macPortMap = new MacPortMap(zkDir.getSubDirectory(macPortPath));
         macPortMap.start();
+        PortZkManager portMgr = new PortZkManager(zkDir, basePath);
         
         reactor = new MockReactor();
         
@@ -245,14 +249,22 @@ public class TestBridge {
                                       : controller.makeGREPortName(
                                            IntIPv4.fromString(peerStrList[i])));
             controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
+            if (i < 7) {
+                portMgr.create(new PortDirectory.BridgePortConfig(bridgeUUID),
+                               portUuids[i]);
+            }
         }
+
+        numPreinstalledFlows = controllerStub.addedFlows.size();
+        // TODO: Verify the pre-installed flows are what they should be.
     }
 
     void checkInstalledFlow(OFMatch expectedMatch, int idleTimeout,
                             int hardTimeoutMin, int hardTimeoutMax,
                             int priority, OFAction[] actions) {
-        assertEquals(1, controllerStub.addedFlows.size());
-        MockControllerStub.Flow flow = controllerStub.addedFlows.get(0);
+        assertEquals(numPreinstalledFlows+1, controllerStub.addedFlows.size());
+        MockControllerStub.Flow flow = controllerStub.addedFlows.get(
+                                                numPreinstalledFlows);
         assertEquals(expectedMatch, flow.match);
         assertEquals(idleTimeout, flow.idleTimeoutSecs);
         assertTrue(hardTimeoutMin <= flow.hardTimeoutSecs);  
