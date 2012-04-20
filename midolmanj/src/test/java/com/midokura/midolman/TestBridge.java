@@ -19,9 +19,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -50,6 +47,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Net;
 
 
@@ -189,32 +187,31 @@ public class TestBridge {
 
         // Set up the (mock) ZooKeeper directories.
         String basePath = "/zk_root";
+        ZkPathManager pathMgr = new ZkPathManager(basePath);
         MockDirectory zkDir = new MockDirectory();
-        String midoDirName = zkDir.add(basePath, null, CreateMode.PERSISTENT);
-        Directory midoDir = zkDir.getSubDirectory(midoDirName);
-        midoDir.add("/bridges", null, CreateMode.PERSISTENT);
-        midoDir.add("/mac_port", null, CreateMode.PERSISTENT);
-        midoDir.add("/port_locs", null, CreateMode.PERSISTENT);
-        midoDir.add("/ports", null, CreateMode.PERSISTENT);
+        zkDir.add(basePath, null, CreateMode.PERSISTENT);
+        Setup.createZkDirectoryStructure(zkDir, basePath);
 
-        portLocDir = midoDir.getSubDirectory("/port_locs");
-        portLocMap = new PortToIntNwAddrMap(portLocDir);
-        macPortDir = midoDir.getSubDirectory("/mac_port");
-        macPortMap = new MacPortMap(macPortDir);
+        UUID bridgeUUID = UUID.randomUUID();
+        portLocMap = new PortToIntNwAddrMap(zkDir.getSubDirectory(
+                                pathMgr.getVRNPortLocationsPath()));
+        portLocMap.start();
+        macPortMap = new MacPortMap(zkDir.getSubDirectory(
+                                pathMgr.getBridgeMacPortsPath(bridgeUUID)));
+        macPortMap.start();
         
         reactor = new MockReactor();
         
         controllerStub = new MockControllerStub();
 
-        UUID bridgeUUID = UUID.randomUUID();
-
         controller = new VRNController(
                 /* datapathId */                dp_id, 
-                /* dir */                       midoDir,
+                /* dir */                       zkDir,
                 /* basePath */                  basePath,
                 /* publicIp */                  publicIp,
                 /* ovsdb */                     ovsdb,
                 /* reactor */                   reactor,
+                /* cache */                     null,
                 /* externalIdKey */             "midonet",
                 /* service */                   null);
         controller.setControllerStub(controllerStub);
@@ -634,12 +631,12 @@ public class TestBridge {
 
         assertEquals(0, bridge.flowCount.size());
         // The MAC should be in the delayedDeletes list.
-        assertEquals(1, controller.delayedDeletes.size());
-        //assertEquals(macList[0], controller.delayedDeletes.get(0).___
+        assertEquals(1, bridge.delayedDeletes.size());
+        //assertEquals(macList[0], bridge.delayedDeletes.get(0).___
         // It appears there's no way to get at the Runnable associated
         // with a ScheduledFuture?
         controller.clear();
-        assertEquals(0, controller.delayedDeletes.size());
+        assertEquals(0, bridge.delayedDeletes.size());
     }
 
     @Test
@@ -1061,7 +1058,7 @@ public class TestBridge {
 
     @Test
     public void testFlowCountKeyHandling() {
-        assertEquals(0, controller.flowCount.size());
+        assertEquals(0, bridge.flowCount.size());
         MAC mac1a = MAC.fromString("00:00:00:00:01:0A");
         MAC mac1b = MAC.fromString("00:00:00:00:01:0A");
         MAC mac2 = MAC.fromString("00:00:00:00:02:00");
@@ -1070,29 +1067,16 @@ public class TestBridge {
         assertThat(mac1a, equalTo(mac1b));
         assertThat(mac1a, not(equalTo(mac2)));
 
-        //controller.flowCount.put(___
-        // Can't put anything into flowCount, because the key class is private.
-        // The BridgeController always constructs a new MacPort from the
-        // MAC and portUuid, so the MacPort.equals(rhs) branches of 
-        // (this == rhs), (null == rhs), and (!(rhs instanceof MacPort))
-        // are unreachable from BridgeController.
-
         controller.onPacketIn(12, 13, (short)1, packet20.serialize());
-        assertEquals(1, controller.flowCount.size());
-        Object key = controller.flowCount.keySet().toArray()[0];
-        assertTrue(controller.flowCount.containsKey(key));
-        // This apparently doesn't trigger MacPort.equals():  It seems that
-        // HashMap checks for identical references before calling .equals().
+        assertEquals(1, bridge.flowCount.size());
+        Object key = bridge.flowCount.keySet().toArray()[0];
+        assertTrue(bridge.flowCount.containsKey(key));
 
         // Add a flow with the same MAC, different port.
         controller.onPacketIn(12, 13, (short)2, packet23.serialize());
         // Add a flow with a different MAC, same port.
         controller.onPacketIn(12, 13, (short)1, packet15.serialize());
-        assertEquals(3, controller.flowCount.size());
-
-        // To reach the (null == rhs) or (!(rhs instanceof MacPort)) branches
-        // of MacPort.equals() from HashMap would require a hashCode collision.
-        // Ditto for the mac.equals(rhs.mac) check to fail.
+        assertEquals(3, bridge.flowCount.size());
 
         assertEquals(key, key);
         assertThat(key, not(equalTo(null)));
@@ -1100,7 +1084,7 @@ public class TestBridge {
         assertFalse(key.equals(null));
         assertFalse(key.equals(mac2));
 
-        Object[] macports = controller.flowCount.keySet().toArray();
+        Object[] macports = bridge.flowCount.keySet().toArray();
         assertThat(macports[0], not(equalTo(macports[1])));
         assertThat(macports[0], not(equalTo(macports[2])));
         assertThat(macports[1], not(equalTo(macports[2])));
@@ -1108,18 +1092,18 @@ public class TestBridge {
 
     @Test
     public void testOnFlowRemoved() {
-        assertEquals(0, controller.flowCount.size());
+        assertEquals(0, bridge.flowCount.size());
         controller.onPacketIn(12, 13, (short)1, packet20.serialize());
-        assertEquals(1, controller.flowCount.size());
-        Object key = controller.flowCount.keySet().toArray()[0];
-        assertEquals(new Integer(1), controller.flowCount.get(key));
+        assertEquals(1, bridge.flowCount.size());
+        Object key = bridge.flowCount.keySet().toArray()[0];
+        assertEquals(new Integer(1), bridge.flowCount.get(key));
         assertThat(flowmatch20.getWildcards() & OFMatch.OFPFW_IN_PORT,
                    not(equalTo(0)));
         controller.onFlowRemoved(flowmatch20, 13, (short)1000, 
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
-        assertEquals(new Integer(1), controller.flowCount.get(key));
+        assertEquals(new Integer(1), bridge.flowCount.get(key));
         MidoMatch match = flowmatch20.clone();
         match.setInputPort((short)1);
         match.setWildcards(match.getWildcards() | OFMatch.OFPFW_DL_SRC);
@@ -1127,25 +1111,25 @@ public class TestBridge {
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
-        assertEquals(new Integer(1), controller.flowCount.get(key));
+        assertEquals(new Integer(1), bridge.flowCount.get(key));
         match.setDataLayerSource(macList[3]);
         controller.onFlowRemoved(match, 13, (short)1000, 
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
-        assertEquals(new Integer(1), controller.flowCount.get(key));
+        assertEquals(new Integer(1), bridge.flowCount.get(key));
         match.setDataLayerSource(macList[2]);
         match.setInputPort((short)30);
         controller.onFlowRemoved(match, 13, (short)1000, 
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
-        assertEquals(new Integer(1), controller.flowCount.get(key));
+        assertEquals(new Integer(1), bridge.flowCount.get(key));
         match.setInputPort((short)1);
         controller.onFlowRemoved(match, 13, (short)1000, 
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
-        assertNull(controller.flowCount.get(key));
+        assertNull(bridge.flowCount.get(key));
     }
 }

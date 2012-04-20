@@ -57,9 +57,8 @@ public class Bridge implements ForwardingElement {
     private Map<UUID, IntIPv4> brPortIdToRtrPortIp =
             new HashMap<UUID, IntIPv4>();
     // The delayed deletes for macPortMap.
-    private Map<MAC, PortFuture> delayedDeletes =
-            new HashMap<MAC, PortFuture>();
-    private Map<MacPort, Integer> flowCount = new HashMap<MacPort, Integer>();
+    Map<MAC, PortFuture> delayedDeletes = new HashMap<MAC, PortFuture>();
+    Map<MacPort, Integer> flowCount = new HashMap<MacPort, Integer>();
     private MacPortWatcher macToPortWatcher;
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
