@@ -90,7 +90,8 @@ public class VRNController extends AbstractController
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.service = service;
-        this.service.setController(this);
+        if (service != null)
+            this.service.setController(this);
         this.portServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
         this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this);

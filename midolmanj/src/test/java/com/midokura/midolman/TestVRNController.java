@@ -121,7 +121,6 @@ public class TestVRNController {
         bgpMgr = new BgpZkManager(dir, basePath);
         greMgr = new GreZkManager(dir, basePath);
         routerMgr = new RouterZkManager(dir, basePath);
-        BridgeZkManager bridgeMgr = new BridgeZkManager(dir, basePath);
 
         // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);

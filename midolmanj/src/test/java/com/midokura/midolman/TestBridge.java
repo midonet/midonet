@@ -43,6 +43,7 @@ import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.MockDirectory;
@@ -192,12 +193,16 @@ public class TestBridge {
         zkDir.add(basePath, null, CreateMode.PERSISTENT);
         Setup.createZkDirectoryStructure(zkDir, basePath);
 
-        UUID bridgeUUID = UUID.randomUUID();
+        //UUID bridgeUUID = UUID.randomUUID(); XXX
         portLocMap = new PortToIntNwAddrMap(zkDir.getSubDirectory(
                                 pathMgr.getVRNPortLocationsPath()));
         portLocMap.start();
-        macPortMap = new MacPortMap(zkDir.getSubDirectory(
-                                pathMgr.getBridgeMacPortsPath(bridgeUUID)));
+        BridgeZkManager.BridgeConfig bcfg = new BridgeZkManager.BridgeConfig();
+        BridgeZkManager bzkm = new BridgeZkManager(zkDir, basePath);
+        UUID bridgeUUID = bzkm.create(bcfg);
+        String macPortPath = pathMgr.getBridgeMacPortsPath(bridgeUUID);
+        //zkDir.add(macPortPath, null, CreateMode.PERSISTENT); XXX
+        macPortMap = new MacPortMap(zkDir.getSubDirectory(macPortPath));
         macPortMap.start();
         
         reactor = new MockReactor();
