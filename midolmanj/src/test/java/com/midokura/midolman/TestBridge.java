@@ -2,6 +2,8 @@
 
 package com.midokura.midolman;
 
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertArrayEquals;
@@ -71,10 +73,11 @@ public class TestBridge {
     MockReactor reactor;
     final int timeout_ms = 40*1000;
     int numPreinstalledFlows;
+    final int normalIdle = VRNController.NORMAL_IDLE_TIMEOUT;
 
-    public static final OFAction OUTPUT_ALL_ACTION = 
+    public static final OFAction OUTPUT_ALL_ACTION =
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
-    public static final OFAction OUTPUT_FLOOD_ACTION = 
+    public static final OFAction OUTPUT_FLOOD_ACTION =
                 new OFActionOutput(OFPort.OFPP_FLOOD.getValue(), (short)0);
 
     // MACs:  8 normal addresses, and one multicast.
@@ -162,8 +165,8 @@ public class TestBridge {
         match.setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
         match.setTransportSource((short)ICMP.TYPE_ECHO_REQUEST);
         match.setTransportDestination((short)0);
-        //match.setDataLayerVirtualLan((short)0);    
-        // Python sets dl_vlan=0xFFFF, but packets.Ethernet.vlanID is 0 
+        //match.setDataLayerVirtualLan((short)0);
+        // Python sets dl_vlan=0xFFFF, but packets.Ethernet.vlanID is 0
         // for no VLAN in use.
         // TODO:  Which is really proper, 0 or 0xFFFF ?
         //match.setDataLayerVirtualLanPriorityCodePoint((byte)0);
@@ -206,13 +209,13 @@ public class TestBridge {
         macPortMap = new MacPortMap(zkDir.getSubDirectory(macPortPath));
         macPortMap.start();
         PortZkManager portMgr = new PortZkManager(zkDir, basePath);
-        
+
         reactor = new MockReactor();
-        
+
         controllerStub = new MockControllerStub();
 
         controller = new VRNController(
-                /* datapathId */                dp_id, 
+                /* datapathId */                dp_id,
                 /* dir */                       zkDir,
                 /* basePath */                  basePath,
                 /* publicIp */                  publicIp,
@@ -253,6 +256,11 @@ public class TestBridge {
                                portUuids[i]);
             }
             controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
+            // TODO: If we add the port to the ctrlr before we have its info
+            // in ZK, we get a NoNode ZK exception and then the port's config
+            // is not recognized when we later add it to ZK.
+            // Is it true that we'll always have the port config from ZK at
+            // the time the OVS port comes up?  If not, we'll have to fix this.
         }
 
         numPreinstalledFlows = controllerStub.addedFlows.size();
@@ -267,8 +275,10 @@ public class TestBridge {
                                                 numPreinstalledFlows);
         assertEquals(expectedMatch, flow.match);
         assertEquals(idleTimeout, flow.idleTimeoutSecs);
-        assertTrue(hardTimeoutMin <= flow.hardTimeoutSecs);  
-        assertTrue(hardTimeoutMax >= flow.hardTimeoutSecs);  
+        assertThat((int)flow.hardTimeoutSecs,
+                   greaterThanOrEqualTo(hardTimeoutMin));
+        assertThat((int)flow.hardTimeoutSecs,
+                   lessThanOrEqualTo(hardTimeoutMax));
         assertEquals(priority, flow.priority);
         assertArrayEquals(actions, flow.actions.toArray());
     }
@@ -276,7 +286,7 @@ public class TestBridge {
     void checkSentPacket(int bufferId, short inPort, OFAction[] actions,
                          byte[] data) {
         assertEquals(1, controllerStub.sentPackets.size());
-        MockControllerStub.Packet sentPacket = 
+        MockControllerStub.Packet sentPacket =
                 controllerStub.sentPackets.get(0);
         assertEquals(bufferId, sentPacket.bufferId);
         assertEquals(inPort, sentPacket.inPort);
@@ -298,7 +308,7 @@ public class TestBridge {
         expectedMatch.setInputPort(inputPort);
         OFAction expectedActions[] = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inputPort, packet01.serialize());
-        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectedActions);
+        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, 1000, expectedActions);
         checkSentPacket(14, (short)-1, expectedActions, new byte[] {});
     }
 
@@ -310,7 +320,7 @@ public class TestBridge {
         expectedMatch.setInputPort(inPortNum);
         OFAction[] expectActions = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
+        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, 1000, expectActions);
         checkSentPacket(14, (short)-1, expectActions, new byte[] {});
     }
 
@@ -322,7 +332,7 @@ public class TestBridge {
         expectedMatch.setInputPort(inPortNum);
         OFAction[] expectActions = { OUTPUT_FLOOD_ACTION };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectedMatch, 60, 300, 300, 1000, expectActions);
+        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, 1000, expectActions);
         checkSentPacket(14, (short)-1, expectActions, new byte[] {});
     }
 
@@ -335,7 +345,7 @@ public class TestBridge {
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
     }
 
@@ -350,7 +360,7 @@ public class TestBridge {
         OFAction[] expectAction = { };
         controller.onPortStatus(phyPorts[3], OFPortReason.OFPPR_DELETE);
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         assertEquals(0, controllerStub.sentPackets.size());
     }
 
@@ -363,12 +373,12 @@ public class TestBridge {
         OFAction[] expectAction = { };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
         // Verify drop rule & no packet sent.
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         assertEquals(0, controllerStub.sentPackets.size());
     }
 
     @Test
-    public void testFlowInvalidatePortUnreachable() 
+    public void testFlowInvalidatePortUnreachable()
                 throws KeeperException, InterruptedException {
         int oldDelCount = controllerStub.deletedFlows.size();
         log.info("Start of testFlowInvalidatePortUnreachable: del flow " +
@@ -385,7 +395,7 @@ public class TestBridge {
 
         assertEquals(3, controllerStub.addedFlows.size());
         for (int i = 0; i < 3; i++) {
-            assertArrayEquals(expectedActions[i], 
+            assertArrayEquals(expectedActions[i],
                               controllerStub.addedFlows.get(i)
                                             .actions.toArray());
         }
@@ -421,7 +431,7 @@ public class TestBridge {
     }
 
     @Test
-    public void testFlowInvalidatePortMoves() 
+    public void testFlowInvalidatePortMoves()
                 throws KeeperException, InterruptedException {
         int oldDelCount = controllerStub.deletedFlows.size();
         short inPortNum = 1;
@@ -431,7 +441,7 @@ public class TestBridge {
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
 
         assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
@@ -455,7 +465,7 @@ public class TestBridge {
                          controllerStub.deletedFlows.get(i).match);
         }
     }
-        
+
     @Test
     public void testLocalMacLearned() {
         short inPortNum = 0;
@@ -467,9 +477,9 @@ public class TestBridge {
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inPortNum, packet01.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
-        
+
         // Verify that MAC was learned.
         assertEquals(portUuids[inPortNum], macPortMap.get(mac));
 
@@ -478,17 +488,17 @@ public class TestBridge {
         outPortNum = 0;
         expectMatch = flowmatch10.clone();
         expectMatch.setInputPort(inPortNum);
-        expectAction = new OFAction[] { 
+        expectAction = new OFAction[] {
                 new OFActionOutput(outPortNum, (short)0) };
         controllerStub.addedFlows.clear();
         controllerStub.sentPackets.clear();
         controller.onPacketIn(14, 13, inPortNum, packet10.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
     }
 
     @Test
-    public void testUnmappedPortUuid() 
+    public void testUnmappedPortUuid()
                 throws KeeperException, InterruptedException {
         short inPortNum = 0;
         short outPortNum = 4;
@@ -497,9 +507,9 @@ public class TestBridge {
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
-        
+
         // Remove the port->location mapping for the remote port and verify
         // that the new packets generate flood-to-all flow matches.
         portLocMap.remove(portUuids[outPortNum]);
@@ -508,12 +518,12 @@ public class TestBridge {
 
         expectAction = new OFAction[] { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
     }
 
-    @Test 
-    public void testInvalidateDropFlowsReachablePort() 
+    @Test
+    public void testInvalidateDropFlowsReachablePort()
                 throws KeeperException, InterruptedException {
         portLocMap.remove(portUuids[4]);
         short inPortNum = 0;
@@ -523,7 +533,7 @@ public class TestBridge {
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
 
         // Add the port->loc mapping, verify that the flow is removed.
@@ -535,13 +545,13 @@ public class TestBridge {
                        IntIPv4.fromString(peerStrList[outPortNum]));
         assertTrue(controllerStub.deletedFlows.size() > 0);
         for (int i = 0; i < controllerStub.deletedFlows.size(); i++) {
-            assertEquals(removeMatchDst, 
+            assertEquals(removeMatchDst,
                          controllerStub.deletedFlows.get(i).match);
         }
     }
 
     @Test
-    public void testBadlyMappedPortUuid() 
+    public void testBadlyMappedPortUuid()
                 throws KeeperException, InterruptedException {
         MAC srcMac = MAC.fromString("00:AA:AA:AA:AA:00");
         MAC dstMac = MAC.fromString("00:AA:AA:AA:AA:01");
@@ -550,7 +560,7 @@ public class TestBridge {
         portLocMap.put(dstUuid, publicIp);
         Ethernet packet = makePacket(srcMac, dstMac);
         MidoMatch flowmatch = makeFlowMatch(srcMac, dstMac);
-        
+
         // Send the packet from both local and tunnel ports.
         for (short inPortNum : new short[] { 2, 4 }) {
             controllerStub.addedFlows.clear();
@@ -560,7 +570,7 @@ public class TestBridge {
             OFAction[] expectAction = {
                 inPortNum == 2 ? OUTPUT_ALL_ACTION : OUTPUT_FLOOD_ACTION };
             controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-            checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+            checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
             checkSentPacket(14, (short)-1, expectAction, new byte[] {});
         }
     }
@@ -580,10 +590,10 @@ public class TestBridge {
         match.setDataLayerSource(macList[inPortNum]);
         for (int i = 0; i < numFlows; i++) {
             reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
-            controller.onFlowRemoved(match, 0, (short)1000, 
-                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+            controller.onFlowRemoved(match, 0, (short)1000,
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
-            assertEquals(portUuids[inPortNum], 
+            assertEquals(portUuids[inPortNum],
                          macPortMap.get(macList[inPortNum]));
         }
         reactor.incrementTime(timeout_ms-1, TimeUnit.MILLISECONDS);
@@ -598,8 +608,8 @@ public class TestBridge {
         reactor.incrementTime(timeout_ms*3, TimeUnit.MILLISECONDS);
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
         // ref 1 -> 0
-        controller.onFlowRemoved(match, 0, (short)1000, 
-                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+        controller.onFlowRemoved(match, 0, (short)1000,
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
         reactor.incrementTime(timeout_ms-1, TimeUnit.MILLISECONDS);
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
@@ -608,8 +618,8 @@ public class TestBridge {
         reactor.incrementTime(timeout_ms*2, TimeUnit.MILLISECONDS);
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
         // ref 1 -> 0
-        controller.onFlowRemoved(match, 0, (short)1000, 
-                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+        controller.onFlowRemoved(match, 0, (short)1000,
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
         reactor.incrementTime(timeout_ms-1, TimeUnit.MILLISECONDS);
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
@@ -666,31 +676,31 @@ public class TestBridge {
     @Test
     public void testMacChangesPort() {
         controller.onPacketIn(14, 13, (short)1, packet10.serialize());
-        assertEquals(portUuids[1], macPortMap.get(macList[1]));        
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));
         // MAC moves to port 2.
         controller.onPacketIn(14, 13, (short)2, packet10.serialize());
-        assertEquals(portUuids[2], macPortMap.get(macList[1]));        
+        assertEquals(portUuids[2], macPortMap.get(macList[1]));
         MidoMatch match = new MidoMatch();
         match.setInputPort((short)1);
         match.setDataLayerSource(macList[1]);
-        controller.onFlowRemoved(match, 0, (short)1000, 
-                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+        controller.onFlowRemoved(match, 0, (short)1000,
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
         reactor.incrementTime(timeout_ms+1, TimeUnit.MILLISECONDS);
-        assertEquals(portUuids[2], macPortMap.get(macList[1]));        
+        assertEquals(portUuids[2], macPortMap.get(macList[1]));
 
         match.setInputPort((short)2);
-        controller.onFlowRemoved(match, 0, (short)1000, 
-                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT, 
+        controller.onFlowRemoved(match, 0, (short)1000,
+                        OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
         reactor.incrementTime(timeout_ms+1, TimeUnit.MILLISECONDS);
-        assertNull(macPortMap.get(macList[1]));        
+        assertNull(macPortMap.get(macList[1]));
     }
 
     @Test
     public void testLearnedMacPortDeleted() {
         controller.onPacketIn(14, 13, (short)1, packet10.serialize());
-        assertEquals(portUuids[1], macPortMap.get(macList[1]));        
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));
         controller.onPacketIn(14, 13, (short)0, packet0MC.serialize());
         assertEquals(portUuids[0], macPortMap.get(macList[0]));
 
@@ -729,7 +739,7 @@ public class TestBridge {
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, 60, 300, 300, 1000, expectAction);
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, 1000, expectAction);
         assertEquals(0, controllerStub.sentPackets.size());
     }
 
@@ -745,24 +755,24 @@ public class TestBridge {
     }
 
     @Test
-    public void testMacPortUpdateInvalidatesFlows() 
+    public void testMacPortUpdateInvalidatesFlows()
                 throws KeeperException, InterruptedException {
         controller.onPacketIn(14, 13, (short)5, packet70.serialize());
         OFAction[] expectAction = { OUTPUT_FLOOD_ACTION };
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
         assertEquals(1, controllerStub.addedFlows.size());
-        assertArrayEquals(expectAction, 
+        assertArrayEquals(expectAction,
                           controllerStub.addedFlows.get(0).actions.toArray());
 
         // Send a packet[src=0 dst=1] to port 0.
-        controllerStub.sentPackets.clear();     
-        controllerStub.deletedFlows.clear();     
+        controllerStub.sentPackets.clear();
+        controllerStub.deletedFlows.clear();
         expectAction = new OFAction[] { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, (short)0, packet01.serialize());
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
         // New flow added, old flow removed.
         assertEquals(2, controllerStub.addedFlows.size());
-        assertArrayEquals(expectAction, 
+        assertArrayEquals(expectAction,
                           controllerStub.addedFlows.get(1).actions.toArray());
         MidoMatch expectMatch = new MidoMatch();
         expectMatch.setDataLayerDestination(macList[0]);
@@ -773,21 +783,21 @@ public class TestBridge {
 
         // Send a packet[src=1 dst=0] to port 1.
         controllerStub.sentPackets.clear();
-        controllerStub.deletedFlows.clear();    
-        expectAction = new OFAction[] { 
+        controllerStub.deletedFlows.clear();
+        expectAction = new OFAction[] {
                                 new OFActionOutput((short)0, (short)0) };
         controller.onPacketIn(14, 13, (short)1, packet10.serialize());
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
         // New flow added, old flow removed.
         assertEquals(3, controllerStub.addedFlows.size());
-        assertArrayEquals(expectAction, 
+        assertArrayEquals(expectAction,
                           controllerStub.addedFlows.get(2).actions.toArray());
         expectMatch.setDataLayerDestination(macList[1]);
         assertTrue(0 < controllerStub.deletedFlows.size());
         assertEquals(expectMatch,
                      controllerStub.deletedFlows.get(
                                 controllerStub.deletedFlows.size()-1).match);
-        
+
         // Send a packet[src=0 dst=4] to port 1.  (MAC 0 moves from port 0
         // to port 1.)
         controllerStub.sentPackets.clear();
@@ -830,7 +840,7 @@ public class TestBridge {
         assertEquals(5, controllerStub.addedFlows.size());
         assertArrayEquals(expectAction,
                           controllerStub.addedFlows.get(4).actions.toArray());
-        
+
         // Send a packet[src=0 dst=1] to port 5.
         controllerStub.sentPackets.clear();
         expectAction = new OFAction[] {
@@ -840,7 +850,7 @@ public class TestBridge {
         assertEquals(6, controllerStub.addedFlows.size());
         assertArrayEquals(expectAction,
                           controllerStub.addedFlows.get(5).actions.toArray());
-        
+
         // Send a packet[src=1 dst=3] to port 1.
         controllerStub.sentPackets.clear();
         expectAction = new OFAction[] {
@@ -885,7 +895,7 @@ public class TestBridge {
 
         assertEquals(4, controllerStub.addedFlows.size());
         for (int i = 0; i < 4; i++) {
-            assertArrayEquals(expectedActions[i], 
+            assertArrayEquals(expectedActions[i],
                               controllerStub.addedFlows.get(i).actions.toArray()
                              );
             assertEquals(expectedMatches[i],
@@ -904,8 +914,8 @@ public class TestBridge {
         // Now packet25 should go to peer 3 not peer 5.
         controller.onPacketIn(14, 13, (short)2, packet25.serialize());
         assertEquals(5, controllerStub.addedFlows.size());
-        assertArrayEquals(new OFAction[] { 
-                                  new OFActionOutput((short)3, (short)0) }, 
+        assertArrayEquals(new OFAction[] {
+                                  new OFActionOutput((short)3, (short)0) },
                           controllerStub.addedFlows.get(4).actions.toArray());
         expectMatch = flowmatch25.clone();
         expectMatch.setInputPort((short)2);
@@ -963,7 +973,7 @@ public class TestBridge {
         MidoMatch flowmatch = makeFlowMatch(newMac, macList[5]);
         controller.onPacketIn(14, 13, (short)0, packet.serialize());
         assertEquals(portUuids[0], macPortMap.get(newMac));
-        
+
         // Send several packets to MAC 0.
         controller.onPacketIn(14, 13, (short)1, packet10.serialize());
         controller.onPacketIn(14, 13, (short)2, packet20.serialize());
@@ -982,7 +992,7 @@ public class TestBridge {
         for (int i = 0; i < 5; i++) {
             expectedMatches[i].setInputPort(flowMatchInPorts[i]);
         }
-        
+
         assertEquals(5, controllerStub.addedFlows.size());
         for (int i = 0; i < 5; i++) {
             assertArrayEquals(expectedActions[i],
@@ -1003,9 +1013,9 @@ public class TestBridge {
         MidoMatch expectedMatchDst = new MidoMatch();
         expectedMatchSrc.setDataLayerSource(macList[0]);
         expectedMatchDst.setDataLayerDestination(macList[0]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows, 
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectedMatchSrc));
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows, 
+        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
                                          expectedMatchDst));
     }
 
@@ -1047,7 +1057,7 @@ public class TestBridge {
         controllerStub.addedFlows.clear();
         controller.onPacketIn(14, 13, (short)2, packet26.serialize());
         controller.onPacketIn(14, 13, (short)2, packet27.serialize());
-        
+
         assertEquals(2, controllerStub.addedFlows.size());
         assertArrayEquals(new OFAction[] { },
                           controllerStub.addedFlows.get(0).actions.toArray());
@@ -1114,7 +1124,7 @@ public class TestBridge {
         assertEquals(new Integer(1), bridge.flowCount.get(key));
         assertThat(flowmatch20.getWildcards() & OFMatch.OFPFW_IN_PORT,
                    not(equalTo(0)));
-        controller.onFlowRemoved(flowmatch20, 13, (short)1000, 
+        controller.onFlowRemoved(flowmatch20, 13, (short)1000,
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
@@ -1122,26 +1132,26 @@ public class TestBridge {
         MidoMatch match = flowmatch20.clone();
         match.setInputPort((short)1);
         match.setWildcards(match.getWildcards() | OFMatch.OFPFW_DL_SRC);
-        controller.onFlowRemoved(match, 13, (short)1000, 
+        controller.onFlowRemoved(match, 13, (short)1000,
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
         assertEquals(new Integer(1), bridge.flowCount.get(key));
         match.setDataLayerSource(macList[3]);
-        controller.onFlowRemoved(match, 13, (short)1000, 
+        controller.onFlowRemoved(match, 13, (short)1000,
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
         assertEquals(new Integer(1), bridge.flowCount.get(key));
         match.setDataLayerSource(macList[2]);
         match.setInputPort((short)30);
-        controller.onFlowRemoved(match, 13, (short)1000, 
+        controller.onFlowRemoved(match, 13, (short)1000,
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
         assertEquals(new Integer(1), bridge.flowCount.get(key));
         match.setInputPort((short)1);
-        controller.onFlowRemoved(match, 13, (short)1000, 
+        controller.onFlowRemoved(match, 13, (short)1000,
                                  OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
