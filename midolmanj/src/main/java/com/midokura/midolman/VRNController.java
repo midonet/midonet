@@ -50,7 +50,7 @@ public class VRNController extends AbstractController
     public static final short NO_IDLE_TIMEOUT = 0;
     public static final short TEMPORARY_DROP_SECONDS = 5;
     public static final short NORMAL_IDLE_TIMEOUT = 20;
-    private static final short FLOW_PRIORITY = 10;
+    static final short FLOW_PRIORITY = 10;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
 
     VRNCoordinator vrn;
@@ -324,8 +324,9 @@ public class VRNController extends AbstractController
         if (portSetMap.containsKey(destPortId)) { // multiple egress
             log.debug("forwardTunneledPkt: to PortSet.");
             // Add local OVS ports.
-            if (localPortSetSlices.containsKey(destPortId))
+            if (localPortSetSlices.containsKey(destPortId)) {
                 outPorts.addAll(localPortSetSlices.get(destPortId));
+            }
         } else { // single egress
             Integer portNum = super.portUuidToNumberMap.get(destPortId);
             if (null == portNum) {
@@ -405,10 +406,13 @@ public class VRNController extends AbstractController
     private void forwardLocalPacket(ForwardInfo fwdInfo) {
         OFPacketContext ofPktCtx = null;
         GeneratedPacketContext genPktCtx = null;
+        int inPortNum = Integer.MAX_VALUE;
         if (fwdInfo.isGeneratedPacket())
             genPktCtx = GeneratedPacketContext.class.cast(fwdInfo);
-        else
+        else {
             ofPktCtx = OFPacketContext.class.cast(fwdInfo);
+            inPortNum = ofPktCtx.inPortNum;
+        }
 
         List<OFAction> actions;
         Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
@@ -449,8 +453,14 @@ public class VRNController extends AbstractController
             log.debug("forwardPacket: FORWARD to PortSet {}: {}",
                     fwdInfo.outPortId, fwdInfo);
             // Add local OVS ports.
-            if (localPortSetSlices.containsKey(fwdInfo.outPortId))
-                outPorts.addAll(localPortSetSlices.get(fwdInfo.outPortId));
+            if (localPortSetSlices.containsKey(fwdInfo.outPortId)) {
+                for (int localPortNum : localPortSetSlices.get(fwdInfo.outPortId)) {
+                    // For port sets, never go out the ingress port.
+                    if (localPortNum != inPortNum)
+                        outPorts.add((short)localPortNum);
+                }
+                //outPorts.addAll(localPortSetSlices.get(fwdInfo.outPortId));
+            }
             IPv4Set controllersAddrs = portSetMap.get(fwdInfo.outPortId);
             if (controllersAddrs == null)
                 log.error("forwardPacket: no hosts for portset ID {}",
@@ -470,6 +480,8 @@ public class VRNController extends AbstractController
             // Extract the greKey from the Bridge config (only PortSet for now).
             // TODO(pino): cache the BridgeConfigs to reduce ZK calls.
             try {
+                // TODO: Shouldn't this be fetching from a PortSet datastore,
+                // not bridgeMgr?
                 ZkNodeEntry<UUID, BridgeConfig> entry =
                         bridgeMgr.get(fwdInfo.outPortId);
                 greKey = entry.value.greKey;
@@ -556,37 +568,37 @@ public class VRNController extends AbstractController
         // match.
         List<OFAction> actions = new ArrayList<OFAction>();
         OFAction action = null;
-        if (!Arrays.equals(origMatch.getDataLayerSource(), newMatch
-                .getDataLayerSource())) {
+        if (!Arrays.equals(origMatch.getDataLayerSource(),
+                           newMatch.getDataLayerSource())) {
             action = new OFActionDataLayerSource();
-            ((OFActionDataLayer) action).setDataLayerAddress(newMatch
-                    .getDataLayerSource());
+            ((OFActionDataLayer) action).setDataLayerAddress(
+                        newMatch.getDataLayerSource());
             actions.add(action);
         }
-        if (!Arrays.equals(origMatch.getDataLayerDestination(), newMatch
-                .getDataLayerDestination())) {
+        if (!Arrays.equals(origMatch.getDataLayerDestination(),
+                           newMatch.getDataLayerDestination())) {
             action = new OFActionDataLayerDestination();
-            ((OFActionDataLayer) action).setDataLayerAddress(newMatch
-                    .getDataLayerDestination());
+            ((OFActionDataLayer) action).setDataLayerAddress(
+                    newMatch.getDataLayerDestination());
             actions.add(action);
         }
         if (origMatch.getNetworkSource() != newMatch.getNetworkSource()) {
             action = new OFActionNetworkLayerSource();
-            ((OFActionNetworkLayerAddress) action).setNetworkAddress(newMatch
-                    .getNetworkSource());
+            ((OFActionNetworkLayerAddress) action).setNetworkAddress(
+                    newMatch.getNetworkSource());
             actions.add(action);
         }
-        if (origMatch.getNetworkDestination() != newMatch
-                .getNetworkDestination()) {
+        if (origMatch.getNetworkDestination() !=
+                newMatch.getNetworkDestination()) {
             action = new OFActionNetworkLayerDestination();
-            ((OFActionNetworkLayerAddress) action).setNetworkAddress(newMatch
-                    .getNetworkDestination());
+            ((OFActionNetworkLayerAddress) action).setNetworkAddress(
+                    newMatch.getNetworkDestination());
             actions.add(action);
         }
         if (origMatch.getTransportSource() != newMatch.getTransportSource()) {
             action = new OFActionTransportLayerSource();
-            ((OFActionTransportLayer) action).setTransportPort(newMatch
-                    .getTransportSource());
+            ((OFActionTransportLayer) action).setTransportPort(
+                    newMatch.getTransportSource());
             actions.add(action);
         }
         if (origMatch.getTransportDestination() !=
