@@ -90,6 +90,8 @@ public class GreZkManager extends ZkManager {
             throw new ZkStateSerializationException(
                     "Could not deserialize chain " + key + " to GreKey", e,
                     GreKey.class);
+        } catch (NullPointerException e) {
+            return null;
         }
         return new ZkNodeEntry<Integer, GreKey>(new Integer(key), gre);
     }

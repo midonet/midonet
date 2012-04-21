@@ -315,8 +315,17 @@ public class VRNController extends AbstractController
         UUID destPortId;
         try {
             ZkNodeEntry<Integer, GreKey> entry = greMgr.get((int)tunnelId);
-            destPortId = entry.value.ownerId;
+            if (entry != null)
+                destPortId = entry.value.ownerId;
+            else {
+                log.error("Couldn't get port ID for tunnel ID {}: No entry in "+
+                          "ZooKeeper", tunnelId);
+                // TODO: drop the flow.
+                return;
+            }
         } catch (StateAccessException e) {
+            log.error("Couldn't get port ID for tunnel ID {}: ZooKeeper error "+
+                      "{}", tunnelId, e.getMessage());
             // TODO(pino): drop the flow.
             return;
         }
