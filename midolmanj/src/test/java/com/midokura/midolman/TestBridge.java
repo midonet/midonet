@@ -83,6 +83,8 @@ public class TestBridge {
     public static final OFAction OUTPUT_FLOOD_ACTION =
                 new OFActionOutput(OFPort.OFPP_FLOOD.getValue(), (short)0);
     OFAction[] floodActionNoPort0;
+    OFAction[] floodActionLocalOnly;
+    int tunnelID;
 
     // MACs:  8 normal addresses, and one multicast.
     MAC macList[] = { MAC.fromString("00:22:33:EE:EE:00"),
@@ -273,10 +275,12 @@ public class TestBridge {
         numPreinstalledFlows = controllerStub.addedFlows.size();
         // TODO: Verify the pre-installed flows are what they should be.
 
-        // Floods output to the two non-ingress local ports, and the five
-        // tunnel ports.
+        tunnelID = bcfg.greKey;
+
+        // Floods from an input port output to the two non-ingress local
+        // ports, and the five tunnel ports.
         floodActionNoPort0 = new OFAction[8];
-        floodActionNoPort0[0] = new NxActionSetTunnelKey32(bcfg.greKey);
+        floodActionNoPort0[0] = new NxActionSetTunnelKey32(tunnelID);
         floodActionNoPort0[1] = new OFActionOutput((short)1, (short)0);
         floodActionNoPort0[2] = new OFActionOutput((short)2, (short)0);
         floodActionNoPort0[3] = new OFActionOutput((short)3, (short)0);
@@ -284,6 +288,12 @@ public class TestBridge {
         floodActionNoPort0[5] = new OFActionOutput((short)5, (short)0);
         floodActionNoPort0[6] = new OFActionOutput((short)6, (short)0);
         floodActionNoPort0[7] = new OFActionOutput((short)7, (short)0);
+
+        // Floods from a tunnel output to the three local ports only.
+        floodActionLocalOnly = new OFAction[3];
+        floodActionLocalOnly[0] = new OFActionOutput((short)0, (short)0);
+        floodActionLocalOnly[1] = new OFActionOutput((short)1, (short)0);
+        floodActionLocalOnly[2] = new OFActionOutput((short)2, (short)0);
     }
 
     void checkInstalledFlow(OFMatch expectedMatch, int idleTimeout,
@@ -340,11 +350,11 @@ public class TestBridge {
         short inPortNum = 0;
         MidoMatch expectedMatch = flowmatch0MC.clone();
         expectedMatch.setInputPort(inPortNum);
-        OFAction[] expectActions = { OUTPUT_ALL_ACTION };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        //XXX: Verify it floods to all ports except inputport (0)
-        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, normalPriority, expectActions);
-        checkSentPacket(14, (short)-1, expectActions, new byte[] {});
+        // Verify it floods to all ports except inputport (0)
+        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, normalPriority,
+                           floodActionNoPort0);
+        checkSentPacket(14, (short)-1, floodActionNoPort0, new byte[] {});
     }
 
     @Test
@@ -353,10 +363,10 @@ public class TestBridge {
         short inPortNum = 5;
         MidoMatch expectedMatch = flowmatch0MC.clone();
         expectedMatch.setInputPort(inPortNum);
-        OFAction[] expectActions = { OUTPUT_FLOOD_ACTION };
-        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, normalPriority, expectActions);
-        checkSentPacket(14, (short)-1, expectActions, new byte[] {});
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize(), tunnelID);
+        checkInstalledFlow(expectedMatch, normalIdle, 0, 0, normalPriority,
+                           floodActionLocalOnly);
+        checkSentPacket(14, (short)-1, floodActionLocalOnly, new byte[] {});
     }
 
     @Test
