@@ -77,6 +77,7 @@ public class TestBridge {
     int numPreinstalledFlows;
     final int normalIdle = VRNController.NORMAL_IDLE_TIMEOUT;
     final int normalPriority = VRNController.FLOW_PRIORITY;
+    final int tempDropTime = VRNController.TEMPORARY_DROP_SECONDS;
 
     public static final OFAction OUTPUT_ALL_ACTION =
                 new OFActionOutput(OFPort.OFPP_ALL.getValue(), (short)0);
@@ -85,6 +86,7 @@ public class TestBridge {
     OFAction[] floodActionNoPort0;
     OFAction[] floodActionLocalOnly;
     int tunnelID;
+    int[] portKeys = new int[8];
 
     // MACs:  8 normal addresses, and one multicast.
     MAC macList[] = { MAC.fromString("00:22:33:EE:EE:00"),
@@ -110,6 +112,7 @@ public class TestBridge {
     final Ethernet packet25 = makePacket(macList[2], macList[5]);
     final Ethernet packet26 = makePacket(macList[2], macList[6]);
     final Ethernet packet27 = makePacket(macList[2], macList[7]);
+    final Ethernet packet41 = makePacket(macList[4], macList[1]);
     final Ethernet packet70 = makePacket(macList[7], macList[0]);
     final Ethernet packetMC0 = makePacket(macList[8], macList[0]);
 
@@ -126,6 +129,7 @@ public class TestBridge {
     final MidoMatch flowmatch25 = makeFlowMatch(macList[2], macList[5]);
     final MidoMatch flowmatch26 = makeFlowMatch(macList[2], macList[6]);
     final MidoMatch flowmatch27 = makeFlowMatch(macList[2], macList[7]);
+    final MidoMatch flowmatch41 = makeFlowMatch(macList[4], macList[1]);
     final MidoMatch flowmatch70 = makeFlowMatch(macList[7], macList[0]);
     final MidoMatch flowmatchMC0 = makeFlowMatch(macList[8], macList[0]);
 
@@ -260,8 +264,10 @@ public class TestBridge {
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(peerIP));
             if (i < 7) {
-                portMgr.create(new PortDirectory.BridgePortConfig(bridgeUUID),
-                               portUuids[i]);
+                PortDirectory.BridgePortConfig bpc =
+                        new PortDirectory.BridgePortConfig(bridgeUUID);
+                portMgr.create(bpc, portUuids[i]);
+                portKeys[i] = bpc.greKey;
             }
             portSetMap.addIPv4Addr(bridgeUUID, peerIP);
             controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
@@ -310,7 +316,7 @@ public class TestBridge {
                    lessThanOrEqualTo(hardTimeoutMax));
         assertEquals(priority, flow.priority);
         log.error("Expected actions: {}\nActual actions: {}",
-                  actions, flow.actions.toArray());
+                  actions, flow.actions.toArray()); //XXX
         assertArrayEquals(actions, flow.actions.toArray());
     }
 
@@ -376,7 +382,8 @@ public class TestBridge {
         short outPortNum = 3;
         MidoMatch expectMatch = flowmatch13.clone();
         expectMatch.setInputPort(inPortNum);
-        OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
+        OFAction[] expectAction = { new NxActionSetTunnelKey32(portKeys[3]),
+                                    new OFActionOutput(outPortNum, (short)0) };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
         checkInstalledFlow(expectMatch, normalIdle, 0, 0, normalPriority, expectAction);
         checkSentPacket(14, (short)-1, expectAction, new byte[] {});
@@ -393,20 +400,36 @@ public class TestBridge {
         OFAction[] expectAction = { };
         controller.onPortStatus(phyPorts[3], OFPortReason.OFPPR_DELETE);
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, normalIdle, 0, 0, normalPriority, expectAction);
+        checkInstalledFlow(expectMatch, 0, tempDropTime, tempDropTime,
+                           normalPriority, expectAction);
         assertEquals(0, controllerStub.sentPackets.size());
     }
 
     @Test
-    public void testRemoteMACTunnelIn() {
+    public void testTunnelInForLocalPort() {
+        short inPortNum = 4;
+        final Ethernet packet = packet41;
+        MidoMatch expectMatch = flowmatch41.clone();
+        expectMatch.setInputPort(inPortNum);
+        OFAction[] expectAction = { new OFActionOutput((short)1, (short)0) };
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize(), portKeys[1]);
+        // Verify flowmatch and sent to port 1.
+        checkInstalledFlow(expectMatch, normalIdle, 0, 0, normalPriority,
+                           expectAction);
+        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+    }
+
+    @Test
+    public void testTunnelInForRemotePort() {
         short inPortNum = 4;
         final Ethernet packet = packet13;
         MidoMatch expectMatch = flowmatch13.clone();
         expectMatch.setInputPort(inPortNum);
         OFAction[] expectAction = { };
-        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+        controller.onPacketIn(14, 13, inPortNum, packet.serialize(), portKeys[3]);
         // Verify drop rule & no packet sent.
-        checkInstalledFlow(expectMatch, normalIdle, 0, 0, normalPriority, expectAction);
+        checkInstalledFlow(expectMatch, 0, tempDropTime, tempDropTime,
+                           normalPriority, expectAction);
         assertEquals(0, controllerStub.sentPackets.size());
     }
 

@@ -680,7 +680,7 @@ public class Router implements ForwardingElement {
         // TODO:       Avoid unnecessary changes to the shared ARP table.
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
-        log.debug("Putting ARP cache entry for {} on port {}", spa, inPortId);
+        log.debug("Adding ARP cache entry for {} on port {}", spa, inPortId);
         try {
             arpTable.put(spa, entry);
         } catch (KeeperException e) {

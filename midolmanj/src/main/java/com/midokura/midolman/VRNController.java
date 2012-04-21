@@ -634,7 +634,7 @@ public class VRNController extends AbstractController
                                       short idleTimeout, short hardTimeout) {
         if (bufferId != ControllerStub.UNBUFFERED_ID)
             controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
-                    hardTimeout, (short) 0, bufferId, false, false, false,
+                    hardTimeout, FLOW_PRIORITY, bufferId, false, false, false,
                     new ArrayList<OFAction>());
     }
 
