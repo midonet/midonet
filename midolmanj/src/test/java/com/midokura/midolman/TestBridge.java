@@ -1,7 +1,8 @@
-// Copyright 2011 Midokura Inc.
+// Copyright 2012 Midokura Inc.
 
 package com.midokura.midolman;
 
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -619,7 +620,6 @@ public class TestBridge {
         assertEquals(0, controllerStub.sentPackets.size());
     }
 
-    @Ignore // Invalidation has changed.  TODO: Test the new way.
     @Test
     public void testInvalidateDropFlowsReachablePort()
                 throws KeeperException, InterruptedException {
@@ -629,23 +629,26 @@ public class TestBridge {
         final Ethernet packet = packet04;
         MidoMatch expectMatch = flowmatch04.clone();
         expectMatch.setInputPort(inPortNum);
-        OFAction[] expectAction = floodActionNoPort0;
+        OFAction[] expectAction = { };
         controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, normalIdle, 0, 0, normalPriority, expectAction);
-        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
+        checkInstalledFlow(expectMatch, 0, tempDropTime, tempDropTime,
+                           normalPriority, expectAction);
+        assertEquals(0, controllerStub.sentPackets.size());
 
         // Add the port->loc mapping, verify that the flow is removed.
-        assertEquals(1, controllerStub.addedFlows.size());
         controllerStub.deletedFlows.clear();
         MidoMatch removeMatchDst = new MidoMatch();
         removeMatchDst.setDataLayerDestination(macList[outPortNum]);
         portLocMap.put(portUuids[outPortNum],
                        IntIPv4.fromString(peerStrList[outPortNum]));
-        assertTrue(controllerStub.deletedFlows.size() > 0);
+        // Invalidation has changed.  TODO: Test the new way.
+        /*
+        assertThat(controllerStub.deletedFlows.size(), greaterThan(0));
         for (int i = 0; i < controllerStub.deletedFlows.size(); i++) {
             assertEquals(removeMatchDst,
                          controllerStub.deletedFlows.get(i).match);
         }
+        */
     }
 
     @Test
@@ -685,14 +688,14 @@ public class TestBridge {
         for (int i = 0; i < numFlows; i++) {
             controller.onPacketIn(14, 13, inPortNum, packet04.serialize());
         }
-        assertEquals(numFlows, controllerStub.addedFlows.size());
+        assertEquals(numPreinstalledFlows+numFlows,
+                     controllerStub.addedFlows.size());
 
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
-        MidoMatch match = new MidoMatch();
-        match.setInputPort(inPortNum);
-        match.setDataLayerSource(macList[inPortNum]);
         for (int i = 0; i < numFlows; i++) {
             reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
+            OFMatch match = controllerStub.addedFlows.get(
+                                numPreinstalledFlows+i).match;
             controller.onFlowRemoved(match, 0, (short)1000,
                         OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);
@@ -711,6 +714,8 @@ public class TestBridge {
         reactor.incrementTime(timeout_ms*3, TimeUnit.MILLISECONDS);
         assertEquals(portUuids[inPortNum], macPortMap.get(macList[inPortNum]));
         // ref 1 -> 0
+        OFMatch match = controllerStub.addedFlows.get(
+                                controllerStub.addedFlows.size()-1).match;
         controller.onFlowRemoved(match, 0, (short)1000,
                         OFFlowRemovedReason.OFPRR_IDLE_TIMEOUT,
                         timeout_ms/1000, 0, (short)(timeout_ms/1000), 123, 456);

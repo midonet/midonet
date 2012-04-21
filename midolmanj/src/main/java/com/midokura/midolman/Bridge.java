@@ -46,7 +46,7 @@ public class Bridge implements ForwardingElement {
 
     UUID bridgeId;
     MacPortMap macPortMap;
-    long mac_port_timeout;
+    long mac_port_timeout = 40*1000;
     Reactor reactor;
     PortZkManager portMgr;
     private Runnable logicalPortsWatcher;
@@ -91,9 +91,7 @@ public class Bridge implements ForwardingElement {
 
     @Override
     public String toString() {
-        return "Bridge{" +
-                "bridgeId=" + bridgeId +
-                '}';
+        return "Bridge{" + "bridgeId=" + bridgeId + '}';
     }
 
     @Override
@@ -103,18 +101,23 @@ public class Bridge implements ForwardingElement {
         MAC srcDlAddress = new MAC(fwdInfo.matchIn.getDataLayerSource());
         MAC dstDlAddress = new MAC(fwdInfo.matchIn.getDataLayerDestination());
 
-        // Drop the packet if it's L2 source is a multicast address.
+        // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(srcDlAddress)) {
             fwdInfo.action = Action.DROP;
             log.info("multicast src MAC, dropping packet");
             return;
         }
         fwdInfo.action = Action.FORWARD;
+        // If the ingress port is materialized, ask for removal notification.
+        if (!(portMgr.get(fwdInfo.inPortId).value instanceof
+                LogicalBridgePortConfig)) {
+            log.debug("Bridge {} asking for flow removal notification for " +
+                      "port {}", bridgeId, fwdInfo.inPortId);
+            fwdInfo.addRemovalNotification(bridgeId);
+        }
         fwdInfo.matchOut = fwdInfo.matchIn.clone();
         fwdInfo.outPortId = null;
         // Is the destination a multicast address?
-        log.debug("{} {} {}", new Object[] {
-                rtrIpToMac, rtrMacToLogicalPortId, brPortIdToRtrPortIp });
         if (Ethernet.isMcast(dstDlAddress)) {
             // If it's an IPv4 ARP, is it for a router's IP?
             if (Ethernet.isBroadcast(dstDlAddress)

@@ -25,7 +25,8 @@ import com.midokura.midolman.util.Callback;
 
 public class VRNCoordinator implements ForwardingElement {
 
-    private static final Logger log = LoggerFactory.getLogger(VRNCoordinator.class);
+    private static final Logger log =
+                LoggerFactory.getLogger(VRNCoordinator.class);
     private static final int MAX_HOPS = 10;
 
     protected UUID netId;
@@ -49,8 +50,8 @@ public class VRNCoordinator implements ForwardingElement {
     private VRNControllerIface ctrl;
     private PortSetMap portSetMap;
 
-    public VRNCoordinator(Directory zkDir, String zkBasePath,
-                          Reactor reactor, Cache cache, VRNControllerIface ctrl,
+    public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
+                          Cache cache, VRNControllerIface ctrl,
                           PortSetMap portSetMap) {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;

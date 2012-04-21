@@ -656,8 +656,8 @@ public class VRNController extends AbstractController
 
         // TODO(pino): do we care why the flow was removed?
         Collection<UUID> routers = matchToRouters.get(match);
+        log.debug("onFlowRemoved: found routers {} for match {}", routers, match);
         if (null != routers) {
-            log.debug("onFlowRemoved: found routers {} for match {}", routers, match);
             freeFlowResources(match, routers);
         }
     }
