@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.midokura.midolman.packets;
 
 import java.nio.ByteBuffer;
@@ -17,12 +14,13 @@ import com.midokura.midolman.util.Net;
  */
 public class IPv4 extends BasePacket {
     public static short ETHERTYPE = 0x0800;
-    
+
     public static Map<Byte, Class<? extends IPacket>> protocolClassMap;
 
     static {
         protocolClassMap = new HashMap<Byte, Class<? extends IPacket>>();
-        
+
+        protocolClassMap.put(GRE.PROTOCOL_NUMBER, GRE.class);
         protocolClassMap.put(ICMP.PROTOCOL_NUMBER, ICMP.class);
         protocolClassMap.put(TCP.PROTOCOL_NUMBER, TCP.class);
         protocolClassMap.put(UDP.PROTOCOL_NUMBER, UDP.class);
@@ -472,7 +470,7 @@ public class IPv4 extends BasePacket {
      */
     public static int toIPv4Address(String ipAddress) {
         String[] octets = ipAddress.split("\\.");
-        if (octets.length != 4) 
+        if (octets.length != 4)
             throw new IllegalArgumentException("Specified IPv4 address must" +
                 "contain 4 sets of numerical digits separated by periods");
 
@@ -500,7 +498,7 @@ public class IPv4 extends BasePacket {
 
     /**
      * Accepts an IPv4 address and returns the correspondent bytes.
-     * 
+     *
      * @param ipAddress
      * @return
      */
@@ -516,7 +514,7 @@ public class IPv4 extends BasePacket {
     /**
      * Accepts an IPv4 address and returns of string of the form xxx.xxx.xxx.xxx
      * ie 192.168.0.1
-     * 
+     *
      * @param ipAddress
      * @return
      */
@@ -536,7 +534,7 @@ public class IPv4 extends BasePacket {
      * Accepts a collection of IPv4 addresses as integers and returns a single
      * String useful in toString method's containing collections of IP
      * addresses.
-     * 
+     *
      * @param ipAddresses collection
      * @return
      */
@@ -561,7 +559,7 @@ public class IPv4 extends BasePacket {
      */
     public static byte[] toIPv4AddressBytes(String ipAddress) {
         String[] octets = ipAddress.split("\\.");
-        if (octets.length != 4) 
+        if (octets.length != 4)
             throw new IllegalArgumentException("Specified IPv4 address must" +
                 "contain 4 sets of numerical digits separated by periods");
 

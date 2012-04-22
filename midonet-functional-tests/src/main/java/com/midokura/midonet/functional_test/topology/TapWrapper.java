@@ -56,10 +56,9 @@ public class TapWrapper {
         return name;
     }
 
-    /* MidoNet virtual devices non longer use the tap address themselves.
     public MAC getHwAddr() {
         return MAC.fromString(Tap.getHwAddress(this.name, fd));
-    }*/
+    }
 
     public void setHwAddr(MAC hwAddr) {
         Tap.setHwAddress(fd, this.name, hwAddr.toString());

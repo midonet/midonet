@@ -1,6 +1,7 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -10,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
@@ -27,6 +30,7 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
+import static com.midokura.util.process.ProcessHelper.newProcess;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TunnelingTest {
@@ -47,6 +51,10 @@ public class TunnelingTest {
     MidolmanLauncher midolman2;
     OvsBridge ovsBridge1;
     OvsBridge ovsBridge2;
+
+    // Hack to get around OVS lo+GRE tunnel bug.
+    TapWrapper tapProxyA;
+    TapWrapper tapProxyB;
 
     @Before
     public void setUp() throws Exception, IOException {
@@ -85,13 +93,39 @@ public class TunnelingTest {
         helper2 = new PacketHelper(MAC.fromString("02:00:aa:33:00:02"), ip2,
                 IntIPv4.fromString("192.168.231.1"));
 
-        sleepBecause("wait for the network config to settle", 5);
+        tapProxyA = new TapWrapper("proxyA");
+        tapProxyB = new TapWrapper("proxyB");
+        Thread.sleep(2000);
+        newProcess(
+                String.format(
+                        "sudo -n ip addr add 172.29.10.4/24 dev proxyA"))
+                .logOutput(log, "create_tapProxyA")
+                .runAndWait();
+        newProcess(
+                String.format(
+                        "sudo -n ip route delete 172.29.10.4 dev proxyA table local"))
+                .logOutput(log, "route_delete_C")
+                .runAndWait();
+        newProcess(
+                String.format(
+                        "sudo -n ip addr add 172.29.10.5/24 dev proxyB"))
+                .logOutput(log, "create_tapProxyB")
+                .runAndWait();
+        newProcess(
+                String.format(
+                        "sudo -n ip route delete 172.29.10.5 dev proxyB table local"))
+                .logOutput(log, "route_delete_D")
+                .runAndWait();
+
+        sleepBecause("wait for the network config to settle", 15);
     }
 
     @After
     public void tearDown() throws InterruptedException {
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
+        removeTapWrapper(tapProxyA);
+        removeTapWrapper(tapProxyB);
         removeBridge(ovsBridge1);
         removeBridge(ovsBridge2);
         stopMidolman(midolman1);
@@ -124,11 +158,24 @@ public class TunnelingTest {
                    tapPort1.send(icmpRequest));
 
         // Note: the virtual router ARPs before delivering the IPv4 packet.
+        // The ARP first arrives at the proxy.
+        byte[] proxyBytes = getGrePacket(tapProxyA);
+        assertThat("Proxy received ARP packet", proxyBytes != null);
+        newProcess(
+                String.format(
+                        "sudo -n ip route add 172.29.10.5 dev proxyB table local"))
+                .logOutput(log, "route_delete_D")
+                .runAndWait();
+
+        assertThat("Proxy forwarded ARP packet", tapProxyB.send(proxyBytes));
         helper2.checkArpRequest(tapPort2.recv());
         assertThat("An ARP reply was properly sent to the second tap port",
                    tapPort2.send(helper2.makeArpReply()));
 
-        // receive the icmp
+        // receive the icmp. It first arrives at the proxy.
+        proxyBytes = getGrePacket(tapProxyA);
+        assertThat("Proxy received ICMP packet", proxyBytes != null);
+        assertThat("Proxy forwarded ICMP packet", tapProxyB.send(proxyBytes));
         helper2.checkIcmpEchoRequest(icmpRequest, tapPort2.recv());
 
         icmpRequest = helper2.makeIcmpEchoRequest(ip1);
@@ -145,5 +192,33 @@ public class TunnelingTest {
 
         assertNoMorePacketsOnTap(tapPort1);
         assertNoMorePacketsOnTap(tapPort2);
+    }
+
+    private byte[] getGrePacket(TapWrapper tap) throws MalformedPacketException {
+        byte[] proxyBytes;
+        while (true) {
+            proxyBytes = tap.recv();
+            if (null == proxyBytes) return null;
+            Ethernet eth = new Ethernet();
+            eth.deserialize(ByteBuffer.wrap(proxyBytes));
+            // Discard if it's not an IPv4 packet with ip.proto GRE (0x2F)
+            if (eth.getEtherType() != IPv4.ETHERTYPE) {
+                log.debug("Proxy received a non-IPv4 packet. Discard.");
+                continue;
+            }
+            IPv4 ipPkt = IPv4.class.cast(eth.getPayload());
+            if (ipPkt.getProtocol() != 0x2F) {
+                log.debug("Proxy received an IPv4 packet that's not GRE. Discard.");
+                continue;
+            }
+            Ethernet innerEth = new Ethernet();
+            innerEth.deserialize(ByteBuffer.wrap(ipPkt.getPayload().serialize()));
+            log.debug("Proxy received a GRE packet: {}", eth);
+            log.debug("The GRE packet's payload is {}", innerEth);
+            eth.setSourceMACAddress(tapProxyA.getHwAddr());
+            eth.setDestinationMACAddress(tapProxyB.getHwAddr());
+            log.debug("Proxy forwarding a GRE packet: {}", eth);
+            return eth.serialize();
+        }
     }
 }

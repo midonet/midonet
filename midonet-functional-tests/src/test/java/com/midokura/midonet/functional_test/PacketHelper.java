@@ -334,9 +334,9 @@ public class PacketHelper {
      * @param recv is the serialization of the reply we received
      */
     public void checkIcmpEchoRequest(byte[] sent, byte[] recv) {
-        assertThat("The sent ICMP Echo buffer wasn't correct.", sent,
+        assertThat("The sent ICMP Echo buffer wasn't null.", sent,
                    notNullValue());
-        assertThat("The recv ICMP Reply buffer wasn't correct.", recv,
+        assertThat("The recv ICMP Echo buffer wasn't null.", recv,
                    notNullValue());
         assertThat("The sent and received packages had different sizes.",
                    sent.length, equalTo(recv.length));
