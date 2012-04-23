@@ -27,103 +27,26 @@ public class CassandraCache implements Cache {
     private static final Logger log =
                          LoggerFactory.getLogger(CassandraCache.class);
 
-    private int expirationSecs;
-    private Cluster cluster;
-    private Keyspace keyspace;
-    private String columnFamily;
     private final String column = "target";
-
-    private static StringSerializer ss = StringSerializer.get();
+    private CassandraClient client;
 
     public CassandraCache(String servers, String clusterName,
                           String keyspaceName, String columnFamily,
                           int replicationFactor, int expirationSecs)
-            throws HectorException {
-        boolean success = false;
-
-        try {
-            this.cluster = HFactory.getOrCreateCluster(clusterName, servers);
-            // Using FAIL_FAST because if Hector blocks the operations too
-            // long, midolmanj gets disconnected from OVS and crashes.
-            this.keyspace = HFactory.createKeyspace(
-                keyspaceName, cluster,
-                HFactory.createDefaultConsistencyLevelPolicy(),
-                FailoverPolicy.FAIL_FAST);
-            this.columnFamily = columnFamily;
-            this.expirationSecs = expirationSecs;
-
-            log.debug("Check column family {} exists in keyspace {}",
-                      columnFamily, keyspace);
-
-            KeyspaceDefinition ksDef = cluster.describeKeyspace(keyspaceName);
-            if (ksDef == null) {
-                log.info("Creating keyspace {} in cluster {}",
-                         keyspaceName, clusterName);
-                ksDef = HFactory.createKeyspaceDefinition(
-                    keyspaceName, SimpleStrategy.class.getName(),
-                    replicationFactor, null);
-                cluster.addKeyspace(ksDef, true);
-                ksDef = cluster.describeKeyspace(keyspaceName);
-            }
-
-            for (ColumnFamilyDefinition cfDef : ksDef.getCfDefs()) {
-                if (cfDef.getName().equals(columnFamily)) {
-                    log.debug("Column family {} found in keyspace {}",
-                              columnFamily, keyspaceName);
-                    success = true;
-                    return;
-                }
-            }
-
-            // Create a column family if it doesn't exist.
-            log.info("Creating column family {}", columnFamily);
-            ColumnFamilyDefinition cfDef =
-                HFactory.createColumnFamilyDefinition(
-                    keyspaceName, columnFamily, ComparatorType.BYTESTYPE);
-            cfDef.setKeyValidationClass("BytesType");
-            cfDef.setDefaultValidationClass("BytesType");
-            cluster.addColumnFamily(cfDef, true);
-
-            success = true;
-        } finally {
-            if (!success) {
-                log.error("Connection to Cassandra FAILED");
-            }
-        }
+        throws HectorException {
+        client = new CassandraClient(servers, clusterName, keyspaceName, columnFamily, replicationFactor, expirationSecs);
     }
 
     @Override
     public void set(String key, String value) {
-        try {
-            Mutator<String> mutator = HFactory.createMutator(keyspace, ss);
-            mutator.insert(key, columnFamily,
-                           HFactory.createColumn(column, value, expirationSecs,
-                                                 ss, ss));
-            mutator.execute();
-        } catch (HectorException e) {
-            log.error("set failed", e);
-        }
+        client.set(key, value, column);
     }
 
     @Override
     public String get(String key) {
-        HColumn<String, String> result = null;
-        try {
-            ColumnQuery<String, String, String> query =
-                HFactory.createColumnQuery(keyspace, ss, ss, ss);
-            query.setColumnFamily(columnFamily).setKey(key).setName("target");
-            result = query.execute().get();
-        } catch (HectorException e) {
-            log.error("get failed", e);
-            return null;
-        }
-
-        if (result == null) {
-            return null;
-        }
-        String value = result.getValue();
-        return (value.length() != 0) ? value : null;
+        return client.get(key, column);
     }
+
 
     @Override
     public String getAndTouch(String key) {
@@ -139,6 +62,6 @@ public class CassandraCache implements Cache {
 
     @Override
     public int getExpirationSeconds() {
-        return expirationSecs;
+        return client.getExpirationSeconds();
     }
 }
