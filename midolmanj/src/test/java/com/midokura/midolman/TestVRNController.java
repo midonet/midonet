@@ -1940,11 +1940,17 @@ public class TestVRNController {
         vrnCtrl.onPacketIn(55, data.length, phyPort.getPortNumber(), data);
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        // TODO: loadFromPacket() sometimes throws, so we don't use it.
+        //       Should we attempt it in a try-block and use the resulting
+        //       match if there was no exception?
+        /*
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         MidoMatch m = new MidoMatch();
         m.loadFromPacket(data, (short)0);
         checkInstalledFlow(controllerStub.addedFlows.get(0), m,
                 (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, false,
                 new ArrayList<OFAction>());
+        */
     }
 }
