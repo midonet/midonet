@@ -275,9 +275,7 @@ public class TestBridge {
             controller.onPortStatus(phyPorts[i], OFPortReason.OFPPR_ADD);
             // TODO: If we add the port to the ctrlr before we have its info
             // in ZK, we get a NoNode ZK exception and then the port's config
-            // is not recognized when we later add it to ZK.
-            // Is it true that we'll always have the port config from ZK at
-            // the time the OVS port comes up?  If not, we'll have to fix this.
+            // is not recognized when we later add it to ZK.  Fix this.
         }
 
         numPreinstalledFlows = controllerStub.addedFlows.size();
@@ -608,7 +606,7 @@ public class TestBridge {
 
         // Remove the port->location mapping for the remote port and verify
         // that the new packets generate drop rules.
-        // TODO: This used to generate a flood.  Is the currect behavior more
+        // TODO: This used to generate a flood.  Is the current behavior more
         // correct?
         portLocMap.remove(portUuids[outPortNum]);
         controllerStub.addedFlows.clear();
