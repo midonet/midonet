@@ -1092,6 +1092,7 @@ public class TestBridge {
         return false;
     }
 
+    @Ignore //XXX
     @Test
     public void testNontunnelPortDeleteInvalidatesFlows() {
         controller.onPacketIn(14, 13, (short)0, packet04.serialize());
@@ -1147,6 +1148,7 @@ public class TestBridge {
                                          expectedMatchDst));
     }
 
+    @Ignore //XXX
     @Test
     public void testTunnelRemovalAndReaddition() {
         controller.onPacketIn(0, 12, (short)13, packet04.serialize());
