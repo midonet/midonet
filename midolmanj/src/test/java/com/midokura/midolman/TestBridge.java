@@ -1093,7 +1093,7 @@ public class TestBridge {
         return false;
     }
 
-    @Ignore //XXX
+    @Ignore // TODO: Invalidation.
     @Test
     public void testNontunnelPortDeleteInvalidatesFlows() {
         controller.onPacketIn(14, 13, (short)0, packet04.serialize());
@@ -1203,13 +1203,19 @@ public class TestBridge {
         */
         // TODO: (cont.) New semantics are deleted based on input & output
         //       ports.  Is this change in semantics correct?
-        MockControllerStub.Flow expectedFlow = new MockControllerStub.Flow(
+        assertEquals(2, controllerStub.deletedFlows.size());
+        MockControllerStub.Flow expectedFlow1 = new MockControllerStub.Flow(
                 new OFMatch(), (long) 0, OFFlowMod.OFPFC_DELETE, (short) 0,
                 (short) 0, (short) 0, -1, (short) 7 /* out_port */,
                 false, false, false, null, (long) 0);
-        assertEquals(expectedFlow, controllerStub.deletedFlows.get(1));
-        assertTrue(controllerStub.deletedFlows.contains(expectedFlow));
-        //XXX
+        assertTrue(controllerStub.deletedFlows.contains(expectedFlow1));
+        OFMatch port7Match = new MidoMatch();
+        port7Match.setInputPort((short) 7);
+        MockControllerStub.Flow expectedFlow2 = new MockControllerStub.Flow(
+                port7Match, (long) 0, OFFlowMod.OFPFC_DELETE, (short) 0,
+                (short) 0, (short) 0, -1, OFPort.OFPP_NONE.getValue(),
+                false, false, false, null, (long) 0);
+        assertTrue(controllerStub.deletedFlows.contains(expectedFlow2));
 
         // Send more packets.  They should make drop rules.
         controllerStub.addedFlows.clear();
@@ -1222,7 +1228,9 @@ public class TestBridge {
         assertArrayEquals(new OFAction[] { },
                           controllerStub.addedFlows.get(1).actions.toArray());
 
-        /* XXX
+
+        // TODO: This should invalidate the drop rules, but it currently doesn't.
+        /*
         // Bringing up port 7 again should invalidate MACs 6 & 7 (only).
         controllerStub.deletedFlows.clear();
         controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_ADD);
