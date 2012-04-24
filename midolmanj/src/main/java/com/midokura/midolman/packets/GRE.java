@@ -90,8 +90,8 @@ public class GRE extends BasePacket {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("GRE [version=").append(version & 0x7);
-        sb.append(", protocol=").append(protocol);
-        sb.append("hasCksum=").append(hasCksum);
+        sb.append(", protocol=").append(Integer.toHexString(protocol));
+        sb.append(", hasCksum=").append(hasCksum);
         if (hasCksum)
             sb.append(", cksum=").append(cksum);
         sb.append(", hasKey=").append(hasKey);
