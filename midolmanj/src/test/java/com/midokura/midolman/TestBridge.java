@@ -64,7 +64,7 @@ public class TestBridge {
     Logger log = LoggerFactory.getLogger(TestBridge.class);
 
     private VRNController controller;
-    private Bridge bridge;//XXX
+    private Bridge bridge;
 
     private Directory portLocDir, macPortDir;
     private PortToIntNwAddrMap portLocMap;
