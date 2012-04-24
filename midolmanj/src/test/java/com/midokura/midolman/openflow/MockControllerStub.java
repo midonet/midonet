@@ -44,7 +44,7 @@ public class MockControllerStub implements ControllerStub {
         }
     }
 
-    public class Flow {
+    public static class Flow {
         public OFMatch match;
         public long cookie;
         public short command;
@@ -92,6 +92,28 @@ public class MockControllerStub implements ControllerStub {
             sb.append(",emerg:"+emergency);
             sb.append(",actions["+actions+"]");
             return sb.toString();
+        }
+
+        public boolean equals(Object rhs) {
+            if (!(rhs instanceof Flow))
+                return false;
+            Flow r = (Flow) rhs;
+            boolean actionsEqual = (actions==null) ? (r.actions==null)
+                                                   : actions.equals(r.actions);
+            return match.equals(r.match) && cookie==r.cookie &&
+                   command==r.command && idleTimeoutSecs==r.idleTimeoutSecs &&
+                   hardTimeoutSecs==r.hardTimeoutSecs && priority==r.priority &&
+                   bufferId==r.bufferId && outPort==r.outPort &&
+                   sendFlowRemove==r.sendFlowRemove && 
+                   checkOverlap==r.checkOverlap && emergency==r.emergency &&
+                   actionsEqual && matchTunnelId==r.matchTunnelId;
+        }
+
+        public int hashCode() {
+            return match.hashCode() ^ (int)(cookie&0xFFFFFFFF) ^ command ^
+                   idleTimeoutSecs ^ hardTimeoutSecs ^ priority ^ bufferId ^
+                   outPort ^ (actions==null ? 0 : actions.hashCode()) ^
+                   (int)(matchTunnelId&0xFFFFFFFF);
         }
     }
 
@@ -164,8 +186,7 @@ public class MockControllerStub implements ControllerStub {
         // For deletedFlows, use hardTimeout for outPort and
         // sendFlowRemove for strict.
         deletedFlows.add(new Flow(match, 0,
-                strict ? OFFlowMod.OFPFC_DELETE_STRICT :
-                        OFFlowMod.OFPFC_DELETE,
+                strict ? OFFlowMod.OFPFC_DELETE_STRICT : OFFlowMod.OFPFC_DELETE,
                 (short) 0, (short) 0, priority, -1, outPort,
                 false, false, false, null, matchingTunnelId));
     }
