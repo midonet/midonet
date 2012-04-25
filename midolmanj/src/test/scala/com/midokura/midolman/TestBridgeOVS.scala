@@ -32,13 +32,12 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
 import com.midokura.midolman.openflow.ControllerStubImpl
 import com.midokura.midolman.openvswitch.{
-                BridgeBuilder,
-                OpenvSwitchDatabaseConnectionImpl,
+                BridgeBuilder, OpenvSwitchDatabaseConnectionImpl,
                 OpenvSwitchDatabaseConnectionBridgeConnector}
 import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.packets.IntIPv4
-import com.midokura.midolman.state.{MacPortMap, MockDirectory,
-                                    PortToIntNwAddrMap}
+import com.midokura.midolman.state.{BridgeZkManager, MacPortMap, MockDirectory,
+    PortToIntNwAddrMap, ZkPathManager}
 import com.midokura.midolman.openflow.OpenFlowError
 
 
@@ -95,17 +94,24 @@ object TestBridgeOVS extends OpenvSwitchDatabaseConnectionBridgeConnector
         connectToOVSDB
 
         // Set up the (mock) ZooKeeper directories.
-        val portLocKey = "/port_locs"
-        val macPortKey = "/mac_port"
+        val vrnPortLocKey = "/vrn_port_locations"
         val noData = Array[Byte]()
         val midoDirName = zkDir.add(zkRoot, noData, CreateMode.PERSISTENT)
         var midoDir = zkDir.getSubDirectory(midoDirName)
-        midoDir.add(portLocKey, noData, CreateMode.PERSISTENT)
-        midoDir.add(macPortKey, noData, CreateMode.PERSISTENT)
+        Setup.createZkDirectoryStructure(zkDir, zkRoot)
         val portLocMap = new PortToIntNwAddrMap(
-            midoDir.getSubDirectory(portLocKey))
-        val macPortMap = new MacPortMap(midoDir.getSubDirectory(macPortKey))
+            midoDir.getSubDirectory(vrnPortLocKey))
+        portLocMap.start
         reactor = new SelectLoop(Executors.newScheduledThreadPool(1))
+       
+        val bcfg = new BridgeZkManager.BridgeConfig()
+        val bzkm = new BridgeZkManager(zkDir, zkRoot)
+        val bridgeUUID = bzkm.create(bcfg)
+        val pathMgr = new ZkPathManager(zkRoot)
+        val macPortKey = pathMgr.getBridgeMacPortsPath(bridgeUUID)
+        val macPortMap = new MacPortMap(
+            zkDir.getSubDirectory(macPortKey))
+        macPortMap.start
 
         reactorThread = new Thread() { override def run() {
             log.info("reactorThread starting")
