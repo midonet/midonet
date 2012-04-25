@@ -607,8 +607,7 @@ public class TestBridge {
 
         // Remove the port->location mapping for the remote port and verify
         // that the new packets generate drop rules.
-        // TODO: This used to generate a flood.  Is the current behavior more
-        // correct?
+        // TODO: This should generate a flood.  Fix it.
         portLocMap.remove(portUuids[outPortNum]);
         controllerStub.addedFlows.clear();
         numPreinstalledFlows = 0;
@@ -668,15 +667,8 @@ public class TestBridge {
             controllerStub.addedFlows.clear();
             numPreinstalledFlows = 0;
             controllerStub.sentPackets.clear();
-            MidoMatch expectMatch = flowmatch.clone();
-            expectMatch.setInputPort(inPortNum);
-            //OFAction[] expectAction =
-            //    inPortNum == 2 ? floodActionNoPort0 : floodActionLocalOnly;
-            // TODO: This used to cause a flood, now it causes a drop with
-            //   no flowmatches installed.
-            //   -- Is the current behavior the right way, or should it actually
-            //   flood?  Or install a drop rule?
             controller.onPacketIn(14, 13, inPortNum, packet.serialize());
+            // Mapping is bad, so expect a drop without installing a drop rule.
             assertEquals(0, controllerStub.addedFlows.size());
             assertEquals(0, controllerStub.sentPackets.size());
         }
@@ -1181,29 +1173,13 @@ public class TestBridge {
         controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_DELETE);
         log.debug("testTunnelRemovalAndReaddition: {} flows deleted.",
                   controllerStub.deletedFlows.size());
+        assertEquals(2, controllerStub.deletedFlows.size());
         log.debug("testTunnelRemovalAndReaddition: First deleted flow: {}",
                   controllerStub.deletedFlows.get(0));
         log.debug("testTunnelRemovalAndReaddition: Second deleted flow: {}",
                   controllerStub.deletedFlows.get(1));
-        // TODO: Old semantics were matching based on MAC:
-        /*
-        MidoMatch expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[7]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-        expectMatch.setDataLayerDestination(macList[6]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-        expectMatch.setDataLayerDestination(macList[5]);
-        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
-                                          expectMatch));
-        expectMatch.setDataLayerDestination(macList[4]);
-        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
-                                          expectMatch));
-        */
-        // TODO: (cont.) New semantics are deleted based on input & output
-        //       ports.  Is this change in semantics correct?
-        assertEquals(2, controllerStub.deletedFlows.size());
+
+        // Deleted flows based on input & output ports.
         MockControllerStub.Flow expectedFlow1 = new MockControllerStub.Flow(
                 new OFMatch(), (long) 0, OFFlowMod.OFPFC_DELETE, (short) 0,
                 (short) 0, (short) 0, -1, (short) 7 /* out_port */,
@@ -1227,26 +1203,6 @@ public class TestBridge {
                           controllerStub.addedFlows.get(0).actions.toArray());
         assertArrayEquals(new OFAction[] { },
                           controllerStub.addedFlows.get(1).actions.toArray());
-
-
-        // TODO: This should invalidate the drop rules, but it currently doesn't.
-        /*
-        // Bringing up port 7 again should invalidate MACs 6 & 7 (only).
-        controllerStub.deletedFlows.clear();
-        controller.onPortStatus(phyPorts[7], OFPortReason.OFPPR_ADD);
-        expectMatch.setDataLayerDestination(macList[7]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-        expectMatch.setDataLayerDestination(macList[6]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-        expectMatch.setDataLayerDestination(macList[5]);
-        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
-                                          expectMatch));
-        expectMatch.setDataLayerDestination(macList[4]);
-        assertFalse(flowListContainsMatch(controllerStub.deletedFlows,
-                                          expectMatch));
-        */
     }
 
     @Test
