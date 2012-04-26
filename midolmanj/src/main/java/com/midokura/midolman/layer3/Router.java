@@ -169,14 +169,14 @@ public class Router implements ForwardingElement {
         }
     }
 
-    // TODO(pino): call this from Network when VRN is torn down.
     @Override
     public void destroy() {
         try {
             ManagementFactory.getPlatformMBeanServer()
-                    .unregisterMBean(objectName);
+                             .unregisterMBean(objectName);
         } catch (JMException e) {
-            throw new RuntimeException("Dan said this would NEVER happen!", e);
+            throw new RuntimeException("Dan Dumitriu swore this would " +
+                                       "NEVER happen!", e);
         }
     }
 

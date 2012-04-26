@@ -761,11 +761,9 @@ public class TestBridge {
         // It appears there's no way to get at the Runnable associated
         // with a ScheduledFuture?
         controller.clear();
-        // TODO: Re-enable this once VRNController.clear() is implemented.
-        //assertEquals(0, bridge.delayedDeletes.size());
+        assertEquals(0, bridge.delayedDeletes.size());
     }
 
-    @Ignore // TODO: Re-enable this once VRNController.clear() is implemented.
     @Test
     public void testFlowCountExpireOnClear() {
         short inPortNum = 0;
@@ -849,7 +847,6 @@ public class TestBridge {
         assertEquals(0, controllerStub.sentPackets.size());
     }
 
-    @Ignore // TODO: Re-enable once VRNController.clear() implemented.
     @Test
     public void testClear() {
         controller.onPacketIn(14, 13, (short)0, packet04.serialize());
@@ -962,7 +959,8 @@ public class TestBridge {
         controllerStub.sentPackets.clear();
         OFAction[] expectAction1 = new OFAction[] {
                                 new OFActionOutput((short)1, (short)0) };
-        controller.onPacketIn(14, 13, (short)5, packet01.serialize(), portKeys[1]);
+        controller.onPacketIn(14, 13, (short)5, packet01.serialize(),
+                              portKeys[1]);
         checkSentPacket(14, (short)-1, expectAction1, new byte[] {});
         assertEquals(6, controllerStub.addedFlows.size());
         assertArrayEquals(expectAction1,

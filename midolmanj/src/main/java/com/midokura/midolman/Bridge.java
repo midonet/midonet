@@ -247,7 +247,7 @@ public class Bridge implements ForwardingElement {
         // TODO(pino): do we really need to do flow invalidation?
         // TODO: if the FE is being destroyed, it should have no flows left?
         // TODO: alternatively, everything is being shut down...
-        log.info("clear");
+        log.info("destroy");
 
         // Entries in macPortMap we own are either live with flows, in which
         // case they're in flowCount; or are expiring, in which case they're

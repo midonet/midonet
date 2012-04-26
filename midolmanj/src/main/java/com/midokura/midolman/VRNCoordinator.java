@@ -102,7 +102,8 @@ public class VRNCoordinator implements ForwardingElement {
 
     private PortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
             throws ZkStateSerializationException, StateAccessException {
-        log.debug("refreshPortConfig for {} watcher", portId.toString(), watcher);
+        log.debug("refreshPortConfig for {} watcher", portId.toString(),
+                  watcher);
 
         if (null == watcher) {
             watcher = new PortWatcher(portId);
@@ -185,7 +186,8 @@ public class VRNCoordinator implements ForwardingElement {
 
     @Override
     public void destroy() {
-        //To change body of implemented methods use File | Settings | File Templates.
+        for (ForwardingElement fe : forwardingElements.values())
+            fe.destroy();
     }
 
     private PortConfig getPortConfigByUUID(UUID id)

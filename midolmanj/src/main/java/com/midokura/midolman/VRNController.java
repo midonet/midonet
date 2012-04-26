@@ -858,8 +858,8 @@ public class VRNController extends AbstractController
 
     @Override
     public final void clear() {
-        // Do nothing.
-        // TODO: Should this clear the Coordinator, to in turn clear all the FEs?
+        // Destroy the Coordinator, which in turn destroys all the FEs.
+        vrn.destroy();
     }
 
     /*
