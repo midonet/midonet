@@ -211,7 +211,7 @@ public class VRNController extends AbstractController
         } catch (MalformedPacketException ex) {
             // Packet could not be deserialized: Drop it.
             log.warn("onPacketIn: malformed packet from port {}: {}",
-                    inPort, ex.getMessage());
+                     inPort, ex.getMessage());
             MidoMatch m = new MidoMatch();
             // Usually we avoid OFMatch.loadFromPacket, but here we can't use
             // AbstractController.createMatchFromPacket.
@@ -228,19 +228,6 @@ public class VRNController extends AbstractController
                 new Object [] { inPort, bufferId, totalLen, ethPkt });
         MidoMatch match = AbstractController.createMatchFromPacket(
                 ethPkt, shortInPort);
-
-        // TODO(pino, 3/23/2012): OVS bug work-around? I don't get the comments.
-        // Rewrite inPort with the service's target port assuming that
-        // service flows sent this packet to the OFPP_CONTROLLER.
-        // TODO(yoshi): replace this with better mechanism such as ARP proxy
-        // for service ports.
-        if (inPort == (OFPort.OFPP_LOCAL.getValue() & 0xffff)) {
-            log.debug("onPacketIn: rewrite port {} to {}", inPort,
-                      serviceTargetPort);
-            inPort = serviceTargetPort;
-            // TODO(pino, 3/23/2012): prove newer OVS doesn't trigger this.
-            throw new RuntimeException("This shouldn't happen anymore.");
-        }
 
         // Handle tunneled packets.
         if (super.isTunnelPortNum(inPort)) {
