@@ -191,16 +191,22 @@ public class KeystoneClient implements AuthClient {
         }
 
         UserIdentity user = new UserIdentity();
-        JsonNode node = rootNode.get("access");
-        user.setUserId(node.get("user").get("username").getTextValue());
-        String tenantId = node.get("token").get("tenant").get("id")
-                .getTextValue();
-        user.setTenantId(tenantId);
-        user.setTenantName(node.get("token").get("tenant").get("name")
-                .getTextValue());
-        user.setToken(node.get("token").get("id").getTextValue());
 
-        JsonNode roleNode = node.get("user").get("roles");
+        // Get the token info
+        JsonNode tokenNode = rootNode.get("access").get("token");
+        user.setToken(tokenNode.get("id").getTextValue());
+        JsonNode tenantNode = tokenNode.get("tenant");
+        if (tenantNode == null) {
+            throw new KeystoneInvalidJsonException(
+                    "Tenant information is missing from this token.");
+        }
+        user.setTenantId(tenantNode.get("id").getTextValue());
+        user.setTenantName(tenantNode.get("name").getTextValue());
+
+        // Get the user info
+        JsonNode userNode = rootNode.get("access").get("user");
+        user.setUserId(userNode.get("username").getTextValue());
+        JsonNode roleNode = userNode.get("roles");
         Iterator<JsonNode> roleNodeItr = roleNode.getElements();
         String ksRole, authRole = null;
         while (roleNodeItr.hasNext()) {
