@@ -55,7 +55,7 @@ public class MidolmanLauncher {
         log.debug("Launching midolman from folder: " + new File(".").getAbsolutePath());
 
         midolmanProcess = ProcessHelper
-            .newProcess(commandLine)
+            .newLocalProcess(commandLine)
             .setDrainTarget(DrainTargets.noneTarget())
 //            .setDrainTarget(DrainTargets.slf4jTarget(log, "<midolman>"))
             .run();

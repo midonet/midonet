@@ -6,22 +6,13 @@ package com.midokura.midonet.functional_test;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
-import static java.util.Arrays.asList;
-
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.array;
-import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
@@ -98,25 +89,50 @@ public class PacketHelper {
      * @throws MalformedPacketException
      */
     public MAC checkArpReply(byte[] recv) throws MalformedPacketException {
-        return checkArpReply(recv, gwIp, epMac, epIp);
+        assertThat("We actually have a packet buffer", recv, notNullValue());
+
+        Ethernet frame = new Ethernet();
+        ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
+        frame.deserialize(bb);
+
+        return checkArpReply(frame, gwIp, epMac, epIp);
+    }
+
+    /**
+     * Check that the packet is an ARP reply from the gateway to the endpoint.
+     *
+     * @param frame is the Ethernet frame containing the ARP packet.
+     *
+     * @throws MalformedPacketException
+     */
+    public MAC checkArpReply(Ethernet frame) throws MalformedPacketException {
+        return checkArpReply(frame, gwIp, epMac, epIp);
     }
 
     public static MAC checkArpReply(byte[] recv, IntIPv4 nwSrc,
-            MAC dlDst, IntIPv4 nwDst) throws MalformedPacketException {
+                                    MAC dlDst, IntIPv4 nwDst) throws MalformedPacketException {
         assertThat("We actually have a packet buffer", recv, notNullValue());
 
         Ethernet pkt = new Ethernet();
         ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
         pkt.deserialize(bb);
-        assertThat("The packet ether type is ARP",
-                   pkt.getEtherType(), equalTo(ARP.ETHERTYPE));
-        MAC dlSrc = pkt.getSourceMACAddress();
+
+        return checkArpReply(pkt, nwSrc, dlDst, nwDst);
+    }
+
+    public static MAC checkArpReply(Ethernet frame,
+                                    IntIPv4 nwSrc, MAC dlDst,
+                                    IntIPv4 nwDst) {
+
+        assertThat("We expected and ARP packet",
+                   frame.getEtherType(), equalTo(ARP.ETHERTYPE));
+        MAC dlSrc = frame.getSourceMACAddress();
         assertThat("The packet destination MAC is consistent with the target",
-                   pkt.getDestinationMACAddress(), equalTo(dlDst));
+                   frame.getDestinationMACAddress(), equalTo(dlDst));
 
         assertThat("The deserialized payload type is ARP",
-                   pkt.getPayload(), instanceOf(ARP.class));
-        ARP arp = ARP.class.cast(pkt.getPayload());
+                   frame.getPayload(), instanceOf(ARP.class));
+        ARP arp = ARP.class.cast(frame.getPayload());
 
         assertThat("Some of the ARP packet fields are properly set",
                    arp,
@@ -180,33 +196,57 @@ public class PacketHelper {
     /**
      * Check that the packet is an ARP request from the gateway to the endpoint.
      *
-     * @param recv the arp request that we received
+     * @param frameBuffer the arp request that we received
      * @throws MalformedPacketException
      */
-    public void checkArpRequest(byte[] recv) throws MalformedPacketException {
-        checkArpRequest(recv, gwMac, gwIp, epIp);
+    public void checkArpRequest(byte[] frameBuffer) throws MalformedPacketException {
+        assertThat("We actually have a packet buffer.", frameBuffer, notNullValue());
+
+        Ethernet frame = new Ethernet();
+        ByteBuffer bb = ByteBuffer.wrap(frameBuffer, 0, frameBuffer.length);
+        frame.deserialize(bb);
+
+        checkArpRequest(frame);
     }
 
-    public static void checkArpRequest(byte[] recv, MAC dlSrc, IntIPv4 nwSrc,
-            IntIPv4 nwDst) throws MalformedPacketException {
+    /**
+     * Check that the packet is an ARP request from the gateway to the endpoint.
+     *
+     * @param frame the ethernet frame that contains the ARP packet.
+     * @throws MalformedPacketException
+     */
+    public void checkArpRequest(Ethernet frame) throws MalformedPacketException {
+        checkArpRequest(frame, gwMac, gwIp, epIp);
+    }
 
-        assertThat("We expected a package that we didn't get.", recv, notNullValue());
+    public static void checkArpRequest(byte[] frameBuffer,
+                                       MAC dlSrc, IntIPv4 nwSrc, IntIPv4 nwDst)
+        throws MalformedPacketException {
 
-        Ethernet pkt = new Ethernet();
-        ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
-        pkt.deserialize(bb);
+        assertThat("We actually have a packet buffer.", frameBuffer, notNullValue());
+
+        Ethernet frame = new Ethernet();
+        ByteBuffer bb = ByteBuffer.wrap(frameBuffer, 0, frameBuffer.length);
+        frame.deserialize(bb);
+
+        checkArpRequest(frame, dlSrc, nwSrc, nwDst);
+    }
+
+    public static void checkArpRequest(Ethernet frame, MAC dlSrc,
+                                       IntIPv4 nwSrc, IntIPv4 nwDst)
+        throws MalformedPacketException {
 
         assertThat("the package ether type is ARP",
-                   pkt.getEtherType(), equalTo(ARP.ETHERTYPE));
+                   frame.getEtherType(), equalTo(ARP.ETHERTYPE));
         assertThat("the package MAC address matches the source MAC",
-                   pkt.getSourceMACAddress(), equalTo(dlSrc));
+                   frame.getSourceMACAddress(), equalTo(dlSrc));
         assertThat("the package destination MAC address is the broadcast mac",
-                   pkt.getDestinationMACAddress(),
+                   frame.getDestinationMACAddress(),
                    equalTo(MAC.fromString("ff:ff:ff:ff:ff:ff")));
         assertThat("the eth payload is an ARP payload",
-                   pkt.getPayload(), instanceOf(ARP.class));
+                   frame.getPayload(), instanceOf(ARP.class));
 
-        ARP arp = ARP.class.cast(pkt.getPayload());
+        ARP arp = ARP.class.cast(frame.getPayload());
         assertThat("the ARP packet hardware type is ethernet",
                    arp.getHardwareType(), equalTo(ARP.HW_TYPE_ETHERNET));
         assertThat("the ARP packet protocol type is set to IP",
@@ -334,9 +374,9 @@ public class PacketHelper {
      * @param recv is the serialization of the reply we received
      */
     public void checkIcmpEchoRequest(byte[] sent, byte[] recv) {
-        assertThat("The sent ICMP Echo buffer wasn't null.", sent,
+        assertThat("The sent ICMP Echo buffer wasn't correct.", sent,
                    notNullValue());
-        assertThat("The recv ICMP Echo buffer wasn't null.", recv,
+        assertThat("The recv ICMP Reply buffer wasn't correct.", recv,
                    notNullValue());
         assertThat("The sent and received packages had different sizes.",
                    sent.length, equalTo(recv.length));
