@@ -3,11 +3,9 @@
  */
 package com.midokura.midonet.functional_test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
@@ -15,15 +13,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -31,7 +31,13 @@ import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
 import com.midokura.util.ssh.SshHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import com.midokura.util.ssh.commands.SshSession;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
@@ -119,7 +125,7 @@ public class VmSshTest {
                 SshHelper.newRemoteCommand("hostname")
                          .onHost("192.168.231.2")
                          .withCredentials("ubuntu", "ubuntu")
-                         .runWithTimeout(60 * 1000); // 60 seconds
+                         .run(60 * 1000); // 60 seconds
 
             log.info("Command output: {}", output.trim());
 
@@ -135,7 +141,7 @@ public class VmSshTest {
     }
 
     @Test
-    public void testScp() throws IOException, InterruptedException {
+    public void testScp() throws Exception, InterruptedException {
 
         try {
             vm.startup();
@@ -146,7 +152,7 @@ public class VmSshTest {
                 SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
                          .onHost("192.168.231.2")
                          .withCredentials("ubuntu", "ubuntu")
-                         .runWithTimeout(60 * 1000); // 60 seconds
+                         .run(60 * 1000); // 60 seconds
 
             assertThat(
                 "There should not by any content in the target test_file.txt",
@@ -157,26 +163,30 @@ public class VmSshTest {
 
             FileUtils.writeStringToFile(localFile, "Hannibal");
 
-            SshHelper.copyFileTo(localFile.getAbsolutePath(), "test_file.txt")
-                     .onHost("192.168.231.2")
-                     .withCredentials("ubuntu", "ubuntu")
-                     .runWithTimeout(60 * 1000); // 60 seconds
+            int copyFileTimeout = (int) TimeUnit.SECONDS.toMillis(30);
+
+            SshSession session = SshHelper.newSession()
+                .onHost("192.168.231.2")
+                .withCredentials("ubuntu", "ubuntu")
+                .open(copyFileTimeout);
+
+            SshHelper.uploadFile(localFile.getAbsolutePath())
+                .toRemote("test_file.txt")
+                .usingSession(session, copyFileTimeout);
 
             output =
                 SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
                          .onHost("192.168.231.2")
                          .withCredentials("ubuntu", "ubuntu")
-                         .runWithTimeout(60 * 1000); // 60 seconds
+                         .run(60 * 1000); // 60 seconds
 
             assertThat("The remote file should have our content.",
                        output, equalTo("Hannibal"));
 
             File newLocalFile = File.createTempFile("smoke-ssh-test", null);
-            SshHelper.copyFileFrom(newLocalFile.getAbsolutePath(),
-                                   "test_file.txt")
-                     .onHost("192.168.231.2")
-                     .withCredentials("ubuntu", "ubuntu")
-                     .runWithTimeout(60 * 1000); // 60 seconds
+            SshHelper.getFile(newLocalFile.getAbsolutePath())
+                .fromRemote("test_file.txt")
+                .usingSession(session, copyFileTimeout);
 
             output = FileUtils.readFileToString(newLocalFile);
             assertThat(

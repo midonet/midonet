@@ -22,16 +22,16 @@ public class Timed {
 
     public static class Builder {
 
-        long completeTimeout;
-        long sleepTimeout;
+        long timeoutMillis;
+        long waitingMillis;
 
         public Builder until(long millis) {
-            this.completeTimeout = millis;
+            this.timeoutMillis = millis;
             return this;
         }
 
-        public Builder waiting(long waitTime) {
-            this.sleepTimeout = waitTime;
+        public Builder waiting(long waitingMillis) {
+            this.waitingMillis = waitingMillis;
             return this;
         }
 
@@ -39,26 +39,34 @@ public class Timed {
             throws Exception {
 
             long start = System.currentTimeMillis();
+            long remainingTime;
 
-            long delta = 0;
             do {
-
-                Thread.sleep(sleepTimeout);
-
+                e.setRemainingMillis(timeoutMillis - _passedSince(start));
                 e.run();
                 if (e.isCompleted()) {
                     return new ExecutionResult<T>(e.isCompleted, e.getResult());
                 }
 
-                delta = System.currentTimeMillis() - start;
-            } while (delta < completeTimeout);
+                remainingTime = timeoutMillis - _passedSince(start);
+                if (remainingTime > 0 ) {
+                    Thread.sleep(Math.min(waitingMillis,
+                                          timeoutMillis - _passedSince(start)));
+                }
+
+            } while (_passedSince(start) < timeoutMillis);
 
             return new ExecutionResult<T>(false, null);
+        }
+
+        private long _passedSince(long start) {
+            return System.currentTimeMillis() - start;
         }
     }
 
     public static abstract class Execution<T> {
 
+        long remainingMillis;
         boolean isCompleted;
         T result;
 
@@ -85,6 +93,14 @@ public class Timed {
 
         public void setResult(T result) {
             this.result = result;
+        }
+
+        public long getRemainingTime() {
+            return remainingMillis;
+        }
+
+        public void setRemainingMillis(long remainingMillis) {
+            this.remainingMillis = remainingMillis;
         }
     }
 

@@ -136,7 +136,7 @@ public class BridgeDHCPTest {
                 SshHelper.newRemoteCommand("hostname")
                          .onHost("192.168.231.10")
                          .withCredentials("ubuntu", "ubuntu")
-                         .runWithTimeout((int)TimeUnit.SECONDS.toMillis(120));
+                         .run((int)TimeUnit.SECONDS.toMillis(120));
 
         assertThat("We should have been able to connect and run a remote " +
                        "command on the machine",

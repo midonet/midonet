@@ -1,15 +1,7 @@
-/**
- * Copyright 2011 Midokura Europe SARL
+/*
+ * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.util.ssh.jsch;
-
-import com.midokura.util.ssh.SshScpFailedException;
-
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UserInfo;
+package com.midokura.util.ssh.commands;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,77 +9,71 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import static java.lang.String.format;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 12/14/11
  */
-public class JschCopyFileCommand extends JschCommand {
+public class CopyFileSshCommand {
 
-    public JschCopyFileCommand(String username, String hostname, int port,
-                               UserInfo userInfo) {
-        super(username, hostname, port, userInfo);
+    private SshSession session;
+
+    public CopyFileSshCommand(SshSession session) {
+        this.session = session;
     }
 
     public boolean doCopy(String localFile, String remoteFile,
-                         boolean directCopy, int timeout)
-    {
-        Session session = null;
-        Channel channel = null;
-        try
-        {
-            session = getJschSession(timeout);
+                          boolean directCopy, int timeout)
+        throws IOException {
+        SshExecChannel channel = null;
 
-            String command = "";
+        try {
+            String command;
 
-            if ( directCopy ) {
+            if (directCopy) {
                 command = "scp -p -t " + remoteFile;
             } else {
                 command = "scp -f " + remoteFile;
             }
 
-            channel = session.openChannel("exec");
-            ((ChannelExec)channel).setCommand(command);
+            channel = session.newExecChannel();
+            channel.setCommand(command);
 
-            if (directCopy)  {
-                return copyLocalToRemote(localFile, channel);
+            if (directCopy) {
+                return copyLocalToRemote(localFile, channel, timeout);
             } else {
-                return copyRemoteToLocal(localFile, channel);
+                return copyRemoteToLocal(localFile, channel, timeout);
             }
-
-        } catch (Exception e) {
-            throw new SshScpFailedException(String.format("Scp failed"), e);
         } finally {
-            if ( channel != null ) {
+            if (channel != null) {
                 channel.disconnect();
-            }
-
-            if ( session != null ) {
-                session.disconnect();
             }
         }
     }
 
     private boolean copyLocalToRemote(String localFileName,
-                                      Channel channel)
-        throws IOException, JSchException {
+                                      SshExecChannel channel, int timeout)
+        throws IOException {
         // get I/O streams for remote scp
         OutputStream chanOut = channel.getOutputStream();
         InputStream chanIn = channel.getInputStream();
 
-        channel.connect();
+        channel.connect(timeout);
 
-        if ( checkAck(chanIn) != 0 )
+        if (channel.checkAck(chanIn) != 0)
             return false;
 
         File localFile = new File(localFileName);
 
+        // TODO: handle the filename permissions properly
         // send "C0644 filesize filename", where filename should not include '/'
         String command =
-            String.format("C0644 %d %s\n", localFile.length(), localFile.getName());
-        sendString(chanOut, command);
+            format("C0644 %d %s\n", localFile.length(), localFile.getName());
 
-        if ( checkAck(chanIn) != 0 )
+        channel.sendString(chanOut, command);
+
+        if (channel.checkAck(chanIn) != 0)
             return false;
 
         // send a content of localFile
@@ -96,53 +82,51 @@ public class JschCopyFileCommand extends JschCommand {
         try {
             fileInputStream = new FileInputStream(localFile);
             buf = new byte[1024];
-            while(true) {
-                int len=fileInputStream.read(buf, 0, buf.length);
-                if( len <= 0 )
+            while (true) {
+                int len = fileInputStream.read(buf, 0, buf.length);
+                if (len <= 0)
                     break;
 
                 chanOut.write(buf, 0, len);
             }
         } finally {
-            if ( fileInputStream != null) {
+            if (fileInputStream != null) {
                 fileInputStream.close();
             }
         }
 
-        sendAck(chanOut);
+        channel.sendAck(chanOut);
 
-        if (checkAck(chanIn) != 0) {
-            return false;
-        }
-
-        return true;
+        return channel.checkAck(chanIn) == 0;
     }
 
-    private boolean copyRemoteToLocal(String localFile, Channel channel)
-        throws IOException, JSchException {
+    @SuppressWarnings("ConstantConditions")
+    private boolean copyRemoteToLocal(String localFile,
+                                      SshExecChannel channel, int timeout)
+        throws IOException {
 
         // get I/O streams for remote scp
         OutputStream chanOut = channel.getOutputStream();
         InputStream chanIn = channel.getInputStream();
 
-        channel.connect();
+        channel.connect(timeout);
 
         // send '\0'
-        sendAck(chanOut);
+        channel.sendAck(chanOut);
 
         byte[] buf = new byte[1024];
-        while(true){
-            int c=checkAck(chanIn);
-            if(c!='C'){
+        while (true) {
+            int c = channel.checkAck(chanIn);
+            if (c != 'C') {
                 break;
             }
 
             // read '0644 '
-            if ( chanIn.read(buf, 0, 5) != 5 ) {
+            if (chanIn.read(buf, 0, 5) != 5) {
                 return false;
             }
 
-            long fileSize=0L;
+            long fileSize = 0L;
             while (true) {
                 if (chanIn.read(buf, 0, 1) < 0) {
                     // error
@@ -158,19 +142,19 @@ public class JschCopyFileCommand extends JschCommand {
             byte readByte;
             do {
                 readByte = (byte) chanIn.read();
-            } while ( readByte != 0x0a && readByte != -1 );
+            } while (readByte != 0x0a && readByte != -1);
 
             // send '\0'
-            sendAck(chanOut);
+            channel.sendAck(chanOut);
 
             // read the content of the remote file and write to the local file
             FileOutputStream fileOutputStream = null;
             try {
                 fileOutputStream = new FileOutputStream(localFile);
                 int byteCount;
-                while(true){
+                while (true) {
                     byteCount = buf.length < fileSize
-                            ? buf.length : (int)fileSize;
+                        ? buf.length : (int) fileSize;
 
                     byteCount = chanIn.read(buf, 0, byteCount);
 
@@ -186,17 +170,17 @@ public class JschCopyFileCommand extends JschCommand {
 
                 fileOutputStream.close();
             } finally {
-                if ( fileOutputStream != null ) {
+                if (fileOutputStream != null) {
                     fileOutputStream.close();
                 }
             }
 
-            if(checkAck(chanIn)!=0){
-               return false;
+            if (channel.checkAck(chanIn) != 0) {
+                return false;
             }
 
             // send '\0'
-            sendAck(chanOut);
+            channel.sendAck(chanOut);
         }
 
         return true;

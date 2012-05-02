@@ -3,21 +3,16 @@ package com.midokura.util.process;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.ssh.jsch.JschCommand;
-import com.midokura.util.ssh.jsch.PasswordCredentialsUserInfo;
+import com.midokura.remote.RemoteHost;
+import com.midokura.util.ssh.commands.SshExecChannel;
+import com.midokura.util.ssh.SshHelper;
 
 /**
- * // TODO: Explain yourself.
+ * A Process class that abstracts a process executed across a ssh session.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 3/30/12
@@ -27,83 +22,36 @@ public class RemoteSshProcess extends Process {
     private static final Logger log = LoggerFactory
         .getLogger(RemoteSshProcess.class);
 
-    private static Pattern targetHostSpecPattern =
-        Pattern.compile("([^:]+)(?::([^@]+))@([^:]+)(?::(\\d+))");
-
-    JschCommand remoteCommand;
-    ChannelExec executionChannel;
-    Session session;
+    SshExecChannel sshExecChannel;
     String command;
 
+    public RemoteSshProcess(RemoteHost host, String commandLine)
+        throws IOException {
+        this.command = commandLine;
 
-    public RemoteSshProcess(String targetHost, String command) {
-        // user@host
-        // user@host:port
-        // user:pass@host:port
+        log.info("Launching command \"{}\" on remote host {}",
+                 command, host.getSafeName());
 
-        String user = "";
-        String pass = "";
-        String host = "";
-        int port = 0;
+        sshExecChannel =
+            SshHelper.newRemoteProcess(command)
+                     .onHost(host.getHostName(),
+                             host.getHostPort())
+                     .withCredentials(host.getUserName(),
+                                      host.getUserPass())
+                     .execute();
 
-        Matcher m = targetHostSpecPattern.matcher(targetHost);
-        if ( m.matches() ) {
-            switch (m.groupCount()) {
-                case 2:
-                    user = m.group(1);
-                    host = m.group(2);
-                    break;
-                case 4:
-                    user = m.group(1);
-                    pass = m.group(2);
-                    host = m.group(3);
-                    port = Integer.parseInt(m.group(4));
-                    break;
-                case 3:
-                    user = m.group(1);
-
-                    // temporarily assign the second to pass and the third to host
-                    pass = m.group(2);
-                    host = m.group(3);
-
-                    // check to see if we need to shift the second and third parts
-                    MatchResult matchResult = m.toMatchResult();
-
-                    // if the next char after the first group is '@' we need to
-                    // shift matched blocks
-                    if ( targetHost.charAt(matchResult.end(1) + 1) == '@' ) {
-                        pass = ""; // clean the old data
-                        host = m.group(2);
-                        port = Integer.parseInt(m.group());
-                    }
-                    break;
-            }
-        }
-
-        remoteCommand = new JschCommand(user, host, port,
-                                        new PasswordCredentialsUserInfo(
-                                            pass));
-        this.command = command;
-
-        try {
-            session = remoteCommand.getJschSession(-1);
-
-            executionChannel = (ChannelExec) session.openChannel("exec");
-            executionChannel.setCommand(command);
-            executionChannel.setPty(true);
-            executionChannel.connect();
-        } catch (JSchException e) {
-            log.error("Exception", e);
-        }
+        log.debug("Command launched successfully");
     }
 
     @Override
 
     public OutputStream getOutputStream() {
         try {
-            return executionChannel.getOutputStream();
+            return sshExecChannel.getOutputStream();
         } catch (IOException e) {
-            log.error("Exception", e);
+            log.error(
+                "Exception while retrieving an execution channel's OutputStream",
+                e);
         }
 
         return null;
@@ -113,9 +61,11 @@ public class RemoteSshProcess extends Process {
     @Override
     public InputStream getInputStream() {
         try {
-            return executionChannel.getInputStream();
+            return sshExecChannel.getInputStream();
         } catch (IOException e) {
-            log.error("Exception", e);
+            log.error(
+                "Exception while retrieving an ssh exec channel's InputStream",
+                e);
         }
 
         return null;
@@ -125,9 +75,11 @@ public class RemoteSshProcess extends Process {
     @Override
     public InputStream getErrorStream() {
         try {
-            return executionChannel.getErrStream();
+            return sshExecChannel.getErrStream();
         } catch (IOException e) {
-            log.error("Exception", e);
+            log.error(
+                "Exception while retrieving an execution channel's ErrorStream",
+                e);
         }
 
         return null;
@@ -135,21 +87,37 @@ public class RemoteSshProcess extends Process {
 
     @Override
     public int waitFor() throws InterruptedException {
-        while (!executionChannel.isClosed()) {
-            log.debug("Waiting ... ");
-            Thread.sleep(1000);
+        while (!sshExecChannel.isClosed()) {
+            log.trace("Waiting for remote process \"{}\"to close.", command);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                //
+            }
         }
 
-        return executionChannel.getExitStatus();
+        return sshExecChannel.getExitStatus();
     }
 
     @Override
     public int exitValue() {
-        return executionChannel.getExitStatus();
+        try {
+            return sshExecChannel.getExitStatus();
+        } catch (Exception e) {
+            log.error(
+                "Exception while retrieving execution channel's exit code",
+                e);
+        }
+
+        return -1;
     }
 
     @Override
     public void destroy() {
-        executionChannel.disconnect();
+        try {
+            sshExecChannel.disconnect();
+        } catch (Exception e) {
+            log.error("Exception while closing the remote execution channel.", e);
+        }
     }
 }
