@@ -44,6 +44,10 @@ public class Chain {
         this.zkRuleManager = new RuleZkManager(zkDirectory, zkBasePath);
     }
 
+    List<Rule> getRules() {
+        return rules;
+    }
+
     public String getChainName() {
         return chainName;
     }
@@ -74,84 +78,4 @@ public class Chain {
         */
     }
 
-    private class ChainPosition {
-        String chainName; // keep this for debugging.
-        List<Rule> rules;
-        int position;
-
-        public ChainPosition(String chainName, List<Rule> rules, int position) {
-            super();
-            this.chainName = chainName;
-            this.rules = rules;
-            this.position = position;
-        }
-    }
-
-    public RuleResult process(MidoMatch flowMatch, MidoMatch pktMatch,
-                              UUID inPortId, UUID outPortId) {
-
-        if (rules.size() == 0) {
-            log.debug("applyChain {} - empty, return ACCEPT", chainName);
-            return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch, false);
-        }
-
-        Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
-        chainStack.push(new ChainPosition(chainName, rules, 0));
-        Set<String> traversedChains = new HashSet<String>();
-        traversedChains.add(chainName);
-
-        RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
-                pktMatch.clone(), false);
-        while (!chainStack.empty()) {
-            ChainPosition cp = chainStack.pop();
-            while (cp.position < cp.rules.size()) {
-                // Reset the default action and jumpToChain. Keep the
-                // transformed match and trackConnection.
-                res.action = RuleResult.Action.CONTINUE;
-                res.jumpToChain = null;
-                cp.rules.get(cp.position).process(flowMatch, inPortId,
-                        outPortId, res);
-                cp.position++;
-                if (res.action.equals(RuleResult.Action.ACCEPT)
-                        || res.action.equals(RuleResult.Action.DROP)
-                        || res.action.equals(RuleResult.Action.REJECT)) {
-                    return res;
-                } else if (res.action.equals(RuleResult.Action.JUMP)) {
-                    if (traversedChains.contains(res.jumpToChain)) {
-                        // Avoid jumping to chains we've already seen.
-                        log.warn("applyChain {} cannot jump to chain {} - "
-                                + "already visited.", new Object[] { chainName, res.jumpToChain });
-                        continue;
-                    }
-
-                    Chain nextChain = null; //XXX chains.getChainByName(res.jumpToChain);
-                    if (null == nextChain) {
-                        // Let's just ignore jumps to non-existent chains.
-                        log.warn("ignoring jump to chain {} - not found.", res.jumpToChain);
-                        continue;
-                    }
-
-                    traversedChains.add(res.jumpToChain);
-                    // Remember the calling chain.
-                    chainStack.push(cp);
-                    chainStack.push(new ChainPosition(res.jumpToChain,
-                            nextChain.rules, 0));
-                    break;
-                } else if (res.action.equals(RuleResult.Action.RETURN)) {
-                    // Stop processing this chain; return to the calling chain.
-                    break;
-                } else if (res.action.equals(RuleResult.Action.CONTINUE)) {
-                    // Move on to the next rule in the same chain.
-                    continue;
-                } else {
-                    log.error("Unknown action type {} in rule chain",
-                            res.action);
-                    // TODO: Should we throw an exception?
-                    continue;
-                }
-            }
-        }
-        res.action = RuleResult.Action.ACCEPT;
-        return res;
-    }
 }
