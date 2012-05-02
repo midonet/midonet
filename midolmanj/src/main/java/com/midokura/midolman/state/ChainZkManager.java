@@ -21,7 +21,7 @@ import com.midokura.midolman.rules.Rule;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
- * 
+ *
  * @version 1.6 11 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -46,7 +46,7 @@ public class ChainZkManager extends ZkManager {
 
     /**
      * Constructor to set ZooKeeper and base path.
-     * 
+     *
      * @param zk
      *            Directory object.
      * @param basePath
@@ -59,7 +59,7 @@ public class ChainZkManager extends ZkManager {
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new chain.
-     * 
+     *
      * @param chainEntry
      *            ZooKeeper node representing a key-value entry of chain UUID
      *            and ChainConfig object.
@@ -93,7 +93,7 @@ public class ChainZkManager extends ZkManager {
 
     /**
      * Constructs a list of operations to perform in a chain deletion.
-     * 
+     *
      * @param entry
      *            Chain ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
@@ -126,7 +126,7 @@ public class ChainZkManager extends ZkManager {
 
     /**
      * Performs an atomic update on the ZooKeeper to add a new chain entry.
-     * 
+     *
      * @param chain
      *            ChainConfig object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
@@ -144,7 +144,7 @@ public class ChainZkManager extends ZkManager {
 
     /**
      * Gets a ZooKeeper node entry key-value pair of a chain with the given ID.
-     * 
+     *
      * @param id
      *            The ID of the chain.
      * @return ChainConfig object found.
@@ -152,7 +152,7 @@ public class ChainZkManager extends ZkManager {
      *             Serialization error occurred.
      */
     public ZkNodeEntry<UUID, ChainConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         byte[] data = get(pathManager.getChainPath(id), null);
         ChainConfig config = null;
         try {
@@ -168,7 +168,7 @@ public class ChainZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper chain nodes belonging to a router with the given
      * ID.
-     * 
+     *
      * @param routerId
      *            The ID of the router to find the chains of.
      * @return A list of ZooKeeper chain nodes.
@@ -183,7 +183,7 @@ public class ChainZkManager extends ZkManager {
     /**
      * Gets a list of ZooKeeper chain nodes belonging to a router with the given
      * ID.
-     * 
+     *
      * @param routerId
      *            The ID of the router to find the chains of.
      * @param watcher
@@ -208,7 +208,7 @@ public class ChainZkManager extends ZkManager {
 
     /**
      * Updates the ChainConfig values with the given ChainConfig object.
-     * 
+     *
      * @param entry
      *            ChainConfig object to save.
      * @throws ZkStateSerializationException
@@ -230,7 +230,7 @@ public class ChainZkManager extends ZkManager {
     /***
      * Deletes a chain and its related data from the ZooKeeper directories
      * atomically.
-     * 
+     *
      * @param id
      *            ID of the chain to delete.
      * @throws ZkStateSerializationException

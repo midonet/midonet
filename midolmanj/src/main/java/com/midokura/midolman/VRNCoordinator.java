@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router;
+import com.midokura.midolman.rules.PortFilteringStage;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
@@ -29,26 +30,20 @@ public class VRNCoordinator implements ForwardingElement {
                 LoggerFactory.getLogger(VRNCoordinator.class);
     private static final int MAX_HOPS = 10;
 
-    protected UUID netId;
-    private ChainZkManager chainZkMgr;
-    private RuleZkManager ruleZkMgr;
     private PortZkManager portMgr;
-    private RouteZkManager routeMgr;
-    private RouterZkManager routerMgr;
     private Reactor reactor;
     private Cache cache;
     private Map<UUID, ForwardingElement> forwardingElements;
     private Map<UUID, ForwardingElement> feByPortId;
     // These watchers are interested in routing table and rule changes.
     private Set<Callback<UUID>> watchers;
-    // This watches all routing and table changes and then notifies the others.
-    private Callback<UUID> routerWatcher;
     // TODO(pino): use Guava's CacheBuilder here.
     private Map<UUID, PortConfig> portIdToConfig;
     private Directory zkDir;
     private String zkBasePath;
     private VRNControllerIface ctrl;
     private PortSetMap portSetMap;
+    private PortFilteringStage portFilter;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
                           Cache cache, VRNControllerIface ctrl,
@@ -56,10 +51,6 @@ public class VRNCoordinator implements ForwardingElement {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
-        this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
-        this.routerMgr = new RouterZkManager(zkDir, zkBasePath);
-        this.chainZkMgr = new ChainZkManager(zkDir, zkBasePath);
-        this.ruleZkMgr = new RuleZkManager(zkDir, zkBasePath);
         this.reactor = reactor;
         this.cache = cache;
         this.ctrl = ctrl;
@@ -67,6 +58,7 @@ public class VRNCoordinator implements ForwardingElement {
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
         this.watchers = new HashSet<Callback<UUID>>();
+        this.portFilter = new PortFilteringStage(zkDir, zkBasePath);
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
     }
@@ -247,6 +239,12 @@ public class VRNCoordinator implements ForwardingElement {
         }
         fwdInfo.depth++;
         fwdInfo.addTraversedFE(fe.getId());
+
+        portFilter.processInbound(
+                fwdInfo, getPortConfig(fwdInfo.inPortId));
+        if (fwdInfo.action != Action.FORWARD)
+            return;
+
         fe.process(fwdInfo);
         if (fwdInfo.action != Action.PAUSED)
             handleProcessResult(fwdInfo);
@@ -259,10 +257,10 @@ public class VRNCoordinator implements ForwardingElement {
             log.debug("The FE is forwarding the packet from a port.");
             // If the outPort is a PortSet, the simulation is finished.
             if (portSetMap.containsKey(fwdInfo.outPortId)) {
+                // TODO(pino): implement Firewall simulation for FLOOD.
                 log.debug("FE output to port set {}", fwdInfo.outPortId);
                 return;
             }
-            // If the port is logical, the simulation continues.
             PortConfig cfg = getPortConfig(fwdInfo.outPortId);
             if (null == cfg) {
                 // Either the config wasn't found or it's not a router port.
@@ -272,6 +270,10 @@ public class VRNCoordinator implements ForwardingElement {
                 fwdInfo.action = Action.DROP;
                 return;
             }
+            portFilter.processOutbound(fwdInfo, cfg);
+            if (fwdInfo.action != Action.FORWARD)
+                return;
+            // If the port is logical, the simulation continues.
             if (cfg instanceof LogicalPortConfig) {
                 LogicalPortConfig lcfg = (LogicalPortConfig) cfg;
                 ForwardingElement fe = getForwardingElementByPort(lcfg.peerId());
