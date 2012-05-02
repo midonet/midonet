@@ -91,7 +91,7 @@ public class Chains {
     }
 
     private void addChain (UUID chainId, String chainName) {
-        Chain chain = new Chain(chainId, chainName, zkDir, zkBasePath, this);
+        Chain chain = new Chain(chainId, chainName, zkDir, zkBasePath);
         chains.put(chainId, chain);
         chainNameToUUID.put(chainName, chainId);
         //chain.updateRules();

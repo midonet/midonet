@@ -33,7 +33,7 @@ import com.midokura.midolman.packets.ICMP.UNREACH_CODE;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.rules.RuleEngine;
+import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
@@ -123,7 +123,7 @@ public class Router implements ForwardingElement {
     }
 
     protected UUID routerId;
-    protected RuleEngine ruleEngine;
+    protected ChainProcessor ruleEngine;
     protected ReplicatedRoutingTable table;
     // Note that only materialized ports are tracked. Package visibility for
     // testing.
@@ -145,8 +145,9 @@ public class Router implements ForwardingElement {
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
         RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
-        ruleEngine = new RuleEngine(zkDir, zkBasePath, routerId,
-                new NatLeaseManager(routerMgr, routerId, cache, reactor));
+        ruleEngine = new ChainProcessor(zkDir, zkBasePath,
+                new NatLeaseManager(routerMgr, routerId, cache, reactor),
+                routerId);
         table = new ReplicatedRoutingTable(routerId,
                 routerMgr.getRoutingTableDirectory(routerId),
                 CreateMode.EPHEMERAL);

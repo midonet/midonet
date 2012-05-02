@@ -34,15 +34,14 @@ public class Chain {
     private List<Rule> rules;
     private RulesWatcher rulesWatcher;
     private RuleZkManager zkRuleManager;
-    private Chains chains;
 
-    public Chain(UUID chainId, String chainName, Directory zkDirectory, String zkBasePath, Chains chains) {
+    public Chain(UUID chainId, String chainName, Directory zkDirectory,
+                 String zkBasePath) {
         this.chainId = chainId;
         this.chainName = chainName;
         this.rules = new LinkedList<Rule>();
         this.rulesWatcher = new RulesWatcher();
         this.zkRuleManager = new RuleZkManager(zkDirectory, zkBasePath);
-        this.chains = chains;
     }
 
     public String getChainName() {
@@ -58,7 +57,8 @@ public class Chain {
 
         List<Rule> newRules = new ArrayList<Rule>();
 
-        List<ZkNodeEntry<UUID, Rule>> entries = zkRuleManager.list(chainId, rulesWatcher);
+        List<ZkNodeEntry<UUID, Rule>> entries =
+            zkRuleManager.list(chainId, rulesWatcher);
         for (ZkNodeEntry<UUID, Rule> entry : entries) {
             newRules.add(entry.value);
         }
@@ -87,8 +87,8 @@ public class Chain {
         }
     }
 
-    public RuleResult process(MidoMatch flowMatch,
-                              MidoMatch pktMatch, UUID inPortId, UUID outPortId) {
+    public RuleResult process(MidoMatch flowMatch, MidoMatch pktMatch,
+                              UUID inPortId, UUID outPortId) {
 
         if (rules.size() == 0) {
             log.debug("applyChain {} - empty, return ACCEPT", chainName);
@@ -124,7 +124,7 @@ public class Chain {
                         continue;
                     }
 
-                    Chain nextChain = chains.getChainByName(res.jumpToChain);
+                    Chain nextChain = null; //XXX chains.getChainByName(res.jumpToChain);
                     if (null == nextChain) {
                         // Let's just ignore jumps to non-existent chains.
                         log.warn("ignoring jump to chain {} - not found.", res.jumpToChain);
