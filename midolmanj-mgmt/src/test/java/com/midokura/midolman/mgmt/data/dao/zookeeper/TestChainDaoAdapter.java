@@ -20,11 +20,9 @@ import org.junit.Test;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Rule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 import static org.mockito.Matchers.any;
@@ -50,7 +48,6 @@ public class TestChainDaoAdapter {
         chain.setId(id);
         chain.setName("foo");
         chain.setRouterId(UUID.randomUUID());
-        chain.setTable(DtoRuleChain.ChainTable.NAT);
         return chain;
     }
 
@@ -58,12 +55,6 @@ public class TestChainDaoAdapter {
         ChainConfig config = new ChainConfig();
         config.name = name;
         config.routerId = routerId;
-        return config;
-    }
-
-    private static ChainMgmtConfig createTestChainMgmtConfig(ChainTable table) {
-        ChainMgmtConfig config = new ChainMgmtConfig();
-        config.table = table;
         return config;
     }
 
@@ -137,18 +128,11 @@ public class TestChainDaoAdapter {
         verify(daoMock, times(1)).multi(ops);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateWithBuiltInChainName() throws Exception {
-        Chain chain = createTestNatChain(UUID.randomUUID());
-        chain.setName(ChainTable.getBuiltInChainNames(ChainTable.NAT)[0]);
-        adapter.create(chain);
-    }
-
     @Test
     public void testDeleteSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
 
         List<Op> ops = createTestDeleteOps();
 
@@ -166,9 +150,7 @@ public class TestChainDaoAdapter {
     public void testDeleteBuiltInChain() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
-        config.name = ChainTable.getBuiltInChainNames(ChainTable.NAT)[0];
-
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(daoMock.exists(id)).thenReturn(true);
@@ -177,22 +159,10 @@ public class TestChainDaoAdapter {
     }
 
     @Test
-    public void testGenerateBuiltInChainsSuccess() throws Exception {
-        UUID routerId = UUID.randomUUID();
-
-        List<Chain> chains = adapter.generateBuiltInChains(routerId);
-
-        for (Chain chain : chains) {
-            Assert.assertTrue(ChainTable.isBuiltInChainName(chain.getTable(),
-                    chain.getName()));
-        }
-    }
-
-    @Test
     public void testGetSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
 
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
@@ -203,39 +173,13 @@ public class TestChainDaoAdapter {
         Assert.assertEquals(id, chain.getId());
         Assert.assertEquals(config.routerId, chain.getRouterId());
         Assert.assertEquals(config.name, chain.getName());
-        Assert.assertEquals(Enum.valueOf(DtoRuleChain.ChainTable.class,
-                mgmtConfig.table.name()), chain.getTable());
-    }
-
-    @Test
-    public void testGetByTableSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
-        ChainNameMgmtConfig nameConfig = createTestChainNameMgmtConfig(id);
-
-        when(daoMock.getData(id)).thenReturn(config);
-        when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(
-                daoMock.getNameData(config.routerId, mgmtConfig.table,
-                        config.name)).thenReturn(nameConfig);
-        when(daoMock.exists(id)).thenReturn(true);
-
-        Chain chain = adapter.get(config.routerId, mgmtConfig.table,
-                config.name);
-
-        Assert.assertEquals(id, chain.getId());
-        Assert.assertEquals(config.routerId, chain.getRouterId());
-        Assert.assertEquals(config.name, chain.getName());
-        Assert.assertEquals(Enum.valueOf(DtoRuleChain.ChainTable.class,
-                mgmtConfig.table.name()), chain.getTable());
     }
 
     @Test
     public void testGetByRuleSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
         Rule rule = createTestRule(UUID.randomUUID(), id);
 
         when(daoMock.exists(id)).thenReturn(true);
@@ -248,47 +192,21 @@ public class TestChainDaoAdapter {
         Assert.assertEquals(id, chain.getId());
         Assert.assertEquals(config.routerId, chain.getRouterId());
         Assert.assertEquals(config.name, chain.getName());
-        Assert.assertEquals(Enum.valueOf(DtoRuleChain.ChainTable.class,
-                mgmtConfig.table.name()), chain.getTable());
     }
 
     @Test
     public void testListSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
         ChainConfig config = createTestChainConfig("foo", routerId);
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
+        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
 
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-            Set<String> ids = createTestIds(3);
-            when(daoMock.getIds(routerId, chainTable)).thenReturn(ids);
-        }
+        Set<String> ids = createTestIds(3);
+        when(daoMock.getIds(routerId)).thenReturn(ids);
         when(daoMock.getData(any(UUID.class))).thenReturn(config);
         when(daoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
 
         List<Chain> chains = adapter.list(routerId);
-
-        int builtInChainNum = ChainTable.values().length;
-        Assert.assertEquals(builtInChainNum * 3, chains.size());
-    }
-
-    @Test
-    public void testListByTableSuccess() throws Exception {
-        UUID routerId = UUID.randomUUID();
-        Set<String> ids = createTestIds(3);
-        ChainConfig config = createTestChainConfig("foo", routerId);
-        ChainMgmtConfig mgmtConfig = createTestChainMgmtConfig(ChainTable.NAT);
-
-        when(daoMock.getIds(routerId, ChainTable.NAT)).thenReturn(ids);
-        when(daoMock.getData(any(UUID.class))).thenReturn(config);
-        when(daoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
-        when(daoMock.exists(any(UUID.class))).thenReturn(true);
-
-        List<Chain> chains = adapter.list(routerId, ChainTable.NAT);
-
         Assert.assertEquals(3, chains.size());
-        for (Chain chain : chains) {
-            Assert.assertTrue(ids.contains(chain.getId().toString()));
-        }
     }
 
 }

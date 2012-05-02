@@ -20,7 +20,6 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.RouterZkManager;
 
 public class TestRouterOpBuilder {
@@ -128,88 +127,6 @@ public class TestRouterOpBuilder {
         builder.getRouterSetDataOp(dummyId, dummyMgmtConfig);
 
         verify(zkDaoMock, times(1)).getSetDataOp(dummyPath, dummyBytes);
-    }
-
-    @Test
-    public void testCreateTableChainNamesOpSuccess() throws Exception {
-        when(
-                pathBuilderMock.getRouterTableChainNamesPath(dummyId,
-                        ChainTable.NAT)).thenReturn(dummyPath);
-
-        builder.getRouterTableChainNamesCreateOp(dummyId, ChainTable.NAT);
-
-        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
-    }
-
-    @Test
-    public void testDeleteTableChainNamesOpSuccess() throws Exception {
-        when(
-                pathBuilderMock.getRouterTableChainNamesPath(dummyId,
-                        ChainTable.NAT)).thenReturn(dummyPath);
-
-        builder.getRouterTableChainNamesDeleteOp(dummyId, ChainTable.NAT);
-
-        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
-    }
-
-    @Test
-    public void testCreateTableChainsOpSuccess() throws Exception {
-        when(pathBuilderMock.getRouterTableChainsPath(dummyId, ChainTable.NAT))
-                .thenReturn(dummyPath);
-
-        builder.getRouterTableChainsCreateOp(dummyId, ChainTable.NAT);
-
-        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
-    }
-
-    @Test
-    public void testDeleteTableChainsOpSuccess() throws Exception {
-        when(pathBuilderMock.getRouterTableChainsPath(dummyId, ChainTable.NAT))
-                .thenReturn(dummyPath);
-
-        builder.getRouterTableChainsDeleteOp(dummyId, ChainTable.NAT);
-
-        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
-    }
-
-    @Test
-    public void testCreateTableOpSuccess() throws Exception {
-        when(pathBuilderMock.getRouterTablePath(dummyId, ChainTable.NAT))
-                .thenReturn(dummyPath);
-
-        builder.getRouterTableCreateOp(dummyId, ChainTable.NAT);
-
-        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
-    }
-
-    @Test
-    public void testDeleteTableOpSuccess() throws Exception {
-        when(pathBuilderMock.getRouterTablePath(dummyId, ChainTable.NAT))
-                .thenReturn(dummyPath);
-
-        builder.getRouterTableDeleteOp(dummyId, ChainTable.NAT);
-
-        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
-    }
-
-    @Test
-    public void testCreateTablesOpSuccess() throws Exception {
-        when(pathBuilderMock.getRouterTablesPath(dummyId))
-                .thenReturn(dummyPath);
-
-        builder.getRouterTablesCreateOp(dummyId);
-
-        verify(zkDaoMock, times(1)).getPersistentCreateOp(dummyPath, null);
-    }
-
-    @Test
-    public void testDeleteTablesOpSuccess() throws Exception {
-        when(pathBuilderMock.getRouterTablesPath(dummyId))
-                .thenReturn(dummyPath);
-
-        builder.getRouterTablesDeleteOp(dummyId);
-
-        verify(zkDaoMock, times(1)).getDeleteOp(dummyPath);
     }
 
     @Test

@@ -15,7 +15,6 @@ import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -122,83 +121,5 @@ public class TestChainOpBuilder {
     @Test(expected = IllegalArgumentException.class)
     public void testGetChainDeleteOpsBadInputError() throws Exception {
         builder.getChainDeleteOps(null);
-    }
-
-    @Test
-    public void testGetRouterTableChainCreateOpSuccess() throws Exception {
-        Mockito.when(
-                pathBuilderMock.getRouterTableChainPath(dummyRouterId,
-                        ChainTable.NAT, dummyId)).thenReturn(dummyPath);
-
-        builder.getRouterTableChainCreateOp(dummyRouterId, ChainTable.NAT,
-                dummyId);
-
-        Mockito.verify(zkDaoMock, Mockito.times(1)).getPersistentCreateOp(
-                dummyPath, null);
-    }
-
-    @Test
-    public void testGetRouterTableChainDeleteOpSuccess() throws Exception {
-        Mockito.when(
-                pathBuilderMock.getRouterTableChainPath(dummyRouterId,
-                        ChainTable.NAT, dummyId)).thenReturn(dummyPath);
-
-        builder.getRouterTableChainDeleteOp(dummyRouterId, ChainTable.NAT,
-                dummyId);
-
-        Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetRouterTableChainDeleteOpBadInput() throws Exception {
-        builder.getRouterTableChainDeleteOp(null, null, null);
-    }
-
-    @Test
-    public void testGetRouterTableChainNameCreateOpSuccess() throws Exception {
-        Mockito.when(
-                pathBuilderMock.getRouterTableChainNamePath(dummyId,
-                        ChainTable.NAT, dummyChain)).thenReturn(dummyPath);
-        Mockito.when(serializerMock.serialize(dummyNameConfig)).thenReturn(
-                dummyBytes);
-
-        builder.getRouterTableChainNameCreateOp(dummyId, ChainTable.NAT,
-                dummyChain, dummyNameConfig);
-
-        Mockito.verify(zkDaoMock, Mockito.times(1)).getPersistentCreateOp(
-                dummyPath, dummyBytes);
-    }
-
-    @Test(expected = ZkStateSerializationException.class)
-    public void testGetRouterTableChainNameCreateOpSerializationError()
-            throws Exception {
-        Mockito.doThrow(ZkStateSerializationException.class)
-                .when(serializerMock).serialize(dummyNameConfig);
-        builder.getRouterTableChainNameCreateOp(dummyId, ChainTable.NAT,
-                dummyChain, dummyNameConfig);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetRouterTableChainNameCreateOpBadInputError()
-            throws Exception {
-        builder.getRouterTableChainNameCreateOp(null, null, null, null);
-    }
-
-    @Test
-    public void testGetRouterTableChainNameDeleteOpSuccess() throws Exception {
-        Mockito.when(
-                pathBuilderMock.getRouterTableChainNamePath(dummyRouterId,
-                        ChainTable.NAT, dummyChain)).thenReturn(dummyPath);
-
-        builder.getRouterTableChainNameDeleteOp(dummyRouterId, ChainTable.NAT,
-                dummyChain);
-
-        Mockito.verify(zkDaoMock, Mockito.times(1)).getDeleteOp(dummyPath);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetRouterTableChainNameDeleteOpBadInputError()
-            throws Exception {
-        builder.getRouterTableChainNameDeleteOp(null, null, null);
     }
 }

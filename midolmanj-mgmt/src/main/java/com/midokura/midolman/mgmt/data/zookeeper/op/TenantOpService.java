@@ -28,6 +28,7 @@ public class TenantOpService {
             .getLogger(TenantOpService.class);
     private final TenantZkDao zkDao;
     private final TenantOpBuilder opBuilder;
+    private final ChainOpService chainOpService;
     private final BridgeOpService bridgeOpService;
     private final RouterOpService routerOpService;
 
@@ -45,10 +46,11 @@ public class TenantOpService {
      */
     public TenantOpService(TenantOpBuilder opBuilder,
             BridgeOpService bridgeOpService, RouterOpService routerOpService,
-            TenantZkDao zkDao) {
+            TenantZkDao zkDao, ChainOpService chainOpService) {
         this.opBuilder = opBuilder;
         this.bridgeOpService = bridgeOpService;
         this.routerOpService = routerOpService;
+        this.chainOpService = chainOpService;
         this.zkDao = zkDao;
     }
 
@@ -68,8 +70,10 @@ public class TenantOpService {
         ops.add(opBuilder.getTenantCreateOp(id));
         ops.add(opBuilder.getTenantBridgesCreateOp(id));
         ops.add(opBuilder.getTenantRoutersCreateOp(id));
+        ops.add(opBuilder.getTenantChainsCreateOp(id));
         ops.add(opBuilder.getTenantBridgeNamesCreateOp(id));
         ops.add(opBuilder.getTenantRouterNamesCreateOp(id));
+        ops.add(opBuilder.getTenantChainNamesCreateOp(id));
 
         log.debug("TenantOpService.buildCreate exiting: ops count={}",
                 ops.size());
@@ -94,11 +98,14 @@ public class TenantOpService {
 
         List<Op> ops = new ArrayList<Op>();
 
+        ops.addAll(chainOpService.buildTenantChainsDelete(id));
         ops.addAll(routerOpService.buildTenantRoutersDelete(id));
         ops.addAll(bridgeOpService.buildTenantBridgesDelete(id));
 
+        ops.add(opBuilder.getTenantChainNamesDeleteOp(id));
         ops.add(opBuilder.getTenantRouterNamesDeleteOp(id));
         ops.add(opBuilder.getTenantBridgeNamesDeleteOp(id));
+        ops.add(opBuilder.getTenantChainsDeleteOp(id));
         ops.add(opBuilder.getTenantRoutersDeleteOp(id));
         ops.add(opBuilder.getTenantBridgesDeleteOp(id));
         ops.add(opBuilder.getTenantDeleteOp(id));

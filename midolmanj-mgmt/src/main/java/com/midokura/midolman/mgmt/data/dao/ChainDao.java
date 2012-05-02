@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.StateAccessException;
 /**
  * Chain DAO interface.
@@ -41,15 +40,6 @@ public interface ChainDao {
     void delete(UUID id) throws StateAccessException;
 
     /**
-     * Create a list of built-in Chains belonging to a router.
-     *
-     * @param routerId
-     *            Router ID to create the Chains for.
-     * @return A list of Chain objects with randomly generated ID.
-     */
-    List<Chain> generateBuiltInChains(UUID routerId);
-
-    /**
      * @param id
      *            ID of the chain to get.
      * @return Chain object.
@@ -59,17 +49,15 @@ public interface ChainDao {
     Chain get(UUID id) throws StateAccessException;
 
     /**
-     * @param routerId
-     *            ID of the router in which the chain belongs to.
-     * @param table
-     *            Name of the table in which the chain belongs to.
+     * @param tenantId
+     *            ID of the tenant to which the chain belongs.
      * @param name
      *            Name of the chain to fetch.
      * @return Chain object.
      * @throws StateAccessException
      *             Data access error.
      */
-    Chain get(UUID routerId, ChainTable table, String name)
+    Chain get(UUID tenantId, String name)
             throws StateAccessException;
 
     /**
@@ -84,23 +72,12 @@ public interface ChainDao {
     Chain getByRule(UUID ruleId) throws StateAccessException;
 
     /**
-     * @param routerId
-     *            ID of the router for which to get the chains.
+     * @param tenantId
+     *            ID of the tenant to which the chain belongs.
      * @return A list of Chain objects.
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Chain> list(UUID routerId) throws StateAccessException;
-
-    /**
-     * @param routerId
-     *            ID of the router in which the chain belongs to.
-     * @param table
-     *            Name of the table in which the chain belongs to.
-     * @return A list of Chain objects.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    List<Chain> list(UUID routerId, ChainTable table)
+    List<Chain> list(UUID tenantId)
             throws StateAccessException;
 }

@@ -22,7 +22,6 @@ import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -84,14 +83,13 @@ public class TestChainZkDao {
         UUID routerId = UUID.randomUUID();
         String chainName = "foo";
         Mockito.when(
-                pathBuilderMock.getRouterTableChainNamePath(routerId,
-                        ChainTable.NAT, chainName)).thenReturn(dummyPath);
+                pathBuilderMock.getTenantChainNamePath(routerId, chainName))
+                .thenReturn(dummyPath);
         Mockito.when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
         Mockito.when(serializerMock.deserializeName(dummyBytes)).thenReturn(
                 dummyNameConfig);
 
-        ChainNameMgmtConfig config = dao.getNameData(routerId, ChainTable.NAT,
-                chainName);
+        ChainNameMgmtConfig config = dao.getNameData(routerId, chainName);
 
         Assert.assertEquals(dummyNameConfig, config);
     }
@@ -100,12 +98,12 @@ public class TestChainZkDao {
     public void testGetNameDataDataAccessError() throws Exception {
         Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
                 .get(Mockito.anyString());
-        dao.getNameData(UUID.randomUUID(), ChainTable.NAT, "foo");
+        dao.getNameData(UUID.randomUUID(), "foo");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetNameDataDataBadInput() throws Exception {
-        dao.getNameData(null, null, null);
+        dao.getNameData(null, null);
     }
 
     @Test
@@ -135,12 +133,12 @@ public class TestChainZkDao {
     public void testGetIdsSuccess() throws Exception {
         UUID routerId = UUID.randomUUID();
         Mockito.when(
-                pathBuilderMock.getRouterTableChainsPath(routerId,
-                        ChainTable.NAT)).thenReturn(dummyPath);
+                pathBuilderMock.getTenantChainsPath(routerId))
+                .thenReturn(dummyPath);
         Mockito.when(zkDaoMock.getChildren(dummyPath, null)).thenReturn(
                 dummyIds);
 
-        Set<String> ids = dao.getIds(routerId, ChainTable.NAT);
+        Set<String> ids = dao.getIds(routerId);
 
         Assert.assertArrayEquals(dummyIds.toArray(), ids.toArray());
     }
@@ -151,12 +149,12 @@ public class TestChainZkDao {
                 .when(zkDaoMock)
                 .getChildren(Mockito.anyString(),
                         (Runnable) Mockito.anyObject());
-        dao.getIds(UUID.randomUUID(), ChainTable.NAT);
+        dao.getIds(UUID.randomUUID());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetIdsBadInput() throws Exception {
-        dao.getIds(null, null);
+        dao.getIds(null);
     }
 
     @Test
@@ -191,12 +189,6 @@ public class TestChainZkDao {
         ChainConfig config = dao.constructChainConfig(name, routerId);
         Assert.assertEquals(routerId, config.routerId);
         Assert.assertEquals(name, config.name);
-    }
-
-    @Test
-    public void testConstructChainMgmtConfig() throws Exception {
-        ChainMgmtConfig config = dao.constructChainMgmtConfig(ChainTable.NAT);
-        Assert.assertEquals(ChainTable.NAT, config.table);
     }
 
     @Test

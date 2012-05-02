@@ -8,13 +8,6 @@ package com.midokura.midolman.mgmt.rest_api;
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
-
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -22,6 +15,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+
 
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
@@ -88,8 +87,6 @@ public class TestChain extends JerseyTest {
         DtoRuleChain ruleChain = new DtoRuleChain();
 
         ruleChain.setName("foo_chain");
-        ruleChain.setTable(DtoRuleChain.ChainTable.NAT);
-
         // Create a chain
         URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
         response = resource().uri(routerChainUri).type(APPLICATION_CHAIN_JSON).post(ClientResponse.class, ruleChain);
@@ -115,13 +112,4 @@ public class TestChain extends JerseyTest {
         assertEquals(204, response.getStatus());
     }
 
-    @Test
-    public void testChainTableTranslate() {
-        assertEquals(DtoRuleChain.ChainTable.NAT,
-                Enum.valueOf(DtoRuleChain.ChainTable.class,
-                        ChainTable.NAT.name()));
-        assertEquals(ChainTable.NAT,
-                Enum.valueOf(ChainTable.class,
-                        DtoRuleChain.ChainTable.NAT.name()));
-    }
 }

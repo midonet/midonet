@@ -16,7 +16,6 @@ import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -99,7 +98,7 @@ public class ChainOpBuilder {
             throw new IllegalArgumentException("ID and config cannot be null");
         }
         log.debug("ChainOpBuilder.getChainCreateOps entered: id=" + id
-                + ", name=" + config.name + ", routerId=" + config.routerId);
+                + ", name=" + config.name + ", ownerId=" + config.routerId);
 
         ZkNodeEntry<UUID, ChainConfig> chainNode = new ZkNodeEntry<UUID, ChainConfig>(
                 id, config);
@@ -137,132 +136,89 @@ public class ChainOpBuilder {
      * ChainOpService chain the handlers of Midolman Chain OpBuilders
      * appropriately.
      *
-     * @param id
+     * @param chainId
      *            ID of the chain
      * @return List of Op objects.
      * @throws StateAccessException
      *             Data access error.
      */
-    public List<Op> getChainDeleteOps(UUID id) throws StateAccessException {
-        if (id == null) {
+    public List<Op> getChainDeleteOps(UUID chainId) throws StateAccessException {
+        if (chainId == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
-        log.debug("ChainOpBuilder.getChainDeleteOps entered: id={}", id);
-
-        List<Op> ops = zkDao.prepareChainDelete(id);
-
-        log.debug("ChainOpBuilder.getChainDeleteOps exiting: ops count={}",
-                ops.size());
-        return ops;
+        return zkDao.prepareChainDelete(chainId);
     }
 
     /**
-     * Get the tenant router create Op object.
+     * Get the tenant chain create Op object.
      *
-     * @param routerId
-     *            ID of the router
-     * @param table
-     *            ChainTable value.
-     * @param id
+     * @param tenantId
+     *            ID of the tenant
+     * @param chainId
      *            ID of the chain.
-     * @return Op for router table chain create.
+     * @return Op for tenant chain create.
      */
-    public Op getRouterTableChainCreateOp(UUID routerId, ChainTable table,
-            UUID id) {
-        log.debug("ChainOpBuilder.getRouterTableChainCreateOp entered: routerId="
-                + routerId + ", table=" + table + ", id=" + id);
-
-        String path = pathBuilder.getRouterTableChainPath(routerId, table, id);
-        Op op = zkDao.getPersistentCreateOp(path, null);
-
-        log.debug("ChainOpBuilder.getRouterTableChainCreateOp exiting.");
-        return op;
+    public Op getTenantChainCreateOp(UUID tenantId, UUID chainId) {
+        return zkDao.getPersistentCreateOp(
+                pathBuilder.getTenantChainPath(tenantId, chainId), null);
     }
 
     /**
-     * Get the tenant router delete Op object.
+     * Get the tenant chain delete Op object.
      *
-     * @param routerId
-     *            ID of the router
-     * @param table
-     *            ChainTable value.
-     * @param id
+     * @param tenantId
+     *            ID of the tenant
+     * @param chainId
      *            ID of the chain.
-     * @return Op for router table chain delete.
+     * @return Op for tenant chain delete.
      */
-    public Op getRouterTableChainDeleteOp(UUID routerId, ChainTable table,
-            UUID id) {
-        if (routerId == null || id == null || table == null) {
+    public Op getTenantChainDeleteOp(UUID tenantId, UUID chainId) {
+        if (tenantId == null || chainId == null) {
             throw new IllegalArgumentException(
-                    "Table, ID and routerId cannot be null");
+                    "tenantId and chainId cannot be null");
         }
-        log.debug("ChainOpBuilder.getRouterTableChainDeleteOp entered: routerId="
-                + routerId + ", table=" + table + ",id=" + id);
-
-        String path = pathBuilder.getRouterTableChainPath(routerId, table, id);
-        Op op = zkDao.getDeleteOp(path);
-
-        log.debug("ChainOpBuilder.getRouterTableChainDeleteOp exiting.");
-        return op;
+        String path = pathBuilder.getTenantChainPath(tenantId, chainId);
+        return zkDao.getDeleteOp(path);
     }
 
     /**
-     * Get the router table chain name create Op object.
+     * Get the tenant chain name create Op object.
      *
-     * @param id
-     *            ID of the router
-     * @param table
-     *            ChainTable value.
-     * @param name
+     * @param tenantId
+     *            ID of the tenant
+     * @param chainName
      *            Name of the chain.
      * @param config
      *            ChainNameMgmtConfig object to add to the path.
-     * @return Op for router table chain name create.
+     * @return Op for tenant chain name create.
      */
-    public Op getRouterTableChainNameCreateOp(UUID routerId, ChainTable table,
-            String name, ChainNameMgmtConfig config)
+    public Op getTenantChainNameCreateOp(UUID tenantId, String chainName,
+                                         ChainNameMgmtConfig config)
             throws ZkStateSerializationException {
-        if (routerId == null || name == null || table == null || config == null) {
+        if (tenantId == null || chainName == null || config == null) {
             throw new IllegalArgumentException(
-                    "Table, config, name and routerId cannot be null");
+                    "tenantId, config, and chainName cannot be null");
         }
-        log.debug("ChainOpBuilder.getRouterTableChainNameCreateOp entered: routerId="
-                + routerId + ", table=" + table + ", name=" + name);
-
-        String path = pathBuilder.getRouterTableChainNamePath(routerId, table,
-                name);
+        String path = pathBuilder.getTenantChainNamePath(tenantId, chainName);
         byte[] data = serializer.serialize(config);
-        Op op = zkDao.getPersistentCreateOp(path, data);
-
-        log.debug("ChainOpBuilder.getRouterTableChainNameCreateOp exiting.");
-        return op;
+        return zkDao.getPersistentCreateOp(path, data);
     }
 
     /**
-     * Get the router table chain name delete Op object.
+     * Get the tenant chain name delete Op object.
      *
-     * @param id
-     *            ID of the router
-     * @param table
-     *            ChainTable value.
-     * @param name
+     * @param tenantId
+     *            ID of the tenant.
+     * @param chainName
      *            Name of the chain.
-     * @return Op for router table chain name delete.
+     * @return Op for tenant chain name delete.
      */
-    public Op getRouterTableChainNameDeleteOp(UUID routerId, ChainTable table,
-            String name) {
-        if (routerId == null || name == null || table == null) {
+    public Op getTenantChainNameDeleteOp(UUID tenantId, String chainName) {
+        if (tenantId == null || chainName == null) {
             throw new IllegalArgumentException(
-                    "Table, name and routerId cannot be null");
+                    "tenantId and chainName cannot be null");
         }
-        log.debug("ChainOpBuilder.getRouterTableChainNameDeleteOp entered: routerId="
-                + routerId + ", table=" + table + ", name=" + name);
-
-        String path = pathBuilder.getRouterTableChainNamePath(routerId, table,
-                name);
-        Op op = zkDao.getDeleteOp(path);
-
-        log.debug("ChainOpBuilder.getRouterTableChainNameDeleteOp exiting.");
-        return op;
+        String path = pathBuilder.getTenantChainNamePath(tenantId, chainName);
+        return zkDao.getDeleteOp(path);
     }
 }

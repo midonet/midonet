@@ -5,6 +5,7 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
@@ -127,6 +128,18 @@ public class TenantResource {
     @Path("/{id}" + ResourceUriBuilder.BRIDGES)
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
         return new TenantBridgeResource(id);
+    }
+
+    /**
+     * Chain resource locator for tenants
+     *
+     * @param id
+     *            Tenant ID from the request.
+     * @returns TenantChainResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.CHAINS)
+    public TenantChainResource getChainResource(@PathParam("id") String id) {
+        return new TenantChainResource(UUID.fromString(id));
     }
 
     /**

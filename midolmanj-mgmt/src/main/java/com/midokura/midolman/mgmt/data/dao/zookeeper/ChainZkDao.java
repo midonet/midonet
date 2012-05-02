@@ -16,7 +16,6 @@ import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
@@ -92,25 +91,27 @@ public class ChainZkDao {
     }
 
     /**
-     * Get the name data for the given chain.
+     * Get the data for the given chain by name.
      *
-     * @param id
-     *            ID of the chain.
+     * @param tenantId
+     *            ID of the Tenant that owns the chain.
+     * @param chainName
+     *            Name of the chain.
      * @return ChainNameMgmtConfig stored in ZK.
      * @throws StateAccessException
      *             Data access error.
      */
-    public ChainNameMgmtConfig getNameData(UUID routerId, ChainTable table,
-            String name) throws StateAccessException {
-        if (routerId == null || table == null || name == null) {
+    public ChainNameMgmtConfig getNameData(UUID tenantId, String chainName)
+            throws StateAccessException {
+        if (tenantId == null || chainName == null) {
             throw new IllegalArgumentException(
-                    "routerId, table and name cannot be null");
+                    "routerId, chain name cannot be null");
         }
-        log.debug("ChainZkDao.getNameData entered: routerId=" + routerId
-                + ", table=" + table + ", name=" + name);
+        log.debug("ChainZkDao.getNameData entered: routerId=" + tenantId
+                + ", name=" + chainName);
 
-        String path = pathBuilder.getRouterTableChainNamePath(routerId, table,
-                name.toLowerCase());
+        String path = pathBuilder.getTenantChainNamePath(tenantId,
+                chainName.toLowerCase());
         byte[] data = zkDao.get(path);
         ChainNameMgmtConfig config = serializer.deserializeName(data);
 
@@ -140,25 +141,21 @@ public class ChainZkDao {
     }
 
     /**
-     * Get a set of chain IDs for a given router's table.
+     * Get a set of chain IDs for a given tenant.
      *
-     * @param routerId
-     *            ID of the router.
-     * @param table
-     *            ChainTable value.
+     * @param tenantId
+     *            ID of the tenant.
      * @return Set of chain IDs.
      * @throws StateAccessException
      *             Data access error.
      */
-    public Set<String> getIds(UUID routerId, ChainTable table)
+    public Set<String> getIds(UUID tenantId)
             throws StateAccessException {
-        if (routerId == null || table == null) {
+        if (tenantId == null) {
             throw new IllegalArgumentException(
-                    "routerId and table cannot be null");
+                    "tenantId cannot be null");
         }
-        log.debug("ChainZkDao.getIds entered: routerId=" + routerId
-                + ", table=" + table);
-        String path = pathBuilder.getRouterTableChainsPath(routerId, table);
+        String path = pathBuilder.getTenantChainsPath(tenantId);
         Set<String> ids = zkDao.getChildren(path, null);
 
         log.debug("ChainZkDao.getIds exiting: path=" + path + " ids count="
@@ -193,17 +190,6 @@ public class ChainZkDao {
      */
     public ChainConfig constructChainConfig(String name, UUID routerId) {
         return new ChainConfig(name, routerId);
-    }
-
-    /**
-     * Construct a new ChainMgmtConfig object.
-     *
-     * @param table
-     *            ChainTable object
-     * @return ChainMgmtConfig object
-     */
-    public ChainMgmtConfig constructChainMgmtConfig(ChainTable table) {
-        return new ChainMgmtConfig(table);
     }
 
     /**

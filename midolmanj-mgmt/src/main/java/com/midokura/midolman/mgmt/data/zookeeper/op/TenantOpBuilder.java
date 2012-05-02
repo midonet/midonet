@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
+import java.util.UUID;
+
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,6 +224,54 @@ public class TenantOpBuilder {
 
         log.debug("TenantOpBuilder.getTenantRouterNamesDeleteOp exiting.");
         return op;
+    }
+
+    /**
+     * Get the tenant chain names create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant chain names create.
+     */
+    public Op getTenantChainNamesCreateOp(String id) {
+        return zkDao.getPersistentCreateOp(
+                pathBuilder.getTenantChainNamesPath(UUID.fromString(id)), null);
+    }
+
+    /**
+     * Get the tenant chain names delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant chain names delete.
+     */
+    public Op getTenantChainNamesDeleteOp(String id) {
+        return zkDao.getDeleteOp(pathBuilder.getTenantChainNamesPath(
+                UUID.fromString(id)));
+    }
+
+    /**
+     * Get the tenant chains create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant chains create.
+     */
+    public Op getTenantChainsCreateOp(String id) {
+        return zkDao.getPersistentCreateOp(
+                pathBuilder.getTenantChainsPath(UUID.fromString(id)), null);
+    }
+
+    /**
+     * Get the tenant chains delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant chains delete.
+     */
+    public Op getTenantChainsDeleteOp(String id) {
+        return zkDao.getDeleteOp(pathBuilder.getTenantChainsPath(
+                UUID.fromString(id)));
     }
 
 }

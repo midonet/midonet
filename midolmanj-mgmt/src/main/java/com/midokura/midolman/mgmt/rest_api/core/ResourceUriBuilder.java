@@ -23,7 +23,6 @@ public class ResourceUriBuilder {
     public static final String DHCP_HOSTS = "/hosts";
     public static final String PORTS = "/ports";
     public static final String CHAINS = "/chains";
-    public static final String TABLES = "/tables";
     public static final String RULES = "/rules";
     public static final String ROUTES = "/routes";
     public static final String VIFS = "/vifs";

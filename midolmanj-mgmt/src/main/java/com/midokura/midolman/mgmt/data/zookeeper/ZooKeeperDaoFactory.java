@@ -336,8 +336,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     }
 
     private RouterOpService getRouterOpService() throws StateAccessException {
-        return new RouterOpService(getRouterOpBuilder(), getChainOpService(),
-                getPortOpService(), getBridgeOpBuilder(), getRouterZkDao());
+        return new RouterOpService(getRouterOpBuilder(), getPortOpService(),
+                getBridgeOpBuilder(), getRouterZkDao());
     }
 
     private RouterSerializer getRouterSerializer() {
@@ -387,7 +387,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private TenantOpService getTenantOpService() throws StateAccessException {
         return new TenantOpService(getTenantOpBuilder(), getBridgeOpService(),
-                getRouterOpService(), getTenantZkDao());
+                getRouterOpService(), getTenantZkDao(), getChainOpService());
     }
 
     /*

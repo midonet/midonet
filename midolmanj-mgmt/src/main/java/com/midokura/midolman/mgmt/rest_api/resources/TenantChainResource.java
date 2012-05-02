@@ -12,6 +12,8 @@ import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -32,9 +34,9 @@ import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Sub-resource class for router's table chains.
+ * Sub-resource class for tenant's chains.
  */
-public class RouterChainResource {
+public class TenantChainResource {
 
     private final UUID routerId;
 
@@ -44,7 +46,7 @@ public class RouterChainResource {
      * @param routerId
      *            ID of a router.
      */
-    public RouterChainResource(UUID routerId) {
+    public TenantChainResource(UUID routerId) {
         this.routerId = routerId;
     }
 
@@ -121,5 +123,45 @@ public class RouterChainResource {
             }
         }
         return chains;
+    }
+
+    /**
+     * Handler to getting a chain.
+     *
+     * @param name
+     *            Chain name from the request.
+     * @param context
+     *            Object that holds the security data.
+     * @param uriInfo
+     *            Object that holds the request URI data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @param authorizer
+     *            Authorizer object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A Chain object.
+     */
+    @GET
+    @PermitAll
+    @Path("{name}")
+    @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
+            MediaType.APPLICATION_JSON })
+    public Chain get(@PathParam("name") String name,
+                     @Context SecurityContext context, @Context UriInfo uriInfo,
+                     @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+            throws StateAccessException {
+
+        if (!authorizer.routerAuthorized(context, AuthAction.READ, routerId)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view chain of this router.");
+        }
+
+        ChainDao dao = daoFactory.getChainDao();
+        Chain chain = dao.get(routerId, name);
+        if (chain != null) {
+            chain.setBaseUri(uriInfo.getBaseUri());
+        }
+        return chain;
     }
 }

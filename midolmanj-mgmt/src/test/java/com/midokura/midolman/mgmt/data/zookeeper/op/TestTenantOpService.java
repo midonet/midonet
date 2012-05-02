@@ -25,6 +25,7 @@ public class TestTenantOpService {
 
     private TenantOpBuilder opBuilderMock = null;
     private TenantZkDao zkDaoMock = null;
+    private ChainOpService chainOpServiceMock = null;
     private RouterOpService routerOpServiceMock = null;
     private BridgeOpService bridgeOpServiceMock = null;
     private TenantOpService service = null;
@@ -57,10 +58,11 @@ public class TestTenantOpService {
         this.opBuilderMock = mock(TenantOpBuilder.class);
         this.routerOpServiceMock = mock(RouterOpService.class);
         this.bridgeOpServiceMock = mock(BridgeOpService.class);
+        this.chainOpServiceMock = mock(ChainOpService.class);
         this.zkDaoMock = mock(TenantZkDao.class);
         this.service = new TenantOpService(this.opBuilderMock,
                 this.bridgeOpServiceMock, this.routerOpServiceMock,
-                this.zkDaoMock);
+                this.zkDaoMock, this.chainOpServiceMock);
     }
 
     @Test

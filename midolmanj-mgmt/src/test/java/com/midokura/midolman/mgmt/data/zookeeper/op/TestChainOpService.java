@@ -28,7 +28,6 @@ import org.mockito.Mockito;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 public class TestChainOpService {
@@ -84,18 +83,17 @@ public class TestChainOpService {
         config.routerId = UUID.randomUUID();
         config.name = "foo";
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.table = ChainTable.NAT;
         ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
 
         // Mock the path builder
         when(opBuilderMock.getChainCreateOp(id, mgmtConfig)).thenReturn(
                 dummyCreateOp0);
         when(
-                opBuilderMock.getRouterTableChainCreateOp(config.routerId,
-                        ChainTable.NAT, id)).thenReturn(dummyCreateOp1);
+                opBuilderMock.getTenantChainCreateOp(config.routerId, id))
+                .thenReturn(dummyCreateOp1);
         when(
-                opBuilderMock.getRouterTableChainNameCreateOp(config.routerId,
-                        ChainTable.NAT, config.name, nameConfig)).thenReturn(
+                opBuilderMock.getTenantChainNameCreateOp(config.routerId,
+                        config.name, nameConfig)).thenReturn(
                 dummyCreateOp2);
         when(opBuilderMock.getChainCreateOps(id, config)).thenReturn(
                 dummyCreateOps);
@@ -118,19 +116,18 @@ public class TestChainOpService {
         config.routerId = UUID.randomUUID();
         config.name = "foo";
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.table = ChainTable.NAT;
 
         // Mock the path builder
         when(zkDaoMock.getData(id)).thenReturn(config);
         when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(opBuilderMock.getChainDeleteOps(id)).thenReturn(dummyDeleteOps);
         when(
-                opBuilderMock.getRouterTableChainNameDeleteOp(config.routerId,
-                        mgmtConfig.table, config.name)).thenReturn(
+                opBuilderMock.getTenantChainNameDeleteOp(config.routerId,
+                        config.name)).thenReturn(
                 dummyDeleteOp0);
         when(
-                opBuilderMock.getRouterTableChainDeleteOp(config.routerId,
-                        mgmtConfig.table, id)).thenReturn(dummyDeleteOp1);
+                opBuilderMock.getTenantChainDeleteOp(config.routerId, id))
+                .thenReturn(dummyDeleteOp1);
         when(opBuilderMock.getChainDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
         List<Op> ops = service.buildDelete(id, true);
@@ -151,18 +148,17 @@ public class TestChainOpService {
         config.routerId = UUID.randomUUID();
         config.name = "foo";
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.table = ChainTable.NAT;
 
         // Mock the path builder
         when(zkDaoMock.getData(id)).thenReturn(config);
         when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(
-                opBuilderMock.getRouterTableChainNameDeleteOp(config.routerId,
-                        mgmtConfig.table, config.name)).thenReturn(
+                opBuilderMock.getTenantChainNameDeleteOp(config.routerId,
+                        config.name)).thenReturn(
                 dummyDeleteOp0);
         when(
-                opBuilderMock.getRouterTableChainDeleteOp(config.routerId,
-                        mgmtConfig.table, id)).thenReturn(dummyDeleteOp1);
+                opBuilderMock.getTenantChainDeleteOp(config.routerId, id))
+                .thenReturn(dummyDeleteOp1);
         when(opBuilderMock.getChainDeleteOp(id)).thenReturn(dummyDeleteOp2);
 
         List<Op> ops = service.buildDelete(id, false);
@@ -179,21 +175,20 @@ public class TestChainOpService {
         config.routerId = UUID.randomUUID();
         config.name = "foo";
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.table = ChainTable.NAT;
 
-        when(zkDaoMock.getIds(config.routerId, mgmtConfig.table)).thenReturn(
+        when(zkDaoMock.getIds(config.routerId)).thenReturn(
                 dummyIds);
         when(zkDaoMock.getData(Mockito.any(UUID.class))).thenReturn(config);
         when(zkDaoMock.getMgmtData(Mockito.any(UUID.class))).thenReturn(
                 mgmtConfig);
 
-        service.buildDeleteRouterChains(config.routerId, ChainTable.NAT);
+        service.buildTenantChainsDelete(config.routerId.toString());
 
-        verify(opBuilderMock, times(3)).getRouterTableChainNameDeleteOp(
-                config.routerId, mgmtConfig.table, config.name);
+        verify(opBuilderMock, times(3)).getTenantChainNameDeleteOp(
+                config.routerId, config.name);
         for (String id : dummyIds) {
-            verify(opBuilderMock, times(1)).getRouterTableChainDeleteOp(
-                    config.routerId, mgmtConfig.table, UUID.fromString(id));
+            verify(opBuilderMock, times(1)).getTenantChainDeleteOp(
+                    config.routerId, UUID.fromString(id));
             verify(opBuilderMock, times(1)).getChainDeleteOp(
                     UUID.fromString(id));
         }
@@ -206,25 +201,21 @@ public class TestChainOpService {
         config.routerId = UUID.randomUUID();
         config.name = "foo";
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.table = ChainTable.NAT;
         ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
 
         when(
                 zkDaoMock.constructChainConfig(Mockito.anyString(),
                         Mockito.any(UUID.class))).thenReturn(config);
-        when(zkDaoMock.constructChainMgmtConfig(Mockito.any(ChainTable.class)))
-                .thenReturn(mgmtConfig);
         when(zkDaoMock.constructChainNameMgmtConfig(Mockito.any(UUID.class)))
                 .thenReturn(nameConfig);
-        service.buildBuiltInChains(config.routerId, mgmtConfig.table);
 
         // There should be two built-in chains
         verify(opBuilderMock, times(2)).getChainCreateOp(
                 Mockito.any(UUID.class), Mockito.any(ChainMgmtConfig.class));
         verify(opBuilderMock, times(2)).getChainCreateOps(
                 Mockito.any(UUID.class), Mockito.any(ChainConfig.class));
-        verify(opBuilderMock, times(2)).getRouterTableChainNameCreateOp(
-                config.routerId, mgmtConfig.table, config.name, nameConfig);
+        verify(opBuilderMock, times(2)).getTenantChainNameCreateOp(
+                config.routerId, config.name, nameConfig);
 
     }
 }

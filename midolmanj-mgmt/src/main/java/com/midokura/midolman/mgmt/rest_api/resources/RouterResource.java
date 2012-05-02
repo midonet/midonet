@@ -119,11 +119,11 @@ public class RouterResource {
      *
      * @param id
      *            Router ID from the request.
-     * @returns RouterChainResource object to handle sub-resource requests.
+     * @returns TenantChainResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.CHAINS)
-    public RouterChainResource getChainResource(@PathParam("id") UUID id) {
-        return new RouterChainResource(id);
+    public TenantChainResource getChainResource(@PathParam("id") UUID id) {
+        return new TenantChainResource(id);
     }
 
     /**
@@ -172,18 +172,6 @@ public class RouterResource {
     @Path("/{id}" + ResourceUriBuilder.ROUTES)
     public RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
         return new RouterRouteResource(id);
-    }
-
-    /**
-     * Chain table resource locator for routers.
-     *
-     * @param id
-     *            Router ID from the request.
-     * @returns RouterTableResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.TABLES)
-    public RouterTableResource getTableResource(@PathParam("id") UUID id) {
-        return new RouterTableResource(id);
     }
 
     /**

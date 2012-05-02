@@ -14,7 +14,6 @@ import org.mockito.Mockito;
 
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Serializer;
 
@@ -66,14 +65,14 @@ public class TestChainSerializer {
 
     @Test
     public void testSerializeGoodInput() throws Exception {
-        ChainMgmtConfig config = new ChainMgmtConfig(ChainTable.NAT);
+        ChainMgmtConfig config = new ChainMgmtConfig();
         serializer.serialize(config);
         Mockito.verify(serializerMock, Mockito.times(1)).objToBytes(config);
     }
 
     @Test(expected = ZkStateSerializationException.class)
     public void testSerializeBadInput() throws Exception {
-        ChainMgmtConfig config = new ChainMgmtConfig(ChainTable.NAT);
+        ChainMgmtConfig config = new ChainMgmtConfig();
         Mockito.when(serializerMock.objToBytes(config)).thenThrow(
                 new IOException());
         serializer.serialize(config);

@@ -278,8 +278,7 @@ public class TestRouterDaoAdapter {
     @Test
     public void testGetByRuleSuccess() throws Exception {
         UUID ruleId = UUID.randomUUID();
-        Chain chain = new Chain(UUID.randomUUID(), UUID.randomUUID(),
-                DtoRuleChain.ChainTable.NAT, "foo");
+        Chain chain = new Chain(UUID.randomUUID(), UUID.randomUUID(), "foo");
         Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(chain).when(chainDaoMock).getByRule(ruleId);
@@ -292,8 +291,7 @@ public class TestRouterDaoAdapter {
 
     @Test
     public void testGetByChainSuccess() throws Exception {
-        Chain chain = new Chain(UUID.randomUUID(), UUID.randomUUID(),
-                DtoRuleChain.ChainTable.NAT, "foo");
+        Chain chain = new Chain(UUID.randomUUID(), UUID.randomUUID(), "foo");
         Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(chain).when(chainDaoMock).get(chain.getId());

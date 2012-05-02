@@ -22,11 +22,6 @@ public class RuleChain {
             return this;
         }
 
-        public Builder setTable(DtoRuleChain.ChainTable table) {
-            chain.setTable(table);
-            return this;
-        }
-
         public RuleChain build() {
             if (null == chain.getName() || chain.getName().isEmpty())
                 throw new IllegalArgumentException("Cannot create a "

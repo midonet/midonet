@@ -12,14 +12,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class DtoRuleChain {
 
-    public static enum ChainTable {
-        NAT
-    }
-
     private UUID id;
     private UUID routerId;
     private String name;
-    private ChainTable table;
     private URI rules;
 
     public UUID getId() {
@@ -44,14 +39,6 @@ public class DtoRuleChain {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public ChainTable getTable() {
-        return table;
-    }
-
-    public void setTable(ChainTable table) {
-        this.table = table;
     }
 
     public URI getRules() {

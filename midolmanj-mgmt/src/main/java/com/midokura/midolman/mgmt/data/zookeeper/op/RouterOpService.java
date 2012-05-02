@@ -18,7 +18,6 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -34,7 +33,6 @@ public class RouterOpService {
             .getLogger(RouterOpService.class);
     private final RouterOpBuilder opBuilder;
     private final PortOpService portOpService;
-    private final ChainOpService chainOpService;
     private final BridgeOpBuilder bridgeOpBuilder;
     private final RouterZkDao zkDao;
 
@@ -43,18 +41,15 @@ public class RouterOpService {
      *
      * @param opBuilder
      *            RouterOpBuilder object.
-     * @param chainOpService
-     *            ChainOpService object
      * @param portOpService
      *            PortOpService object.
      * @param zkDao
      *            RouterZkDao object.
      */
     public RouterOpService(RouterOpBuilder opBuilder,
-            ChainOpService chainOpService, PortOpService portOpService,
-            BridgeOpBuilder bridgeOpBuilder, RouterZkDao zkDao) {
+            PortOpService portOpService, BridgeOpBuilder bridgeOpBuilder,
+            RouterZkDao zkDao) {
         this.opBuilder = opBuilder;
-        this.chainOpService = chainOpService;
         this.portOpService = portOpService;
         this.bridgeOpBuilder = bridgeOpBuilder;
         this.zkDao = zkDao;
@@ -84,23 +79,6 @@ public class RouterOpService {
         // links
         ops.add(opBuilder.getRouterRoutersCreateOp(id));
         ops.add(opBuilder.getRouterBridgesCreateOp(id));
-
-        // tables
-        ops.add(opBuilder.getRouterTablesCreateOp(id));
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-
-            // table
-            ops.add(opBuilder.getRouterTableCreateOp(id, chainTable));
-
-            // chains
-            ops.add(opBuilder.getRouterTableChainsCreateOp(id, chainTable));
-
-            // chain names
-            ops.add(opBuilder.getRouterTableChainNamesCreateOp(id, chainTable));
-
-            // Build the actual chains
-            ops.addAll(chainOpService.buildBuiltInChains(id, chainTable));
-        }
 
         // tenant
         ops.add(opBuilder.getTenantRouterCreateOp(mgmtConfig.tenantId, id));
@@ -146,26 +124,6 @@ public class RouterOpService {
 
         // tenant
         ops.add(opBuilder.getTenantRouterDeleteOp(mgmtConfig.tenantId, id));
-
-        // tables
-        for (ChainTable chainTable : ChainTable.class.getEnumConstants()) {
-
-            // Delete all the chains for this table
-            ops.addAll(chainOpService.buildDeleteRouterChains(id, chainTable));
-
-            // chain names
-            ops.add(opBuilder.getRouterTableChainNamesDeleteOp(id, chainTable));
-
-            // chains
-            ops.add(opBuilder.getRouterTableChainsDeleteOp(id, chainTable));
-
-            // table
-            ops.add(opBuilder.getRouterTableDeleteOp(id, chainTable));
-
-        }
-
-        // tables
-        ops.add(opBuilder.getRouterTablesDeleteOp(id));
 
         // links
         ops.add(opBuilder.getRouterRoutersDeleteOp(id));

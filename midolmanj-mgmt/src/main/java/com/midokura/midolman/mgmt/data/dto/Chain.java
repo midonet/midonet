@@ -7,13 +7,10 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
 import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
@@ -29,7 +26,6 @@ public class Chain extends UriResource {
     private UUID id = null;
     private UUID routerId = null;
     private String name = null;
-    private DtoRuleChain.ChainTable table = null;
 
     /**
      * Default constructor
@@ -49,8 +45,7 @@ public class Chain extends UriResource {
      *            ChainMgmtConfig object
      */
     public Chain(UUID id, ChainConfig config, ChainMgmtConfig mgmtConfig) {
-        this(id, config.routerId, Enum.valueOf(DtoRuleChain.ChainTable.class,
-                mgmtConfig.table.name()), config.name);
+        this(id, config.routerId, config.name);
     }
 
     /**
@@ -60,16 +55,12 @@ public class Chain extends UriResource {
      *            ID of the chain
      * @param routerId
      *            Router ID
-     * @param table
-     *            Chain table
      * @param name
      *            Chain name
      */
-    public Chain(UUID id, UUID routerId, DtoRuleChain.ChainTable table,
-                 String name) {
+    public Chain(UUID id, UUID routerId, String name) {
         this.id = id;
         this.routerId = routerId;
-        this.table = table;
         this.name = name;
     }
 
@@ -119,21 +110,6 @@ public class Chain extends UriResource {
     }
 
     /**
-     * @return the table
-     */
-    public DtoRuleChain.ChainTable getTable() {
-        return table;
-    }
-
-    /**
-     * @param table
-     *            the table to set
-     */
-    public void setTable(DtoRuleChain.ChainTable table) {
-        this.table = table;
-    }
-
-    /**
      * @return the self URI
      */
     @Override
@@ -153,8 +129,7 @@ public class Chain extends UriResource {
     }
 
     public ChainMgmtConfig toMgmtConfig() {
-        return new ChainMgmtConfig(Enum.valueOf(ChainTable.class,
-                this.getTable().name()));
+        return new ChainMgmtConfig();
     }
 
     public ChainNameMgmtConfig toNameMgmtConfig() {
@@ -168,8 +143,7 @@ public class Chain extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + " routerId=" + routerId + ", table=" + table
-                + ", name=" + name;
+        return "id=" + id + " routerId=" + routerId + ", name=" + name;
     }
 
 }

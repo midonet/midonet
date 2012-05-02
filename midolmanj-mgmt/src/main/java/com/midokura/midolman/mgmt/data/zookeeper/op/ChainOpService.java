@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.ChainTable;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -71,12 +70,11 @@ public class ChainOpService {
         ops.add(opBuilder.getChainCreateOp(id, mgmtConfig));
 
         // Router/Chain ID
-        ops.add(opBuilder.getRouterTableChainCreateOp(config.routerId,
-                mgmtConfig.table, id));
+        ops.add(opBuilder.getTenantChainCreateOp(config.routerId, id));
 
         // Router/Chain name
-        ops.add(opBuilder.getRouterTableChainNameCreateOp(config.routerId,
-                mgmtConfig.table, config.name, nameConfig));
+        ops.add(opBuilder.getTenantChainNameCreateOp(config.routerId,
+                config.name, nameConfig));
 
         // Cascade
         ops.addAll(opBuilder.getChainCreateOps(id, config));
@@ -111,12 +109,11 @@ public class ChainOpService {
         }
 
         // Router/Chain name
-        ops.add(opBuilder.getRouterTableChainNameDeleteOp(config.routerId,
-                mgmtConfig.table, config.name));
+        ops.add(opBuilder.getTenantChainNameDeleteOp(config.routerId,
+                config.name));
 
         // Router/Chain ID
-        ops.add(opBuilder.getRouterTableChainDeleteOp(config.routerId,
-                mgmtConfig.table, id));
+        ops.add(opBuilder.getTenantChainDeleteOp(config.routerId, id));
 
         // Root
         ops.add(opBuilder.getChainDeleteOp(id));
@@ -127,65 +124,23 @@ public class ChainOpService {
     }
 
     /**
-     * Ops to delete all the router chains.
+     * Build operations to delete all chains for a tenant.
      *
-     * @param routerId
-     *            ID of the router
-     * @param table
-     *            Chain table
-     * @return List of Op to delete
+     * @param tenantId
+     *            ID of the tenant
+     * @return Op list
      * @throws StateAccessException
      *             Data error
      */
-    public List<Op> buildDeleteRouterChains(UUID routerId, ChainTable table)
+    public List<Op> buildTenantChainsDelete(String tenantId)
             throws StateAccessException {
-        log.debug("ChainOpService.buildDeleteRouterChains entered: routerId="
-                + routerId + ",table=" + table);
-
+        Set<String> ids = zkDao.getIds(UUID.fromString(tenantId));
         List<Op> ops = new ArrayList<Op>();
-        Set<String> ids = zkDao.getIds(routerId, table);
         for (String id : ids) {
-            ops.addAll(buildDelete(UUID.fromString(id), false));
+            ops.addAll(buildDelete(UUID.fromString(id), true));
         }
-
-        log.debug(
-                "ChainOpService.buildDeleteRouterChains exiting: ops count={}",
-                ops.size());
         return ops;
     }
 
-    /**
-     * Get Ops to create built-in chains for a router.
-     *
-     * @param routerId
-     *            ID of the router
-     * @param table
-     *            ChainTable object
-     * @return List of Op
-     * @throws StateAccessException
-     *             Data error
-     */
-    public List<Op> buildBuiltInChains(UUID routerId, ChainTable table)
-            throws StateAccessException {
-        log.debug("ChainOpService.buildBuiltInChains entered: routerId="
-                + routerId + ",table=" + table);
 
-        List<Op> ops = new ArrayList<Op>();
-        String[] builtInChains = ChainTable.getBuiltInChainNames(table);
-        for (String name : builtInChains) {
-            UUID id = UUID.randomUUID();
-            ChainConfig chainConfig = zkDao
-                    .constructChainConfig(name, routerId);
-            ChainMgmtConfig chainMgmtConfig = zkDao
-                    .constructChainMgmtConfig(table);
-            ChainNameMgmtConfig chainNameConfig = zkDao
-                    .constructChainNameMgmtConfig(id);
-            ops.addAll(buildCreate(id, chainConfig, chainMgmtConfig,
-                    chainNameConfig));
-        }
-
-        log.debug("ChainOpService.buildBuiltInChains exiting: ops count={}",
-                ops.size());
-        return ops;
-    }
 }
