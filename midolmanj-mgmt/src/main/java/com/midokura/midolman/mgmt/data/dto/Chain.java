@@ -24,7 +24,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 public class Chain extends UriResource {
 
     private UUID id = null;
-    private UUID routerId = null;
+    private UUID ownerId = null;
     private String name = null;
 
     /**
@@ -60,7 +60,7 @@ public class Chain extends UriResource {
      */
     public Chain(UUID id, UUID routerId, String name) {
         this.id = id;
-        this.routerId = routerId;
+        this.ownerId = routerId;
         this.name = name;
     }
 
@@ -80,18 +80,18 @@ public class Chain extends UriResource {
     }
 
     /**
-     * @return the routerId
+     * @return the ownerId
      */
-    public UUID getRouterId() {
-        return routerId;
+    public UUID getOwnerId() {
+        return ownerId;
     }
 
     /**
-     * @param routerId
-     *            the routerId to set
+     * @param ownerId
+     *            the ownerId to set
      */
-    public void setRouterId(UUID routerId) {
-        this.routerId = routerId;
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
     }
 
     /**
@@ -125,7 +125,7 @@ public class Chain extends UriResource {
     }
 
     public ChainConfig toConfig() {
-        return new ChainConfig(this.getName(), this.getRouterId());
+        return new ChainConfig(this.getName(), this.getOwnerId());
     }
 
     public ChainMgmtConfig toMgmtConfig() {
@@ -143,7 +143,7 @@ public class Chain extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + " routerId=" + routerId + ", name=" + name;
+        return "id=" + id + " ownerId=" + ownerId + ", name=" + name;
     }
 
 }

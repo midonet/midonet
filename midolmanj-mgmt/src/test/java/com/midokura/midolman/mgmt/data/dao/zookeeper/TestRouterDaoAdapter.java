@@ -34,7 +34,6 @@ import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
@@ -282,7 +281,7 @@ public class TestRouterDaoAdapter {
         Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(chain).when(chainDaoMock).getByRule(ruleId);
-        doReturn(router).when(adapter).get(chain.getRouterId());
+        doReturn(router).when(adapter).get(chain.getOwnerId());
 
         Router routerResult = adapter.getByRule(ruleId);
 
@@ -295,7 +294,7 @@ public class TestRouterDaoAdapter {
         Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(chain).when(chainDaoMock).get(chain.getId());
-        doReturn(router).when(adapter).get(chain.getRouterId());
+        doReturn(router).when(adapter).get(chain.getOwnerId());
 
         Router routerResult = adapter.getByChain(chain.getId());
 

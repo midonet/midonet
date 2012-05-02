@@ -47,7 +47,7 @@ public class TestChainDaoAdapter {
         Chain chain = new Chain();
         chain.setId(id);
         chain.setName("foo");
-        chain.setRouterId(UUID.randomUUID());
+        chain.setOwnerId(UUID.randomUUID());
         return chain;
     }
 
@@ -74,11 +74,11 @@ public class TestChainDaoAdapter {
     private static List<Op> createTestPersistentCreateOps() {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op
-                .create("/foo", new byte[] { 0 }, null, CreateMode.PERSISTENT));
+                .create("/foo", new byte[]{0}, null, CreateMode.PERSISTENT));
         ops.add(Op
-                .create("/bar", new byte[] { 1 }, null, CreateMode.PERSISTENT));
+                .create("/bar", new byte[]{1}, null, CreateMode.PERSISTENT));
         ops.add(Op
-                .create("/baz", new byte[] { 2 }, null, CreateMode.PERSISTENT));
+                .create("/baz", new byte[]{2}, null, CreateMode.PERSISTENT));
         return ops;
     }
 
@@ -171,7 +171,7 @@ public class TestChainDaoAdapter {
         Chain chain = adapter.get(id);
 
         Assert.assertEquals(id, chain.getId());
-        Assert.assertEquals(config.routerId, chain.getRouterId());
+        Assert.assertEquals(config.routerId, chain.getOwnerId());
         Assert.assertEquals(config.name, chain.getName());
     }
 
@@ -190,7 +190,7 @@ public class TestChainDaoAdapter {
         Chain chain = adapter.getByRule(rule.getId());
 
         Assert.assertEquals(id, chain.getId());
-        Assert.assertEquals(config.routerId, chain.getRouterId());
+        Assert.assertEquals(config.routerId, chain.getOwnerId());
         Assert.assertEquals(config.name, chain.getName());
     }
 

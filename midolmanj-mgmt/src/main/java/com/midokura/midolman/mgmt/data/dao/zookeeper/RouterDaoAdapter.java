@@ -77,7 +77,7 @@ public class RouterDaoAdapter implements RouterDao {
             router.setId(UUID.randomUUID());
         }
 
-        List<Op> ops = opService.buildCreate(router.getId(),
+        List<Op> ops = opService.buildCreate(router.getId(), router.toConfig(),
                 router.toMgmtConfig(), router.toNameMgmtConfig());
         zkDao.multi(ops);
 
@@ -259,7 +259,7 @@ public class RouterDaoAdapter implements RouterDao {
         log.debug("RouterDaoAdapter.getByRule entered: ruleId={}", ruleId);
 
         Chain chain = chainDao.getByRule(ruleId);
-        Router router = get(chain.getRouterId());
+        Router router = get(chain.getOwnerId());
 
         log.debug("RouterDaoAdapter.getByRule exiting: router={}", router);
         return router;
@@ -276,7 +276,7 @@ public class RouterDaoAdapter implements RouterDao {
         log.debug("RouterDaoAdapter.getByChain entered: chainId={}", chainId);
 
         Chain chain = chainDao.get(chainId);
-        Router router = get(chain.getRouterId());
+        Router router = get(chain.getOwnerId());
 
         log.debug("RouterDaoAdapter.getByChain exiting: router={}", router);
         return router;

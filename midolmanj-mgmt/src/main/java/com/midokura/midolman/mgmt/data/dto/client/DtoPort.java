@@ -13,6 +13,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;
+    private UUID inboundFilter = null;
+    private UUID outboundFilter = null;
     private UUID vifId = null;
     private URI uri;
 
@@ -30,6 +32,22 @@ public class DtoPort {
 
     public void setDeviceId(UUID deviceId) {
         this.deviceId = deviceId;
+    }
+
+    public UUID getInboundFilter() {
+        return inboundFilter;
+    }
+
+    public void setInboundFilter(UUID inboundFilter) {
+        this.inboundFilter = inboundFilter;
+    }
+
+    public UUID getOutboundFilter() {
+        return outboundFilter;
+    }
+
+    public void setOutboundFilter(UUID outboundFilter) {
+        this.outboundFilter = outboundFilter;
     }
 
     public UUID getVifId() {

@@ -5,6 +5,7 @@
  */
 package com.midokura.midolman.state;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableSet;
@@ -34,6 +35,21 @@ public class RouterZkManager extends ZkManager {
     private final static Logger log =
         LoggerFactory.getLogger(RouterZkManager.class);
 
+    public static class RouterConfig {
+
+        public UUID inboundFilter;
+        public UUID outboundFilter;
+
+        public RouterConfig() {
+            super();
+        }
+
+        public RouterConfig(UUID inboundFilter, UUID outboundFilter) {
+            this.inboundFilter = inboundFilter;
+            this.outboundFilter = outboundFilter;
+        }
+    }
+
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -47,6 +63,18 @@ public class RouterZkManager extends ZkManager {
         super(zk, basePath);
     }
 
+    public List<Op> prepareRouterCreate(UUID id)
+            throws ZkStateSerializationException {
+        return prepareRouterCreate(
+                new ZkNodeEntry<UUID, RouterConfig>(id, new RouterConfig()));
+    }
+
+    public List<Op> prepareRouterCreate(UUID id, RouterConfig config)
+            throws ZkStateSerializationException {
+        return prepareRouterCreate(
+                new ZkNodeEntry<UUID, RouterConfig>(id, config));
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new router.
@@ -56,11 +84,20 @@ public class RouterZkManager extends ZkManager {
      *            and RouterConfig object.
      * @return A list of Op objects to represent the operations to perform.
      */
-    public List<Op> prepareRouterCreate(UUID id)
+    public List<Op> prepareRouterCreate(
+            ZkNodeEntry<UUID, RouterConfig> routerNode)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getRouterPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        UUID id = routerNode.key;
+        RouterConfig config = routerNode.value;
+        try {
+            ops.add(Op.create(pathManager.getRouterPath(id), serialize(config),
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize RouterConfig", e, RouterConfig.class);
+        }
+
         ops.add(Op.create(pathManager.getRouterPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterRoutesPath(id), null,
@@ -99,7 +136,7 @@ public class RouterZkManager extends ZkManager {
                 .getRouterSnatBlocksPath(id), null);
         for (String snatBlock : snatBlocks) {
             String path = pathManager.getRouterSnatBlocksPath(id) + "/"
-                    + snatBlock;
+                 + snatBlock;
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
         }
@@ -153,19 +190,40 @@ public class RouterZkManager extends ZkManager {
     }
 
     /**
+      * Construct a list of ZK operations needed to update the configuration of
+      * a router.
+      *
+      * @param entry
+      *          A key-value pair whose key is the ID of the router to update,
+      *          and whose value is the new router configuration.
+      * @return
+      *          The list of ZK operations required to update the router.
+      * @throws ZkStateSerializationException if the RouterConfig could not be
+      *          serialized.
+      */
+    public List<Op> prepareRouterUpdate(ZkNodeEntry<UUID, RouterConfig> entry)
+            throws ZkStateSerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        try {
+            ops.add(Op.setData(pathManager.getRouterPath(entry.key),
+                    serialize(entry.value), -1));
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize RouterConfig", e, RouterConfig.class);
+        }
+        return ops;
+    }
+
+    /**
      * Performs an atomic update on the ZooKeeper to add a new router entry.
      *
-     * @param router
-     *            Router object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
      */
-    public UUID create() throws ZkStateSerializationException,
-            StateAccessException {
+    public UUID create() throws StateAccessException {
         UUID id = UUID.randomUUID();
-        multi(prepareRouterCreate(id));
+        multi(prepareRouterCreate(new ZkNodeEntry<UUID, RouterConfig>(id,
+                new RouterConfig())));
         return id;
     }
 
@@ -182,6 +240,44 @@ public class RouterZkManager extends ZkManager {
     public void delete(UUID id) throws ZkStateSerializationException,
             StateAccessException {
         multi(prepareRouterDelete(id));
+    }
+
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a router with the given ID.
+     *
+     * @param id The ID of the router.
+     * @return A key-value pair whose key is the ID of the Router, and whose
+     *         value is the configuration of the Router.
+     * @throws StateAccessException if deserialization of the Router's config
+     *                              failed, or if no Router with that ID could be found.
+     */
+    public ZkNodeEntry<UUID, RouterConfig> get(UUID id)
+            throws StateAccessException {
+        return get(id, null);
+    }
+
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a router with the given ID
+     * and sets a watcher for changes to the router's configuration.
+     *
+     * @param id The ID of the router.
+     * @return A key-value pair whose key is the ID of the Router, and whose
+     *         value is the configuration of the Router.
+     * @throws StateAccessException if deserialization of the Router's config
+     *                              failed, or if no Router with that ID could be found.
+     */
+    public ZkNodeEntry<UUID, RouterConfig> get(UUID id, Runnable watcher)
+            throws StateAccessException {
+        byte[] data = get(pathManager.getRoutePath(id), watcher);
+        RouterConfig config = null;
+        try {
+            config = deserialize(data, RouterConfig.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize router " + id + " to RouterConfig",
+                    e, RouterConfig.class);
+        }
+        return new ZkNodeEntry<UUID, RouterConfig>(id, config);
     }
 
     public NavigableSet<Integer> getSnatBlocks(UUID routerId, int ip)

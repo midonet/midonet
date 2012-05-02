@@ -35,8 +35,16 @@ public class BridgeZkManager extends ZkManager {
             super();
         }
 
+        public BridgeConfig(UUID inboundFilter, UUID outboundFilter) {
+            super();
+            this.inboundFilter = inboundFilter;
+            this.outboundFilter = outboundFilter;
+        }
+
         // TODO: Make this private with a getter.
         public int greKey;      // Only set in prepareBridgeCreate
+        public UUID inboundFilter;
+        public UUID outboundFilter;
     }
 
     /**
@@ -77,7 +85,7 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeCreate(
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
             throws StateAccessException {
-        GreZkManager greZkManager = new GreZkManager(zk, 
+        GreZkManager greZkManager = new GreZkManager(zk,
                 pathManager.getBasePath());
 
         // Create a new GRE key. Hide this from outside.
@@ -139,9 +147,9 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        PortZkManager portZkManager = new PortZkManager(zk, 
+        PortZkManager portZkManager = new PortZkManager(zk,
                 pathManager.getBasePath());
-        GreZkManager greZkManager = new GreZkManager(zk, 
+        GreZkManager greZkManager = new GreZkManager(zk,
                 pathManager.getBasePath());
         BridgeDhcpZkManager dhcpZkManager =
             new BridgeDhcpZkManager(zk, pathManager.getBasePath());
@@ -195,7 +203,7 @@ public class BridgeZkManager extends ZkManager {
     public UUID create(BridgeConfig bridge) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = 
+        ZkNodeEntry<UUID, BridgeConfig> bridgeNode =
                 new ZkNodeEntry<UUID, BridgeConfig>(id, bridge);
         multi(prepareBridgeCreate(bridgeNode));
         return id;

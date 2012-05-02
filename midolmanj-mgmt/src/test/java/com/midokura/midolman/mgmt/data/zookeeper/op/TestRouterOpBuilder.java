@@ -21,6 +21,7 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 public class TestRouterOpBuilder {
 
@@ -60,7 +61,7 @@ public class TestRouterOpBuilder {
 
     @Test
     public void testGetRouterCreateOpsSuccess() throws Exception {
-        builder.getRouterCreateOps(dummyId);
+        builder.getRouterCreateOps(dummyId, new RouterConfig());
         verify(zkDaoMock, times(1)).prepareRouterCreate(dummyId);
     }
 

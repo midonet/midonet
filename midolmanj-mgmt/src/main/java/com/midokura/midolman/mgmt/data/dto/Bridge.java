@@ -27,6 +27,8 @@ public class Bridge extends UriResource {
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
+    private UUID inboundFilter = null;
+    private UUID outboundFilter = null;
 
     /**
      * Constructor.
@@ -121,6 +123,22 @@ public class Bridge extends UriResource {
         this.tenantId = tenantId;
     }
 
+    public UUID getInboundFilter() {
+        return inboundFilter;
+    }
+
+    public void setInboundFilter(UUID inboundFilter) {
+        this.inboundFilter = inboundFilter;
+    }
+
+    public UUID getOutboundFilter() {
+        return outboundFilter;
+    }
+
+    public void setOutboundFilter(UUID outboundFilter) {
+        this.outboundFilter = outboundFilter;
+    }
+
     /**
      * @return the ports URI
      */
@@ -163,7 +181,8 @@ public class Bridge extends UriResource {
      * @return BridgeConfig object
      */
     public BridgeConfig toConfig() {
-        return new BridgeConfig();
+        return new BridgeConfig(this.inboundFilter, this.outboundFilter);
+
     }
 
     /**

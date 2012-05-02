@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.state.RouterZkManager;
 
 /**
  * Class representing Virtual Router.
@@ -26,6 +27,8 @@ public class Router extends UriResource {
     private UUID id = null;
     private String name = null;
     private String tenantId = null;
+    private UUID inboundFilter = null;
+    private UUID outboundFilter = null;
 
     /**
      * Constructor.
@@ -120,6 +123,22 @@ public class Router extends UriResource {
         this.tenantId = tenantId;
     }
 
+    public UUID getInboundFilter() {
+        return inboundFilter;
+    }
+
+    public void setInboundFilter(UUID inboundFilter) {
+        this.inboundFilter = inboundFilter;
+    }
+
+    public UUID getOutboundFilter() {
+        return outboundFilter;
+    }
+
+    public void setOutboundFilter(UUID outboundFilter) {
+        this.outboundFilter = outboundFilter;
+    }
+
     /**
      * @return the ports URI.
      */
@@ -158,6 +177,17 @@ public class Router extends UriResource {
     @Override
     public URI getUri() {
         return ResourceUriBuilder.getRouter(getBaseUri(), id);
+    }
+
+    /**
+     * Convert this object to RouterConfig object
+     *
+     * @return RouterConfig object
+     */
+    public RouterZkManager.RouterConfig toConfig() {
+        return new RouterZkManager.RouterConfig(
+                this.inboundFilter, this.outboundFilter);
+
     }
 
     /**

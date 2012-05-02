@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoRuleChain {
 
     private UUID id;
-    private UUID routerId;
+    private UUID ownerId;
     private String name;
     private URI rules;
 
@@ -25,12 +25,12 @@ public class DtoRuleChain {
         this.id = id;
     }
 
-    public UUID getRouterId() {
-        return routerId;
+    public UUID getOwnerId() {
+        return ownerId;
     }
 
-    public void setRouterId(UUID routerId) {
-        this.routerId = routerId;
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
     }
 
     public String getName() {

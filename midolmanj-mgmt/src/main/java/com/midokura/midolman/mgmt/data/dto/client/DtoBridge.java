@@ -14,6 +14,8 @@ public class DtoBridge {
     private UUID id;
     private String name;
     private String tenantId;
+    private UUID inboundFilter;
+    private UUID outboundFilter;
     private URI uri;
     private URI ports;
     private URI routers;
@@ -42,6 +44,22 @@ public class DtoBridge {
 
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public UUID getInboundFilter() {
+        return inboundFilter;
+    }
+
+    public void setInboundFilter(UUID inboundFilter) {
+        this.inboundFilter = inboundFilter;
+    }
+
+    public UUID getOutboundFilter() {
+        return outboundFilter;
+    }
+
+    public void setOutboundFilter(UUID outboundFilter) {
+        this.outboundFilter = outboundFilter;
     }
 
     public URI getUri() {

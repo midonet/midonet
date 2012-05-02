@@ -65,7 +65,10 @@ public class BridgePort extends Port {
      */
     @Override
     public PortConfig toConfig() {
-        return new PortDirectory.BridgePortConfig(deviceId);
+        PortDirectory.BridgePortConfig config =
+                new PortDirectory.BridgePortConfig();
+        super.toConfig(config);
+        return config;
     }
 
     /**

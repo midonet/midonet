@@ -126,13 +126,16 @@ public class MaterializedRouterPort extends RouterPort {
      */
     @Override
     public PortConfig toConfig() {
-        return new PortDirectory.MaterializedRouterPortConfig(
+        PortDirectory.MaterializedRouterPortConfig config =
+                new PortDirectory.MaterializedRouterPortConfig(
                 this.getDeviceId(), Net.convertStringAddressToInt(this
                         .getNetworkAddress()), this.getNetworkLength(),
                 Net.convertStringAddressToInt(this.getPortAddress()), null,
                 new HashSet<Route>(), Net.convertStringAddressToInt(this
                         .getLocalNetworkAddress()),
                 this.getLocalNetworkLength(), new HashSet<BGP>());
+        super.toConfig(config);
+        return config;
     }
 
     /*

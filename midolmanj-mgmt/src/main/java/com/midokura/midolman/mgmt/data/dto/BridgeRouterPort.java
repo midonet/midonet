@@ -98,11 +98,14 @@ public class BridgeRouterPort extends RouterPort {
      */
     @Override
     public PortConfig toConfig() {
-        return new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
+        PortDirectory.LogicalRouterPortConfig config =
+                new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
                 Net.convertStringAddressToInt(this.getNetworkAddress()),
                 this.getNetworkLength(), Net.convertStringAddressToInt(this
                 .getPortAddress()), new HashSet<com.midokura.midolman.layer3.Route>(),
                 this.getPeerId(), null);
+        super.toConfig(config);
+        return config;
     }
 
     /**

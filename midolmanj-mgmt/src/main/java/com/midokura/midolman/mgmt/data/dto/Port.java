@@ -33,6 +33,16 @@ public abstract class Port extends UriResource {
     protected UUID deviceId = null;
 
     /**
+     * Inbound Filter Chain ID
+     */
+    protected UUID inboundFilter = null;
+
+    /**
+     * Outbound Filter Chain ID
+     */
+    protected UUID outboundFilter = null;
+
+    /**
      * VIF ID
      */
     protected UUID vifId = null;
@@ -90,11 +100,27 @@ public abstract class Port extends UriResource {
     /**
      * logical Set device ID.
      *
-     * @param id
+     * @param deviceId
      *            ID of the device.
      */
     public void setDeviceId(UUID deviceId) {
         this.deviceId = deviceId;
+    }
+
+    public UUID getInboundFilter() {
+        return inboundFilter;
+    }
+
+    public void setInboundFilter(UUID inboundFilter) {
+        this.inboundFilter = inboundFilter;
+    }
+
+    public UUID getOutboundFilter() {
+        return outboundFilter;
+    }
+
+    public void setOutboundFilter(UUID outboundFilter) {
+        this.outboundFilter = outboundFilter;
     }
 
     /**
@@ -126,6 +152,12 @@ public abstract class Port extends UriResource {
      * @return PortConfig object.
      */
     public abstract PortConfig toConfig();
+
+    public void toConfig(PortConfig config) {
+        config.device_id = deviceId;
+        config.inboundFilter = inboundFilter;
+        config.outboundFilter = outboundFilter;
+    }
 
     /**
      * Convert this object to PortMgmtConfig object.

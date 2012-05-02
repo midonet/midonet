@@ -18,6 +18,7 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -82,9 +83,10 @@ public class RouterOpBuilder {
      * @throws StateAccessException
      *             Data access error.
      */
-    public List<Op> getRouterCreateOps(UUID id) throws StateAccessException {
+    public List<Op> getRouterCreateOps(UUID id, RouterConfig config)
+            throws StateAccessException {
         log.debug("RouterOpBuilder.getRouterCreateOps entered: id=" + id);
-        List<Op> ops = zkDao.prepareRouterCreate(id);
+        List<Op> ops = zkDao.prepareRouterCreate(id, config);
         log.debug("RouterOpBuilder.getRouterCreateOps exiting: ops count="
                 + ops.size());
         return ops;

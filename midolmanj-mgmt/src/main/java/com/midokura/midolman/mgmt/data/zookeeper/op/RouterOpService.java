@@ -19,6 +19,7 @@ import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -55,6 +56,12 @@ public class RouterOpService {
         this.zkDao = zkDao;
     }
 
+    public List<Op> buildCreate(UUID id, RouterMgmtConfig mgmtConfig,
+                                RouterNameMgmtConfig nameConfig)
+            throws StateAccessException {
+        return buildCreate(id, new RouterConfig(), mgmtConfig, nameConfig);
+    }
+
     /**
      * Build list of Op objects to create a router
      *
@@ -68,12 +75,13 @@ public class RouterOpService {
      * @throws StateAccessException
      *             Data access error
      */
-    public List<Op> buildCreate(UUID id, RouterMgmtConfig mgmtConfig,
-            RouterNameMgmtConfig nameConfig) throws StateAccessException {
+    public List<Op> buildCreate(UUID id, RouterConfig config,
+            RouterMgmtConfig mgmtConfig, RouterNameMgmtConfig nameConfig)
+            throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
 
-        ops.addAll(opBuilder.getRouterCreateOps(id));
+        ops.addAll(opBuilder.getRouterCreateOps(id, config));
         ops.add(opBuilder.getRouterCreateOp(id, mgmtConfig));
 
         // links

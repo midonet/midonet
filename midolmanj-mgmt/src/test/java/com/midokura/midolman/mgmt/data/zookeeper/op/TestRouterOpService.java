@@ -30,6 +30,7 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 public class TestRouterOpService {
 
@@ -97,7 +98,8 @@ public class TestRouterOpService {
         RouterNameMgmtConfig nameConfig = new RouterNameMgmtConfig();
 
         // Mock the path builder
-        when(opBuilderMock.getRouterCreateOps(id)).thenReturn(dummyCreateOps);
+        when(opBuilderMock.getRouterCreateOps(id, new RouterConfig()))
+                .thenReturn(dummyCreateOps);
         when(opBuilderMock.getRouterCreateOp(id, mgmtConfig)).thenReturn(
                 dummyCreateOp0);
         when(opBuilderMock.getRouterRoutersCreateOp(id)).thenReturn(
