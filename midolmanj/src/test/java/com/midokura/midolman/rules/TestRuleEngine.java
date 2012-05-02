@@ -35,6 +35,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 public class TestRuleEngine {
 
+    /* TODO(abel): fix this.
     static Random rand;
     static UUID rtrId;
     static MidoMatch pktMatch;
@@ -389,4 +390,6 @@ public class TestRuleEngine {
         respPkt.setTransportDestination((short) 4321);
         Assert.assertEquals(respPkt, res.match);
     }
+    * END OF TODO(abel): Fix this.
+    */
 }
