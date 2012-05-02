@@ -1,12 +1,11 @@
 package com.midokura.midonet.functional_test.mocks;
 
-import com.midokura.midolman.mgmt.auth.NoAuthClient;
-import com.midokura.midolman.mgmt.servlet.AuthFilter;
-import com.midokura.midolman.mgmt.servlet.ServletSupport;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.state.InvalidStateOperationException;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -17,18 +16,15 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.sun.jersey.test.framework.spi.container.TestContainerFactory;
 import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestContainerFactory;
-import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.midokura.midolman.mgmt.auth.NoAuthClient;
+import com.midokura.midolman.mgmt.data.dto.client.*;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.servlet.AuthFilter;
+import com.midokura.midolman.mgmt.servlet.ServletSupport;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 

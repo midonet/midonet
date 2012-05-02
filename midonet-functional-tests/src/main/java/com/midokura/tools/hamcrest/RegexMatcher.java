@@ -3,17 +3,15 @@
  */
 package com.midokura.tools.hamcrest;
 
+import java.util.regex.Pattern;
+
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.junit.internal.matchers.TypeSafeMatcher;
 
-import java.util.regex.Pattern;
-
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
+ * @author Mihai Claudiu Toader <mtoader@midokura.com>
  * Date: 11/17/11
- * Time: 2:47 PM
  */
 public class RegexMatcher {
 

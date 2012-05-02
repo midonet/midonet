@@ -3,6 +3,22 @@
  */
 package com.midokura.midolman;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.zookeeper.KeeperException;
+import org.newsclub.net.unix.AFUNIXServerSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
@@ -16,35 +32,17 @@ import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.quagga.ZebraServerImpl;
-import com.midokura.midolman.state.*;
-import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
-import com.midokura.midolman.state.VpnZkManager.VpnType;
-import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.CacheException;
+import com.midokura.midolman.state.AdRouteZkManager;
+import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midolman.state.ZkDirectory;
+import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.CacheFactory;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.zookeeper.KeeperException;
-import org.newsclub.net.unix.AFUNIXServerSocket;
-import org.newsclub.net.unix.AFUNIXSocketAddress;
-import org.openflow.protocol.OFFlowRemoved;
-import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
-import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.OFMessage;
-import org.openflow.protocol.OFPhysicalPort;
-import org.openflow.protocol.OFPortStatus.OFPortReason;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.management.JMException;
-import javax.management.ObjectName;
-import java.io.File;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.UUID;
+import static com.midokura.midolman.state.VpnZkManager.VpnType;
 
 public class ControllerTrampoline implements Controller {
 
