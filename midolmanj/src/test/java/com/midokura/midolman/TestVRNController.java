@@ -1117,7 +1117,7 @@ public class TestVRNController {
         short natPublicTpPort = 80;
         int natPrivateNwAddr = 0x0a010009;
         short natPrivateTpPort = 10080;
-        UUID chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING));
+        UUID chainId = chainMgr.create(new ChainConfig("PREROUTING"));
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(natPrivateNwAddr, natPrivateNwAddr,
                 natPrivateTpPort, natPrivateTpPort));
@@ -1140,7 +1140,7 @@ public class TestVRNController {
         cond.nwSrcLength = 32;
         cond.tpSrcStart = natPrivateTpPort;
         cond.tpSrcEnd = natPrivateTpPort;
-        chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING));
+        chainId = chainMgr.create(new ChainConfig("POSTROUTING"));
         r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1,
                 true /* dnat */);
         ruleMgr.create(r);
@@ -1342,7 +1342,7 @@ public class TestVRNController {
         // Add 2 rules:
         // 1) forward snat rule 0x0a010009 to floating ip 0x808e0005
         // 2) forward dnat rule 0x808e0005 to internal 0x0a010009
-        UUID chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING));
+        UUID chainId = chainMgr.create(new ChainConfig("POSTROUTING"));
         int floatingIp = 0x808e0005;
         int internalIp = 0x0a010009;
         Set<NatTarget> nats = new HashSet<NatTarget>();
@@ -1359,7 +1359,7 @@ public class TestVRNController {
         // dnat rule:
         nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(internalIp, internalIp, (short) 0, (short) 0));
-        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING));
+        chainId = chainMgr.create(new ChainConfig("PREROUTING"));
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);
@@ -1551,7 +1551,7 @@ public class TestVRNController {
         // Now add a snat rule to map source addresses on router2
         // (0x0a020000/16) to public address 0x808e0005 for any packet that
         // is going outside 0x0a000000/8.
-        UUID chainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING));
+        UUID chainId = chainMgr.create(new ChainConfig("POSTROUTING"));
         int natPublicNwAddr = 0x808e0005;
         int natPrivateNwAddr = 0x0a020000;
         Set<NatTarget> nats = new HashSet<NatTarget>();
@@ -1582,7 +1582,7 @@ public class TestVRNController {
         r = new LiteralRule(cond, Action.DROP, chainId, 2);
         ruleMgr.create(r);
 
-        chainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING));
+        chainId = chainMgr.create(new ChainConfig("PREROUTING"));
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);

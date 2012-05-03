@@ -49,7 +49,7 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
-import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 
@@ -411,7 +411,7 @@ public class TestRouter {
         Assert.assertArrayEquals(data, icmpReply.getData());
     }
 
-    static public class ArpCompletedCallback implements Callback<MAC> {
+    static public class ArpCompletedCallback implements Callback1<MAC> {
         List<MAC> macsReturned = new ArrayList<MAC>();
 
         @Override
@@ -679,10 +679,10 @@ public class TestRouter {
 
     private void createRules() throws StateAccessException,
             ZkStateSerializationException, RuleIndexOutOfBoundsException {
-        UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING));
+        UUID preChainId = chainMgr.create(new ChainConfig("PREROUTING"));
         String srcFilterChainName = "filterSrcByPortId";
         UUID srcFilterChainId = chainMgr.create(new ChainConfig(srcFilterChainName));
-        UUID postChainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING));
+        UUID postChainId = chainMgr.create(new ChainConfig("POSTROUTING"));
         ruleIDs.add(preChainId);
         ruleIDs.add(srcFilterChainId);
         ruleIDs.add(postChainId);
