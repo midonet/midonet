@@ -17,8 +17,8 @@ public class GMTTime {
         return format.format(cal.getTime());
     }
 
-    public static int getNumberOfDays(long timeStart, long timeEnd){
+    public static int getNumberOfDays(long timeStart, long timeEnd) {
         long diff = timeEnd - timeStart;
-        return (int)diff/(24 * 60 * 60 * 1000);
+        return (int) diff / (24 * 60 * 60 * 1000);
     }
 }

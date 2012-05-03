@@ -24,7 +24,7 @@ public class CassandraStoreTest {
 
     String interfaceName = "myInterface";
     String granularity = "1m";
-    String metricName = "FakeMetric";
+    String metricName = "TestMetric";
     long epochNow = System.currentTimeMillis();
     long epochDayAfterTomorrow = epochNow + 2 * (24*60*60*1000);
     static int replicationFactor = 1;

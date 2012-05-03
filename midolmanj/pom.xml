@@ -558,6 +558,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.yammer.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>2.1.2</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>
