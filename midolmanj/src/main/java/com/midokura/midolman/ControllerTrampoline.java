@@ -139,7 +139,8 @@ public class ControllerTrampoline implements Controller {
 
                 Controller newController = new VRNController(
                         datapathId, directory, basePath, localNwAddr, ovsdb,
-                        reactor, CacheFactory.create(config), externalIdKey, bgpPortService);
+                        reactor, CacheFactory.create(config), externalIdKey,
+                        bgpPortService);
                 controllerStub.setController(newController);
                 controllerStub = null;
                 newController.onConnectionMade();

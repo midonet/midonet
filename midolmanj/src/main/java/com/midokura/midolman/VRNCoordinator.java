@@ -46,13 +46,13 @@ public class VRNCoordinator implements ForwardingElement {
     private PortFilteringStage portFilter;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
-                          Cache cache, VRNControllerIface ctrl,
+                          Cache cache_, VRNControllerIface ctrl,
                           PortSetMap portSetMap) {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.reactor = reactor;
-        this.cache = cache;
+        this.cache = cache_;
         this.ctrl = ctrl;
         this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
@@ -121,13 +121,13 @@ public class VRNCoordinator implements ForwardingElement {
         if (null != fe)
             return fe;
         log.debug("Getting forwarding element instance for {}", deviceId);
-        Cache cache = new CacheWithPrefix(this.cache, deviceId.toString());
+        Cache cache_ = new CacheWithPrefix(this.cache, deviceId.toString());
         switch (feType) {
           case Router:
-            fe = new Router(deviceId, zkDir, zkBasePath, reactor, cache, ctrl);
+            fe = new Router(deviceId, zkDir, zkBasePath, reactor, cache_, ctrl);
             break;
           case Bridge:
-            fe = new Bridge(deviceId, zkDir, zkBasePath, reactor, ctrl);
+            fe = new Bridge(deviceId, zkDir, zkBasePath, reactor, cache_, ctrl);
             break;
           case DontConstruct:
             fe = null;

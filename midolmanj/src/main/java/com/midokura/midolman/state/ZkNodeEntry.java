@@ -1,3 +1,5 @@
+// Copyright 2012 Midokura Inc.
+
 package com.midokura.midolman.state;
 
 public class ZkNodeEntry<X, Y> {
@@ -11,9 +13,6 @@ public class ZkNodeEntry<X, Y> {
 
     @Override
     public String toString() {
-        return "ZkNodeEntry{" +
-                "key=" + key +
-                ", value=" + value +
-                '}';
+        return "ZkNodeEntry{key=" + key + ", value=" + value + '}';
     }
 }

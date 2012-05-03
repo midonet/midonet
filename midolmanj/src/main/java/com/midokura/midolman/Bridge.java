@@ -28,6 +28,7 @@ import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortConfig;
@@ -38,6 +39,7 @@ import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.Cache;
 
 
 public class Bridge implements ForwardingElement {
@@ -62,9 +64,10 @@ public class Bridge implements ForwardingElement {
     private MacPortWatcher macToPortWatcher;
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
+    private ChainProcessor ruleEngine;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, VRNControllerIface ctrl)
+                  Reactor reactor, Cache cache, VRNControllerIface ctrl)
             throws StateAccessException {
         this.bridgeId = bridgeId;
         this.reactor = reactor;
@@ -87,6 +90,8 @@ public class Bridge implements ForwardingElement {
             }
         };
         updateLogicalPorts();
+        ruleEngine = new ChainProcessor(zkDir, zkBasePath, bridgeId, cache,
+                                        reactor);
     }
 
     @Override

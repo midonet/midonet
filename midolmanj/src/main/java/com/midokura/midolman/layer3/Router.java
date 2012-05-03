@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.ForwardingElement;
 import com.midokura.midolman.VRNControllerIface;
 import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
@@ -48,9 +47,8 @@ import com.midokura.midolman.util.Net;
  * This class coordinates the routing logic for a single virtual router. It
  * delegates much of its internal logic to other class instances:
  * ReplicatedRoutingTable maintains the routing table and matches flows to
- * routes; RuleEngine maintains the rule chains and applies their logic to
- * packets in the router; NatLeaseManager (in RuleEngine) manages NAT mappings
- * and ip:port reservations.
+ * routes; ChainProcessor maintains the rule chains and applies their logic to
+ * packets in the router.
  *
  * Router is directly responsible for three main tasks:
  * 1) Shepherding a packet through the pre-routing/routing/post-routing flow.
@@ -70,9 +68,6 @@ public class Router implements ForwardingElement {
     public static final long ARP_TIMEOUT_MILLIS = 60 * 1000;
     public static final long ARP_EXPIRATION_MILLIS = 3600 * 1000;
     public static final long ARP_STALE_MILLIS = 1800 * 1000;
-
-    public static final String PRE_ROUTING = "pre_routing";
-    public static final String POST_ROUTING = "post_routing";
 
     private PortZkManager portMgr;
     private RouteZkManager routeMgr;
@@ -135,6 +130,7 @@ public class Router implements ForwardingElement {
     private LoadBalancer loadBalancer;
     private final ObjectName objectName;
     private final VRNControllerIface controller;
+    private RouterZkManager.RouterConfig myConfig;
 
     public Router(UUID routerId, Directory zkDir, String zkBasePath,
                   Reactor reactor, Cache cache, VRNControllerIface ctrl)
@@ -151,6 +147,7 @@ public class Router implements ForwardingElement {
                         routerMgr.getRoutingTableDirectory(routerId),
                         CreateMode.EPHEMERAL);
         table.start();
+        myConfig = routerMgr.get(routerId).value;
         arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
         arpTable.start();
         devicePorts = new HashMap<UUID, L3DevicePort>();
@@ -383,11 +380,10 @@ public class Router implements ForwardingElement {
             return;
         }
 
-        // Apply pre-routing rules. Clone the original match in order to avoid
-        // changing it.
+        // Apply pre-routing rules.
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
-        RuleResult res = ruleEngine.applyChain(PRE_ROUTING, fwdInfo.flowMatch,
-                fwdInfo.matchIn, fwdInfo.inPortId, null);
+        RuleResult res = ruleEngine.applyChain(myConfig.inboundFilter,
+                fwdInfo.flowMatch, fwdInfo.matchIn, fwdInfo.inPortId, null);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -437,8 +433,8 @@ public class Router implements ForwardingElement {
         log.debug("{} pkt next hop {} and egress port {} - apply post-routing.",
                 new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort });
-        res = ruleEngine.applyChain(POST_ROUTING, fwdInfo.flowMatch, res.match,
-                fwdInfo.inPortId, rt.nextHopPort);
+        res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo.flowMatch,
+                res.match, fwdInfo.inPortId, rt.nextHopPort);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {

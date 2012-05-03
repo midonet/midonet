@@ -167,20 +167,19 @@ public class ChainProcessor {
      * @param outPortId
      * @return
      */
-    public RuleResult applyChain(String chainName, MidoMatch flowMatch,
+    public RuleResult applyChain(UUID chainID, MidoMatch flowMatch,
             MidoMatch pktMatch, UUID inPortId, UUID outPortId) {
 
-        if (!(uuidByName.containsKey(chainName))) {
-             log.debug("applyChain: No chain {} -- returning ACCEPT", chainName);
-             return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch, false);
+        if (null == chainID) {
+             return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch,
+                                   false);
         }
 
-        // Should all these chain name references be UUIDs?
-        Chain currentChain = chainByUuid.get(uuidByName.get(chainName));
+        Chain currentChain = chainByUuid.get(chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(currentChain.getRules(), 0));
-        Set<String> traversedChains = new HashSet<String>();
-        traversedChains.add(chainName);
+        Set<UUID> traversedChains = new HashSet<UUID>();
+        traversedChains.add(chainID);
 
         RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
@@ -202,7 +201,7 @@ public class ChainProcessor {
                     if (traversedChains.contains(res.jumpToChain)) {
                         // Avoid jumping to chains we've already seen.
                         log.warn("applyChain {} cannot jump to chain {} -- " +
-                                 "already visited", chainName, res.jumpToChain);
+                                 "already visited", chainID, res.jumpToChain);
                         continue;
                     }
 
@@ -215,7 +214,7 @@ public class ChainProcessor {
                     }
 
                     Chain nextChain = chainByUuid.get(nextID);
-                    traversedChains.add(res.jumpToChain);
+                    traversedChains.add(nextID);
                     // Remember the calling chain.
                     chainStack.push(cp);
                     chainStack.push(new ChainPosition(nextChain.getRules(), 0));
