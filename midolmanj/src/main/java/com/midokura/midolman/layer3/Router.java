@@ -145,12 +145,11 @@ public class Router implements ForwardingElement {
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
         RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
-        ruleEngine = new ChainProcessor(zkDir, zkBasePath,
-                new NatLeaseManager(new FiltersZkManager(zkDir, zkBasePath),
-                        routerId, cache, reactor), routerId);
+        ruleEngine = new ChainProcessor(zkDir, zkBasePath, routerId,
+                                        cache, reactor);
         table = new ReplicatedRoutingTable(routerId,
-                routerMgr.getRoutingTableDirectory(routerId),
-                CreateMode.EPHEMERAL);
+                        routerMgr.getRoutingTableDirectory(routerId),
+                        CreateMode.EPHEMERAL);
         table.start();
         arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
         arpTable.start();

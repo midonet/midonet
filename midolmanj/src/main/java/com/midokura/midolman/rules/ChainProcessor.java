@@ -19,16 +19,21 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.util.Cache;
+
 
 public class ChainProcessor {
 
@@ -44,12 +49,14 @@ public class ChainProcessor {
     private Directory zkDir;
     private String basePath;
 
-    public ChainProcessor(Directory dir, String zkBasePath, NatMapping natMap_,
-                          UUID ownerID) throws StateAccessException {
+    public ChainProcessor(Directory dir, String zkBasePath, UUID ownerID,
+                          Cache cache, Reactor reactor)
+            throws StateAccessException {
         zkDir = dir;
         basePath = zkBasePath;
         zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
-        natMap = natMap_;
+        natMap = new NatLeaseManager(new FiltersZkManager(zkDir, zkBasePath),
+                                     ownerID, cache, reactor);
         zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
         chainWatcher = new ChainWatcher(ownerID);
         chainByUuid = new HashMap<UUID, Chain>();
