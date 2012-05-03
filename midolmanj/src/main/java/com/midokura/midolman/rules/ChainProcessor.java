@@ -29,7 +29,7 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Callback0;
 
 public class ChainProcessor {
 
@@ -38,23 +38,21 @@ public class ChainProcessor {
 
     private RuleZkManager zkRuleMgr;
     private NatMapping natMap;
-    private Set<Callback<UUID>> watchers;
+    private Set<Callback0> watchers;
     private Map<UUID, Chain> chainByUuid;
     private Map<String, UUID> uuidByName;
     private ChainZkManager zkChainMgr;
     private ChainWatcher chainWatcher;
     private Directory zkDir;
     private String basePath;
-    private UUID owner;
 
     public ChainProcessor(Directory dir, String zkBasePath, NatMapping natMap_,
                           UUID ownerID) throws StateAccessException {
         zkDir = dir;
         basePath = zkBasePath;
-        owner = ownerID;
         zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
         natMap = natMap_;
-        watchers = new HashSet<Callback<UUID>>();
+        watchers = new HashSet<Callback0>();
         zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
         chainWatcher = new ChainWatcher(ownerID);
         chainByUuid = new HashMap<UUID, Chain>();
@@ -62,18 +60,18 @@ public class ChainProcessor {
         updateChains(ownerID);
     }
 
-    public void addWatcher(Callback<UUID> watcher) {
+    public void addWatcher(Callback0 watcher) {
         watchers.add(watcher);
     }
 
-    public void removeWatcher(Callback<UUID> watcher) {
+    public void removeWatcher(Callback0 watcher) {
         watchers.remove(watcher);
     }
 
     private void notifyWatchers() {
-        for (Callback<UUID> watcher : watchers) {
+        for (Callback0 watcher : watchers) {
             // TODO(pino): schedule for later instead of calling them here.
-            watcher.call(owner);
+            watcher.call();
         }
     }
 
@@ -124,7 +122,7 @@ public class ChainProcessor {
     public void updateChains(UUID ownerID) throws StateAccessException,
             ZkStateSerializationException {
         Collection<ZkNodeEntry<UUID, ChainZkManager.ChainConfig>>
-                entryList = null; //zkChainMgr.list(ownerID, chainWatcher);
+                entryList = null; //XXX zkChainMgr.list(ownerID, chainWatcher);
 
         HashSet<UUID> updatedChains = new HashSet<UUID>();
         boolean hasUpdates = false;

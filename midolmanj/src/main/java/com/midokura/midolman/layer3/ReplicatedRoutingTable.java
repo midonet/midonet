@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ReplicatedSet;
-import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.JSONSerializer;
 
 public class ReplicatedRoutingTable {
@@ -71,13 +71,13 @@ public class ReplicatedRoutingTable {
     private RoutingTable table;
     private UUID routerId;
     private ReplicatedRouteSet routeSet;
-    private Set<Callback<UUID>> watchers;
+    private Set<Callback1<UUID>> watchers;
 
     public ReplicatedRoutingTable(UUID routerId, Directory routeDir,
             CreateMode createMode) {
         this.routerId = routerId;
         table = new RoutingTable();
-        watchers = new HashSet<Callback<UUID>>();
+        watchers = new HashSet<Callback1<UUID>>();
         routeSet = new ReplicatedRouteSet(routeDir, createMode);
         routeSet.addWatcher(new MyWatcher());
     }
@@ -90,17 +90,17 @@ public class ReplicatedRoutingTable {
         routeSet.stop();
     }
 
-    public void addWatcher(Callback<UUID> watcher) {
+    public void addWatcher(Callback1<UUID> watcher) {
         watchers.add(watcher);
     }
 
-    public void removeWatcher(Callback<UUID> watcher) {
+    public void removeWatcher(Callback1<UUID> watcher) {
         watchers.remove(watcher);
     }
 
     private void notifyWatchers() {
         // TODO(pino): should these be called asynchronously?
-        for (Callback<UUID> watcher : watchers) {
+        for (Callback1<UUID> watcher : watchers) {
             watcher.call(routerId);
         }
     }

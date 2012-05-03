@@ -99,8 +99,8 @@ public class ChainZkManager extends ZkManager {
     public List<Op> prepareChainDelete(ZkNodeEntry<UUID, ChainConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        RuleZkManager ruleZkManager = new RuleZkManager(zk, pathManager
-                .getBasePath());
+        RuleZkManager ruleZkManager =
+                new RuleZkManager(zk, pathManager.getBasePath());
         List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
         for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));

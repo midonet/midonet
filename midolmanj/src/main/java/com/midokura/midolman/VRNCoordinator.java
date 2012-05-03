@@ -22,7 +22,7 @@ import com.midokura.midolman.rules.PortFilteringStage;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
-import com.midokura.midolman.util.Callback;
+import com.midokura.midolman.util.Callback1;
 
 public class VRNCoordinator implements ForwardingElement {
 
@@ -36,7 +36,7 @@ public class VRNCoordinator implements ForwardingElement {
     private Map<UUID, ForwardingElement> forwardingElements;
     private Map<UUID, ForwardingElement> feByPortId;
     // These watchers are interested in routing table and rule changes.
-    private Set<Callback<UUID>> watchers;
+    private Set<Callback1<UUID>> watchers;
     // TODO(pino): use Guava's CacheBuilder here.
     private Map<UUID, PortConfig> portIdToConfig;
     private Directory zkDir;
@@ -57,7 +57,7 @@ public class VRNCoordinator implements ForwardingElement {
         this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
-        this.watchers = new HashSet<Callback<UUID>>();
+        this.watchers = new HashSet<Callback1<UUID>>();
         this.portFilter = new PortFilteringStage(zkDir, zkBasePath);
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
@@ -107,7 +107,7 @@ public class VRNCoordinator implements ForwardingElement {
         return cfg;
     }
 
-    public void addWatcher(Callback<UUID> watcher) {
+    public void addWatcher(Callback1<UUID> watcher) {
         watchers.add(watcher);
     }
 
