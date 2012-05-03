@@ -29,7 +29,9 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
@@ -65,6 +67,7 @@ public class Bridge implements ForwardingElement {
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
     private ChainProcessor ruleEngine;
+    private BridgeZkManager.BridgeConfig myConfig;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
                   Reactor reactor, Cache cache, VRNControllerIface ctrl)
@@ -90,6 +93,7 @@ public class Bridge implements ForwardingElement {
             }
         };
         updateLogicalPorts();
+        myConfig = (new BridgeZkManager(zkDir, zkBasePath)).get(bridgeId).value;
         ruleEngine = new ChainProcessor(zkDir, zkBasePath, bridgeId, cache,
                                         reactor);
     }
@@ -122,6 +126,24 @@ public class Bridge implements ForwardingElement {
         }
         fwdInfo.matchOut = fwdInfo.matchIn.clone();
         fwdInfo.outPortId = null;
+
+        // Apply pre-bridging rules.
+        RuleResult res = ruleEngine.applyChain(myConfig.inboundFilter,
+                fwdInfo.flowMatch, fwdInfo.matchIn, fwdInfo.inPortId, null);
+        if (res.trackConnection)
+            fwdInfo.addRemovalNotification(bridgeId);
+        if (res.action.equals(RuleResult.Action.DROP) ||
+                res.action.equals(RuleResult.Action.REJECT)) {
+            // TODO: Should we send an ICMP !X for REJECT?  If so, with what
+            // srcIP?
+            fwdInfo.action = Action.DROP;
+            return;
+        }
+        if (!res.action.equals(RuleResult.Action.ACCEPT)) {
+            throw new RuntimeException("Pre-bridging returned an action " +
+                        "other than ACCEPT, DROP or REJECT.");
+        }
+
         // Is the destination a multicast address?
         if (Ethernet.isMcast(dstDlAddress)) {
             // If it's an IPv4 ARP, is it for a router's IP?
@@ -166,6 +188,23 @@ public class Bridge implements ForwardingElement {
             // We don't need flow removal notification for flows from FEs.
             fwdInfo.addRemovalNotification(bridgeId);
         }
+
+        // Apply post-bridging rules.
+        res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo.flowMatch,
+                res.match, fwdInfo.inPortId, fwdInfo.outPortId);
+        if (res.trackConnection)
+            fwdInfo.addRemovalNotification(bridgeId);
+        if (res.action.equals(RuleResult.Action.DROP) ||
+                res.action.equals(RuleResult.Action.REJECT)) {
+            // TODO: Should we send an ICMP !X for REJECT?  If so, with what
+            // srcIP?
+            fwdInfo.action = Action.DROP;
+        }
+        if (!res.action.equals(RuleResult.Action.ACCEPT)) {
+            throw new RuntimeException("Post-bridging returned an action " +
+                        "other than ACCEPT, DROP or REJECT.");
+        }
+
         return;
     }
 
