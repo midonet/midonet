@@ -221,10 +221,11 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a040005, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
-        Assert.assertEquals(1, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
+        Assert.assertEquals(1, fInfo.getNumFEsTraversed());
+        Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(0)));
+        Assert.assertEquals(0, fInfo.getTimesTraversed(routerIds.get(1)));
+        Assert.assertEquals(0, fInfo.getTimesTraversed(routerIds.get(2)));
         // TODO(pino): changed BLACKHOLE to DROP, check ICMP wasn't sent.
         TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
@@ -240,10 +241,11 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a000c05, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
-        Assert.assertEquals(1, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
+        Assert.assertEquals(1, fInfo.getNumFEsTraversed());
+        Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(0)));
+        Assert.assertEquals(0, fInfo.getTimesTraversed(routerIds.get(1)));
+        Assert.assertEquals(0, fInfo.getTimesTraversed(routerIds.get(2)));
         // TODO(pino): changed REJECT to DROP, check ICMP was sent.
         TestRouter.checkForwardInfo(fInfo, Action.DROP, null, 0);
     }
@@ -261,10 +263,11 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a000005, 0x0a000105, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
-        Assert.assertEquals(1, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
+        Assert.assertEquals(1, fInfo.getNumFEsTraversed());
+        Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(0)));
+        Assert.assertEquals(0, fInfo.getTimesTraversed(routerIds.get(1)));
+        Assert.assertEquals(0, fInfo.getTimesTraversed(routerIds.get(2)));
         // Router ARPs, verify it PAUSED the packet.
         Assert.assertEquals(Action.PAUSED, fInfo.action);
 
@@ -295,13 +298,13 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0100cc, 0x0a0000aa, (short) 101, (short) 212, payload);
         ForwardInfo fInfo1 = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Collection<UUID> traversedRtrs1 = fInfo1.getTraversedFEs();
         vrn.process(fInfo1);
         // The packet gets paused for ARP.
         Assert.assertEquals(Action.PAUSED, fInfo1.action);
-        Assert.assertEquals(2, traversedRtrs1.size());
-        Assert.assertTrue(traversedRtrs1.contains(routerIds.get(0)));
-        Assert.assertTrue(traversedRtrs1.contains(routerIds.get(1)));
+        Assert.assertEquals(2, fInfo1.getNumFEsTraversed());
+        Assert.assertEquals(1, fInfo1.getTimesTraversed(routerIds.get(0)));
+        Assert.assertEquals(1, fInfo1.getTimesTraversed(routerIds.get(1)));
+        Assert.assertEquals(0, fInfo1.getTimesTraversed(routerIds.get(2)));
 
         // Construct an ARP reply for 0x0a0000aa.
         MAC remoteMAC = new MAC(new byte[] { (byte) 10, (byte) 2, (byte) 1,
@@ -318,14 +321,13 @@ public class TestVRNCoordinator {
         // Now a packet sent from 0x0a0100cc to 0x0a0000aa should get all the
         // way through.
         ForwardInfo fInfo2 = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Collection<UUID> traversedRtrs2 = fInfo2.getTraversedFEs();
-
         vrn.process(fInfo2);
         TestRouter.checkForwardInfo(fInfo2, Action.FORWARD, egrDevPort.getId(),
                 0x0a0000aa);
-        Assert.assertEquals(2, traversedRtrs2.size());
-        Assert.assertTrue(traversedRtrs2.contains(routerIds.get(0)));
-        Assert.assertTrue(traversedRtrs2.contains(routerIds.get(1)));
+        Assert.assertEquals(2, fInfo2.getNumFEsTraversed());
+        Assert.assertEquals(1, fInfo2.getTimesTraversed(routerIds.get(0)));
+        Assert.assertEquals(1, fInfo2.getTimesTraversed(routerIds.get(1)));
+        Assert.assertEquals(0, fInfo2.getTimesTraversed(routerIds.get(2)));
     }
 
     @Test
@@ -341,12 +343,12 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0101bb, 0x0a020188, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        Collection<UUID> traversedRtrs = fInfo.getTraversedFEs();
         vrn.process(fInfo);
-        Assert.assertEquals(3, traversedRtrs.size());
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(0)));
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(1)));
-        Assert.assertTrue(traversedRtrs.contains(routerIds.get(2)));
+        vrn.process(fInfo);
+        Assert.assertEquals(3, fInfo.getNumFEsTraversed());
+        Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(0)));
+        Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(1)));
+        Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(2)));
         // Packet gets stopped by final-hop ARP.
         Assert.assertEquals(Action.PAUSED, fInfo.action);
         Ethernet arpReply = TestRouter.makeArpReply(

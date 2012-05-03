@@ -5,7 +5,9 @@
 package com.midokura.midolman;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
 import javax.management.JMException;
 
@@ -59,14 +61,13 @@ public interface ForwardingElement {
         void setMatchOut(MidoMatch match);
         void setDepth(int depth);
         void addTraversedFE(UUID deviceId);
-        boolean feTraversed(UUID deviceId);
-        Collection<UUID> getTraversedFEs();
+        int getTimesTraversed(UUID deviceId);
+        int getNumFEsTraversed();
         Collection<UUID> getNotifiedFEs();
         int getDepth();
         Action getAction();
         UUID getOutPortId();
     }
-
 
     /* VRNController creates and partially populate an instance of
      * ForwardInfo to call ForwardingElement.process(fInfo).  The
@@ -90,7 +91,7 @@ public interface ForwardingElement {
         // Used by FEs that want notification when the flow is removed.
         private Collection<UUID> notifyFEs = new HashSet<UUID>();
         // Used by the VRNCoordinator to detect loops.
-        private Collection<UUID> traversedFEs = new HashSet<UUID>();
+        private Map<UUID, Integer> traversedFEs = new HashMap<UUID, Integer>();
         public int depth = 0;  // depth in the VRN simulation
 
         public ForwardInfo() {}
@@ -128,17 +129,22 @@ public interface ForwardingElement {
 
         @Override
         public void addTraversedFE(UUID deviceId) {
-            traversedFEs.add(deviceId);
+            Integer numTraversed = traversedFEs.get(deviceId);
+            if (null == numTraversed)
+                traversedFEs.put(deviceId, 1);
+            else
+                traversedFEs.put(deviceId, numTraversed++);
         }
 
         @Override
-        public boolean feTraversed(UUID deviceId) {
-            return traversedFEs.contains(deviceId);
+        public int getTimesTraversed(UUID deviceId) {
+            Integer numTraversed = traversedFEs.get(deviceId);
+            return null == numTraversed ? 0 : numTraversed;
         }
 
         @Override
-        public Collection<UUID> getTraversedFEs() {
-            return traversedFEs;
+        public int getNumFEsTraversed() {
+            return traversedFEs.size();
         }
 
         @Override

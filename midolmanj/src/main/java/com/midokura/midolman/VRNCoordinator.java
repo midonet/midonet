@@ -238,16 +238,15 @@ public class VRNCoordinator implements ForwardingElement {
             throw new RuntimeException("Packet arrived on a port that hasn't "
                     + "been added to the network instance (yet?).");
 
-        fwdInfo.addTraversedFE(fe.getId());
-        fwdInfo.depth++;
-        if (fwdInfo.depth > MAX_HOPS) {
-            // If we got here, we traversed MAX_HOPS routers without reaching a
-            // materialized port.
-            log.warn("More than {} FEs traversed; probably a loop; " +
-                     "giving up.", MAX_HOPS);
+        if (fwdInfo.depth >= MAX_HOPS) {
+            // We traversed MAX_HOPS routers without reaching an edge port.
+            log.warn("Traversed {} FEs without reaching an edge port; " +
+                    "probably a loop - giving up.", MAX_HOPS);
             fwdInfo.action = Action.DROP;
             return;
         }
+        fwdInfo.depth++;
+        fwdInfo.addTraversedFE(fe.getId());
         fe.process(fwdInfo);
         if (fwdInfo.action != Action.PAUSED)
             handleProcessResult(fwdInfo);
@@ -277,8 +276,11 @@ public class VRNCoordinator implements ForwardingElement {
                 LogicalPortConfig lcfg = (LogicalPortConfig) cfg;
                 ForwardingElement fe = getForwardingElementByPort(lcfg.peerId());
                 log.debug("Packet exited FE on logical port to FE {}", fe);
-                if (fwdInfo.feTraversed(fe.getId())) {
-                    log.warn("Detected a routing loop.");
+                int timesTraversed = fwdInfo.getTimesTraversed(fe.getId());
+                if (timesTraversed > 2) {
+                    log.warn("Detected a loop. FE {} saw the packet {} " +
+                            "times: {}", new Object[] { fe.getId(),
+                            timesTraversed, fwdInfo.flowMatch });
                     fwdInfo.action = Action.DROP;
                     return;
                 }
