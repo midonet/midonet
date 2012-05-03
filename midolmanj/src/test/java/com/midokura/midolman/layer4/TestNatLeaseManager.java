@@ -20,6 +20,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.ZkPathManager;
@@ -45,8 +46,8 @@ public class TestNatLeaseManager {
         Reactor reactor = new MockReactor();
 
         UUID rtrId = routerMgr.create();
-        natManager = new NatLeaseManager(routerMgr, rtrId, createCache(),
-                reactor);
+        natManager = new NatLeaseManager(new FiltersZkManager(dir, basePath),
+                rtrId, createCache(), reactor);
     }
 
     @Test

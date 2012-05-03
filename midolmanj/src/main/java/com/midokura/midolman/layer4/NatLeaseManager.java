@@ -24,6 +24,7 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
+import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Net;
@@ -49,7 +50,7 @@ public class NatLeaseManager implements NatMapping {
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
     Map<Integer, NavigableSet<Integer>> ipToFreePortsMap;
-    private RouterZkManager routerMgr;
+    private FiltersZkManager filterMgr;
     private UUID routerId;
     private String rtrIdStr;
     private Cache cache;
@@ -59,9 +60,9 @@ public class NatLeaseManager implements NatMapping {
     private Random rand;
     private int refreshSeconds;
 
-    public NatLeaseManager(RouterZkManager routerMgr, UUID routerId,
+    public NatLeaseManager(FiltersZkManager filterMgr, UUID routerId,
             Cache cache, Reactor reactor) {
-        this.routerMgr = routerMgr;
+        this.filterMgr = filterMgr;
         this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Integer>>();
         this.routerId = routerId;
         rtrIdStr = routerId.toString();
@@ -194,7 +195,7 @@ public class NatLeaseManager implements NatMapping {
         log.debug("lookupDnatFwd: key {} value {}", fwdKey, value);
         // If the forward mapping was found, touch the reverse mapping too,
         // then schedule a refresh.
-        if (null == value) 
+        if (null == value)
             return null;
         NwTpPair pair = makePairFromString(value);
         if (null == pair)
@@ -301,7 +302,7 @@ public class NatLeaseManager implements NatMapping {
             for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
                 NavigableSet<Integer> reservedBlocks;
                 try {
-                    reservedBlocks = routerMgr.getSnatBlocks(routerId, ip);
+                    reservedBlocks = filterMgr.getSnatBlocks(routerId, ip);
                 } catch (Exception e) {
                     log.error("allocateSnat got an exception listing reserved "
                             + "blocks:", e);
@@ -343,7 +344,7 @@ public class NatLeaseManager implements NatMapping {
                     log.debug("allocateSnat trying to reserve snat block {} "
                             + "in ip {}", block,
                             Net.convertIntAddressToString(ip));
-                    routerMgr.addSnatReservation(routerId, ip, block);
+                    filterMgr.addSnatReservation(routerId, ip, block);
                 } catch (Exception e) {
                     log.debug("allocateSnat block reservation failed.");
                     numExceptions++;

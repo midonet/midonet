@@ -146,8 +146,8 @@ public class Router implements ForwardingElement {
         this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
         RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
         ruleEngine = new ChainProcessor(zkDir, zkBasePath,
-                new NatLeaseManager(routerMgr, routerId, cache, reactor),
-                routerId);
+                new NatLeaseManager(new FiltersZkManager(zkDir, zkBasePath),
+                        routerId, cache, reactor), routerId);
         table = new ReplicatedRoutingTable(routerId,
                 routerMgr.getRoutingTableDirectory(routerId),
                 CreateMode.EPHEMERAL);

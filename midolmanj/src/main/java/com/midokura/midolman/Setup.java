@@ -68,6 +68,7 @@ public class Setup {
         paths.add(pathMgr.getBgpPath());
         paths.add(pathMgr.getBridgesPath());
         paths.add(pathMgr.getChainsPath());
+        paths.add(pathMgr.getFiltersPath());
         paths.add(pathMgr.getRulesPath());
         paths.add(pathMgr.getGrePath());
         paths.add(pathMgr.getPortsPath());

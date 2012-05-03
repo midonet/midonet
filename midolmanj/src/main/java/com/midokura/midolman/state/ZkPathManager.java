@@ -116,6 +116,39 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK path for filtering state
+     *
+     * @return /filters
+     */
+    public String getFiltersPath() {
+        return new StringBuilder(basePath).append("/filters").toString();
+    }
+
+    /**
+     * Get ZK path for a port, bridge or router's filtering state.
+     *
+     * @param id
+     *            Router, bridge or port UUID
+     * @return /filters/parentId
+     */
+    public String getFilterPath(UUID id) {
+        return new StringBuilder(getFiltersPath()).append("/").append(id)
+                .toString();
+    }
+
+    /**
+     * Get ZK path of the SNAT blocks in a filter state.
+     *
+     * @param id
+     *            Router, bridge or port UUID
+     * @return /filters/parentId/snat_blocks
+     */
+    public String getFilterSnatBlocksPath(UUID id) {
+        return new StringBuilder(getFilterPath(id))
+                .append("/snat_blocks").toString();
+    }
+
+    /**
      * Get ZK router path.
      *
      * @return /routers
@@ -459,18 +492,6 @@ public class ZkPathManager {
     public String getRouterArpTablePath(UUID routerId) {
         return new StringBuilder(getRouterPath(routerId)).append(
                 "/arp_table").toString();
-    }
-
-    /**
-     * Get ZK router SNAT blocks path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/snat_blocks
-     */
-    public String getRouterSnatBlocksPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId))
-                .append("/snat_blocks").toString();
     }
 
     /**
