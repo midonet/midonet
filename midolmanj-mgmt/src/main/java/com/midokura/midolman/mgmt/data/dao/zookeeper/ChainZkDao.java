@@ -184,12 +184,24 @@ public class ChainZkDao {
      *
      * @param name
      *            Name of the the chain
-     * @param routerId
-     *            Router ID
      * @return ChainConfig object
      */
-    public ChainConfig constructChainConfig(String name, UUID routerId) {
-        return new ChainConfig(name, routerId);
+    public ChainConfig constructChainConfig(String name) {
+        return new ChainConfig(name);
+    }
+
+    /**
+     * Construct a new ChainMgmtConfig object.
+     *
+     * @param name
+     *            Name of the the chain
+     * @param tenantId
+     *            Tenant ID
+     * @return ChainConfig object
+     */
+    public ChainMgmtConfig constructChainMgmtConfig(
+            String name, UUID tenantId) {
+        return new ChainMgmtConfig(tenantId, name);
     }
 
     /**

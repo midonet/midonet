@@ -44,7 +44,7 @@ public class ChainProcessor {
     private ChainZkManager zkChainMgr;
     private ChainWatcher chainWatcher;
     private Directory zkDir;
-    private String basePath; 
+    private String basePath;
     private UUID owner;
 
     public ChainProcessor(Directory dir, String zkBasePath, NatMapping natMap_,
@@ -114,7 +114,7 @@ public class ChainProcessor {
         chainByUuid.remove(id);
         uuidByName.remove(name);
     }
-        
+
 
     /**
      * Called when a change in the state (ZooKeeper) has been notified
@@ -124,11 +124,11 @@ public class ChainProcessor {
     public void updateChains(UUID ownerID) throws StateAccessException,
             ZkStateSerializationException {
         Collection<ZkNodeEntry<UUID, ChainZkManager.ChainConfig>>
-                entryList = zkChainMgr.list(ownerID, chainWatcher);
+                entryList = null; //zkChainMgr.list(ownerID, chainWatcher);
 
         HashSet<UUID> updatedChains = new HashSet<UUID>();
         boolean hasUpdates = false;
-       
+
         // Add new entries, store traversed entries for helping later removal
         for (ZkNodeEntry<UUID, ChainZkManager.ChainConfig> entry : entryList) {
             updatedChains.add(entry.key);
@@ -195,7 +195,7 @@ public class ChainProcessor {
         chainStack.push(new ChainPosition(currentChain.getRules(), 0));
         Set<String> traversedChains = new HashSet<String>();
         traversedChains.add(chainName);
-        
+
         RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
         while (!chainStack.empty()) {

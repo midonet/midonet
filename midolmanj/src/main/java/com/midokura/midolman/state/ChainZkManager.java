@@ -29,15 +29,14 @@ public class ChainZkManager extends ZkManager {
 
     public static class ChainConfig {
 
-        public UUID routerId = null;
+        // The chain name should only be used for logging.
         public String name = null;
 
         public ChainConfig() {
         }
 
-        public ChainConfig(String name, UUID routerId) {
+        public ChainConfig(String name) {
             this.name = name;
-            this.routerId = routerId;
         }
     }
 
@@ -80,9 +79,6 @@ public class ChainZkManager extends ZkManager {
         }
         ops.add(Op.create(pathManager.getChainRulesPath(chainEntry.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterChainPath(
-                chainEntry.value.routerId, chainEntry.key), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
 
@@ -109,10 +105,6 @@ public class ChainZkManager extends ZkManager {
         for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
         }
-        String routerChainPath = pathManager.getRouterChainPath(
-                entry.value.routerId, entry.key);
-        log.debug("Preparing to delete: " + routerChainPath);
-        ops.add(Op.delete(routerChainPath, -1));
 
         String chainRulePath = pathManager.getChainRulesPath(entry.key);
         log.debug("Preparing to delete: " + chainRulePath);
@@ -163,47 +155,6 @@ public class ChainZkManager extends ZkManager {
                     ChainConfig.class);
         }
         return new ZkNodeEntry<UUID, ChainConfig>(id, config);
-    }
-
-    /**
-     * Gets a list of ZooKeeper chain nodes belonging to a router with the given
-     * ID.
-     *
-     * @param routerId
-     *            The ID of the router to find the chains of.
-     * @return A list of ZooKeeper chain nodes.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     */
-    public List<ZkNodeEntry<UUID, ChainConfig>> list(UUID routerId)
-            throws StateAccessException, ZkStateSerializationException {
-        return list(routerId, null);
-    }
-
-    /**
-     * Gets a list of ZooKeeper chain nodes belonging to a router with the given
-     * ID.
-     *
-     * @param routerId
-     *            The ID of the router to find the chains of.
-     * @param watcher
-     *            The watcher to set on the changes to the chains for this
-     *            router.
-     * @return A list of ZooKeeper chain nodes.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     */
-    public List<ZkNodeEntry<UUID, ChainConfig>> list(UUID routerId,
-            Runnable watcher) throws StateAccessException,
-            ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, ChainConfig>> result = new ArrayList<ZkNodeEntry<UUID, ChainConfig>>();
-        Set<String> chains = getChildren(pathManager
-                .getRouterChainsPath(routerId), watcher);
-        for (String chainId : chains) {
-            // For now, get each one.
-            result.add(get(UUID.fromString(chainId)));
-        }
-        return result;
     }
 
     /**

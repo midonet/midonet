@@ -81,7 +81,7 @@ public class TenantChainResource {
         }
 
         ChainDao dao = daoFactory.getChainDao();
-        chain.setOwnerId(routerId);
+        chain.setTenantId(routerId);
         UUID id = dao.create(chain);
         return Response.created(
                 ResourceUriBuilder.getChain(uriInfo.getBaseUri(), id)).build();

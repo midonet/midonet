@@ -20,6 +20,7 @@ import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -136,8 +137,9 @@ public class BridgeDaoAdapter implements BridgeDao {
 
         Bridge bridge = null;
         if (zkDao.exists(id)) {
-            BridgeMgmtConfig config = zkDao.getMgmtData(id);
-            bridge = new Bridge(id, config.name, config.tenantId);
+            BridgeMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
+            BridgeConfig config = zkDao.getData(id);
+            bridge = new Bridge(id, mgmtConfig, config);
         }
 
         log.debug("BridgeDaoAdapter.get exiting: bridge={}", bridge);

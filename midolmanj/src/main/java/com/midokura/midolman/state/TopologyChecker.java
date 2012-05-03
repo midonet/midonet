@@ -12,6 +12,7 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -101,11 +102,14 @@ public class TopologyChecker {
 
         ZkPathManager pathMgr = new ZkPathManager(basePath);
 
-        // First print out all the rule chains.
+        // TODO(pino): modify this to print out the router's inboundFilter
+        // TODO:  and outboundFilter chains.
         System.out.println("Router's chains:");
         ChainZkManager chainMgr = new ChainZkManager(zkDir, basePath);
         RuleZkManager ruleMgr = new RuleZkManager(zkDir, basePath);
-        List<ZkNodeEntry<UUID, ChainConfig>> chains = chainMgr.list(routerId);
+        //List<ZkNodeEntry<UUID, ChainConfig>> chains = chainMgr.list(routerId);
+        List<ZkNodeEntry<UUID, ChainConfig>> chains =
+                new ArrayList<ZkNodeEntry<UUID, ChainConfig>>();
         for (ZkNodeEntry<UUID, ChainConfig> chain : chains) {
             System.out.println("  " + chain.key + " has name "
                     + chain.value.name + " and rules:");

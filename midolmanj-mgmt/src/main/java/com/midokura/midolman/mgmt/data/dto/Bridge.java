@@ -42,11 +42,13 @@ public class Bridge extends UriResource {
      *
      * @param id
      *            ID of the bridge
-     * @param config
+     * @param mgmtConfig
      *            BridgeMgmtConfig object.
+     * @param config
+     *            BridgeConfig object.
      */
-    public Bridge(UUID id, BridgeMgmtConfig config) {
-        this(id, config.name, config.tenantId);
+    public Bridge(UUID id, BridgeMgmtConfig mgmtConfig, BridgeConfig config) {
+        this(id, mgmtConfig.name, mgmtConfig.tenantId, config);
     }
 
     /**
@@ -58,12 +60,16 @@ public class Bridge extends UriResource {
      *            Name of the bridge.
      * @param tenantId
      *            ID of the tenant that owns the bridge.
+     * @param config
+     *            BridgeConfig object.
      */
-    public Bridge(UUID id, String name, String tenantId) {
+    public Bridge(UUID id, String name, String tenantId, BridgeConfig config) {
         super();
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
+        this.inboundFilter = config.inboundFilter;
+        this.outboundFilter = config.outboundFilter;
     }
 
     /**

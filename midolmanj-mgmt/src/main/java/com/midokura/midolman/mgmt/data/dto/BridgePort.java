@@ -41,7 +41,7 @@ public class BridgePort extends Port {
      *            PortConfig object
      */
     public BridgePort(UUID id, PortMgmtConfig mgmtConfig, PortConfig config) {
-        this(id, config.device_id, mgmtConfig.vifId);
+        this(id, mgmtConfig.vifId, config);
     }
 
     /**
@@ -49,13 +49,13 @@ public class BridgePort extends Port {
      *
      * @param id
      *            ID of port
-     * @param deviceId
-     *            Device ID
      * @param vifId
      *            VIF ID
+     * @param config
+     *            PortConfig object
      */
-    public BridgePort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId, vifId);
+    public BridgePort(UUID id, UUID vifId, PortConfig config) {
+        super(id, vifId, config);
     }
 
     /**

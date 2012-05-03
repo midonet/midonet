@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 /**
  * Class representing Virtual Router.
@@ -42,11 +42,13 @@ public class Router extends UriResource {
      *
      * @param id
      *            ID of the router
-     * @param config
+     * @param mgmtConfig
      *            RouterMgmtConfig object.
+     * @param config
+     *            RouterConfig object.
      */
-    public Router(UUID id, RouterMgmtConfig config) {
-        this(id, config.name, config.tenantId);
+    public Router(UUID id, RouterMgmtConfig mgmtConfig, RouterConfig config) {
+        this(id, mgmtConfig.name, mgmtConfig.tenantId, config);
     }
 
     /**
@@ -58,12 +60,16 @@ public class Router extends UriResource {
      *            Name of the router.
      * @param tenantId
      *            ID of the tenant that owns the router.
+     * @param config
+     *            RouterConfig object.
      */
-    public Router(UUID id, String name, String tenantId) {
+    public Router(UUID id, String name, String tenantId, RouterConfig config) {
         super();
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
+        this.inboundFilter = config.inboundFilter;
+        this.outboundFilter = config.outboundFilter;
     }
 
     /**
@@ -184,9 +190,8 @@ public class Router extends UriResource {
      *
      * @return RouterConfig object
      */
-    public RouterZkManager.RouterConfig toConfig() {
-        return new RouterZkManager.RouterConfig(
-                this.inboundFilter, this.outboundFilter);
+    public RouterConfig toConfig() {
+        return new RouterConfig(this.inboundFilter, this.outboundFilter);
 
     }
 

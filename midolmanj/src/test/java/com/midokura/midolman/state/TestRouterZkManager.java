@@ -21,7 +21,6 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.openflow.MockControllerStub;
-import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.MockCache;
@@ -33,7 +32,6 @@ public class TestRouterZkManager {
     private int uplinkPortAddr;
     private Route uplinkRoute;
     private Router rtr;
-    private RuleEngine ruleEngine;
     private ReplicatedRoutingTable rTable;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
@@ -83,7 +81,7 @@ public class TestRouterZkManager {
                         routerMgr.getRoutingTableDirectory(rtrId),
                         CreateMode.EPHEMERAL);
         rTable.start();
-        
+
         // TODO(pino): pass a MockVRNController to the Router.
         rtr = new Router(rtrId, dir, basePath, reactor, cache, null);
         controllerStub = new MockControllerStub();

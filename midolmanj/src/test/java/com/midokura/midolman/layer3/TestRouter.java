@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.layer3;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,13 +19,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionOutput;
-
-import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.ForwardingElement.Action;
@@ -34,7 +27,6 @@ import com.midokura.midolman.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.MockVRNController;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.ARP;
@@ -52,22 +44,9 @@ import com.midokura.midolman.rules.LiteralRule;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.rules.RuleEngine;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
-import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback;
@@ -82,13 +61,12 @@ public class TestRouter {
     private MAC uplinkMacAddr;
     private Route uplinkRoute;
     private Router rtr;
-    private RuleEngine ruleEngine;
     private ReplicatedRoutingTable rTable;
     private MockReactor reactor;
     private MockControllerStub controllerStub;
     private Map<Integer, PortDirectory.MaterializedRouterPortConfig> portConfigs;
     private Map<Integer, UUID> portNumToId;
-    private UUID srcFilterChainId;
+    List<UUID> ruleIDs = new ArrayList<UUID>();
     private int publicDnatAddr;
     private int internDnatAddr;
     private MockVRNController controller;
@@ -365,7 +343,7 @@ public class TestRouter {
         // (i.e. inside 10.0.1.8/30).
         UUID port12Id = portNumToId.get(12);
         L3DevicePort devPort3 = rtr.devicePorts.get(port3Id);
-        eth = makeUDP(MAC.fromString("02:00:11:22:00:01"), 
+        eth = makeUDP(MAC.fromString("02:00:11:22:00:01"),
                 devPort3.getMacAddr(), 0x0a00000e, 0x0a00010b, (short) 1111,
                 (short) 2222, payload);
         fInfo = routePacket(port3Id, eth);
@@ -522,7 +500,7 @@ public class TestRouter {
         MockVRNController.GeneratedPacket pkt =
                  controller.generatedPackets.get(0);
         Assert.assertEquals(port2Id, pkt.portID);
-        Ethernet expectedArp = makeArpRequest(devPort2.getMacAddr(), 
+        Ethernet expectedArp = makeArpRequest(devPort2.getMacAddr(),
                 devPort2.getIPAddr(), 0x0a00000a);
         Assert.assertArrayEquals(expectedArp.serialize(), pkt.eth.serialize());
 
@@ -536,7 +514,7 @@ public class TestRouter {
         rtr.getMacForIp(port2Id, 0x0a000009, cb);
         Assert.assertEquals(2, controller.generatedPackets.size());
         pkt = controller.generatedPackets.get(1);
-        Ethernet expectedArp2 = makeArpRequest(devPort2.getMacAddr(), 
+        Ethernet expectedArp2 = makeArpRequest(devPort2.getMacAddr(),
                 devPort2.getIPAddr(), 0x0a000009);
         Assert.assertArrayEquals(expectedArp2.serialize(), pkt.eth.serialize());
 
@@ -680,7 +658,7 @@ public class TestRouter {
         checkForwardInfo(fInfo, Action.CONSUMED, null, 0);
         if (shouldReply) {
             Assert.assertEquals(1, controller.generatedPackets.size());
-            MockVRNController.GeneratedPacket pkt = 
+            MockVRNController.GeneratedPacket pkt =
                         controller.generatedPackets.get(0);
             L3DevicePort devPort = rtr.devicePorts.get(portId);
             Assert.assertEquals(portId, pkt.portID);
@@ -692,24 +670,22 @@ public class TestRouter {
         }
     }
 
-    private void deleteRules() throws StateAccessException,
-            ZkStateSerializationException {
-        Iterator<ZkNodeEntry<UUID, ChainConfig>> iter = chainMgr.list(
-                rtr.routerId).iterator();
-        while (iter.hasNext()) {
-            chainMgr.delete(iter.next().key);
+    private void deleteRules() throws StateAccessException {
+        for (UUID ruleID : ruleIDs) {
+            chainMgr.delete(ruleID);
         }
+        ruleIDs.clear();
     }
 
     private void createRules() throws StateAccessException,
             ZkStateSerializationException, RuleIndexOutOfBoundsException {
-        UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING,
-                rtr.routerId));
+        UUID preChainId = chainMgr.create(new ChainConfig(Router.PRE_ROUTING));
         String srcFilterChainName = "filterSrcByPortId";
-        srcFilterChainId = chainMgr.create(new ChainConfig(srcFilterChainName,
-                rtr.routerId));
-        UUID postChainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING,
-                rtr.routerId));
+        UUID srcFilterChainId = chainMgr.create(new ChainConfig(srcFilterChainName));
+        UUID postChainId = chainMgr.create(new ChainConfig(Router.POST_ROUTING));
+        ruleIDs.add(preChainId);
+        ruleIDs.add(srcFilterChainId);
+        ruleIDs.add(postChainId);
         // Create a bunch of arbitrary rules:
         //  * 'down-ports' can only receive packets from hosts 'local' to them.
         //  * arbitrarily drop flows to some hosts that are 'quarantined'.
@@ -721,8 +697,8 @@ public class TestRouter {
         // Down-ports can only receive packets from network addresses that are
         // 'local' to them. This chain drops packets that don't conform.
         List<Rule> srcFilterChain = new Vector<Rule>();
-        Iterator<Map.Entry<Integer, 
-                           PortDirectory.MaterializedRouterPortConfig>> iter = 
+        Iterator<Map.Entry<Integer,
+                           PortDirectory.MaterializedRouterPortConfig>> iter =
                                         portConfigs.entrySet().iterator();
         int i = 1;
         Rule r;
@@ -926,7 +902,6 @@ public class TestRouter {
         // Now remove the filterSrcByPortId rules and verify that all the
         // packets are again forwarded.
         deleteRules();
-        //chainMgr.delete(srcFilterChainId);
         fInfo = routePacket(port23Id, badEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port12Id, goodEthTo2);
@@ -1020,14 +995,14 @@ public class TestRouter {
         fInfo = routePacket(uplinkId, ethToPublicAddr);
         // Pended on ARP.
         Assert.assertEquals(Action.PAUSED, fInfo.action);
-        arp = makeArpReply(MAC.fromString("02:aa:ab:ba:cd:cc"), 
-                           portCfg21.getHwAddr(), internDnatAddr, 
+        arp = makeArpReply(MAC.fromString("02:aa:ab:ba:cd:cc"),
+                           portCfg21.getHwAddr(), internDnatAddr,
                            portCfg21.portAddr);
         routePacket(port21Id, arp);
         checkForwardInfo(fInfo, Action.FORWARD, port21Id, internDnatAddr);
-        Assert.assertEquals(internDnatAddr, 
+        Assert.assertEquals(internDnatAddr,
                 fInfo.matchOut.getNetworkDestination());
-        Assert.assertEquals(publicDnatAddr, 
+        Assert.assertEquals(publicDnatAddr,
                 fInfo.matchIn.getNetworkDestination());
         // Since the destination UDP port is 80 before and after the mapping,
         // the match should be the same before/after routing except for nwDst

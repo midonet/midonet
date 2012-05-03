@@ -24,6 +24,7 @@ import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -112,8 +113,9 @@ public class RouterDaoAdapter implements RouterDao {
 
         Router router = null;
         if (zkDao.exists(id)) {
-            RouterMgmtConfig config = zkDao.getMgmtData(id);
-            router = new Router(id, config.name, config.tenantId);
+            RouterMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
+            RouterConfig config = zkDao.getData(id);
+            router = new Router(id, mgmtConfig, config);
         }
 
         log.debug("RouterDaoAdapter.get existing: router={}", router);
@@ -259,7 +261,7 @@ public class RouterDaoAdapter implements RouterDao {
         log.debug("RouterDaoAdapter.getByRule entered: ruleId={}", ruleId);
 
         Chain chain = chainDao.getByRule(ruleId);
-        Router router = get(chain.getOwnerId());
+        Router router = get(chain.getTenantId());
 
         log.debug("RouterDaoAdapter.getByRule exiting: router={}", router);
         return router;
@@ -276,7 +278,7 @@ public class RouterDaoAdapter implements RouterDao {
         log.debug("RouterDaoAdapter.getByChain entered: chainId={}", chainId);
 
         Chain chain = chainDao.get(chainId);
-        Router router = get(chain.getOwnerId());
+        Router router = get(chain.getTenantId());
 
         log.debug("RouterDaoAdapter.getByChain exiting: router={}", router);
         return router;

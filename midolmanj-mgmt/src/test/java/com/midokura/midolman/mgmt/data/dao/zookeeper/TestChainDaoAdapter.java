@@ -47,14 +47,13 @@ public class TestChainDaoAdapter {
         Chain chain = new Chain();
         chain.setId(id);
         chain.setName("foo");
-        chain.setOwnerId(UUID.randomUUID());
+        chain.setTenantId(UUID.randomUUID());
         return chain;
     }
 
     private static ChainConfig createTestChainConfig(String name, UUID routerId) {
         ChainConfig config = new ChainConfig();
         config.name = name;
-        config.routerId = routerId;
         return config;
     }
 
@@ -171,8 +170,8 @@ public class TestChainDaoAdapter {
         Chain chain = adapter.get(id);
 
         Assert.assertEquals(id, chain.getId());
-        Assert.assertEquals(config.routerId, chain.getOwnerId());
-        Assert.assertEquals(config.name, chain.getName());
+        Assert.assertEquals(mgmtConfig.tenantId, chain.getTenantId());
+        Assert.assertEquals(mgmtConfig.name, chain.getName());
     }
 
     @Test
@@ -190,8 +189,8 @@ public class TestChainDaoAdapter {
         Chain chain = adapter.getByRule(rule.getId());
 
         Assert.assertEquals(id, chain.getId());
-        Assert.assertEquals(config.routerId, chain.getOwnerId());
-        Assert.assertEquals(config.name, chain.getName());
+        Assert.assertEquals(mgmtConfig.tenantId, chain.getTenantId());
+        Assert.assertEquals(mgmtConfig.name, chain.getName());
     }
 
     @Test

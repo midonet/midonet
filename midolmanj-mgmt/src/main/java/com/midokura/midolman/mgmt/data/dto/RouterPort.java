@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.util.UUID;
 
+import com.midokura.midolman.state.PortConfig;
+
 /**
  * Data transfer class for router port.
  *
@@ -42,13 +44,13 @@ public abstract class RouterPort extends Port {
      *
      * @param id
      *            ID of the port
-     * @param deviceId
-     *            ID of the router
      * @param vifId
      *            ID of the VIF
+     * @param config
+     *            PortConfig object
      */
-    public RouterPort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId, vifId);
+    public RouterPort(UUID id, UUID vifId, PortConfig config) {
+        super(id, vifId, config);
     }
 
     /**

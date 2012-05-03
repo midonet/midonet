@@ -24,7 +24,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 public class Chain extends UriResource {
 
     private UUID id = null;
-    private UUID ownerId = null;
+    private UUID tenantId = null;
     private String name = null;
 
     /**
@@ -41,11 +41,11 @@ public class Chain extends UriResource {
      *            ID of the chain
      * @param config
      *            ChainConfig object
-     * @param mgmtConfig
+     * @param config
      *            ChainMgmtConfig object
      */
-    public Chain(UUID id, ChainConfig config, ChainMgmtConfig mgmtConfig) {
-        this(id, config.routerId, config.name);
+    public Chain(UUID id, ChainMgmtConfig config) {
+        this(id, config.tenantId, config.name);
     }
 
     /**
@@ -53,14 +53,14 @@ public class Chain extends UriResource {
      *
      * @param id
      *            ID of the chain
-     * @param routerId
-     *            Router ID
+     * @param tenantId
+     *            Tenant ID
      * @param name
      *            Chain name
      */
-    public Chain(UUID id, UUID routerId, String name) {
+    public Chain(UUID id, UUID tenantId, String name) {
         this.id = id;
-        this.ownerId = routerId;
+        this.tenantId = tenantId;
         this.name = name;
     }
 
@@ -80,18 +80,18 @@ public class Chain extends UriResource {
     }
 
     /**
-     * @return the ownerId
+     * @return the tenantId
      */
-    public UUID getOwnerId() {
-        return ownerId;
+    public UUID getTenantId() {
+        return tenantId;
     }
 
     /**
-     * @param ownerId
-     *            the ownerId to set
+     * @param tenantId
+     *            the tenantId to set
      */
-    public void setOwnerId(UUID ownerId) {
-        this.ownerId = ownerId;
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
     }
 
     /**
@@ -125,11 +125,11 @@ public class Chain extends UriResource {
     }
 
     public ChainConfig toConfig() {
-        return new ChainConfig(this.getName(), this.getOwnerId());
+        return new ChainConfig(this.getName());
     }
 
     public ChainMgmtConfig toMgmtConfig() {
-        return new ChainMgmtConfig();
+        return new ChainMgmtConfig(tenantId, name);
     }
 
     public ChainNameMgmtConfig toNameMgmtConfig() {
@@ -143,7 +143,7 @@ public class Chain extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + " ownerId=" + ownerId + ", name=" + name;
+        return "id=" + id + " tenantId=" + tenantId + ", name=" + name;
     }
 
 }

@@ -58,15 +58,17 @@ public abstract class Port extends UriResource {
      *
      * @param id
      *            Port ID
-     * @param deviceId
-     *            Router or Bridge ID
      * @param vifId
      *            VIF ID
+     * @param config
+     *            Midolman PortConfig object
      */
-    public Port(UUID id, UUID deviceId, UUID vifId) {
+    public Port(UUID id, UUID vifId, PortConfig config) {
         this.id = id;
-        this.deviceId = deviceId;
         this.vifId = vifId;
+        this.deviceId = config.device_id;
+        this.inboundFilter = config.inboundFilter;
+        this.outboundFilter = config.outboundFilter;
     }
 
     /**

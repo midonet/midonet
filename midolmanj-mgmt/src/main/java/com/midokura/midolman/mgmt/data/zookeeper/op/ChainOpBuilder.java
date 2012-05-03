@@ -97,15 +97,9 @@ public class ChainOpBuilder {
         if (id == null || config == null) {
             throw new IllegalArgumentException("ID and config cannot be null");
         }
-        log.debug("ChainOpBuilder.getChainCreateOps entered: id=" + id
-                + ", name=" + config.name + ", ownerId=" + config.routerId);
-
-        ZkNodeEntry<UUID, ChainConfig> chainNode = new ZkNodeEntry<UUID, ChainConfig>(
-                id, config);
+        ZkNodeEntry<UUID, ChainConfig> chainNode =
+                new ZkNodeEntry<UUID, ChainConfig>(id, config);
         List<Op> ops = zkDao.prepareChainCreate(chainNode);
-
-        log.debug("ChainOpBuilder.getChainCreateOps exiting: ops count="
-                + ops.size());
         return ops;
     }
 

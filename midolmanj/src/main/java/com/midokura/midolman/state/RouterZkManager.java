@@ -102,8 +102,6 @@ public class RouterZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterChainsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterSnatBlocksPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
@@ -143,15 +141,6 @@ public class RouterZkManager extends ZkManager {
         String snatBlockPath = pathManager.getRouterSnatBlocksPath(id);
         log.debug("Preparing to delete: " + snatBlockPath);
         ops.add(Op.delete(snatBlockPath, -1));
-
-        // Get chains delete ops.
-        List<ZkNodeEntry<UUID, ChainConfig>> entries = chainZkManager.list(id);
-        for (ZkNodeEntry<UUID, ChainConfig> entry : entries) {
-            ops.addAll(chainZkManager.prepareChainDelete(entry));
-        }
-        String chainsPath = pathManager.getRouterChainsPath(id);
-        log.debug("Preparing to delete: " + chainsPath);
-        ops.add(Op.delete(chainsPath, -1));
 
         // Get routes delete ops.
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager

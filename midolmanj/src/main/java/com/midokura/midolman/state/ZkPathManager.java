@@ -398,32 +398,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK router rule chains path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/chains
-     */
-    public String getRouterChainsPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId)).append("/chains")
-                .toString();
-    }
-
-    /**
-     * Get ZK router rule chains path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @param chainId
-     *            Chain UUID.
-     * @return /routers/routerId/chains/chainId
-     */
-    public String getRouterChainPath(UUID routerId, UUID chainId) {
-        return new StringBuilder(getRouterChainsPath(routerId)).append("/")
-                .append(chainId).toString();
-    }
-
-    /**
      * Get ZK rule path.
      *
      * @return /rules

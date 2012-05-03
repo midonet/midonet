@@ -17,8 +17,10 @@ import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for bridge data.
@@ -27,7 +29,7 @@ public class BridgeZkDao {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkDao.class);
-    private final ZkManager zkDao;
+    private final BridgeZkManager zkDao;
     private final PathBuilder pathBuilder;
     private final BridgeSerializer serializer;
 
@@ -41,7 +43,7 @@ public class BridgeZkDao {
      * @param serializer
      *            BridgeSerializer object.
      */
-    public BridgeZkDao(ZkManager zkDao, PathBuilder pathBuilder,
+    public BridgeZkDao(BridgeZkManager zkDao, PathBuilder pathBuilder,
             BridgeSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
@@ -65,6 +67,22 @@ public class BridgeZkDao {
 
         log.debug("BridgeZkDao.exists exiting: exists=" + exists);
         return exists;
+    }
+
+    /**
+     * Get the data for the given bridge.
+     *
+     * @param id
+     *            ID of the bridge.
+     * @return BridgeConfig stored in ZK.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public BridgeConfig getData(UUID id) throws StateAccessException {
+        ZkNodeEntry<UUID, BridgeConfig> node = zkDao.get(id);
+        BridgeConfig config = node.value;
+        return config;
+
     }
 
     /**

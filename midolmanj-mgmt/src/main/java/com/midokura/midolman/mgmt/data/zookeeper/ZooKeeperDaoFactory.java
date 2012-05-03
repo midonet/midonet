@@ -181,7 +181,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     }
 
     private BridgeZkDao getBridgeZkDao() throws StateAccessException {
-        return new BridgeZkDao(getZkDao(), getPathBuilder(),
+        return new BridgeZkDao(getBridgeZkManager(), getPathBuilder(),
                 getBridgeSerializer());
     }
 
@@ -326,7 +326,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     }
 
     private RouterZkDao getRouterZkDao() throws StateAccessException {
-        return new RouterZkDao(getZkDao(), getPathBuilder(),
+        return new RouterZkDao(getRouterZkManager(), getPathBuilder(),
                 getRouterSerializer());
     }
 

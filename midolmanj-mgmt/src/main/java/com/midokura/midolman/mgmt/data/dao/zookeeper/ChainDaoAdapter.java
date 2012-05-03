@@ -104,7 +104,7 @@ public class ChainDaoAdapter implements ChainDao {
         if (zkDao.exists(id)) {
             ChainMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
             ChainConfig config = zkDao.getData(id);
-            chain = new Chain(id, config, mgmtConfig);
+            chain = new Chain(id, mgmtConfig.tenantId, mgmtConfig.name);
         }
 
         log.debug("ChainDaoAdapter.get existing: chain={}", chain);

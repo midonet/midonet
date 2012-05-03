@@ -87,7 +87,7 @@ public class TestBridgeDaoAdapter {
 
     @Test
     public void testCreateWithNoIdSuccess() throws Exception {
-        Bridge bridge = new Bridge(null, "foo", "bar");
+        Bridge bridge = new Bridge(null, "foo", "bar", null);
         List<Op> ops = createTestPersistentCreateOps();
         doReturn(ops).when(opServiceMock).buildCreate(any(UUID.class),
                 any(BridgeConfig.class), any(BridgeMgmtConfig.class),
@@ -101,7 +101,7 @@ public class TestBridgeDaoAdapter {
 
     @Test
     public void testCreateWithIdSuccess() throws Exception {
-        Bridge bridge = new Bridge(UUID.randomUUID(), "foo", "bar");
+        Bridge bridge = new Bridge(UUID.randomUUID(), "foo", "bar", null);
         List<Op> ops = createTestPersistentCreateOps();
         doReturn(ops).when(opServiceMock).buildCreate(any(UUID.class),
                 any(BridgeConfig.class), any(BridgeMgmtConfig.class),
@@ -158,7 +158,7 @@ public class TestBridgeDaoAdapter {
         doReturn(ids).when(daoMock).getIds(tenantId);
         for (String id : ids) {
             UUID uuid = UUID.fromString(id);
-            Bridge bridge = new Bridge(uuid, id, tenantId);
+            Bridge bridge = new Bridge(uuid, id, tenantId, null);
             doReturn(bridge).when(adapter).get(uuid);
         }
 
@@ -174,7 +174,7 @@ public class TestBridgeDaoAdapter {
     @Test
     public void testGetByPortSuccess() throws Exception {
         Port port = new BridgePort(UUID.randomUUID(), UUID.randomUUID(), null);
-        Bridge bridge = new Bridge(port.getDeviceId(), "foo", "bar");
+        Bridge bridge = new Bridge(port.getDeviceId(), "foo", "bar", null);
 
         doReturn(port).when(portDaoMock).get(port.getId());
         doReturn(bridge).when(adapter).get(bridge.getId());
@@ -199,7 +199,7 @@ public class TestBridgeDaoAdapter {
     @Test
     public void testUpdateSuccess() throws Exception {
 
-        Bridge bridge = new Bridge(UUID.randomUUID(), "foo", "bar");
+        Bridge bridge = new Bridge(UUID.randomUUID(), "foo", "bar", null);
         List<Op> ops = createTestUpdateOps();
         doReturn(ops).when(opServiceMock).buildUpdate(bridge.getId(),
                 bridge.getName());

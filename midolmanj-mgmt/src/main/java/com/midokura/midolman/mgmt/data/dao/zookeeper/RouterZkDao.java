@@ -17,8 +17,10 @@ import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for router data.
@@ -27,7 +29,7 @@ public class RouterZkDao {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkDao.class);
-    private final ZkManager zkDao;
+    private final RouterZkManager zkDao;
     private final PathBuilder pathBuilder;
     private final RouterSerializer serializer;
 
@@ -41,7 +43,7 @@ public class RouterZkDao {
      * @param serializer
      *            RouterSerializer object.
      */
-    public RouterZkDao(ZkManager zkDao, PathBuilder pathBuilder,
+    public RouterZkDao(RouterZkManager zkDao, PathBuilder pathBuilder,
             RouterSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
@@ -68,7 +70,7 @@ public class RouterZkDao {
     }
 
     /**
-     * Get the data for the given router.
+     * Get the management data for the given router.
      *
      * @param id
      *            ID of the router.
@@ -85,6 +87,22 @@ public class RouterZkDao {
 
         log.debug("RouterZkDao.getMgmtData exiting: path={}", path);
         return config;
+    }
+
+    /**
+     * Get the data for the given router.
+     *
+     * @param id
+     *            ID of the router.
+     * @return RouterConfig stored in ZK.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    public RouterConfig getData(UUID id) throws StateAccessException {
+        ZkNodeEntry<UUID, RouterConfig> node = zkDao.get(id);
+        RouterConfig config = node.value;
+        return config;
+
     }
 
     /**

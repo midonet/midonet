@@ -52,7 +52,7 @@ public class MaterializedRouterPort extends RouterPort {
      */
     public MaterializedRouterPort(UUID id, PortMgmtConfig mgmtConfig,
             MaterializedRouterPortConfig config) {
-        this(id, config.device_id, mgmtConfig.vifId);
+        this(id, mgmtConfig.vifId, config);
         this.localNetworkAddress = Net
                 .convertIntAddressToString(config.localNwAddr);
         this.localNetworkLength = config.localNwLength;
@@ -66,13 +66,13 @@ public class MaterializedRouterPort extends RouterPort {
      *
      * @param id
      *            ID of the port
-     * @param deviceId
-     *            ID of the router
      * @param vifId
      *            ID of the VIF.
+     * @param config
+     *            PortConfig object
      */
-    public MaterializedRouterPort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId, vifId);
+    public MaterializedRouterPort(UUID id, UUID vifId, PortConfig config) {
+        super(id, vifId, config);
     }
 
     /**

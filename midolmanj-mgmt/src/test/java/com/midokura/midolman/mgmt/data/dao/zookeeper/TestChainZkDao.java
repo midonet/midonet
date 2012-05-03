@@ -183,11 +183,11 @@ public class TestChainZkDao {
     }
 
     @Test
-    public void testConstructChainConfig() throws Exception {
-        UUID routerId = UUID.randomUUID();
+    public void testConstructChainMgmtConfig() throws Exception {
+        UUID tenantId = UUID.randomUUID();
         String name = "foo";
-        ChainConfig config = dao.constructChainConfig(name, routerId);
-        Assert.assertEquals(routerId, config.routerId);
+        ChainMgmtConfig config = dao.constructChainMgmtConfig(name, tenantId);
+        Assert.assertEquals(tenantId, config.tenantId);
         Assert.assertEquals(name, config.name);
     }
 
