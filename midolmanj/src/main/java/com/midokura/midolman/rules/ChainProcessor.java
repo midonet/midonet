@@ -29,7 +29,6 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.util.Callback0;
 
 public class ChainProcessor {
 
@@ -38,7 +37,6 @@ public class ChainProcessor {
 
     private RuleZkManager zkRuleMgr;
     private NatMapping natMap;
-    private Set<Callback0> watchers;
     private Map<UUID, Chain> chainByUuid;
     private Map<String, UUID> uuidByName;
     private ChainZkManager zkChainMgr;
@@ -52,27 +50,11 @@ public class ChainProcessor {
         basePath = zkBasePath;
         zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
         natMap = natMap_;
-        watchers = new HashSet<Callback0>();
         zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
         chainWatcher = new ChainWatcher(ownerID);
         chainByUuid = new HashMap<UUID, Chain>();
         uuidByName = new HashMap<String, UUID>();
         updateChains(ownerID);
-    }
-
-    public void addWatcher(Callback0 watcher) {
-        watchers.add(watcher);
-    }
-
-    public void removeWatcher(Callback0 watcher) {
-        watchers.remove(watcher);
-    }
-
-    private void notifyWatchers() {
-        for (Callback0 watcher : watchers) {
-            // TODO(pino): schedule for later instead of calling them here.
-            watcher.call();
-        }
     }
 
     public void freeFlowResources(OFMatch match) {
@@ -146,7 +128,6 @@ public class ChainProcessor {
 
         if (hasUpdates) {
             //updateResources(); //XXX
-            notifyWatchers();
         }
     }
 
