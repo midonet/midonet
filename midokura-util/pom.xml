@@ -189,7 +189,11 @@
             <version>${versions.powermock}</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.3.0</version>
+        </dependency>
     </dependencies>
 
 
