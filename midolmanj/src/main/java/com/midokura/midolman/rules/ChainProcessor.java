@@ -5,8 +5,6 @@
 package com.midokura.midolman.rules;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +13,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
-import com.midokura.midolman.util.Callback1;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,32 +40,24 @@ public class ChainProcessor {
 
     private static ChainProcessor instance = null;
 
-    //private RuleZkManager zkRuleMgr;
     private Map<UUID, Chain> chainByUuid;
     private Map<String, UUID> uuidByName;
-    //private ChainZkManager zkChainMgr;
     private Directory zkDir;
     private String zkBasePath;
     private Cache cache;
     private Reactor reactor;
     private Map<UUID, NatMapping> natMappingMap;
-    private Set<Callback1<UUID>> watchers;
 
 
     private ChainProcessor(Directory dir, String zkBasePath,
-                          Cache cache, Reactor reactor)
+                           Cache cache, Reactor reactor)
             throws StateAccessException {
         this.zkDir = dir;
         this.zkBasePath = zkBasePath;
-        //this.zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
-        //this.zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
         this.cache = cache;
         this.reactor = reactor;
         chainByUuid = new HashMap<UUID, Chain>();
         uuidByName = new HashMap<String, UUID>();
-        //TODO(abel) XXX
-        //chainWatcher = new ChainWatcher(ownerID);
-        //updateChains(ownerID);
         natMappingMap = new HashMap<UUID, NatMapping>();
     }
 
@@ -94,8 +83,8 @@ public class ChainProcessor {
 
     public static NatMapping getNatMapping(UUID ownerId) {
         if (instance == null) {
-            log.error("Expected non-null NatMapping");
-            return null;
+            throw new RuntimeException(
+                            "NatMapping requires non-null ChainProcessor");
         }
         if (instance.natMappingMap.containsKey(ownerId)) {
             return instance.natMappingMap.get(ownerId);
@@ -115,26 +104,6 @@ public class ChainProcessor {
         // natMap.freeFlowResources(match);
     }
 
-    /* XXX
-    private void updateResources() {
-        // Tell the NatMapping about all the current NatTargets for SNAT.
-        // TODO(pino): the NatMapping should clean up any old targets that
-        // are no longer used and remember the current targets.
-        Set<NatTarget> targets = new HashSet<NatTarget>();
-        for (List<Rule> chain : ruleChains.values()) {
-            for (Rule r : chain) {
-                if (r instanceof ForwardNatRule) {
-                    ForwardNatRule fR = (ForwardNatRule) r;
-                    if (!fR.dnat) {
-                        targets.addAll(fR.getNatTargets());
-                    }
-                }
-            }
-        }
-        natMap.updateSnatTargets(targets);
-    }
-    */
-
     private void addChain(UUID id, String name) {
         Chain chain = new Chain(id, name, zkDir, zkBasePath);
         chainByUuid.put(id, chain);
@@ -146,59 +115,6 @@ public class ChainProcessor {
         chainByUuid.remove(id);
         uuidByName.remove(name);
     }
-
-
-    /**
-     * Called when a change in the state (ZooKeeper) has been notified
-     * @param ownerID
-     * @throws StateAccessException
-     * @throws ZkStateSerializationException
-     */
-    public void updateChains(UUID ownerID) throws StateAccessException,
-            ZkStateSerializationException {
-        Collection<ZkNodeEntry<UUID, ChainZkManager.ChainConfig>>
-                entryList = null; //XXX zkChainMgr.list(ownerID, chainWatcher);
-
-        HashSet<UUID> updatedChains = new HashSet<UUID>();
-        boolean hasUpdates = false;
-
-        // Add new entries, store traversed entries for helping later removal
-        for (ZkNodeEntry<UUID, ChainZkManager.ChainConfig> entry : entryList) {
-            updatedChains.add(entry.key);
-            if (!chainByUuid.containsKey(entry.key)) {
-                addChain(entry.key, entry.value.name);
-                hasUpdates = true;
-            }
-        }
-
-        // Remove old entries
-        for (UUID oldChain : chainByUuid.keySet()) {
-            if (!updatedChains.contains(oldChain)) {
-                removeChain(oldChain);
-                hasUpdates = true;
-            }
-        }
-
-        if (hasUpdates) {
-            //updateResources(); //XXX
-        }
-    }
-
-    private class ChainWatcher implements Runnable {
-        private UUID ownerID;
-
-        public ChainWatcher(UUID id) { ownerID = id; }
-
-        @Override
-        public void run() {
-            try {
-                updateChains(ownerID);
-            } catch (Exception e) {
-                log.warn("ChainWatcher.run", e);
-            }
-        }
-    }
-
 
     /**
      *
@@ -229,7 +145,7 @@ public class ChainProcessor {
 
         Chain currentChain = chainByUuid.get(chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
-        chainStack.push(new ChainPosition(currentChain.getRules(), 0));
+        chainStack.push(new ChainPosition(chainID, currentChain.getRules(), 0));
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(chainID);
 
@@ -252,8 +168,9 @@ public class ChainProcessor {
                 } else if (res.action.equals(RuleResult.Action.JUMP)) {
                     if (traversedChains.contains(res.jumpToChain)) {
                         // Avoid jumping to chains we've already seen.
-                        log.warn("applyChain {} cannot jump to chain {} -- " +
-                                 "already visited", chainID, res.jumpToChain);
+                        log.warn("applyChain {} cannot jump from chain {} to " +
+                                 "chain {} -- already visited", new Object[] {
+                                 chainID, cp.id, res.jumpToChain });
                         continue;
                     }
 
@@ -269,7 +186,8 @@ public class ChainProcessor {
                     traversedChains.add(nextID);
                     // Remember the calling chain.
                     chainStack.push(cp);
-                    chainStack.push(new ChainPosition(nextChain.getRules(), 0));
+                    chainStack.push(
+                        new ChainPosition(nextID, nextChain.getRules(), 0));
                     break;
                 } else if (res.action.equals(RuleResult.Action.RETURN)) {
                     // Stop processing this chain; return to the calling chain.
@@ -278,8 +196,8 @@ public class ChainProcessor {
                     // Move on to the next rule in the same chain.
                     continue;
                 } else {
-                    log.error("Unknown action type {} in rule chain",
-                            res.action);
+                    log.error("Unknown action type {} in rule chain {}",
+                              res.action, cp.id);
                     // TODO: Should we throw an exception?
                     continue;
                 }
@@ -291,10 +209,12 @@ public class ChainProcessor {
     }
 
     private class ChainPosition {
+        UUID id;
         List<Rule> rules;
         int position;
 
-        public ChainPosition(List<Rule> rules, int position) {
+        public ChainPosition(UUID id, List<Rule> rules, int position) {
+            this.id = id;
             this.rules = rules;
             this.position = position;
         }
