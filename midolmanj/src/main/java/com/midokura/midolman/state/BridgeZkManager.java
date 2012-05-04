@@ -25,10 +25,6 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
  */
 public class BridgeZkManager extends ZkManager {
 
-    private PortSetMap portSetMap;
-
-    // TODO: Do we need this inner class, or can we use the greKey directly
-    // without confusion?
     public static class BridgeConfig {
 
         public BridgeConfig() {
@@ -47,6 +43,11 @@ public class BridgeZkManager extends ZkManager {
         public UUID outboundFilter;
     }
 
+    private PortSetMap portSetMap;
+    private FiltersZkManager filterZkManager;
+    private GreZkManager greZkManager;
+    private PortZkManager portZkManager;
+
     /**
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -59,8 +60,10 @@ public class BridgeZkManager extends ZkManager {
     public BridgeZkManager(Directory zk, String basePath)
             throws StateAccessException {
         super(zk, basePath);
-        ZkPathManager pathMgr = new ZkPathManager(basePath);
         this.portSetMap = new PortSetMap(zk, basePath);
+        this.filterZkManager = new FiltersZkManager(zk, basePath);
+        this.greZkManager = new GreZkManager(zk, basePath);
+        this.portZkManager = new PortZkManager(zk, basePath);
     }
 
     public List<Op> prepareBridgeCreate(UUID id, BridgeConfig bridgeNode)
@@ -85,8 +88,6 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeCreate(
             ZkNodeEntry<UUID, BridgeConfig> bridgeNode)
             throws StateAccessException {
-        GreZkManager greZkManager = new GreZkManager(zk,
-                pathManager.getBasePath());
 
         // Create a new GRE key. Hide this from outside.
         ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
@@ -124,6 +125,8 @@ public class BridgeZkManager extends ZkManager {
         // Update GreKey to reference the bridge.
         gre.value.ownerId = bridgeNode.key;
         ops.addAll(greZkManager.prepareGreUpdate(gre));
+
+        ops.addAll(filterZkManager.prepareCreate(bridgeNode.key));
         return ops;
     }
 
@@ -147,13 +150,6 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeDelete(ZkNodeEntry<UUID, BridgeConfig> entry)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        PortZkManager portZkManager = new PortZkManager(zk,
-                pathManager.getBasePath());
-        GreZkManager greZkManager = new GreZkManager(zk,
-                pathManager.getBasePath());
-        BridgeDhcpZkManager dhcpZkManager =
-            new BridgeDhcpZkManager(zk, pathManager.getBasePath());
-
         // Delete the ports.
         // Note: we do not delete logical ports here or their peers will remain
         // dangling. Logical ports must be removed before cascading delete.
@@ -184,6 +180,9 @@ public class BridgeZkManager extends ZkManager {
 
         // Delete the bridge
         ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));
+
+        ops.addAll(filterZkManager.prepareDelete(entry.key));
+
         return ops;
     }
 

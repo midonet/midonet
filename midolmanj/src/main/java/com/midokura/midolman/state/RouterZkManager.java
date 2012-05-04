@@ -8,21 +8,15 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
  * Class to manage the router ZooKeeper data.
@@ -50,6 +44,10 @@ public class RouterZkManager extends ZkManager {
         }
     }
 
+    RouteZkManager routeZkManager;
+    FiltersZkManager filterZkManager;
+    PortZkManager portZkManager;
+
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
@@ -61,6 +59,10 @@ public class RouterZkManager extends ZkManager {
      */
     public RouterZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        routeZkManager = new RouteZkManager(zk, basePath);
+        filterZkManager = new FiltersZkManager(zk, basePath);
+        portZkManager = new PortZkManager(zk, basePath);
+
     }
 
     public List<Op> prepareRouterCreate(UUID id)
@@ -106,7 +108,7 @@ public class RouterZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getRouterArpTablePath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
+        ops.addAll(filterZkManager.prepareCreate(id));
         return ops;
     }
 
@@ -123,9 +125,6 @@ public class RouterZkManager extends ZkManager {
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         String basePath = pathManager.getBasePath();
-        ChainZkManager chainZkManager = new ChainZkManager(zk, basePath);
-        RouteZkManager routeZkManager = new RouteZkManager(zk, basePath);
-        PortZkManager portZkManager = new PortZkManager(zk, basePath);
 
         // Get routes delete ops.
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager
@@ -160,6 +159,7 @@ public class RouterZkManager extends ZkManager {
         String routerPath = pathManager.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);
         ops.add(Op.delete(routerPath, -1));
+        ops.addAll(filterZkManager.prepareDelete(id));
         return ops;
     }
 

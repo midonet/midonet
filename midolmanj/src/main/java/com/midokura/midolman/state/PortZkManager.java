@@ -31,6 +31,10 @@ public class PortZkManager extends ZkManager {
     private final static Logger log = LoggerFactory
             .getLogger(PortZkManager.class);
     private final GreZkManager greZkManager;
+    private FiltersZkManager filterZkManager;
+    private BgpZkManager bgpManager;
+    private VpnZkManager vpnManager;
+    private RouteZkManager routeZkManager;
 
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
@@ -44,6 +48,10 @@ public class PortZkManager extends ZkManager {
     public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
         greZkManager = new GreZkManager(zk, basePath);
+        filterZkManager = new FiltersZkManager(zk, basePath);
+        this.bgpManager = new BgpZkManager(zk, basePath);
+        this.vpnManager = new VpnZkManager(zk, basePath);
+        this.routeZkManager = new RouteZkManager(zk, basePath);
     }
 
     private List<Op> prepareRouterPortCreate(
@@ -70,6 +78,7 @@ public class PortZkManager extends ZkManager {
             ops.add(Op.create(pathManager.getPortVpnPath(portNode.key), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
+        ops.addAll(filterZkManager.prepareCreate(portNode.key));
         return ops;
     }
 
@@ -95,6 +104,7 @@ public class PortZkManager extends ZkManager {
                                 portNode.value.device_id, portNode.key);
         ops.add(Op.create(bridgePortPath, null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.addAll(filterZkManager.prepareCreate(portNode.key));
         return ops;
     }
 
@@ -163,22 +173,16 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
-            BgpZkManager bgpManager = new BgpZkManager(zk, pathManager
-                    .getBasePath());
             ops.addAll(bgpManager.preparePortDelete(entry.key));
             String path = pathManager.getPortBgpPath(entry.key);
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
 
-            VpnZkManager vpnManager = new VpnZkManager(zk, pathManager
-                                                       .getBasePath());
             ops.addAll(vpnManager.preparePortDelete(entry.key));
             path = pathManager.getPortVpnPath(entry.key);
             log.debug("Preparing to delete: {}", path);
             ops.add(Op.delete(path, -1));
         }
-        RouteZkManager routeZkManager = new RouteZkManager(zk, pathManager
-                .getBasePath());
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
                 entry.key, null);
         for (ZkNodeEntry<UUID, Route> route : routes) {
@@ -196,6 +200,7 @@ public class PortZkManager extends ZkManager {
         String portPath = pathManager.getPortPath(entry.key);
         log.debug("Preparing to delete: " + portPath);
         ops.add(Op.delete(portPath, -1));
+        ops.addAll(filterZkManager.prepareDelete(entry.key));
         return ops;
     }
 
@@ -219,6 +224,7 @@ public class PortZkManager extends ZkManager {
                         entry.value.device_id, entry.key);
         ops.add(Op.delete(bridgePortPath, -1));
         ops.add(Op.delete(pathManager.getPortPath(entry.key), -1));
+        ops.addAll(filterZkManager.prepareDelete(entry.key));
         return ops;
     }
 
