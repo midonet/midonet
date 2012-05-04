@@ -79,11 +79,10 @@ public class TestChainOpService {
     @Test
     public void testBuildCreateSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = new ChainConfig();
-        config.name = "foo";
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.tenantId = UUID.randomUUID();
-        ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
+        ChainConfig config = new ChainConfig("foo");
+        ChainMgmtConfig mgmtConfig =
+                new ChainMgmtConfig(UUID.randomUUID().toString(), config.name);
+        ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig(id);
 
         // Mock the path builder
         when(opBuilderMock.getChainCreateOp(id, mgmtConfig)).thenReturn(
@@ -112,10 +111,9 @@ public class TestChainOpService {
     @Test
     public void testBuildDeleteWithCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = new ChainConfig();
-        config.name = "foo";
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.tenantId = UUID.randomUUID();
+        ChainConfig config = new ChainConfig("foo");
+        ChainMgmtConfig mgmtConfig =
+                new ChainMgmtConfig(UUID.randomUUID().toString(), config.name);
 
         // Mock the path builder
         when(zkDaoMock.getData(id)).thenReturn(config);
@@ -144,10 +142,9 @@ public class TestChainOpService {
     @Test
     public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = new ChainConfig();
-        config.name = "foo";
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.tenantId = UUID.randomUUID();
+        ChainConfig config = new ChainConfig("foo");
+        ChainMgmtConfig mgmtConfig =
+                new ChainMgmtConfig(UUID.randomUUID().toString(), config.name);
 
         // Mock the path builder
         when(zkDaoMock.getData(id)).thenReturn(config);
@@ -171,10 +168,9 @@ public class TestChainOpService {
 
     @Test
     public void testBuildDeleteRouterChainsSuccess() throws Exception {
-        ChainConfig config = new ChainConfig();
-        config.name = "foo";
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        mgmtConfig.tenantId = UUID.randomUUID();
+        ChainConfig config = new ChainConfig("foo");
+        ChainMgmtConfig mgmtConfig =
+                new ChainMgmtConfig(UUID.randomUUID().toString(), config.name);
 
         when(zkDaoMock.getIds(mgmtConfig.tenantId)).thenReturn(
                 dummyIds);
@@ -201,11 +197,11 @@ public class TestChainOpService {
         config.name = "foo";
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
         ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
-        mgmtConfig.tenantId = UUID.randomUUID();
+        mgmtConfig.tenantId = UUID.randomUUID().toString();
 
         when(
                 zkDaoMock.constructChainMgmtConfig(Mockito.anyString(),
-                        Mockito.any(UUID.class))).thenReturn(mgmtConfig);
+                        Mockito.anyString())).thenReturn(mgmtConfig);
         when(zkDaoMock.constructChainNameMgmtConfig(Mockito.any(UUID.class)))
                 .thenReturn(nameConfig);
 

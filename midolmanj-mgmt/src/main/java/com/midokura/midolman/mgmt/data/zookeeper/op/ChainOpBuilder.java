@@ -152,7 +152,7 @@ public class ChainOpBuilder {
      *            ID of the chain.
      * @return Op for tenant chain create.
      */
-    public Op getTenantChainCreateOp(UUID tenantId, UUID chainId) {
+    public Op getTenantChainCreateOp(String tenantId, UUID chainId) {
         return zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantChainPath(tenantId, chainId), null);
     }
@@ -166,7 +166,7 @@ public class ChainOpBuilder {
      *            ID of the chain.
      * @return Op for tenant chain delete.
      */
-    public Op getTenantChainDeleteOp(UUID tenantId, UUID chainId) {
+    public Op getTenantChainDeleteOp(String tenantId, UUID chainId) {
         if (tenantId == null || chainId == null) {
             throw new IllegalArgumentException(
                     "tenantId and chainId cannot be null");
@@ -186,7 +186,7 @@ public class ChainOpBuilder {
      *            ChainNameMgmtConfig object to add to the path.
      * @return Op for tenant chain name create.
      */
-    public Op getTenantChainNameCreateOp(UUID tenantId, String chainName,
+    public Op getTenantChainNameCreateOp(String tenantId, String chainName,
                                          ChainNameMgmtConfig config)
             throws ZkStateSerializationException {
         if (tenantId == null || chainName == null || config == null) {
@@ -207,7 +207,7 @@ public class ChainOpBuilder {
      *            Name of the chain.
      * @return Op for tenant chain name delete.
      */
-    public Op getTenantChainNameDeleteOp(UUID tenantId, String chainName) {
+    public Op getTenantChainNameDeleteOp(String tenantId, String chainName) {
         if (tenantId == null || chainName == null) {
             throw new IllegalArgumentException(
                     "tenantId and chainName cannot be null");

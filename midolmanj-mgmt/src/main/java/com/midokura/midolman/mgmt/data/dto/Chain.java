@@ -24,7 +24,7 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 public class Chain extends UriResource {
 
     private UUID id = null;
-    private UUID tenantId = null;
+    private String tenantId = null;
     private String name = null;
 
     /**
@@ -58,7 +58,7 @@ public class Chain extends UriResource {
      * @param name
      *            Chain name
      */
-    public Chain(UUID id, UUID tenantId, String name) {
+    public Chain(UUID id, String tenantId, String name) {
         this.id = id;
         this.tenantId = tenantId;
         this.name = name;
@@ -82,7 +82,7 @@ public class Chain extends UriResource {
     /**
      * @return the tenantId
      */
-    public UUID getTenantId() {
+    public String getTenantId() {
         return tenantId;
     }
 
@@ -90,7 +90,7 @@ public class Chain extends UriResource {
      * @param tenantId
      *            the tenantId to set
      */
-    public void setTenantId(UUID tenantId) {
+    public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
     }
 

@@ -14,9 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
+import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
@@ -31,6 +33,7 @@ public class TenantDaoAdapter implements TenantDao {
     private final static Logger log = LoggerFactory
             .getLogger(TenantDaoAdapter.class);
     private final BridgeDao bridgeDao;
+    private final ChainDao chainDao;
     private final RouterDao routerDao;
     private final TenantOpService opService;
     private final TenantZkDao zkDao;
@@ -48,11 +51,12 @@ public class TenantDaoAdapter implements TenantDao {
      *            RouterDao object
      */
     public TenantDaoAdapter(TenantZkDao zkDao, TenantOpService opService,
-            BridgeDao bridgeDao, RouterDao routerDao) {
+            BridgeDao bridgeDao, RouterDao routerDao, ChainDao chainDao) {
         this.zkDao = zkDao;
         this.opService = opService;
         this.bridgeDao = bridgeDao;
         this.routerDao = routerDao;
+        this.chainDao = chainDao;
     }
 
     /*
@@ -177,8 +181,8 @@ public class TenantDaoAdapter implements TenantDao {
     public Tenant getByChain(UUID chainId) throws StateAccessException {
         log.debug("TenantDaoAdapter.getByChain entered: chainId={}", chainId);
 
-        Router router = routerDao.getByChain(chainId);
-        Tenant tenant = get(router.getTenantId());
+        Chain chain = chainDao.get(chainId);
+        Tenant tenant = get(chain.getTenantId());
 
         log.debug("TenantDaoAdapter.getByChain exiting: tenant={}", tenant);
         return tenant;
@@ -252,8 +256,8 @@ public class TenantDaoAdapter implements TenantDao {
     public Tenant getByRule(UUID ruleId) throws StateAccessException {
         log.debug("TenantDaoAdapter.getByRule entered: ruleId={}", ruleId);
 
-        Router router = routerDao.getByRule(ruleId);
-        Tenant tenant = get(router.getTenantId());
+        Chain chain = chainDao.getByRule(ruleId);
+        Tenant tenant = get(chain.getTenantId());
 
         log.debug("TenantDaoAdapter.getByRule exiting: tenant={}", tenant);
         return tenant;

@@ -22,7 +22,7 @@ public interface RouterDao {
     /**
      * Create a Router.
      *
-     * @param Router
+     * @param router
      *            Router to create.
      * @return Router ID.
      * @throws StateAccessException
@@ -66,13 +66,6 @@ public interface RouterDao {
     Router getByBgp(UUID bgpId) throws StateAccessException;
 
     /**
-     * @param chainId
-     * @return
-     * @throws StateAccessException
-     */
-    Router getByChain(UUID chainId) throws StateAccessException;
-
-    /**
      * @param portId
      * @return
      * @throws StateAccessException
@@ -85,13 +78,6 @@ public interface RouterDao {
      * @throws StateAccessException
      */
     Router getByRoute(UUID routeId) throws StateAccessException;
-
-    /**
-     * @param ruleId
-     * @return
-     * @throws StateAccessException
-     */
-    Router getByRule(UUID ruleId) throws StateAccessException;
 
     /**
      * @param vpnId

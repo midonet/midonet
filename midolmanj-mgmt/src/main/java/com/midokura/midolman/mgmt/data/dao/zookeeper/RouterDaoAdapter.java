@@ -249,38 +249,4 @@ public class RouterDaoAdapter implements RouterDao {
         log.debug("RouterDaoAdapter.getByRoute exiting: router={}", router);
         return router;
     }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByRule(java.util.UUID)
-     */
-    @Override
-    public Router getByRule(UUID ruleId) throws StateAccessException {
-        log.debug("RouterDaoAdapter.getByRule entered: ruleId={}", ruleId);
-
-        Chain chain = chainDao.getByRule(ruleId);
-        Router router = get(chain.getTenantId());
-
-        log.debug("RouterDaoAdapter.getByRule exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByChain(java.util.UUID)
-     */
-    @Override
-    public Router getByChain(UUID chainId) throws StateAccessException {
-        log.debug("RouterDaoAdapter.getByChain entered: chainId={}", chainId);
-
-        Chain chain = chainDao.get(chainId);
-        Router router = get(chain.getTenantId());
-
-        log.debug("RouterDaoAdapter.getByChain exiting: router={}", router);
-        return router;
-    }
 }

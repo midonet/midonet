@@ -273,31 +273,4 @@ public class TestRouterDaoAdapter {
 
         Assert.assertEquals(router, routerResult);
     }
-
-    @Test
-    public void testGetByRuleSuccess() throws Exception {
-        UUID ruleId = UUID.randomUUID();
-        Chain chain = new Chain(UUID.randomUUID(), UUID.randomUUID(), "foo");
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
-
-        doReturn(chain).when(chainDaoMock).getByRule(ruleId);
-        doReturn(router).when(adapter).get(chain.getTenantId());
-
-        Router routerResult = adapter.getByRule(ruleId);
-
-        Assert.assertEquals(router, routerResult);
-    }
-
-    @Test
-    public void testGetByChainSuccess() throws Exception {
-        Chain chain = new Chain(UUID.randomUUID(), UUID.randomUUID(), "foo");
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
-
-        doReturn(chain).when(chainDaoMock).get(chain.getId());
-        doReturn(router).when(adapter).get(chain.getTenantId());
-
-        Router routerResult = adapter.getByChain(chain.getId());
-
-        Assert.assertEquals(router, routerResult);
-    }
 }

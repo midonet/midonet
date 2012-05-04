@@ -216,7 +216,7 @@ public class PathBuilder {
      *            Tenant UUID
      * @return /tenants/tenantId/chains/chain-names/name
      */
-    public String getTenantChainNamePath(UUID tenantId, String name) {
+    public String getTenantChainNamePath(String tenantId, String name) {
         return new StringBuilder(getTenantChainNamesPath(tenantId))
                 .append("/").append(name).toString();
     }
@@ -228,7 +228,7 @@ public class PathBuilder {
      *            Tenant UUID
      * @return /tenant/tenantId/chains/chain-names
      */
-    public String getTenantChainNamesPath(UUID tenantId) {
+    public String getTenantChainNamesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId.toString()))
                 .append("/").append(CHAIN_NAMES_PATH).toString();
     }
@@ -240,7 +240,7 @@ public class PathBuilder {
      *            Tenant UUID
      * @return /tenants/tenantId/chains/chainId
      */
-    public String getTenantChainPath(UUID tenantId, UUID chainId) {
+    public String getTenantChainPath(String tenantId, UUID chainId) {
         return new StringBuilder(getTenantChainsPath(tenantId))
                 .append("/").append(chainId).toString();
     }
@@ -252,7 +252,7 @@ public class PathBuilder {
      *            Tenant UUID
      * @return /tenants/tenantId/chains
      */
-    public String getTenantChainsPath(UUID tenantId) {
+    public String getTenantChainsPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId.toString()))
                 .append("/").append(CHAINS_PATH).toString();
     }

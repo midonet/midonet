@@ -47,20 +47,8 @@ public class TestChainDaoAdapter {
         Chain chain = new Chain();
         chain.setId(id);
         chain.setName("foo");
-        chain.setTenantId(UUID.randomUUID());
+        chain.setTenantId(UUID.randomUUID().toString());
         return chain;
-    }
-
-    private static ChainConfig createTestChainConfig(String name, UUID routerId) {
-        ChainConfig config = new ChainConfig();
-        config.name = name;
-        return config;
-    }
-
-    private static ChainNameMgmtConfig createTestChainNameMgmtConfig(UUID id) {
-        ChainNameMgmtConfig config = new ChainNameMgmtConfig();
-        config.id = id;
-        return config;
     }
 
     private static Rule createTestRule(UUID id, UUID chainId) {
@@ -130,7 +118,7 @@ public class TestChainDaoAdapter {
     @Test
     public void testDeleteSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
+        ChainConfig config = new ChainConfig("foo");
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
 
         List<Op> ops = createTestDeleteOps();
@@ -148,7 +136,7 @@ public class TestChainDaoAdapter {
     @Test(expected = IllegalArgumentException.class)
     public void testDeleteBuiltInChain() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
+        ChainConfig config = new ChainConfig("foo");
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
         when(daoMock.getData(id)).thenReturn(config);
         when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
@@ -160,7 +148,7 @@ public class TestChainDaoAdapter {
     @Test
     public void testGetSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
+        ChainConfig config = new ChainConfig("foo");
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
 
         when(daoMock.getData(id)).thenReturn(config);
@@ -177,7 +165,7 @@ public class TestChainDaoAdapter {
     @Test
     public void testGetByRuleSuccess() throws Exception {
         UUID id = UUID.randomUUID();
-        ChainConfig config = createTestChainConfig("foo", UUID.randomUUID());
+        ChainConfig config = new ChainConfig("foo");
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
         Rule rule = createTestRule(UUID.randomUUID(), id);
 
@@ -195,16 +183,16 @@ public class TestChainDaoAdapter {
 
     @Test
     public void testListSuccess() throws Exception {
-        UUID routerId = UUID.randomUUID();
-        ChainConfig config = createTestChainConfig("foo", routerId);
+        String tenantId = UUID.randomUUID().toString();
+        ChainConfig config = new ChainConfig("foo");
         ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
 
         Set<String> ids = createTestIds(3);
-        when(daoMock.getIds(routerId)).thenReturn(ids);
+        when(daoMock.getIds(tenantId)).thenReturn(ids);
         when(daoMock.getData(any(UUID.class))).thenReturn(config);
         when(daoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
 
-        List<Chain> chains = adapter.list(routerId);
+        List<Chain> chains = adapter.list(tenantId);
         Assert.assertEquals(3, chains.size());
     }
 

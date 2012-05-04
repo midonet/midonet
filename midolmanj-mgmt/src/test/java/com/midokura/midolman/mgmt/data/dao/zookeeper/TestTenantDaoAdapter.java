@@ -26,8 +26,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
+import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
@@ -39,6 +41,7 @@ public class TestTenantDaoAdapter {
     private TenantDaoAdapter adapter = null;
     private RouterDao routerDaoMock = null;
     private BridgeDao bridgeDaoMock = null;
+    private ChainDao chainDaoMock = null;
 
     private static List<Op> createTestPersistentCreateOps() {
         List<Op> ops = new ArrayList<Op>();
@@ -71,10 +74,11 @@ public class TestTenantDaoAdapter {
     public void setUp() throws Exception {
         daoMock = mock(TenantZkDao.class);
         opServiceMock = mock(TenantOpService.class);
+        chainDaoMock = mock(ChainDao.class);
         routerDaoMock = mock(RouterDao.class);
         bridgeDaoMock = mock(BridgeDao.class);
         adapter = spy(new TenantDaoAdapter(daoMock, opServiceMock,
-                bridgeDaoMock, routerDaoMock));
+                bridgeDaoMock, routerDaoMock, chainDaoMock));
     }
 
     @Test
@@ -234,31 +238,26 @@ public class TestTenantDaoAdapter {
 
     @Test
     public void testGetByRuleSuccess() throws Exception {
-        UUID ruleId = UUID.randomUUID();
-        String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
-        Tenant tenant = new Tenant(id);
+        Tenant tenant = new Tenant("foo");
+        Chain chain = new Chain(UUID.randomUUID(), tenant.getId(), "fooChain");
 
-        doReturn(router).when(routerDaoMock).getByRule(ruleId);
-        doReturn(tenant).when(adapter).get(router.getTenantId());
+        UUID ruleId = UUID.randomUUID();
+        doReturn(chain).when(chainDaoMock).getByRule(ruleId);
+        doReturn(tenant).when(adapter).get(chain.getTenantId());
 
         Tenant tenantResult = adapter.getByRule(ruleId);
-
         Assert.assertEquals(tenant, tenantResult);
     }
 
     @Test
     public void testGetByChainSuccess() throws Exception {
-        UUID chainId = UUID.randomUUID();
-        String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
-        Tenant tenant = new Tenant(id);
+        Tenant tenant = new Tenant("foo");
+        Chain chain = new Chain(UUID.randomUUID(), tenant.getId(), "fooChain");
 
-        doReturn(router).when(routerDaoMock).getByChain(chainId);
-        doReturn(tenant).when(adapter).get(router.getTenantId());
+        doReturn(chain).when(adapter).getByChain(chain.getId());
+        doReturn(tenant).when(adapter).get(chain.getTenantId());
 
-        Tenant tenantResult = adapter.getByChain(chainId);
-
+        Tenant tenantResult = adapter.getByChain(chain.getId());
         Assert.assertEquals(tenant, tenantResult);
     }
 

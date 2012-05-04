@@ -235,7 +235,7 @@ public class TenantOpBuilder {
      */
     public Op getTenantChainNamesCreateOp(String id) {
         return zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantChainNamesPath(UUID.fromString(id)), null);
+                pathBuilder.getTenantChainNamesPath(id), null);
     }
 
     /**
@@ -246,8 +246,7 @@ public class TenantOpBuilder {
      * @return Op for tenant chain names delete.
      */
     public Op getTenantChainNamesDeleteOp(String id) {
-        return zkDao.getDeleteOp(pathBuilder.getTenantChainNamesPath(
-                UUID.fromString(id)));
+        return zkDao.getDeleteOp(pathBuilder.getTenantChainNamesPath(id));
     }
 
     /**
@@ -259,7 +258,7 @@ public class TenantOpBuilder {
      */
     public Op getTenantChainsCreateOp(String id) {
         return zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantChainsPath(UUID.fromString(id)), null);
+                pathBuilder.getTenantChainsPath(id), null);
     }
 
     /**
@@ -270,8 +269,7 @@ public class TenantOpBuilder {
      * @return Op for tenant chains delete.
      */
     public Op getTenantChainsDeleteOp(String id) {
-        return zkDao.getDeleteOp(pathBuilder.getTenantChainsPath(
-                UUID.fromString(id)));
+        return zkDao.getDeleteOp(pathBuilder.getTenantChainsPath(id));
     }
 
 }

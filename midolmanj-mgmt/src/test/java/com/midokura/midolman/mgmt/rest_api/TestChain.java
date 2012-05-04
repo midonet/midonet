@@ -16,15 +16,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 
 
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 
 public class TestChain extends JerseyTest {
 
@@ -37,7 +38,8 @@ public class TestChain extends JerseyTest {
     private URI testRouterUri;
     private UUID testRouterPortId;
 
-    DtoRouter router = new DtoRouter();
+    DtoTenant tenant1;
+    DtoTenant tenant2;
 
     public TestChain() {
         super(FuncTest.appDesc);
@@ -45,71 +47,115 @@ public class TestChain extends JerseyTest {
 
     @Before
     public void before() {
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId(testTenantName);
+        ClientResponse response;
 
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, tenant);
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString().endsWith("tenants/" + testTenantName));
+        DtoApplication app = new DtoApplication();
+        app = resource().path("")
+                .type(APPLICATION_JSON)
+                .get(DtoApplication.class);
 
-        // Create a router.
-        router.setName(testRouterName);
-        resource = resource().path("tenants/" + testTenantName + "/routers");
-        response = resource.type(APPLICATION_ROUTER_JSON).post(
-                ClientResponse.class, router);
+        tenant1 = new DtoTenant();
+        tenant1.setId("ChainTenant1");
+        response = resource().uri(app.getTenant())
+                .type(APPLICATION_TENANT_JSON)
+                .post(ClientResponse.class, tenant1);
+        assertEquals("The tenant was created.", 201, response.getStatus());
+        tenant1 = resource().uri(response.getLocation())
+                .accept(APPLICATION_TENANT_JSON)
+                .get(DtoTenant.class);
 
-        log.debug("router location: {}", response.getLocation());
-        testRouterUri = response.getLocation();
-
-        // Create a materialized router port.
-        URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
-        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
-        port.setNetworkAddress("10.0.0.0");
-        port.setNetworkLength(24);
-        port.setPortAddress("10.0.0.1");
-        port.setLocalNetworkAddress("10.0.0.2");
-        port.setLocalNetworkLength(32);
-        port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
-
-        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
-        assertEquals(201, response.getStatus());
-        log.debug("location: {}", response.getLocation());
-
-        testRouterPortId = FuncTest.getUuidFromLocation(response.getLocation());
+        tenant2 = new DtoTenant();
+        tenant2.setId("ChainTenant2");
+        response = resource().uri(app.getTenant())
+                .type(APPLICATION_TENANT_JSON)
+                .post(ClientResponse.class, tenant2);
+        assertEquals("The tenant was created.", 201, response.getStatus());
+        tenant2 = resource().uri(response.getLocation())
+                .accept(APPLICATION_TENANT_JSON)
+                .get(DtoTenant.class);
     }
 
     @Test
     public void testCreateGetListDelete() {
-        DtoRuleChain ruleChain = new DtoRuleChain();
+        ClientResponse response;
 
-        ruleChain.setName("foo_chain");
-        // Create a chain
-        URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
-        response = resource().uri(routerChainUri).type(APPLICATION_CHAIN_JSON).post(ClientResponse.class, ruleChain);
+        // Create a rule chain for Tenant1
+        DtoRuleChain ruleChain1 = new DtoRuleChain();
+        ruleChain1.setName("foo");
+        response = resource().uri(tenant1.getChains())
+                .type(APPLICATION_CHAIN_JSON)
+                .post(ClientResponse.class, ruleChain1);
+        assertEquals("The bridge was created.", 201, response.getStatus());
+        ruleChain1 = resource().uri(response.getLocation())
+                .accept(APPLICATION_CHAIN_JSON)
+                .get(DtoRuleChain.class);
+        assertEquals("foo", ruleChain1.getName());
+        assertEquals(tenant1.getId(), ruleChain1.getTenantId());
 
-        URI ruleChainUri = response.getLocation();
-        log.debug("status {}", response.getStatus());
-        log.debug("location {}", response.getLocation());
-        assertEquals(201, response.getStatus());
+        // Create another rule chain for Tenant1
+        DtoRuleChain ruleChain2 = new DtoRuleChain();
+        ruleChain2.setName("bar");
+        response = resource().uri(tenant1.getChains())
+                .type(APPLICATION_CHAIN_JSON)
+                .post(ClientResponse.class, ruleChain2);
+        assertEquals("The bridge was created.", 201, response.getStatus());
+        ruleChain2 = resource().uri(response.getLocation())
+                .accept(APPLICATION_CHAIN_JSON)
+                .get(DtoRuleChain.class);
+        assertEquals("bar", ruleChain2.getName());
+        assertEquals(tenant1.getId(), ruleChain2.getTenantId());
 
-        // Get the chain
-        response = resource().uri(ruleChainUri).accept(APPLICATION_CHAIN_JSON).get(ClientResponse.class);
+        // Create a rule chain for Tenant2
+        DtoRuleChain ruleChain3 = new DtoRuleChain();
+        ruleChain3.setName("fud");
+        response = resource().uri(tenant2.getChains())
+                .type(APPLICATION_CHAIN_JSON)
+                .post(ClientResponse.class, ruleChain3);
+        assertEquals("The bridge was created.", 201, response.getStatus());
+        ruleChain3 = resource().uri(response.getLocation())
+                .accept(APPLICATION_CHAIN_JSON)
+                .get(DtoRuleChain.class);
+        assertEquals("fud", ruleChain3.getName());
+        assertEquals(tenant2.getId(), ruleChain3.getTenantId());
+
+        // List tenant1's chains
+        response = resource().uri(tenant1.getChains())
+                .accept(APPLICATION_CHAIN_COLLECTION_JSON)
+                .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
-        log.debug("body: {}", response.getEntity(String.class));
+        DtoRuleChain[] chains = response.getEntity(DtoRuleChain[].class);
+        assertThat("Tenant1 has 2 chains.", chains, arrayWithSize(2));
+        assertThat("We expect the listed chains to match those we created.",
+                chains, arrayContainingInAnyOrder(ruleChain1, ruleChain2));
 
-
-        // List chains
-        response = resource().uri(routerChainUri).accept(APPLICATION_CHAIN_COLLECTION_JSON).get(ClientResponse.class);
-        log.debug("{}", response.getEntity(String.class));
-        assertEquals(200, response.getStatus());
-
-        //Delete the chain
-        response = resource().uri(ruleChainUri).delete(ClientResponse.class);
+        // Delete the first rule-chain
+        response = resource().uri(ruleChain1.getUri())
+                .delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
+        // There should now be only the second chain.
+        response = resource().uri(tenant1.getChains())
+                .accept(APPLICATION_CHAIN_COLLECTION_JSON)
+                .get(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+        chains = response.getEntity(DtoRuleChain[].class);
+        assertThat("We expect 1 listed chain after the delete",
+                chains, arrayWithSize(1));
+        assertThat("The listed chain should be the one that wasn't deleted.",
+                chains, arrayContainingInAnyOrder(ruleChain2));
+
+        // Test GET of a non-existing chain (the deleted first subnet).
+        response = resource().uri(ruleChain1.getUri())
+                .accept(APPLICATION_CHAIN_JSON).get(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+
+        // TODO(pino): creata JUMP rule in chain1 with target=chain2.
+
+        // TODO(pino): all these cases should fail:
+        // TODO:  1) Set a JUMP target to the other tenant's chain.
+        // TODO:  2) Set a JUMP target to a non-existent chain.
+        // TODO:  3) Set a chain as a filter on the other tenant's bridge.
+        // TODO:  4) Set a chain as a filter on the other tenant's router.
+        // TODO:  5) Set a chain as a filter on the other tenant's port.
     }
 
 }

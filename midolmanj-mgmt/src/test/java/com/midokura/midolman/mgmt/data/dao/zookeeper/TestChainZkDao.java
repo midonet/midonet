@@ -80,16 +80,16 @@ public class TestChainZkDao {
 
     @Test
     public void testGetNameDataSuccess() throws Exception {
-        UUID routerId = UUID.randomUUID();
+        String tenantId = "ChainTenant";
         String chainName = "foo";
         Mockito.when(
-                pathBuilderMock.getTenantChainNamePath(routerId, chainName))
+                pathBuilderMock.getTenantChainNamePath(tenantId, chainName))
                 .thenReturn(dummyPath);
         Mockito.when(zkDaoMock.get(dummyPath)).thenReturn(dummyBytes);
         Mockito.when(serializerMock.deserializeName(dummyBytes)).thenReturn(
                 dummyNameConfig);
 
-        ChainNameMgmtConfig config = dao.getNameData(routerId, chainName);
+        ChainNameMgmtConfig config = dao.getNameData(tenantId, chainName);
 
         Assert.assertEquals(dummyNameConfig, config);
     }
@@ -98,7 +98,7 @@ public class TestChainZkDao {
     public void testGetNameDataDataAccessError() throws Exception {
         Mockito.doThrow(StateAccessException.class).when(zkDaoMock)
                 .get(Mockito.anyString());
-        dao.getNameData(UUID.randomUUID(), "foo");
+        dao.getNameData("TenantName", "foo");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -131,14 +131,14 @@ public class TestChainZkDao {
 
     @Test
     public void testGetIdsSuccess() throws Exception {
-        UUID routerId = UUID.randomUUID();
+        String tenantId = "Tenant";
         Mockito.when(
-                pathBuilderMock.getTenantChainsPath(routerId))
+                pathBuilderMock.getTenantChainsPath(tenantId))
                 .thenReturn(dummyPath);
         Mockito.when(zkDaoMock.getChildren(dummyPath, null)).thenReturn(
                 dummyIds);
 
-        Set<String> ids = dao.getIds(routerId);
+        Set<String> ids = dao.getIds(tenantId);
 
         Assert.assertArrayEquals(dummyIds.toArray(), ids.toArray());
     }
@@ -149,7 +149,7 @@ public class TestChainZkDao {
                 .when(zkDaoMock)
                 .getChildren(Mockito.anyString(),
                         (Runnable) Mockito.anyObject());
-        dao.getIds(UUID.randomUUID());
+        dao.getIds("TenantFoo");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -184,9 +184,10 @@ public class TestChainZkDao {
 
     @Test
     public void testConstructChainMgmtConfig() throws Exception {
-        UUID tenantId = UUID.randomUUID();
+        String tenantId = UUID.randomUUID().toString();
         String name = "foo";
-        ChainMgmtConfig config = dao.constructChainMgmtConfig(name, tenantId);
+        ChainMgmtConfig config =
+                dao.constructChainMgmtConfig(tenantId, name);
         Assert.assertEquals(tenantId, config.tenantId);
         Assert.assertEquals(name, config.name);
     }

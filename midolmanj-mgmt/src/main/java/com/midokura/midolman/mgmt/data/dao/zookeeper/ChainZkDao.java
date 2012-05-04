@@ -101,7 +101,7 @@ public class ChainZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public ChainNameMgmtConfig getNameData(UUID tenantId, String chainName)
+    public ChainNameMgmtConfig getNameData(String tenantId, String chainName)
             throws StateAccessException {
         if (tenantId == null || chainName == null) {
             throw new IllegalArgumentException(
@@ -149,7 +149,7 @@ public class ChainZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public Set<String> getIds(UUID tenantId)
+    public Set<String> getIds(String tenantId)
             throws StateAccessException {
         if (tenantId == null) {
             throw new IllegalArgumentException(
@@ -193,14 +193,14 @@ public class ChainZkDao {
     /**
      * Construct a new ChainMgmtConfig object.
      *
-     * @param name
-     *            Name of the the chain
      * @param tenantId
      *            Tenant ID
+     * @param name
+     *            Name of the the chain
      * @return ChainConfig object
      */
     public ChainMgmtConfig constructChainMgmtConfig(
-            String name, UUID tenantId) {
+            String tenantId, String name) {
         return new ChainMgmtConfig(tenantId, name);
     }
 

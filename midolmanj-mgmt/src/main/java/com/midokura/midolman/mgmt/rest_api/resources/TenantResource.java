@@ -139,7 +139,7 @@ public class TenantResource {
      */
     @Path("/{id}" + ResourceUriBuilder.CHAINS)
     public TenantChainResource getChainResource(@PathParam("id") String id) {
-        return new TenantChainResource(UUID.fromString(id));
+        return new TenantChainResource(id);
     }
 
     /**

@@ -115,18 +115,6 @@ public class RouterResource {
     }
 
     /**
-     * Chain resource locator for routers.
-     *
-     * @param id
-     *            Router ID from the request.
-     * @returns TenantChainResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.CHAINS)
-    public TenantChainResource getChainResource(@PathParam("id") UUID id) {
-        return new TenantChainResource(id);
-    }
-
-    /**
      * Router resource locator for routers.
      *
      * @param id

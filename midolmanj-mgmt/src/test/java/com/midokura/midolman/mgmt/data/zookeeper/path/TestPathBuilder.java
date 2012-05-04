@@ -131,26 +131,26 @@ public class TestPathBuilder {
         Assert.assertEquals(expected, result);
 
         // Tenant chains
-        result = builder.getTenantChainsPath(uuid);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + uuid + "/"
+        result = builder.getTenantChainsPath(strId);
+        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
                 + PathBuilder.CHAINS_PATH;
         Assert.assertEquals(expected, result);
 
         // Tenant chain
-        result = builder.getTenantChainPath(uuid, uuid);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + uuid + "/"
+        result = builder.getTenantChainPath(strId, uuid);
+        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
                 + PathBuilder.CHAINS_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
         // Tenant chain names
-        result = builder.getTenantChainNamesPath(uuid);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + uuid + "/"
+        result = builder.getTenantChainNamesPath(strId);
+        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
                 + PathBuilder.CHAIN_NAMES_PATH;
         Assert.assertEquals(expected, result);
 
         // Tenant chain name
-        result = builder.getTenantChainNamePath(uuid, testName);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + uuid + "/"
+        result = builder.getTenantChainNamePath(strId, testName);
+        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
                 + PathBuilder.CHAIN_NAMES_PATH + "/" + testName;
         Assert.assertEquals(expected, result);
 

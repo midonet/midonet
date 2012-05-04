@@ -38,16 +38,16 @@ import com.midokura.midolman.state.StateAccessException;
  */
 public class TenantChainResource {
 
-    private final UUID routerId;
+    private final String tenantId;
 
     /**
      * Constructor
      *
-     * @param routerId
+     * @param tenantId
      *            ID of a router.
      */
-    public TenantChainResource(UUID routerId) {
-        this.routerId = routerId;
+    public TenantChainResource(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     /**
@@ -75,13 +75,13 @@ public class TenantChainResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
-        if (!authorizer.routerAuthorized(context, AuthAction.WRITE, routerId)) {
+        if (!authorizer.tenantAuthorized(context, AuthAction.WRITE, tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to add chain to this router.");
         }
 
         ChainDao dao = daoFactory.getChainDao();
-        chain.setTenantId(routerId);
+        chain.setTenantId(tenantId);
         UUID id = dao.create(chain);
         return Response.created(
                 ResourceUriBuilder.getChain(uriInfo.getBaseUri(), id)).build();
@@ -110,13 +110,13 @@ public class TenantChainResource {
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
-        if (!authorizer.routerAuthorized(context, AuthAction.READ, routerId)) {
+        if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view these chains.");
         }
 
         ChainDao dao = daoFactory.getChainDao();
-        List<Chain> chains = dao.list(routerId);
+        List<Chain> chains = dao.list(tenantId);
         if (chains != null) {
             for (UriResource resource : chains) {
                 resource.setBaseUri(uriInfo.getBaseUri());
@@ -152,13 +152,13 @@ public class TenantChainResource {
                      @Context DaoFactory daoFactory, @Context Authorizer authorizer)
             throws StateAccessException {
 
-        if (!authorizer.routerAuthorized(context, AuthAction.READ, routerId)) {
+        if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view chain of this router.");
         }
 
         ChainDao dao = daoFactory.getChainDao();
-        Chain chain = dao.get(routerId, name);
+        Chain chain = dao.get(tenantId, name);
         if (chain != null) {
             chain.setBaseUri(uriInfo.getBaseUri());
         }

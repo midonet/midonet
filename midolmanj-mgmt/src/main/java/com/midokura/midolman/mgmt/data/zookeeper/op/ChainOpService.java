@@ -134,7 +134,7 @@ public class ChainOpService {
      */
     public List<Op> buildTenantChainsDelete(String tenantId)
             throws StateAccessException {
-        Set<String> ids = zkDao.getIds(UUID.fromString(tenantId));
+        Set<String> ids = zkDao.getIds(tenantId);
         List<Op> ops = new ArrayList<Op>();
         for (String id : ids) {
             ops.addAll(buildDelete(UUID.fromString(id), true));

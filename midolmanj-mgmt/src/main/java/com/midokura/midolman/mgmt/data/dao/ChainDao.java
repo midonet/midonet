@@ -57,7 +57,7 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    Chain get(UUID tenantId, String name)
+    Chain get(String tenantId, String name)
             throws StateAccessException;
 
     /**
@@ -78,6 +78,6 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Chain> list(UUID tenantId)
+    List<Chain> list(String tenantId)
             throws StateAccessException;
 }

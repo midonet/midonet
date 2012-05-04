@@ -118,12 +118,12 @@ public class ChainDaoAdapter implements ChainDao {
      * java.lang.String)
      */
     @Override
-    public Chain get(UUID routerId, String name)
+    public Chain get(String tenantId, String name)
             throws StateAccessException {
-        log.debug("ChainDaoAdapter.get entered: routerId=" + routerId
+        log.debug("ChainDaoAdapter.get entered: tenantId=" + tenantId
                 + ", name=" + name);
 
-        ChainNameMgmtConfig nameConfig = zkDao.getNameData(routerId, name);
+        ChainNameMgmtConfig nameConfig = zkDao.getNameData(tenantId, name);
         Chain chain = get(nameConfig.id);
 
         log.debug("ChainDaoAdapter.get existing: chain={}", chain);
@@ -153,7 +153,7 @@ public class ChainDaoAdapter implements ChainDao {
      * @see com.midokura.midolman.mgmt.data.dao.ChainDao#list(java.util.UUID)
      */
     @Override
-    public List<Chain> list(UUID tenantId) throws StateAccessException {
+    public List<Chain> list(String tenantId) throws StateAccessException {
         log.debug("ChainDaoAdapter.list entered: tenantId={}", tenantId);
 
         Set<String> ids = new TreeSet<String>();
