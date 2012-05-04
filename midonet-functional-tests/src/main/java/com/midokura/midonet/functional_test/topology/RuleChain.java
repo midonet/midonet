@@ -1,19 +1,19 @@
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class RuleChain {
 
     public static class Builder {
         MidolmanMgmt mgmt;
-        DtoRouter router;
+        DtoTenant tenant;
         DtoRuleChain chain;
 
-        public Builder(MidolmanMgmt mgmt, DtoRouter router) {
+        public Builder(MidolmanMgmt mgmt, DtoTenant tenant) {
             this.mgmt = mgmt;
-            this.router = router;
+            this.tenant = tenant;
             this.chain = new DtoRuleChain();
         }
 
@@ -26,13 +26,9 @@ public class RuleChain {
             if (null == chain.getName() || chain.getName().isEmpty())
                 throw new IllegalArgumentException("Cannot create a "
                         + "rule chain with a null or empty name.");
-            return new RuleChain(mgmt, mgmt.addRuleChain(router, chain));
+            return new RuleChain(mgmt, mgmt.addRuleChain(tenant, chain));
         }
     }
-
-    public final static String NAT_TABLE = "nat";
-    public final static String PRE_ROUTING = "pre_routing";
-    public final static String POST_ROUTING = "post_routing";
 
     private MidolmanMgmt mgmt;
     private DtoRuleChain chain;
@@ -40,6 +36,10 @@ public class RuleChain {
     RuleChain(MidolmanMgmt mgmt, DtoRuleChain chain) {
         this.mgmt = mgmt;
         this.chain = chain;
+    }
+
+    public void delete() {
+        mgmt.delete(chain.getUri());
     }
 
     public Rule.Builder addRule() {

@@ -31,16 +31,30 @@ public class Router {
             if (null == router.getName() || router.getName().isEmpty())
                 throw new IllegalArgumentException("Cannot create a "
                         + "router with a null or empty name.");
-            return new Router(mgmt, mgmt.addRouter(tenant, router));
+            // Create pre- and post-filtering rule-chains for this router.
+            RuleChain.Builder rcBuilder1 = new RuleChain.Builder(mgmt, tenant);
+            rcBuilder1.setName(router.getName() + PRE_ROUTING);
+            RuleChain.Builder rcBuilder2 = new RuleChain.Builder(mgmt, tenant);
+            rcBuilder2.setName(router.getName() + POST_ROUTING);
+            return new Router(mgmt, mgmt.addRouter(tenant, router),
+                    rcBuilder1.build(), rcBuilder2.build());
         }
     }
 
+    public final static String PRE_ROUTING = "pre_routing";
+    public final static String POST_ROUTING = "post_routing";
+
     MidolmanMgmt mgmt;
     DtoRouter dto;
+    RuleChain preRoutingChain;
+    RuleChain postRoutingChain;
 
-    Router(MidolmanMgmt mgmt, DtoRouter router) {
+    Router(MidolmanMgmt mgmt, DtoRouter router, RuleChain preRoutingChain,
+           RuleChain postRoutingChain) {
         this.mgmt = mgmt;
         this.dto = router;
+        this.preRoutingChain = preRoutingChain;
+        this.postRoutingChain = postRoutingChain;
     }
 
     public RouterPort.VMPortBuilder addVmPort() {
@@ -65,35 +79,30 @@ public class Router {
     }
 
     public String getName() {
+
         return dto.getName();
     }
 
     public void delete() {
-
+        mgmt.delete(dto.getUri());
+        preRoutingChain.delete();
+        postRoutingChain.delete();
     }
 
     public void addFloatingIp(IntIPv4 privAddr, IntIPv4 pubAddr, UUID uplinkId) {
         // Add a DNAT to the pre-routing chain.
-        RuleChain chain = getRuleChain(RuleChain.PRE_ROUTING);
-        chain.addRule().setDnat(privAddr, 0).setMatchNwDst(pubAddr, 32)
+        preRoutingChain.addRule().setDnat(privAddr, 0)
+                .setMatchNwDst(pubAddr, 32)
                 .setMatchInPort(uplinkId).build();
         // Add a SNAT to the post-routing chain.
-        chain = getRuleChain(RuleChain.POST_ROUTING);
-        chain.addRule().setSnat(pubAddr, 0).setMatchNwSrc(privAddr, 32)
+        postRoutingChain.addRule().setSnat(pubAddr, 0)
+                .setMatchNwSrc(privAddr, 32)
                 .setMatchOutPort(uplinkId).build();
     }
 
-    public RuleChain.Builder addRuleChain() {
-        return new RuleChain.Builder(mgmt, dto);
-    }
-
-    public RuleChain getRuleChain(String name) {
-        return new RuleChain(mgmt, mgmt.getRuleChain(dto, name));
-    }
-
     public void dropTrafficTo(String addr, int length) {
-        RuleChain chain = getRuleChain(RuleChain.PRE_ROUTING);
-        chain.addRule().setMatchNwDst(IntIPv4.fromString(addr), length)
+        preRoutingChain.addRule()
+                .setMatchNwDst(IntIPv4.fromString(addr), length)
                 .setSimpleType(DtoRule.Drop).build();
     }
 

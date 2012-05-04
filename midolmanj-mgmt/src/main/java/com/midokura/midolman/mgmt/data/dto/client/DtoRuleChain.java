@@ -13,8 +13,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoRuleChain {
 
     private UUID id;
-    private UUID ownerId;
+    private UUID tenantId;
     private String name;
+    private URI uri;
     private URI rules;
 
     public UUID getId() {
@@ -25,12 +26,12 @@ public class DtoRuleChain {
         this.id = id;
     }
 
-    public UUID getOwnerId() {
-        return ownerId;
+    public UUID getTenantId() {
+        return tenantId;
     }
 
-    public void setOwnerId(UUID ownerId) {
-        this.ownerId = ownerId;
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
     }
 
     public String getName() {
@@ -39,6 +40,14 @@ public class DtoRuleChain {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
     }
 
     public URI getRules() {

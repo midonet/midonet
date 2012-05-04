@@ -294,8 +294,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public DtoRuleChain addRuleChain(DtoRouter router, DtoRuleChain chain) {
-        URI uri = post(router.getChains(), chain);
+    public DtoRuleChain addRuleChain(DtoTenant t, DtoRuleChain chain) {
+        URI uri = post(t.getChains(), chain);
         return get(uri, DtoRuleChain.class);
     }
 

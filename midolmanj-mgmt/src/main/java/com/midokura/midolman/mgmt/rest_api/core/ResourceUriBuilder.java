@@ -62,6 +62,11 @@ public class ResourceUriBuilder {
                 .build();
     }
 
+    public static URI getTenantChains(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(CHAINS)
+                .build();
+    }
+
     public static URI getBridges(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(BRIDGES).build();
     }

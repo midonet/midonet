@@ -41,7 +41,7 @@ public interface MidolmanMgmt {
 
     DtoAdRoute addBgpAdvertisedRoute(DtoBgp dtoBgp, DtoAdRoute dtpAdRoute);
 
-    DtoRuleChain addRuleChain(DtoRouter router, DtoRuleChain chain);
+    DtoRuleChain addRuleChain(DtoTenant tenant, DtoRuleChain chain);
 
     DtoRuleChain getRuleChain(DtoRouter router, String name);
 

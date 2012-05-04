@@ -15,6 +15,7 @@ public class DtoTenant {
     private String id;
     private URI bridges;
     private URI routers;
+    private URI chains;
     @XmlTransient
     private URI uri;
 
@@ -40,6 +41,14 @@ public class DtoTenant {
 
     public void setRouters(URI routers) {
         this.routers = routers;
+    }
+
+    public URI getChains() {
+        return chains;
+    }
+
+    public void setChains(URI chains) {
+        this.chains = chains;
     }
 
     public URI getUri() {
