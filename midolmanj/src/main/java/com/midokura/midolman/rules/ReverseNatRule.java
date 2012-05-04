@@ -6,6 +6,8 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import com.midokura.midolman.layer4.NatMapping;
+import org.apache.cassandra.gms.IFailureDetectionEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,22 +40,30 @@ public class ReverseNatRule extends NatRule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res) {
+            RuleResult res, UUID ownerId) {
         // Don't attempt to do port translation on anything but udp/tcp
         byte nwProto = res.match.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
             return;
 
+        NatMapping natMapping =
+                ChainProcessor.getChainProcessor().getNatMapping(ownerId);
+        if (natMapping == null) {
+            log.error("Expected NAT mapping to exist");
+            return;
+        }
+
         if (dnat)
-            applyReverseDnat(inPortId, outPortId, res);
+            applyReverseDnat(inPortId, outPortId, res, natMapping);
         else
-            applyReverseSnat(inPortId, outPortId, res);
+            applyReverseSnat(inPortId, outPortId, res, natMapping);
     }
 
-    private void applyReverseDnat(UUID inPortId, UUID outPortId, RuleResult res) {
-        if (null == natMap)
+    private void applyReverseDnat(UUID inPortId, UUID outPortId, RuleResult res,
+                                  NatMapping natMapping) {
+        if (null == natMapping)
             return;
-        NwTpPair origConn = natMap.lookupDnatRev(res.match
+        NwTpPair origConn = natMapping.lookupDnatRev(res.match
                 .getNetworkDestination(), res.match.getTransportDestination(),
                 res.match.getNetworkSource(), res.match.getTransportSource());
         if (null == origConn)
@@ -70,10 +80,11 @@ public class ReverseNatRule extends NatRule {
         res.action = action;
     }
 
-    private void applyReverseSnat(UUID inPortId, UUID outPortId, RuleResult res) {
-        if (null == natMap)
+    private void applyReverseSnat(UUID inPortId, UUID outPortId, RuleResult res,
+                                  NatMapping natMapping) {
+        if (null == natMapping)
             return;
-        NwTpPair origConn = natMap.lookupSnatRev(res.match
+        NwTpPair origConn = natMapping.lookupSnatRev(res.match
                 .getNetworkDestination(), res.match.getTransportDestination(),
                 res.match.getNetworkSource(), res.match.getTransportSource());
         if (null == origConn)

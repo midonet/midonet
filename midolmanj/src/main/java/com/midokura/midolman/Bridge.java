@@ -66,7 +66,6 @@ public class Bridge implements ForwardingElement {
     private MacPortWatcher macToPortWatcher;
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
-    private ChainProcessor ruleEngine;
     private BridgeZkManager.BridgeConfig myConfig;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
@@ -94,8 +93,6 @@ public class Bridge implements ForwardingElement {
         };
         updateLogicalPorts();
         myConfig = (new BridgeZkManager(zkDir, zkBasePath)).get(bridgeId).value;
-        ruleEngine = new ChainProcessor(zkDir, zkBasePath, bridgeId, cache,
-                                        reactor);
     }
 
     @Override
@@ -128,8 +125,9 @@ public class Bridge implements ForwardingElement {
         fwdInfo.outPortId = null;
 
         // Apply pre-bridging rules.
-        RuleResult res = ruleEngine.applyChain(myConfig.inboundFilter,
-                fwdInfo.flowMatch, fwdInfo.matchIn, fwdInfo.inPortId, null);
+        RuleResult res = ChainProcessor.getChainProcessor().applyChain(
+                myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
+                fwdInfo.inPortId, null, this.bridgeId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||
@@ -190,8 +188,9 @@ public class Bridge implements ForwardingElement {
         }
 
         // Apply post-bridging rules.
-        res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo.flowMatch,
-                res.match, fwdInfo.inPortId, fwdInfo.outPortId);
+        res = ChainProcessor.getChainProcessor().applyChain(
+                myConfig.outboundFilter, fwdInfo.flowMatch, res.match,
+                fwdInfo.inPortId, fwdInfo.outPortId, this.bridgeId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||

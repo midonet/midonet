@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 
+import com.midokura.midolman.rules.ChainProcessor;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
@@ -61,6 +62,8 @@ public class VRNCoordinator implements ForwardingElement {
         this.portFilter = new PortFilteringStage(zkDir, zkBasePath);
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
+
+        ChainProcessor.initChainProcessor(zkDir, zkBasePath, cache, reactor);
     }
 
     // This maintains consistency of the cached port configs w.r.t ZK.
@@ -82,7 +85,7 @@ public class VRNCoordinator implements ForwardingElement {
                 }
             }
         }
-    };
+    }
 
     public PortConfig getPortConfig(UUID portId) throws
             ZkStateSerializationException, StateAccessException {

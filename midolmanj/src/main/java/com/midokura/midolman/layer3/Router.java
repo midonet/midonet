@@ -141,8 +141,6 @@ public class Router implements ForwardingElement {
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
         RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
-        ruleEngine = new ChainProcessor(zkDir, zkBasePath, routerId,
-                                        cache, reactor);
         table = new ReplicatedRoutingTable(routerId,
                         routerMgr.getRoutingTableDirectory(routerId),
                         CreateMode.EPHEMERAL);
@@ -382,8 +380,10 @@ public class Router implements ForwardingElement {
 
         // Apply pre-routing rules.
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
-        RuleResult res = ruleEngine.applyChain(myConfig.inboundFilter,
-                fwdInfo.flowMatch, fwdInfo.matchIn, fwdInfo.inPortId, null);
+
+        RuleResult res = ChainProcessor.getChainProcessor().applyChain(
+                myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
+                fwdInfo.inPortId, null, this.routerId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -434,7 +434,7 @@ public class Router implements ForwardingElement {
                 new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort });
         res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo.flowMatch,
-                res.match, fwdInfo.inPortId, rt.nextHopPort);
+                res.match, fwdInfo.inPortId, rt.nextHopPort, this.routerId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {

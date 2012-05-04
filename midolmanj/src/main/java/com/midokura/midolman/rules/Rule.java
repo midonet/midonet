@@ -34,11 +34,11 @@ public abstract class Rule implements Comparable<Rule> {
     // Setter for Jackson serialization
     @SuppressWarnings("unused")
 	private void setCondition(Condition cond) { this.condition = cond; }
-    
+
     /**
      * If the packet specified by res.match matches this rule's condition,
      * apply the rule.
-     * 
+     *
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It
      *            will NOT be modified by the rule chain.
@@ -49,9 +49,9 @@ public abstract class Rule implements Comparable<Rule> {
      *            preceding this rule. This may be modified.
      */
     public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res) {
+            RuleResult res, UUID ownerId) {
         if (condition.matches(inPortId, outPortId, res.match)) {
-            apply(flowMatch, inPortId, outPortId, res);
+            apply(flowMatch, inPortId, outPortId, res, ownerId);
         }
     }
 
@@ -61,7 +61,7 @@ public abstract class Rule implements Comparable<Rule> {
 
     /**
      * Apply this rule to the packet specified by res.match.
-     * 
+     *
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It
      *            will NOT be modified by the rule chain.
@@ -70,9 +70,11 @@ public abstract class Rule implements Comparable<Rule> {
      * @param res
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
+     * @param ownerId
+     *            UUID of the element using this chain.
      */
     protected abstract void apply(MidoMatch flowMatch, UUID inPortId,
-            UUID outPortId, RuleResult res);
+            UUID outPortId, RuleResult res, UUID ownerId);
 
     @Override
     public int hashCode() {

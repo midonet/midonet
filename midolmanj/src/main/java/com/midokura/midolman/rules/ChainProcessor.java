@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
+import com.midokura.midolman.util.Callback1;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,34 +41,78 @@ public class ChainProcessor {
     private final static Logger log =
         LoggerFactory.getLogger(ChainProcessor.class);
 
-    private RuleZkManager zkRuleMgr;
-    private NatMapping natMap;
+    private static ChainProcessor instance = null;
+
+    //private RuleZkManager zkRuleMgr;
     private Map<UUID, Chain> chainByUuid;
     private Map<String, UUID> uuidByName;
-    private ChainZkManager zkChainMgr;
-    private ChainWatcher chainWatcher;
+    //private ChainZkManager zkChainMgr;
     private Directory zkDir;
-    private String basePath;
+    private String zkBasePath;
+    private Cache cache;
+    private Reactor reactor;
+    private Map<UUID, NatMapping> natMappingMap;
+    private Set<Callback1<UUID>> watchers;
 
-    public ChainProcessor(Directory dir, String zkBasePath, UUID ownerID,
+
+    private ChainProcessor(Directory dir, String zkBasePath,
                           Cache cache, Reactor reactor)
             throws StateAccessException {
-        zkDir = dir;
-        basePath = zkBasePath;
-        zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
-        natMap = new NatLeaseManager(new FiltersZkManager(zkDir, zkBasePath),
-                                     ownerID, cache, reactor);
-        zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
-        chainWatcher = new ChainWatcher(ownerID);
+        this.zkDir = dir;
+        this.zkBasePath = zkBasePath;
+        //this.zkRuleMgr = new RuleZkManager(zkDir, zkBasePath);
+        //this.zkChainMgr = new ChainZkManager(zkDir, zkBasePath);
+        this.cache = cache;
+        this.reactor = reactor;
         chainByUuid = new HashMap<UUID, Chain>();
         uuidByName = new HashMap<String, UUID>();
-        updateChains(ownerID);
+        //TODO(abel) XXX
+        //chainWatcher = new ChainWatcher(ownerID);
+        //updateChains(ownerID);
+        natMappingMap = new HashMap<UUID, NatMapping>();
+    }
+
+    public static ChainProcessor getChainProcessor() {
+        if (instance == null) {
+            log.error("Using uninitialized ChainProcessor");
+        }
+        return instance;
+    }
+
+    public static void initChainProcessor(Directory dir, String zkBasePath,
+                                          Cache cache, Reactor reactor) {
+        if (instance != null) {
+            log.error("Tried to initialize twice ChainProcessor");
+        } else {
+            try {
+                instance = new ChainProcessor(dir, zkBasePath, cache, reactor);
+            } catch (StateAccessException e) {
+                log.error("Error initializing ChainProcessor", e);
+            }
+        }
+    }
+
+    public static NatMapping getNatMapping(UUID ownerId) {
+        if (instance == null) {
+            log.error("Expected non-null NatMapping");
+            return null;
+        }
+        if (instance.natMappingMap.containsKey(ownerId)) {
+            return instance.natMappingMap.get(ownerId);
+        } else {
+            NatMapping natMapping = new NatLeaseManager(
+                    new FiltersZkManager(instance.zkDir, instance.zkBasePath),
+                    ownerId, instance.cache, instance.reactor);
+            instance.natMappingMap.put(ownerId, natMapping);
+            return natMapping;
+        }
     }
 
     public void freeFlowResources(OFMatch match) {
         log.debug("freeFlowResources: match {}", match);
 
-        natMap.freeFlowResources(match);
+        // TODO(abel)
+        // natMap.freeFlowResources(match);
     }
 
     /* XXX
@@ -91,7 +136,7 @@ public class ChainProcessor {
     */
 
     private void addChain(UUID id, String name) {
-        Chain chain = new Chain(id, name, zkDir, basePath);
+        Chain chain = new Chain(id, name, zkDir, zkBasePath);
         chainByUuid.put(id, chain);
         uuidByName.put(name, id);
     }
@@ -105,6 +150,7 @@ public class ChainProcessor {
 
     /**
      * Called when a change in the state (ZooKeeper) has been notified
+     * @param ownerID
      * @throws StateAccessException
      * @throws ZkStateSerializationException
      */
@@ -156,7 +202,7 @@ public class ChainProcessor {
 
     /**
      *
-     * @param chainName
+     * @param chainID
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It
      *            will NOT be modified by the rule chain.
@@ -165,15 +211,21 @@ public class ChainProcessor {
      *            will NOT be modified by the rule chain.
      * @param inPortId
      * @param outPortId
+     * @param ownerId
+     *            UUID of the element using chainId.
      * @return
      */
     public RuleResult applyChain(UUID chainID, MidoMatch flowMatch,
-            MidoMatch pktMatch, UUID inPortId, UUID outPortId) {
+            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId) {
 
         if (null == chainID) {
              return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch,
                                    false);
         }
+
+        // Chains are not pre-loaded. Retrieve them from the state the
+        // first time they are requested
+        //TODO(abel)
 
         Chain currentChain = chainByUuid.get(chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
@@ -191,7 +243,7 @@ public class ChainProcessor {
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
                 cp.rules.get(cp.position).process(flowMatch, inPortId,
-                                                  outPortId, res);
+                                                  outPortId, res, ownerId);
                 cp.position++;
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)

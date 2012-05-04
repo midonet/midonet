@@ -41,7 +41,7 @@ public class LiteralRule extends Rule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res) {
+            RuleResult res, UUID ownerId) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);
     }

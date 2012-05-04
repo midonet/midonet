@@ -36,7 +36,7 @@ public class JumpRule extends Rule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res) {
+            RuleResult res, UUID ownerId) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChain;
         log.debug("Rule evaluation jumping to chain {}.", jumpToChain);
