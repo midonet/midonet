@@ -25,7 +25,6 @@ import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.FiltersZkManager;
-import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -47,6 +46,7 @@ public class ChainProcessor {
     private Cache cache;
     private Reactor reactor;
     private Map<UUID, NatMapping> natMappingMap;
+    private ChainZkManager zkChainManager;
 
 
     private ChainProcessor(Directory dir, String zkBasePath,
@@ -59,6 +59,7 @@ public class ChainProcessor {
         chainByUuid = new HashMap<UUID, Chain>();
         uuidByName = new HashMap<String, UUID>();
         natMappingMap = new HashMap<UUID, NatMapping>();
+        zkChainManager = new ChainZkManager(zkDir, zkBasePath);
     }
 
     public static ChainProcessor getChainProcessor() {
@@ -104,20 +105,42 @@ public class ChainProcessor {
         // natMap.freeFlowResources(match);
     }
 
-    private void addChain(UUID id, String name) {
-        Chain chain = new Chain(id, name, zkDir, zkBasePath);
+    private void rememberChain(Chain chain, UUID id, String name) {
         chainByUuid.put(id, chain);
-        uuidByName.put(name, id);
+        if (name != null)
+            uuidByName.put(name, id);
     }
 
-    private void removeChain(UUID id) {
+    private void forgetChain(UUID id) {
         String name = chainByUuid.get(id).getChainName();
         chainByUuid.remove(id);
-        uuidByName.remove(name);
+        if (name != null)
+            uuidByName.remove(name);
+    }
+
+    // Chains are not pre-loaded.  Retrieve them the first time they 
+    // are requested
+    public Chain getOrCreateChainByName(String name) throws StateAccessException {
+        UUID id = uuidByName.get(name);
+        if (null != id)
+            return chainByUuid.get(id);
+
+        id = zkChainManager.getByName(name).value;
+        Chain newChain = new Chain(id, name, zkDir, zkBasePath);
+        rememberChain(newChain, id, name);
+        return newChain;
+    }
+
+    public Chain getOrCreateChainById(UUID id) {
+        Chain chain = chainByUuid.get(id);
+        if (chain != null)
+            return chain;
+        chain = new Chain(id, null, zkDir, zkBasePath);
+        rememberChain(chain, id, null);
+        return chain;
     }
 
     /**
-     *
      * @param chainID
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It
@@ -132,18 +155,14 @@ public class ChainProcessor {
      * @return
      */
     public RuleResult applyChain(UUID chainID, MidoMatch flowMatch,
-            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId) {
-
+            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId)
+                throws StateAccessException {
         if (null == chainID) {
              return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch,
                                    false);
         }
 
-        // Chains are not pre-loaded. Retrieve them from the state the
-        // first time they are requested
-        //TODO(abel)
-
-        Chain currentChain = chainByUuid.get(chainID);
+        Chain currentChain = getOrCreateChainById(chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(chainID, currentChain.getRules(), 0));
         Set<UUID> traversedChains = new HashSet<UUID>();
@@ -166,7 +185,16 @@ public class ChainProcessor {
                         || res.action.equals(RuleResult.Action.REJECT)) {
                     return res;
                 } else if (res.action.equals(RuleResult.Action.JUMP)) {
-                    if (traversedChains.contains(res.jumpToChain)) {
+                    Chain nextChain = getOrCreateChainByName(res.jumpToChain);
+                    if (null == nextChain) {
+                        // Let's just ignore jumps to non-existent chains.
+                        log.warn("ignoring jump to chain {} -- not found.",
+                                 res.jumpToChain);
+                        continue;
+                    }
+
+                    UUID nextID = nextChain.getID();
+                    if (traversedChains.contains(nextID)) {
                         // Avoid jumping to chains we've already seen.
                         log.warn("applyChain {} cannot jump from chain {} to " +
                                  "chain {} -- already visited", new Object[] {
@@ -174,15 +202,6 @@ public class ChainProcessor {
                         continue;
                     }
 
-                    UUID nextID = uuidByName.get(res.jumpToChain);
-                    if (null == nextID) {
-                        // Let's just ignore jumps to non-existent chains.
-                        log.warn("ignoring jump to chain {} -- not found.",
-                                 res.jumpToChain);
-                        continue;
-                    }
-
-                    Chain nextChain = chainByUuid.get(nextID);
                     traversedChains.add(nextID);
                     // Remember the calling chain.
                     chainStack.push(cp);

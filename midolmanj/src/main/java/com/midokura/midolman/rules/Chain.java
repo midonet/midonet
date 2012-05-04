@@ -56,6 +56,10 @@ public class Chain {
         this.chainName = chainName;
     }
 
+    public UUID getID() {
+        return chainId;
+    }
+
     public void updateRules()
             throws StateAccessException, ZkStateSerializationException {
 

@@ -40,8 +40,8 @@ public class ChainZkManager extends ZkManager {
         }
     }
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ChainZkManager.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(ChainZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.
@@ -155,6 +155,29 @@ public class ChainZkManager extends ZkManager {
                     ChainConfig.class);
         }
         return new ZkNodeEntry<UUID, ChainConfig>(id, config);
+    }
+
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a chain with the given name.
+     *
+     * @param name
+     *            The name of the chain.
+     * @return UUID found.
+     * @throws ZkStateSerializationException
+     *             Serialization error occurred.
+     */
+    public ZkNodeEntry<String, UUID> getByName(String name)
+            throws StateAccessException {
+        byte[] data = get(pathManager.getChainNamePath(name), null);
+        UUID id = null;
+        try {
+            id = deserialize(data, UUID.class);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not deserialize chain " + name + " to UUID", e,
+                    UUID.class);
+        }
+        return new ZkNodeEntry<String, UUID>(name, id);
     }
 
     /**

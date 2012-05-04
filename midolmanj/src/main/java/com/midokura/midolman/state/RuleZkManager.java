@@ -27,8 +27,8 @@ import com.midokura.midolman.rules.Rule;
  */
 public class RuleZkManager extends ZkManager {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RuleZkManager.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(RuleZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.
@@ -216,7 +216,7 @@ public class RuleZkManager extends ZkManager {
             rule = deserialize(data, Rule.class);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
-                    "Could not deserialize chain " + id + " to Rule", e,
+                    "Could not deserialize rule " + id + " to Rule", e,
                     Rule.class);
         }
         return new ZkNodeEntry<UUID, Rule>(id, rule);
