@@ -167,25 +167,24 @@ public class RouterZkManager extends ZkManager {
       * Construct a list of ZK operations needed to update the configuration of
       * a router.
       *
-      * @param entry
-      *          A key-value pair whose key is the ID of the router to update,
-      *          and whose value is the new router configuration.
+     * @param id
+     *          ID of the router to update
+     * @param config
+      *         the new router configuration.
       * @return
-      *          The list of ZK operations required to update the router.
+      *          The ZK operation required to update the router.
       * @throws ZkStateSerializationException if the RouterConfig could not be
       *          serialized.
       */
-    public List<Op> prepareRouterUpdate(ZkNodeEntry<UUID, RouterConfig> entry)
+    public Op prepareUpdate(UUID id, RouterConfig config)
             throws ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
         try {
-            ops.add(Op.setData(pathManager.getRouterPath(entry.key),
-                    serialize(entry.value), -1));
+            return Op.setData(
+                    pathManager.getRouterPath(id), serialize(config), -1);
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize RouterConfig", e, RouterConfig.class);
         }
-        return ops;
     }
 
     /**

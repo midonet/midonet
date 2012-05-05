@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
+import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
@@ -148,16 +149,16 @@ public class RouterOpService {
     /**
      * Build list of Op objects to update a router
      *
-     * @param id
-     *            ID of the router
-     * @param name
-     *            Name of the router
+     * @param router
+     *            Router DTO
      * @return List of Op objects
      * @throws StateAccessException
      *             Data access error
      */
-    public List<Op> buildUpdate(UUID id, String name)
+    public List<Op> buildUpdate(Router router)
             throws StateAccessException {
+        UUID id = router.getId();
+        String name = router.getName();
         log.debug("RouterOpService.buildUpdate entered: id=" + id + ",name="
                 + name);
 
@@ -178,6 +179,9 @@ public class RouterOpService {
         // Update router
         config.name = name;
         ops.add(opBuilder.getRouterSetDataOp(id, config));
+
+        // Update the midolman state
+        ops.add(opBuilder.getRouterUpdateOp(id, router.toConfig()));
 
         log.debug("RouterOpService.buildUpdate exiting: ops count={}",
                 ops.size());

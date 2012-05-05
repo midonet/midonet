@@ -201,8 +201,7 @@ public class TestBridgeDaoAdapter {
 
         Bridge bridge = new Bridge(UUID.randomUUID(), "foo", "bar");
         List<Op> ops = createTestUpdateOps();
-        doReturn(ops).when(opServiceMock).buildUpdate(bridge.getId(),
-                bridge.getName());
+        doReturn(ops).when(opServiceMock).buildUpdate(bridge);
         adapter.update(bridge);
 
         verify(daoMock, times(1)).multi(ops);

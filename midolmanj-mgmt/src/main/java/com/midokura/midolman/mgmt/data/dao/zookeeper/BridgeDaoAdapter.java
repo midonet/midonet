@@ -120,7 +120,7 @@ public class BridgeDaoAdapter implements BridgeDao {
     public void update(Bridge bridge) throws StateAccessException {
         log.debug("BridgeDaoAdapter.update entered: bridge={}", bridge);
 
-        List<Op> ops = opService.buildUpdate(bridge.getId(), bridge.getName());
+        List<Op> ops = opService.buildUpdate(bridge);
         zkDao.multi(ops);
 
         log.debug("BridgeDaoAdapter.update exiting");

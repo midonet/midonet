@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
+import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
@@ -139,16 +140,16 @@ public class BridgeOpService {
     /**
      * Build list of Op objects to update a bridge
      *
-     * @param id
-     *            ID of the bridge
-     * @param name
-     *            Name of the bridge
+     * @param bridge
+     *            BridgeConfig of the bridge to be updated.
      * @return Op list
      * @throws StateAccessException
      *             Data error.
      */
-    public List<Op> buildUpdate(UUID id, String name)
+    public List<Op> buildUpdate(Bridge bridge)
             throws StateAccessException {
+        UUID id = bridge.getId();
+        String name = bridge.getName();
         log.debug("BridgeOpBuilder.buildUpdate entered: id=" + id + ", name="
                 + name);
 
@@ -168,6 +169,9 @@ public class BridgeOpService {
         // Update bridge
         config.name = name;
         ops.add(opBuilder.getBridgeSetDataOp(id, config));
+
+        // Update the midolman data
+        ops.add(opBuilder.getBridgeUpdateOp(id, bridge.toConfig()));
 
         log.debug("BridgeOpBuilder.buildUpdate exiting: ops count={}",
                 ops.size());

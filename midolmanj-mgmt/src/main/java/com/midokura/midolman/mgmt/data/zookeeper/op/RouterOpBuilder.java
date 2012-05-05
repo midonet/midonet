@@ -92,6 +92,11 @@ public class RouterOpBuilder {
         return ops;
     }
 
+    public Op getRouterUpdateOp(UUID id, RouterConfig config)
+            throws ZkStateSerializationException {
+        return zkDao.prepareUpdate(id, config);
+    }
+
     /**
      * Get the router delete Op object.
      *

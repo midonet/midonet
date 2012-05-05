@@ -27,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
+import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
@@ -123,7 +124,7 @@ public class TestBridgeOpService {
 				any(BridgeMgmtConfig.class));
 
 		// Execute
-		List<Op> ops = testObject.buildUpdate(id, name);
+		List<Op> ops = testObject.buildUpdate(new Bridge());
 
 		// Verify
 		Assert.assertTrue(ops.size() > 0);

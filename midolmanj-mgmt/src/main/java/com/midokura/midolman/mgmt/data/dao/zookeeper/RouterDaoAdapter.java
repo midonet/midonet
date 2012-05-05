@@ -156,7 +156,7 @@ public class RouterDaoAdapter implements RouterDao {
     public void update(Router router) throws StateAccessException {
         log.debug("RouterDaoAdapter.update entered: router={}", router);
 
-        List<Op> ops = opService.buildUpdate(router.getId(), router.getName());
+        List<Op> ops = opService.buildUpdate(router);
         zkDao.multi(ops);
 
         log.debug("RouterDaoAdapter.update exiting");

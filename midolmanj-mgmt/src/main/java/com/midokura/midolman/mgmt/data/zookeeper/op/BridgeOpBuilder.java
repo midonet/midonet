@@ -95,6 +95,11 @@ public class BridgeOpBuilder {
         return ops;
     }
 
+    public Op getBridgeUpdateOp(UUID id, BridgeConfig bridge)
+            throws StateAccessException {
+        return zkDao.prepareUpdate(id, bridge);
+    }
+
     /**
      * Get the bridge delete Op object.
      *

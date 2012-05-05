@@ -207,8 +207,7 @@ public class TestRouterDaoAdapter {
 
         Router router = new Router(UUID.randomUUID(), "foo", "bar");
         List<Op> ops = createTestUpdateOps();
-        doReturn(ops).when(opServiceMock).buildUpdate(router.getId(),
-                router.getName());
+        doReturn(ops).when(opServiceMock).buildUpdate(router);
         adapter.update(router);
 
         verify(daoMock, times(1)).multi(ops);

@@ -130,6 +130,33 @@ public class BridgeZkManager extends ZkManager {
         return ops;
     }
 
+    /**
+     * Construct a list of ZK operations needed to update the configuration of
+     * a bridge.
+     *
+     * @param id
+     *          ID of the bridge to update
+     * @param config
+     *         the new bridge configuration.
+     * @return
+     *          The ZK operation required to update the bridge.
+     * @throws ZkStateSerializationException if the BridgeConfig could not be
+     *          serialized.
+     */
+    public Op prepareUpdate(UUID id, BridgeConfig config)
+            throws StateAccessException {
+        BridgeConfig oldConfig = get(id).value;
+        // Don't allow changing the Bridge's GRE-key.
+        config.greKey = oldConfig.greKey;
+        try {
+            return Op.setData(
+                    pathManager.getBridgePath(id), serialize(config), -1);
+        } catch (IOException e) {
+            throw new ZkStateSerializationException(
+                    "Could not serialize BridgeConfig", e, BridgeConfig.class);
+        }
+    }
+
     public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException {
         return prepareBridgeDelete(get(id));
     }

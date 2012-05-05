@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
+import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
@@ -209,6 +210,7 @@ public class TestRouterOpService {
         mgmtConfig.tenantId = "bar";
         mgmtConfig.name = "baz";
         RouterNameMgmtConfig nameConfig = new RouterNameMgmtConfig();
+        Router router = new Router(id, mgmtConfig.name, mgmtConfig.tenantId);
 
         // Mock the path builder
         when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
@@ -223,7 +225,7 @@ public class TestRouterOpService {
         when(opBuilderMock.getRouterSetDataOp(id, mgmtConfig)).thenReturn(
                 dummyCreateOp2);
 
-        List<Op> ops = service.buildUpdate(id, name);
+        List<Op> ops = service.buildUpdate(router);
 
         Assert.assertEquals(3, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.get(0));
