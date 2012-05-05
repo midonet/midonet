@@ -47,12 +47,9 @@ public class TestRouterOpService {
             new byte[] { 1 }, null, CreateMode.PERSISTENT);
     private static final Op dummyCreateOp2 = Op.create("/baz",
             new byte[] { 2 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp3 = Op.create("/fuzz",
-            new byte[] { 2 }, null, CreateMode.PERSISTENT);
     private static final Op dummyDeleteOp0 = Op.delete("/foo", -1);;
     private static final Op dummyDeleteOp1 = Op.delete("/bar", -1);
     private static final Op dummyDeleteOp2 = Op.delete("/baz", -1);
-    private static final Op dummyDeleteOp3 = Op.delete("/fuzz", -1);
     private static List<Op> dummyCreateOps = null;
     static {
         dummyCreateOps = new ArrayList<Op>();
@@ -106,7 +103,7 @@ public class TestRouterOpService {
         when(opBuilderMock.getRouterRoutersCreateOp(id)).thenReturn(
                 dummyCreateOp1);
         when(opBuilderMock.getRouterBridgesCreateOp(id)).thenReturn(
-                dummyCreateOp3);
+                dummyCreateOp2);
         when(opBuilderMock.getTenantRouterCreateOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyCreateOp0);
         when(opBuilderMock.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
@@ -114,13 +111,12 @@ public class TestRouterOpService {
 
         List<Op> ops = service.buildCreate(id, mgmtConfig, nameConfig);
 
-        Assert.assertEquals(9, ops.size());
+        Assert.assertEquals(8, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
-        Assert.assertEquals(dummyCreateOp3, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
@@ -134,7 +130,6 @@ public class TestRouterOpService {
         mgmtConfig.name = "bar";
 
         // Mock the path builder
-        when(opBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp2);
         when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(opBuilderMock.getRouterDeleteOps(id)).thenReturn(dummyDeleteOps);
         when(portOpServiceMock.buildRouterPortsDelete(id)).thenReturn(
@@ -144,13 +139,14 @@ public class TestRouterOpService {
         when(opBuilderMock.getTenantRouterDeleteOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyDeleteOp1);
         when(opBuilderMock.getRouterRoutersDeleteOp(id)).thenReturn(
-                dummyDeleteOp1);
+                dummyDeleteOp2);
         when(opBuilderMock.getRouterBridgesDeleteOp(id)).thenReturn(
-                dummyDeleteOp3);
+                dummyDeleteOp0);
+        when(opBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp1);
 
         List<Op> ops = service.buildDelete(id, true);
 
-        Assert.assertEquals(12, ops.size());
+        Assert.assertEquals(11, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
@@ -159,11 +155,9 @@ public class TestRouterOpService {
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp3, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
-
     }
 
     @Test
@@ -177,29 +171,27 @@ public class TestRouterOpService {
         when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
         when(portOpServiceMock.buildRouterPortsDelete(id)).thenReturn(
                 dummyDeleteOps);
-        when(
-                opBuilderMock.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,
-                        mgmtConfig.name)).thenReturn(dummyDeleteOp0);
+        when(opBuilderMock.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,
+                mgmtConfig.name)).thenReturn(dummyDeleteOp0);
         when(opBuilderMock.getTenantRouterDeleteOp(mgmtConfig.tenantId, id))
                 .thenReturn(dummyDeleteOp1);
         when(opBuilderMock.getRouterRoutersDeleteOp(id)).thenReturn(
-                dummyDeleteOp1);
-        when(opBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp2);
+                dummyDeleteOp2);
         when(opBuilderMock.getRouterBridgesDeleteOp(id)).thenReturn(
-                dummyDeleteOp3);
+                dummyDeleteOp0);
+        when(opBuilderMock.getRouterDeleteOp(id)).thenReturn(dummyDeleteOp1);
 
         List<Op> ops = service.buildDelete(id, false);
 
-        Assert.assertEquals(9, ops.size());
+        Assert.assertEquals(8, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp3, ops.remove(0));
-        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
     }
 
     @Test

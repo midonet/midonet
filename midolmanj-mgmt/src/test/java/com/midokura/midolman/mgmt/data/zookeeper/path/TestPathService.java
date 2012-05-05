@@ -59,6 +59,7 @@ public class TestPathService {
         verify(pathManager).getBridgesPath();
         verify(pathManager).getPortsPath();
         verify(pathManager).getChainsPath();
+        verify(pathManager).getFiltersPath();
         verify(pathManager).getGrePath();
         verify(pathManager).getPortSetsPath();
         verify(pathManager).getRulesPath();

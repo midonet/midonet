@@ -75,19 +75,25 @@ public class TestTenantOpService {
                 dummyCreateOp1);
         when(opBuilderMock.getTenantRoutersCreateOp(id)).thenReturn(
                 dummyCreateOp2);
-        when(opBuilderMock.getTenantBridgeNamesCreateOp(id)).thenReturn(
+        when(opBuilderMock.getTenantChainsCreateOp(id)).thenReturn(
                 dummyCreateOp0);
-        when(opBuilderMock.getTenantRouterNamesCreateOp(id)).thenReturn(
+        when(opBuilderMock.getTenantBridgeNamesCreateOp(id)).thenReturn(
                 dummyCreateOp1);
+        when(opBuilderMock.getTenantRouterNamesCreateOp(id)).thenReturn(
+                dummyCreateOp2);
+        when(opBuilderMock.getTenantChainNamesCreateOp(id)).thenReturn(
+                dummyCreateOp0);
 
         List<Op> ops = service.buildCreate(id);
 
-        Assert.assertEquals(5, ops.size());
+        Assert.assertEquals(7, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
+        Assert.assertEquals(dummyCreateOp2, ops.remove(0));
+        Assert.assertEquals(dummyCreateOp0, ops.remove(0));
     }
 
     @Test
@@ -96,24 +102,31 @@ public class TestTenantOpService {
 
         // Mock the path builder
         when(zkDaoMock.exists(id)).thenReturn(true);
+        when(chainOpServiceMock.buildTenantChainsDelete(id)).thenReturn(
+                dummyDeleteOps);
         when(routerOpServiceMock.buildTenantRoutersDelete(id)).thenReturn(
                 dummyDeleteOps);
         when(bridgeOpServiceMock.buildTenantBridgesDelete(id)).thenReturn(
                 dummyDeleteOps);
 
+        when(opBuilderMock.getTenantChainNamesDeleteOp(id)).thenReturn(
+                dummyDeleteOp0);
         when(opBuilderMock.getTenantRouterNamesDeleteOp(id)).thenReturn(
-                dummyDeleteOp0);
-        when(opBuilderMock.getTenantBridgeNamesDeleteOp(id)).thenReturn(
                 dummyDeleteOp1);
-        when(opBuilderMock.getTenantRoutersDeleteOp(id)).thenReturn(
+        when(opBuilderMock.getTenantBridgeNamesDeleteOp(id)).thenReturn(
                 dummyDeleteOp2);
-        when(opBuilderMock.getTenantBridgesDeleteOp(id)).thenReturn(
+        when(opBuilderMock.getTenantChainsDeleteOp(id)).thenReturn(
                 dummyDeleteOp0);
-        when(opBuilderMock.getTenantDeleteOp(id)).thenReturn(dummyDeleteOp1);
+        when(opBuilderMock.getTenantRoutersDeleteOp(id)).thenReturn(
+                dummyDeleteOp1);
+        when(opBuilderMock.getTenantBridgesDeleteOp(id)).thenReturn(
+                dummyDeleteOp2);
+        when(opBuilderMock.getTenantDeleteOp(id)).thenReturn(
+                dummyDeleteOp0);
 
         List<Op> ops = service.buildDelete(id);
 
-        Assert.assertEquals(11, ops.size());
+        Assert.assertEquals(16, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
@@ -125,6 +138,11 @@ public class TestTenantOpService {
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
     }
 
     @Test(expected = NoStatePathException.class)

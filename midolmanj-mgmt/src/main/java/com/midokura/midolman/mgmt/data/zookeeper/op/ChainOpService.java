@@ -69,10 +69,10 @@ public class ChainOpService {
         // Root
         ops.add(opBuilder.getChainCreateOp(id, mgmtConfig));
 
-        // Router/Chain ID
+        // Tenant/Chain ID
         ops.add(opBuilder.getTenantChainCreateOp(mgmtConfig.tenantId, id));
 
-        // Router/Chain name
+        // Tenant/Chain name
         ops.add(opBuilder.getTenantChainNameCreateOp(mgmtConfig.tenantId,
                 config.name, nameConfig));
 
@@ -108,11 +108,11 @@ public class ChainOpService {
             ops.addAll(opBuilder.getChainDeleteOps(id));
         }
 
-        // Router/Chain name
+        // Tenant/Chain name
         ops.add(opBuilder.getTenantChainNameDeleteOp(
                 mgmtConfig.tenantId, config.name));
 
-        // Router/Chain ID
+        // Tenant/Chain ID
         ops.add(opBuilder.getTenantChainDeleteOp(mgmtConfig.tenantId, id));
 
         // Root
