@@ -242,7 +242,7 @@ public class RouterZkManager extends ZkManager {
      */
     public ZkNodeEntry<UUID, RouterConfig> get(UUID id, Runnable watcher)
             throws StateAccessException {
-        byte[] data = get(pathManager.getRoutePath(id), watcher);
+        byte[] data = get(pathManager.getRouterPath(id), watcher);
         RouterConfig config = null;
         try {
             config = deserialize(data, RouterConfig.class);

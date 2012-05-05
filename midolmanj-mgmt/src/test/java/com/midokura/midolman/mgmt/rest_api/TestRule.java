@@ -44,9 +44,7 @@ public class TestRule extends JerseyTest {
 
     private WebResource resource;
     private ClientResponse response;
-    private URI testRouterUri;
 
-    private UUID testRouterPortId;
     private URI ruleChainUri;
 
     private DtoRouter router = new DtoRouter();
@@ -68,9 +66,9 @@ public class TestRule extends JerseyTest {
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
         assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation()
-                           .toString()
-                           .endsWith("tenants/" + testTenantName));
+        URI testTenantUri = response.getLocation();
+        assertTrue(
+                testTenantUri.toString().endsWith("tenants/" + testTenantName));
 
         // Create a router.
         router.setName(testRouterName);
@@ -79,7 +77,7 @@ public class TestRule extends JerseyTest {
             ClientResponse.class, router);
 
         log.debug("router location: {}", response.getLocation());
-        testRouterUri = response.getLocation();
+        URI testRouterUri = response.getLocation();
 
         // Create a materialized router port.
         URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
@@ -98,13 +96,13 @@ public class TestRule extends JerseyTest {
         assertEquals(201, response.getStatus());
         log.debug("location: {}", response.getLocation());
 
-        testRouterPortId = FuncTest.getUuidFromLocation(response.getLocation());
+        UUID testRouterPortId = FuncTest.getUuidFromLocation(response.getLocation());
 
         // Create a chain
         DtoRuleChain ruleChain = new DtoRuleChain();
         ruleChain.setName("foo_chain");
 
-        URI routerChainUri = URI.create(testRouterUri.toString() + "/chains");
+        URI routerChainUri = URI.create(testTenantUri.toString() + "/chains");
         response = resource().uri(routerChainUri)
             .type(APPLICATION_CHAIN_JSON)
             .post(ClientResponse.class, ruleChain);

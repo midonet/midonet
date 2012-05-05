@@ -115,7 +115,9 @@ public class RouterDaoAdapter implements RouterDao {
         if (zkDao.exists(id)) {
             RouterMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
             RouterConfig config = zkDao.getData(id);
-            router = new Router(id, mgmtConfig, config);
+            router = new Router(id, mgmtConfig.name, mgmtConfig.tenantId);
+            router.setInboundFilter(config.inboundFilter);
+            router.setOutboundFilter(config.outboundFilter);
         }
 
         log.debug("RouterDaoAdapter.get existing: router={}", router);

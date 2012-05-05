@@ -139,7 +139,9 @@ public class BridgeDaoAdapter implements BridgeDao {
         if (zkDao.exists(id)) {
             BridgeMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
             BridgeConfig config = zkDao.getData(id);
-            bridge = new Bridge(id, mgmtConfig, config);
+            bridge = new Bridge(id, mgmtConfig.name, mgmtConfig.tenantId);
+            bridge.setInboundFilter(config.inboundFilter);
+            bridge.setOutboundFilter(config.outboundFilter);
         }
 
         log.debug("BridgeDaoAdapter.get exiting: bridge={}", bridge);

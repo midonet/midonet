@@ -149,7 +149,7 @@ public class TestTenantDaoAdapter {
     public void testGetByRouterPortSuccess() throws Exception {
         UUID portId = UUID.randomUUID();
         String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
+        Router router = new Router(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(router).when(routerDaoMock).getByPort(portId);
@@ -164,7 +164,7 @@ public class TestTenantDaoAdapter {
     public void testGetByBridgePortSuccess() throws Exception {
         UUID portId = UUID.randomUUID();
         String id = "foo";
-        Bridge bridge = new Bridge(UUID.randomUUID(), "bar", id, null);
+        Bridge bridge = new Bridge(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(null).when(routerDaoMock).getByPort(portId);
@@ -180,7 +180,7 @@ public class TestTenantDaoAdapter {
     public void testGetByAdRouteSuccess() throws Exception {
         UUID adRouteId = UUID.randomUUID();
         String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
+        Router router = new Router(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(router).when(routerDaoMock).getByAdRoute(adRouteId);
@@ -195,7 +195,7 @@ public class TestTenantDaoAdapter {
     public void testGetByBgpSuccess() throws Exception {
         UUID bgpId = UUID.randomUUID();
         String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
+        Router router = new Router(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(router).when(routerDaoMock).getByBgp(bgpId);
@@ -210,7 +210,7 @@ public class TestTenantDaoAdapter {
     public void testGetByVpnSuccess() throws Exception {
         UUID vpnId = UUID.randomUUID();
         String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
+        Router router = new Router(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(router).when(routerDaoMock).getByVpn(vpnId);
@@ -225,7 +225,7 @@ public class TestTenantDaoAdapter {
     public void testGetByRouteSuccess() throws Exception {
         UUID routeId = UUID.randomUUID();
         String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
+        Router router = new Router(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(router).when(routerDaoMock).getByRoute(routeId);
@@ -264,7 +264,7 @@ public class TestTenantDaoAdapter {
     @Test
     public void testGetByRouterSuccess() throws Exception {
         String id = "foo";
-        Router router = new Router(UUID.randomUUID(), "bar", id, null);
+        Router router = new Router(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(router).when(routerDaoMock).get(router.getId());
@@ -278,7 +278,7 @@ public class TestTenantDaoAdapter {
     @Test
     public void testGetByBridgeSuccess() throws Exception {
         String id = "foo";
-        Bridge bridge = new Bridge(UUID.randomUUID(), "bar", id, null);
+        Bridge bridge = new Bridge(UUID.randomUUID(), "bar", id);
         Tenant tenant = new Tenant(id);
 
         doReturn(bridge).when(bridgeDaoMock).get(bridge.getId());

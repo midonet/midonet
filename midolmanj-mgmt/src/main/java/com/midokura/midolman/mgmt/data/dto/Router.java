@@ -33,23 +33,7 @@ public class Router extends UriResource {
     /**
      * Constructor.
      */
-    public Router() {
-        this(null, null, null);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param id
-     *            ID of the router
-     * @param mgmtConfig
-     *            RouterMgmtConfig object.
-     * @param config
-     *            RouterConfig object.
-     */
-    public Router(UUID id, RouterMgmtConfig mgmtConfig, RouterConfig config) {
-        this(id, mgmtConfig.name, mgmtConfig.tenantId, config);
-    }
+    public Router() {}
 
     /**
      * Constructor
@@ -60,16 +44,12 @@ public class Router extends UriResource {
      *            Name of the router.
      * @param tenantId
      *            ID of the tenant that owns the router.
-     * @param config
-     *            RouterConfig object.
      */
-    public Router(UUID id, String name, String tenantId, RouterConfig config) {
+    public Router(UUID id, String name, String tenantId) {
         super();
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
-        this.inboundFilter = config.inboundFilter;
-        this.outboundFilter = config.outboundFilter;
     }
 
     /**

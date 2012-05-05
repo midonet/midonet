@@ -95,7 +95,7 @@ public class TestRouterDaoAdapter {
 
     @Test
     public void testCreateWithNoIdSuccess() throws Exception {
-        Router router = new Router(null, "foo", "bar", null);
+        Router router = new Router(null, "foo", "bar");
         List<Op> ops = createTestPersistentCreateOps();
         doReturn(ops).when(opServiceMock).buildCreate(any(UUID.class),
                 any(RouterMgmtConfig.class), any(RouterNameMgmtConfig.class));
@@ -108,7 +108,7 @@ public class TestRouterDaoAdapter {
 
     @Test
     public void testCreateWithIdSuccess() throws Exception {
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
+        Router router = new Router(UUID.randomUUID(), "foo", "bar");
         List<Op> ops = createTestPersistentCreateOps();
         doReturn(ops).when(opServiceMock).buildCreate(any(UUID.class),
                 any(RouterMgmtConfig.class), any(RouterNameMgmtConfig.class));
@@ -164,7 +164,7 @@ public class TestRouterDaoAdapter {
         doReturn(ids).when(daoMock).getIds(tenantId);
         for (String id : ids) {
             UUID uuid = UUID.fromString(id);
-            Router router = new Router(uuid, id, tenantId, null);
+            Router router = new Router(uuid, id, tenantId);
             doReturn(router).when(adapter).get(uuid);
         }
 
@@ -181,7 +181,7 @@ public class TestRouterDaoAdapter {
     public void testGetByPortSuccess() throws Exception {
         Port port = new MaterializedRouterPort(UUID.randomUUID(),
                 UUID.randomUUID(), null);
-        Router router = new Router(port.getDeviceId(), "foo", "bar", null);
+        Router router = new Router(port.getDeviceId(), "foo", "bar");
 
         doReturn(port).when(portDaoMock).get(port.getId());
         doReturn(router).when(adapter).get(router.getId());
@@ -205,7 +205,7 @@ public class TestRouterDaoAdapter {
     @Test
     public void testUpdateSuccess() throws Exception {
 
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
+        Router router = new Router(UUID.randomUUID(), "foo", "bar");
         List<Op> ops = createTestUpdateOps();
         doReturn(ops).when(opServiceMock).buildUpdate(router.getId(),
                 router.getName());
@@ -219,7 +219,7 @@ public class TestRouterDaoAdapter {
         UUID adRouteId = UUID.randomUUID();
         Port port = new MaterializedRouterPort(UUID.randomUUID(),
                 UUID.randomUUID(), null);
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
+        Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(port).when(portDaoMock).getByAdRoute(adRouteId);
         doReturn(router).when(adapter).get(port.getDeviceId());
@@ -234,7 +234,7 @@ public class TestRouterDaoAdapter {
         UUID bgpId = UUID.randomUUID();
         Port port = new MaterializedRouterPort(UUID.randomUUID(),
                 UUID.randomUUID(), null);
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
+        Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(port).when(portDaoMock).getByBgp(bgpId);
         doReturn(router).when(adapter).get(port.getDeviceId());
@@ -249,7 +249,7 @@ public class TestRouterDaoAdapter {
         UUID vpnId = UUID.randomUUID();
         Port port = new MaterializedRouterPort(UUID.randomUUID(),
                 UUID.randomUUID(), null);
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
+        Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(port).when(portDaoMock).getByVpn(vpnId);
         doReturn(router).when(adapter).get(port.getDeviceId());
@@ -264,7 +264,7 @@ public class TestRouterDaoAdapter {
         Route route = new Route();
         route.setId(UUID.randomUUID());
 
-        Router router = new Router(UUID.randomUUID(), "foo", "bar", null);
+        Router router = new Router(UUID.randomUUID(), "foo", "bar");
 
         doReturn(route).when(routeDaoMock).get(route.getId());
         doReturn(router).when(adapter).get(route.getRouterId());
