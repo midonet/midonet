@@ -16,11 +16,14 @@ public class JumpRule extends Rule {
 
     private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
-    public String jumpToChain;
+    public UUID jumpToChainID;
+    public String jumpToChainName;
 
-    public JumpRule(Condition condition, String jumpToChain) {
+    public JumpRule(
+            Condition condition, UUID jumpToChainID, String jumpToChainName) {
         super(condition, null);
-        this.jumpToChain = jumpToChain;
+        this.jumpToChainID = jumpToChainID;
+        this.jumpToChainName = jumpToChainName;
     }
 
     // Default constructor for the Jackson deserialization.
@@ -28,23 +31,25 @@ public class JumpRule extends Rule {
         super();
     }
 
-    public JumpRule(Condition condition, String jumpToChain, UUID chainId,
-            int position) {
+    public JumpRule(Condition condition, UUID jumpToChainID,
+                    String jumpToChainName, UUID chainId, int position) {
         super(condition, null, chainId, position);
-        this.jumpToChain = jumpToChain;
+        this.jumpToChainID = jumpToChainID;
+        this.jumpToChainName = jumpToChainName;
     }
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
             RuleResult res, UUID ownerId) {
         res.action = Action.JUMP;
-        res.jumpToChain = jumpToChain;
-        log.debug("Rule evaluation jumping to chain {}.", jumpToChain);
+        res.jumpToChain = jumpToChainID;
+        log.debug("Rule evaluation jumping to chain {} with ID {}.",
+                jumpToChainName, jumpToChainID);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() * 31 + jumpToChain.hashCode();
+        return super.hashCode() * 31 + jumpToChainID.hashCode();
     }
 
     @Override
@@ -55,14 +60,15 @@ public class JumpRule extends Rule {
             return false;
         if (!super.equals(other))
             return false;
-        return jumpToChain.equals(((JumpRule) other).jumpToChain);
+        return jumpToChainID.equals(((JumpRule) other).jumpToChainID);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("JumpRule [");
         sb.append(super.toString());
-        sb.append(", jumpToChain=").append(jumpToChain);
+        sb.append(", jumpToChainName=").append(jumpToChainName);
+        sb.append(", jumpToChainID=").append(jumpToChainID);
         sb.append("]");
         return sb.toString();
     }

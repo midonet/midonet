@@ -5,6 +5,7 @@
 package com.midokura.midolman.rules;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -35,10 +36,11 @@ public class Chain {
     private RulesWatcher rulesWatcher;
     private RuleZkManager zkRuleManager;
 
-    public Chain(UUID chainId, String chainName, Directory zkDirectory,
+    public Chain(UUID chainId, Directory zkDirectory,
                  String zkBasePath) throws StateAccessException {
         this.chainId = chainId;
-        this.chainName = chainName;
+        ChainZkManager chainMgr = new ChainZkManager(zkDirectory, zkBasePath);
+        this.chainName = chainMgr.get(chainId).value.name;
         this.rules = new LinkedList<Rule>();
         this.rulesWatcher = new RulesWatcher();
         this.zkRuleManager = new RuleZkManager(zkDirectory, zkBasePath);
@@ -61,13 +63,19 @@ public class Chain {
         return chainId;
     }
 
-    public void updateRules()
-            throws StateAccessException, ZkStateSerializationException {
+    public void updateRules() {
 
         List<Rule> newRules = new ArrayList<Rule>();
 
         List<ZkNodeEntry<UUID, Rule>> entries =
-            zkRuleManager.list(chainId, rulesWatcher);
+                null;
+        try {
+            entries = zkRuleManager.list(chainId, rulesWatcher);
+        } catch (StateAccessException e) {
+            log.error("updateRules failed", e);
+            rules = new ArrayList<Rule>();
+            return;
+        }
         for (ZkNodeEntry<UUID, Rule> entry : entries) {
             newRules.add(entry.value);
         }

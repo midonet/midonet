@@ -4,6 +4,8 @@
 
 package com.midokura.midolman.rules;
 
+import java.util.UUID;
+
 import com.midokura.midolman.openflow.MidoMatch;
 
 public class RuleResult {
@@ -13,11 +15,11 @@ public class RuleResult {
     }
 
     public Action action;
-    public String jumpToChain;
+    public UUID jumpToChain;
     public MidoMatch match;
     public boolean trackConnection;
 
-    public RuleResult(Action action, String jumpToChain, MidoMatch match,
+    public RuleResult(Action action, UUID jumpToChain, MidoMatch match,
             boolean trackConnection) {
         this.action = action;
         this.jumpToChain = jumpToChain;

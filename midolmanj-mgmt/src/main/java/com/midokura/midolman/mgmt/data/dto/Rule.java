@@ -122,8 +122,8 @@ public class Rule extends UriResource {
             }
             this.flowAction = Rule.getActionString(zkRule.action);
         } else {
-            // TODO: how about JumpToChain UUID??
-            this.jumpChainName = ((JumpRule) zkRule).jumpToChain;
+            this.jumpChainId = ((JumpRule) zkRule).jumpToChainID;
+            this.jumpChainName = ((JumpRule) zkRule).jumpToChainName;
         }
         this.id = id;
         this.position = zkRule.position;
@@ -692,7 +692,8 @@ public class Rule extends UriResource {
                     type.equals(Rule.RevDNAT));
         } else {
             // Jump
-            r = new JumpRule(cond, this.getJumpChainName());
+            // TODO(pino): need to find the jump chain's ID.
+            r = new JumpRule(cond, UUID.randomUUID(), getJumpChainName());
         }
         r.chainId = chainId;
         r.position = position;

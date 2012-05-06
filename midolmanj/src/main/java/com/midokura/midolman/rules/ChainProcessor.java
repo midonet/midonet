@@ -27,7 +27,6 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
 
-
 public class ChainProcessor {
 
     private final static Logger log =
@@ -36,14 +35,12 @@ public class ChainProcessor {
     private static ChainProcessor instance = null;
 
     private Map<UUID, Chain> chainByUuid;
-    private Map<String, UUID> uuidByName;
     private Directory zkDir;
     private String zkBasePath;
     private Cache cache;
     private Reactor reactor;
     private Map<UUID, NatMapping> natMappingMap;
-    private ChainZkManager zkChainManager;
-
+    private ChainZkManager chainMgr;
 
     private ChainProcessor(Directory dir, String zkBasePath,
                            Cache cache, Reactor reactor)
@@ -53,9 +50,8 @@ public class ChainProcessor {
         this.cache = cache;
         this.reactor = reactor;
         chainByUuid = new HashMap<UUID, Chain>();
-        uuidByName = new HashMap<String, UUID>();
         natMappingMap = new HashMap<UUID, NatMapping>();
-        zkChainManager = new ChainZkManager(zkDir, zkBasePath);
+        chainMgr = new ChainZkManager(dir, zkBasePath);
     }
 
     public static ChainProcessor getChainProcessor() {
@@ -107,38 +103,24 @@ public class ChainProcessor {
         // natMap.freeFlowResources(match);
     }
 
-    private void rememberChain(Chain chain, UUID id, String name) {
+    private void rememberChain(Chain chain, UUID id) {
         chainByUuid.put(id, chain);
-        if (name != null)
-            uuidByName.put(name, id);
     }
 
     private void forgetChain(UUID id) {
-        String name = chainByUuid.get(id).getChainName();
         chainByUuid.remove(id);
-        if (name != null)
-            uuidByName.remove(name);
     }
 
     // Chains are not pre-loaded.  Retrieve them the first time they
     // are requested
-    public Chain getOrCreateChainByName(String name) throws StateAccessException {
-        UUID id = uuidByName.get(name);
-        if (null != id)
-            return chainByUuid.get(id);
-
-        id = zkChainManager.getByName(name).value;
-        Chain newChain = new Chain(id, name, zkDir, zkBasePath);
-        rememberChain(newChain, id, name);
-        return newChain;
-    }
-
-    public Chain getOrCreateChainById(UUID id) throws StateAccessException {
+    public Chain getOrCreateChain(UUID id) throws StateAccessException {
+        if (null == id)
+            return null;
         Chain chain = chainByUuid.get(id);
-        if (chain != null)
+        if (null != chain)
             return chain;
-        chain = new Chain(id, null, zkDir, zkBasePath);
-        rememberChain(chain, id, null);
+        chain = new Chain(id, zkDir, zkBasePath);
+        rememberChain(chain, id);
         return chain;
     }
 
@@ -164,7 +146,7 @@ public class ChainProcessor {
                                    false);
         }
 
-        Chain currentChain = getOrCreateChainById(chainID);
+        Chain currentChain = getOrCreateChain(chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(chainID, currentChain.getRules(), 0));
         Set<UUID> traversedChains = new HashSet<UUID>();
@@ -187,7 +169,7 @@ public class ChainProcessor {
                         || res.action.equals(RuleResult.Action.REJECT)) {
                     return res;
                 } else if (res.action.equals(RuleResult.Action.JUMP)) {
-                    Chain nextChain = getOrCreateChainByName(res.jumpToChain);
+                    Chain nextChain = getOrCreateChain(res.jumpToChain);
                     if (null == nextChain) {
                         // Let's just ignore jumps to non-existent chains.
                         log.warn("ignoring jump to chain {} -- not found.",

@@ -428,18 +428,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK rule chain name path.
-     *
-     * @param name
-     *            Chain name.
-     * @return /chain_names/name
-     */
-    public String getChainNamePath(String name) {
-        return new StringBuilder(getChainNamesPath()).append("/").append(name)
-                .toString();
-    }
-
-    /**
      * Get ZK rule chain path.
      *
      * @param id

@@ -42,6 +42,7 @@ public class TestNatLeaseManager {
         Directory dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
         Reactor reactor = new MockReactor();
 

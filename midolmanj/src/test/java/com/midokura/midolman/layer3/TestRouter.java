@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
@@ -46,9 +48,8 @@ import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
@@ -66,15 +67,17 @@ public class TestRouter {
     private MockControllerStub controllerStub;
     private Map<Integer, PortDirectory.MaterializedRouterPortConfig> portConfigs;
     private Map<Integer, UUID> portNumToId;
-    List<UUID> ruleIDs = new ArrayList<UUID>();
+    List<UUID> chainIDs = new ArrayList<UUID>();
     private int publicDnatAddr;
     private int internDnatAddr;
     private MockVRNController controller;
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
+    private RouterZkManager routerMgr;
 
-    protected Cache createCache() {
-        return new MockCache();
+    @After
+    public void tearDown() {
+        ChainProcessor.clear();
     }
 
     @Before
@@ -94,14 +97,15 @@ public class TestRouter {
         dir.add(pathMgr.getVRNPortLocationsPath(), null, CreateMode.PERSISTENT);
         PortZkManager portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
-        RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
+        routerMgr = new RouterZkManager(dir, basePath);
         chainMgr = new ChainZkManager(dir, basePath);
         ruleMgr = new RuleZkManager(dir, basePath);
 
-        UUID rtrId = routerMgr.create();
-        // TODO(pino): replace the following with a real implementation.
-        Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
+        ChainProcessor.initChainProcessor(
+                dir, basePath, new MockCache(), reactor);
+
+        UUID rtrId = routerMgr.create();
         rTable = new ReplicatedRoutingTable(rtrId,
                      routerMgr.getRoutingTableDirectory(rtrId),
                      CreateMode.EPHEMERAL);
@@ -671,22 +675,32 @@ public class TestRouter {
         }
     }
 
-    private void deleteRules() throws StateAccessException {
-        for (UUID ruleID : ruleIDs) {
-            chainMgr.delete(ruleID);
+    private void deleteRuleChains() throws StateAccessException {
+        for (UUID chainId : chainIDs) {
+            chainMgr.delete(chainId);
         }
-        ruleIDs.clear();
+        chainIDs.clear();
+        // Poke the reactor so that watchers are updated.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
     }
 
     private void createRules() throws StateAccessException,
             ZkStateSerializationException, RuleIndexOutOfBoundsException {
         UUID preChainId = chainMgr.create(new ChainConfig("PREROUTING"));
         String srcFilterChainName = "filterSrcByPortId";
-        UUID srcFilterChainId = chainMgr.create(new ChainConfig(srcFilterChainName));
+        UUID srcFilterChainId =
+                chainMgr.create(new ChainConfig(srcFilterChainName));
         UUID postChainId = chainMgr.create(new ChainConfig("POSTROUTING"));
-        ruleIDs.add(preChainId);
-        ruleIDs.add(srcFilterChainId);
-        ruleIDs.add(postChainId);
+        // Set these chains as the filters of a RouterConfig.
+        RouterConfig rtrConfig = new RouterConfig(preChainId, postChainId);
+        // Update router0 to use the RouterConfig
+        routerMgr.update(rtr.getId(), rtrConfig);
+        // Poke the reactor so that Router0 will find its new config.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
+
+        chainIDs.add(preChainId);
+        chainIDs.add(srcFilterChainId);
+        chainIDs.add(postChainId);
         // Create a bunch of arbitrary rules:
         //  * 'down-ports' can only receive packets from hosts 'local' to them.
         //  * arbitrarily drop flows to some hosts that are 'quarantined'.
@@ -742,7 +756,8 @@ public class TestRouter {
 
         i = 1;
         // The pre-routing chain needs a jump rule to the localAddressesChain
-        r = new JumpRule(new Condition(), srcFilterChainName, preChainId, i);
+        r = new JumpRule(new Condition(), srcFilterChainId,
+                srcFilterChainName, preChainId, i);
         i++;
         ruleMgr.create(r);
         preChain.add(r);
@@ -902,7 +917,7 @@ public class TestRouter {
 
         // Now remove the filterSrcByPortId rules and verify that all the
         // packets are again forwarded.
-        deleteRules();
+        deleteRuleChains();
         fInfo = routePacket(port23Id, badEthTo12);
         checkForwardInfo(fInfo, Action.FORWARD, port12Id, 0x0a000109);
         fInfo = routePacket(port12Id, goodEthTo2);
@@ -958,7 +973,7 @@ public class TestRouter {
         fInfo = routePacket(uplinkId, ethToQuarantined);
         // TODO(pino): changed REJECT to DROP, check ICMP was sent.
         checkForwardInfo(fInfo, Action.DROP, null, 0);
-        deleteRules();
+        deleteRuleChains();
     }
 
     @Test
@@ -1034,6 +1049,6 @@ public class TestRouter {
         fInfo.matchIn.setDataLayerSource(dummyMac);
         fInfo.matchIn.setDataLayerDestination(dummyMac);
         Assert.assertEquals(fInfo.matchIn, fInfo.matchOut);
-        deleteRules();
+        deleteRuleChains();
     }
 }
