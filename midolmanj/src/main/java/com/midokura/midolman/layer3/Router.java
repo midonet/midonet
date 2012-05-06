@@ -153,6 +153,7 @@ public class Router implements ForwardingElement {
         arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback1<MAC>>>>();
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
+        ruleEngine = ChainProcessor.getChainProcessor();
         try {
             objectName = new ObjectName(
                     "com.midokura.midolman.layer3:type=Router,name="+ routerId);
@@ -381,7 +382,7 @@ public class Router implements ForwardingElement {
         // Apply pre-routing rules.
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
 
-        RuleResult res = ChainProcessor.getChainProcessor().applyChain(
+        RuleResult res = ruleEngine.applyChain(
                 myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
                 fwdInfo.inPortId, null, this.routerId);
         if (res.trackConnection)

@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 
+import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.Chain;
 import com.midokura.midolman.rules.ChainProcessor;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
@@ -19,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router;
-import com.midokura.midolman.rules.PortFilteringStage;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
@@ -44,7 +46,7 @@ public class VRNCoordinator implements ForwardingElement {
     private String zkBasePath;
     private VRNControllerIface ctrl;
     private PortSetMap portSetMap;
-    private PortFilteringStage portFilter;
+    private ChainProcessor chainProcessor;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
                           Cache cache_, VRNControllerIface ctrl,
@@ -59,11 +61,11 @@ public class VRNCoordinator implements ForwardingElement {
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
         this.watchers = new HashSet<Callback1<UUID>>();
-        this.portFilter = new PortFilteringStage(zkDir, zkBasePath);
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
 
         ChainProcessor.initChainProcessor(zkDir, zkBasePath, cache, reactor);
+        chainProcessor = ChainProcessor.getChainProcessor();
     }
 
     // This maintains consistency of the cached port configs w.r.t ZK.
@@ -243,11 +245,9 @@ public class VRNCoordinator implements ForwardingElement {
         fwdInfo.depth++;
         fwdInfo.addTraversedFE(fe.getId());
 
-        portFilter.processInbound(
-                fwdInfo, getPortConfig(fwdInfo.inPortId));
+        applyPortFilter(getPortConfig(fwdInfo.inPortId), fwdInfo, true);
         if (fwdInfo.action != Action.FORWARD)
             return;
-
         fe.process(fwdInfo);
         if (fwdInfo.action != Action.PAUSED)
             handleProcessResult(fwdInfo);
@@ -273,7 +273,7 @@ public class VRNCoordinator implements ForwardingElement {
                 fwdInfo.action = Action.DROP;
                 return;
             }
-            portFilter.processOutbound(fwdInfo, cfg);
+            applyPortFilter(cfg, fwdInfo, false);
             if (fwdInfo.action != Action.FORWARD)
                 return;
             // If the port is logical, the simulation continues.
@@ -306,5 +306,40 @@ public class VRNCoordinator implements ForwardingElement {
         // these holds:
         // 1) the action is OUTPUT and the port type is not logical OR
         // 2) the action is not OUTPUT
+    }
+
+    public void applyPortFilter(
+            PortConfig portCfg, ForwardInfo fwdInfo, boolean inbound)
+            throws StateAccessException {
+        fwdInfo.action = Action.FORWARD;
+        MidoMatch pktMatch = inbound ? fwdInfo.matchIn : fwdInfo.matchOut;
+        RuleResult result = chainProcessor.applyChain(
+                inbound ? portCfg.inboundFilter : portCfg.outboundFilter,
+                fwdInfo.flowMatch, pktMatch,
+                fwdInfo.inPortId, fwdInfo.outPortId,
+                inbound ? fwdInfo.inPortId : fwdInfo.outPortId);
+        // TODO(pino): add the code that handles the removal notification
+        if (result.trackConnection)
+            fwdInfo.addRemovalNotification(
+                    inbound ? fwdInfo.inPortId : fwdInfo.outPortId);
+        if (result.action.equals(RuleResult.Action.DROP)) {
+            fwdInfo.action = Action.DROP;
+            return;
+        }
+        if (result.action.equals(RuleResult.Action.REJECT)) {
+            // TODO(pino): should we send ICMPs from the port's filter/firewall?
+            //sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_FILTER_PROHIB);
+            fwdInfo.action = Action.DROP;
+            return;
+        }
+        if (!result.action.equals(RuleResult.Action.ACCEPT))
+            throw new RuntimeException("Port's filter returned an action other "
+                    + "than ACCEPT, DROP or REJECT.");
+        if (!pktMatch.equals(result.match)) {
+            if (inbound)
+                fwdInfo.matchIn = result.match;
+            else
+                fwdInfo.matchOut = result.match;
+        }
     }
 }
