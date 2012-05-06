@@ -92,6 +92,7 @@ public class Bridge implements ForwardingElement {
             }
         };
         updateLogicalPorts();
+        // TODO(pino): watch the BridgeConfiguration for changes.
         myConfig = (new BridgeZkManager(zkDir, zkBasePath)).get(bridgeId).value;
     }
 

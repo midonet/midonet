@@ -157,6 +157,11 @@ public class RouterZkManager extends ZkManager {
         return ops;
     }
 
+    public void update(UUID id, RouterConfig cfg) throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(prepareUpdate(id, cfg));
+        multi(ops);
+    }
     /**
       * Construct a list of ZK operations needed to update the configuration of
       * a router.

@@ -58,6 +58,7 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
@@ -1118,6 +1119,8 @@ public class TestVRNController {
         int natPrivateNwAddr = 0x0a010009;
         short natPrivateTpPort = 10080;
         UUID chainId = chainMgr.create(new ChainConfig("PREROUTING"));
+        // Set this chain as the inboundFilter of a RouterConfig.
+        RouterConfig rtrConfig = new RouterConfig(chainId, null);
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(natPrivateNwAddr, natPrivateNwAddr,
                 natPrivateTpPort, natPrivateTpPort));
@@ -1141,6 +1144,12 @@ public class TestVRNController {
         cond.tpSrcStart = natPrivateTpPort;
         cond.tpSrcEnd = natPrivateTpPort;
         chainId = chainMgr.create(new ChainConfig("POSTROUTING"));
+        // Set this as the outbound chain of the RouterConfig
+        rtrConfig.outboundFilter = chainId;
+        // Update router0 to use the RouterConfig
+        routerMgr.update(routerIds.get(0), rtrConfig);
+        // Poke the reactor so that Router0 will find its new config.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         r = new ReverseNatRule(cond, Action.ACCEPT, chainId, 1,
                 true /* dnat */);
         ruleMgr.create(r);
@@ -1343,6 +1352,8 @@ public class TestVRNController {
         // 1) forward snat rule 0x0a010009 to floating ip 0x808e0005
         // 2) forward dnat rule 0x808e0005 to internal 0x0a010009
         UUID chainId = chainMgr.create(new ChainConfig("POSTROUTING"));
+        // Set this chain as the outbound chain of a RouterConfig
+        RouterConfig rtrConfig = new RouterConfig(null, chainId);
         int floatingIp = 0x808e0005;
         int internalIp = 0x0a010009;
         Set<NatTarget> nats = new HashSet<NatTarget>();
@@ -1360,6 +1371,12 @@ public class TestVRNController {
         nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(internalIp, internalIp, (short) 0, (short) 0));
         chainId = chainMgr.create(new ChainConfig("PREROUTING"));
+        // Set this as the inbound chain of the RouterConfig
+        rtrConfig.inboundFilter = chainId;
+        // Update router0 to use the RouterConfig
+        routerMgr.update(routerIds.get(0), rtrConfig);
+        // Poke the reactor so that Router0 will find its new config.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);
@@ -1552,6 +1569,8 @@ public class TestVRNController {
         // (0x0a020000/16) to public address 0x808e0005 for any packet that
         // is going outside 0x0a000000/8.
         UUID chainId = chainMgr.create(new ChainConfig("POSTROUTING"));
+        // Set this chain as the outboundFilter of a RouterConfig
+        RouterConfig rtrConfig = new RouterConfig(null, chainId);
         int natPublicNwAddr = 0x808e0005;
         int natPrivateNwAddr = 0x0a020000;
         Set<NatTarget> nats = new HashSet<NatTarget>();
@@ -1583,6 +1602,12 @@ public class TestVRNController {
         ruleMgr.create(r);
 
         chainId = chainMgr.create(new ChainConfig("PREROUTING"));
+        // Set this as the inbound chain of the RouterConfig
+        rtrConfig.inboundFilter = chainId;
+        // Update router0 to use the RouterConfig
+        routerMgr.update(routerIds.get(0), rtrConfig);
+        // Poke the reactor so that Router0 will find its new config.
+        reactor.incrementTime(0, TimeUnit.SECONDS);
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);

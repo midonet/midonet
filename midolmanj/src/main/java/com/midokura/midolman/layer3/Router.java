@@ -69,9 +69,6 @@ public class Router implements ForwardingElement {
     public static final long ARP_EXPIRATION_MILLIS = 3600 * 1000;
     public static final long ARP_STALE_MILLIS = 1800 * 1000;
 
-    private PortZkManager portMgr;
-    private RouteZkManager routeMgr;
-
     /**
      * Router uses one instance of this class to get a callback when there are
      * changes to the routes of any local materialized ports. The callback
@@ -130,22 +127,35 @@ public class Router implements ForwardingElement {
     private LoadBalancer loadBalancer;
     private final ObjectName objectName;
     private final VRNControllerIface controller;
+    private PortZkManager portMgr;
+    private RouteZkManager routeMgr;
+    private RouterZkManager routerMgr;
     private RouterZkManager.RouterConfig myConfig;
 
-    public Router(UUID routerId, Directory zkDir, String zkBasePath,
+    public Router(UUID rtrId, Directory zkDir, String zkBasePath,
                   Reactor reactor, Cache cache, VRNControllerIface ctrl)
             throws StateAccessException {
-        this.routerId = routerId;
+        this.routerId = rtrId;
         this.reactor = reactor;
         this.controller = ctrl;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
-        RouterZkManager routerMgr = new RouterZkManager(zkDir, zkBasePath);
+        this.routerMgr = new RouterZkManager(zkDir, zkBasePath);
         table = new ReplicatedRoutingTable(routerId,
                         routerMgr.getRoutingTableDirectory(routerId),
                         CreateMode.EPHEMERAL);
         table.start();
-        myConfig = routerMgr.get(routerId).value;
+        // TODO(pino): watch the router's configuration for changes.
+        myConfig = routerMgr.get(routerId,
+                new Runnable() {
+                    public void run() {
+                        try {
+                            myConfig = routerMgr.get(routerId, this).value;
+                        } catch (StateAccessException e) {
+                            log.error("Failed to update router config", e);
+                        }
+                    }
+                }).value;
         arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
         arpTable.start();
         devicePorts = new HashMap<UUID, L3DevicePort>();

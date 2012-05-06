@@ -36,12 +36,13 @@ public class Chain {
     private RuleZkManager zkRuleManager;
 
     public Chain(UUID chainId, String chainName, Directory zkDirectory,
-                 String zkBasePath) {
+                 String zkBasePath) throws StateAccessException {
         this.chainId = chainId;
         this.chainName = chainName;
         this.rules = new LinkedList<Rule>();
         this.rulesWatcher = new RulesWatcher();
         this.zkRuleManager = new RuleZkManager(zkDirectory, zkBasePath);
+        updateRules();
     }
 
     List<Rule> getRules() {

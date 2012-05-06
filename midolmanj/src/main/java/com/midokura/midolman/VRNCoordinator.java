@@ -41,6 +41,7 @@ public class VRNCoordinator implements ForwardingElement {
     // These watchers are interested in routing table and rule changes.
     private Set<Callback1<UUID>> watchers;
     // TODO(pino): use Guava's CacheBuilder here.
+    // TODO(pino): the port configurations have to be watched for changes.
     private Map<UUID, PortConfig> portIdToConfig;
     private Directory zkDir;
     private String zkBasePath;

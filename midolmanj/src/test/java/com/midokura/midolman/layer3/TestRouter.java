@@ -85,6 +85,7 @@ public class TestRouter {
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
         // Add the various paths.
         dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);

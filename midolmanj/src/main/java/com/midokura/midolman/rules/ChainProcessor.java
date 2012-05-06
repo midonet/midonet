@@ -118,7 +118,7 @@ public class ChainProcessor {
             uuidByName.remove(name);
     }
 
-    // Chains are not pre-loaded.  Retrieve them the first time they 
+    // Chains are not pre-loaded.  Retrieve them the first time they
     // are requested
     public Chain getOrCreateChainByName(String name) throws StateAccessException {
         UUID id = uuidByName.get(name);
@@ -131,7 +131,7 @@ public class ChainProcessor {
         return newChain;
     }
 
-    public Chain getOrCreateChainById(UUID id) {
+    public Chain getOrCreateChainById(UUID id) throws StateAccessException {
         Chain chain = chainByUuid.get(id);
         if (chain != null)
             return chain;
