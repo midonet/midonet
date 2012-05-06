@@ -46,11 +46,9 @@ public abstract class RouterPort extends Port {
      *            ID of the port
      * @param vifId
      *            ID of the VIF
-     * @param config
-     *            PortConfig object
      */
-    public RouterPort(UUID id, UUID vifId, PortConfig config) {
-        super(id, vifId, config);
+    public RouterPort(UUID id, UUID deviceId, UUID vifId) {
+        super(id, deviceId, vifId);
     }
 
     /**

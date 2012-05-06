@@ -34,28 +34,12 @@ public class BridgePort extends Port {
      * Constructor
      *
      * @param id
-     *            ID of the port
-     * @param mgmtConfig
-     *            PortMgmtConfig object
-     * @param config
-     *            PortConfig object
-     */
-    public BridgePort(UUID id, PortMgmtConfig mgmtConfig, PortConfig config) {
-        this(id, mgmtConfig.vifId, config);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param id
      *            ID of port
      * @param vifId
      *            VIF ID
-     * @param config
-     *            PortConfig object
      */
-    public BridgePort(UUID id, UUID vifId, PortConfig config) {
-        super(id, vifId, config);
+    public BridgePort(UUID id, UUID deviceId, UUID vifId) {
+        super(id, deviceId, vifId);
     }
 
     /**

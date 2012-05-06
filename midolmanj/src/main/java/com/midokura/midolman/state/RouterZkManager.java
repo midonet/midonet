@@ -42,28 +42,6 @@ public class RouterZkManager extends ZkManager {
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            RouterConfig that = (RouterConfig) o;
-
-            if (inboundFilter != null ? !inboundFilter.equals(that.inboundFilter) : that.inboundFilter != null)
-                return false;
-            if (outboundFilter != null ? !outboundFilter.equals(that.outboundFilter) : that.outboundFilter != null)
-                return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = inboundFilter != null ? inboundFilter.hashCode() : 0;
-            result = 31 * result + (outboundFilter != null ? outboundFilter.hashCode() : 0);
-            return result;
-        }
     }
 
     RouteZkManager routeZkManager;
@@ -85,12 +63,6 @@ public class RouterZkManager extends ZkManager {
         filterZkManager = new FiltersZkManager(zk, basePath);
         portZkManager = new PortZkManager(zk, basePath);
 
-    }
-
-    public List<Op> prepareRouterCreate(UUID id)
-            throws ZkStateSerializationException {
-        return prepareRouterCreate(
-                new ZkNodeEntry<UUID, RouterConfig>(id, new RouterConfig()));
     }
 
     public List<Op> prepareRouterCreate(UUID id, RouterConfig config)

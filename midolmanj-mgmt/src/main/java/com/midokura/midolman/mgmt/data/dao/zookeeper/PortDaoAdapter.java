@@ -146,9 +146,12 @@ public class PortDaoAdapter implements PortDao {
                     port = new MaterializedRouterPort(id, mgmtConfig,
                             (MaterializedRouterPortConfig) config);
                 } else {
-                    port = new BridgePort(id, mgmtConfig, config);
+                    port = new BridgePort(
+                            id, config.device_id, mgmtConfig.vifId);
                 }
             }
+            port.setInboundFilter(config.inboundFilter);
+            port.setOutboundFilter(config.outboundFilter);
         }
 
         log.debug("PortDaoAdapter.get existing: port={}", port);

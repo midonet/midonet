@@ -94,9 +94,10 @@ public class TestRouterOpService {
         mgmtConfig.tenantId = "foo";
         mgmtConfig.name = "bar";
         RouterNameMgmtConfig nameConfig = new RouterNameMgmtConfig();
+        RouterConfig config = new RouterConfig();
 
         // Mock the path builder
-        when(opBuilderMock.getRouterCreateOps(id, new RouterConfig()))
+        when(opBuilderMock.getRouterCreateOps(id, config))
                 .thenReturn(dummyCreateOps);
         when(opBuilderMock.getRouterCreateOp(id, mgmtConfig)).thenReturn(
                 dummyCreateOp0);
@@ -109,7 +110,7 @@ public class TestRouterOpService {
         when(opBuilderMock.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
                 mgmtConfig.name, nameConfig)).thenReturn(dummyCreateOp1);
 
-        List<Op> ops = service.buildCreate(id, mgmtConfig, nameConfig);
+        List<Op> ops = service.buildCreate(id, config, mgmtConfig, nameConfig);
 
         Assert.assertEquals(8, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
@@ -192,38 +193,6 @@ public class TestRouterOpService {
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
-    }
-
-    @Test
-    public void testBuildUpdateSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        String name = "foo";
-        RouterMgmtConfig mgmtConfig = new RouterMgmtConfig();
-        mgmtConfig.tenantId = "bar";
-        mgmtConfig.name = "baz";
-        RouterNameMgmtConfig nameConfig = new RouterNameMgmtConfig();
-        Router router = new Router(id, mgmtConfig.name, mgmtConfig.tenantId);
-
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(zkDaoMock.getNameData(mgmtConfig.tenantId, mgmtConfig.name))
-                .thenReturn(nameConfig);
-        when(
-                opBuilderMock.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,
-                        mgmtConfig.name)).thenReturn(dummyCreateOp0);
-        when(
-                opBuilderMock.getTenantRouterNameCreateOp(mgmtConfig.tenantId,
-                        name, nameConfig)).thenReturn(dummyCreateOp1);
-        when(opBuilderMock.getRouterSetDataOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp2);
-
-        List<Op> ops = service.buildUpdate(router);
-
-        Assert.assertEquals(3, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(name, mgmtConfig.name);
     }
 
     @Test

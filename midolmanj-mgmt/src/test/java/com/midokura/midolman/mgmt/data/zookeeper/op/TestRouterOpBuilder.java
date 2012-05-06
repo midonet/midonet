@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
@@ -61,8 +62,10 @@ public class TestRouterOpBuilder {
 
     @Test
     public void testGetRouterCreateOpsSuccess() throws Exception {
-        builder.getRouterCreateOps(dummyId, new RouterConfig());
-        verify(zkDaoMock, times(1)).prepareRouterCreate(dummyId);
+        RouterConfig config =
+                new RouterConfig(UUID.randomUUID(), UUID.randomUUID());
+        builder.getRouterCreateOps(dummyId, config);
+        verify(zkDaoMock, times(1)).prepareRouterCreate(dummyId, config);
     }
 
     @Test

@@ -29,7 +29,6 @@ import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
-import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Route;
@@ -37,6 +36,7 @@ import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
+import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 public class TestRouterDaoAdapter {
 
@@ -50,11 +50,11 @@ public class TestRouterDaoAdapter {
     private static List<Op> createTestPersistentCreateOps() {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op
-                .create("/foo", new byte[] { 0 }, null, CreateMode.PERSISTENT));
+                .create("/foo", new byte[]{0}, null, CreateMode.PERSISTENT));
         ops.add(Op
-                .create("/bar", new byte[] { 1 }, null, CreateMode.PERSISTENT));
+                .create("/bar", new byte[]{1}, null, CreateMode.PERSISTENT));
         ops.add(Op
-                .create("/baz", new byte[] { 2 }, null, CreateMode.PERSISTENT));
+                .create("/baz", new byte[]{2}, null, CreateMode.PERSISTENT));
         return ops;
     }
 
@@ -97,7 +97,8 @@ public class TestRouterDaoAdapter {
     public void testCreateWithNoIdSuccess() throws Exception {
         Router router = new Router(null, "foo", "bar");
         List<Op> ops = createTestPersistentCreateOps();
-        doReturn(ops).when(opServiceMock).buildCreate(any(UUID.class),
+        doReturn(ops).when(opServiceMock).buildCreate(
+                any(UUID.class), any(RouterConfig.class),
                 any(RouterMgmtConfig.class), any(RouterNameMgmtConfig.class));
 
         UUID newId = adapter.create(router);
@@ -110,7 +111,8 @@ public class TestRouterDaoAdapter {
     public void testCreateWithIdSuccess() throws Exception {
         Router router = new Router(UUID.randomUUID(), "foo", "bar");
         List<Op> ops = createTestPersistentCreateOps();
-        doReturn(ops).when(opServiceMock).buildCreate(any(UUID.class),
+        doReturn(ops).when(opServiceMock).buildCreate(
+                any(UUID.class), any(RouterConfig.class),
                 any(RouterMgmtConfig.class), any(RouterNameMgmtConfig.class));
 
         UUID newId = adapter.create(router);
@@ -134,15 +136,20 @@ public class TestRouterDaoAdapter {
     public void testGetSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         RouterMgmtConfig mgmtConfig = new RouterMgmtConfig("foo", "bar");
+        RouterConfig config =
+                new RouterConfig(UUID.randomUUID(), UUID.randomUUID());
 
         doReturn(mgmtConfig).when(daoMock).getMgmtData(id);
         doReturn(true).when(daoMock).exists(id);
+        doReturn(config).when(daoMock).getData(id);
 
         Router router = adapter.get(id);
 
         Assert.assertEquals(id, router.getId());
         Assert.assertEquals(mgmtConfig.tenantId, router.getTenantId());
         Assert.assertEquals(mgmtConfig.name, router.getName());
+        Assert.assertEquals(config.inboundFilter, router.getInboundFilter());
+        Assert.assertEquals(config.outboundFilter, router.getOutboundFilter());
     }
 
     @Test

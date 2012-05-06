@@ -189,29 +189,4 @@ public class TestChainOpService {
                     UUID.fromString(id));
         }
     }
-
-    @Test
-    public void testBuildBuiltInChainsSuccess() throws Exception {
-
-        ChainConfig config = new ChainConfig();
-        config.name = "foo";
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        ChainNameMgmtConfig nameConfig = new ChainNameMgmtConfig();
-        mgmtConfig.tenantId = UUID.randomUUID().toString();
-
-        when(
-                zkDaoMock.constructChainMgmtConfig(Mockito.anyString(),
-                        Mockito.anyString())).thenReturn(mgmtConfig);
-        when(zkDaoMock.constructChainNameMgmtConfig(Mockito.any(UUID.class)))
-                .thenReturn(nameConfig);
-
-        // There should be two built-in chains
-        verify(opBuilderMock, times(2)).getChainCreateOp(
-                Mockito.any(UUID.class), Mockito.any(ChainMgmtConfig.class));
-        verify(opBuilderMock, times(2)).getChainCreateOps(
-                Mockito.any(UUID.class), Mockito.any(ChainConfig.class));
-        verify(opBuilderMock, times(2)).getTenantChainNameCreateOp(
-                mgmtConfig.tenantId, config.name, nameConfig);
-
-    }
 }

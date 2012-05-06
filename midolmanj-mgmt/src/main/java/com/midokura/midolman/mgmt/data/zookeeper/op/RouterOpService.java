@@ -57,12 +57,6 @@ public class RouterOpService {
         this.zkDao = zkDao;
     }
 
-    public List<Op> buildCreate(UUID id, RouterMgmtConfig mgmtConfig,
-                                RouterNameMgmtConfig nameConfig)
-            throws StateAccessException {
-        return buildCreate(id, new RouterConfig(), mgmtConfig, nameConfig);
-    }
-
     /**
      * Build list of Op objects to create a router
      *

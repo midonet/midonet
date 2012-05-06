@@ -133,18 +133,6 @@ public class TestChainDaoAdapter {
         verify(daoMock, times(1)).multi(ops);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeleteBuiltInChain() throws Exception {
-        UUID id = UUID.randomUUID();
-        ChainConfig config = new ChainConfig("foo");
-        ChainMgmtConfig mgmtConfig = new ChainMgmtConfig();
-        when(daoMock.getData(id)).thenReturn(config);
-        when(daoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(daoMock.exists(id)).thenReturn(true);
-
-        adapter.delete(id);
-    }
-
     @Test
     public void testGetSuccess() throws Exception {
         UUID id = UUID.randomUUID();

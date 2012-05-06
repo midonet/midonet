@@ -128,15 +128,20 @@ public class TestBridgeDaoAdapter {
     public void testGetSuccess() throws Exception {
         UUID id = UUID.randomUUID();
         BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig("foo", "bar");
+        BridgeConfig config =
+                new BridgeConfig(UUID.randomUUID(), UUID.randomUUID());
 
         doReturn(true).when(daoMock).exists(id);
         doReturn(mgmtConfig).when(daoMock).getMgmtData(id);
+        doReturn(config).when(daoMock).getData(id);
 
         Bridge bridge = adapter.get(id);
 
         Assert.assertEquals(id, bridge.getId());
         Assert.assertEquals(mgmtConfig.tenantId, bridge.getTenantId());
         Assert.assertEquals(mgmtConfig.name, bridge.getName());
+        Assert.assertEquals(config.inboundFilter, bridge.getInboundFilter());
+        Assert.assertEquals(config.outboundFilter, bridge.getOutboundFilter());
     }
 
     @Test

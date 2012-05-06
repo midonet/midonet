@@ -254,7 +254,7 @@ public class TestTenantDaoAdapter {
         Tenant tenant = new Tenant("foo");
         Chain chain = new Chain(UUID.randomUUID(), tenant.getId(), "fooChain");
 
-        doReturn(chain).when(adapter).getByChain(chain.getId());
+        doReturn(chain).when(chainDaoMock).get(chain.getId());
         doReturn(tenant).when(adapter).get(chain.getTenantId());
 
         Tenant tenantResult = adapter.getByChain(chain.getId());
