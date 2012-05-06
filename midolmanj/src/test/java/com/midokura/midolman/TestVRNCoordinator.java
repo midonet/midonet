@@ -26,6 +26,7 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -48,6 +49,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortDirectory;
@@ -78,6 +80,11 @@ public class TestVRNCoordinator {
         return new MockCache();
     }
 
+    @After
+    public void tearDown() {
+        ChainProcessor.clear();
+    }
+
     @Before
     public void setUp() throws Exception {
         devPorts = new ArrayList<L3DevicePort>();
@@ -90,6 +97,7 @@ public class TestVRNCoordinator {
         Directory dir = new MockDirectory();
         dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getChainsPath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRulesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);

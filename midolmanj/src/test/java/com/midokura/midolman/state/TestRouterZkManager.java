@@ -83,7 +83,7 @@ public class TestRouterZkManager {
         rTable.start();
 
         // TODO(pino): pass a MockVRNController to the Router.
-        rtr = new Router(rtrId, dir, basePath, reactor, cache, null);
+        rtr = new Router(rtrId, dir, basePath, reactor, null);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

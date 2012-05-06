@@ -108,7 +108,7 @@ public class TestRouter {
         rTable.start();
         controller = new MockVRNController(679, dir, basePath, null,
                 IntIPv4.fromString("192.168.200.200"), "externalIdKey");
-        rtr = new Router(rtrId, dir, basePath, reactor, cache, controller);
+        rtr = new Router(rtrId, dir, basePath, reactor, controller);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

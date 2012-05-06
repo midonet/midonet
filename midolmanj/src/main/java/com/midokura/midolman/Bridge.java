@@ -4,7 +4,6 @@
 
 package com.midokura.midolman;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,8 +29,8 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
@@ -41,8 +40,6 @@ import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.util.Cache;
-
 
 public class Bridge implements ForwardingElement {
 
@@ -69,7 +66,7 @@ public class Bridge implements ForwardingElement {
     private BridgeZkManager.BridgeConfig myConfig;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, Cache cache, VRNControllerIface ctrl)
+                  Reactor reactor, VRNControllerIface ctrl)
             throws StateAccessException {
         this.bridgeId = bridgeId;
         this.reactor = reactor;

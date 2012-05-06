@@ -12,7 +12,6 @@ import java.util.UUID;
 import javax.management.JMException;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.rules.Chain;
 import com.midokura.midolman.rules.ChainProcessor;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
@@ -24,7 +23,6 @@ import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.CacheWithPrefix;
 import com.midokura.midolman.util.Callback1;
 
 public class VRNCoordinator implements ForwardingElement {
@@ -35,7 +33,6 @@ public class VRNCoordinator implements ForwardingElement {
 
     private PortZkManager portMgr;
     private Reactor reactor;
-    private Cache cache;
     private Map<UUID, ForwardingElement> forwardingElements;
     private Map<UUID, ForwardingElement> feByPortId;
     // These watchers are interested in routing table and rule changes.
@@ -50,13 +47,12 @@ public class VRNCoordinator implements ForwardingElement {
     private ChainProcessor chainProcessor;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
-                          Cache cache_, VRNControllerIface ctrl,
+                          Cache cache, VRNControllerIface ctrl,
                           PortSetMap portSetMap) {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.reactor = reactor;
-        this.cache = cache_;
         this.ctrl = ctrl;
         this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
@@ -127,13 +123,12 @@ public class VRNCoordinator implements ForwardingElement {
         if (null != fe)
             return fe;
         log.debug("Getting forwarding element instance for {}", deviceId);
-        Cache cache_ = new CacheWithPrefix(this.cache, deviceId.toString());
         switch (feType) {
           case Router:
-            fe = new Router(deviceId, zkDir, zkBasePath, reactor, cache_, ctrl);
+            fe = new Router(deviceId, zkDir, zkBasePath, reactor, ctrl);
             break;
           case Bridge:
-            fe = new Bridge(deviceId, zkDir, zkBasePath, reactor, cache_, ctrl);
+            fe = new Bridge(deviceId, zkDir, zkBasePath, reactor, ctrl);
             break;
           case DontConstruct:
             fe = null;

@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.rules;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,15 +20,12 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.CacheWithPrefix;
 
 
 public class ChainProcessor {
@@ -69,6 +65,10 @@ public class ChainProcessor {
         return instance;
     }
 
+    public static void clear() {
+        instance = null;
+    }
+
     public static void initChainProcessor(Directory dir, String zkBasePath,
                                           Cache cache, Reactor reactor) {
         if (instance != null) {
@@ -92,7 +92,9 @@ public class ChainProcessor {
         } else {
             NatMapping natMapping = new NatLeaseManager(
                     new FiltersZkManager(instance.zkDir, instance.zkBasePath),
-                    ownerId, instance.cache, instance.reactor);
+                    ownerId,
+                    new CacheWithPrefix(instance.cache, ownerId.toString()),
+                    instance.reactor);
             instance.natMappingMap.put(ownerId, natMapping);
             return natMapping;
         }

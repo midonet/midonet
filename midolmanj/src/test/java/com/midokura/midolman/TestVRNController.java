@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.JsonParseException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,7 @@ import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.MockPortService;
+import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.LiteralRule;
@@ -100,6 +102,11 @@ public class TestVRNController {
     private MAC rtr2LogPortMAC;
     private MAC rtr0to2LogPortMAC;
     private Map<Short, UUID> portNumToUuid;
+
+    @After
+    public void tearDown() {
+        ChainProcessor.clear();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -832,8 +839,7 @@ public class TestVRNController {
         eth.setDestinationMACAddress(dlDst);
         eth.setSourceMACAddress(dlSrc);
         eth.setEtherType(ARP.ETHERTYPE);
-        Router rtr = new Router(routerIds.get(2), dir, basePath, reactor,
-                cache, null);
+        Router rtr = new Router(routerIds.get(2), dir, basePath, reactor, null);
         Assert.assertFalse(rtr.canSendICMP(eth, null));
 
         // Make a normal UDP packet from a host on router2's second port

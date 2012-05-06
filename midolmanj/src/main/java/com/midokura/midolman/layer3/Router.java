@@ -39,7 +39,6 @@ import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
-import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.Net;
 
@@ -133,7 +132,7 @@ public class Router implements ForwardingElement {
     private RouterZkManager.RouterConfig myConfig;
 
     public Router(UUID rtrId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, Cache cache, VRNControllerIface ctrl)
+                  Reactor reactor, VRNControllerIface ctrl)
             throws StateAccessException {
         this.routerId = rtrId;
         this.reactor = reactor;
