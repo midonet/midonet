@@ -858,7 +858,7 @@ public class Router implements ForwardingElement {
     public void freeFlowResources(OFMatch match, UUID inPortId) {
         log.debug("freeFlowResources: match {}", match);
 
-        ruleEngine.freeFlowResources(match);
+        ruleEngine.freeFlowResources(match, this.getId());
     }
 
     /**

@@ -96,11 +96,11 @@ public class ChainProcessor {
         }
     }
 
-    public void freeFlowResources(OFMatch match) {
+    public void freeFlowResources(OFMatch match, UUID ownerId) {
         log.debug("freeFlowResources: match {}", match);
-
-        // TODO(abel)
-        // natMap.freeFlowResources(match);
+        NatMapping natMap = getNatMapping(ownerId);
+        if (null != natMap)
+            natMap.freeFlowResources(match);
     }
 
     private void rememberChain(Chain chain, UUID id) {
