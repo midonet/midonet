@@ -152,7 +152,11 @@ public class ForwardNatRule extends NatRule {
                     res.match.getTransportSource() & USHORT,
                     IPv4.fromIPv4Address(res.match.getNetworkDestination()),
                     res.match.getTransportDestination() & USHORT});
-        // TODO(pino): deal with case that conn couldn't be allocated.
+
+        if (conn == null) {
+            log.error("Could not allocate Snat");
+            return;
+        }
         res.match.setNetworkSource(conn.nwAddr);
         res.match.setTransportSource(conn.tpPort);
         res.action = action;

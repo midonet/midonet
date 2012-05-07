@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Pte. Ltd.
  */
 package com.midokura.midolman.state;
 
@@ -94,10 +94,8 @@ public class FiltersZkManager extends ZkManager {
      * @return The UUID of the newly created object.
      * @throws com.midokura.midolman.state.StateAccessException
      */
-    public UUID create() throws StateAccessException {
-        UUID id = UUID.randomUUID();
+    public void create(UUID id) throws StateAccessException {
         multi(prepareCreate(id));
-        return id;
     }
 
     /***

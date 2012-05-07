@@ -4,22 +4,27 @@
 
 package com.midokura.midolman.rules;
 
+import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.FiltersZkManager;
+import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.MockCache;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-
-import org.junit.Test;
-
-import com.midokura.midolman.layer4.MockNatMapping;
-import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.rules.RuleResult.Action;
 
 public class TestRules {
 
@@ -27,12 +32,16 @@ public class TestRules {
     static MidoMatch pktResponseMatch;
     static Random rand;
     static UUID inPort;
+    static UUID ownerId;
+    static UUID jumpChainId;
+    static String jumpChainName;
     static Condition cond;
     static Set<NatTarget> nats;
     RuleResult expRes, argRes;
 
     @BeforeClass
-    public static void setupOnce() {
+    public static void setupOnce() throws InterruptedException, KeeperException,
+            StateAccessException {
         pktMatch = new MidoMatch();
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
@@ -55,6 +64,9 @@ public class TestRules {
         pktResponseMatch.setTransportSource((short) 1234);
         rand = new Random();
         inPort = new UUID(rand.nextLong(), rand.nextLong());
+        ownerId = new UUID(rand.nextLong(), rand.nextLong());
+        jumpChainId = new UUID(rand.nextLong(), rand.nextLong());
+        jumpChainName = "AJumpChainName";
         // Build a condition that matches the packet.
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
@@ -72,6 +84,19 @@ public class TestRules {
         nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0a090807, 0x0a090810, (short) 21333,
                 (short) 32999));
+
+        Directory dir = new MockDirectory();
+        ZkPathManager pathMgr = new ZkPathManager("");
+        dir.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
+        FiltersZkManager filterMgr = new FiltersZkManager(dir, "");
+        filterMgr.create(ownerId);
+        ChainProcessor.initChainProcessor(dir, "",
+                new MockCache(), new MockReactor());
+    }
+
+    @AfterClass
+    public static void tearDownOnce() {
+        ChainProcessor.clear();
     }
 
     @Before
@@ -80,16 +105,13 @@ public class TestRules {
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
     }
 
-    /* TODO(abel) rules have change their signature, tests must be
-       updated accordingly
-
     @Test
     public void testLiteralRuleAccept() {
         Rule rule = new LiteralRule(cond, Action.ACCEPT);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, null);
         Assert.assertTrue(expRes.equals(argRes));
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, null);
         expRes.action = Action.ACCEPT;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -103,9 +125,9 @@ public class TestRules {
     public void testLiteralRuleDrop() {
         Rule rule = new LiteralRule(cond, Action.DROP);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, null);
         Assert.assertTrue(expRes.equals(argRes));
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, null);
         expRes.action = Action.DROP;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -119,9 +141,9 @@ public class TestRules {
     public void testLiteralRuleReject() {
         Rule rule = new LiteralRule(cond, Action.REJECT);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, null);
         Assert.assertTrue(expRes.equals(argRes));
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, null);
         expRes.action = Action.REJECT;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -130,23 +152,22 @@ public class TestRules {
     public void testLiteralRuleReturn() {
         Rule rule = new LiteralRule(cond, Action.RETURN);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, null);
         Assert.assertTrue(expRes.equals(argRes));
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, null);
         expRes.action = Action.RETURN;
         Assert.assertTrue(expRes.equals(argRes));
     }
 
     @Test
     public void testJumpRule() {
-        String jChain = "SomeChainName";
-        Rule rule = new JumpRule(cond, jChain);
+        Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, null);
         Assert.assertTrue(expRes.equals(argRes));
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, null);
         expRes.action = Action.JUMP;
-        expRes.jumpToChain = jChain;
+        expRes.jumpToChain = jumpChainId;
         Assert.assertTrue(expRes.equals(argRes));
     }
 
@@ -172,19 +193,16 @@ public class TestRules {
                 (short) 3399));
         Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, 0, false,
                 nats);
-        NatMapping natMap = new MockNatMapping();
-        ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, null);
         Assert.assertTrue(expRes.equals(argRes));
         // We let the reverse snat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.RETURN, false);
-        ((NatRule) revRule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
-        revRule.process(new MidoMatch(), null, null, argRes);
+        revRule.process(new MidoMatch(), null, null, argRes, ownerId);
         Assert.assertTrue(expRes.equals(argRes));
         // Now get the Snat rule to match.
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, ownerId);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
         int newNwSrc = argRes.match.getNetworkSource();
         Assert.assertTrue(0x0b000102 <= newNwSrc);
@@ -200,7 +218,7 @@ public class TestRules {
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, ownerId);
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
         argRes.match = pktResponseMatch.clone();
@@ -210,7 +228,7 @@ public class TestRules {
         argRes.match.setTransportDestination(newTpSrc);
         argRes.action = null;
         argRes.trackConnection = false;
-        revRule.process(new MidoMatch(), null, null, argRes);
+        revRule.process(new MidoMatch(), null, null, argRes, ownerId);
         Assert.assertEquals(Action.RETURN, argRes.action);
         // The generated response should be the mirror of the original.
         Assert.assertTrue(pktResponseMatch.equals(argRes.match));
@@ -224,19 +242,16 @@ public class TestRules {
                 (short) 1050));
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
                 nats);
-        NatMapping natMap = new MockNatMapping();
-        ((NatRule) rule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
-        rule.process(new MidoMatch(), null, null, argRes);
+        rule.process(new MidoMatch(), null, null, argRes, ownerId);
         Assert.assertTrue(expRes.equals(argRes));
         // We let the reverse dnat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
-        ((NatRule) revRule).setNatMapping(natMap);
         // If the condition doesn't match the result is not modified.
-        revRule.process(new MidoMatch(), null, null, argRes);
+        revRule.process(new MidoMatch(), null, null, argRes, ownerId);
         Assert.assertTrue(expRes.equals(argRes));
         // Now get the Dnat rule to match.
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, ownerId);
         Assert.assertEquals(Action.CONTINUE, argRes.action);
         int newNwDst = argRes.match.getNetworkDestination();
         Assert.assertTrue(0x0c000102 <= newNwDst);
@@ -252,7 +267,7 @@ public class TestRules {
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
-        rule.process(new MidoMatch(), inPort, null, argRes);
+        rule.process(new MidoMatch(), inPort, null, argRes, ownerId);
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
         argRes.match = pktResponseMatch.clone();
@@ -262,12 +277,11 @@ public class TestRules {
         argRes.match.setTransportSource(newTpDst);
         argRes.action = null;
         argRes.trackConnection = false;
-        revRule.process(new MidoMatch(), null, null, argRes);
+        revRule.process(new MidoMatch(), null, null, argRes, ownerId);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
         // The generated response should be the mirror of the original.
         Assert.assertTrue(pktResponseMatch.equals(argRes.match));
         Assert.assertFalse(argRes.trackConnection);
     }
-    */
 
 }
