@@ -31,7 +31,7 @@ public class RuleChain {
     }
 
     private MidolmanMgmt mgmt;
-    private DtoRuleChain chain;
+    DtoRuleChain chain;
 
     RuleChain(MidolmanMgmt mgmt, DtoRuleChain chain) {
         this.mgmt = mgmt;

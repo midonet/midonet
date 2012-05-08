@@ -32,12 +32,16 @@ public class Router {
                 throw new IllegalArgumentException("Cannot create a "
                         + "router with a null or empty name.");
             // Create pre- and post-filtering rule-chains for this router.
-            RuleChain.Builder rcBuilder1 = new RuleChain.Builder(mgmt, tenant);
-            rcBuilder1.setName(router.getName() + PRE_ROUTING);
-            RuleChain.Builder rcBuilder2 = new RuleChain.Builder(mgmt, tenant);
-            rcBuilder2.setName(router.getName() + POST_ROUTING);
-            return new Router(mgmt, mgmt.addRouter(tenant, router),
-                    rcBuilder1.build(), rcBuilder2.build());
+            RuleChain.Builder rcBuilder = new RuleChain.Builder(mgmt, tenant);
+            rcBuilder.setName(router.getName() + PRE_ROUTING);
+            RuleChain inChain = rcBuilder.build();
+            router.setInboundFilter(inChain.chain.getId());
+            rcBuilder = new RuleChain.Builder(mgmt, tenant);
+            rcBuilder.setName(router.getName() + POST_ROUTING);
+            RuleChain outChain = rcBuilder.build();
+            router.setOutboundFilter(outChain.chain.getId());
+            return new Router(
+                    mgmt, mgmt.addRouter(tenant, router), inChain, outChain);
         }
     }
 
