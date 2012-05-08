@@ -147,6 +147,7 @@ public class TestVRNController {
         vrnCtrl = new VRNController(datapathId, dir, basePath, localNwIP, ovsdb,
                 reactor, cache, "midonet", service);
         vrnCtrl.setControllerStub(controllerStub);
+        vrnCtrl.portLocMap.start();
 
         /*
          * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16
