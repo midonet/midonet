@@ -583,7 +583,6 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         while (continue) {
             try {
                 val json = jsonParser.readValueAsTree
-                log.debug("OVSDB response: %s".format(json))
 
                 if (json.get("result") != null) {
                     val id = json.get("id")
