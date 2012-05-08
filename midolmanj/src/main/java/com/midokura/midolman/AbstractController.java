@@ -117,7 +117,6 @@ public abstract class AbstractController implements Controller {
                     zkDir.getSubDirectory(pathMgr.getVRNPortLocationsPath()));
             listener = new PortLocMapListener(this);
             portLocMap.addWatcher(listener);
-            portLocMap.start();
         } catch (KeeperException e) {
             throw new StateAccessException(e);
         }
