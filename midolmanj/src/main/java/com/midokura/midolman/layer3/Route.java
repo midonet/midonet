@@ -7,8 +7,11 @@ package com.midokura.midolman.layer3;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+
 import com.midokura.midolman.util.Net;
 
+@JsonPropertyOrder(alphabetic=true)
 public class Route implements Serializable {
 
     private static final long serialVersionUID = -5913569441176193396L;
