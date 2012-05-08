@@ -74,11 +74,7 @@ public class TestRouter {
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
     private RouterZkManager routerMgr;
-
-    @After
-    public void tearDown() {
-        ChainProcessor.clear();
-    }
+    private ChainProcessor chainProcessor;
 
     @Before
     public void setUp() throws Exception {
@@ -102,7 +98,7 @@ public class TestRouter {
         ruleMgr = new RuleZkManager(dir, basePath);
 
         reactor = new MockReactor();
-        ChainProcessor.initChainProcessor(
+        chainProcessor = new ChainProcessor(
                 dir, basePath, new MockCache(), reactor);
 
         UUID rtrId = routerMgr.create();
@@ -112,7 +108,8 @@ public class TestRouter {
         rTable.start();
         controller = new MockVRNController(679, dir, basePath, null,
                 IntIPv4.fromString("192.168.200.200"), "externalIdKey");
-        rtr = new Router(rtrId, dir, basePath, reactor, controller);
+        rtr = new Router(
+                rtrId, dir, basePath, reactor, controller, chainProcessor);
         controllerStub = new MockControllerStub();
 
         // Create ports in ZK.

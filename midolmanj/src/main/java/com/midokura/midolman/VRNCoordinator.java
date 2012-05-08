@@ -48,7 +48,7 @@ public class VRNCoordinator implements ForwardingElement {
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
                           Cache cache, VRNControllerIface ctrl,
-                          PortSetMap portSetMap) {
+                          PortSetMap portSetMap) throws StateAccessException {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
@@ -61,8 +61,7 @@ public class VRNCoordinator implements ForwardingElement {
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
 
-        ChainProcessor.initChainProcessor(zkDir, zkBasePath, cache, reactor);
-        chainProcessor = ChainProcessor.getChainProcessor();
+        chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache, reactor);
     }
 
     // This maintains consistency of the cached port configs w.r.t ZK.
@@ -125,10 +124,12 @@ public class VRNCoordinator implements ForwardingElement {
         log.debug("Getting forwarding element instance for {}", deviceId);
         switch (feType) {
           case Router:
-            fe = new Router(deviceId, zkDir, zkBasePath, reactor, ctrl);
+            fe = new Router(
+                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor);
             break;
           case Bridge:
-            fe = new Bridge(deviceId, zkDir, zkBasePath, reactor, ctrl);
+            fe = new Bridge(
+                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor);
             break;
           case DontConstruct:
             fe = null;

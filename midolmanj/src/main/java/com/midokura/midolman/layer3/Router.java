@@ -132,7 +132,8 @@ public class Router implements ForwardingElement {
     private RouterZkManager.RouterConfig myConfig;
 
     public Router(UUID rtrId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, VRNControllerIface ctrl)
+                  Reactor reactor, VRNControllerIface ctrl,
+                  ChainProcessor chainProcessor)
             throws StateAccessException {
         this.routerId = rtrId;
         this.reactor = reactor;
@@ -162,7 +163,7 @@ public class Router implements ForwardingElement {
         arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback1<MAC>>>>();
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
-        ruleEngine = ChainProcessor.getChainProcessor();
+        ruleEngine = chainProcessor;
         try {
             objectName = new ObjectName(
                     "com.midokura.midolman.layer3:type=Router,name="+ routerId);

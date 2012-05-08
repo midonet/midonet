@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 
@@ -40,7 +41,7 @@ public class JumpRule extends Rule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, UUID ownerId) {
+            RuleResult res, NatMapping natMapping) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;
         log.debug("Rule evaluation jumping to chain {} with ID {}.",

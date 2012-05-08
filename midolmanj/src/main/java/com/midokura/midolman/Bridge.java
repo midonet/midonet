@@ -64,13 +64,16 @@ public class Bridge implements ForwardingElement {
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
     private BridgeZkManager.BridgeConfig myConfig;
+    private ChainProcessor chainProcessor;
 
     public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
-                  Reactor reactor, VRNControllerIface ctrl)
+                  Reactor reactor, VRNControllerIface ctrl,
+                  ChainProcessor chainProcessor)
             throws StateAccessException {
         this.bridgeId = bridgeId;
         this.reactor = reactor;
-        controller = ctrl;
+        this.controller = ctrl;
+        this.chainProcessor = chainProcessor;
         portMgr = new PortZkManager(zkDir, zkBasePath);
         ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
         try {
@@ -123,7 +126,7 @@ public class Bridge implements ForwardingElement {
         fwdInfo.outPortId = null;
 
         // Apply pre-bridging rules.
-        RuleResult res = ChainProcessor.getChainProcessor().applyChain(
+        RuleResult res = chainProcessor.applyChain(
                 myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
                 fwdInfo.inPortId, null, this.bridgeId);
         if (res.trackConnection)
@@ -186,7 +189,7 @@ public class Bridge implements ForwardingElement {
         }
 
         // Apply post-bridging rules.
-        res = ChainProcessor.getChainProcessor().applyChain(
+        res = chainProcessor.applyChain(
                 myConfig.outboundFilter, fwdInfo.flowMatch, res.match,
                 fwdInfo.inPortId, fwdInfo.outPortId, this.bridgeId);
         if (res.trackConnection)

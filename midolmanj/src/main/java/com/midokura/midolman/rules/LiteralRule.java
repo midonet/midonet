@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 
@@ -41,7 +42,7 @@ public class LiteralRule extends Rule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, UUID ownerId) {
+            RuleResult res, NatMapping natMapping) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);
     }

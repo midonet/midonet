@@ -32,17 +32,14 @@ public class ChainProcessor {
     private final static Logger log =
         LoggerFactory.getLogger(ChainProcessor.class);
 
-    private static ChainProcessor instance = null;
-
     private Map<UUID, Chain> chainByUuid;
     private Directory zkDir;
     private String zkBasePath;
     private Cache cache;
     private Reactor reactor;
     private Map<UUID, NatMapping> natMappingMap;
-    private ChainZkManager chainMgr;
 
-    private ChainProcessor(Directory dir, String zkBasePath,
+    public ChainProcessor(Directory dir, String zkBasePath,
                            Cache cache, Reactor reactor)
             throws StateAccessException {
         this.zkDir = dir;
@@ -51,47 +48,17 @@ public class ChainProcessor {
         this.reactor = reactor;
         chainByUuid = new HashMap<UUID, Chain>();
         natMappingMap = new HashMap<UUID, NatMapping>();
-        chainMgr = new ChainZkManager(dir, zkBasePath);
     }
 
-    public static ChainProcessor getChainProcessor() {
-        if (instance == null) {
-            log.error("Using uninitialized ChainProcessor");
-        }
-        return instance;
-    }
-
-    public static void clear() {
-        instance = null;
-    }
-
-    public static void initChainProcessor(Directory dir, String zkBasePath,
-                                          Cache cache, Reactor reactor) {
-        if (instance != null) {
-            log.error("Tried to initialize twice ChainProcessor");
-        } else {
-            try {
-                instance = new ChainProcessor(dir, zkBasePath, cache, reactor);
-            } catch (StateAccessException e) {
-                log.error("Error initializing ChainProcessor", e);
-            }
-        }
-    }
-
-    public static NatMapping getNatMapping(UUID ownerId) {
-        if (instance == null) {
-            throw new RuntimeException(
-                            "NatMapping requires non-null ChainProcessor");
-        }
-        if (instance.natMappingMap.containsKey(ownerId)) {
-            return instance.natMappingMap.get(ownerId);
+    private NatMapping getNatMapping(UUID ownerId) {
+        if (natMappingMap.containsKey(ownerId)) {
+            return natMappingMap.get(ownerId);
         } else {
             NatMapping natMapping = new NatLeaseManager(
-                    new FiltersZkManager(instance.zkDir, instance.zkBasePath),
+                    new FiltersZkManager(zkDir, zkBasePath),
                     ownerId,
-                    new CacheWithPrefix(instance.cache, ownerId.toString()),
-                    instance.reactor);
-            instance.natMappingMap.put(ownerId, natMapping);
+                    new CacheWithPrefix(cache, ownerId.toString()), reactor);
+            natMappingMap.put(ownerId, natMapping);
             return natMapping;
         }
     }
@@ -162,7 +129,7 @@ public class ChainProcessor {
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
                 cp.rules.get(cp.position).process(flowMatch, inPortId,
-                                                  outPortId, res, ownerId);
+                        outPortId, res, getNatMapping(ownerId));
                 cp.position++;
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)

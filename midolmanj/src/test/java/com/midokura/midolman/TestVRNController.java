@@ -103,11 +103,6 @@ public class TestVRNController {
     private MAC rtr0to2LogPortMAC;
     private Map<Short, UUID> portNumToUuid;
 
-    @After
-    public void tearDown() {
-        ChainProcessor.clear();
-    }
-
     @Before
     public void setUp() throws Exception {
         phyPorts = new ArrayList<List<OFPhysicalPort>>();
@@ -839,7 +834,8 @@ public class TestVRNController {
         eth.setDestinationMACAddress(dlDst);
         eth.setSourceMACAddress(dlSrc);
         eth.setEtherType(ARP.ETHERTYPE);
-        Router rtr = new Router(routerIds.get(2), dir, basePath, reactor, null);
+        Router rtr = new Router(
+                routerIds.get(2), dir, basePath, reactor, null, null);
         Assert.assertFalse(rtr.canSendICMP(eth, null));
 
         // Make a normal UDP packet from a host on router2's second port

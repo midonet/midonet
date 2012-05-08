@@ -20,10 +20,6 @@ import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router;
-import com.midokura.midolman.openflow.MockControllerStub;
-import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.CacheWithPrefix;
-import com.midokura.midolman.util.MockCache;
 
 public class TestRouterZkManager {
 
@@ -34,7 +30,6 @@ public class TestRouterZkManager {
     private Router rtr;
     private ReplicatedRoutingTable rTable;
     private MockReactor reactor;
-    private MockControllerStub controllerStub;
     private Map<Integer, PortDirectory.MaterializedRouterPortConfig> portConfigs;
     private Map<Integer, UUID> portNumToId;
     ChainZkManager chainMgr;
@@ -43,10 +38,6 @@ public class TestRouterZkManager {
     RouterZkManager routerMgr;
     UUID rtrId;
     List<Route> routes = new ArrayList<Route>();
-
-    protected Cache createCache() {
-        return new MockCache();
-    }
 
     /* This setUp() is basically copied from TestRouter.java and
      * modified the following parts:
@@ -76,7 +67,6 @@ public class TestRouterZkManager {
         ruleMgr = new RuleZkManager(dir, basePath);
 
         rtrId = routerMgr.create();
-        Cache cache = new CacheWithPrefix(createCache(), rtrId.toString());
         reactor = new MockReactor();
         rTable = new ReplicatedRoutingTable(rtrId,
                         routerMgr.getRoutingTableDirectory(rtrId),
@@ -84,8 +74,7 @@ public class TestRouterZkManager {
         rTable.start();
 
         // TODO(pino): pass a MockVRNController to the Router.
-        rtr = new Router(rtrId, dir, basePath, reactor, null);
-        controllerStub = new MockControllerStub();
+        rtr = new Router(rtrId, dir, basePath, reactor, null, null);
 
         // Create ports in ZK.
         // Create one port that works as an uplink for the router.

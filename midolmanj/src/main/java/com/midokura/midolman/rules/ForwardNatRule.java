@@ -51,8 +51,7 @@ public class ForwardNatRule extends NatRule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, UUID ownerId) {
-        NatMapping natMapping = ChainProcessor.getNatMapping(ownerId);
+            RuleResult res, NatMapping natMapping) {
         if (null == natMapping)
             return;
         if (dnat)

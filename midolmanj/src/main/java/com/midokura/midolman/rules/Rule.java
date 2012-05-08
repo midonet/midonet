@@ -6,6 +6,7 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 
@@ -47,11 +48,13 @@ public abstract class Rule implements Comparable<Rule> {
      * @param res
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
+     * @param natMapping
+     *            Nat state of the element using this chain.
      */
     public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, UUID ownerId) {
+            RuleResult res, NatMapping natMapping) {
         if (condition.matches(inPortId, outPortId, res.match)) {
-            apply(flowMatch, inPortId, outPortId, res, ownerId);
+            apply(flowMatch, inPortId, outPortId, res, natMapping);
         }
     }
 
@@ -70,11 +73,11 @@ public abstract class Rule implements Comparable<Rule> {
      * @param res
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
-     * @param ownerId
-     *            UUID of the element using this chain.
+     * @param natMapping
+     *            Nat state of the element using this chain.
      */
     protected abstract void apply(MidoMatch flowMatch, UUID inPortId,
-            UUID outPortId, RuleResult res, UUID ownerId);
+            UUID outPortId, RuleResult res, NatMapping natMapping);
 
     @Override
     public int hashCode() {

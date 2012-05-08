@@ -40,14 +40,12 @@ public class ReverseNatRule extends NatRule {
 
     @Override
     public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, UUID ownerId) {
+            RuleResult res, NatMapping natMapping) {
         // Don't attempt to do port translation on anything but udp/tcp
         byte nwProto = res.match.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
             return;
 
-        NatMapping natMapping =
-                ChainProcessor.getChainProcessor().getNatMapping(ownerId);
         if (natMapping == null) {
             log.error("Expected NAT mapping to exist");
             return;

@@ -80,11 +80,6 @@ public class TestVRNCoordinator {
         return new MockCache();
     }
 
-    @After
-    public void tearDown() {
-        ChainProcessor.clear();
-    }
-
     @Before
     public void setUp() throws Exception {
         devPorts = new ArrayList<L3DevicePort>();
