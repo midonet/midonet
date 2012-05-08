@@ -241,7 +241,7 @@ public class VRNCoordinator implements ForwardingElement {
         if (fwdInfo.depth >= MAX_HOPS) {
             // We traversed MAX_HOPS routers without reaching an edge port.
             log.warn("Traversed {} FEs without reaching an edge port; " +
-                    "probably a loop - giving up.", MAX_HOPS);
+                     "probably a loop - giving up.", MAX_HOPS);
             fwdInfo.action = Action.DROP;
             return;
         }
@@ -279,8 +279,8 @@ public class VRNCoordinator implements ForwardingElement {
                 int timesTraversed = fwdInfo.getTimesTraversed(fe.getId());
                 if (timesTraversed > 2) {
                     log.warn("Detected a loop. FE {} saw the packet {} " +
-                            "times: {}", new Object[] { fe.getId(),
-                            timesTraversed, fwdInfo.flowMatch });
+                             "times: {}", new Object[] { fe.getId(),
+                             timesTraversed, fwdInfo.flowMatch });
                     fwdInfo.action = Action.DROP;
                     return;
                 }
