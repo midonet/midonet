@@ -1,244 +1,131 @@
 /*
- * @(#)TestBridgeOpService        1.6 12/1/6
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import junit.framework.Assert;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestBridgeOpService {
 
-    private BridgeOpBuilder opBuilderMock = null;
-    private BridgeZkDao zkDaoMock = null;
-    private PortOpService portOpServiceMock = null;
-    private BridgeOpService service = null;
-    private static final Op dummyCreateOp0 = Op.create("/foo",
-            new byte[] { 0 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp1 = Op.create("/bar",
-            new byte[] { 1 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp2 = Op.create("/baz",
-            new byte[] { 2 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyCreateOp3 = Op.create("/fuzz",
-            new byte[] { 3 }, null, CreateMode.PERSISTENT);
-    private static final Op dummyDeleteOp0 = Op.delete("/foo", -1);;
-    private static final Op dummyDeleteOp1 = Op.delete("/bar", -1);
-    private static final Op dummyDeleteOp2 = Op.delete("/baz", -1);
-    private static final Op dummyDeleteOp3 = Op.delete("/fuzz", -1);
-    private static List<Op> dummyCreateOps = null;
-    static {
-        dummyCreateOps = new ArrayList<Op>();
-        dummyCreateOps.add(dummyCreateOp0);
-        dummyCreateOps.add(dummyCreateOp1);
-        dummyCreateOps.add(dummyCreateOp2);
-    }
-    private static List<Op> dummyDeleteOps = null;
-    static {
-        dummyDeleteOps = new ArrayList<Op>();
-        dummyDeleteOps.add(dummyDeleteOp0);
-        dummyDeleteOps.add(dummyDeleteOp1);
-        dummyDeleteOps.add(dummyDeleteOp2);
-    }
-    private static final String dummyId0 = UUID.randomUUID().toString();
-    private static final String dummyId1 = UUID.randomUUID().toString();
-    private static final String dummyId2 = UUID.randomUUID().toString();
-    private static Set<String> dummyIds = null;
-    static {
-        dummyIds = new TreeSet<String>();
-        dummyIds.add(dummyId0);
-        dummyIds.add(dummyId1);
-        dummyIds.add(dummyId2);
-    }
+	private BridgeOpService testObject;
 
-    @Before
-    public void setUp() throws Exception {
-        this.opBuilderMock = mock(BridgeOpBuilder.class);
-        this.portOpServiceMock = mock(PortOpService.class);
-        this.zkDaoMock = mock(BridgeZkDao.class);
-        this.service = new BridgeOpService(this.opBuilderMock,
-                this.portOpServiceMock, this.zkDaoMock);
-    }
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	private BridgeOpBuilder opBuilder;
 
-    @Test
-    public void testBuildCreateBridgeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        BridgeConfig config = new BridgeConfig();
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
-        BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	private BridgeZkDao zkDao;
 
-        // Mock the path builder
-        when(opBuilderMock.getBridgeCreateOps(id, config)).thenReturn(
-                dummyCreateOps);
-        when(opBuilderMock.getBridgeCreateOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp0);
-        when(opBuilderMock.getBridgeRoutersCreateOp(id)).thenReturn(
-                dummyCreateOp3);
-        when(opBuilderMock.getTenantBridgeCreateOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyCreateOp1);
-        when(opBuilderMock.getTenantBridgeNameCreateOp(
-                mgmtConfig.tenantId, mgmtConfig.name, nameConfig))
-                .thenReturn(dummyCreateOp2);
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	private PortOpService portOpService;
 
-        List<Op> ops = service.buildCreate(id, config, mgmtConfig, nameConfig);
+	@Before
+	public void setUp() {
+		testObject = new BridgeOpService(opBuilder, portOpService, zkDao);
+	}
 
-        assertThat(ops, hasSize(7));
-        Assert.assertEquals(7, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(dummyCreateOp0, ops.get(3));
-        Assert.assertEquals(dummyCreateOp3, ops.get(4));
-        Assert.assertEquals(dummyCreateOp1, ops.get(5));
-        Assert.assertEquals(dummyCreateOp2, ops.get(6));
-    }
+	@Test
+	public void testBuildCreateBridgeSuccess() throws Exception {
 
-    @Test
-    public void testBuildDeleteWithCascadeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
+		// Setup
+		UUID id = UUID.randomUUID();
+		BridgeConfig config = new BridgeConfig();
+		BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig("foo", "bar");
+		BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
+		InOrder inOrder = inOrder(opBuilder);
 
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(opBuilderMock.getBridgeDeleteOps(id)).thenReturn(dummyDeleteOps);
-        when(portOpServiceMock.buildBridgePortsDelete(id)).thenReturn(
-                dummyDeleteOps);
-        when(opBuilderMock.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,
-                mgmtConfig.name)).thenReturn(dummyDeleteOp0);
-        when(opBuilderMock.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyDeleteOp1);
-        when(opBuilderMock.getBridgeRoutersDeleteOp(id)).thenReturn(
-                dummyDeleteOp3);
-        when(opBuilderMock.getBridgeDeleteOp(id)).thenReturn(dummyDeleteOp2);
+		// Execute
+		List<Op> ops = testObject.buildCreate(id, config, mgmtConfig,
+				nameConfig);
 
-        List<Op> ops = service.buildDelete(id, true);
+		// Verify the order of execution
+		Assert.assertTrue(ops.size() > 0);
+		inOrder.verify(opBuilder).getBridgeCreateOps(id, config);
+		inOrder.verify(opBuilder).getBridgeCreateOp(id, mgmtConfig);
+		inOrder.verify(opBuilder).getTenantBridgeNameCreateOp(
+				mgmtConfig.tenantId, mgmtConfig.name, nameConfig);
+	}
 
-        Assert.assertEquals(10, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.get(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(1));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(2));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(3));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(4));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(5));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(6));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(7));
-        Assert.assertEquals(dummyDeleteOp3, ops.get(8));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(9));
-    }
+	@Test
+	public void testBuildDeleteWithCascadeSuccess() throws Exception {
 
-    @Test
-    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
+		// Setup
+		UUID id = UUID.randomUUID();
+		InOrder inOrder = inOrder(opBuilder, portOpService);
 
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(portOpServiceMock.buildBridgePortsDelete(id)).thenReturn(
-                dummyDeleteOps);
-        when(
-                opBuilderMock.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,
-                        mgmtConfig.name)).thenReturn(dummyDeleteOp0);
-        when(opBuilderMock.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id))
-                .thenReturn(dummyDeleteOp1);
-        when(opBuilderMock.getBridgeRoutersDeleteOp(id)).thenReturn(
-                dummyDeleteOp3);
-        when(opBuilderMock.getBridgeDeleteOp(id)).thenReturn(dummyDeleteOp2);
+		// Execute
+		List<Op> ops = testObject.buildDelete(id, true);
 
-        List<Op> ops = service.buildDelete(id, false);
+		// Verify the order of execution
+		Assert.assertTrue(ops.size() > 0);
+		inOrder.verify(opBuilder).getBridgeDeleteOps(id);
+		inOrder.verify(portOpService).buildBridgePortsDelete(id);
+		inOrder.verify(opBuilder).getBridgeDeleteOp(id);
+	}
 
-        Assert.assertEquals(7, ops.size());
-        Assert.assertEquals(dummyDeleteOp0, ops.get(0));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(1));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(2));
-        Assert.assertEquals(dummyDeleteOp0, ops.get(3));
-        Assert.assertEquals(dummyDeleteOp1, ops.get(4));
-        Assert.assertEquals(dummyDeleteOp3, ops.get(5));
-        Assert.assertEquals(dummyDeleteOp2, ops.get(6));
-    }
+	@Test
+	public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
 
-    @Test
-    public void testBuildUpdateSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        String name = "foo";
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "bar";
-        mgmtConfig.name = "baz";
-        BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
+		// Setup
+		UUID id = UUID.randomUUID();
 
-        // Mock the path builder
-        when(zkDaoMock.getMgmtData(id)).thenReturn(mgmtConfig);
-        when(zkDaoMock.getNameData(mgmtConfig.tenantId, mgmtConfig.name))
-                .thenReturn(nameConfig);
-        when(
-                opBuilderMock.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,
-                        mgmtConfig.name)).thenReturn(dummyCreateOp0);
-        when(
-                opBuilderMock.getTenantBridgeNameCreateOp(mgmtConfig.tenantId,
-                        name, nameConfig)).thenReturn(dummyCreateOp1);
-        when(opBuilderMock.getBridgeSetDataOp(id, mgmtConfig)).thenReturn(
-                dummyCreateOp2);
+		// Execute
+		List<Op> ops = testObject.buildDelete(id, false);
 
-        List<Op> ops = service.buildUpdate(id, name);
+		// Verify that cascade did not happen
+		Assert.assertTrue(ops.size() > 0);
+		verify(opBuilder, never()).getBridgeDeleteOps(id);
+	}
 
-        Assert.assertEquals(3, ops.size());
-        Assert.assertEquals(dummyCreateOp0, ops.get(0));
-        Assert.assertEquals(dummyCreateOp1, ops.get(1));
-        Assert.assertEquals(dummyCreateOp2, ops.get(2));
-        Assert.assertEquals(name, mgmtConfig.name);
-    }
+	@Test
+	public void testBuildUpdateSuccess() throws Exception {
 
-    @Test
-    public void testBuildTenantRoutersDeleteSuccess() throws Exception {
-        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig();
-        mgmtConfig.tenantId = "foo";
-        mgmtConfig.name = "bar";
+		// Setup
+		UUID id = UUID.randomUUID();
+		final String name = "foo";
 
-        when(zkDaoMock.getIds(mgmtConfig.tenantId)).thenReturn(dummyIds);
-        when(zkDaoMock.getMgmtData(any(UUID.class))).thenReturn(mgmtConfig);
-        service.buildTenantBridgesDelete(mgmtConfig.tenantId);
+		// Make sure that the name that's updated is the new name.
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				BridgeMgmtConfig config = (BridgeMgmtConfig) invocation
+						.getArguments()[1];
+				Assert.assertEquals(config.name, name);
+				return null;
+			}
+		}).when(opBuilder).getBridgeSetDataOp(any(UUID.class),
+				any(BridgeMgmtConfig.class));
 
-        verify(opBuilderMock, times(1)).getBridgeDeleteOps(
-                UUID.fromString(dummyId0));
-        verify(opBuilderMock, times(1)).getBridgeDeleteOps(
-                UUID.fromString(dummyId1));
-        verify(opBuilderMock, times(1)).getBridgeDeleteOps(
-                UUID.fromString(dummyId2));
-        verify(opBuilderMock, times(1)).getBridgeDeleteOp(
-                UUID.fromString(dummyId0));
-        verify(opBuilderMock, times(1)).getBridgeDeleteOp(
-                UUID.fromString(dummyId1));
-        verify(opBuilderMock, times(1)).getBridgeDeleteOp(
-                UUID.fromString(dummyId2));
-    }
+		// Execute
+		List<Op> ops = testObject.buildUpdate(id, name);
+
+		// Verify
+		Assert.assertTrue(ops.size() > 0);
+	}
 }
