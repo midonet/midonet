@@ -30,6 +30,16 @@ public class AppConfig {
     public final static String zkRootKey = "zk_root";
     public final static String zkMgmtRootKey = "zk_mgmt_root";
 
+    // TODO(rossella) this should be configurable
+    public final static String cassandraServer = "localhost:9171";
+    public final static String cassandraCluster = "Mido Cluster";
+    public final static String cassandraMonitoringKeySpace = "MM_Monitoring";
+    public final static String cassandraMonitoringColumnFamily = "Monitoring";
+    public final static int cassandraReplicationFactor = 1;
+    public final static int cassandraTtlInSecs = 1000;
+
+
+
     private final ServletContext ctx;
 
     /**

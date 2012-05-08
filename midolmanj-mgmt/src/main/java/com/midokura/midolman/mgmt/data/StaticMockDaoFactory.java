@@ -5,6 +5,7 @@ package com.midokura.midolman.mgmt.data;
 
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.data.dao.*;
+import com.midokura.midolman.mgmt.data.dao.MetricDao;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -129,5 +130,9 @@ public class StaticMockDaoFactory implements DaoFactory {
     @Override
     public PortGroupDao getPortGroupDao() throws StateAccessException {
         return factoryInstance.getPortGroupDao();
+    }
+
+    public MetricDao getMetricDao() throws StateAccessException {
+        return factoryInstance.getMetricDao();
     }
 }

@@ -5,6 +5,7 @@
 package com.midokura.midolman.mgmt.data;
 
 import com.midokura.midolman.mgmt.data.dao.*;
+import com.midokura.midolman.mgmt.data.dao.MetricDao;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -157,4 +158,12 @@ public interface DaoFactory {
     DhcpDao getDhcpDao() throws StateAccessException;
 
     PortGroupDao getPortGroupDao() throws StateAccessException;
+    /**
+     * Get Metric DAO
+     *
+     * @return MetricDao object
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    MetricDao getMetricDao() throws StateAccessException;
 }

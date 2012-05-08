@@ -13,6 +13,7 @@ import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.AbstractDaoFactory;
 import com.midokura.midolman.mgmt.data.DaoInitializationException;
 import com.midokura.midolman.mgmt.data.dao.*;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.MetricCassandraDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.*;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
@@ -32,6 +33,7 @@ import com.midokura.midolman.mgmt.data.zookeeper.op.*;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.JsonJaxbSerializer;
+import com.midokura.midolman.monitoring.store.CassandraStore;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Serializer;
 
@@ -436,5 +438,14 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private ZkManager getZkDao() throws StateAccessException {
         return new ZkManager(getDirectory(), getRootPath());
+    }
+
+    @Override
+    public MetricDao getMetricDao() throws StateAccessException {
+        return new MetricCassandraDao(getCassandraStore());
+    }
+
+    private CassandraStore getCassandraStore(){
+        return new CassandraStore(AppConfig.cassandraServer, AppConfig.cassandraCluster, AppConfig.cassandraMonitoringKeySpace, AppConfig.cassandraMonitoringColumnFamily, AppConfig.cassandraReplicationFactor, AppConfig.cassandraTtlInSecs);
     }
 }

@@ -155,6 +155,16 @@ public class ApplicationResource {
     }
 
     /**
+     * Host resource locator
+     *
+     * @return HostResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.MONITORING_METRICS)
+    public MonitoringQueryResource getMonitoringQueryResource() {
+        return new MonitoringQueryResource();
+    }
+
+    /**
      * Handler for getting root application resources.
      *
      * @param uriInfo

@@ -364,6 +364,11 @@
             <artifactId>midolmanj</artifactId>
             <version>12.06-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>1.0.3.1</version>
+        </dependency>
     </dependencies>
 
     <profiles>
