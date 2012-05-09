@@ -34,10 +34,7 @@ public class RemoteSshProcess extends Process {
 
         sshExecChannel =
             SshHelper.newRemoteProcess(command)
-                     .onHost(host.getHostName(),
-                             host.getHostPort())
-                     .withCredentials(host.getUserName(),
-                                      host.getUserPass())
+                     .withSession(host.getSession())
                      .execute();
 
         log.debug("Command launched successfully");
@@ -117,7 +114,8 @@ public class RemoteSshProcess extends Process {
         try {
             sshExecChannel.disconnect();
         } catch (Exception e) {
-            log.error("Exception while closing the remote execution channel.", e);
+            log.error("Exception while closing the remote execution channel.",
+                      e);
         }
     }
 }

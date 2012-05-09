@@ -25,13 +25,14 @@ public abstract class SshSessionBuilder<Builder extends SshSessionBuilder<Builde
     protected int port;
     protected String username;
     protected String password;
+    protected SshSession sshSession;
 
-    protected abstract Builder castThis();
+    protected abstract Builder self();
 
     public Builder onHost(String hostname, int portName) {
         this.hostname = hostname;
         this.port = portName;
-        return castThis();
+        return self();
     }
 
     @Override
@@ -42,22 +43,29 @@ public abstract class SshSessionBuilder<Builder extends SshSessionBuilder<Builde
     public Builder withCredentials(String username, String password) {
         this.username = username;
         this.password = password;
-        return castThis();
+        return self();
     }
 
-    public SshSession open() throws Exception {
+    public SshSession open() throws IOException {
         return open(0);
     }
 
     public SshSession open(int timeout) throws IOException {
 
-        PasswordCredentialsUserInfo userInfo =
-            new PasswordCredentialsUserInfo(this.password);
+        if (sshSession == null) {
+            PasswordCredentialsUserInfo userInfo =
+                new PasswordCredentialsUserInfo(this.password);
 
-        SshSession sshSession =
-            new SshSession(username, hostname, port, userInfo);
+            sshSession = new SshSession(username, hostname, port, userInfo);
 
-        sshSession.openSession(timeout);
+            sshSession.openSession(timeout);
+        }
+
         return sshSession;
+    }
+
+    public Builder withSession(SshSession session) {
+        this.sshSession = session;
+        return self();
     }
 }

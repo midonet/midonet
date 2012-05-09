@@ -105,12 +105,11 @@ public class SshSession {
                                     String remoteHost, int remotePort)
         throws Exception {
 
-        log.debug("Forwarding local port {} to {}:{} via session: {}",
+        session.setPortForwardingL(localPort, remoteHost, remotePort);
+        log.debug("Forwarded local port {} to {}:{} via session: {}",
                   new Object[]{localPort,
                       remoteHost, remotePort,
                       getHostConnectionString()});
-
-        session.setPortForwardingL(localPort, remoteHost, remotePort);
     }
 
     public void setRemotePortForward(int remotePort) throws Exception {
@@ -125,11 +124,11 @@ public class SshSession {
     public void setRemotePortForward(int remotePort, String localHost,
                                      int localPort)
         throws Exception {
+
+        session.setPortForwardingR(remotePort, localHost, localPort);
         log.debug("Forwarding remote port {} back to {}:{} via session {}.",
                   new Object[]{localPort,
                       localHost, remotePort,
                       getHostConnectionString()});
-
-        session.setPortForwardingR(remotePort, localHost, localPort);
     }
 }

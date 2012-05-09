@@ -4,6 +4,7 @@
 package com.midokura.remote;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -78,8 +79,20 @@ public class RemoteHost {
     private int hostPort = 22;
     private String userName = null;
     private String userPass = null;
+    private SshSession sshSession;
 
     private HierarchicalINIConfiguration config;
+
+    public SshSession getSession() throws IOException {
+        if (sshSession == null) {
+            sshSession = SshHelper.newSession()
+                                  .onHost(hostName, hostPort)
+                                  .withCredentials(userName, userPass)
+                                  .open();
+        }
+
+        return sshSession;
+    }
 
     public String getMidonetHelperPath(String defaultMidonetHelperPath) {
 
@@ -101,6 +114,14 @@ public class RemoteHost {
             this.targetHost = targetHost;
             this.targetPort = targetPort;
         }
+
+        @Override
+        public String toString() {
+            return "TargetPort{" +
+                "targetHost='" + targetHost + '\'' +
+                ", targetPort=" + targetPort +
+                '}';
+        }
     }
 
     private Map<Integer, TargetPort> localPortForwards =
@@ -114,7 +135,6 @@ public class RemoteHost {
             return remoteHost;
 
         remoteHost = new RemoteHost();
-
 
         URL configFileUrl =
             RemoteHost.class.getResource("/managed_host.properties");
@@ -153,26 +173,32 @@ public class RemoteHost {
             return;
 
         try {
-            SshSession portForwardingSession =
-                SshHelper.newSession()
-                         .onHost(hostName, hostPort)
-                         .withCredentials(userName, userPass)
-                         .open();
+            SshSession session = getSession();
 
             for (Integer localPort : localPortForwards.keySet()) {
                 TargetPort target = localPortForwards.get(localPort);
 
-                portForwardingSession.setLocalPortForward(
-                    localPort, target.targetHost, target.targetPort
-                );
+                try {
+                    sshSession.setLocalPortForward(
+                        localPort, target.targetHost, target.targetPort
+                    );
+                } catch (Exception e) {
+                    log.debug("Could not forward local port {} to {}",
+                              localPort, target);
+                }
             }
 
             for (Integer remotePort : remotePortForwards.keySet()) {
                 TargetPort target = remotePortForwards.get(remotePort);
 
-                portForwardingSession.setRemotePortForward(
-                    remotePort, target.targetHost, target.targetPort
-                );
+                try {
+                    sshSession.setRemotePortForward(
+                        remotePort, target.targetHost, target.targetPort
+                    );
+                } catch (Exception e) {
+                    log.debug("Could not forward remote port {} to {}",
+                              remotePort, target);
+                }
             }
         } catch (Exception e) {
             log.error("Exception while connecting to the remote host {} in " +
