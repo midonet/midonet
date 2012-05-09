@@ -258,7 +258,8 @@ public interface OpenvSwitchDatabaseConnection {
      * @return the value of the external ID, or null if no port with that name
      * exists or if the port has no external id with that key
      */
-    String getPortExternalId(String portName, String externalIdKey);
+    String getPortExternalId(String portName, String externalIdKey)
+        throws OpenvSwitchException.NotFoundException;
 
     /**
      * Get an external ID associated with a given OpenFlow port number.

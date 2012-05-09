@@ -32,6 +32,7 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.*;
@@ -815,8 +816,8 @@ public class VRNController extends AbstractController
     }
 
     private void setupServicePort(int portNum, String portName)
-            throws StateAccessException, ZkStateSerializationException,
-            IOException, KeeperException, InterruptedException {
+        throws StateAccessException, IOException, KeeperException,
+               InterruptedException, OpenvSwitchException.NotFoundException {
         UUID portId = service.getRemotePort(portName);
         if (portId != null) {
             service.configurePort(portId, portName);

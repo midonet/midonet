@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.quagga.BgpConnection;
@@ -167,7 +168,9 @@ public class BgpPortService implements PortService {
     }
 
     @Override
-    public UUID getRemotePort(String portName) {
+    public UUID getRemotePort(String portName)
+        throws OpenvSwitchException.NotFoundException
+    {
         String service = ovsdb.getPortExternalId(portName,
                                                  portServiceExtIdKey);
         if (!BGP_SERVICE_EXT_ID.equals(service)) {

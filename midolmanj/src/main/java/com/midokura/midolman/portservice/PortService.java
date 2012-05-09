@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.ServiceFlowController;
+import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -28,7 +29,8 @@ public interface PortService {
     public void addPort(long datapathId, UUID portId)
         throws StateAccessException;
 
-    public UUID getRemotePort(String portName);
+    public UUID getRemotePort(String portName)
+        throws OpenvSwitchException.NotFoundException;
 
     public void configurePort(UUID portId, String portName)
         throws IOException, StateAccessException, InterruptedException;
