@@ -1,7 +1,6 @@
 /*
- * @(#)Route      1.6 11/09/10
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -16,9 +15,6 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Class representing route.
- *
- * @version 1.6 10 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Route extends UriResource {
@@ -57,7 +53,10 @@ public class Route extends UriResource {
         this.id = id;
         this.dstNetworkAddr = Net.convertIntAddressToString(rt.dstNetworkAddr);
         this.dstNetworkLength = rt.dstNetworkLength;
-        this.nextHopGateway = Net.convertIntAddressToString(rt.nextHopGateway);
+        if (rt.nextHopGateway != com.midokura.midolman.layer3.Route.NO_GATEWAY) {
+            this.nextHopGateway = Net
+                    .convertIntAddressToString(rt.nextHopGateway);
+        }
         this.nextHopPort = rt.nextHopPort;
         this.srcNetworkAddr = Net.convertIntAddressToString(rt.srcNetworkAddr);
         this.srcNetworkLength = rt.srcNetworkLength;

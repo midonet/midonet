@@ -1,7 +1,6 @@
 /*
- * @(#)testVif        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
@@ -15,6 +14,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class TestRoute extends JerseyTest {
@@ -83,6 +84,49 @@ public class TestRoute extends JerseyTest {
         log.debug("location: {}", response.getLocation());
 
         testRouterPortId = FuncTest.getUuidFromLocation(response.getLocation());
+    }
+
+    @Test
+    public void testNullNextHopGateway() {
+        DtoRoute route = new DtoRoute();
+        String srcNetworkAddr = "10.0.0.0";
+        int srcNetworkLength = 24;
+        String type = "Normal";
+        String dstNetworkAddr = "192.168.0.0";
+        int dstNetworkLength = 24;
+        UUID nextHopPort = testRouterPortId;
+        String nextHopGateway = null;
+        int weight = 100;
+
+        // Create a route
+        route.setSrcNetworkAddr(srcNetworkAddr);
+        route.setSrcNetworkLength(srcNetworkLength);
+        route.setType(type);
+        route.setDstNetworkAddr(dstNetworkAddr);
+        route.setDstNetworkLength(dstNetworkLength);
+        route.setNextHopPort(nextHopPort);
+        route.setNextHopGateway(nextHopGateway);
+        route.setWeight(weight);
+
+        URI routerRouteUri = URI.create(testRouterUri.toString() + "/routes");
+        response = resource().uri(routerRouteUri).type(APPLICATION_ROUTE_JSON).post(ClientResponse.class, route);
+
+        URI routeUri = response.getLocation();
+        log.debug("status {}", response.getStatus());
+        log.debug("location {}", response.getLocation());
+        assertEquals(201, response.getStatus());
+
+        // Get the route
+        response = resource().uri(routeUri).accept(APPLICATION_ROUTE_JSON).get(ClientResponse.class);
+        route = response.getEntity(DtoRoute.class);
+        assertEquals(200, response.getStatus());
+
+        // Check the next hop gateway is null
+        assertNull(nextHopGateway);
+
+        // Delete the route
+        response = resource().uri(routeUri).type(APPLICATION_ROUTE_JSON).delete(ClientResponse.class);
+        assertEquals(204, response.getStatus());
     }
 
     @Test
