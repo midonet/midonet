@@ -133,7 +133,7 @@ public interface ForwardingElement {
             if (null == numTraversed)
                 traversedFEs.put(deviceId, 1);
             else
-                traversedFEs.put(deviceId, numTraversed++);
+                traversedFEs.put(deviceId, numTraversed+1);
         }
 
         @Override

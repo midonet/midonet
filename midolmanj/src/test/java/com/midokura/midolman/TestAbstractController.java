@@ -213,6 +213,7 @@ public class TestAbstractController {
                              localIp /* internalIp */,
                              mockDir, basePath);
         controller.setControllerStub(controllerStub);
+        controller.portLocMap.start();
 
         port1 = new OFPhysicalPort();
         port1.setPortNumber((short) 37);

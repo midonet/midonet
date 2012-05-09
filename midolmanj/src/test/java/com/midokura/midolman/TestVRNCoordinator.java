@@ -210,6 +210,19 @@ public class TestVRNCoordinator {
     }
 
     @Test
+    public void testFwdInfoMultiplityCount() {
+        ForwardInfo fi = new ForwardInfo();
+        UUID id = UUID.randomUUID();
+        Assert.assertEquals(0, fi.getTimesTraversed(id));
+        fi.addTraversedFE(id);
+        Assert.assertEquals(1, fi.getTimesTraversed(id));
+        fi.addTraversedFE(id);
+        Assert.assertEquals(2, fi.getTimesTraversed(id));
+        fi.addTraversedFE(id);
+        Assert.assertEquals(3, fi.getTimesTraversed(id));
+    }
+
+    @Test
     public void testOneRouterBlackhole() throws StateAccessException,
             ZkStateSerializationException, IOException, JMException,
             KeeperException {
