@@ -48,6 +48,11 @@ public class ZkDirectory implements Directory {
         this.acl = Ids.OPEN_ACL_UNSAFE;
         this.reactor = reactor;
     }
+    
+    @Override
+    public String toString() {
+        return ("ZkDirectory: base=" + basePath);
+    }
 
     @Override
     public String add(String relativePath, byte[] data, CreateMode mode)

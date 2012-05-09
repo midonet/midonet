@@ -129,6 +129,8 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     public void start() {
+        log.debug("start: dir=", dir);
+        
         if (!this.running) {
             this.running = true;
             myWatcher.run();
