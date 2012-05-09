@@ -20,7 +20,6 @@ import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -32,7 +31,7 @@ public class ChainProcessor {
     private final static Logger log =
         LoggerFactory.getLogger(ChainProcessor.class);
 
-    private Map<UUID, Chain> chainByUuid;
+    protected Map<UUID, Chain> chainByUuid;
     private Directory zkDir;
     private String zkBasePath;
     private Cache cache;
@@ -147,9 +146,11 @@ public class ChainProcessor {
                     UUID nextID = nextChain.getID();
                     if (traversedChains.contains(nextID)) {
                         // Avoid jumping to chains we've already seen.
-                        log.warn("applyChain {} cannot jump from chain {} to " +
-                                 "chain {} -- already visited", new Object[] {
-                                 chainID, cp.id, res.jumpToChain });
+                        log.warn("applyChain {}({}) cannot jump from chain " +
+                                 " {}({}) to chain {}({}) -- already visited",
+                                new Object[]{ chainID, getOrCreateChain(chainID).getChainName(),
+                                cp.id, getOrCreateChain(cp.id).getChainName(),
+                                res.jumpToChain, nextChain.getChainName() });
                         continue;
                     }
 

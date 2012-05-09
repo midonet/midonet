@@ -4,13 +4,11 @@
 
 package com.midokura.midolman.rules;
 
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +28,9 @@ public class Chain {
         }
     }
 
-    private UUID chainId;
+    protected UUID chainId;
     private String chainName;
-    private List<Rule> rules;
+    protected List<Rule> rules;
     private RulesWatcher rulesWatcher;
     private RuleZkManager zkRuleManager;
 
@@ -45,6 +43,10 @@ public class Chain {
         this.rulesWatcher = new RulesWatcher();
         this.zkRuleManager = new RuleZkManager(zkDirectory, zkBasePath);
         updateRules();
+    }
+
+    protected Chain () {
+        // empty constructor for mock class
     }
 
     List<Rule> getRules() {

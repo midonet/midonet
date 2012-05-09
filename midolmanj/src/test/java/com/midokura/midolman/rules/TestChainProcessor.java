@@ -6,14 +6,24 @@ package com.midokura.midolman.rules;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
+import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.layer4.NatMapping;
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.MockCache;
+import com.sun.source.tree.AssertTree;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -22,18 +32,301 @@ import org.junit.Test;
 import com.midokura.midolman.layer4.MockNatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
-import com.midokura.midolman.state.RuleZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import org.openflow.protocol.OFMatch;
 
-public class TestRuleEngine {
+public class TestChainProcessor {
+
+    static Random rand;
+    static UUID ownerId;
+    static UUID chainId;
+    static UUID inPortId;
+    static UUID outPortId;
+    static MidoMatch pktMatch;
+    static MidoMatch flowMatch;
+    static MockChainProcessor mockChainProcessor;
+    static Condition matchingCondition;
+    static Condition nonMatchingCondition;
+
+    class MockChainProcessor extends ChainProcessor {
+
+        public MockChainProcessor(Directory dir, String zkBasePath, Cache cache,
+                                  Reactor reactor) throws StateAccessException {
+            super(dir, zkBasePath, cache, reactor);
+        }
+
+        public void addChain(Chain chain) {
+            if (chain == null) {
+                return;
+            }
+
+            chainByUuid.put(chain.getID(), chain);
+        }
+    }
+
+    class MockChain extends Chain {
+
+        public MockChain(UUID chainId, String chainName) {
+
+            // we don't call super constructor, because it's got references
+            // to zookeeper we don't need for testing.
+            this.chainId = chainId;
+            this.rules = new LinkedList<Rule>();
+            this.setChainName(chainName);
+        }
+
+        public void addRule (Rule rule) {
+            if (rule == null) {
+                return;
+            }
+
+            rules.add(rule);
+        }
+    }
+
+    @BeforeClass
+    public static void setupOnce() {
+        rand = new Random();
+        ownerId = new UUID(rand.nextLong(), rand.nextLong());
+        chainId = new UUID(rand.nextLong(), rand.nextLong());
+        inPortId = new UUID(rand.nextLong(), rand.nextLong());
+        outPortId = new UUID(rand.nextLong(), rand.nextLong());
+
+        // Build a packet to test the rules.
+        pktMatch = new MidoMatch();
+        pktMatch.setInputPort((short) 5);
+        pktMatch.setDataLayerSource("02:11:33:00:11:01");
+        pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
+        pktMatch.setNetworkSource(0x0a001406, 32);
+        pktMatch.setNetworkDestination(0x0a000b22, 32);
+        pktMatch.setNetworkProtocol((byte) 6); // TCP
+        pktMatch.setNetworkTypeOfService((byte) 34);
+        pktMatch.setTransportSource((short) 4321);
+        pktMatch.setTransportDestination((short) 1234);
+
+        // Initially the flowMatch and the packetMatch are the same
+        flowMatch = pktMatch.clone();
+
+        // Matching condition
+        matchingCondition = new Condition();
+        matchingCondition.nwSrcIp = 0x0a001406;
+        matchingCondition.nwSrcLength = 32;
+
+        // Non-matching condition
+        nonMatchingCondition = new Condition();
+        nonMatchingCondition.nwSrcIp = 0xdeadbeef;
+        nonMatchingCondition.nwSrcLength = 32;
+    }
+
+    @AfterClass
+    public static void tearDownOnce() {
+
+    }
+
+    @Before
+    public void setup() throws InterruptedException, KeeperException, StateAccessException {
+
+        // Initialize the chainProcessor each test, so we can easily have a
+        // clear directory every time
+        Directory mockDirectory = new MockDirectory();
+        ZkPathManager pathMgr = new ZkPathManager("");
+        mockDirectory.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
+        FiltersZkManager filterMgr = new FiltersZkManager(mockDirectory, "");
+        filterMgr.create(ownerId);
+
+        mockChainProcessor = new MockChainProcessor(mockDirectory, "",
+                new MockCache(), new MockReactor());
+    }
+
+    @After
+    public void tearDown() {
+
+    }
+
+    @Test
+    public void testFreeFlowResources() {
+        OFMatch match = new OFMatch();
+
+        Assert.assertNotNull(mockChainProcessor);
+        mockChainProcessor.freeFlowResources(match, ownerId);
+
+        // No need to check the result of the operation, we just want to
+        // check that the code doesn't crash.
+        Assert.assertTrue(true);
+    }
+
+    @Test
+    public void testGetOrCreateChain() {
+
+    }
+
+    @Test
+    public void testApply1() throws StateAccessException {
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        addRule(nonMatchingCondition, Action.DROP ,mockChain, 10);
+        addRule(matchingCondition, Action.REJECT, mockChain, 20); //match
+
+        mockChainProcessor.addChain(mockChain);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        Assert.assertEquals(ruleResult.action, Action.REJECT);
+    }
+
+    @Test
+    public void testApply2() throws StateAccessException {
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        addRule(matchingCondition, Action.REJECT, mockChain, 10); //match
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChain, 20);
+
+        mockChainProcessor.addChain(mockChain);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        Assert.assertEquals(ruleResult.action, Action.REJECT);
+    }
+
+    @Test
+    public void testApply3() throws StateAccessException {
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        addRule(nonMatchingCondition, Action.DROP, mockChain, 10);
+        addRule(nonMatchingCondition, Action.DROP, mockChain, 20);
+
+        mockChainProcessor.addChain(mockChain);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        // When no rules are matched, expect ACCEPT
+        Assert.assertEquals(ruleResult.action, Action.ACCEPT);
+    }
+
+    @Test
+    public void testJump1() throws StateAccessException {
+        // Main chain
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        // Target chain, we jump here from main chain
+        UUID targetChainId = new UUID (rand.nextLong(), rand.nextLong());
+        MockChain mockChainTarget = new MockChain(targetChainId, "targetChain");
+
+        addRule(nonMatchingCondition, Action.DROP, mockChain, 10);
+        addRule(matchingCondition, mockChainTarget, mockChain, 20);
+        addRule(matchingCondition, Action.DROP, mockChain, 50);
+
+        addRule(nonMatchingCondition, Action.DROP, mockChainTarget, 30);
+        addRule(matchingCondition, Action.REJECT, mockChainTarget, 40); //match
+
+        mockChainProcessor.addChain(mockChain);
+        mockChainProcessor.addChain(mockChainTarget);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        Assert.assertEquals(ruleResult.action, Action.REJECT);
+    }
+
+    @Test
+    public void testJump2() throws StateAccessException {
+        // Main chain
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        // Target chain, we jump here from main chain
+        UUID targetChainId = new UUID (rand.nextLong(), rand.nextLong());
+        MockChain mockChainTarget = new MockChain(targetChainId, "targetChain");
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChain, 10);
+        addRule(matchingCondition, mockChainTarget, mockChain, 20);
+        addRule(matchingCondition, Action.ACCEPT, mockChain, 50);
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChainTarget, 30);
+        addRule(matchingCondition, Action.REJECT, mockChainTarget, 40); //match
+
+        mockChainProcessor.addChain(mockChain);
+        mockChainProcessor.addChain(mockChainTarget);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        Assert.assertEquals(ruleResult.action, Action.REJECT);
+    }
+
+    @Test
+    public void testJump3() throws StateAccessException {
+        // Main chain
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        // Target chain, we jump here from main chain
+        UUID targetChainId = new UUID (rand.nextLong(), rand.nextLong());
+        MockChain mockChainTarget = new MockChain(targetChainId, "targetChain");
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChain, 10);
+        addRule(matchingCondition, mockChainTarget, mockChain, 20);
+        addRule(matchingCondition, Action.REJECT, mockChain, 50); //match
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChainTarget, 30);
+        addRule(matchingCondition, mockChain, mockChainTarget, 40); //loop
+
+        mockChainProcessor.addChain(mockChain);
+        mockChainProcessor.addChain(mockChainTarget);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        Assert.assertEquals(ruleResult.action, Action.REJECT);
+    }
+
+    @Test
+    public void testJump4() throws StateAccessException {
+        // Main chain
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        // Target chain, we jump here from main chain
+        UUID targetChainId = new UUID (rand.nextLong(), rand.nextLong());
+        MockChain mockChainTarget1 = new MockChain(targetChainId, "targetChain1");
+
+        targetChainId = new UUID (rand.nextLong(), rand.nextLong());
+        MockChain mockChainTarget2 = new MockChain(targetChainId, "targetChain2");
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChain, 10);
+        addRule(matchingCondition, mockChainTarget1, mockChain, 20);
+        addRule(matchingCondition, Action.REJECT, mockChain, 70); //match
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChainTarget1, 30);
+        addRule(matchingCondition, mockChainTarget2, mockChainTarget1, 40);
+
+        addRule(nonMatchingCondition, Action.ACCEPT, mockChainTarget2, 50);
+        addRule(matchingCondition, mockChainTarget1, mockChainTarget2, 60); //loop
+
+        mockChainProcessor.addChain(mockChain);
+        mockChainProcessor.addChain(mockChainTarget1);
+        mockChainProcessor.addChain(mockChainTarget2);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        Assert.assertEquals(ruleResult.action, Action.REJECT);
+    }
+
+    @Test
+    public void testNat1() {
+        //TODO(abel)
+    }
+
+    private void addRule (Condition condition, Action action, MockChain mockChain, int position) {
+        Rule rule = new LiteralRule(condition, action, mockChain.getID(), position);
+        mockChain.addRule(rule);
+    }
+
+    private void addRule (Condition condition, Chain targetChain, MockChain mockChain, int position) {
+        Rule rule = new JumpRule(condition, targetChain.getID(), targetChain.getChainName(), mockChain.getID(), position);
+        mockChain.addRule(rule);
+    }
 
     /* TODO(abel): fix this.
     static Random rand;
