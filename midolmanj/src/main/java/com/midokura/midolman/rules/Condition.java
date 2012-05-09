@@ -43,36 +43,39 @@ public class Condition {
     public void setOutPortIds(Set<UUID> outPortIds) { this.outPortIds = outPortIds; }
 
     /* Custom accessors for Jackson serialization with more readable IP addresses. */
-    
+
     public String getNwSrcIp() {
     	return Net.convertIntAddressToString(this.nwSrcIp);
     }
-    
+
     public void setNwSrcIp(String addr) {
     	this.nwSrcIp = Net.convertStringAddressToInt(addr);
     }
-    
+
     public String getNwDstIp() {
     	return Net.convertIntAddressToString(this.nwDstIp);
     }
-    
+
     public void setNwDstIp(String addr) {
     	this.nwDstIp = Net.convertStringAddressToInt(addr);
     }
-    
+
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
 
     public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch) {
         /*
-         * Given a packet P and a subCondition x, 'xInv x(P)' is true iff: 1)
-         * xInv is false and x(P) is true 2) xInv is true and x(P) is false In
-         * other words, 'xInv x(P)' is false if xInv == x(P). The entire
-         * condition can be expressed as a conjunction: conjunctionInv (x1Inv
-         * x1(P) ^ ... ^ x_nInv x_n(P)) So we can short-circuit evaluation of
-         * the conjunction whenever any x_iInv x_i(P) evaluates to false and we
-         * then return the value of 'conjunctionInv'. If the conjunction
-         * evaluates to true, then we return 'NOT conjunctionInv'.
+         * Given a packet P and a subCondition x, 'xInv x(P)' is true
+         * iff either:
+         *    1) xInv is false and x(P) is true,
+         * or 2) xInv is true and x(P) is false.
+         * In other words, 'xInv x(P)' is false iff xInv == x(P).  The entire
+         * condition can be expressed as a conjunction:
+         *     conjunctionInv (x1Inv x1(P) & ... & x_nInv x_n(P))
+         * So we can short-circuit evaluation of the conjunction whenever
+         * any x_iInv x_i(P) evaluates to false and we then return the value
+         * of 'conjunctionInv'.  If the conjunction evaluates to true, then
+         * we return 'NOT conjunctionInv'.
          */
         if (null != inPortIds && inPortIds.size() > 0
                 && inPortIds.contains(inPortId) == inPortInv)
