@@ -49,6 +49,11 @@ public class Tenant {
     public Bridge.Builder addBridge() {
         return new Bridge.Builder(mgmt, dto);
     }
+
+    public RuleChain.Builder addChain() {
+        return new RuleChain.Builder(mgmt, dto);
+    }
+
     public void delete() {
         mgmt.delete(dto.getUri());
     }

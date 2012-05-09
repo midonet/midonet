@@ -110,8 +110,7 @@ public class ChainZkDao {
         log.debug("ChainZkDao.getNameData entered: routerId=" + tenantId
                 + ", name=" + chainName);
 
-        String path = pathBuilder.getTenantChainNamePath(tenantId,
-                chainName.toLowerCase());
+        String path = pathBuilder.getTenantChainNamePath(tenantId, chainName);
         byte[] data = zkDao.get(path);
         ChainNameMgmtConfig config = serializer.deserializeName(data);
 

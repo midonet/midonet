@@ -77,7 +77,6 @@ public class Rule extends UriResource {
     private short tpDstEnd;
     private boolean invTpDst = false;
     private String type = null;
-    private UUID jumpChainId = null;
     private String jumpChainName = null;
     private String flowAction = null;
     private String[][][] natTargets = new String[2][2][];
@@ -122,7 +121,6 @@ public class Rule extends UriResource {
             }
             this.flowAction = Rule.getActionString(zkRule.action);
         } else {
-            this.jumpChainId = ((JumpRule) zkRule).jumpToChainID;
             this.jumpChainName = ((JumpRule) zkRule).jumpToChainName;
         }
         this.id = id;
@@ -490,21 +488,6 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @return the jumpChainId
-     */
-    public UUID getJumpChainId() {
-        return jumpChainId;
-    }
-
-    /**
-     * @param jumpChainId
-     *            the jumpChainId to set
-     */
-    public void setJumpChainId(UUID jumpChainId) {
-        this.jumpChainId = jumpChainId;
-    }
-
-    /**
      * @return the jumpChainName
      */
     public String getJumpChainName() {
@@ -676,7 +659,7 @@ public class Rule extends UriResource {
         return targets.toArray(new String[2][2][targets.size()]);
     }
 
-    public com.midokura.midolman.rules.Rule toZkRule() {
+    public com.midokura.midolman.rules.Rule toZkRule(UUID jumpChainID) {
         Condition cond = makeCondition();
         String type = this.getType();
         Action action = getAction(type);
@@ -692,8 +675,7 @@ public class Rule extends UriResource {
                     type.equals(Rule.RevDNAT));
         } else {
             // Jump
-            // TODO(pino): need to find the jump chain's ID.
-            r = new JumpRule(cond, UUID.randomUUID(), getJumpChainName());
+            r = new JumpRule(cond, jumpChainID, getJumpChainName());
         }
         r.chainId = chainId;
         r.position = position;
@@ -736,7 +718,7 @@ public class Rule extends UriResource {
     @Override
     public String toString() {
         return "id=" + id + ", chainId=" + chainId + ", type=" + type
-                + ", jumpChainId=" + jumpChainId + ", jumpChainName="
+                + ", jumpChainName="
                 + jumpChainName + ", flowAction=" + flowAction + ", position="
                 + position + ", nwSrcAddress=" + nwSrcAddress
                 + ", nwSrcLength=" + nwSrcLength + ", nwDstAddress="

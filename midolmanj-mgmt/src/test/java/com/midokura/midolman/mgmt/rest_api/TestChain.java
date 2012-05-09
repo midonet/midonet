@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 
@@ -81,7 +82,7 @@ public class TestChain extends JerseyTest {
 
         // Create a rule chain for Tenant1
         DtoRuleChain ruleChain1 = new DtoRuleChain();
-        ruleChain1.setName("foo");
+        ruleChain1.setName("Chain1");
         response = resource().uri(tenant1.getChains())
                 .type(APPLICATION_CHAIN_JSON)
                 .post(ClientResponse.class, ruleChain1);
@@ -89,12 +90,12 @@ public class TestChain extends JerseyTest {
         ruleChain1 = resource().uri(response.getLocation())
                 .accept(APPLICATION_CHAIN_JSON)
                 .get(DtoRuleChain.class);
-        assertEquals("foo", ruleChain1.getName());
+        assertEquals("Chain1", ruleChain1.getName());
         assertEquals(tenant1.getId(), ruleChain1.getTenantId());
 
         // Create another rule chain for Tenant1
         DtoRuleChain ruleChain2 = new DtoRuleChain();
-        ruleChain2.setName("bar");
+        ruleChain2.setName("Chain2");
         response = resource().uri(tenant1.getChains())
                 .type(APPLICATION_CHAIN_JSON)
                 .post(ClientResponse.class, ruleChain2);
@@ -102,12 +103,12 @@ public class TestChain extends JerseyTest {
         ruleChain2 = resource().uri(response.getLocation())
                 .accept(APPLICATION_CHAIN_JSON)
                 .get(DtoRuleChain.class);
-        assertEquals("bar", ruleChain2.getName());
+        assertEquals("Chain2", ruleChain2.getName());
         assertEquals(tenant1.getId(), ruleChain2.getTenantId());
 
         // Create a rule chain for Tenant2
         DtoRuleChain ruleChain3 = new DtoRuleChain();
-        ruleChain3.setName("fud");
+        ruleChain3.setName("Chain3");
         response = resource().uri(tenant2.getChains())
                 .type(APPLICATION_CHAIN_JSON)
                 .post(ClientResponse.class, ruleChain3);
@@ -115,7 +116,7 @@ public class TestChain extends JerseyTest {
         ruleChain3 = resource().uri(response.getLocation())
                 .accept(APPLICATION_CHAIN_JSON)
                 .get(DtoRuleChain.class);
-        assertEquals("fud", ruleChain3.getName());
+        assertEquals("Chain3", ruleChain3.getName());
         assertEquals(tenant2.getId(), ruleChain3.getTenantId());
 
         // List tenant1's chains
@@ -127,6 +128,21 @@ public class TestChain extends JerseyTest {
         assertThat("Tenant1 has 2 chains.", chains, arrayWithSize(2));
         assertThat("We expect the listed chains to match those we created.",
                 chains, arrayContainingInAnyOrder(ruleChain1, ruleChain2));
+
+        // Create a JUMP rule in chain1 with target=chain2
+        DtoRule jumpRule = new DtoRule();
+        jumpRule.setPosition(1);
+        jumpRule.setJumpChainName("Chain2");
+        jumpRule.setType(DtoRule.Jump);
+        response = resource().uri(ruleChain1.getRules())
+                .type(APPLICATION_RULE_JSON)
+                .post(ClientResponse.class, jumpRule);
+        assertEquals("The jump rule was created.", 201, response.getStatus());
+        jumpRule = resource().uri(response.getLocation())
+                .accept(APPLICATION_RULE_JSON)
+                .get(DtoRule.class);
+        assertEquals("Chain2", jumpRule.getJumpChainName());
+        assertEquals(ruleChain1.getId(), jumpRule.getChainId());
 
         // Delete the first rule-chain
         response = resource().uri(ruleChain1.getUri())
@@ -143,7 +159,7 @@ public class TestChain extends JerseyTest {
         assertThat("The listed chain should be the one that wasn't deleted.",
                 chains, arrayContainingInAnyOrder(ruleChain2));
 
-        // Test GET of a non-existing chain (the deleted first subnet).
+        // Test GET of a non-existing chain (the deleted first chain).
         response = resource().uri(ruleChain1.getUri())
                 .accept(APPLICATION_CHAIN_JSON).get(ClientResponse.class);
         assertEquals(404, response.getStatus());

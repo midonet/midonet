@@ -47,7 +47,6 @@ public class DtoRule {
     private short tpDstEnd;
     private boolean invTpDst;
     private String type;
-    private UUID jumpChainId;
     private String jumpChainName;
     private String flowAction;
     private String[][][] natTargets;
@@ -251,14 +250,6 @@ public class DtoRule {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public UUID getJumpChainId() {
-        return jumpChainId;
-    }
-
-    public void setJumpChainId(UUID jumpChainId) {
-        this.jumpChainId = jumpChainId;
     }
 
     public String getJumpChainName() {

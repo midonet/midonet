@@ -45,9 +45,9 @@ public class RuleZkProxy implements RuleDao {
      * .mgmt.data.dto.Rule)
      */
     @Override
-    public UUID create(Rule rule) throws RuleIndexOutOfBoundsException,
-            StateAccessException {
-        return dataAccessor.create(rule.toZkRule());
+    public UUID create(Rule rule, UUID jumpChainID)
+            throws RuleIndexOutOfBoundsException, StateAccessException {
+        return dataAccessor.create(rule.toZkRule(jumpChainID));
     }
 
     /*

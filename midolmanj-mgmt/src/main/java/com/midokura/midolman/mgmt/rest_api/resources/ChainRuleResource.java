@@ -23,7 +23,9 @@ import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
+import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
@@ -53,7 +55,7 @@ public class ChainRuleResource {
     /**
      * Handler for creating a chain rule.
      *
-     * @param router
+     * @param rule
      *            Rule object.
      * @param uriInfo
      *            Object that holds the request URI data.
@@ -81,10 +83,19 @@ public class ChainRuleResource {
         }
 
         RuleDao dao = daoFactory.getRuleDao();
+
         rule.setChainId(chainId);
+        UUID jumpChainID = null;
+        if (rule.getJumpChainName() != null) {
+            ChainDao chainDao = daoFactory.getChainDao();
+            Chain chain = chainDao.get(chainId);
+            Chain jumpChain =
+                    chainDao.get(chain.getTenantId(), rule.getJumpChainName());
+            jumpChainID = jumpChain.getId();
+        }
         UUID id = null;
         try {
-            id = dao.create(rule);
+            id = dao.create(rule, jumpChainID);
         } catch (RuleIndexOutOfBoundsException e) {
             throw new BadRequestHttpException("Invalid rule position.");
         }

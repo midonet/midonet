@@ -47,7 +47,13 @@ public class Bridge {
     }
 
     public BridgePort addPort() {
+        return addPort(null, null);
+    }
+
+    public BridgePort addPort(UUID inboundFilter, UUID outboundFilter) {
         DtoPort port = new DtoPort();
+        port.setInboundFilter(inboundFilter);
+        port.setOutboundFilter(outboundFilter);
         return new BridgePort(mgmt, mgmt.addBridgePort(dto, port));
     }
 

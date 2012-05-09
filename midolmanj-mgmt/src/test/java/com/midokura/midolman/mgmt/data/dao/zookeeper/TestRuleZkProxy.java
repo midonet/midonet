@@ -57,10 +57,10 @@ public class TestRuleZkProxy {
         com.midokura.midolman.rules.Rule config = getRuleConfig(
                 UUID.randomUUID(), 1);
         Rule rule = mock(Rule.class);
-        when(rule.toZkRule()).thenReturn(config);
+        when(rule.toZkRule(null)).thenReturn(config);
         when(daoMock.create(config)).thenReturn(id);
 
-        UUID newId = proxy.create(rule);
+        UUID newId = proxy.create(rule, null);
 
         Assert.assertEquals(id, newId);
     }

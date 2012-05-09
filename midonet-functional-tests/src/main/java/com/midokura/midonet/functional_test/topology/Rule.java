@@ -21,6 +21,11 @@ public class Rule {
             rule.setPosition(1);
         }
 
+        public Builder setPosition(int position) {
+            rule.setPosition(position);
+            return this;
+        }
+
         public Builder setSimpleType(String type) {
             rule.setFlowAction(type);
             rule.setType(type);
@@ -35,6 +40,12 @@ public class Rule {
             String p = new Integer(port).toString();
             target[0][1] = new String[] { p, p };
             rule.setNatTargets(target);
+            return this;
+        }
+
+        public Builder setJump(String targetChainName) {
+            rule.setType(DtoRule.Jump);
+            rule.setJumpChainName(targetChainName);
             return this;
         }
 

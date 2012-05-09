@@ -80,7 +80,7 @@ public class TapWrapper {
     }
 
     public byte[] recv() {
-        long maxSleepMillis = 10000;
+        long maxSleepMillis = 2000;
         long timeSlept = 0;
         // Max pkt size = 14 (Ethernet) + 1500 (MTU) - 20 GRE = 1492
         byte[] data = new byte[1492];

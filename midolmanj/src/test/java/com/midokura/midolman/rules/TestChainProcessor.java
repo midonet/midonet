@@ -4,22 +4,10 @@
 
 package com.midokura.midolman.rules;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.UUID;
-import java.util.Vector;
 
-import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.state.*;
-import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.MockCache;
-import com.sun.source.tree.AssertTree;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
@@ -28,12 +16,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openflow.protocol.OFMatch;
 
-import com.midokura.midolman.layer4.MockNatMapping;
+import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
-import org.openflow.protocol.OFMatch;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.FiltersZkManager;
+import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.MockCache;
 
 public class TestChainProcessor {
 

@@ -23,14 +23,14 @@ public interface RuleDao {
     /**
      * Create a Rule.
      *
-     * @param Rule
+     * @param rule
      *            Rule to create.
      * @return Rule ID.
      * @throws StateAccessException
      *             Data Access error.
      */
-    UUID create(Rule rule) throws RuleIndexOutOfBoundsException,
-            StateAccessException;
+    UUID create(Rule rule, UUID jumpChainID)
+            throws RuleIndexOutOfBoundsException, StateAccessException;
 
     /**
      * Delete a Rule.
