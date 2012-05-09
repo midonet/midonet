@@ -608,8 +608,10 @@ public class VRNController extends AbstractController
         if (0 != setTunnelId)
             actions.add(new NxActionSetTunnelKey32(setTunnelId));
         for (Short outPortNum : outPorts) {
-            action = new OFActionOutput(outPortNum.shortValue(), (short) 0);
-            actions.add(action);
+            short out = outPortNum.shortValue();
+            if (out == origMatch.getInputPort())
+                out = OFPort.OFPP_IN_PORT.getValue();
+            actions.add(new OFActionOutput(out, (short) 0));
         }
         return actions;
     }
