@@ -343,8 +343,6 @@ public class TestVRNCoordinator {
         Assert.assertEquals(0, fInfo2.getTimesTraversed(routerIds.get(2)));
     }
 
-    // TODO: Fix this
-    @Ignore
     @Test
     public void testThreeRoutersForward() throws StateAccessException,
             ZkStateSerializationException, IOException, JMException,
@@ -358,7 +356,6 @@ public class TestVRNCoordinator {
                 MAC.fromString("02:00:11:22:00:01"), ingrDevPort.getMacAddr(),
                 0x0a0101bb, 0x0a020188, (short) 101, (short) 212, payload);
         ForwardInfo fInfo = prepareFwdInfo(ingrDevPort.getId(), eth);
-        vrn.process(fInfo);
         vrn.process(fInfo);
         Assert.assertEquals(3, fInfo.getNumFEsTraversed());
         Assert.assertEquals(1, fInfo.getTimesTraversed(routerIds.get(0)));
