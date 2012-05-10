@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -117,7 +118,7 @@ public class BridgeDHCPTest {
         stopMidolmanMgmt(mgmt);
     }
 
-    @Test
+    @Ignore @Test
     public void testSampleTest() throws Exception {
         Subnet subnet = bridge.newDhcpSubnet()
                               .havingSubnet("192.168.231.1", 24)
