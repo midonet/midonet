@@ -6,28 +6,27 @@ package com.midokura.midonet.functional_test;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static java.lang.String.format;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
+import com.midokura.midonet.functional_test.topology.RouterPort;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.RemoteTap;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.tools.timed.Timed;
+import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
-
 import static com.midokura.tools.timed.Timed.newTimedExecution;
-import static org.hamcrest.Matchers.nullValue;
 
 /**
  * @author Mihai Claudiu Toader  <mtoader@midokura.com>
@@ -36,7 +35,7 @@ import static org.hamcrest.Matchers.nullValue;
 public class FunctionalTestsHelper {
 
     protected final static Logger log = LoggerFactory
-            .getLogger(FunctionalTestsHelper.class);
+        .getLogger(FunctionalTestsHelper.class);
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -54,12 +53,36 @@ public class FunctionalTestsHelper {
     }
 
     protected static void cleanupZooKeeperData()
-            throws IOException, InterruptedException {
-        // Often zkCli.sh is not in the PATH, use the one from default install otherwise
-        String zkCliPath = "zkCli.sh";
-        List<String> pathList = ProcessHelper.executeCommandLine("which " + zkCliPath);
+        throws IOException, InterruptedException {
+        // Often zkCli.sh is not in the PATH, use the one from default install
+        // otherwise
+
+        String zkClient;
+        SystemHelper.OsType osType = SystemHelper.getOsType();
+
+        switch (osType) {
+            case Mac:
+                zkClient = "zkCli";
+                break;
+            case Linux: case Unix: case Solaris:
+                zkClient = "zkCli.sh";
+                break;
+            default:
+                zkClient = "zkCli.sh";
+                break;
+        }
+
+        List<String> pathList =
+            ProcessHelper.executeLocalCommandLine("which " + zkClient);
+
         if (pathList.isEmpty()) {
-            zkCliPath = "/usr/share/zookeeper/bin/zkCli.sh";
+            switch (osType) {
+                case Mac:
+                    zkClient = "/usr/local/bin/zkCli";
+                    break;
+                default:
+                    zkClient = "/usr/share/zookeeper/bin/zkCli.sh";
+            }
         }
 
         //TODO(pino, mtoader): try removing the ZK directory without restarting
@@ -69,13 +92,22 @@ public class FunctionalTestsHelper {
         // Restart ZK to get around the bug where a directory cannot be deleted.
         Sudo.sudoExec("service zookeeper stop");
         Sudo.sudoExec("service zookeeper start");
-        Thread.sleep(2000);
+
         // Now delete the functional test ZK directory.
         ProcessHelper
-                .newProcess(zkCliPath + " -server 127.0.0.1:2181 rmr " +
-                        " /smoketest")
-                .logOutput(log, "cleaning_zk")
-                .runAndWait();
+            .newLocalProcess(zkClient + " -server 127.0.0.1:2181 rmr /midonet")
+            .logOutput(log, "cleaning_zk")
+            .runAndWait();
+    }
+
+    protected static void removeRemoteTap(RemoteTap tap) {
+        if (tap != null) {
+            try {
+                tap.remove();
+            } catch (Exception e) {
+                log.error("While trying to remote a remote tap", e);
+            }
+        }
     }
 
     protected static void removeTapWrapper(TapWrapper tap) {
@@ -84,12 +116,15 @@ public class FunctionalTestsHelper {
         }
     }
 
-    protected static void fixQuaggaFolderPermissions()
-            throws IOException, InterruptedException {
+    public static void fixQuaggaFolderPermissions()
+        throws IOException, InterruptedException {
         // sometimes after a reboot someone will reset the permissions which in
         // turn will make our Zebra implementation unable to bind to the socket
         // so we fix it like a boss.
-        Sudo.sudoExec("chmod 777 /run/quagga");
+        ProcessHelper
+            .newProcess("chmod 777 /var/run/quagga")
+            .withSudo()
+            .runAndWait();
     }
 
     protected void removeMidoPort(RouterPort port) {
@@ -98,66 +133,68 @@ public class FunctionalTestsHelper {
         }
     }
 
-    protected static void removeTenant(Tenant tenant) {
+    public static void removeTenant(Tenant tenant) {
         if (null != tenant)
             tenant.delete();
     }
 
-    protected static void stopMidolman(MidolmanLauncher mm) {
+    public static void stopMidolman(MidolmanLauncher mm) {
         if (null != mm)
             mm.stop();
     }
 
-    protected static void stopMidolmanMgmt(MidolmanMgmt mgmt) {
+    public static void stopMidolmanMgmt(MidolmanMgmt mgmt) {
         if (null != mgmt)
             mgmt.stop();
     }
 
-    protected static void removeBridge(OvsBridge ovsBridge) {
+    public static void removeBridge(OvsBridge ovsBridge) {
         if (ovsBridge != null) {
             ovsBridge.remove();
         }
     }
 
     protected static <T> T waitFor(String what, Timed.Execution<T> assertion)
-            throws Exception {
+        throws Exception {
         return waitFor(what,
-                TimeUnit.SECONDS.toMillis(10),
-                TimeUnit.MILLISECONDS.toMillis(500),
-                assertion);
+                       TimeUnit.SECONDS.toMillis(10),
+                       TimeUnit.MILLISECONDS.toMillis(500),
+                       assertion);
     }
 
     public static <T> T waitFor(String what, long total, long between,
                                 Timed.Execution<T> assertion)
-            throws Exception {
+        throws Exception {
+        long start = System.currentTimeMillis();
         Timed.ExecutionResult<T> executionResult =
-                newTimedExecution()
-                        .until(total)
-                        .waiting(between)
-                        .execute(assertion);
+            newTimedExecution()
+                .until(total)
+                .waiting(between)
+                .execute(assertion);
 
         assertThat(
-                String.format("The wait for: \"%s\" didn't complete successfully " +
-                        "(waited %d seconds)", what, total % 1000),
-                executionResult.completed());
+            String.format("The wait for: \"%s\" didn't complete successfully " +
+                              "(waited %d seconds)", what,
+                          (System.currentTimeMillis() - start ) / 1000),
+            executionResult.completed());
 
         return executionResult.result();
     }
 
     public static void waitForBridgeToConnect(
-            final ServiceController controller)
-            throws Exception {
+        final ServiceController controller)
+        throws Exception {
 
         waitFor(
-                "waiting for the bridge to connect to the controller on port: " +
-                        controller.getPortNum(),
-                new Timed.Execution<Boolean>() {
-                    @Override
-                    protected void _runOnce() throws Exception {
-                        setResult(controller.isConnected());
-                        setCompleted(getResult());
-                    }
-                });
+            "waiting for the bridge to connect to the controller on port: " +
+                controller.getPortNum(),
+            new Timed.Execution<Boolean>() {
+                @Override
+                protected void _runOnce() throws Exception {
+                    setResult(controller.isConnected());
+                    setCompleted(getResult());
+                }
+            });
     }
 
     public static void removeVpn(MidolmanMgmt mgmt, RouterPort vpn1) {
@@ -167,12 +204,14 @@ public class FunctionalTestsHelper {
     }
 
     public static void sleepBecause(String condition, long seconds)
-            throws InterruptedException {
-
+        throws InterruptedException {
         log.debug(
-                format("Sleeping %d seconds because: \"%s\"", seconds, condition));
+            format("Sleeping %d seconds because: \"%s\"", seconds, condition));
 
         TimeUnit.SECONDS.sleep(seconds);
+
+        log.debug(
+            format("Sleeping done: \"%s\"", condition));
     }
 
     public static void destroyVM(VMController vm) {
@@ -189,8 +228,14 @@ public class FunctionalTestsHelper {
 
     public static void assertNoMorePacketsOnTap(TapWrapper tapWrapper) {
         assertThat(
-            format("We got a package from %s when wo didn't expected one.", tapWrapper.getName()),
+            format("Got an unexpected packet from tap %s", tapWrapper.getName()),
             tapWrapper.recv(), nullValue());
+    }
+
+    public static void assertNoMorePacketsOnTap(RemoteTap tap) {
+        assertThat(
+            format("Got an unexpected packet from tap %s", tap.getName()),
+            tap.recv(), nullValue());
     }
 
     public static void assertPacketWasSentOnTap(TapWrapper tap,

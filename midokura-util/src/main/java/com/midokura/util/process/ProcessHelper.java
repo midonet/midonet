@@ -3,37 +3,61 @@
  */
 package com.midokura.util.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-
 import static java.lang.String.format;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.remote.RemoteHost;
 import com.midokura.tools.timed.Timed;
 import static com.midokura.util.process.ProcessOutputDrainer.DrainTarget;
 
 /**
+ * Class that takes care of launching processes on local/remote connections,
+ * monitors then, executes them using sudo support, etc.
+ *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 11/24/11
  */
 public class ProcessHelper {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(ProcessHelper.class);
-    public static final String PROCESS_LAUNCHER_TARGET_HOST = "PROCESS_LAUNCHER_TARGET_HOST";
+    private static final Logger log =
+        LoggerFactory.getLogger(ProcessHelper.class);
+
+    public static RunnerConfiguration newDemonProcess(final String commandLine)
+    {
+        RunnerConfiguration configuration = _newProcess(commandLine, true);
+
+        configuration.setDrainTarget(DrainTargets.noneTarget());
+
+        return configuration;
+    }
+
+    public static RunnerConfiguration newLocalProcess(final String commandLine)
+    {
+       return _newProcess(commandLine, false);
+    }
 
     public static RunnerConfiguration newProcess(final String commandLine) {
+        return _newProcess(commandLine, true);
+    }
+
+    private static RunnerConfiguration _newProcess(final String commandLine,
+                                                   final boolean canBeRemote) {
         return new RunnerConfiguration() {
             Logger logger;
             String stdMarker;
             DrainTarget drainTarget;
-            EnumSet<OutputStreams> streamsToLog = EnumSet.noneOf(OutputStreams.class);
+            EnumSet<OutputStreams> streamsToLog =
+                EnumSet.noneOf(OutputStreams.class);
+
+            String processCommandLine = commandLine;
 
             @Override
             public RunnerConfiguration logOutput(Logger log, String marker,
@@ -59,32 +83,41 @@ public class ProcessHelper {
 
             @Override
             public int runAndWait() {
-                Process p = createProcess(true);
+                Process p = createProcess(true, canBeRemote);
 
+                String processName = getProcessName(processCommandLine,
+                                                    canBeRemote);
                 try {
                     if (p != null) {
                         p.waitFor();
 
                         log.debug("Process \"{}\" exited with code: {}",
-                                  getProcessName(commandLine), p.exitValue());
+                                  processName, p.exitValue());
                         return p.exitValue();
                     }
                 } catch (InterruptedException e) {
                     log.error(
                         format("Error while launching command: \"%s\"",
-                               getProcessName(commandLine)), e);
+                               processName), e);
                 }
 
                 return -1;
             }
 
             public Process run() {
-                return createProcess(false);
+                return createProcess(false, canBeRemote);
             }
 
-            private Process createProcess(boolean wait) {
+            @Override
+            public RunnerConfiguration withSudo() {
+                processCommandLine = "sudo " + processCommandLine;
+                return this;
+            }
+
+            private Process createProcess(boolean wait,
+                                          boolean canBeExecutedRemote) {
                 try {
-                    Process p = launchProcess();
+                    Process p = launchProcess(canBeExecutedRemote);
                     if (drainTarget == null) {
                         drainTarget = logger == null
                             ? DrainTargets.noneTarget()
@@ -103,34 +136,40 @@ public class ProcessHelper {
 
                     return p;
                 } catch (IOException e) {
-                    log.error(
-                        format("Error while launching command: \"%s\"",
-                               commandLine), e);
+                    log.error("Error while executing command: \"{}\"",
+                              commandLine, e);
                 }
 
                 return null;
             }
 
-            private Process launchProcess() throws IOException {
-                String targetHostSpec =
-                    System.getProperty(PROCESS_LAUNCHER_TARGET_HOST, "");
+            private Process launchProcess(boolean canBeExecutedRemote)
+                throws IOException {
+                RemoteHost remoteHostSpec = RemoteHost.getSpecification();
 
-                if (!targetHostSpec.trim().equals("")) {
-                    return new RemoteSshProcess(targetHostSpec, commandLine);
-                } else {
-                    return Runtime.getRuntime().exec(commandLine);
+                // if the remoteHostSpec is not valid it means that remote
+                // specification was not defined or defined poorly so we revert
+                // to the standard way of running all processes as local processes.
+                // the canBeExecutedRemote is a signal that if possbile this
+                // process will be executed remotely.
+                if (canBeExecutedRemote && remoteHostSpec.isValid()) {
+                    return new RemoteSshProcess(remoteHostSpec,
+                                             processCommandLine);
                 }
+
+                return Runtime.getRuntime().exec(processCommandLine);
             }
         };
     }
 
-    private static String getProcessName(String commandLine) {
-        String targetHost = System.getProperty(PROCESS_LAUNCHER_TARGET_HOST, "");
-        if (!targetHost.trim().equals("")) {
-            return String.format("[%s] on %s", commandLine, targetHost);
-        } else {
-            return commandLine;
-        }
+    private static String getProcessName(String commandLine,
+                                         boolean canBeRemote) {
+        if (canBeRemote && RemoteHost.getSpecification().isValid())
+            return String.format("[%s] on %s",
+                                 commandLine,
+                                 RemoteHost.getSpecification().getSafeName());
+
+        return commandLine;
     }
 
     public static void killProcess(final Process process) {
@@ -210,21 +249,30 @@ public class ProcessHelper {
         public int runAndWait();
 
         public Process run();
+
+        public RunnerConfiguration withSudo();
     }
 
-    public static List<String> executeCommandLine(String command) {
+    public static List<String> executeLocalCommandLine(String commandLine) {
+        return _executeCommandLine(commandLine, false);
+    }
+
+    public static List<String> executeCommandLine(String commandLine) {
+        return _executeCommandLine(commandLine, true);
+    }
+
+    private static List<String> _executeCommandLine(String command,
+                                                    boolean canBeRemote) {
         try {
 
             List<String> stringList = new ArrayList<String>();
 
-            ProcessHelper.RunnerConfiguration runner = ProcessHelper
-                .newProcess(command);
+            RunnerConfiguration runner = _newProcess(command, canBeRemote);
 
             runner.setDrainTarget(DrainTargets.stringCollector(stringList));
             runner.runAndWait();
 
             return stringList;
-
         } catch (Exception e) {
             log.error("cannot execute command line " + e.toString());
         }

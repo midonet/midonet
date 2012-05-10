@@ -11,7 +11,6 @@ import java.util.HashSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openflow.protocol.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,7 +39,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
 public class BridgePortDeleteTest {
 
