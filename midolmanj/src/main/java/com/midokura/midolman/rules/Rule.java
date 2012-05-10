@@ -49,7 +49,7 @@ public abstract class Rule implements Comparable<Rule> {
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
      * @param natMapping
-     *            Nat state of the element using this chain.
+     *            NAT state of the element using this chain.
      */
     public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
             RuleResult res, NatMapping natMapping) {
@@ -74,7 +74,7 @@ public abstract class Rule implements Comparable<Rule> {
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
      * @param natMapping
-     *            Nat state of the element using this chain.
+     *            NAT state of the element using this chain.
      */
     protected abstract void apply(MidoMatch flowMatch, UUID inPortId,
             UUID outPortId, RuleResult res, NatMapping natMapping);
