@@ -44,7 +44,7 @@ public class CassandraCache implements Cache {
     public CassandraCache(String servers, String clusterName,
                           String keyspaceName, String columnFamily,
                           int replicationFactor, int expirationSecs)
-        throws HectorException {
+            throws HectorException {
         boolean success = false;
 
         try {
