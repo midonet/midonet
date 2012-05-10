@@ -44,14 +44,14 @@ public class TenantChainResource {
      * Constructor
      *
      * @param tenantId
-     *            ID of a router.
+     *            ID of a tenant.
      */
     public TenantChainResource(String tenantId) {
         this.tenantId = tenantId;
     }
 
     /**
-     * Handler for creating a router chain.
+     * Handler for creating a tenant chain.
      *
      * @param chain
      *            Chain object.
@@ -77,7 +77,7 @@ public class TenantChainResource {
 
         if (!authorizer.tenantAuthorized(context, AuthAction.WRITE, tenantId)) {
             throw new ForbiddenHttpException(
-                    "Not authorized to add chain to this router.");
+                    "Not authorized to add chain to this tenant.");
         }
 
         ChainDao dao = daoFactory.getChainDao();
@@ -154,7 +154,7 @@ public class TenantChainResource {
 
         if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
             throw new ForbiddenHttpException(
-                    "Not authorized to view chain of this router.");
+                    "Not authorized to view chain of this tenant.");
         }
 
         ChainDao dao = daoFactory.getChainDao();

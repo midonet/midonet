@@ -74,7 +74,7 @@ public class Tenant extends UriResource {
     }
 
     /**
-     * @return the routers URI
+     * @return the URI for the Tenant's chains resource.
      */
     public URI getChains() {
         return ResourceUriBuilder.getTenantChains(getBaseUri(), id);
