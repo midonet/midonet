@@ -1,9 +1,10 @@
 /**
- * ZkDumper.java - simple command line utility to dump data from ZooKeeper.
+ * TopologyChecker.java - command line utility to describe a router's state:
  *
  * Run with:
- *       mvn exec:java -Dexec.mainClass=com.midokura.midolman.state.ZkDumper
- *                     -Dexec.args=<arguments>
+ * mvn exec:java -Dexec.mainClass=com.midokura.midolman.state.TopologyChecker
+ *               -Dexec.args="-h=<zk_host> -p=<zp_port> <router_uuid>"
+ *
  * TODO: Package this into a standalone .jar
  *
  * Copyright 2011 Midokura Inc.
@@ -12,7 +13,6 @@
 package com.midokura.midolman.state;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -104,20 +104,45 @@ public class TopologyChecker {
 
         // TODO(pino): modify this to print out the router's inboundFilter
         // TODO:  and outboundFilter chains.
-        System.out.println("Router's chains:");
+        RouterZkManager routerMgr = new RouterZkManager(zkDir, basePath);
         ChainZkManager chainMgr = new ChainZkManager(zkDir, basePath);
         RuleZkManager ruleMgr = new RuleZkManager(zkDir, basePath);
-        //List<ZkNodeEntry<UUID, ChainConfig>> chains = chainMgr.list(routerId);
-        List<ZkNodeEntry<UUID, ChainConfig>> chains =
-                new ArrayList<ZkNodeEntry<UUID, ChainConfig>>();
-        for (ZkNodeEntry<UUID, ChainConfig> chain : chains) {
-            System.out.println("  " + chain.key + " has name "
-                    + chain.value.name + " and rules:");
-            List<ZkNodeEntry<UUID, Rule>> rules = ruleMgr.list(chain.key);
-            for (ZkNodeEntry<UUID, Rule> rule : rules) {
-                System.out.println("    " + rule.key + " " + rule.value);
+        RouterZkManager.RouterConfig rtrConfig = routerMgr.get(routerId).value;
+        System.out.println("Router's inbound filter:");
+        if (null == rtrConfig.inboundFilter)
+            System.out.println("  is null.");
+        else {
+            ZkNodeEntry<UUID, ChainConfig> chain =
+                    chainMgr.get(rtrConfig.inboundFilter);
+            if (null == chain)
+                System.out.println(" has UUID " + chain.key + " but no data.");
+            else {
+                System.out.println(" has name " + chain.value.name +
+                        " and rules: ");
+                List<ZkNodeEntry<UUID, Rule>> rules = ruleMgr.list(chain.key);
+                for (ZkNodeEntry<UUID, Rule> rule : rules) {
+                    System.out.println("    " + rule.key + " " + rule.value);
+                }
             }
         }
+        System.out.println("Router's outbound filter:");
+        if (null == rtrConfig.outboundFilter)
+            System.out.println("  is null.");
+        else {
+            ZkNodeEntry<UUID, ChainConfig> chain =
+                    chainMgr.get(rtrConfig.outboundFilter);
+            if (null == chain)
+                System.out.println(" has UUID " + chain.key + " but no data.");
+            else {
+                System.out.println(" has name " + chain.value.name +
+                        " and rules: ");
+                List<ZkNodeEntry<UUID, Rule>> rules = ruleMgr.list(chain.key);
+                for (ZkNodeEntry<UUID, Rule> rule : rules) {
+                    System.out.println("    " + rule.key + " " + rule.value);
+                }
+            }
+        }
+
         System.out.println();
         System.out.println("Router's routes:");
         RouteZkManager routeMgr = new RouteZkManager(zkDir, basePath);
@@ -158,7 +183,6 @@ public class TopologyChecker {
         }
         System.out.println();
         System.out.println("Router's routing table:");
-        RouterZkManager routerMgr = new RouterZkManager(zkDir, basePath);
         Directory rtableDir = routerMgr.getRoutingTableDirectory(routerId);
         Set<String> rtStrings = rtableDir.getChildren("", null);
         JSONSerializer<Route> serializer = new JSONSerializer<Route>();
