@@ -65,7 +65,10 @@ public interface MidolmanMgmt {
 
     DtoInterface[] getHostInterfaces(DtoHost host);
 
+    DtoInterface getHostInterface(DtoInterface dtoInterface);
+
     void addInterface(DtoHost host, DtoInterface dtoInterface);
 
     void updateInterface(DtoInterface dtoInterface);
+
 }

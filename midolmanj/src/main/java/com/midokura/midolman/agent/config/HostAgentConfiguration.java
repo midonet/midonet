@@ -68,7 +68,18 @@ public interface HostAgentConfiguration {
 
     /**
      * Get the amount of time to wait during the generate host ID loop
-     * @return
+     * @return the wait time
      */
     public int getWaitTimeForUniqueHostId();
+
+    /**
+     * // TODO
+     */
+    public String getMidolmanExternalIdKey();
+
+    /**
+     * // TODO:
+     * @return
+     */
+    public String getVrnRouterNetworkId();
 }

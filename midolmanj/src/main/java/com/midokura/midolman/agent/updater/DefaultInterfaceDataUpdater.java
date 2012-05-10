@@ -92,6 +92,9 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 }
             }
 
+            log.info("Input: " + curMapByName);
+            log.info("Updated: " + updatedInterfaces);
+            log.info("Removed: " + interfacesToRemove);
             hostZkManager.updateHostInterfaces(hostId,
                                                updatedInterfaces,
                                                interfacesToRemove);
@@ -188,6 +191,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
         hostInterface.setAddresses(
             addresses.toArray(new InetAddress[addresses.size()]));
 
+        hostInterface.setProperties(description.getProperties());
         return hostInterface;
     }
 

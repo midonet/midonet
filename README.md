@@ -58,7 +58,7 @@ In order to run a local controller one would need to provide a file named
 This file has the following syntax:
 
     [remote_host]
-    specification = mtoader:Hannibal@localhost:8022
+    specification = <user>:<pass>@<host>:<port>
 
     [forwarded_local_ports]
     12344 = 12344   # OpenvSwitch database connection port

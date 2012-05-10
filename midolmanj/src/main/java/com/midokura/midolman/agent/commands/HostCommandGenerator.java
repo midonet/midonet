@@ -3,8 +3,9 @@
  */
 package com.midokura.midolman.agent.commands;
 
-import com.midokura.midolman.agent.commands.executors.CommandProperty;
-import com.midokura.midolman.packets.MAC;
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.Map;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -14,11 +15,12 @@ import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-import java.net.InetAddress;
-import java.util.Arrays;
-
+import com.midokura.midolman.agent.commands.executors.CommandProperty;
+import com.midokura.midolman.packets.MAC;
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
-import static com.midokura.midolman.agent.commands.executors.CommandProperty.*;
+import static com.midokura.midolman.agent.commands.executors.CommandProperty.address;
+import static com.midokura.midolman.agent.commands.executors.CommandProperty.iface;
+import static com.midokura.midolman.agent.commands.executors.CommandProperty.mac;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;
@@ -85,19 +87,80 @@ public class HostCommandGenerator {
             }
         }
 
+        // check the new properties
+        if (updated.getProperties() != null) {
+            Map<String, String> updateProperties = updated.getProperties();
+
+            for (String key : updateProperties.keySet()) {
+                String value = updateProperties.get(key);
+
+                CommandProperty commandProperty = CommandProperty.getByKey(key);
+                if (commandProperty != null) {
+                    handlePropertyUpdate(key, value, current,
+                                         commandProperty, command);
+                }
+            }
+        }
+
         return command;
+    }
+
+    private void handlePropertyUpdate(String key, String value,
+                                      Interface current,
+                                      CommandProperty commandProperty,
+                                      Command command) {
+
+        if (current == null) {
+            if (value != null && !value.trim().equals("")) {
+                command.addAtomicCommand(
+                    newCommand(commandProperty, OperationType.SET, value));
+            }
+
+            return;
+        }
+
+        Map<String, String> properties = current.getProperties();
+
+        String currentValue = current.getProperties().get(key);
+
+        OperationType operationType = null;
+
+        // we got a property that was set to empty (which means the intent was
+        // to delete it.
+        if (value == null || value.trim().equals("")) {
+
+            // check that the current value is actually set to something
+            if (properties.containsKey(key) && currentValue != null &&
+                !currentValue.trim().equals("")) {
+                operationType = OperationType.CLEAR;
+            } else {
+                // else just ignore the setting
+            }
+        } else {
+            if (
+                !properties.containsKey(key) || // no previews value preset
+                    currentValue == null ||          // or the old value was null
+                    !currentValue.trim().equals(value)) { // or it is different
+
+                operationType = OperationType.SET;
+            }
+        }
+
+        if (operationType != null) {
+            command.addAtomicCommand(
+                newCommand(commandProperty, operationType, value));
+        }
     }
 
     /**
      * It will check the parameters for not allowed operations and if any
      * invalid operation is found (a not allowed by our rules) it will throw an
      * DataValidationException.
-     *
+     * <p/>
      * Otherwise the method will complete properly.
      *
      * @param current is the current state of the interface we want to change
      * @param updated is the desired state of the interface we want to change
-     *
      * @throws DataValidationException
      */
     private void validateRequest(Interface current, Interface updated)

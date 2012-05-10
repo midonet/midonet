@@ -6,15 +6,19 @@ package com.midokura.midolman.agent.commands.executors;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import static java.lang.String.format;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 
 public class CommandInterpreter {
+
+    @Inject
+    Injector injector;
 
     public static class InvalidParameterException extends Exception {
 
@@ -65,6 +69,7 @@ public class CommandInterpreter {
             CommandExecutor executor;
             try {
                 executor = property.getExecutor().newInstance();
+                injector.injectMembers(executor);
             } catch (Exception ex) {
                 throw new InvalidExecutorInstanceException(property, ex);
             }

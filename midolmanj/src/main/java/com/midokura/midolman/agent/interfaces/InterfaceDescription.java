@@ -3,11 +3,13 @@
  */
 package com.midokura.midolman.agent.interfaces;
 
-import com.midokura.midolman.packets.MAC;
-
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import com.midokura.midolman.packets.MAC;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
@@ -30,6 +32,7 @@ public class InterfaceDescription {
     protected int mtu;
     protected Endpoint endpoint;
     //protected ... other
+    protected Map<String, String> properties;
 
     ///////////////////////////////////////////////////////////////////////////
     // Public methods
@@ -43,6 +46,7 @@ public class InterfaceDescription {
         this.hasLink = false;
         this.mtu = 0;
         this.endpoint = Endpoint.UNKNOWN;
+        properties = new HashMap<String, String>();
     }
 
     public void setName(String name) {
@@ -119,17 +123,26 @@ public class InterfaceDescription {
         this.endpoint = endpoint;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
     @Override
     public String toString() {
         return "InterfaceDescription{" +
-                "endpoint=" + endpoint +
-                ", name='" + name + '\'' +
-                ", type=" + type +
-                ", mac=" + mac +
-                ", inetAddresses=" + inetAddresses +
-                ", isUp=" + isUp +
-                ", hasLink=" + hasLink +
-                ", mtu=" + mtu +
-                '}';
+            "name='" + name + '\'' +
+            ", type=" + type +
+            ", mac=" + mac +
+            ", inetAddresses=" + inetAddresses +
+            ", isUp=" + isUp +
+            ", hasLink=" + hasLink +
+            ", mtu=" + mtu +
+            ", endpoint=" + endpoint +
+            ", properties=" + properties +
+            '}';
     }
 }

@@ -37,6 +37,8 @@ public class MidonetSudoService {
         if (sudoHelperProcess == null || clientInterface == null) {
             startHelperService();
 
+            Thread.sleep(5000);
+
             final TTransport transport = new TSocket("localhost", 9090);
 
             Timed.ExecutionResult<MidonetPrivSepServer.Client> clientResult =

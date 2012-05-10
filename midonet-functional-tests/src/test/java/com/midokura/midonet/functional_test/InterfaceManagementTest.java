@@ -6,6 +6,8 @@ package com.midokura.midonet.functional_test;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import static java.lang.String.format;
 
 import org.hamcrest.Matcher;
@@ -19,18 +21,24 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItemInArray;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
 import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
+import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.tools.timed.Timed;
+import com.midokura.util.process.ProcessHelper;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 
 /**
@@ -42,7 +50,6 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
 public class InterfaceManagementTest extends FunctionalTestsHelper {
 
     MidolmanMgmt api;
-
 
     @Before
     public void setUp() throws Exception {
@@ -354,18 +361,7 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
         TapWrapper tapWrapper = new TapWrapper(tapInterfaceName);
 
         try {
-            DtoHost[] hosts =
-                waitFor("host registration",
-                        new Timed.Execution<DtoHost[]>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHosts());
-                                setCompleted(getResult().length == 1);
-                            }
-                        });
-
-            final DtoHost host = hosts[0];
-            assertThat("The new host should be alive!", host.isAlive());
+            final DtoHost host = waitForHostRegistration();
 
             final Matcher<DtoInterface[]> tapMatcher =
                 hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
@@ -439,18 +435,7 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
         TapWrapper tapWrapper = new TapWrapper(tapInterfaceName);
 
         try {
-            DtoHost[] hosts =
-                waitFor("host registration",
-                        new Timed.Execution<DtoHost[]>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHosts());
-                                setCompleted(getResult().length == 1);
-                            }
-                        });
-
-            final DtoHost host = hosts[0];
-            assertThat("The new host should be alive!", host.isAlive());
+            final DtoHost host = waitForHostRegistration();
 
             final Matcher<DtoInterface[]> tapMatcher =
                 hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
@@ -530,7 +515,7 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
     @Test
     public void testUpdateInterfaceDeleteAddressForHost()
         throws Exception {
-        final String tapInterfaceName = newTapName();
+        final String tapName = newTapName();
 
         assertThat("We were expecting no hosts to be registered",
                    api.getHosts(), arrayWithSize(0));
@@ -539,45 +524,15 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
             MidolmanLauncher.start(With_Node_Agent,
                                    "InterfaceManagementTest.testUpdateInterfaceDeleteAddressForHost");
 
-        TapWrapper tapWrapper = new TapWrapper(tapInterfaceName);
+        TapWrapper tapWrapper = new TapWrapper(tapName);
 
         Sudo.sudoExec(
-            format("ip addr add 10.43.56.34/12 dev %s", tapInterfaceName));
+            format("ip addr add 10.43.56.34/12 dev %s", tapName));
 
         try {
-            DtoHost[] hosts =
-                waitFor("host registration",
-                        new Timed.Execution<DtoHost[]>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHosts());
-                                setCompleted(getResult().length == 1);
-                            }
-                        });
+            final DtoHost host = waitForHostRegistration();
 
-            final DtoHost host = hosts[0];
-            assertThat("The new host should be alive!", host.isAlive());
-
-            final Matcher<DtoInterface[]> tapMatcher =
-                hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
-
-            DtoInterface[] interfaces =
-                waitFor("the interface to be exposed via API",
-                        new Timed.Execution<DtoInterface[]>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHostInterfaces(host));
-                                setCompleted(tapMatcher.matches(getResult()));
-                            }
-                        });
-
-            DtoInterface dtoInterface = null;
-            for (DtoInterface anInterface : interfaces) {
-                if (anInterface.getName().equals(tapInterfaceName)) {
-                    dtoInterface = anInterface;
-                    break;
-                }
-            }
+            DtoInterface dtoInterface = waitForNamedInterface(host, tapName);
 
             assertThat(
                 "the interface should be visible with the correct address",
@@ -616,7 +571,6 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
                         @Override
                         protected void _runOnce() throws Exception {
                             setResult(api.getHostInterfaces(host));
-                            log.debug("{}", getResult());
                             setCompleted(addressMatcher.matches(getResult()));
                         }
                     });
@@ -624,6 +578,125 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
             launcher.stop();
             removeTapWrapper(tapWrapper);
         }
+    }
+
+    @Test
+    public void testBindInterfaceToMidonetPort()
+        throws Exception {
+        final String tapName = newTapName();
+
+        assertThat("We were expecting no hosts to be registered",
+                   api.getHosts(), arrayWithSize(0));
+
+        final String PORT_ID_KEY =
+            DtoInterface.PropertyKeys.midonet_port_id.name();
+
+        TapWrapper tap = null;
+//      Use this for remote developing (mac IDE + linux)
+//        RemoteTap tap = null;
+        OvsBridge ovsBridge = null;
+        MidolmanLauncher launcher = null;
+        try {
+//          Use this for remote developing (mac IDE + linux)
+//          tap = new RemoteTap(tapName, true);
+            tap = new TapWrapper(tapName, true);
+
+            ProcessHelper
+                .newProcess(
+                    format("ip addr add 10.43.56.34/12 dev %s", tapName))
+                .withSudo()
+                .runAndWait();
+
+            launcher = MidolmanLauncher.start(With_Node_Agent,
+                                              "InterfaceManagementTest.testBindInterfaceToMidonetPort");
+
+            OpenvSwitchDatabaseConnectionImpl ovsdb =
+                new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                                      "127.0.0.1", 12344);
+            if (ovsdb.hasBridge("smoke-br"))
+                ovsdb.delBridge("smoke-br");
+
+            ovsBridge = new OvsBridge(ovsdb, "smoke-br");
+
+            final DtoHost dtoHost = waitForHostRegistration();
+
+            final DtoInterface dtoInterface = waitForNamedInterface(dtoHost,
+                                                                    tapName);
+            assertThat(
+                "the new interface is not yet associated with a midonet port",
+                dtoInterface.getProperties(), not(hasKey(PORT_ID_KEY)));
+
+            UUID targetPortId = UUID.randomUUID();
+            dtoInterface.getProperties().put(PORT_ID_KEY,
+                                             targetPortId.toString());
+
+            api.updateInterface(dtoInterface);
+
+            DtoInterface updatedDtoInterface =
+                waitFor("the interface properties should be updated",
+                        new Timed.Execution<DtoInterface>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHostInterface(dtoInterface));
+                                log.debug("Interface: " + getResult());
+                                Map<String, String> properties =
+                                    getResult().getProperties();
+
+                                setCompleted(
+                                    properties.containsKey(PORT_ID_KEY));
+                            }
+                        });
+
+            assertThat("the interface object is showing the proper port id",
+                       updatedDtoInterface.getProperties(),
+                       hasEntry(is(PORT_ID_KEY), is(targetPortId.toString())));
+        } finally {
+            stopMidolman(launcher);
+//            removeRemoteTap(tap);
+            removeTapWrapper(tap);
+            removeBridge(ovsBridge);
+        }
+    }
+
+    private DtoInterface waitForNamedInterface(final DtoHost host,
+                                               String tapInterfaceName)
+        throws Exception {
+        final Matcher<DtoInterface[]> tapMatcher =
+            hasItemInArray(hasProperty("name", equalTo(tapInterfaceName)));
+
+        DtoInterface[] interfaces =
+            waitFor("the interface to be exposed via API",
+                    new Timed.Execution<DtoInterface[]>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setResult(api.getHostInterfaces(host));
+                            setCompleted(tapMatcher.matches(getResult()));
+                        }
+                    });
+
+        for (DtoInterface anInterface : interfaces) {
+            if (anInterface.getName().equals(tapInterfaceName)) {
+                return anInterface;
+            }
+        }
+
+        return null;
+    }
+
+    private DtoHost waitForHostRegistration() throws Exception {
+        DtoHost[] hosts =
+            waitFor("host registration",
+                    new Timed.Execution<DtoHost[]>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setResult(api.getHosts());
+                            setCompleted(getResult().length == 1);
+                        }
+                    });
+
+        final DtoHost host = hosts[0];
+        assertThat("The new host should be alive!", host.isAlive());
+        return host;
     }
 
     private static int tapInterfaceId = 1;

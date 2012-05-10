@@ -83,12 +83,25 @@ public class IniBasedHostAgentConfiguration
 
     @Override
     public String getPropertiesFilePath() {
-        return safelyGetString("midolman-agent", "properties-file", "host_uuid.properties");
+        return safelyGetString("midolman-agent", "properties-file",
+                               "host_uuid.properties");
     }
 
     @Override
     public int getWaitTimeForUniqueHostId() {
         return safelyGetInt("midolman-agent", "wait_time_gen_id", 1000);
+    }
+
+    @Override
+    public String getMidolmanExternalIdKey() {
+        return safelyGetString("openvswitch", "midolman_ext_id_key",
+                               "midolman-vnet");
+    }
+
+    @Override
+    public String getVrnRouterNetworkId() {
+        return safelyGetString("vrn", "router_network_id",
+                               "01234567-0123-0123-aaaa-0123456789ab");
     }
 
     protected int safelyGetInt(String group, String key, int defaultValue) {

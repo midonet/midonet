@@ -3,6 +3,8 @@ package com.midokura.midolman.mgmt.data.dto.client;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -32,6 +34,10 @@ public class DtoInterface {
         }
     }
 
+    public enum PropertyKeys {
+        midonet_port_id,
+    }
+
     private UUID id;
     private UUID hostId;
     private String name;
@@ -41,7 +47,7 @@ public class DtoInterface {
     private Type type;
     private String endpoint;
     private InetAddress[] addresses;
-
+    private Map<String, String> properties = new HashMap<String, String>();
 
     @XmlTransient
     private URI uri;
@@ -138,6 +144,22 @@ public class DtoInterface {
         this.addresses = addresses;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
+    public void setProperty(PropertyKeys property, String value) {
+        getProperties().put(property.name(), value);
+    }
+
+    public String getProperty(PropertyKeys property) {
+        return getProperties().get(property.name());
+    }
+
     @Override
     public String toString() {
         return "DtoInterface{" +
@@ -151,6 +173,7 @@ public class DtoInterface {
             ", endpoint='" + endpoint + '\'' +
             ", addresses=" + (addresses == null ? null : Arrays.asList(
             addresses)) +
+            ", properties=" + properties +
             ", uri=" + uri +
             '}';
     }

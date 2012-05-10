@@ -4,12 +4,11 @@
 package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
-import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
- * // TODO: Explain yourself
+ * HostCommand description.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 2/20/12

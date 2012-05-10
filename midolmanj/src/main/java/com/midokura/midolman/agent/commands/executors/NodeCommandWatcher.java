@@ -36,7 +36,6 @@ public class NodeCommandWatcher {
     @Inject
     CommandInterpreter commandInterpreter;
 
-
     public void checkCommands(UUID hostId) {
         this.hostId = hostId;
         this.watcher = new CommanderWatcher();

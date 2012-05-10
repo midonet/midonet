@@ -205,6 +205,10 @@ public class HostDirectory {
             }
         }
 
+        public enum PropertyKeys {
+            midonet_port_id
+        }
+
         UUID id;
         String name;
         Type type = Type.Unknown;
@@ -213,7 +217,7 @@ public class HostDirectory {
         int status;
         int mtu;
         InetAddress[] addresses;
-        Map<String, String> properties;
+        Map<String, String> properties = new HashMap<String, String>();
 
         public Interface() {
         }
@@ -311,13 +315,10 @@ public class HostDirectory {
             if (!Arrays.equals(addresses, that.addresses)) return false;
             if (endpoint != null ? !endpoint.equals(
                 that.endpoint) : that.endpoint != null) return false;
-            if (id != null ? !id.equals(that.id) : that.id != null)
-                return false;
+            if (!id.equals(that.id)) return false;
             if (!Arrays.equals(mac, that.mac)) return false;
-            if (name != null ? !name.equals(that.name) : that.name != null)
-                return false;
-            if (properties != null ? !properties.equals(
-                that.properties) : that.properties != null) return false;
+            if (!name.equals(that.name)) return false;
+            if (!properties.equals(that.properties)) return false;
             if (type != that.type) return false;
 
             return true;
@@ -325,17 +326,33 @@ public class HostDirectory {
 
         @Override
         public int hashCode() {
-            int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + (type != null ? type.hashCode() : 0);
+            int result = id.hashCode();
+            result = 31 * result + name.hashCode();
+            result = 31 * result + type.hashCode();
             result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
-            result = 31 * result + (mac != null ? Arrays.hashCode(mac) : 0);
+            result = 31 * result + Arrays.hashCode(mac);
             result = 31 * result + status;
             result = 31 * result + mtu;
             result = 31 * result + (addresses != null ? Arrays.hashCode(
                 addresses) : 0);
-            result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            result = 31 * result + properties.hashCode();
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Interface{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                ", endpoint='" + endpoint + '\'' +
+                ", mac=" + mac +
+                ", status=" + status +
+                ", mtu=" + mtu +
+                ", addresses=" + (addresses == null ? null : Arrays.asList(
+                addresses)) +
+                ", properties=" + properties +
+                '}';
         }
 
         // Copy constructor

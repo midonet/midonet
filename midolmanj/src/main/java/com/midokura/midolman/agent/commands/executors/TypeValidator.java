@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.agent.commands.executors;
 
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,6 +81,14 @@ public abstract class TypeValidator<T> {
         public HostDirectory.Interface.Type validateAndConvert(
             CommandProperty property, String value) {
             return HostDirectory.Interface.Type.valueOf(value);
+        }
+    }
+
+    public static class UUIDValidator
+        extends TypeValidator<UUID> {
+        @Override
+        public UUID validateAndConvert(CommandProperty property, String value) {
+            return UUID.fromString(value);
         }
     }
 }

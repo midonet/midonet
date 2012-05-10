@@ -55,7 +55,6 @@ public class InterfaceResource {
         this.hostId = hostId;
     }
 
-
     /**
      * Handler for creating an interface.
      *
@@ -92,12 +91,14 @@ public class InterfaceResource {
 
             if (hostCommand != null) {
                 hostCommand.setBaseUri(uriInfo.getBaseUri());
+
+                return Response
+                    .ok(hostCommand, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
+                    .location(hostCommand.getUri())
+                    .build();
             }
 
-            return Response
-                .ok(hostCommand, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
-                .location(hostCommand.getUri())
-                .build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         } catch (DataValidationException e) {
             throw new BadRequestHttpException(e.getMessage());
         }

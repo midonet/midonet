@@ -109,6 +109,7 @@ public class HostZkDao {
     private Interface toDtoInterfaceObject(UUID hostId, UUID interfaceId,
                                            HostDirectory.Interface interfaceData) {
         Interface hostInterface = new Interface();
+
         hostInterface.setName(interfaceData.getName());
         if (interfaceData.getMac() != null) {
             hostInterface.setMac(new MAC(interfaceData.getMac()).toString());
@@ -123,6 +124,8 @@ public class HostZkDao {
         }
         hostInterface.setAddresses(interfaceData.getAddresses());
         hostInterface.setEndpoint(interfaceData.getEndpoint());
+        hostInterface.setProperties(interfaceData.getProperties());
+
         return hostInterface;
     }
 
@@ -144,6 +147,7 @@ public class HostZkDao {
         }
         hostInterface.setAddresses(intface.getAddresses());
         hostInterface.setEndpoint(intface.getEndpoint());
+        hostInterface.setProperties(intface.getProperties());
         return hostInterface;
     }
 

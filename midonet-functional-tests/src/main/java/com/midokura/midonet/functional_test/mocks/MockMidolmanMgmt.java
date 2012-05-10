@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.dto.client.*;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.servlet.AuthFilter;
 import com.midokura.midolman.mgmt.servlet.ServletSupport;
@@ -34,15 +35,15 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     DtoApplication app;
     MidolmanLauncher launcher;
 
-    private static AtomicInteger portSeed = new AtomicInteger(3181
-/* a prime */);
+    private static AtomicInteger portSeed = new AtomicInteger(3181);
     private int currentPort;
 
     private static final Map<String, String> authFilterInitParams =
         new HashMap<String, String>();
+
     static {
         authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
-                NoAuthClient.class.getName());
+                                 NoAuthClient.class.getName());
     }
 
     private static WebAppDescriptor makeAppDescriptor(boolean mockZK) {
@@ -198,18 +199,18 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     @Override
     public DtoPeerRouterLink linkRouterToPeer(
-            DtoRouter router, DtoLogicalRouterPort logPort) {
+        DtoRouter router, DtoLogicalRouterPort logPort) {
         return resource().uri(router.getPeerRouters())
-                .type(MediaType.APPLICATION_JSON)
-                .post(DtoPeerRouterLink.class, logPort);
+            .type(MediaType.APPLICATION_JSON)
+            .post(DtoPeerRouterLink.class, logPort);
     }
 
     @Override
     public DtoBridgeRouterLink linkRouterToBridge(
-            DtoRouter router, DtoBridgeRouterPort logPort) {
+        DtoRouter router, DtoBridgeRouterPort logPort) {
         return resource().uri(router.getBridges())
-                .type(MediaType.APPLICATION_JSON)
-                .post(DtoBridgeRouterLink.class, logPort);
+            .type(MediaType.APPLICATION_JSON)
+            .post(DtoBridgeRouterLink.class, logPort);
     }
 
     @Override
@@ -272,6 +273,15 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         }
 
         return new DtoInterface[0];
+    }
+
+    @Override
+    public DtoInterface getHostInterface(DtoInterface dtoInterface) {
+        return
+            resource()
+                .uri(dtoInterface.getUri())
+                .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
+                .get(DtoInterface.class);
     }
 
     @Override

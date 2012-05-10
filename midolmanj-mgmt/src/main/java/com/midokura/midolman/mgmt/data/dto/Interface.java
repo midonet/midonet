@@ -5,16 +5,16 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@midokura.com>
- * <p/>
- * Date: 1/30/12
- * Time: 3:12 PM
+ * @author Mihai ClaudiuToader <mtoader@midokura.com>
+ *         Date: 1/30/12
  */
 @XmlRootElement
 public class Interface extends UriResource {
@@ -28,6 +28,7 @@ public class Interface extends UriResource {
     Type type;
     String endpoint;
     InetAddress[] addresses;
+    Map<String, String> properties = new HashMap<String, String>();
 
     public enum Type {
         Physical, Virtual, Tunnel, Unknown
@@ -108,9 +109,18 @@ public class Interface extends UriResource {
         this.addresses = addresses;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getHostInterface(super.getBaseUri(), hostId, id);
+        return ResourceUriBuilder.getHostInterface(super.getBaseUri(), hostId,
+                                                   id);
     }
 
 }
