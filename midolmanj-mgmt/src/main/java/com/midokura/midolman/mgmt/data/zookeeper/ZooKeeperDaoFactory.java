@@ -82,10 +82,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
      *             Data access error.
      */
     synchronized public Directory getDirectory() throws StateAccessException {
-        log.debug(
-                "ZooKeeperDaoFactory.getDirectory entered: (directory==null)? {}",
-                (directory == null));
-
         if (directory == null) {
             ZkConnection zk = null;
             try {

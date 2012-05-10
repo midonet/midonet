@@ -1,3 +1,5 @@
+// File originally from an external source, needs license info!
+
 package com.midokura.midolman.eventloop;
 
 import java.io.IOException;
