@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,7 @@ public class VmSshTest {
 
     static String tapPortName = "vmSshTestTap1";
     static VMController vm;
+    static SshSession sshSession;
 
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
@@ -98,6 +100,10 @@ public class VmSshTest {
                     .setNetworkDevice(tapPort.getName())
                     .build();
 
+        sshSession = SshHelper.newSession()
+                              .onHost("129.168.231.2")
+                              .withCredentials("ubuntu", "ubuntu")
+                              .open();
     }
 
     @AfterClass
@@ -111,7 +117,7 @@ public class VmSshTest {
         destroyVM(vm);
     }
 
-    @Test
+    @Ignore @Test
     public void testSshRemoteCommand()
         throws IOException, InterruptedException {
 
@@ -123,8 +129,7 @@ public class VmSshTest {
             // validate ssh to the 192.168.231.2 address
             String output =
                 SshHelper.newRemoteCommand("hostname")
-                         .onHost("192.168.231.2")
-                         .withCredentials("ubuntu", "ubuntu")
+                         .withSession(sshSession)
                          .run(60 * 1000); // 60 seconds
 
             log.info("Command output: {}", output.trim());
@@ -140,7 +145,7 @@ public class VmSshTest {
         }
     }
 
-    @Test
+    @Ignore @Test
     public void testScp() throws Exception, InterruptedException {
 
         try {
@@ -166,13 +171,13 @@ public class VmSshTest {
             int copyFileTimeout = (int) TimeUnit.SECONDS.toMillis(30);
 
             SshSession session = SshHelper.newSession()
-                .onHost("192.168.231.2")
-                .withCredentials("ubuntu", "ubuntu")
-                .open(copyFileTimeout);
+                                          .onHost("192.168.231.2")
+                                          .withCredentials("ubuntu", "ubuntu")
+                                          .open(copyFileTimeout);
 
             SshHelper.uploadFile(localFile.getAbsolutePath())
-                .toRemote("test_file.txt")
-                .usingSession(session, copyFileTimeout);
+                     .toRemote("test_file.txt")
+                     .usingSession(session, copyFileTimeout);
 
             output =
                 SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
@@ -185,8 +190,8 @@ public class VmSshTest {
 
             File newLocalFile = File.createTempFile("smoke-ssh-test", null);
             SshHelper.getFile(newLocalFile.getAbsolutePath())
-                .fromRemote("test_file.txt")
-                .usingSession(session, copyFileTimeout);
+                     .fromRemote("test_file.txt")
+                     .usingSession(session, copyFileTimeout);
 
             output = FileUtils.readFileToString(newLocalFile);
             assertThat(
