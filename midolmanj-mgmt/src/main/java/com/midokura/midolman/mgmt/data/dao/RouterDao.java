@@ -41,53 +41,63 @@ public interface RouterDao {
     void delete(UUID id) throws StateAccessException;
 
     /**
-     * Get a Router.
+     * Get a Router by ID.
      *
      * @param id
      *            ID of the Router to get.
-     * @return Route object.
+     * @return the Router DTO with the router's configuration.
      * @throws StateAccessException
      *             Data Access error.
      */
     Router get(UUID id) throws StateAccessException;
 
     /**
+     * Get the Router that owns the given Advertised Route ID.
+     *
      * @param adRouteId
-     * @return
+     * @return the Router DTO with the router's configuration.
      * @throws StateAccessException
      */
     Router getByAdRoute(UUID adRouteId) throws StateAccessException;
 
     /**
+     * Get the Router that owns the given BGP ID.
+     *
      * @param bgpId
-     * @return
+     * @return the Router DTO with the router's configuration.
      * @throws StateAccessException
      */
     Router getByBgp(UUID bgpId) throws StateAccessException;
 
     /**
+     * Get the Router that owns the given Port ID.
+     *
      * @param portId
-     * @return
+     * @return the Router DTO with the router's configuration.
      * @throws StateAccessException
      */
     Router getByPort(UUID portId) throws StateAccessException;
 
     /**
+     * Get the Router that owns the given Route ID.
+     *
      * @param routeId
-     * @return
+     * @return the Router DTO with the router's configuration.
      * @throws StateAccessException
      */
     Router getByRoute(UUID routeId) throws StateAccessException;
 
     /**
+     * Get the Router that owns the given VPN ID.
+     *
      * @param vpnId
-     * @return
+     * @return the Router DTO with the router's configuration.
      * @throws StateAccessException
      */
     Router getByVpn(UUID vpnId) throws StateAccessException;
 
     /**
-     * List Routers.
+     * List all the Routers onwed by a specified Tenant.
      *
      * @return A list of Router objects.
      * @throws StateAccessException
@@ -97,11 +107,11 @@ public interface RouterDao {
             throws StateAccessException;
 
     /**
-     * Update Router.
+     * Update the Router whose ID is specified in the Router DTO.
      *
-     * @return Router object to update.
+     * @param router
+     *          New Router configuration.
      * @throws StateAccessException
-     *             Data Access error.
      */
     void update(Router router) throws StateAccessException;
 }
