@@ -96,17 +96,17 @@ public class Router {
     public void addFloatingIp(IntIPv4 privAddr, IntIPv4 pubAddr, UUID uplinkId) {
         // Add a DNAT to the pre-routing chain.
         preRoutingChain.addRule().setDnat(privAddr, 0)
-                .setMatchNwDst(pubAddr, 32)
-                .setMatchInPort(uplinkId).build();
+                .matchNwDst(pubAddr, 32)
+                .matchInPort(uplinkId).build();
         // Add a SNAT to the post-routing chain.
         postRoutingChain.addRule().setSnat(pubAddr, 0)
-                .setMatchNwSrc(privAddr, 32)
-                .setMatchOutPort(uplinkId).build();
+                .matchNwSrc(privAddr, 32)
+                .matchOutPort(uplinkId).build();
     }
 
     public void dropTrafficTo(String addr, int length) {
         preRoutingChain.addRule()
-                .setMatchNwDst(IntIPv4.fromString(addr), length)
+                .matchNwDst(IntIPv4.fromString(addr), length)
                 .setSimpleType(DtoRule.Drop).build();
     }
 

@@ -144,11 +144,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
             .type(MediaType.APPLICATION_JSON)
             .put(ClientResponse.class, entity);
 
-        if (response.getLocation() == null) {
+        if (response.getStatus() != 200) {
             throw
                 new IllegalStateException(
-                    "A PUT call to " + uri + " failed to return a proper " +
-                        "location header: " + response + "\n" +
+                    "A PUT call to " + uri + " failed to return response " +
+                            "status of 200 OK: " + response + "\n" +
                         response.getEntity(String.class));
         }
 
@@ -196,6 +196,12 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         URI uri = post(t.getBridges(), b);
         return get(uri, DtoBridge.class);
     }
+
+    @Override
+    public void updateBridge(DtoBridge b) {
+        put(b.getUri(), b);
+    }
+
 
     @Override
     public DtoPeerRouterLink linkRouterToPeer(
@@ -325,9 +331,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public DtoRule addRule(DtoRuleChain chain, DtoRule rule) {
         URI uri = post(chain.getRules(), rule);
-        // TODO(pino): return the entity from GET
-        //return get(uri, DtoRule.class);
-        return rule;
+        return get(uri, DtoRule.class);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.util.Net;
 
 public class Condition {
@@ -19,6 +20,12 @@ public class Condition {
     public boolean outPortInv;
     public transient Set<UUID> portGroups;
     public boolean invPortGroups;
+    public Short dlType = null;
+    public boolean invDlType = false;
+    public MAC dlSrc = null;
+    public boolean invDlSrc = false;
+    public MAC dlDst = null;
+    public boolean invDlDst = false;
     public byte nwTos;
     public boolean nwTosInv;
     public byte nwProto;
@@ -107,6 +114,15 @@ public class Condition {
             if (matchedGroup == invPortGroups)
                 return conjunctionInv;
         }
+        if (dlType != null && (dlType.shortValue()
+                == pktMatch.getDataLayerType()) == invDlType)
+            return conjunctionInv;
+        if (dlSrc != null && (dlSrc.equals(
+                new MAC(pktMatch.getDataLayerSource()))) == invDlSrc)
+            return conjunctionInv;
+        if (dlDst != null && (dlDst.equals(
+                new MAC(pktMatch.getDataLayerDestination()))) == invDlDst)
+            return conjunctionInv;
         if (nwTos != 0
                 && (nwTos == pktMatch.getNetworkTypeOfService()) == nwTosInv)
             return conjunctionInv;
@@ -116,12 +132,14 @@ public class Condition {
         int shift = 32 - nwSrcLength;
         if (nwSrcIp != 0
                 && nwSrcLength > 0
-                && (nwSrcIp >>> shift == pktMatch.getNetworkSource() >>> shift) == nwSrcInv)
+                && (nwSrcIp >>> shift
+                == pktMatch.getNetworkSource() >>> shift) == nwSrcInv)
             return conjunctionInv;
         shift = 32 - nwDstLength;
         if (nwDstIp != 0
                 && nwDstLength > 0
-                && (nwDstIp >>> shift == pktMatch.getNetworkDestination() >>> shift) == nwDstInv)
+                && (nwDstIp >>> shift
+                == pktMatch.getNetworkDestination() >>> shift) == nwDstInv)
             return conjunctionInv;
         short tpSrc = pktMatch.getTransportSource();
         if (tpSrcEnd != 0
@@ -144,6 +162,9 @@ public class Condition {
         if (conjunctionInv != condition.conjunctionInv) return false;
         if (inPortInv != condition.inPortInv) return false;
         if (invPortGroups != condition.invPortGroups) return false;
+        if (invDlDst != condition.invDlDst) return false;
+        if (invDlSrc != condition.invDlSrc) return false;
+        if (invDlType != condition.invDlType) return false;
         if (nwDstInv != condition.nwDstInv) return false;
         if (nwDstIp != condition.nwDstIp) return false;
         if (nwDstLength != condition.nwDstLength) return false;
@@ -161,11 +182,26 @@ public class Condition {
         if (tpSrcEnd != condition.tpSrcEnd) return false;
         if (tpSrcInv != condition.tpSrcInv) return false;
         if (tpSrcStart != condition.tpSrcStart) return false;
-        if (inPortIds != null ? !inPortIds.equals(condition.inPortIds) : condition.inPortIds != null)
+        if (dlDst != null ?
+                !dlDst.equals(condition.dlDst) : condition.dlDst != null)
             return false;
-        if (outPortIds != null ? !outPortIds.equals(condition.outPortIds) : condition.outPortIds != null)
+        if (dlSrc != null ?
+                !dlSrc.equals(condition.dlSrc) : condition.dlSrc != null)
             return false;
-        if (portGroups != null ? !portGroups.equals(condition.portGroups) : condition.portGroups != null)
+        if (dlType != null ?
+                !dlType.equals(condition.dlType) : condition.dlType != null)
+            return false;
+        if (inPortIds != null
+                ? !inPortIds.equals(condition.inPortIds)
+                : condition.inPortIds != null)
+            return false;
+        if (outPortIds != null
+                ? !outPortIds.equals(condition.outPortIds)
+                : condition.outPortIds != null)
+            return false;
+        if (portGroups != null
+                ? !portGroups.equals(condition.portGroups)
+                : condition.portGroups != null)
             return false;
 
         return true;
@@ -180,6 +216,12 @@ public class Condition {
         result = 31 * result + (outPortInv ? 1 : 0);
         result = 31 * result + (portGroups != null ? portGroups.hashCode() : 0);
         result = 31 * result + (invPortGroups ? 1 : 0);
+        result = 31 * result + (dlType != null ? dlType.hashCode() : 0);
+        result = 31 * result + (invDlType ? 1 : 0);
+        result = 31 * result + (dlSrc != null ? dlSrc.hashCode() : 0);
+        result = 31 * result + (invDlSrc ? 1 : 0);
+        result = 31 * result + (dlDst != null ? dlDst.hashCode() : 0);
+        result = 31 * result + (invDlDst ? 1 : 0);
         result = 31 * result + (int) nwTos;
         result = 31 * result + (nwTosInv ? 1 : 0);
         result = 31 * result + (int) nwProto;
@@ -230,6 +272,21 @@ public class Condition {
             sb.append("},");
             if (invPortGroups)
                 sb.append("invPortGroups=").append(invPortGroups).append(",");
+        }
+        if (null != dlType) {
+            sb.append("dlType=").append(dlType.shortValue()).append(",");
+            if(invDlType)
+                sb.append("invDlType").append(invDlType).append(",");
+        }
+        if (null != dlSrc) {
+            sb.append("dlSrc=").append(dlSrc).append(",");
+            if(invDlSrc)
+                sb.append("invDlSrc").append(invDlSrc).append(",");
+        }
+        if (null != dlDst) {
+            sb.append("dlDst=").append(dlDst).append(",");
+            if(invDlDst)
+                sb.append("invDlDst").append(invDlDst).append(",");
         }
         if (0 != nwTos) {
             sb.append("nwTos=").append(nwTos).append(",");

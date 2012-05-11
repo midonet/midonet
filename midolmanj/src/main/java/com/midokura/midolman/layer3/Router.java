@@ -145,7 +145,7 @@ public class Router implements ForwardingElement {
                         routerMgr.getRoutingTableDirectory(routerId),
                         CreateMode.EPHEMERAL);
         table.start();
-        // TODO(pino): watch the router's configuration for changes.
+        // Get the Router's configurationa and watch it for changes.
         myConfig = routerMgr.get(routerId,
                 new Runnable() {
                     public void run() {

@@ -158,21 +158,25 @@ public class BridgeOpService {
         BridgeNameMgmtConfig nameConfig = zkDao.getNameData(config.tenantId,
                 config.name);
 
-        // Remove the name of this bridge
-        ops.add(opBuilder.getTenantBridgeNameDeleteOp(config.tenantId,
-                config.name));
+        // Has the Bridge's name changed?
+        if (!name.equals(config.name)) {
+            // Remove the name of this bridge
+            ops.add(opBuilder.getTenantBridgeNameDeleteOp(config.tenantId,
+                    config.name));
 
-        // Move NameConfig to the new name path.
-        ops.add(opBuilder.getTenantBridgeNameCreateOp(config.tenantId, name,
-                nameConfig));
+            // Move NameConfig to the new name path.
+            ops.add(opBuilder.getTenantBridgeNameCreateOp(config.tenantId, name,
+                    nameConfig));
 
-        // Update bridge
-        config.name = name;
-        ops.add(opBuilder.getBridgeSetDataOp(id, config));
+            // Update the management config
+            config.name = name;
+            ops.add(opBuilder.getBridgeSetDataOp(id, config));
+        }
 
-        // Update the midolman data
-        ops.add(opBuilder.getBridgeUpdateOp(id, bridge.toConfig()));
-
+        // Update the midolman state
+        Op op = opBuilder.getBridgeUpdateOp(id, bridge.toConfig());
+        if (null != op)
+            ops.add(op);
         log.debug("BridgeOpBuilder.buildUpdate exiting: ops count={}",
                 ops.size());
         return ops;

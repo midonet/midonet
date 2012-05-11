@@ -66,9 +66,9 @@ public class SecurityGroupTest {
         // Track membership in a separate chain so others can match on it.
         RuleChain sg1Members = tenant1.addChain().setName("Members1").build();
         RuleChain sg1 = tenant1.addChain().setName("SecGroup1").build();
-        sg1.addRule().setMatchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
+        sg1.addRule().matchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
-        sg1.addRule().setMatchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
+        sg1.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
                 .setSimpleType(DtoRule.Accept).build();
 
         // Sec Group 2 allows receiving packets from nwAddr in 10.2.2.0/24,
@@ -79,9 +79,9 @@ public class SecurityGroupTest {
         sg2.addRule().setPosition(1).setJump("Members1").build();
         sg2.addRule().setPosition(2).setJump("Members2").build();
         sg2.addRule().setPosition(3)
-                .setMatchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
+                .matchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().setMatchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
+        sg2.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
                 .setSimpleType(DtoRule.Accept).build();
 
         // port1 will be in security group 1.
@@ -94,7 +94,7 @@ public class SecurityGroupTest {
         BridgePort bPort1 = bridge1.addPort()
                 .setOutboundFilter(portOutChain1.chain.getId()).build();
         // Add port1 to SecGroup1's membership
-        sg1Members.addRule().setMatchInPort(bPort1.getId())
+        sg1Members.addRule().matchInPort(bPort1.getId())
                 .setSimpleType(DtoRule.Accept).build();
 
         // port2 will be in security group 2.
@@ -107,7 +107,7 @@ public class SecurityGroupTest {
         BridgePort bPort2 = bridge1.addPort()
                 .setOutboundFilter(portOutChain2.chain.getId()).build();
         // Add port2 to SecGroup2's membership
-        sg2Members.addRule().setMatchInPort(bPort2.getId())
+        sg2Members.addRule().matchInPort(bPort2.getId())
                 .setSimpleType(DtoRule.Accept).build();
 
         // port3 will be in both security groups 1 and 2.
@@ -121,9 +121,9 @@ public class SecurityGroupTest {
         BridgePort bPort3 = bridge1.addPort()
                 .setOutboundFilter(portOutChain3.chain.getId()).build();
         // Add port3 to both SecGroup1's and SecGroup2's memberships
-        sg1Members.addRule().setMatchInPort(bPort3.getId())
+        sg1Members.addRule().matchInPort(bPort3.getId())
                 .setSimpleType(DtoRule.Accept).build();
-        sg2Members.addRule().setMatchInPort(bPort3.getId())
+        sg2Members.addRule().matchInPort(bPort3.getId())
                 .setSimpleType(DtoRule.Accept).build();
 
         // port4 will not be in any security group.
@@ -328,6 +328,4 @@ public class SecurityGroupTest {
                 tap4.recv(), allOf(notNullValue(), equalTo(pkt)));
 
     }
-
-    public void testFoo() {}
 }

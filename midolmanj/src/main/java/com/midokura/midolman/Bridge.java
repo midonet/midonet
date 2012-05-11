@@ -30,6 +30,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortConfig;
@@ -50,6 +51,7 @@ public class Bridge implements ForwardingElement {
     long mac_port_timeout = 40*1000;
     Reactor reactor;
     PortZkManager portMgr;
+    private BridgeZkManager bridgeMgr;
     private Runnable logicalPortsWatcher;
     private Set<ZkNodeEntry<UUID, PortConfig>> logicalPorts =
             new HashSet<ZkNodeEntry<UUID, PortConfig>>();
@@ -63,18 +65,19 @@ public class Bridge implements ForwardingElement {
     private MacPortWatcher macToPortWatcher;
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
-    private BridgeZkManager.BridgeConfig myConfig;
+    private BridgeConfig myConfig;
     private ChainProcessor chainProcessor;
 
-    public Bridge(UUID bridgeId, Directory zkDir, String zkBasePath,
+    public Bridge(UUID brId, Directory zkDir, String zkBasePath,
                   Reactor reactor, VRNControllerIface ctrl,
                   ChainProcessor chainProcessor)
             throws StateAccessException {
-        this.bridgeId = bridgeId;
+        this.bridgeId = brId;
         this.reactor = reactor;
         this.controller = ctrl;
         this.chainProcessor = chainProcessor;
         portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
         ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
         try {
             macPortMap = new MacPortMap(zkDir.getSubDirectory(
@@ -92,8 +95,19 @@ public class Bridge implements ForwardingElement {
             }
         };
         updateLogicalPorts();
-        // TODO(pino): watch the BridgeConfiguration for changes.
-        myConfig = (new BridgeZkManager(zkDir, zkBasePath)).get(bridgeId).value;
+        // Get the Bridge's configuration and watch it for changes.
+        myConfig = bridgeMgr.get(bridgeId,
+                new Runnable() {
+                    public void run() {
+                        try {
+                            myConfig = bridgeMgr.get(bridgeId, this).value;
+                            log.debug("Bridge {} has a new configuration {}",
+                                    bridgeId, myConfig);
+                        } catch (StateAccessException e) {
+                            log.error("Failed to update bridge config", e);
+                        }
+                    }
+                }).value;
     }
 
     @Override

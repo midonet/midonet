@@ -175,7 +175,9 @@ public class RouterOpService {
         ops.add(opBuilder.getRouterSetDataOp(id, config));
 
         // Update the midolman state
-        ops.add(opBuilder.getRouterUpdateOp(id, router.toConfig()));
+        Op op = opBuilder.getRouterUpdateOp(id, router.toConfig());
+        if (null != op)
+            ops.add(op);
 
         log.debug("RouterOpService.buildUpdate exiting: ops count={}",
                 ops.size());

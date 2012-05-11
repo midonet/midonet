@@ -115,18 +115,24 @@ public class ChainProcessor {
             MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId,
             Set<UUID> portGroups)
                 throws StateAccessException {
+        RuleResult res = new RuleResult(
+                RuleResult.Action.ACCEPT, null, pktMatch, false);
         if (null == chainID) {
-             return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch,
-                                   false);
+             return res;
         }
-
         Chain currentChain = getOrCreateChain(chainID);
+        if (null == currentChain) {
+            log.warn("Could not find a Chain corresponding to ID {}", chainID);
+            return res;
+        }
+        log.debug("Processing chain with name {} and ID {}",
+                currentChain.getChainName(), chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(chainID, currentChain.getRules(), 0));
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(chainID);
 
-        RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
+        res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
         while (!chainStack.empty()) {
             ChainPosition cp = chainStack.pop();

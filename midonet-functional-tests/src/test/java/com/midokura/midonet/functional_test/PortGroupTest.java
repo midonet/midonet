@@ -73,9 +73,9 @@ public class PortGroupTest {
         PortGroup sg1Members =
                 tenant1.addPortGroup().setName("Members1").build();
         RuleChain sg1 = tenant1.addChain().setName("SecGroup1").build();
-        sg1.addRule().setMatchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
+        sg1.addRule().matchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
-        sg1.addRule().setMatchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
+        sg1.addRule().matchNwDst(IntIPv4.fromString("10.0.0.1"), 32)
                 .setSimpleType(DtoRule.Accept).build();
 
         // Sec Group 2 allows receiving packets from nwAddr in 10.2.2.0/24,
@@ -88,9 +88,9 @@ public class PortGroupTest {
                 .matchPortGroups(
                         new UUID[]{sg1Members.getId(), sg2Members.getId()})
                 .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().setMatchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
+        sg2.addRule().matchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().setMatchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
+        sg2.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
                 .setSimpleType(DtoRule.Accept).build();
 
         // port1 will be in security group 1.

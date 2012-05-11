@@ -15,6 +15,8 @@ public interface MidolmanMgmt {
 
     DtoBridge addBridge(DtoTenant t, DtoBridge b);
 
+    void updateBridge(DtoBridge b);
+
     DtoPeerRouterLink linkRouterToPeer(DtoRouter router,
             DtoLogicalRouterPort logPort);
 

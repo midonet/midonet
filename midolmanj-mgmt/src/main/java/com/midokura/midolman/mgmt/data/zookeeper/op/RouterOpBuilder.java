@@ -93,7 +93,7 @@ public class RouterOpBuilder {
     }
 
     public Op getRouterUpdateOp(UUID id, RouterConfig config)
-            throws ZkStateSerializationException {
+            throws StateAccessException {
         return zkDao.prepareUpdate(id, config);
     }
 

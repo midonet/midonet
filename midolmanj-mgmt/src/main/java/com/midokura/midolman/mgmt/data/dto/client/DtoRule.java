@@ -31,6 +31,12 @@ public class DtoRule {
     private boolean invOutPorts;
     private UUID[] portGroups;
     private boolean invPortGroups;
+    private Short dlType = null;
+    private boolean invDlType = false;
+    private String dlSrc = null;
+    private boolean invDlSrc = false;
+    private String dlDst = null;
+    private boolean invDlDst = false;
     private int nwTos;
     private boolean invNwTos;
     private int nwProto;
@@ -131,6 +137,54 @@ public class DtoRule {
 
     public void setPortGroups(UUID[] portGroups) {
         this.portGroups = portGroups;
+    }
+
+    public String getDlDst() {
+        return dlDst;
+    }
+
+    public void setDlDst(String dlDst) {
+        this.dlDst = dlDst;
+    }
+
+    public boolean isInvDlDst() {
+        return invDlDst;
+    }
+
+    public void setInvDlDst(boolean invDlDst) {
+        this.invDlDst = invDlDst;
+    }
+
+    public String getDlSrc() {
+        return dlSrc;
+    }
+
+    public void setDlSrc(String dlSrc) {
+        this.dlSrc = dlSrc;
+    }
+
+    public boolean isInvDlSrc() {
+        return invDlSrc;
+    }
+
+    public void setInvDlSrc(boolean invDlSrc) {
+        this.invDlSrc = invDlSrc;
+    }
+
+    public Short getDlType() {
+        return dlType;
+    }
+
+    public void setDlType(Short dlType) {
+        this.dlType = dlType;
+    }
+
+    public boolean isInvDlType() {
+        return invDlType;
+    }
+
+    public void setInvDlType(boolean invDlType) {
+        this.invDlType = invDlType;
     }
 
     public int getNwTos() {

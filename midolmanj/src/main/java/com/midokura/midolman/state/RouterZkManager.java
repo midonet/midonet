@@ -158,10 +158,14 @@ public class RouterZkManager extends ZkManager {
     }
 
     public void update(UUID id, RouterConfig cfg) throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(prepareUpdate(id, cfg));
-        multi(ops);
+        Op op = prepareUpdate(id, cfg);
+        if (null != op) {
+            List<Op> ops = new ArrayList<Op>();
+            ops.add(op);
+            multi(ops);
+        }
     }
+
     /**
       * Construct a list of ZK operations needed to update the configuration of
       * a router.
@@ -176,14 +180,35 @@ public class RouterZkManager extends ZkManager {
       *          serialized.
       */
     public Op prepareUpdate(UUID id, RouterConfig config)
-            throws ZkStateSerializationException {
-        try {
-            return Op.setData(
-                    pathManager.getRouterPath(id), serialize(config), -1);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize RouterConfig", e, RouterConfig.class);
+            throws StateAccessException {
+        RouterConfig oldConfig = get(id).value;
+        // Have the inbound or outbound filter changed?
+        boolean dataChanged = false;
+        UUID id1 = oldConfig.inboundFilter;
+        UUID id2 = config.inboundFilter;
+        if (id1 == null ? id2 != null : !id1.equals(id2)) {
+            log.debug("The inbound filter of router {} changed from {} to {}",
+                    new Object[] {id, id1, id2});
+            dataChanged = true;
         }
+        id1 = oldConfig.outboundFilter;
+        id2 = config.outboundFilter;
+        if (id1 == null ? id2 != null : !id1.equals(id2)) {
+            log.debug("The outbound filter of router {} changed from {} to {}",
+                    new Object[] {id, id1, id2});
+            dataChanged = true;
+        }
+        if (dataChanged) {
+            try {
+                return Op.setData(
+                        pathManager.getRouterPath(id), serialize(config), -1);
+            } catch (IOException e) {
+                throw new ZkStateSerializationException(
+                        "Could not serialize RouterConfig",
+                        e, RouterConfig.class);
+            }
+        }
+        return null;
     }
 
     /**

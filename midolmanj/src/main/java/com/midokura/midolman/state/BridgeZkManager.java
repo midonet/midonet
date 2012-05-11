@@ -1,7 +1,6 @@
 /*
- * @(#)BridgeZkManager        1.6 11/09/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.state;
 
@@ -14,16 +13,18 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
  * Class to manage the bridge ZooKeeper data.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 public class BridgeZkManager extends ZkManager {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(BridgeZkManager.class);
 
     public static class BridgeConfig {
 
@@ -41,6 +42,15 @@ public class BridgeZkManager extends ZkManager {
         public int greKey;      // Only set in prepareBridgeCreate
         public UUID inboundFilter;
         public UUID outboundFilter;
+
+        @Override
+        public String toString() {
+            return "BridgeConfig{" +
+                    "greKey=" + greKey +
+                    ", inboundFilter=" + inboundFilter +
+                    ", outboundFilter=" + outboundFilter +
+                    '}';
+        }
     }
 
     private PortSetMap portSetMap;
@@ -146,15 +156,35 @@ public class BridgeZkManager extends ZkManager {
     public Op prepareUpdate(UUID id, BridgeConfig config)
             throws StateAccessException {
         BridgeConfig oldConfig = get(id).value;
-        // Don't allow changing the Bridge's GRE-key.
-        config.greKey = oldConfig.greKey;
-        try {
-            return Op.setData(
-                    pathManager.getBridgePath(id), serialize(config), -1);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize BridgeConfig", e, BridgeConfig.class);
+        // Have the inbound or outbound filter changed?
+        boolean dataChanged = false;
+        UUID id1 = oldConfig.inboundFilter;
+        UUID id2 = config.inboundFilter;
+        if (id1 == null ? id2 != null : !id1.equals(id2)) {
+            log.debug("The inbound filter of bridge {} changed from {} to {}",
+                    new Object[] {id, id1, id2});
+            dataChanged = true;
         }
+        id1 = oldConfig.outboundFilter;
+        id2 = config.outboundFilter;
+        if (id1 == null ? id2 != null : !id1.equals(id2)) {
+            log.debug("The outbound filter of bridge {} changed from {} to {}",
+                    new Object[] {id, id1, id2});
+            dataChanged = true;
+        }
+        if (dataChanged) {
+            // Update the midolman data. Don't change the Bridge's GRE-key.
+            config.greKey = oldConfig.greKey;
+            try {
+                return Op.setData(
+                        pathManager.getBridgePath(id), serialize(config), -1);
+            } catch (IOException e) {
+                throw new ZkStateSerializationException(
+                        "Could not serialize BridgeConfig",
+                        e, BridgeConfig.class);
+            }
+        }
+        return null;
     }
 
     public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException {

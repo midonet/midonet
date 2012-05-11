@@ -82,7 +82,7 @@ public class Chain {
             newRules.add(entry.value);
         }
         // Rules are unordered in ZooKeeper, so sort by the Rule class's
-        // comparitor, which orders by the "position" field.
+        // comparator, which orders by the "position" field.
         Collections.sort(newRules);
 
         rules = newRules;

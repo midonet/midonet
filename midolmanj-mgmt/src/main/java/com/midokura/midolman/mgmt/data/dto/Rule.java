@@ -16,6 +16,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
@@ -62,6 +63,12 @@ public class Rule extends UriResource {
     private boolean invOutPorts = false;
     private UUID[] portGroups;
     private boolean invPortGroups;
+    private Short dlType = null;
+    private boolean invDlType = false;
+    private String dlSrc = null;
+    private boolean invDlSrc = false;
+    private String dlDst = null;
+    private boolean invDlDst = false;
     private int nwTos;
     private boolean invNwTos = false;
     private int nwProto;
@@ -248,6 +255,134 @@ public class Rule extends UriResource {
 
     public void setPortGroups(UUID[] portGroups) {
         this.portGroups = portGroups;
+    }
+
+    /**
+     * Get the Data Layer Destination that this rule matches on.
+     * @return
+     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     */
+    public String getDlDst() {
+        return dlDst;
+    }
+
+    /**
+     * Set the Data Layer Destination that this rule matches on.
+     * @param dlDst
+     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     */
+    public void setDlDst(String dlDst) {
+        this.dlDst = dlDst;
+    }
+
+    /**
+     * Set whether the match on the data layer destination should be inverted.
+     * This will be stored but ignored until the DlDst has been set.
+     * @param invDlDst
+     *      True if the rule should match packets whose data layer destination
+     *      is NOT equal to the MAC set by 'setDlDst'. False if the rule should
+     *      match packets whose DlDst IS equal to that MAC.
+     */
+    public void setInvDlDst(boolean invDlDst) {
+        this.invDlDst = invDlDst;
+    }
+
+    /**
+     * Find out whether this rule's match on the Data Layer Destination is
+     * inverted.
+     * @return
+     *      True if the rule matches packets whose data layer destination
+     *      is NOT equal to the MAC set by 'setDlDst'. False if the rule matches
+     *      packets whose DlDst is equal to that MAC.
+     */
+    public boolean isInvDlDst() {
+        return invDlDst;
+    }
+
+    /**
+     * Get the Data Layer Source that this rule matches on.
+     * @return
+     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     */
+    public String getDlSrc() {
+        return dlSrc;
+    }
+
+    /**
+     * Set the Data Layer Source address that this rule matches on.
+     * @param dlSrc
+     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     */
+    public void setDlSrc(String dlSrc) {
+        this.dlSrc = dlSrc;
+    }
+
+    /**
+     * Set whether the match on the data layer source should be inverted.
+     * This will be stored but ignored until the DlSrc has been set.
+     * @param invDlSrc
+     *      True if the rule should match packets whose data layer source
+     *      is NOT equal to the MAC set by 'setDlSrc'. False if the rule should
+     *      match packets whose DlSrc IS equal to that MAC.
+     */
+    public void setInvDlSrc(boolean invDlSrc) {
+        this.invDlSrc = invDlSrc;
+    }
+
+    /**
+     * Find out whether this rule's match on the Data Layer Source is
+     * inverted.
+     * @return
+     *      True if the rule matches packets whose data layer source
+     *      is NOT equal to the MAC set by 'setDlSrc'. False if the rule matches
+     *      packets whose DlSrc is equal to that MAC.
+     */
+    public boolean isInvDlSrc() {
+        return invDlSrc;
+    }
+
+    /**
+     * Set the Data Layer Type (Ethertype) of packets matched by this rule.
+     * @param dlType
+     *      Ethertype value. We do not check the validity of the value provided:
+     *      i.e. whether it's in the correct range for Ethertypes.
+     */
+    public void setDlType(Short dlType) {
+        this.dlType = dlType;
+    }
+
+    /**
+     * Get the Data Layer Type (Ethertype) of packets matched by this rule.
+     * @return
+     *      The value of the Ethertype as a Short if the rule matches Ethertype,
+     *      otherwise Null.
+     */
+    public Short getDlType() {
+        return dlType;
+    }
+
+    /**
+     * Set whether the match on the data layer type should be inverted.
+     * This will be stored but ignored until the DlType has been set.
+     * @param invDlType
+     *      True if the rule should match packets whose data layer type
+     *      is NOT equal to the Ethertype set by 'setDlType'. False if the rule
+     *      should match packets whose DlType IS equal to that Ethertype.
+     */
+    public void setInvDlType(boolean invDlType) {
+        this.invDlType = invDlType;
+    }
+
+    /**
+     * Find out whether this rule's match on the Data Layer Type is
+     * inverted.
+     * @return
+     *      True if the rule matches packets whose data layer type
+     *      is NOT equal to the Ethertype set by 'setDlType'. False if the rule
+     *      matches packets whose DlSrc is equal to that Ethertype.
+     */
+    public boolean isInvDlType() {
+        return invDlType;
     }
 
     /**
@@ -620,6 +755,14 @@ public class Rule extends UriResource {
             c.inPortIds = new HashSet<UUID>();
         }
         c.inPortInv = this.isInvInPorts();
+        c.dlType = this.dlType;
+        c.invDlType = this.isInvDlType();
+        if (this.dlSrc != null)
+            c.dlSrc = MAC.fromString(this.dlSrc);
+        c.invDlSrc = this.invDlSrc;
+        if (this.dlDst != null)
+            c.dlDst = MAC.fromString(this.dlDst);
+        c.invDlDst = this.invDlDst;
         c.nwDstInv = this.isInvNwDst();
         if (this.getNwDstAddress() != null) {
             c.nwDstIp = Net.convertStringAddressToInt(this.getNwDstAddress());
@@ -711,12 +854,16 @@ public class Rule extends UriResource {
         this.setInvInPorts(c.inPortInv);
         this.setInvOutPorts(c.outPortInv);
         this.setInvPortGroups(c.invPortGroups);
+        this.setInvDlType(c.invDlType);
+        this.setInvDlSrc(c.invDlSrc);
+        this.setInvDlDst(c.invDlDst);
         this.setInvNwDst(c.nwDstInv);
         this.setInvNwProto(c.nwProtoInv);
         this.setInvNwSrc(c.nwSrcInv);
         this.setInvNwTos(c.nwTosInv);
         this.setInvTpDst(c.tpDstInv);
         this.setInvTpSrc(c.tpSrcInv);
+
         if (c.inPortIds != null) {
             this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
         }
@@ -726,11 +873,18 @@ public class Rule extends UriResource {
         if (c.portGroups != null) {
             this.setPortGroups(c.portGroups.toArray(new UUID[c.portGroups.size()]));
         }
-        this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
+        this.setDlType(c.dlType);
+        if (null != c.dlSrc)
+            this.setDlSrc(c.dlSrc.toString());
+        if (null != c.dlDst)
+            this.setDlDst(c.dlDst.toString());
+        if (c.nwDstIp != 0)
+            this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
+        if (c.nwSrcIp != 0)
+            this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
         this.setNwDstLength(c.nwDstLength);
-        this.setNwProto(c.nwProto);
-        this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
         this.setNwSrcLength(c.nwSrcLength);
+        this.setNwProto(c.nwProto);
         this.setNwTos(c.nwTos);
         this.setTpDstEnd(c.tpDstEnd);
         this.setTpDstStart(c.tpDstStart);

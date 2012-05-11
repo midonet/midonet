@@ -57,7 +57,12 @@ public class Bridge {
         return dto.getId();
     }
 
-    public void delete() {
+    public void setInboundFilter(UUID id) {
+        dto.setInboundFilter(id);
+        mgmt.updateBridge(dto);
+    }
 
+    public void delete() {
+        mgmt.delete(dto.getUri());
     }
 }
