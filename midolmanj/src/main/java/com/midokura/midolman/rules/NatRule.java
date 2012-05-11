@@ -6,9 +6,13 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
+import com.midokura.midolman.layer4.NatMapping;
+
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public abstract class NatRule extends Rule {
+    // The NatMapping is irrelevant to the hashCode, equals and serialization.
+    protected transient NatMapping natMap;
     public boolean dnat;
 
     public NatRule(Condition condition, Action action, boolean dnat) {
@@ -31,6 +35,10 @@ public abstract class NatRule extends Rule {
                 && !action.equals(Action.RETURN))
             throw new IllegalArgumentException("A nat rule's action "
                     + "must be one of: ACCEPT, CONTINUE, or RETURN.");
+    }
+
+    public void setNatMapping(NatMapping nat) {
+        natMap = nat;
     }
 
     @Override
