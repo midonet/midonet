@@ -53,6 +53,7 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
     @After
     public void tearDown() throws Exception {
         stopMidolmanMgmt(api);
+	cleanupZooKeeperData();
     }
 
     @Test

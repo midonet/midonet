@@ -89,15 +89,22 @@ public class FunctionalTestsHelper {
         //TODO:     ZK. If it fails, stop/start/remove, to force the remove,
         //TODO      then throw an error to identify the bad test.
 
-        // Restart ZK to get around the bug where a directory cannot be deleted.
-        Sudo.sudoExec("service zookeeper stop");
-        Sudo.sudoExec("service zookeeper start");
-
-        // Now delete the functional test ZK directory.
-        ProcessHelper
-            .newLocalProcess(zkClient + " -server 127.0.0.1:2181 rmr /midonet")
+        int exitCode = ProcessHelper
+            .newLocalProcess(zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
             .logOutput(log, "cleaning_zk")
             .runAndWait();
+
+	if (exitCode != 0 && SystemHelper.getOsType() == SystemHelper.OsType.Linux) {
+	    // Restart ZK to get around the bug where a directory cannot be deleted.
+            Sudo.sudoExec("service zookeeper stop");
+	    Sudo.sudoExec("service zookeeper start");
+
+            // Now delete the functional test ZK directory.
+            ProcessHelper
+                .newLocalProcess(zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
+                .logOutput(log, "cleaning_zk")
+                .runAndWait();
+         }
     }
 
     protected static void removeRemoteTap(RemoteTap tap) {
