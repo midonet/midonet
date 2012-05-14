@@ -20,6 +20,7 @@ import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.BridgeRouterLink;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
+import com.midokura.midonet.functional_test.topology.PortGroup;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.RuleChain;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
@@ -32,7 +33,11 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-public class SecurityGroupTest {
+/**
+ * This class emulates a MidoNet client implementing SecurityGroups using
+ * MidoNet PortGroups to track/match SecurityGroup membership.
+ */
+public class PortGroupTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     Tenant tenant1;
@@ -49,12 +54,12 @@ public class SecurityGroupTest {
                 new OpenvSwitchDatabaseConnectionImpl(
                         "Open_vSwitch", "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "SecGroupTest");
+        midolman1 = MidolmanLauncher.start(Default, "PortGroupTest");
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant-secgroup").build();
+        tenant1 = new Tenant.Builder(mgmt).setName("tenant-portgroup").build();
         Bridge bridge1 = tenant1.addBridge().setName("br1").build();
         Router rtr = tenant1.addRouter().setName("rtr1").build();
         // Link the Bridge and Router
@@ -63,8 +68,9 @@ public class SecurityGroupTest {
         // All sec groups should allow packets from the router (10.0.0.1/32)
 
         // Sec Group 1 allows receiving packets from nwAddr in 10.1.1.0/24.
-        // Track membership in a separate chain so others can match on it.
-        RuleChain sg1Members = tenant1.addChain().setName("Members1").build();
+        // Create a port group for SecGroup1's membership.
+        PortGroup sg1Members =
+                tenant1.addPortGroup().setName("Members1").build();
         RuleChain sg1 = tenant1.addChain().setName("SecGroup1").build();
         sg1.addRule().setMatchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
@@ -74,12 +80,13 @@ public class SecurityGroupTest {
         // Sec Group 2 allows receiving packets from nwAddr in 10.2.2.0/24,
         // from its own members, and from members of SecGroup1.
         // Use a separate chain to track SG1's membership.
-        RuleChain sg2Members = tenant1.addChain().setName("Members2").build();
+        PortGroup sg2Members =
+                tenant1.addPortGroup().setName("Members2").build();
         RuleChain sg2 = tenant1.addChain().setName("SecGroup2").build();
-        sg2.addRule().setPosition(1).setJump("Members1").build();
-        sg2.addRule().setPosition(2).setJump("Members2").build();
-        sg2.addRule().setPosition(3)
-                .setMatchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
+        sg2.addRule().matchPortGroup(sg1Members.getId())
+                .matchPortGroup(sg2Members.getId())
+                .setSimpleType(DtoRule.Accept).build();
+        sg2.addRule().setMatchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
         sg2.addRule().setMatchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
                 .setSimpleType(DtoRule.Accept).build();
@@ -92,10 +99,8 @@ public class SecurityGroupTest {
         portOutChain1.addRule().setPosition(2)
                 .setSimpleType(DtoRule.Drop).build();
         BridgePort bPort1 = bridge1.addPort()
-                .setOutboundFilter(portOutChain1.chain.getId()).build();
-        // Add port1 to SecGroup1's membership
-        sg1Members.addRule().setMatchInPort(bPort1.getId())
-                .setSimpleType(DtoRule.Accept).build();
+                .setOutboundFilter(portOutChain1.chain.getId())
+                .addPortGroup(sg1Members.getId()).build();
 
         // port2 will be in security group 2.
         RuleChain portOutChain2 =
@@ -105,10 +110,8 @@ public class SecurityGroupTest {
         portOutChain2.addRule().setPosition(2)
                 .setSimpleType(DtoRule.Drop).build();
         BridgePort bPort2 = bridge1.addPort()
-                .setOutboundFilter(portOutChain2.chain.getId()).build();
-        // Add port2 to SecGroup2's membership
-        sg2Members.addRule().setMatchInPort(bPort2.getId())
-                .setSimpleType(DtoRule.Accept).build();
+                .setOutboundFilter(portOutChain2.chain.getId())
+                .addPortGroup(sg2Members.getId()).build();
 
         // port3 will be in both security groups 1 and 2.
         RuleChain portOutChain3 =
@@ -119,12 +122,9 @@ public class SecurityGroupTest {
         portOutChain3.addRule().setPosition(3)
                 .setSimpleType(DtoRule.Drop).build();
         BridgePort bPort3 = bridge1.addPort()
-                .setOutboundFilter(portOutChain3.chain.getId()).build();
-        // Add port3 to both SecGroup1's and SecGroup2's memberships
-        sg1Members.addRule().setMatchInPort(bPort3.getId())
-                .setSimpleType(DtoRule.Accept).build();
-        sg2Members.addRule().setMatchInPort(bPort3.getId())
-                .setSimpleType(DtoRule.Accept).build();
+                .setOutboundFilter(portOutChain3.chain.getId())
+                .addPortGroup(sg1Members.getId())
+                .addPortGroup(sg2Members.getId()).build();
 
         // port4 will not be in any security group.
         BridgePort bPort4 = bridge1.addPort().build();

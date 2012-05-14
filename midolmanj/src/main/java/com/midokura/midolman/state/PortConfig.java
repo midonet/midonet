@@ -2,6 +2,7 @@
 
 package com.midokura.midolman.state;
 
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -16,5 +17,6 @@ public abstract class PortConfig {
     public UUID device_id;
     public UUID inboundFilter;
     public UUID outboundFilter;
+    public Set<UUID> portGroupIDs;
     public int greKey;
 }

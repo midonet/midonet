@@ -222,6 +222,9 @@ public class VRNCoordinator implements ForwardingElement {
     public void process(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
         log.debug("process: fwdInfo {}", fwdInfo);
+        PortConfig config = getPortConfig(fwdInfo.inPortId);
+        if (null != config.portGroupIDs)
+        fwdInfo.portGroups.addAll(config.portGroupIDs);
         processOneFE(fwdInfo);
     }
 
@@ -314,7 +317,8 @@ public class VRNCoordinator implements ForwardingElement {
                 inbound ? portCfg.inboundFilter : portCfg.outboundFilter,
                 fwdInfo.flowMatch, pktMatch,
                 fwdInfo.inPortId, fwdInfo.outPortId,
-                inbound ? fwdInfo.inPortId : fwdInfo.outPortId);
+                inbound ? fwdInfo.inPortId : fwdInfo.outPortId,
+                fwdInfo.portGroups);
         // TODO(pino): add the code that handles the removal notification
         if (result.trackConnection)
             fwdInfo.addRemovalNotification(

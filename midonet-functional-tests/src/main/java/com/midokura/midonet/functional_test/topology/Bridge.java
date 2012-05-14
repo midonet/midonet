@@ -46,15 +46,8 @@ public class Bridge {
         this.dto = bridge;
     }
 
-    public BridgePort addPort() {
-        return addPort(null, null);
-    }
-
-    public BridgePort addPort(UUID inboundFilter, UUID outboundFilter) {
-        DtoPort port = new DtoPort();
-        port.setInboundFilter(inboundFilter);
-        port.setOutboundFilter(outboundFilter);
-        return new BridgePort(mgmt, mgmt.addBridgePort(dto, port));
+    public BridgePort.Builder addPort() {
+        return new BridgePort.Builder(mgmt, dto);
     }
 
     public Subnet.Builder newDhcpSubnet() {

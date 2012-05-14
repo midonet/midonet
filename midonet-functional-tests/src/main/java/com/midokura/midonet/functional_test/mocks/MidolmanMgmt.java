@@ -71,4 +71,5 @@ public interface MidolmanMgmt {
 
     void updateInterface(DtoInterface dtoInterface);
 
+    DtoPortGroup addPortGroup(DtoTenant tenant, DtoPortGroup group);
 }

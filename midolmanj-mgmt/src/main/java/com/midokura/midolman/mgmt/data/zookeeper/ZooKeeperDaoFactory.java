@@ -430,6 +430,11 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
         return new DhcpDaoAdapter(getBridgeDhcpZkMaanager());
     }
 
+    @Override
+    public PortGroupDao getPortGroupDao() throws StateAccessException {
+        return new PortGroupDaoAdapter(getZkDao(), getPathBuilder());
+    }
+
     private VpnZkManager getVpnZkManager() throws StateAccessException {
         return new VpnZkManager(getDirectory(), this.rootPath);
     }

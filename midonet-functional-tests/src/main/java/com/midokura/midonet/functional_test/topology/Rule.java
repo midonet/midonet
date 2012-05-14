@@ -82,6 +82,11 @@ public class Rule {
             return this;
         }
 
+        public Builder matchPortGroup(UUID groupId) {
+            rule.addPortGroup(groupId);
+            return this;
+        }
+
         public Rule build() {
             return new Rule(mgmt, mgmt.addRule(chain, rule));
         }

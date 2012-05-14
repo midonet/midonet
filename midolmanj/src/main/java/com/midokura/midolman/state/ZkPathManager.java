@@ -409,6 +409,43 @@ public class ZkPathManager {
                 routeId).toString();
     }
 
+
+    /**
+     * Get ZK port groups path.
+     *
+     * @return /port_groups
+     */
+    public String getPortGroupsPath() {
+        return new StringBuilder(basePath).append("/port_groups").toString();
+    }
+
+
+    /**
+     * Get ZK port group path.
+     *
+     * @param id
+     *            Group UUID.
+     * @return /port_groups/groupId
+     */
+    public String getPortGroupPath(UUID id) {
+        return new StringBuilder(getPortGroupsPath()).append("/").append(id)
+                .toString();
+    }
+
+    /**
+     * Get ZK port path inside a group.
+     *
+     * @param id
+     *            Group UUID.
+     * @param id
+     *            Port UUID as a String.
+     * @return /port_groups/groupId/portId
+     */
+    public String getPortInGroupPath(UUID id, String portId) {
+        return new StringBuilder(getPortGroupPath(id))
+                .append("/").append(portId).toString();
+    }
+
     /**
      * Get ZK rule chain path.
      *

@@ -159,4 +159,6 @@ public interface DaoFactory {
      *             Data access error.
      */
     DhcpDao getDhcpDao() throws StateAccessException;
+
+    PortGroupDao getPortGroupDao() throws StateAccessException;
 }

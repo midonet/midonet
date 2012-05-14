@@ -394,7 +394,7 @@ public class Router implements ForwardingElement {
 
         RuleResult res = ruleEngine.applyChain(
                 myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
-                fwdInfo.inPortId, null, this.routerId);
+                fwdInfo.inPortId, null, this.routerId, fwdInfo.portGroups);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -445,7 +445,8 @@ public class Router implements ForwardingElement {
                 new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort });
         res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo.flowMatch,
-                res.match, fwdInfo.inPortId, rt.nextHopPort, this.routerId);
+                res.match, fwdInfo.inPortId, rt.nextHopPort, this.routerId,
+                fwdInfo.portGroups);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {

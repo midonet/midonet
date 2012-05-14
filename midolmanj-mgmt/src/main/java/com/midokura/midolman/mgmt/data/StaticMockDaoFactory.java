@@ -125,4 +125,9 @@ public class StaticMockDaoFactory implements DaoFactory {
     public DhcpDao getDhcpDao() throws StateAccessException {
         return factoryInstance.getDhcpDao();
     }
+
+    @Override
+    public PortGroupDao getPortGroupDao() throws StateAccessException {
+        return factoryInstance.getPortGroupDao();
+    }
 }

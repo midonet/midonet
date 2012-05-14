@@ -60,6 +60,8 @@ public class Rule extends UriResource {
     private boolean invInPorts = false;
     private UUID[] outPorts = null;
     private boolean invOutPorts = false;
+    private Set<UUID> portGroups;
+    private boolean invPortGroups;
     private int nwTos;
     private boolean invNwTos = false;
     private int nwProto;
@@ -230,6 +232,22 @@ public class Rule extends UriResource {
      */
     public void setInvOutPorts(boolean invOutPorts) {
         this.invOutPorts = invOutPorts;
+    }
+
+    public boolean isInvPortGroups() {
+        return invPortGroups;
+    }
+
+    public void setInvPortGroups(boolean invPortGroups) {
+        this.invPortGroups = invPortGroups;
+    }
+
+    public Set<UUID> getPortGroups() {
+        return portGroups;
+    }
+
+    public void setPortGroups(Set<UUID> portGroups) {
+        this.portGroups = portGroups;
     }
 
     /**
@@ -628,6 +646,8 @@ public class Rule extends UriResource {
         c.tpSrcEnd = this.getTpSrcEnd();
         c.tpSrcInv = this.isInvTpSrc();
         c.tpSrcStart = this.getTpSrcStart();
+        c.portGroups = this.portGroups;
+        c.invPortGroups = this.invPortGroups;
         return c;
     }
 

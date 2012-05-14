@@ -5,8 +5,9 @@
 package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
@@ -15,6 +16,7 @@ public class DtoPort {
     private UUID deviceId = null;
     private UUID inboundFilter = null;
     private UUID outboundFilter = null;
+    private Set<UUID> portGroupIDs = null;
     private UUID vifId = null;
     private URI uri;
 
@@ -48,6 +50,20 @@ public class DtoPort {
 
     public void setOutboundFilter(UUID outboundFilter) {
         this.outboundFilter = outboundFilter;
+    }
+
+    public Set<UUID> getPortGroupIDs() {
+        return portGroupIDs;
+    }
+
+    public void setPortGroupIDs(Set<UUID> portGroupIDs) {
+        this.portGroupIDs = portGroupIDs;
+    }
+
+    public void addPortGroup(UUID groupID) {
+        if (null == portGroupIDs)
+            portGroupIDs = new HashSet<UUID>();
+        portGroupIDs.add(groupID);
     }
 
     public UUID getVifId() {

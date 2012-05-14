@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 
@@ -82,6 +83,7 @@ public interface ForwardingElement {
         public Ethernet pktIn;
         public MidoMatch flowMatch; // (original) match of any eventual flows
         public MidoMatch matchIn; // the match as it enters the ForwardingElement
+        public Set<UUID> portGroups = new HashSet<UUID>();
         public boolean internallyGenerated = false;
 
         // These fields are filled by ForwardingElement.process():

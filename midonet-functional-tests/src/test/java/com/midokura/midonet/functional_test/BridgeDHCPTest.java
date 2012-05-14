@@ -82,11 +82,11 @@ public class BridgeDHCPTest {
 
         bridge = tenant.addBridge().setName("bridge1").build();
 
-        BridgePort vmPort = bridge.addPort();
+        BridgePort vmPort = bridge.addPort().build();
         tapPort = new TapWrapper(tapPortName);
         ovsBridge.addSystemPort(vmPort.getId(), tapPortName);
 
-        BridgePort internalPort = bridge.addPort();
+        BridgePort internalPort = bridge.addPort().build();
 
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
         ovsBridge.addInternalPort(internalPort.getId(),

@@ -105,7 +105,8 @@ public class ChainProcessor {
      * @return
      */
     public RuleResult applyChain(UUID chainID, MidoMatch flowMatch,
-            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId)
+            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId,
+            Set<UUID> portGroups)
                 throws StateAccessException {
         if (null == chainID) {
              return new RuleResult(RuleResult.Action.ACCEPT, null, pktMatch,
@@ -128,7 +129,7 @@ public class ChainProcessor {
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
                 cp.rules.get(cp.position).process(flowMatch, inPortId,
-                        outPortId, res, getNatMapping(ownerId));
+                        outPortId, res, getNatMapping(ownerId), portGroups);
                 cp.position++;
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)

@@ -5,8 +5,9 @@
 package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
@@ -30,6 +31,8 @@ public class DtoRule {
     private boolean invInPorts;
     private UUID[] outPorts;
     private boolean invOutPorts;
+    private Set<UUID> portGroups;
+    private boolean invPortGroups;
     private int nwTos;
     private boolean invNwTos;
     private int nwProto;
@@ -114,6 +117,28 @@ public class DtoRule {
 
     public void setInvOutPorts(boolean invOutPorts) {
         this.invOutPorts = invOutPorts;
+    }
+
+    public boolean isInvPortGroups() {
+        return invPortGroups;
+    }
+
+    public void setInvPortGroups(boolean invPortGroups) {
+        this.invPortGroups = invPortGroups;
+    }
+
+    public Set<UUID> getPortGroups() {
+        return portGroups;
+    }
+
+    public void setPortGroups(Set<UUID> portGroups) {
+        this.portGroups = portGroups;
+    }
+
+    public void addPortGroup(UUID groupID) {
+        if (null == portGroups)
+            portGroups = new HashSet<UUID>();
+        portGroups.add(groupID);
     }
 
     public int getNwTos() {
@@ -283,5 +308,4 @@ public class DtoRule {
     public void setPosition(int position) {
         this.position = position;
     }
-
 }

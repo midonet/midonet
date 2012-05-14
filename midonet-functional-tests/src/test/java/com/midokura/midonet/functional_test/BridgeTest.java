@@ -96,19 +96,19 @@ public class BridgeTest {
 
         ip1 = IntIPv4.fromString("192.168.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
-        bPort1 = bridge1.addPort();
+        bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridge1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
         ip2 = IntIPv4.fromString("192.168.231.3");
         mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
-        bPort2 = bridge1.addPort();
+        bPort2 = bridge1.addPort().build();
         tap2 = new TapWrapper("tapBridge2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
         ip3 = IntIPv4.fromString("192.168.231.4");
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
-        bPort3 = bridge1.addPort();
+        bPort3 = bridge1.addPort().build();
         tap3 = new TapWrapper("tapBridge3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 

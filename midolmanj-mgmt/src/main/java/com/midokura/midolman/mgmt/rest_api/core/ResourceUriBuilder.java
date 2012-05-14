@@ -22,6 +22,7 @@ public class ResourceUriBuilder {
     public static final String DHCP = "/dhcp";
     public static final String DHCP_HOSTS = "/hosts";
     public static final String PORTS = "/ports";
+    public static final String PORT_GROUPS = "/port_groups";
     public static final String CHAINS = "/chains";
     public static final String RULES = "/rules";
     public static final String ROUTES = "/routes";
@@ -158,11 +159,6 @@ public class ResourceUriBuilder {
                 .build();
     }
 
-    public static URI getRouterChains(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(CHAINS)
-                .build();
-    }
-
     public static URI getRules(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(RULES).build();
     }
@@ -293,5 +289,14 @@ public class ResourceUriBuilder {
         return UriBuilder
             .fromUri(getHostCommands(baseUri, hostId))
             .path(id.toString()).build();
+    }
+
+    public static URI getPortGroups(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(PORT_GROUPS).build();
+    }
+
+    public static URI getPortGroup(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getPortGroups(baseUri))
+                .path(id.toString()).build();
     }
 }

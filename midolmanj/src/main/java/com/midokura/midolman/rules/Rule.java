@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.rules;
 
+import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.layer4.NatMapping;
@@ -52,8 +53,8 @@ public abstract class Rule implements Comparable<Rule> {
      *            NAT state of the element using this chain.
      */
     public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, NatMapping natMapping) {
-        if (condition.matches(inPortId, outPortId, res.match)) {
+            RuleResult res, NatMapping natMapping, Set<UUID> portGroups) {
+        if (condition.matches(inPortId, outPortId, res.match, portGroups)) {
             apply(flowMatch, inPortId, outPortId, res, natMapping);
         }
     }

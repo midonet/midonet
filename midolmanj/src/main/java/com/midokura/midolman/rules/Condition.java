@@ -17,6 +17,8 @@ public class Condition {
     public boolean inPortInv;
     public transient Set<UUID> outPortIds;
     public boolean outPortInv;
+    public transient Set<UUID> portGroups;
+    public boolean invPortGroups;
     public byte nwTos;
     public boolean nwTosInv;
     public byte nwProto;
@@ -64,6 +66,11 @@ public class Condition {
     public Condition() { super(); }
 
     public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch) {
+        return matches(inPortId, outPortId, pktMatch, null);
+    }
+
+    public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch,
+                           Set<UUID> senderGroups) {
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
          * iff either:
@@ -83,6 +90,19 @@ public class Condition {
         if (null != outPortIds && outPortIds.size() > 0
                 && outPortIds.contains(outPortId) == outPortInv)
             return conjunctionInv;
+        if (null != portGroups && portGroups.size() > 0) {
+            boolean matchedGroup = false;
+            if (senderGroups!= null) {
+                for (UUID group : senderGroups) {
+                    if (portGroups.contains(group)) {
+                        matchedGroup = true;
+                        break;
+                    }
+                }
+            }
+            if (matchedGroup == invPortGroups)
+                return conjunctionInv;
+        }
         if (nwTos != 0
                 && (nwTos == pktMatch.getNetworkTypeOfService()) == nwTosInv)
             return conjunctionInv;

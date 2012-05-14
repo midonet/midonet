@@ -105,9 +105,9 @@ public class ChainZkDao {
             throws StateAccessException {
         if (tenantId == null || chainName == null) {
             throw new IllegalArgumentException(
-                    "routerId, chain name cannot be null");
+                    "tenantId, chain name cannot be null");
         }
-        log.debug("ChainZkDao.getNameData entered: routerId=" + tenantId
+        log.debug("ChainZkDao.getNameData entered: tenantId=" + tenantId
                 + ", name=" + chainName);
 
         String path = pathBuilder.getTenantChainNamePath(tenantId, chainName);

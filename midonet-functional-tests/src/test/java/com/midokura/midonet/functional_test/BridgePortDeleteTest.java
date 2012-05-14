@@ -86,15 +86,15 @@ public class BridgePortDeleteTest {
         svcController = new ServiceController(6640);
         waitForBridgeToConnect(svcController);
 
-        bPort1 = bridge1.addPort();
+        bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridgeDel1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
-        bPort2 = bridge1.addPort();
+        bPort2 = bridge1.addPort().build();
         tap2 = new TapWrapper("tapBridgeDel2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
-        bPort3 = bridge1.addPort();
+        bPort3 = bridge1.addPort().build();
         tap3 = new TapWrapper("tapBridgeDel3");
         ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
 

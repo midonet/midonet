@@ -54,6 +54,10 @@ public class Tenant {
         return new RuleChain.Builder(mgmt, dto);
     }
 
+    public PortGroup.Builder addPortGroup() {
+        return new PortGroup.Builder(mgmt, dto);
+    }
+
     public void delete() {
         mgmt.delete(dto.getUri());
     }

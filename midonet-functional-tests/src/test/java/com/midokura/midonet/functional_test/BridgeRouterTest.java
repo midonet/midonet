@@ -85,7 +85,7 @@ public class BridgeRouterTest {
 
         // Create a virtual L2 bridge with one tap port.
         Bridge bridge1 = tenant1.addBridge().setName("br1").build();
-        BridgePort bPort1 = bridge1.addPort();
+        BridgePort bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridge1");
         ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
@@ -94,7 +94,7 @@ public class BridgeRouterTest {
 
         // Create another virtual L2 bridge with one tap port.
         Bridge bridge2 = tenant1.addBridge().setName("br2").build();
-        BridgePort bPort2 = bridge2.addPort();
+        BridgePort bPort2 = bridge2.addPort().build();
         tap2 = new TapWrapper("tapBridge2");
         ovsBridge.addSystemPort(bPort2.getId(), tap2.getName());
 

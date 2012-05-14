@@ -299,6 +299,12 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
+    public DtoPortGroup addPortGroup(DtoTenant tenant, DtoPortGroup group) {
+        URI uri = post(tenant.getChains(), group);
+        return get(uri, DtoPortGroup.class);
+    }
+
+    @Override
     public void deleteTenant(String name) {
         delete(UriBuilder.fromUri(app.getTenant()).path(name).build());
     }

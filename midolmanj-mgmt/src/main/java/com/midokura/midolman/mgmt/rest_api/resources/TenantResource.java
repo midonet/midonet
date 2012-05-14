@@ -143,6 +143,19 @@ public class TenantResource {
     }
 
     /**
+     * Port group resource locator for tenants
+     *
+     * @param id
+     *            Tenant ID from the request.
+     * @returns TenantPortGroupResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
+    public TenantPortGroupResource getPortGroupResource(
+            @PathParam("id") String id) {
+        return new TenantPortGroupResource(id);
+    }
+
+    /**
      * Router resource locator for tenants.
      *
      * @param id

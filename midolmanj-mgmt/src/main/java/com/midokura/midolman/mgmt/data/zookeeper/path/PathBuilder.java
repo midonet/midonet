@@ -26,6 +26,8 @@ public class PathBuilder {
     public static final String ROUTERS_PATH = "routers";
     public static final String TENANTS_PATH = "tenants";
     public static final String VIFS_PATH = "vifs";
+    private static final Object PORT_GROUPS_PATH = "port_groups";
+    private static final Object PORT_GROUP_NAMES_PATH = "port_group-names";
 
     /**
      * Constructor
@@ -113,6 +115,26 @@ public class PathBuilder {
     public String getChainsPath() {
         return new StringBuilder(basePath).append("/").append(CHAINS_PATH)
                 .toString();
+    }
+
+    /**
+     * Get ZK port group path.
+     *
+     * @return /port_groups/groupId
+     */
+    public String getPortGroupPath(UUID id) {
+        return new StringBuilder(getPortGroupsPath())
+                .append("/").append(id).toString();
+    }
+
+    /**
+     * Get ZK port groups path.
+     *
+     * @return /port_groups
+     */
+    public String getPortGroupsPath() {
+        return new StringBuilder(basePath).append("/")
+                .append(PORT_GROUPS_PATH).toString();
     }
 
     /**
@@ -210,11 +232,35 @@ public class PathBuilder {
     }
 
     /**
+     * Get ZK tenant port group name path.
+     *
+     * @param tenantId
+     *            Tenant UUID
+     * @return /tenants/tenantId/port_group-names/name
+     */
+    public String getTenantPortGroupNamePath(String tenantId, String name) {
+        return new StringBuilder(getTenantPortGroupNamesPath(tenantId))
+                .append("/").append(name).toString();
+    }
+
+    /**
+     * Get ZK tenant port group names path.
+     *
+     * @param tenantId
+     *            Tenant UUID
+     * @return /tenant/tenantId/port_group-names
+     */
+    public String getTenantPortGroupNamesPath(String tenantId) {
+        return new StringBuilder(getTenantPath(tenantId.toString()))
+                .append("/").append(CHAIN_NAMES_PATH).toString();
+    }
+
+    /**
      * Get ZK tenant chain name path.
      *
      * @param tenantId
      *            Tenant UUID
-     * @return /tenants/tenantId/chains/chain-names/name
+     * @return /tenants/tenantId/chain-names/name
      */
     public String getTenantChainNamePath(String tenantId, String name) {
         return new StringBuilder(getTenantChainNamesPath(tenantId))
@@ -226,7 +272,7 @@ public class PathBuilder {
      *
      * @param tenantId
      *            Tenant UUID
-     * @return /tenant/tenantId/chains/chain-names
+     * @return /tenant/tenantId/chain-names
      */
     public String getTenantChainNamesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId.toString()))

@@ -133,13 +133,6 @@ public class Router extends UriResource {
     }
 
     /**
-     * @return the chains URI.
-     */
-    public URI getChains() {
-        return ResourceUriBuilder.getRouterChains(getBaseUri(), id);
-    }
-
-    /**
      * @return the routes URI.
      */
     public URI getRoutes() {
