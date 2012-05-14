@@ -219,6 +219,18 @@
                                 </data>
                                 <data>
                                     <src>
+                                        ${project.build.directory}/dep-midokura
+                                    </src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>
+                                            /usr/share/midolman/dep
+                                        </prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>
                                         ${project.basedir}/src/deb/sudoers/midolman
                                     </src>
                                     <type>file</type>
@@ -289,6 +301,7 @@
                 <version>2.4</version>
                 <executions>
                     <execution>
+                        <id>copy-non-midokura-dependencies</id>
                         <phase>process-sources</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
@@ -297,6 +310,19 @@
                             <excludeGroupIds>com.midokura</excludeGroupIds>
                             <outputDirectory>
                                 ${project.build.directory}/dep/
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-midokura-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeGroupIds>com.midokura</includeGroupIds>
+                            <outputDirectory>
+                                ${project.build.directory}/dep-midokura/
                             </outputDirectory>
                         </configuration>
                     </execution>
