@@ -13,12 +13,12 @@ import org.apache.commons.io.IOUtils;
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 11/24/11
  */
-public class RemoteSshCommand extends SshSession {
+public class RemoteSshCommand {
 
-    public RemoteSshCommand(String username,
-                            String hostname, int port,
-                            UserInfo userInfo) {
-        super(username, hostname, port, userInfo);
+    private SshSession sshSession;
+
+    public RemoteSshCommand(SshSession sshSession) {
+	this.sshSession = sshSession;
     }
 
     protected void customizeChannel(SshExecChannel channel) {
@@ -27,16 +27,20 @@ public class RemoteSshCommand extends SshSession {
 
     public String execute(String command, int timeout) throws IOException {
 
-        openSession(timeout);
+        sshSession.openSession(timeout);
 
-        SshExecChannel channel = newExecChannel();
+        SshExecChannel channel = sshSession.newExecChannel();
 
-        channel.setCommand(command);
-        customizeChannel(channel);
-        channel.connect(timeout);
+        try {
+            channel.setCommand(command);
+            customizeChannel(channel);
 
-        InputStream remoteInputStream = channel.getInputStream();
+            InputStream remoteInputStream = channel.getInputStream(); 
+            channel.connect(timeout);
 
-        return IOUtils.toString(remoteInputStream, "UTF-8");
+            return IOUtils.toString(remoteInputStream, "UTF-8");
+	} finally {
+            channel.disconnect();
+	}
     }
 }

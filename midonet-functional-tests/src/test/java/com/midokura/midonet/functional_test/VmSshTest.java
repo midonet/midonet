@@ -100,10 +100,6 @@ public class VmSshTest {
                     .setNetworkDevice(tapPort.getName())
                     .build();
 
-        sshSession = SshHelper.newSession()
-                              .onHost("129.168.231.2")
-                              .withCredentials("ubuntu", "ubuntu")
-                              .open();
     }
 
     @AfterClass
@@ -117,20 +113,25 @@ public class VmSshTest {
         destroyVM(vm);
     }
 
-    @Ignore @Test
+    @Test
     public void testSshRemoteCommand()
         throws IOException, InterruptedException {
 
         try {
             vm.startup();
-
             assertThat("The Machine should have been started", vm.isRunning());
+
+	    sshSession = SshHelper.newSession()
+                              .onHost("192.168.231.2")
+                              .withCredentials("ubuntu", "ubuntu")
+                              .open(30*1000);
+
             log.info("Running remote command to find the hostname.");
             // validate ssh to the 192.168.231.2 address
             String output =
                 SshHelper.newRemoteCommand("hostname")
                          .withSession(sshSession)
-                         .run(60 * 1000); // 60 seconds
+                         .run(30 * 1000); // 30 seconds
 
             log.info("Command output: {}", output.trim());
 
@@ -141,11 +142,14 @@ public class VmSshTest {
                        output.trim(), equalTo(vm.getHostName()));
 
         } finally {
+            if (sshSession != null) {
+	        sshSession.disconnect();
+            }
             vm.shutdown();
         }
     }
 
-    @Ignore @Test
+    @Test
     public void testScp() throws Exception, InterruptedException {
 
         try {
@@ -153,36 +157,34 @@ public class VmSshTest {
 
             assertThat("The Machine should have been started", vm.isRunning());
 
+	    sshSession = SshHelper.newSession()
+                              .onHost("192.168.231.2")
+                              .withCredentials("ubuntu", "ubuntu")
+                              .open(60*1000);
+
             String output =
                 SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
-                         .onHost("192.168.231.2")
-                         .withCredentials("ubuntu", "ubuntu")
-                         .run(60 * 1000); // 60 seconds
+                         .withSession(sshSession)
+                         .run(30 * 1000); // 60 seconds
 
             assertThat(
                 "There should not by any content in the target test_file.txt",
                 output, equalTo(""));
 
             File localFile = File.createTempFile("smoke-ssh-test", null);
-            localFile.deleteOnExit();
+            //localFile.deleteOnExit();
 
             FileUtils.writeStringToFile(localFile, "Hannibal");
 
             int copyFileTimeout = (int) TimeUnit.SECONDS.toMillis(30);
 
-            SshSession session = SshHelper.newSession()
-                                          .onHost("192.168.231.2")
-                                          .withCredentials("ubuntu", "ubuntu")
-                                          .open(copyFileTimeout);
-
             SshHelper.uploadFile(localFile.getAbsolutePath())
                      .toRemote("test_file.txt")
-                     .usingSession(session, copyFileTimeout);
+                     .usingSession(sshSession, copyFileTimeout);
 
             output =
                 SshHelper.newRemoteCommand("cat test_file.txt 2>/dev/null")
-                         .onHost("192.168.231.2")
-                         .withCredentials("ubuntu", "ubuntu")
+                         .withSession(sshSession)
                          .run(60 * 1000); // 60 seconds
 
             assertThat("The remote file should have our content.",
@@ -191,7 +193,7 @@ public class VmSshTest {
             File newLocalFile = File.createTempFile("smoke-ssh-test", null);
             SshHelper.getFile(newLocalFile.getAbsolutePath())
                      .fromRemote("test_file.txt")
-                     .usingSession(session, copyFileTimeout);
+                     .usingSession(sshSession, copyFileTimeout);
 
             output = FileUtils.readFileToString(newLocalFile);
             assertThat(
@@ -199,6 +201,9 @@ public class VmSshTest {
                 output, equalTo("Hannibal"));
 
         } finally {
+            if (sshSession != null) {
+	        sshSession.disconnect();
+            }
             vm.shutdown();
         }
     }

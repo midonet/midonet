@@ -36,6 +36,6 @@ public class DownloadFileBuilder {
 
         CopyFileSshCommand copyFileCommand = new CopyFileSshCommand(sshSession);
 
-        copyFileCommand.doCopy(localFile, remoteFile, false, timeout);
+        copyFileCommand.doCopy(remoteFile, localFile, false, timeout);
     }
 }
