@@ -244,8 +244,8 @@ public class TestVRNController {
         }
 
         // TODO(pino, dan): fix this.
-        // One flow should have been installed for each locally added port.
-        Assert.assertEquals(3, controllerStub.addedFlows.size());
+        // Two flows should have been installed for each locally added port.
+        Assert.assertEquals(6, controllerStub.addedFlows.size());
         // Clear the flows: unit-tests assume the addedFlows queue starts empty.
         controllerStub.addedFlows.clear();
 
@@ -1101,8 +1101,8 @@ public class TestVRNController {
                 OFPortStatus.OFPortReason.OFPPR_ADD);
 
         // TODO(pino, dan): fix this.
-        // One flow should have been installed for each locally added port.
-        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        // Two flows should have been installed for each locally added port.
+        Assert.assertEquals(2, controllerStub.addedFlows.size());
         // Clear the flows: unit-tests assume the addedFlows queue starts empty.
         controllerStub.addedFlows.clear();
     }
@@ -1837,12 +1837,13 @@ public class TestVRNController {
         vrnCtrl.onPortStatus(servicePort,
                 OFPortStatus.OFPortReason.OFPPR_ADD);
 
-        // 9 flows (BGPx4, ICMPx2, ARPx2, DHCPx1) are installed.
+        // 10 flows (4 BGP, 2 ICMP, 2 ARP, 1 DHCP, 1 tunnel) are installed.
         // The DHCP flow is not specific to the BGP port setup. All locally
         // added ports get a pre-installed flow.
-        Assert.assertEquals(9, controllerStub.addedFlows.size());
-        // TODO(pino, dan): fix this. For now remove the DHCP flow because
-        // the rest of the test is oblivious to it.
+        Assert.assertEquals(10, controllerStub.addedFlows.size());
+        // TODO(pino, dan): fix this. For now remove the DHCP and tunnel flows
+        // because the rest of the test is oblivious to them.
+        controllerStub.addedFlows.remove(1);
         controllerStub.addedFlows.remove(0);
 
         int localAddr = PortDirectory.MaterializedRouterPortConfig.class

@@ -329,7 +329,7 @@ public class VRNController extends AbstractController
             if (null == portNum) {
                 log.warn("forwardTunneledPkt unrecognized egress port.");
             } else {
-                log.debug("forwardTunneledPkt: to single egress.");
+                log.warn("forwardTunneledPkt: to single egress.");
                 outPorts.add(portNum.shortValue());
             }
         }
@@ -637,6 +637,24 @@ public class VRNController extends AbstractController
                     new ArrayList<OFAction>());
     }
 
+    private void installPredefTunnelRule(int portNum, int greKey) {
+        // Install a rule {match:[TunnelID = greKey] action:[output(portNum)]}
+        MidoMatch match = new MidoMatch();
+        ArrayList<OFAction> actions = new ArrayList<OFAction>();
+        actions.add(new OFActionOutput((short) portNum, (short) 0));
+        controllerStub.sendFlowModAdd(match, 0, NO_IDLE_TIMEOUT,
+                                      NO_HARD_TIMEOUT, FLOW_PRIORITY, -1,
+                                      false, false, false, actions, greKey);
+    }
+
+    private void removePredefTunnelRule(int portNum, int greKey) {
+        // Remove the rule {match:[TunnelID = greKey] action:[output(portNum)]}
+        // (strict match)
+        MidoMatch match = new MidoMatch();
+        controllerStub.sendFlowModDelete(match, true, FLOW_PRIORITY,
+                                         (short) portNum, greKey);
+    }
+
     @Override
     public void onFlowRemoved(OFMatch match, long cookie, short priority,
             OFFlowRemovedReason reason, int durationSeconds,
@@ -892,6 +910,10 @@ public class VRNController extends AbstractController
                 portMgr.update(entry);
                 addServicePort(portId, hwAddr);
             }
+
+            // Install flows for this port's greKey to go directly to this port.
+            int greKey = entry.value.greKey;
+            installPredefTunnelRule(portNum, greKey);
         } catch (Exception e) {
             log.error("addVirtualPort", e);
         }
@@ -903,7 +925,9 @@ public class VRNController extends AbstractController
         log.info("deletePort number {} bound to virtual port {}",
                 portNum, portId);
         try {
+            ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId);
             vrn.removePort(portId);
+            removePredefTunnelRule(portNum, entry.value.greKey);
         } catch (Exception e) {
             log.error("deleteVirtualPort", e);
         }
