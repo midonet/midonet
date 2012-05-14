@@ -97,7 +97,7 @@ public class FunctionalTestsHelper {
 	if (exitCode != 0 && SystemHelper.getOsType() == SystemHelper.OsType.Linux) {
 	    // Restart ZK to get around the bug where a directory cannot be deleted.
             Sudo.sudoExec("service zookeeper stop");
-	    Sudo.sudoExec("service zookeeper start");
+	        Sudo.sudoExec("service zookeeper start");
 
             // Now delete the functional test ZK directory.
             ProcessHelper

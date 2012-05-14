@@ -119,30 +119,22 @@ public class HostCommandGenerator {
             return;
         }
 
-        Map<String, String> properties = current.getProperties();
+        value = normalize(value);
 
-        String currentValue = current.getProperties().get(key);
+        Map<String, String> properties = current.getProperties();
+        String currentValue = normalize(properties.get(key));
 
         OperationType operationType = null;
 
-        // we got a property that was set to empty (which means the intent was
-        // to delete it.
-        if (value == null || value.trim().equals("")) {
+        // if the values are different then we need to do something
+        // (either SET or CLEAR)
+        if (value.compareTo(currentValue) != 0) {
 
-            // check that the current value is actually set to something
-            if (properties.containsKey(key) && currentValue != null &&
-                !currentValue.trim().equals("")) {
-                operationType = OperationType.CLEAR;
-            } else {
-                // else just ignore the setting
-            }
-        } else {
-            if (
-                !properties.containsKey(key) || // no previews value preset
-                    currentValue == null ||          // or the old value was null
-                    !currentValue.trim().equals(value)) { // or it is different
-
+            // the new value is something meaningful
+            if (value.length() > 0) {
                 operationType = OperationType.SET;
+            } else {
+                operationType = OperationType.CLEAR;
             }
         }
 
@@ -150,6 +142,20 @@ public class HostCommandGenerator {
             command.addAtomicCommand(
                 newCommand(commandProperty, operationType, value));
         }
+    }
+
+    /**
+     * Converts null string to empty strings and trims all the other strings.
+     *
+     * @param string the to normalize
+     *
+     * @return the normalized version of the string.
+     */
+    private String normalize(String string) {
+        if (string == null)
+            return "";
+
+        return string.trim();
     }
 
     /**

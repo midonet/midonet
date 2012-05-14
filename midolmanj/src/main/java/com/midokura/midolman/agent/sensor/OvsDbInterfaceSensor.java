@@ -42,12 +42,13 @@ public class OvsDbInterfaceSensor implements InterfaceSensor {
                                             PropertyKeys.midonet_port_id.name(),
                                             portExternalId);
 
-                    log.info("Updated interface: " + interfaceDescription);
+                    log.debug("Updated interface: " + interfaceDescription);
                 }
-
             } catch (OpenvSwitchException.NotFoundException ex) {
-                // ignore the exception since
+                // ignore the exception since if the interface is not
+                // registered into OVS it means it's not bound to a VRN port
             }
+
             // Only update interfaces were the endpoint hasn't been already set
             if (interfaceDescription.getEndpoint() != InterfaceDescription.Endpoint.UNKNOWN) {
                 // We already got an endpoint classification from the previous sensor
