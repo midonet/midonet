@@ -35,10 +35,13 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
+import com.midokura.midolman.rules.ChainProcessor;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.GreZkManager.GreKey;
 import com.midokura.midolman.util.Cache;
+
 
 public class VRNController extends AbstractController
     implements ServiceFlowController, VRNControllerIface {
@@ -74,6 +77,7 @@ public class VRNController extends AbstractController
     private PortZkManager portMgr;
     private GreZkManager greMgr;
     private BridgeZkManager bridgeMgr;
+    private ChainProcessor chainProcessor;
 
     public VRNController(long datapathId, Directory zkDir, String zkBasePath,
             IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
@@ -86,6 +90,8 @@ public class VRNController extends AbstractController
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
         this.portSetMap = new PortSetMap(zkDir, zkBasePath);
         this.portSetMap.start();
+        this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
+                                                 reactor);
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this,
                 portSetMap);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
@@ -322,7 +328,31 @@ public class VRNController extends AbstractController
             log.debug("forwardTunneledPkt: to PortSet.");
             // Add local OVS ports.
             if (localPortSetSlices.containsKey(destPortId)) {
-                outPorts.addAll(localPortSetSlices.get(destPortId));
+                for (short outPort : localPortSetSlices.get(destPortId)) {
+                  try {
+                    // Check the outPort's outgoingFilter with this packet.
+                    UUID outPortID = portNumToUuid.get(outPort);
+                    PortConfig portCfg = portMgr.get(outPortID).value;
+                    MidoMatch pktMatch = match.clone();
+                    RuleResult result = chainProcessor.applyChain(
+                                            portCfg.outboundFilter, pktMatch,
+                                            pktMatch, null /* inPortId */,
+                                            outPortID, outPortID);
+                    // Ignore REJECT.
+                    if (result.action.equals(RuleResult.Action.ACCEPT)) {
+                        outPorts.add(outPort);
+                        if (!match.equals(result.match)) {
+                            log.warn("Egress port filter attempted to change " +
+                                     "packet.");
+                        }
+                    }
+                  } catch (StateAccessException e) {
+                    log.error("Got error trying to get the outbound filter " +
+                              "for OVS port {} -- adding it to the flood",
+                              outPort);
+                    outPorts.add(outPort);
+                  }
+                }
             }
         } else { // single egress
             Integer portNum = super.portUuidToNumberMap.get(destPortId);

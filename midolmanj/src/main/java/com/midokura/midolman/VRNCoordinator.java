@@ -60,7 +60,6 @@ public class VRNCoordinator implements ForwardingElement {
         this.watchers = new HashSet<Callback1<UUID>>();
         // TODO(pino): use Guava's CacheBuilder here.
         portIdToConfig = new HashMap<UUID, PortConfig>();
-
         chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache, reactor);
     }
 
