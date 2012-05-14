@@ -226,6 +226,23 @@ public class TestChainProcessor {
     }
 
     @Test
+    public void testApply6() throws StateAccessException {
+        MockChain mockChain = new MockChain(chainId, "mainChain");
+
+        addRule(matchingCondition, Action.RETURN, mockChain, 10); //match
+        addRule(matchingCondition, Action.REJECT, mockChain, 20);
+        addRule(matchingCondition, Action.DROP, mockChain, 30);
+
+        mockChainProcessor.addChain(mockChain);
+
+        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+
+        // When chain is interrupted (RETURN), expect ACCEPT
+        Assert.assertEquals(Action.ACCEPT, ruleResult.action);
+    }
+
+    @Test
     public void testJump1() throws StateAccessException {
         // Main chain
         MockChain mockChain = new MockChain(chainId, "mainChain");
