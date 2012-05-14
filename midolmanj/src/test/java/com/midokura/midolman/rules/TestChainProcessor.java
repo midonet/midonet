@@ -529,7 +529,7 @@ public class TestChainProcessor {
         set.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
                 (short) 1050));
         addRule(matchingCondition, Action.CONTINUE, mockChain, 10, false, set); //match
-        addRule(matchingCondition, Action.DROP, mockChain, 20, false); //no match
+        addRule(matchingCondition, Action.RETURN, mockChain, 20, false); //no match
         addRule(matchingCondition, Action.REJECT, mockChain, 30); //no match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
