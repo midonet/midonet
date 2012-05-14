@@ -370,7 +370,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     @Override
     public TenantDao getTenantDao() throws StateAccessException {
         return new TenantDaoAdapter(getTenantZkDao(), getTenantOpService(),
-                getBridgeDao(), getRouterDao(), getChainDao());
+                getBridgeDao(), getRouterDao(), getChainDao(),
+                getPortGroupDao());
     }
 
     private TenantZkDao getTenantZkDao() throws StateAccessException {

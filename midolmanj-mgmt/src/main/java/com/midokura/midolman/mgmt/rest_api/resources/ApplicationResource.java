@@ -99,6 +99,16 @@ public class ApplicationResource {
     }
 
     /**
+     * PortGroups resource locator.
+     *
+     * @returns ChainResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.PORT_GROUPS)
+    public PortGroupResource getPortGroupResource() {
+        return new PortGroupResource();
+    }
+
+    /**
      * Rule resource locator.
      *
      * @returns RuleResource object to handle sub-resource requests.

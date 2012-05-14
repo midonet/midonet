@@ -15,10 +15,12 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
@@ -34,6 +36,7 @@ public class TenantDaoAdapter implements TenantDao {
             .getLogger(TenantDaoAdapter.class);
     private final BridgeDao bridgeDao;
     private final ChainDao chainDao;
+    private final PortGroupDao portGroupDao;
     private final RouterDao routerDao;
     private final TenantOpService opService;
     private final TenantZkDao zkDao;
@@ -51,12 +54,14 @@ public class TenantDaoAdapter implements TenantDao {
      *            RouterDao object
      */
     public TenantDaoAdapter(TenantZkDao zkDao, TenantOpService opService,
-            BridgeDao bridgeDao, RouterDao routerDao, ChainDao chainDao) {
+            BridgeDao bridgeDao, RouterDao routerDao, ChainDao chainDao,
+            PortGroupDao groupDao) {
         this.zkDao = zkDao;
         this.opService = opService;
         this.bridgeDao = bridgeDao;
         this.routerDao = routerDao;
         this.chainDao = chainDao;
+        this.portGroupDao = groupDao;
     }
 
     /*
@@ -185,6 +190,18 @@ public class TenantDaoAdapter implements TenantDao {
         Tenant tenant = get(chain.getTenantId());
 
         log.debug("TenantDaoAdapter.getByChain exiting: tenant={}", tenant);
+        return tenant;
+    }
+
+    @Override
+    public Tenant getByPortGroup(UUID groupId) throws StateAccessException {
+        log.debug("TenantDaoAdapter.getByPortGroup entered: groupId={}",
+                groupId);
+
+        PortGroup group = portGroupDao.get(groupId);
+        Tenant tenant = get(group.getTenantId());
+
+        log.debug("TenantDaoAdapter.getByPortGroup exiting: tenant={}", tenant);
         return tenant;
     }
 

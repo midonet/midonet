@@ -81,6 +81,13 @@ public class Tenant extends UriResource {
     }
 
     /**
+     * @return the URI for the Tenant's chains resource.
+     */
+    public URI getPortGroups() {
+        return ResourceUriBuilder.getTenantPortGroups(getBaseUri(), id);
+    }
+
+    /**
      * @return the self URI
      */
     @Override

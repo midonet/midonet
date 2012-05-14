@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -24,9 +23,8 @@ import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.ChainDao;
-import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
+import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
@@ -34,7 +32,7 @@ import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * Root resource class for chains.
+ * Root resource class for port groups.
  */
 public class PortGroupResource {
 
@@ -42,10 +40,10 @@ public class PortGroupResource {
             .getLogger(PortGroupResource.class);
 
     /**
-     * Handler to deleting a chain.
+     * Handler to deleting a port group.
      *
      * @param id
-     *            Chain ID from the request.
+     *            PortGroup ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param daoFactory
@@ -62,12 +60,12 @@ public class PortGroupResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
-        if (!authorizer.chainAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.portGroupAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
-                    "Not authorized to delete this chain.");
+                    "Not authorized to delete this port group.");
         }
 
-        ChainDao dao = daoFactory.getChainDao();
+        PortGroupDao dao = daoFactory.getPortGroupDao();
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -77,10 +75,10 @@ public class PortGroupResource {
     }
 
     /**
-     * Handler to getting a chain.
+     * Handler to getting a port group.
      *
      * @param id
-     *            Chain ID from the request.
+     *            PortGroup ID from the request.
      * @param context
      *            Object that holds the security data.
      * @param uriInfo
@@ -91,43 +89,30 @@ public class PortGroupResource {
      *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
-     * @return A Chain object.
+     * @return A PortGroup object.
      */
     @GET
     @PermitAll
     @Path("{id}")
-    @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
-            MediaType.APPLICATION_JSON })
-    public Chain get(@PathParam("id") UUID id,
+    @Produces({ VendorMediaType.APPLICATION_PORTGROUP_JSON })
+    public PortGroup get(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context UriInfo uriInfo,
             @Context DaoFactory daoFactory, @Context Authorizer authorizer)
             throws StateAccessException {
 
-        if (!authorizer.chainAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.portGroupAuthorized(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
-                    "Not authorized to view this chain.");
+                    "Not authorized to view this port group.");
         }
 
-        ChainDao dao = daoFactory.getChainDao();
-        Chain chain = dao.get(id);
-        if (chain == null) {
+        PortGroupDao dao = daoFactory.getPortGroupDao();
+        PortGroup group = dao.get(id);
+        if (group == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
         }
-        chain.setBaseUri(uriInfo.getBaseUri());
+        group.setBaseUri(uriInfo.getBaseUri());
 
-        return chain;
-    }
-
-    /**
-     * Rule resource locator for chains.
-     *
-     * @param id
-     *            Chain ID from the request.
-     * @returns ChainRuleResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.RULES)
-    public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
-        return new ChainRuleResource(id);
+        return group;
     }
 }

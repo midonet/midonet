@@ -212,6 +212,15 @@ public class Condition {
             if (outPortInv)
                 sb.append("outPortInv=").append(outPortInv).append(",");
         }
+        if (portGroups != null && portGroups.size() > 0) {
+            sb.append("portGroups={");
+            for (UUID id : portGroups) {
+                sb.append(id.toString()).append(",");
+            }
+            sb.append("},");
+            if (invPortGroups)
+                sb.append("invPortGroups=").append(invPortGroups).append(",");
+        }
         if (0 != nwTos) {
             sb.append("nwTos=").append(nwTos).append(",");
             if(nwTosInv)

@@ -93,6 +93,22 @@ public interface Authorizer {
             throws StateAccessException;
 
     /**
+     * Checks whether the user is authorized to view the port group.
+     *
+     * @param context
+     *            SecurityContect object.
+     * @param action
+     *            AuthAction object.
+     * @param id
+     *            ID of the object to check.
+     * @return True if authorized.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    boolean portGroupAuthorized(SecurityContext context, AuthAction action,
+                                UUID id) throws StateAccessException;
+
+    /**
      * Checks whether the user is authorized to view port.
      *
      * @param context

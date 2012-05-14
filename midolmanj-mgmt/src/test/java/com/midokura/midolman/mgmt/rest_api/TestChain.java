@@ -1,15 +1,9 @@
 /*
- * @(#)testVif        1.6 11/11/15
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import java.net.URI;
-import java.util.UUID;
-
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,14 +25,6 @@ import static org.junit.Assert.assertThat;
 public class TestChain extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(TestChain.class);
-    private final String testTenantName = "TEST-TENANT";
-    private final String testRouterName = "TEST-ROUTER";
-
-    private WebResource resource;
-    private ClientResponse response;
-    private URI testRouterUri;
-    private UUID testRouterPortId;
-
     DtoTenant tenant1;
     DtoTenant tenant2;
 

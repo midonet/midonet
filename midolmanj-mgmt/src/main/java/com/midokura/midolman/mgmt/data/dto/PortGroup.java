@@ -32,9 +32,9 @@ public class PortGroup extends UriResource {
      * Constructor
      *
      * @param id
-     *            ID of the chain
+     *            ID of the PortGroup
      * @param config
-     *            ChainMgmtConfig object
+     *            PortGroupMgmtConfig object
      */
     public PortGroup(UUID id, PortGroupMgmtConfig config) {
         this(id, config.tenantId, config.name);
@@ -44,11 +44,11 @@ public class PortGroup extends UriResource {
      * Constructor
      *
      * @param id
-     *            ID of the chain
+     *            ID of the PortGroup
      * @param tenantId
      *            Tenant ID
      * @param name
-     *            Chain name
+     *            PortGroup name
      */
     public PortGroup(UUID id, String tenantId, String name) {
         this.id = id;
@@ -106,7 +106,7 @@ public class PortGroup extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getChain(getBaseUri(), id);
+        return ResourceUriBuilder.getPortGroup(getBaseUri(), id);
     }
 
     public PortGroupMgmtConfig toMgmtConfig() {

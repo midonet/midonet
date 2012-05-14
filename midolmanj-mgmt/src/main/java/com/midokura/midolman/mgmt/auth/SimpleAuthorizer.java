@@ -152,6 +152,23 @@ public class SimpleAuthorizer implements Authorizer {
         return allowed;
     }
 
+    @Override
+    public boolean portGroupAuthorized(SecurityContext context,
+            AuthAction action, UUID id) throws StateAccessException {
+        log.debug("SimpleAuthorizer.portGroupAuthorized entered: id=" + id
+                + ",action=" + action);
+
+        if (AuthChecker.isAdmin(context)) {
+            return true;
+        }
+        Tenant tenant = tenantDao.getByChain(id);
+        boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
+
+        log.debug("SimpleAuthorizer.portGroupAuthorized exiting: allowed={}",
+                allowed);
+        return allowed;
+    }
+
     /*
      * (non-Javadoc)
      *

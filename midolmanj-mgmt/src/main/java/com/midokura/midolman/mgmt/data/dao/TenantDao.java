@@ -80,6 +80,14 @@ public interface TenantDao {
     Tenant getByChain(UUID chainId) throws StateAccessException;
 
     /**
+     *
+     * @param groupId
+     * @return
+     * @throws StateAccessException
+     */
+    Tenant getByPortGroup(UUID groupId) throws StateAccessException;
+
+    /**
      * @param portId
      * @return
      * @throws StateAccessException
@@ -122,5 +130,4 @@ public interface TenantDao {
      *             Data access error.
      */
     List<Tenant> list() throws StateAccessException;
-
 }

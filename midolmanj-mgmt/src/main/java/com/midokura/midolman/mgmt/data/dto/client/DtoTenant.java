@@ -16,6 +16,7 @@ public class DtoTenant {
     private URI bridges;
     private URI routers;
     private URI chains;
+    private URI portGroups;
     @XmlTransient
     private URI uri;
 
@@ -49,6 +50,14 @@ public class DtoTenant {
 
     public void setChains(URI chains) {
         this.chains = chains;
+    }
+
+    public URI getPortGroups() {
+        return portGroups;
+    }
+
+    public void setPortGroups(URI portGroups) {
+        this.portGroups = portGroups;
     }
 
     public URI getUri() {

@@ -68,6 +68,11 @@ public class ResourceUriBuilder {
                 .build();
     }
 
+    public static URI getTenantPortGroups(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId))
+                .path(PORT_GROUPS).build();
+    }
+
     public static URI getBridges(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(BRIDGES).build();
     }

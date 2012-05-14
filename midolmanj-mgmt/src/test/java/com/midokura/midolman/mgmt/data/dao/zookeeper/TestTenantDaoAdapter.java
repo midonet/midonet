@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.Chain;
@@ -42,6 +43,7 @@ public class TestTenantDaoAdapter {
     private RouterDao routerDaoMock = null;
     private BridgeDao bridgeDaoMock = null;
     private ChainDao chainDaoMock = null;
+    private PortGroupDao portGroupDaoMock = null;
 
     private static List<Op> createTestPersistentCreateOps() {
         List<Op> ops = new ArrayList<Op>();
@@ -75,10 +77,11 @@ public class TestTenantDaoAdapter {
         daoMock = mock(TenantZkDao.class);
         opServiceMock = mock(TenantOpService.class);
         chainDaoMock = mock(ChainDao.class);
+        portGroupDaoMock = mock(PortGroupDao.class);
         routerDaoMock = mock(RouterDao.class);
         bridgeDaoMock = mock(BridgeDao.class);
         adapter = spy(new TenantDaoAdapter(daoMock, opServiceMock,
-                bridgeDaoMock, routerDaoMock, chainDaoMock));
+                bridgeDaoMock, routerDaoMock, chainDaoMock, portGroupDaoMock));
     }
 
     @Test
