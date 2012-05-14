@@ -4,13 +4,23 @@
 
 package com.midokura.midolman.agent.sensor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.junit.Before;
+import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.midolman.agent.midolman.MidolmanConfigurationWrapper;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
-import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -18,25 +28,23 @@ import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.ZkConnection;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class TestOvsDbInterfaceSensor {
 
 
     OpenvSwitchDatabaseConnection ovsDBConnection;
+
     OvsDbInterfaceSensor ovsDbInterfaceSensor;
 
     @Before
     public void setupGuice() {
 
         ovsDBConnection = new MockOpenvSwitchDatabaseConnection();
+
+        final HierarchicalConfiguration configuration = new HierarchicalConfiguration();
+        configuration.addNodes("midolman", Arrays.asList(
+            new HierarchicalConfiguration.Node("midolman_root_key", "")
+        ));
 
         Injector injector = Guice.createInjector(new AbstractAgentModule() {
             @Override
@@ -46,7 +54,7 @@ public class TestOvsDbInterfaceSensor {
 
             @Provides
             HostAgentConfiguration buildConfigurationObject() {
-                return null;
+                return new MidolmanConfigurationWrapper(configuration);
             }
 
             @Provides
