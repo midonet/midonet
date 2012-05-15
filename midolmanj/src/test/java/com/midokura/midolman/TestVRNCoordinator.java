@@ -106,8 +106,11 @@ public class TestVRNCoordinator {
         controller = new MockVRNController(679, dir, basePath, null,
                    IntIPv4.fromString("192.168.200.200"), "externalIdKey");
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
-        vrn = new VRNCoordinator(dir, basePath, reactor, createCache(),
-                controller, portSetMap);
+        Cache cache = createCache();
+        ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,
+                cache, reactor);
+        vrn = new VRNCoordinator(dir, basePath, reactor, cache,
+                controller, portSetMap, chainProcessor);
 
         /*
          * Create 3 routers such that:

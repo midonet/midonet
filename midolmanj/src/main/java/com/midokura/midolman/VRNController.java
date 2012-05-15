@@ -93,7 +93,7 @@ public class VRNController extends AbstractController
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
                                                  reactor);
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this,
-                portSetMap);
+                portSetMap, chainProcessor);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.service = service;
