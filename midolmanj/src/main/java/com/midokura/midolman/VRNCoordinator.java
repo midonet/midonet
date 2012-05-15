@@ -313,6 +313,8 @@ public class VRNCoordinator implements ForwardingElement {
             PortConfig portCfg, ForwardInfo fwdInfo, boolean inbound)
             throws StateAccessException {
         fwdInfo.action = Action.FORWARD;
+        // If inbound, use the before-FE-processing match.  If outbound, use
+        // the after-FE-processing match.
         MidoMatch pktMatch = inbound ? fwdInfo.matchIn : fwdInfo.matchOut;
         RuleResult result = chainProcessor.applyChain(
                 inbound ? portCfg.inboundFilter : portCfg.outboundFilter,

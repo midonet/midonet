@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
@@ -153,12 +154,14 @@ public class TestVRNController {
         vrnCtrl.portLocMap.start();
 
         /*
-         * Create 3 routers such that: 1) router0 handles traffic to 10.0.0.0/16
-         * 2) router1 handles traffic to 10.1.0.0/16 3) router2 handles traffic
-         * to 10.2.0.0/16 4) router0 and router1 are connected via logical
-         * ports. 5) router0 and router2 are connected via logical ports 6)
-         * router0 is the default next hop for router1 and router2 7) router0
-         * has a single uplink to the global internet.
+         * Create 3 routers such that:
+         *    1) router0 handles traffic to 10.0.0.0/16
+         *    2) router1 handles traffic to 10.1.0.0/16
+         *    3) router2 handles traffic to 10.2.0.0/16
+         *    4) router0 and router1 are connected via logical ports
+         *    5) router0 and router2 are connected via logical ports
+         *    6) router0 is the default gateway for router1 and router2
+         *    7) router0 has a single uplink to the global internet.
          */
         Route rt;
         PortDirectory.MaterializedRouterPortConfig portConfig;
@@ -1081,6 +1084,7 @@ public class TestVRNController {
         int p2pUplinkNwAddr = 0xc0a80004;
         uplinkGatewayAddr = p2pUplinkNwAddr + 1;
         uplinkPortAddr = p2pUplinkNwAddr + 2;
+        short portNum = 897;
 
         MAC mac = MAC.fromString("02:33:55:77:99:11");
         //new byte[] { (byte) 0x02, (byte) 0xad,
@@ -1092,9 +1096,10 @@ public class TestVRNController {
         Route rt = new Route(0, 0, 0, 0, NextHop.PORT, uplinkId,
                 uplinkGatewayAddr, 1, null, routerIds.get(0));
         routeMgr.create(rt);
-        ovsdb.setPortExternalId(datapathId, 897, "midonet", uplinkId.toString());
+        ovsdb.setPortExternalId(datapathId, portNum, "midonet",
+                                uplinkId.toString());
         uplinkPhyPort = new OFPhysicalPort();
-        uplinkPhyPort.setPortNumber((short) 897);
+        uplinkPhyPort.setPortNumber(portNum);
         uplinkPhyPort.setName("uplinkPort");
         uplinkPhyPort.setHardwareAddress(mac.getAddress());
         vrnCtrl.onPortStatus(uplinkPhyPort,
@@ -1103,6 +1108,16 @@ public class TestVRNController {
         // TODO(pino, dan): fix this.
         // Two flows should have been installed for each locally added port.
         Assert.assertEquals(2, controllerStub.addedFlows.size());
+        // Check it's a rule:
+        //       {match:[tunnelID=greKey], actions:[output(uplinkPort)]}
+        List<OFAction> tunnelActions = new ArrayList<OFAction>();
+        tunnelActions.add(new OFActionOutput(portNum, (short)0));
+        MockControllerStub.Flow expectedFlow = new MockControllerStub.Flow(
+                new MidoMatch(), 0, OFFlowMod.OFPFC_ADD, (short)0, (short)0,
+                VRNController.FLOW_PRIORITY, -1, VRNController.nonePort, false,
+                false, false, tunnelActions, portConfig.greKey);
+        Assert.assertTrue(expectedFlow.equals(controllerStub.addedFlows.get(0))
+                || expectedFlow.equals(controllerStub.addedFlows.get(1)));
         // Clear the flows: unit-tests assume the addedFlows queue starts empty.
         controllerStub.addedFlows.clear();
     }
