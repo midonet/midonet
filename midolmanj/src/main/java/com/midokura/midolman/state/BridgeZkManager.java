@@ -23,8 +23,8 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
  */
 public class BridgeZkManager extends ZkManager {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(BridgeZkManager.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(BridgeZkManager.class);
 
     public static class BridgeConfig {
 

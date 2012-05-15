@@ -87,6 +87,7 @@ public class TestVRNController {
     private RuleZkManager ruleMgr;
     private GreZkManager greMgr;
     private RouterZkManager routerMgr;
+    private BridgeZkManager bridgeMgr;
     private MockCache cache;
     private int cacheExpireSecs; // This should be an even number.
     private MockOpenvSwitchDatabaseConnection ovsdb;
@@ -125,6 +126,7 @@ public class TestVRNController {
         bgpMgr = new BgpZkManager(dir, basePath);
         greMgr = new GreZkManager(dir, basePath);
         routerMgr = new RouterZkManager(dir, basePath);
+        bridgeMgr = new BridgeZkManager(dir, basePath);
 
         // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);
@@ -302,6 +304,25 @@ public class TestVRNController {
         rt = new Route(0, 0, 0x0a000000, 8, NextHop.BLACKHOLE, null, 0, 2,
                 null, routerIds.get(0));
         routeMgr.create(rt);
+
+        // Create a Bridge with two local and two remote ports.
+        short portNumA = 100;
+        short portNumB = 110;
+        BridgeZkManager.BridgeConfig brcfg = 
+                new BridgeZkManager.BridgeConfig(null, null);
+        UUID bridgeID = bridgeMgr.create(brcfg);
+        PortDirectory.BridgePortConfig bridgePortConfig = 
+                new PortDirectory.BridgePortConfig(bridgeID);
+        UUID portID = portMgr.create(bridgePortConfig);
+        OFPhysicalPort phyPort = new OFPhysicalPort();
+        phyPort.setPortNumber(portNumA);
+        portNumToUuid.put(portNumA, portID);
+        ovsdb.setPortExternalId(datapathId, portNumA, "midonet", 
+                                portID.toString());
+        phyPort.setName("bridge_port_a");
+        //XXX
+        //vrnCtrl.onPortStatus(phyPort,
+        //                OFPortStatus.OFPortReason.OFPPR_ADD);
     }
 
     public static void checkInstalledFlow(MockControllerStub.Flow flow,
