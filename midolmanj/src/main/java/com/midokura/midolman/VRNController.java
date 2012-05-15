@@ -329,29 +329,28 @@ public class VRNController extends AbstractController
             // Add local OVS ports.
             if (localPortSetSlices.containsKey(destPortId)) {
                 for (short outPort : localPortSetSlices.get(destPortId)) {
-                  try {
-                    // Check the outPort's outgoingFilter with this packet.
-                    UUID outPortID = portNumToUuid.get(outPort);
-                    PortConfig portCfg = portMgr.get(outPortID).value;
-                    MidoMatch pktMatch = match.clone();
-                    RuleResult result = chainProcessor.applyChain(
-                                            portCfg.outboundFilter, pktMatch,
-                                            pktMatch, null /* inPortId */,
-                                            outPortID, outPortID);
-                    // Ignore REJECT.
-                    if (result.action.equals(RuleResult.Action.ACCEPT)) {
-                        outPorts.add(outPort);
-                        if (!match.equals(result.match)) {
-                            log.warn("Egress port filter attempted to change " +
-                                     "packet.");
+                    try {
+                        // Check the outPort's outgoingFilter with this packet.
+                        UUID outPortID = portNumToUuid.get(outPort);
+                        PortConfig portCfg = portMgr.get(outPortID).value;
+                        MidoMatch pktMatch = match.clone();
+                        RuleResult result = chainProcessor.applyChain(
+                            portCfg.outboundFilter, pktMatch, pktMatch,
+                            null /* inPortId */, outPortID, outPortID);
+                        // Ignore REJECT.
+                        if (result.action.equals(RuleResult.Action.ACCEPT)) {
+                            outPorts.add(outPort);
+                            if (!match.equals(result.match)) {
+                                log.warn("Egress port filter attempted to " +
+                                         "change packet.");
+                            }
                         }
+                    } catch (StateAccessException e) {
+                        log.error("Got ZooKeeper error {} trying to get the " +
+                                  "outbound filter for OVS port {} -- adding " +
+                                  "it to the flood", e.getMessage(), outPort);
+                        outPorts.add(outPort);
                     }
-                  } catch (StateAccessException e) {
-                    log.error("Got error trying to get the outbound filter " +
-                              "for OVS port {} -- adding it to the flood",
-                              outPort);
-                    outPorts.add(outPort);
-                  }
                 }
             }
         } else { // single egress
