@@ -96,7 +96,7 @@ public class Condition {
             return conjunctionInv;
         if (null != portGroups && portGroups.size() > 0) {
             boolean matchedGroup = false;
-            if (senderGroups!= null) {
+            if (senderGroups != null) {
                 for (UUID group : senderGroups) {
                     if (portGroups.contains(group)) {
                         matchedGroup = true;

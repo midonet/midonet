@@ -37,16 +37,16 @@ import com.midokura.midolman.state.StateAccessException;
  */
 public class TenantPortGroupResource {
 
-    private final String tenantId;
+    private final String tenantID;
 
     /**
      * Constructor
      *
-     * @param tenantId
+     * @param tenantID
      *            ID of a tenant.
      */
-    public TenantPortGroupResource(String tenantId) {
-        this.tenantId = tenantId;
+    public TenantPortGroupResource(String tenantID) {
+        this.tenantID = tenantID;
     }
 
     /**
@@ -73,13 +73,13 @@ public class TenantPortGroupResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
-        if (!authorizer.tenantAuthorized(context, AuthAction.WRITE, tenantId)) {
+        if (!authorizer.tenantAuthorized(context, AuthAction.WRITE, tenantID)) {
             throw new ForbiddenHttpException(
                     "Not authorized to add PortGroup to this tenant.");
         }
 
         PortGroupDao dao = daoFactory.getPortGroupDao();
-        group.setTenantId(tenantId);
+        group.setTenantId(tenantID);
         UUID id = dao.create(group);
         return Response.created(ResourceUriBuilder.getPortGroup(
                 uriInfo.getBaseUri(), id)).build();
@@ -108,13 +108,13 @@ public class TenantPortGroupResource {
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
-        if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
+        if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantID)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view these port groups.");
         }
 
         PortGroupDao dao = daoFactory.getPortGroupDao();
-        List<PortGroup> groups = dao.list(tenantId);
+        List<PortGroup> groups = dao.list(tenantID);
         if (groups != null) {
             for (UriResource resource : groups) {
                 resource.setBaseUri(uriInfo.getBaseUri());
@@ -150,13 +150,13 @@ public class TenantPortGroupResource {
                      @Context DaoFactory daoFactory, @Context Authorizer authorizer)
             throws StateAccessException {
 
-        if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
+        if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantID)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view the PortGroups of this tenant.");
         }
 
         PortGroupDao dao = daoFactory.getPortGroupDao();
-        PortGroup group = dao.get(tenantId, name);
+        PortGroup group = dao.get(tenantID, name);
         if (group != null) {
             group.setBaseUri(uriInfo.getBaseUri());
         }

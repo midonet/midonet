@@ -105,7 +105,7 @@ public class ChainZkDao {
             throws StateAccessException {
         if (tenantId == null || chainName == null) {
             throw new IllegalArgumentException(
-                    "tenantId, chain name cannot be null");
+                    "Neither tenant ID nor chain name may be null");
         }
         log.debug("ChainZkDao.getNameData entered: tenantId=" + tenantId
                 + ", name=" + chainName);

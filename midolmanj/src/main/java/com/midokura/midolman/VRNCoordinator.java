@@ -224,7 +224,7 @@ public class VRNCoordinator implements ForwardingElement {
         log.debug("process: fwdInfo {}", fwdInfo);
         PortConfig config = getPortConfig(fwdInfo.inPortId);
         if (null != config.portGroupIDs)
-        fwdInfo.portGroups.addAll(config.portGroupIDs);
+            fwdInfo.portGroups.addAll(config.portGroupIDs);
         processOneFE(fwdInfo);
     }
 

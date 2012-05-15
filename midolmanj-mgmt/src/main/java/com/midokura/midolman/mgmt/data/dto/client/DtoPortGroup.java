@@ -56,12 +56,14 @@ public class DtoPortGroup {
 
         DtoPortGroup that = (DtoPortGroup) o;
 
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null)
+            return false;
         if (name != null ? !name.equals(that.name) : that.name != null)
             return false;
         if (ports != null ? !ports.equals(that.ports) : that.ports != null)
             return false;
-        if (tenantId != null ? !tenantId.equals(that.tenantId) : that.tenantId != null)
+        if (tenantId != null ?
+                !tenantId.equals(that.tenantId) : that.tenantId != null)
             return false;
         if (uri != null ? !uri.equals(that.uri) : that.uri != null)
             return false;
