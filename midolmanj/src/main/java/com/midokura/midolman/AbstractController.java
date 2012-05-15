@@ -270,7 +270,7 @@ public abstract class AbstractController implements Controller {
         // GRE key). Tunnel ports are recognized by their naming pattern and
         // the lack of any 'externalId'.
         //
-        // 3)Service ports - the OF port is used by a process on the host OS
+        // 3) Service ports - the OF port is used by a process on the host OS
         // to implement a protocol or feature (e.g BGP). The port is managed by
         // a PortService and has no equivalence in the virtual topology. Think
         // of the port as being part of the internal software of one of the
