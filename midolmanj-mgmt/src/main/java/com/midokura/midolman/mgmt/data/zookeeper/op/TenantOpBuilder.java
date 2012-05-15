@@ -260,6 +260,17 @@ public class TenantOpBuilder {
     }
 
     /**
+     * Get the tenant PortGroup names delete Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant PortGroup names delete.
+     */
+    public Op getTenantPortGroupNamesDeleteOp(String id) {
+        return zkDao.getDeleteOp(pathBuilder.getTenantPortGroupNamesPath(id));
+    }
+
+    /**
      * Get the tenant chains create Op object.
      *
      * @param id

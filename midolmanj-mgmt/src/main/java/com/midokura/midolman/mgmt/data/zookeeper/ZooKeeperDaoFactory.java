@@ -384,7 +384,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private TenantOpService getTenantOpService() throws StateAccessException {
         return new TenantOpService(getTenantOpBuilder(), getBridgeOpService(),
-                getRouterOpService(), getTenantZkDao(), getChainOpService());
+                getRouterOpService(), getTenantZkDao(), getChainOpService(),
+                getPortGroupDao());
     }
 
     /*

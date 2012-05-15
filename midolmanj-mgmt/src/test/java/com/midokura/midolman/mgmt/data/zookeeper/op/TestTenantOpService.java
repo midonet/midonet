@@ -62,7 +62,7 @@ public class TestTenantOpService {
         this.zkDaoMock = mock(TenantZkDao.class);
         this.service = new TenantOpService(this.opBuilderMock,
                 this.bridgeOpServiceMock, this.routerOpServiceMock,
-                this.zkDaoMock, this.chainOpServiceMock);
+                this.zkDaoMock, this.chainOpServiceMock, null);
     }
 
     @Test

@@ -12,6 +12,7 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -31,6 +32,7 @@ public class TenantOpService {
     private final ChainOpService chainOpService;
     private final BridgeOpService bridgeOpService;
     private final RouterOpService routerOpService;
+    private final PortGroupDao groupDao;
 
     /**
      * Constructor
@@ -46,11 +48,13 @@ public class TenantOpService {
      */
     public TenantOpService(TenantOpBuilder opBuilder,
             BridgeOpService bridgeOpService, RouterOpService routerOpService,
-            TenantZkDao zkDao, ChainOpService chainOpService) {
+            TenantZkDao zkDao, ChainOpService chainOpService,
+            PortGroupDao groupDao) {
         this.opBuilder = opBuilder;
         this.bridgeOpService = bridgeOpService;
         this.routerOpService = routerOpService;
         this.chainOpService = chainOpService;
+        this.groupDao = groupDao;
         this.zkDao = zkDao;
     }
 
@@ -99,10 +103,12 @@ public class TenantOpService {
 
         List<Op> ops = new ArrayList<Op>();
 
+        ops.addAll(groupDao.buildTenantPortGroupsDelete(id));
         ops.addAll(chainOpService.buildTenantChainsDelete(id));
         ops.addAll(routerOpService.buildTenantRoutersDelete(id));
         ops.addAll(bridgeOpService.buildTenantBridgesDelete(id));
 
+        ops.add(opBuilder.getTenantPortGroupNamesDeleteOp(id));
         ops.add(opBuilder.getTenantChainNamesDeleteOp(id));
         ops.add(opBuilder.getTenantRouterNamesDeleteOp(id));
         ops.add(opBuilder.getTenantBridgeNamesDeleteOp(id));

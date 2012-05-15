@@ -136,6 +136,21 @@ public class PortGroupDaoAdapter implements PortGroupDao {
         return groups;
     }
 
+    public List<Op> buildTenantPortGroupsDelete(String tenantID)
+            throws StateAccessException {
+        String path = pathBuilder.getTenantPortGroupNamesPath(tenantID);
+        Set<String> names = zkDao.getChildren(path, null);
+        List<Op> ops = new ArrayList<Op>();
+        for (String name : names) {
+            PortGroupNameMgmtConfig nameConfig = getNameData(tenantID, name);
+            path = pathBuilder.getTenantPortGroupNamePath(tenantID, name);
+            ops.add(zkDao.getDeleteOp(path));
+            path = pathBuilder.getPortGroupPath(nameConfig.id);
+            ops.add(zkDao.getDeleteOp(path));
+        }
+        return ops;
+    }
+
     /**
      * Checks whether a PortGroup exists with the given ID.
      *
