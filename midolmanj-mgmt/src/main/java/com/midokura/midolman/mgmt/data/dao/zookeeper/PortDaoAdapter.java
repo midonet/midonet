@@ -152,8 +152,9 @@ public class PortDaoAdapter implements PortDao {
             }
             port.setInboundFilter(config.inboundFilter);
             port.setOutboundFilter(config.outboundFilter);
-            port.setPortGroupIDs(config.portGroupIDs.toArray(
-                    new UUID[config.portGroupIDs.size()]));
+            if (null != config.portGroupIDs && config.portGroupIDs.size() > 0)
+                port.setPortGroupIDs(config.portGroupIDs.toArray(
+                        new UUID[config.portGroupIDs.size()]));
         }
 
         log.debug("PortDaoAdapter.get existing: port={}", port);

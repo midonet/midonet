@@ -18,6 +18,7 @@ import org.apache.zookeeper.Op;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.state.NoStatePathException;
 
@@ -28,6 +29,7 @@ public class TestTenantOpService {
     private ChainOpService chainOpServiceMock = null;
     private RouterOpService routerOpServiceMock = null;
     private BridgeOpService bridgeOpServiceMock = null;
+    private PortGroupDao groupDaoMock = null;
     private TenantOpService service = null;
     private static final Op dummyCreateOp0 = Op.create("/foo",
             new byte[] { 0 }, null, CreateMode.PERSISTENT);
@@ -59,10 +61,11 @@ public class TestTenantOpService {
         this.routerOpServiceMock = mock(RouterOpService.class);
         this.bridgeOpServiceMock = mock(BridgeOpService.class);
         this.chainOpServiceMock = mock(ChainOpService.class);
+        this.groupDaoMock = mock(PortGroupDao.class);
         this.zkDaoMock = mock(TenantZkDao.class);
         this.service = new TenantOpService(this.opBuilderMock,
                 this.bridgeOpServiceMock, this.routerOpServiceMock,
-                this.zkDaoMock, this.chainOpServiceMock, null);
+                this.zkDaoMock, this.chainOpServiceMock, groupDaoMock);
     }
 
     @Test
@@ -83,10 +86,12 @@ public class TestTenantOpService {
                 dummyCreateOp2);
         when(opBuilderMock.getTenantChainNamesCreateOp(id)).thenReturn(
                 dummyCreateOp0);
+        when(opBuilderMock.getTenantPortGroupNamesCreateOp(id)).thenReturn(
+                dummyCreateOp1);
 
         List<Op> ops = service.buildCreate(id);
 
-        Assert.assertEquals(7, ops.size());
+        Assert.assertEquals(8, ops.size());
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
@@ -94,6 +99,7 @@ public class TestTenantOpService {
         Assert.assertEquals(dummyCreateOp1, ops.remove(0));
         Assert.assertEquals(dummyCreateOp2, ops.remove(0));
         Assert.assertEquals(dummyCreateOp0, ops.remove(0));
+        Assert.assertEquals(dummyCreateOp1, ops.remove(0));
     }
 
     @Test
@@ -102,6 +108,8 @@ public class TestTenantOpService {
 
         // Mock the path builder
         when(zkDaoMock.exists(id)).thenReturn(true);
+        when(groupDaoMock.buildTenantPortGroupsDelete(id)).thenReturn(
+                dummyDeleteOps);
         when(chainOpServiceMock.buildTenantChainsDelete(id)).thenReturn(
                 dummyDeleteOps);
         when(routerOpServiceMock.buildTenantRoutersDelete(id)).thenReturn(
@@ -109,6 +117,8 @@ public class TestTenantOpService {
         when(bridgeOpServiceMock.buildTenantBridgesDelete(id)).thenReturn(
                 dummyDeleteOps);
 
+        when(opBuilderMock.getTenantPortGroupNamesDeleteOp(id)).thenReturn(
+                dummyDeleteOp0);
         when(opBuilderMock.getTenantChainNamesDeleteOp(id)).thenReturn(
                 dummyDeleteOp0);
         when(opBuilderMock.getTenantRouterNamesDeleteOp(id)).thenReturn(
@@ -126,7 +136,7 @@ public class TestTenantOpService {
 
         List<Op> ops = service.buildDelete(id);
 
-        Assert.assertEquals(16, ops.size());
+        Assert.assertEquals(20, ops.size());
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
@@ -136,6 +146,10 @@ public class TestTenantOpService {
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
+        Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp0, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp1, ops.remove(0));
         Assert.assertEquals(dummyDeleteOp2, ops.remove(0));
