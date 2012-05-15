@@ -5,8 +5,6 @@
 package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -31,7 +29,7 @@ public class DtoRule {
     private boolean invInPorts;
     private UUID[] outPorts;
     private boolean invOutPorts;
-    private Set<UUID> portGroups;
+    private UUID[] portGroups;
     private boolean invPortGroups;
     private int nwTos;
     private boolean invNwTos;
@@ -127,18 +125,12 @@ public class DtoRule {
         this.invPortGroups = invPortGroups;
     }
 
-    public Set<UUID> getPortGroups() {
+    public UUID[] getPortGroups() {
         return portGroups;
     }
 
-    public void setPortGroups(Set<UUID> portGroups) {
+    public void setPortGroups(UUID[] portGroups) {
         this.portGroups = portGroups;
-    }
-
-    public void addPortGroup(UUID groupID) {
-        if (null == portGroups)
-            portGroups = new HashSet<UUID>();
-        portGroups.add(groupID);
     }
 
     public int getNwTos() {

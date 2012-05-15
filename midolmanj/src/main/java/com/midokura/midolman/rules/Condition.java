@@ -44,6 +44,10 @@ public class Condition {
     public Set<UUID> getOutPortIds() { return outPortIds; }
     public void setOutPortIds(Set<UUID> outPortIds) { this.outPortIds = outPortIds; }
 
+    // Getter and setter for the transient property port.
+    public Set<UUID> getPortGroups() { return portGroups; }
+    public void setPortGroups(Set<UUID> groups) { portGroups = groups; }
+
     /* Custom accessors for Jackson serialization with more readable IP addresses. */
 
     public String getNwSrcIp() {
@@ -131,64 +135,70 @@ public class Condition {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 41;
-        int result = 1;
-        int bHash = conjunctionInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + (null == inPortIds ? 0 : inPortIds.hashCode());
-        bHash = inPortInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + (null == outPortIds? 0 : outPortIds.hashCode());
-        bHash = outPortInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + nwTos;
-        bHash = nwTosInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + nwProto;
-        bHash = nwProtoInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + nwSrcIp;
-        result = prime * result + nwSrcLength;
-        bHash = nwSrcInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + nwDstIp;
-        result = prime * result + nwDstLength;
-        bHash = nwDstInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + tpSrcStart;
-        result = prime * result + tpSrcEnd;
-        bHash = tpSrcInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        result = prime * result + tpDstStart;
-        result = prime * result + tpDstEnd;
-        bHash = tpDstInv ? 1231 : 1237;
-        result = prime * result + bHash;
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Condition condition = (Condition) o;
+
+        if (conjunctionInv != condition.conjunctionInv) return false;
+        if (inPortInv != condition.inPortInv) return false;
+        if (invPortGroups != condition.invPortGroups) return false;
+        if (nwDstInv != condition.nwDstInv) return false;
+        if (nwDstIp != condition.nwDstIp) return false;
+        if (nwDstLength != condition.nwDstLength) return false;
+        if (nwProto != condition.nwProto) return false;
+        if (nwProtoInv != condition.nwProtoInv) return false;
+        if (nwSrcInv != condition.nwSrcInv) return false;
+        if (nwSrcIp != condition.nwSrcIp) return false;
+        if (nwSrcLength != condition.nwSrcLength) return false;
+        if (nwTos != condition.nwTos) return false;
+        if (nwTosInv != condition.nwTosInv) return false;
+        if (outPortInv != condition.outPortInv) return false;
+        if (tpDstEnd != condition.tpDstEnd) return false;
+        if (tpDstInv != condition.tpDstInv) return false;
+        if (tpDstStart != condition.tpDstStart) return false;
+        if (tpSrcEnd != condition.tpSrcEnd) return false;
+        if (tpSrcInv != condition.tpSrcInv) return false;
+        if (tpSrcStart != condition.tpSrcStart) return false;
+        if (inPortIds != null ? !inPortIds.equals(condition.inPortIds) : condition.inPortIds != null)
+            return false;
+        if (outPortIds != null ? !outPortIds.equals(condition.outPortIds) : condition.outPortIds != null)
+            return false;
+        if (portGroups != null ? !portGroups.equals(condition.portGroups) : condition.portGroups != null)
+            return false;
+
+        return true;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other)
-            return true;
-        if (!(other instanceof Condition))
-            return false;
-        Condition c = (Condition) other;
-        return conjunctionInv == c.conjunctionInv
-                && ((null == inPortIds && null == c.inPortIds) || inPortIds
-                        .equals(c.inPortIds))
-                && inPortInv == c.inPortInv
-                && ((null == outPortIds && null == c.outPortIds) || outPortIds
-                        .equals(c.outPortIds)) && outPortInv == c.outPortInv
-                && nwTos == c.nwTos && nwTosInv == c.nwTosInv
-                && nwProto == c.nwProto && nwProtoInv == c.nwProtoInv
-                && nwSrcIp == c.nwSrcIp && nwSrcLength == c.nwSrcLength
-                && nwSrcInv == c.nwSrcInv && nwDstIp == c.nwDstIp
-                && nwDstLength == c.nwDstLength && nwDstInv == c.nwDstInv
-                && tpSrcStart == c.tpSrcStart && tpSrcEnd == c.tpSrcEnd
-                && tpSrcInv == c.tpSrcInv && tpDstStart == c.tpDstStart
-                && tpDstEnd == c.tpDstEnd && tpDstInv == c.tpDstInv;
+    public int hashCode() {
+        int result = (conjunctionInv ? 1 : 0);
+        result = 31 * result + (inPortIds != null ? inPortIds.hashCode() : 0);
+        result = 31 * result + (inPortInv ? 1 : 0);
+        result = 31 * result + (outPortIds != null ? outPortIds.hashCode() : 0);
+        result = 31 * result + (outPortInv ? 1 : 0);
+        result = 31 * result + (portGroups != null ? portGroups.hashCode() : 0);
+        result = 31 * result + (invPortGroups ? 1 : 0);
+        result = 31 * result + (int) nwTos;
+        result = 31 * result + (nwTosInv ? 1 : 0);
+        result = 31 * result + (int) nwProto;
+        result = 31 * result + (nwProtoInv ? 1 : 0);
+        result = 31 * result + nwSrcIp;
+        result = 31 * result + (int) nwSrcLength;
+        result = 31 * result + (nwSrcInv ? 1 : 0);
+        result = 31 * result + nwDstIp;
+        result = 31 * result + (int) nwDstLength;
+        result = 31 * result + (nwDstInv ? 1 : 0);
+        result = 31 * result + (int) tpSrcStart;
+        result = 31 * result + (int) tpSrcEnd;
+        result = 31 * result + (tpSrcInv ? 1 : 0);
+        result = 31 * result + (int) tpDstStart;
+        result = 31 * result + (int) tpDstEnd;
+        result = 31 * result + (tpDstInv ? 1 : 0);
+        return result;
     }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Condition [");

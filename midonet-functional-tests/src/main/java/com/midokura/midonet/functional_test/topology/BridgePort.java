@@ -4,6 +4,7 @@
 
 package com.midokura.midonet.functional_test.topology;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
@@ -33,8 +34,8 @@ public class BridgePort {
             return this;
         }
 
-        public Builder addPortGroup(UUID groupID) {
-            port.addPortGroup(groupID);
+        public Builder setPortGroups(UUID[] groupIDs) {
+            port.setPortGroupIDs(groupIDs);
             return this;
         }
 

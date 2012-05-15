@@ -60,7 +60,7 @@ public class Rule extends UriResource {
     private boolean invInPorts = false;
     private UUID[] outPorts = null;
     private boolean invOutPorts = false;
-    private Set<UUID> portGroups;
+    private UUID[] portGroups;
     private boolean invPortGroups;
     private int nwTos;
     private boolean invNwTos = false;
@@ -242,11 +242,11 @@ public class Rule extends UriResource {
         this.invPortGroups = invPortGroups;
     }
 
-    public Set<UUID> getPortGroups() {
+    public UUID[] getPortGroups() {
         return portGroups;
     }
 
-    public void setPortGroups(Set<UUID> portGroups) {
+    public void setPortGroups(UUID[] portGroups) {
         this.portGroups = portGroups;
     }
 
@@ -646,7 +646,11 @@ public class Rule extends UriResource {
         c.tpSrcEnd = this.getTpSrcEnd();
         c.tpSrcInv = this.isInvTpSrc();
         c.tpSrcStart = this.getTpSrcStart();
-        c.portGroups = this.portGroups;
+        if (this.portGroups != null) {
+            c.portGroups = new HashSet<UUID>(Arrays.asList(this.portGroups));
+        } else {
+            c.portGroups = new HashSet<UUID>();
+        }
         c.invPortGroups = this.invPortGroups;
         return c;
     }
@@ -704,26 +708,30 @@ public class Rule extends UriResource {
 
     public void setFromCondition(Condition c) {
         this.setCondInvert(c.conjunctionInv);
-        if (c.inPortIds != null) {
-            this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
-        }
         this.setInvInPorts(c.inPortInv);
+        this.setInvOutPorts(c.outPortInv);
+        this.setInvPortGroups(c.invPortGroups);
         this.setInvNwDst(c.nwDstInv);
         this.setInvNwProto(c.nwProtoInv);
         this.setInvNwSrc(c.nwSrcInv);
         this.setInvNwTos(c.nwTosInv);
-        this.setInvOutPorts(c.outPortInv);
         this.setInvTpDst(c.tpDstInv);
         this.setInvTpSrc(c.tpSrcInv);
+        if (c.inPortIds != null) {
+            this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
+        }
+        if (c.outPortIds != null) {
+            this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
+        }
+        if (c.portGroups != null) {
+            this.setPortGroups(c.portGroups.toArray(new UUID[c.portGroups.size()]));
+        }
         this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
         this.setNwDstLength(c.nwDstLength);
         this.setNwProto(c.nwProto);
         this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
         this.setNwSrcLength(c.nwSrcLength);
         this.setNwTos(c.nwTos);
-        if (c.outPortIds != null) {
-            this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
-        }
         this.setTpDstEnd(c.tpDstEnd);
         this.setTpDstStart(c.tpDstStart);
         this.setTpSrcEnd(c.tpSrcEnd);

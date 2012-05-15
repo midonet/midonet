@@ -6,7 +6,8 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
@@ -46,7 +47,7 @@ public abstract class Port extends UriResource {
     /**
      * List of Port Groups to which this port belongs.
      */
-    protected Set<UUID> portGroupIDs = null;
+    protected UUID[] portGroupIDs = null;
 
     /**
      * VIF ID
@@ -127,11 +128,11 @@ public abstract class Port extends UriResource {
         this.outboundFilter = outboundFilter;
     }
 
-    public Set<UUID> getPortGroupIDs() {
+    public UUID[] getPortGroupIDs() {
         return portGroupIDs;
     }
 
-    public void setPortGroupIDs(Set<UUID> portGroupIDs) {
+    public void setPortGroupIDs(UUID[] portGroupIDs) {
         this.portGroupIDs = portGroupIDs;
     }
 
@@ -169,7 +170,13 @@ public abstract class Port extends UriResource {
         config.device_id = deviceId;
         config.inboundFilter = inboundFilter;
         config.outboundFilter = outboundFilter;
-        config.portGroupIDs = portGroupIDs;
+        if (this.portGroupIDs != null) {
+            config.portGroupIDs =
+                    new HashSet<UUID>(Arrays.asList(this.portGroupIDs));
+        } else {
+            config.portGroupIDs = new HashSet<UUID>();
+        }
+;
     }
 
     /**

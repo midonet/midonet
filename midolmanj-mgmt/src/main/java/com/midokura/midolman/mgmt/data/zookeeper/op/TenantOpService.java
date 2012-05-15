@@ -74,6 +74,7 @@ public class TenantOpService {
         ops.add(opBuilder.getTenantBridgeNamesCreateOp(id));
         ops.add(opBuilder.getTenantRouterNamesCreateOp(id));
         ops.add(opBuilder.getTenantChainNamesCreateOp(id));
+        ops.add(opBuilder.getTenantPortGroupNamesCreateOp(id));
 
         log.debug("TenantOpService.buildCreate exiting: ops count={}",
                 ops.size());

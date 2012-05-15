@@ -3,6 +3,8 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
@@ -11,7 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 
 
@@ -71,7 +77,7 @@ public class TestPortGroup extends JerseyTest {
         response = resource().uri(tenant1.getPortGroups())
                 .type(APPLICATION_PORTGROUP_JSON)
                 .post(ClientResponse.class, group1);
-        assertEquals("The bridge was created.", 201, response.getStatus());
+        assertEquals("The PortGroup was created.", 201, response.getStatus());
         group1 = resource().uri(response.getLocation())
                 .accept(APPLICATION_PORTGROUP_JSON)
                 .get(DtoPortGroup.class);
@@ -113,6 +119,74 @@ public class TestPortGroup extends JerseyTest {
         assertThat("Tenant1 has 2 groups.", groups, arrayWithSize(2));
         assertThat("We expect the listed groups to match those we created.",
                 groups, arrayContainingInAnyOrder(group1, group2));
+
+        // Create a bridge for Tenant1
+        DtoBridge bridge = new DtoBridge();
+        bridge.setName("Bridge1");
+        response = resource().uri(tenant1.getBridges())
+                .type(APPLICATION_BRIDGE_JSON)
+                .post(ClientResponse.class, bridge);
+        assertEquals("The bridge was created.", 201, response.getStatus());
+        bridge = resource().uri(response.getLocation())
+                .accept(APPLICATION_BRIDGE_JSON)
+                .get(DtoBridge.class);
+        assertEquals("Bridge1", bridge.getName());
+        assertEquals(tenant1.getId(), bridge.getTenantId());
+        // Create a port on Bridge1 that belongs to both of Tenant1's PortGroups
+        DtoPort port = new DtoPort();
+        port.setPortGroupIDs(new UUID[] {group1.getId(), group2.getId()});
+        response = resource().uri(bridge.getPorts())
+                .type(APPLICATION_PORT_JSON)
+                .post(ClientResponse.class, port);
+        assertEquals("The port was created.", 201, response.getStatus());
+        port = resource().uri(response.getLocation())
+                .accept(APPLICATION_PORT_JSON)
+                .get(DtoPort.class);
+        assertEquals("Bridge1", bridge.getName());
+        assertEquals(bridge.getId(), port.getDeviceId());
+        assertThat("The port's groups should be group1 and group2",
+                port.getPortGroupIDs(),
+                arrayContainingInAnyOrder(group1.getId(), group2.getId()));
+
+        // Now create a rule chain with a rule that matches group1 and group2.
+        DtoRuleChain chain = new DtoRuleChain();
+        chain.setName("Chain1");
+        response = resource().uri(tenant1.getChains())
+                .type(APPLICATION_CHAIN_JSON)
+                .post(ClientResponse.class, chain);
+        assertEquals("The chain was created.", 201, response.getStatus());
+        chain = resource().uri(response.getLocation())
+                .accept(APPLICATION_CHAIN_JSON)
+                .get(DtoRuleChain.class);
+        assertEquals("Chain1", chain.getName());
+        assertEquals(tenant1.getId(), chain.getTenantId());
+        // Now add the rule.
+        DtoRule rule = new DtoRule();
+        rule.setPosition(1);
+        rule.setType(DtoRule.Accept);
+        rule.setNwSrcAddress("10.11.12.13");
+        rule.setNwSrcLength(32);
+        UUID[] fakePortIDs = new UUID[] {UUID.randomUUID(), UUID.randomUUID()};
+        rule.setInPorts(fakePortIDs);
+        rule.setPortGroups(new UUID[] {group1.getId(), group3.getId()});
+        response = resource().uri(chain.getRules())
+                .type(APPLICATION_RULE_JSON)
+                .post(ClientResponse.class, rule);
+        assertEquals("The rule was created.", 201, response.getStatus());
+        rule = resource().uri(response.getLocation())
+                .accept(APPLICATION_RULE_JSON)
+                .get(DtoRule.class);
+        assertEquals(chain.getId(), rule.getChainId());
+        assertEquals(DtoRule.Accept, rule.getType());
+        assertEquals("10.11.12.13", rule.getNwSrcAddress());
+        assertEquals(32, rule.getNwSrcLength());
+        assertThat("The rule should match the fake ingress ports",
+                rule.getInPorts(),
+                arrayContainingInAnyOrder(fakePortIDs[0], fakePortIDs[1]));
+        assertThat("The rule should match group1 and group3",
+                rule.getPortGroups(),
+                arrayContainingInAnyOrder(group1.getId(), group3.getId()));
+
 
         // Delete the first group
         response = resource().uri(group1.getUri())

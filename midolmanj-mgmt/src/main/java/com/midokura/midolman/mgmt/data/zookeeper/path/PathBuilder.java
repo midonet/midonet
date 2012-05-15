@@ -252,7 +252,7 @@ public class PathBuilder {
      */
     public String getTenantPortGroupNamesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId.toString()))
-                .append("/").append(CHAIN_NAMES_PATH).toString();
+                .append("/").append(PORT_GROUP_NAMES_PATH).toString();
     }
 
     /**

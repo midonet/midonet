@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 import org.codehaus.jackson.JsonFactory;
@@ -276,6 +277,11 @@ public class TestCondition {
     @Test
     public void testSerialization() throws IOException, ClassNotFoundException {
         Condition cond = new Condition();
+        Set<UUID> ids = new HashSet<UUID>();
+        ids.add(UUID.randomUUID());
+        ids.add(UUID.randomUUID());
+        cond.setInPortIds(ids);
+        cond.setPortGroups(ids);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =

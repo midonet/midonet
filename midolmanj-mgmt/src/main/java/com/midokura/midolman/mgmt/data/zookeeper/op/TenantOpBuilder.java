@@ -5,8 +5,6 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
-import java.util.UUID;
-
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -236,6 +234,18 @@ public class TenantOpBuilder {
     public Op getTenantChainNamesCreateOp(String id) {
         return zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantChainNamesPath(id), null);
+    }
+
+    /**
+     * Get the tenant port-group names create Op object.
+     *
+     * @param id
+     *            ID of the tenant
+     * @return Op for tenant group names create.
+     */
+    public Op getTenantPortGroupNamesCreateOp(String id) {
+        return zkDao.getPersistentCreateOp(
+                pathBuilder.getTenantPortGroupNamesPath(id), null);
     }
 
     /**

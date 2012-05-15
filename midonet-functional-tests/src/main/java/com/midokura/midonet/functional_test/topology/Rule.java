@@ -1,5 +1,8 @@
 package com.midokura.midonet.functional_test.topology;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 import com.midokura.midolman.packets.IntIPv4;
@@ -82,8 +85,8 @@ public class Rule {
             return this;
         }
 
-        public Builder matchPortGroup(UUID groupId) {
-            rule.addPortGroup(groupId);
+        public Builder matchPortGroups(UUID[] groupIds) {
+            rule.setPortGroups(groupIds);
             return this;
         }
 

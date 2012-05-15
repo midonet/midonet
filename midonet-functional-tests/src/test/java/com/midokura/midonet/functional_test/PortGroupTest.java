@@ -5,6 +5,7 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Before;
@@ -83,8 +84,9 @@ public class PortGroupTest {
         PortGroup sg2Members =
                 tenant1.addPortGroup().setName("Members2").build();
         RuleChain sg2 = tenant1.addChain().setName("SecGroup2").build();
-        sg2.addRule().matchPortGroup(sg1Members.getId())
-                .matchPortGroup(sg2Members.getId())
+        sg2.addRule()
+                .matchPortGroups(
+                        new UUID[]{sg1Members.getId(), sg2Members.getId()})
                 .setSimpleType(DtoRule.Accept).build();
         sg2.addRule().setMatchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
@@ -100,7 +102,7 @@ public class PortGroupTest {
                 .setSimpleType(DtoRule.Drop).build();
         BridgePort bPort1 = bridge1.addPort()
                 .setOutboundFilter(portOutChain1.chain.getId())
-                .addPortGroup(sg1Members.getId()).build();
+                .setPortGroups(new UUID[] {sg1Members.getId()}).build();
 
         // port2 will be in security group 2.
         RuleChain portOutChain2 =
@@ -111,7 +113,7 @@ public class PortGroupTest {
                 .setSimpleType(DtoRule.Drop).build();
         BridgePort bPort2 = bridge1.addPort()
                 .setOutboundFilter(portOutChain2.chain.getId())
-                .addPortGroup(sg2Members.getId()).build();
+                .setPortGroups(new UUID[] {sg2Members.getId()}).build();
 
         // port3 will be in both security groups 1 and 2.
         RuleChain portOutChain3 =
@@ -123,8 +125,9 @@ public class PortGroupTest {
                 .setSimpleType(DtoRule.Drop).build();
         BridgePort bPort3 = bridge1.addPort()
                 .setOutboundFilter(portOutChain3.chain.getId())
-                .addPortGroup(sg1Members.getId())
-                .addPortGroup(sg2Members.getId()).build();
+                .setPortGroups(
+                        new UUID[] {sg2Members.getId(), sg2Members.getId()})
+                .build();
 
         // port4 will not be in any security group.
         BridgePort bPort4 = bridge1.addPort().build();
