@@ -355,7 +355,7 @@ public class Rule extends UriResource {
      * Get the Data Layer Type (Ethertype) of packets matched by this rule.
      * @return
      *      The value of the Ethertype as a Short if the rule matches Ethertype,
-     *      otherwise Null.
+     *      otherwise null.
      */
     public Short getDlType() {
         return dlType;

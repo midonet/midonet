@@ -246,5 +246,10 @@ public class L2FilteringTest {
 
         // ICMPs ingressing on tap2 are again delivered.
         icmpFromTapArrivesAtTap(tap2, tap4, mac2, mac4, ip2, ip4);
+
+        // TODO(pino): Add a Rule that drops IPv6 packets (Ethertype 0x86DD)
+        // TODO:       Show that IPv6 is forwarded before the rule is installed,
+        // TODO:       and dropped afterwards. This will also check that using
+        // TODO:       (signed) Short for dlType is correctly handled by Java.
     }
 }
