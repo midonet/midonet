@@ -913,9 +913,8 @@ public class TestVRNController {
         // Now change the network dst address back to normal and then change
         // the ethernet dst address to a multicast/broadcast.
         origIpPkt.setDestinationAddress(nwDst);
-        /*XXX Assert.assertTrue(rtr.canSendICMP(eth,
-                ShortUUID.intTo32BitUUID(portNumToIntId.get((int) dstPort))));*/
-        // Use any address that has an odd number if first byte.
+        Assert.assertTrue(rtr.canSendICMP(eth, dstPortId));
+        // Use any address that has an odd number in first byte.
         MAC mcastMac = MAC.fromString("07:cd:cd:ab:ab:34");
         eth.setDestinationMACAddress(mcastMac);
         Assert.assertTrue(eth.isMcast());
