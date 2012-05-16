@@ -104,6 +104,8 @@ public class TestVRNController {
     private MAC rtr0to2LogPortMAC;
     private Map<Short, UUID> portNumToUuid;
     private int bridgeGreKey;
+    private short portNumA = 100;
+    private short portNumB = 110;
 
     @Before
     public void setUp() throws Exception {
@@ -305,18 +307,16 @@ public class TestVRNController {
         routeMgr.create(rt);
 
         // Create a Bridge with two local and two remote ports.
-        short portNumA = 100;
-        short portNumB = 110;
         byte HWaddr[] = new byte[] { (byte)2, (byte)22, (byte)222,
-                                     (byte)1, (byte)10, (byte)100 };
+                                     (byte)1, (byte)10, (byte)portNumA };
         BridgeZkManager.BridgeConfig brcfg = 
                 new BridgeZkManager.BridgeConfig(null, null);
         UUID bridgeID = bridgeMgr.create(brcfg);
+        bridgeGreKey = brcfg.greKey;
+        Assert.assertTrue(bridgeGreKey > 0);
         PortDirectory.BridgePortConfig bridgePortConfig = 
                 new PortDirectory.BridgePortConfig(bridgeID);
         UUID portID = portMgr.create(bridgePortConfig);
-        bridgeGreKey = bridgePortConfig.greKey;
-        Assert.assertTrue(bridgeGreKey > 0);
         OFPhysicalPort phyPort = new OFPhysicalPort();
         phyPort.setPortNumber(portNumA);
         phyPort.setHardwareAddress(HWaddr);
@@ -325,9 +325,22 @@ public class TestVRNController {
                                 portID.toString());
         phyPort.setName("bridge_port_a");
         vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
+        portID = portMgr.create(bridgePortConfig);
+        phyPort = new OFPhysicalPort();
+        phyPort.setPortNumber(portNumB);
+        HWaddr[5] = (byte)portNumB;
+        phyPort.setHardwareAddress(HWaddr);
+        portNumToUuid.put(portNumB, portID);
+        ovsdb.setPortExternalId(datapathId, portNumB, "midonet", 
+                                portID.toString());
+        phyPort.setName("bridge_port_b");
+        vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
+        
         // Two flows should have been installed for each locally added port.
         // (One's the tunnel.  What's the other?)
-        Assert.assertEquals(2, controllerStub.addedFlows.size());
+        Assert.assertEquals(4, controllerStub.addedFlows.size());
         // Clear the flows: unit-tests assume the addedFlows queue starts empty.
         controllerStub.addedFlows.clear();
     }
