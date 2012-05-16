@@ -4,8 +4,8 @@
 
 package com.midokura.midolman.monitoring.store;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import me.prettyprint.hector.api.exceptions.HectorException;
@@ -19,6 +19,9 @@ public class CassandraStore implements Store {
 
     private static int maxNumberQueryResult = 1024;
 
+    private static final String METRICNAME_COLUMN = "MetricName";
+
+
     private static final Logger log =
             LoggerFactory.getLogger(CassandraStore.class);
 
@@ -27,7 +30,7 @@ public class CassandraStore implements Store {
     public CassandraStore(String server, String clusterName,
                           String keyspaceName,
                           String columnFamily, int replicationFactor,
-                          int expirationSecs) throws HectorException{
+                          int expirationSecs) throws HectorException {
 
         client = new CassandraClient(server, clusterName, keyspaceName,
                                      columnFamily, replicationFactor,
@@ -35,37 +38,36 @@ public class CassandraStore implements Store {
     }
 
     @Override
-    public void addTSPoint(String interfaceName, long time, String value,
-                           String metricName,
-                           String granularity) {
-        String key = interfaceName + metricName + GMTTime.getDayMonthYear(
-                time) + granularity;
-        client.set(key, value, Long.toString(time));
+    public void addTSPoint(String targetIdentifier, long time, long value,
+                           String metricName) {
+        String key = targetIdentifier + metricName + GMTTime.getDayMonthYear(
+                time);
+        client.set(key, Long.toString(value), Long.toString(time));
         log.debug("Added value {}, for key {}, column {}",
-                 new Object[]{value, key, time});
+                  new Object[]{value, key, time});
     }
 
     @Override
-    public String getTSPoint(String interfaceName, long time, String metricName,
-                             String granularity) {
-        String key = interfaceName + metricName + GMTTime.getDayMonthYear(
-                time) + granularity;
-        return client.get(key, Long.toString(time));
+    public long getTSPoint(String targetIdentifier, long time,
+                           String metricName) {
+        String key = targetIdentifier + metricName + GMTTime.getDayMonthYear(
+                time);
+        return Long.parseLong(client.get(key, Long.toString(time)));
     }
 
     @Override
-    public Map<String, String> getTSPoint(String interfaceName, long timeStart,
-                                          long timeEnd,
-                                          String metricName,
-                                          String granularity) {
+    public Map<String, Long> getTSPoints(String targetIdentifier,
+                                         long timeStart,
+                                         long timeEnd,
+                                         String metricName) {
         int numberOfDays = GMTTime.getNumberOfDays(timeStart, timeEnd);
 
         if (numberOfDays == 0) {
-            String key = interfaceName + metricName + GMTTime.getDayMonthYear(
-                    timeStart) + granularity;
+            String key = targetIdentifier + metricName + GMTTime.getDayMonthYear(
+                    timeStart);
 
             return client.executeSliceQuery(key, Long.toString(timeStart),
-                                            Long.toString(timeEnd),
+                                            Long.toString(timeEnd), Long.class,
                                             maxNumberQueryResult);
         } else {
             long msInADay = 24 * 60 * 60 * 1000;
@@ -73,14 +75,41 @@ public class CassandraStore implements Store {
             for (int i = 0; i <= numberOfDays; i++) {
                 // since we store each day using a different key, calculate
                 // the keys
-                keys.add(interfaceName + metricName + GMTTime.getDayMonthYear(
-                        timeStart + i * msInADay) + granularity);
+                keys.add(
+                        targetIdentifier + metricName + GMTTime.getDayMonthYear(
+                                timeStart + i * msInADay));
             }
 
             return client.executeSliceQuery(keys, Long.toString(timeStart),
-                                            Long.toString(timeEnd),
+                                            Long.toString(timeEnd), Long.class,
                                             maxNumberQueryResult);
         }
+    }
+
+    @Override
+    public void addMetric(String targetIdentifier, String metricName) {
+        //TODO use another columnfamily?
+        client.set(targetIdentifier, metricName, METRICNAME_COLUMN);
+    }
+
+    @Override
+    public String getMetric(String targetIdentifier) {
+        return client.get(targetIdentifier, METRICNAME_COLUMN);
+    }
+
+    @Override
+    public void addGranularity(String targetIdentifier, String metricName,
+                               String granularity) {
+        client.set(targetIdentifier + metricName, granularity, granularity);
+    }
+
+    @Override
+    public List<Long> getAvailableGranularities(
+            String targetIdentifier,
+            String metricName) {
+        return client.getAllColumnsValues(targetIdentifier + metricName,
+                                          Long.class,
+                                          maxNumberQueryResult);
     }
 
     public static void setMaxNumberQueryResult(int maxNumberQueryResult) {

@@ -4,13 +4,13 @@
 
 package com.midokura.midolman.monitoring.metrics;
 
-import com.yammer.metrics.core.Gauge;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+
+import com.yammer.metrics.core.Gauge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Author: Rossella Sblendido rossella@midokura.com
@@ -20,30 +20,31 @@ public class JMXServerConnectionGauge extends Gauge<Object> {
 
     private final static Logger log =
             LoggerFactory.getLogger(JMXServerConnectionGauge.class);
-
     private MBeanServerConnection serverConnection;
 
-    private final ObjectName objectName;
-    private final String attribute;
+    private ObjectName objectName;
+    private String mBeanAttribute;
 
-    public JMXServerConnectionGauge(String objectName, String attribute, MBeanServerConnection serverConnection)
+
+    public JMXServerConnectionGauge(MBeanServerConnection serverConnection,
+                                    String mBean,
+                                    String mBeanAttribute)
             throws MalformedObjectNameException {
-        this(new ObjectName(objectName), attribute, serverConnection);
-    }
-
-    public JMXServerConnectionGauge(ObjectName objectName, String attribute, MBeanServerConnection serverConnection){
-        this.objectName = objectName;
-        this.attribute = attribute;
+        this.objectName = new ObjectName(mBean);
         this.serverConnection = serverConnection;
+        this.mBeanAttribute = mBeanAttribute;
     }
 
     @Override
     public Object value() {
         try {
-            return serverConnection.getAttribute(objectName, attribute);
+            return serverConnection.getAttribute(objectName,
+                                                 mBeanAttribute);
         } catch (Exception e) {
-            log.error("There was a problem in retrieving {}, {}", new Object[]{objectName, attribute, e});
+            log.error("There was a problem in retrieving {}, {}",
+                      new Object[]{objectName, mBeanAttribute, e});
             return null;
         }
     }
+
 }

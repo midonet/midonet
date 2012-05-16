@@ -82,10 +82,10 @@ public class TestMonitoringQuery extends JerseyTest {
     @Test
     public void testQueryOneDay() {
         // Insert data into Cassandra
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochNow + i, i,
+                             metricName
+            );
         }
 
         // Create the DtoMetricQuery object
@@ -103,8 +103,8 @@ public class TestMonitoringQuery extends JerseyTest {
 
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numEntries));
-        for (int i = 0; i < numEntries; i++) {
-            assertThat("The values are right", Integer.toString(i),
+        for (long i = 0; i < numEntries; i++) {
+            assertThat("The values are right", i,
                        equalTo(response.getResults()
                                        .get(Long.toString(epochNow + i))));
         }
@@ -116,10 +116,10 @@ public class TestMonitoringQuery extends JerseyTest {
 
         int numberOfSamples = 1;
         // Insert data into Cassandra
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochNow + i, i,
+                             metricName
+            );
         }
 
         // Create the DtoMetricQuery object, that queries from epochNow to epochNow+numberOfSamples
@@ -137,8 +137,8 @@ public class TestMonitoringQuery extends JerseyTest {
 
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numberOfSamples + 1));
-        for (int i = 0; i < numberOfSamples; i++) {
-            assertThat("The values are right", Integer.toString(i),
+        for (long i = 0; i < numberOfSamples; i++) {
+            assertThat("The values are right", i,
                        equalTo(response.getResults()
                                        .get(Long.toString(epochNow + i))));
         }
@@ -153,8 +153,8 @@ public class TestMonitoringQuery extends JerseyTest {
                         .post(DtoMetricQueryResponse.class, query);
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numberOfSamples + 1));
-        for (int i = numEntries - numberOfSamples; i < numEntries; i++) {
-            assertThat("The values are right", Integer.toString(i),
+        for (long i = numEntries - numberOfSamples; i < numEntries; i++) {
+            assertThat("The values are right", i,
                        equalTo(response.getResults()
                                        .get(Long.toString(epochNow + i))));
         }
@@ -164,10 +164,10 @@ public class TestMonitoringQuery extends JerseyTest {
     @Test
     public void emptyQuery() {
         // Insert data into Cassandra
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochNow + i, i,
+                             metricName
+            );
         }
 
         // Create the DtoMetricQuery object
@@ -190,10 +190,10 @@ public class TestMonitoringQuery extends JerseyTest {
     @Test
     public void queryBroaderThenSamples() {
         // Insert data into Cassandra
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochNow + i, i,
+                             metricName
+            );
         }
         long epochTomorrow = epochNow + (24 * 60 * 60 * 1000);
         // Create the DtoMetricQuery object
@@ -211,8 +211,8 @@ public class TestMonitoringQuery extends JerseyTest {
 
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numEntries));
-        for (int i = 0; i < numEntries; i++) {
-            assertThat("The values are right", Integer.toString(i),
+        for (long i = 0; i < numEntries; i++) {
+            assertThat("The values are right", i,
                        equalTo(response.getResults()
                                        .get(Long.toString(epochNow + i))));
         }

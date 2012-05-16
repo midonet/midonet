@@ -19,16 +19,17 @@ import com.midokura.midolman.monitoring.store.Store;
  * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/25/12
  */
-public class MonitoringModule extends AbstractModule{
+public class MonitoringModule extends AbstractModule {
     private final static Logger log =
             LoggerFactory.getLogger(MonitoringModule.class);
-    static  String zkJMXUrl;
+    static String zkJMXUrl;
     int replicationFactor;
     int ttlInSecs;
 
     @Override
     protected void configure() {
-        //TODO(rossella) take this configuration from conf file
+        //TODO(rossella) take this configuration from conf file, waiting for the
+        //Mihai's changes to be in master
         //TODO(rossella) check if there's a local ZK
         zkJMXUrl = "service:jmx:rmi:///jndi/rmi://localhost:12122/jmxrmi";
         replicationFactor = 1;
@@ -43,16 +44,16 @@ public class MonitoringModule extends AbstractModule{
 
     @Singleton
     @Provides
-    public Store getStore(){
+    public Store getStore() {
         // TODO get the data from the configuration
         Store store = null;
-        try{
-        store = new CassandraStore("localhost:9162",
-                                                  "Mido Cluster",
-                                                  "MM_Monitoring",
-                                                  "TestColumnFamily",
-                                                  replicationFactor, ttlInSecs);
-        }catch (HectorException e){
+        try {
+            store = new CassandraStore("localhost:9162",
+                                       "Mido Cluster",
+                                       "MM_Monitoring",
+                                       "TestColumnFamily",
+                                       replicationFactor, ttlInSecs);
+        } catch (HectorException e) {
             log.error("Fatal error, enable to initialize CassandraStore", e);
         }
         return store;

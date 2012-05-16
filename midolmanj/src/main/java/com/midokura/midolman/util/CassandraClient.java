@@ -4,6 +4,8 @@
 
 package com.midokura.midolman.util;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,10 +141,10 @@ public class CassandraClient {
         return (value.length() != 0) ? value : null;
     }
 
-    public Map<String, String> executeSliceQuery(String key, String startRange,
-                                                 String endRange,
+    public <T> Map<String, T> executeSliceQuery(String key, String startRange,
+                                                 String endRange, Class<T> returnValueClass,
                                                  int maxResultItems) {
-        Map<String, String> res = new HashMap<String, String>();
+        Map<String, T> res = new HashMap<String, T>();
         try {
             SliceQuery<String, String, String> sliceQuery = HFactory.createSliceQuery(
                     keyspace, ss, ss, ss);
@@ -152,7 +154,13 @@ public class CassandraClient {
 
             QueryResult<ColumnSlice<String, String>> result = sliceQuery.execute();
             for (HColumn<String, String> entry : result.get().getColumns()) {
-                res.put(entry.getName(), entry.getValue());
+                Object value = invokeDecode(returnValueClass, entry.getValue());
+                try{
+                res.put(entry.getName(), returnValueClass.cast(value));
+                }
+                catch (ClassCastException e){
+                    log.error("value {} cannot be casted to {}", new Object[]{value.toString(), returnValueClass.toString(), e});
+                }
             }
         } catch (HectorException e) {
             log.error("slice query failed", e);
@@ -160,11 +168,11 @@ public class CassandraClient {
         return res;
     }
 
-    public Map<String, String> executeSliceQuery(List<String> keys,
+    public <T> Map<String, T> executeSliceQuery(List<String> keys,
                                                  String startRange,
-                                                 String endRange,
+                                                 String endRange, Class<T> returnValueClass,
                                                  int maxResultItems) {
-        Map<String, String> res = new HashMap<String, String>();
+        Map<String, T> res = new HashMap<String, T>();
         try {
             MultigetSliceQuery<String, String, String> sliceQuery = HFactory.createMultigetSliceQuery(
                     keyspace, ss, ss, ss);
@@ -175,13 +183,57 @@ public class CassandraClient {
             for (Row<String, String, String> row : result.get()) {
                 for (HColumn<String, String> entry : row.getColumnSlice()
                                                         .getColumns()) {
-                    res.put(entry.getName(), entry.getValue());
+                    Object value = invokeDecode(returnValueClass, entry.getValue());
+                    try{
+                    res.put(entry.getName(), returnValueClass.cast(value));
+                    }
+                    catch (ClassCastException e){
+                        log.error("value {} cannot be casted to {}", new Object[]{value.toString(), returnValueClass.toString(), e});
+                    }
                 }
             }
         } catch (HectorException e) {
             log.error("multiget slice query failed", e);
         }
         return res;
+    }
+
+    public <T> List<T> getAllColumnsValues(String key, Class<T> returnValueClass, int maxResultItems) {
+        List<T> res = new ArrayList<T>();
+        try {
+            SliceQuery<String, String, String> sliceQuery = HFactory.createSliceQuery(
+                    keyspace, ss, ss, ss);
+            sliceQuery.setColumnFamily(columnFamily);
+            sliceQuery.setKey(key);
+            sliceQuery.setRange(null, null, false, maxResultItems);
+
+            QueryResult<ColumnSlice<String, String>> result = sliceQuery.execute();
+            for (HColumn<String, String> entry : result.get().getColumns()) {
+                Object value = invokeDecode(returnValueClass, entry.getValue());
+                try{
+                res.add(returnValueClass.cast(value));
+                }
+                catch (ClassCastException e){
+                    log.error("value {} cannot be casted to {}", new Object[]{value.toString(), returnValueClass.toString(), e});
+                }
+            }
+        } catch (HectorException e) {
+            log.error("getAllColumnsValues failed", e);
+            return null;
+        }
+        return res;
+    }
+
+    private <T> Object invokeDecode(Class<T> returnValueClass, String entryValue){
+        Object value = null;
+        try {
+            Method decode = returnValueClass.getMethod("decode",
+                                                       String.class);
+            value = decode.invoke(null, entryValue);
+        } catch (Exception e) {
+            log.error("Error in decoding the value", e);
+        }
+        return value;
     }
 
     public int getExpirationSeconds() {

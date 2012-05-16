@@ -4,16 +4,29 @@
 
 package com.midokura.midolman.monitoring.store;
 
+import java.util.List;
 import java.util.Map;
 
 public interface Store {
 
-    public void addTSPoint(String interfaceName, long time, String value,
-                           String metricName, String granularity);
+    public void addTSPoint(String targetIdentifier, long time, long value,
+                           String metricName);
 
-    public String getTSPoint(String interfaceName, long time, String metricName,
-                             String granularity);
+    public long getTSPoint(String targetIdentifier, long time,
+                           String metricName);
 
-    public Map<String, String> getTSPoint(String interfaceName, long timeStart, long timeEnd, String metricName, String granularity);
+    public Map<String, Long> getTSPoints(String targetIdentifier,
+                                         long timeStart,
+                                         long timeEnd, String metricName);
+
+    public void addMetric(String targetIdentifier, String metricName);
+
+    public String getMetric(String targetIdentifier);
+
+    public void addGranularity(String targetIdentifier, String metricName,
+                               String granularity);
+
+    public List<Long> getAvailableGranularities(String targetIdentifier,
+                                                String metricName);
 
 }

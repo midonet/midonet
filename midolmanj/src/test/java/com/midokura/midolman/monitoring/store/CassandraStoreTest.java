@@ -14,8 +14,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.midokura.midolman.monitoring.store.CassandraStore;
-
 /**
  * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/23/12
@@ -26,12 +24,11 @@ public class CassandraStoreTest {
     String granularity = "1m";
     String metricName = "TestMetric";
     long epochNow = System.currentTimeMillis();
-    long epochDayAfterTomorrow = epochNow + 2 * (24*60*60*1000);
+    long epochDayAfterTomorrow = epochNow + 2 * (24 * 60 * 60 * 1000);
     static int replicationFactor = 1;
     static int ttlInSecs = 1000;
     int numEntries = 10;
     CassandraStore store;
-
 
 
     @BeforeClass
@@ -40,7 +37,7 @@ public class CassandraStoreTest {
     }
 
     @Before
-    public void setUpCassandraStore(){
+    public void setUpCassandraStore() {
         // Needs to be set up everytime because the keyspace and columnfamily gets erased
         // by EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
         store = new CassandraStore("localhost:9171",
@@ -51,7 +48,7 @@ public class CassandraStoreTest {
     }
 
     @After
-    public void cleanData(){
+    public void cleanData() {
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
@@ -59,28 +56,32 @@ public class CassandraStoreTest {
     public void testMultiGetSliceQuery() {
 
         // Insert data into Cassandra for the last 2 days
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochNow + i, i,
+                             metricName
+            );
         }
 
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochDayAfterTomorrow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochDayAfterTomorrow + i, i,
+                             metricName
+            );
         }
-        Map<String, String > res = store.getTSPoint(interfaceName, epochNow, epochDayAfterTomorrow+numEntries, metricName, granularity);
-        assertThat("MultiGetSlice query number of results", res.size(), equalTo(numEntries*2));
+        Map<String, Long> res = store.getTSPoints(interfaceName, epochNow,
+                                                  epochDayAfterTomorrow + numEntries,
+                                                  metricName);
+        assertThat("MultiGetSlice query number of results", res.size(),
+                   equalTo(numEntries * 2));
 
-        for (int i = 0; i < numEntries; i++) {
-            assertThat("MultiGetSlice query went right", Integer.toString(i),
-                       equalTo(res.get(Long.toString(epochNow+i))));
+        for (long i = 0; i < numEntries; i++) {
+            assertThat("MultiGetSlice query went right", i,
+                       equalTo(res.get(Long.toString(epochNow + i))));
         }
 
-        for (int i = 0; i < numEntries; i++) {
-            assertThat("MultiGetSlice query went right", Integer.toString(i),
-                       equalTo(res.get(Long.toString(epochDayAfterTomorrow+i))));
+        for (long i = 0; i < numEntries; i++) {
+            assertThat("MultiGetSlice query went right", i,
+                       equalTo(res.get(
+                               Long.toString(epochDayAfterTomorrow + i))));
         }
 
     }
@@ -89,24 +90,27 @@ public class CassandraStoreTest {
     public void testSliceQuery() {
 
         // Insert data into Cassandra
-        for (int i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, Integer.toString(i),
-                             metricName,
-                             granularity);
+        for (long i = 0; i < numEntries; i++) {
+            store.addTSPoint(interfaceName, epochNow + i, i,
+                             metricName
+            );
         }
 
-        for (int i = 0; i < numEntries; i++) {
-            String val = store.getTSPoint(interfaceName, epochNow + i,
-                                          metricName,
-                                          granularity);
-            assertThat("Single point get", Integer.toString(i),
+        for (long i = 0; i < numEntries; i++) {
+            long val = store.getTSPoint(interfaceName, epochNow + i,
+                                        metricName
+            );
+            assertThat("Single point get", i,
                        equalTo(val));
         }
-        Map<String, String > res = store.getTSPoint(interfaceName, epochNow, epochNow+numEntries, metricName, granularity);
-        assertThat("Slice query number of results", res.size(), equalTo(numEntries));
-        for (int i = 0; i < numEntries; i++) {
-            assertThat("Slice query went right", Integer.toString(i),
-                       equalTo(res.get(Long.toString(epochNow+i))));
+        Map<String, Long> res = store.getTSPoints(interfaceName, epochNow,
+                                                  epochNow + numEntries,
+                                                  metricName);
+        assertThat("Slice query number of results", res.size(),
+                   equalTo(numEntries));
+        for (long i = 0; i < numEntries; i++) {
+            assertThat("Slice query went right", i,
+                       equalTo(res.get(Long.toString(epochNow + i))));
         }
 
     }
