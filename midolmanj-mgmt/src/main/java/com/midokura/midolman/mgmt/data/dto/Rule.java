@@ -63,8 +63,8 @@ public class Rule extends UriResource {
     private boolean invInPorts = false;
     private UUID[] outPorts = null;
     private boolean invOutPorts = false;
-    private UUID[] portGroups;
-    private boolean invPortGroups;
+    private UUID portGroup;
+    private boolean invPortGroup;
     private Short dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
@@ -259,20 +259,20 @@ public class Rule extends UriResource {
         this.invOutPorts = invOutPorts;
     }
 
-    public boolean isInvPortGroups() {
-        return invPortGroups;
+    public boolean isInvPortGroup() {
+        return invPortGroup;
     }
 
-    public void setInvPortGroups(boolean invPortGroups) {
-        this.invPortGroups = invPortGroups;
+    public void setInvPortGroup(boolean invPortGroup) {
+        this.invPortGroup = invPortGroup;
     }
 
-    public UUID[] getPortGroups() {
-        return portGroups;
+    public UUID getPortGroup() {
+        return portGroup;
     }
 
-    public void setPortGroups(UUID[] portGroups) {
-        this.portGroups = portGroups;
+    public void setPortGroup(UUID portGroup) {
+        this.portGroup = portGroup;
     }
 
     /**
@@ -809,12 +809,8 @@ public class Rule extends UriResource {
         c.tpSrcEnd = this.getTpSrcEnd();
         c.tpSrcInv = this.isInvTpSrc();
         c.tpSrcStart = this.getTpSrcStart();
-        if (this.portGroups != null) {
-            c.portGroups = new HashSet<UUID>(Arrays.asList(this.portGroups));
-        } else {
-            c.portGroups = new HashSet<UUID>();
-        }
-        c.invPortGroups = this.invPortGroups;
+        c.portGroup = this.portGroup;
+        c.invPortGroup = this.invPortGroup;
         return c;
     }
 
@@ -873,7 +869,7 @@ public class Rule extends UriResource {
         this.setCondInvert(c.conjunctionInv);
         this.setInvInPorts(c.inPortInv);
         this.setInvOutPorts(c.outPortInv);
-        this.setInvPortGroups(c.invPortGroups);
+        this.setInvPortGroup(c.invPortGroup);
         this.setInvDlType(c.invDlType);
         this.setInvDlSrc(c.invDlSrc);
         this.setInvDlDst(c.invDlDst);
@@ -892,9 +888,7 @@ public class Rule extends UriResource {
         if (c.outPortIds != null) {
             this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
         }
-        if (c.portGroups != null) {
-            this.setPortGroups(c.portGroups.toArray(new UUID[c.portGroups.size()]));
-        }
+        this.setPortGroup(c.portGroup);
         this.setDlType(c.dlType);
         if (null != c.dlSrc)
             this.setDlSrc(c.dlSrc.toString());

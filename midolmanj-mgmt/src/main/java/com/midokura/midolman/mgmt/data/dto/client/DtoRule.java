@@ -31,8 +31,8 @@ public class DtoRule {
     private boolean invInPorts;
     private UUID[] outPorts;
     private boolean invOutPorts;
-    private UUID[] portGroups;
-    private boolean invPortGroups;
+    private UUID portGroup;
+    private boolean invPortGroup;
     private Short dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
@@ -141,20 +141,20 @@ public class DtoRule {
         this.invOutPorts = invOutPorts;
     }
 
-    public boolean isInvPortGroups() {
-        return invPortGroups;
+    public boolean isInvPortGroup() {
+        return invPortGroup;
     }
 
-    public void setInvPortGroups(boolean invPortGroups) {
-        this.invPortGroups = invPortGroups;
+    public void setInvPortGroup(boolean invPortGroup) {
+        this.invPortGroup = invPortGroup;
     }
 
-    public UUID[] getPortGroups() {
-        return portGroups;
+    public UUID getPortGroup() {
+        return portGroup;
     }
 
-    public void setPortGroups(UUID[] portGroups) {
-        this.portGroups = portGroups;
+    public void setPortGroup(UUID portGroup) {
+        this.portGroup = portGroup;
     }
 
     public String getDlDst() {

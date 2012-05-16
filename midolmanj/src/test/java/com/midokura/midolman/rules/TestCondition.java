@@ -280,8 +280,8 @@ public class TestCondition {
         Set<UUID> ids = new HashSet<UUID>();
         ids.add(UUID.randomUUID());
         ids.add(UUID.randomUUID());
-        cond.setInPortIds(ids);
-        cond.setPortGroups(ids);
+        cond.inPortIds = ids;
+        cond.portGroup = UUID.randomUUID();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =

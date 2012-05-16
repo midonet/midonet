@@ -228,8 +228,7 @@ public class TestRule extends JerseyTest {
 
         DtoRule filteringRule = new DtoRule();
         filteringRule.setMatchForwardFlow(true);
-        filteringRule.setPortGroups(
-                new UUID[]{UUID.randomUUID(), UUID.randomUUID()});
+        filteringRule.setPortGroup(UUID.randomUUID());
         filteringRule.setDlDst("aa:bb:cc:dd:ee:ff");
         filteringRule.setDlSrc("11:22:33:44:55:66");
         filteringRule.setDlType(ARP.ETHERTYPE);

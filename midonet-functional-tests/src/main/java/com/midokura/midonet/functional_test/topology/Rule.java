@@ -110,8 +110,8 @@ public class Rule {
             return this;
         }
 
-        public Builder matchPortGroups(UUID[] groupIds) {
-            rule.setPortGroups(groupIds);
+        public Builder matchPortGroup(UUID groupId) {
+            rule.setPortGroup(groupId);
             return this;
         }
 

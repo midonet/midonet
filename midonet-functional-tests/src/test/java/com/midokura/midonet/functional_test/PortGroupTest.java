@@ -84,9 +84,9 @@ public class PortGroupTest {
         PortGroup sg2Members =
                 tenant1.addPortGroup().setName("Members2").build();
         RuleChain sg2 = tenant1.addChain().setName("SecGroup2").build();
-        sg2.addRule()
-                .matchPortGroups(
-                        new UUID[]{sg1Members.getId(), sg2Members.getId()})
+        sg2.addRule().matchPortGroup(sg1Members.getId())
+                .setSimpleType(DtoRule.Accept).build();
+        sg2.addRule().matchPortGroup(sg2Members.getId())
                 .setSimpleType(DtoRule.Accept).build();
         sg2.addRule().matchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();

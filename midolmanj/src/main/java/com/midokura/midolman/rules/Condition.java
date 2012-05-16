@@ -16,12 +16,12 @@ public class Condition {
     public boolean conjunctionInv;
     public boolean matchForwardFlow;
     public boolean matchReturnFlow;
-    public transient Set<UUID> inPortIds;
+    public Set<UUID> inPortIds;
     public boolean inPortInv;
-    public transient Set<UUID> outPortIds;
+    public Set<UUID> outPortIds;
     public boolean outPortInv;
-    public transient Set<UUID> portGroups;
-    public boolean invPortGroups;
+    public UUID portGroup;
+    public boolean invPortGroup;
     public Short dlType = null;
     public boolean invDlType = false;
     public MAC dlSrc = null;
@@ -44,18 +44,6 @@ public class Condition {
     public short tpDstStart;
     public short tpDstEnd;
     public boolean tpDstInv;
-
-    // Getter and setter for the transient property inPortIds.
-    public Set<UUID> getInPortIds() { return inPortIds; }
-    public void setInPortIds(Set<UUID> inPortIds) { this.inPortIds = inPortIds; }
-
-    // Getter and setter for the transient property outPortIds.
-    public Set<UUID> getOutPortIds() { return outPortIds; }
-    public void setOutPortIds(Set<UUID> outPortIds) { this.outPortIds = outPortIds; }
-
-    // Getter and setter for the transient property port.
-    public Set<UUID> getPortGroups() { return portGroups; }
-    public void setPortGroups(Set<UUID> groups) { portGroups = groups; }
 
     /* Custom accessors for Jackson serialization with more readable IP addresses. */
 
@@ -103,17 +91,10 @@ public class Condition {
         if (null != outPortIds && outPortIds.size() > 0
                 && outPortIds.contains(outPortId) == outPortInv)
             return conjunctionInv;
-        if (null != portGroups && portGroups.size() > 0) {
-            boolean matchedGroup = false;
-            if (senderGroups != null) {
-                for (UUID group : senderGroups) {
-                    if (portGroups.contains(group)) {
-                        matchedGroup = true;
-                        break;
-                    }
-                }
-            }
-            if (matchedGroup == invPortGroups)
+        if (null != portGroup) {
+            if (senderGroups == null
+                    ? !invPortGroup
+                    : senderGroups.contains(portGroup) == invPortGroup)
                 return conjunctionInv;
         }
         if (dlType != null && (dlType.shortValue()
@@ -165,7 +146,7 @@ public class Condition {
         if (matchForwardFlow != condition.matchForwardFlow) return false;
         if (matchReturnFlow != condition.matchReturnFlow) return false;
         if (inPortInv != condition.inPortInv) return false;
-        if (invPortGroups != condition.invPortGroups) return false;
+        if (invPortGroup != condition.invPortGroup) return false;
         if (invDlDst != condition.invDlDst) return false;
         if (invDlSrc != condition.invDlSrc) return false;
         if (invDlType != condition.invDlType) return false;
@@ -203,9 +184,9 @@ public class Condition {
                 ? !outPortIds.equals(condition.outPortIds)
                 : condition.outPortIds != null)
             return false;
-        if (portGroups != null
-                ? !portGroups.equals(condition.portGroups)
-                : condition.portGroups != null)
+        if (portGroup != null
+                ? !portGroup.equals(condition.portGroup)
+                : condition.portGroup != null)
             return false;
 
         return true;
@@ -220,8 +201,8 @@ public class Condition {
         result = 31 * result + (inPortInv ? 1 : 0);
         result = 31 * result + (outPortIds != null ? outPortIds.hashCode() : 0);
         result = 31 * result + (outPortInv ? 1 : 0);
-        result = 31 * result + (portGroups != null ? portGroups.hashCode() : 0);
-        result = 31 * result + (invPortGroups ? 1 : 0);
+        result = 31 * result + (portGroup != null ? portGroup.hashCode() : 0);
+        result = 31 * result + (invPortGroup ? 1 : 0);
         result = 31 * result + (dlType != null ? dlType.hashCode() : 0);
         result = 31 * result + (invDlType ? 1 : 0);
         result = 31 * result + (dlSrc != null ? dlSrc.hashCode() : 0);
@@ -274,14 +255,10 @@ public class Condition {
             if (outPortInv)
                 sb.append("outPortInv=").append(outPortInv).append(",");
         }
-        if (portGroups != null && portGroups.size() > 0) {
-            sb.append("portGroups={");
-            for (UUID id : portGroups) {
-                sb.append(id.toString()).append(",");
-            }
-            sb.append("},");
-            if (invPortGroups)
-                sb.append("invPortGroups=").append(invPortGroups).append(",");
+        if (portGroup != null) {
+            sb.append("portGroup=").append(portGroup).append(",");
+            if (invPortGroup)
+                sb.append("invPortGroup=true,");
         }
         if (null != dlType) {
             sb.append("dlType=").append(dlType.shortValue()).append(",");

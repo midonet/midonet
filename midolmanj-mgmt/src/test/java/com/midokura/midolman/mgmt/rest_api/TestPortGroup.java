@@ -24,6 +24,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -168,7 +169,7 @@ public class TestPortGroup extends JerseyTest {
         rule.setNwSrcLength(32);
         UUID[] fakePortIDs = new UUID[] {UUID.randomUUID(), UUID.randomUUID()};
         rule.setInPorts(fakePortIDs);
-        rule.setPortGroups(new UUID[] {group1.getId(), group3.getId()});
+        rule.setPortGroup(group1.getId());
         response = resource().uri(chain.getRules())
                 .type(APPLICATION_RULE_JSON)
                 .post(ClientResponse.class, rule);
@@ -183,9 +184,8 @@ public class TestPortGroup extends JerseyTest {
         assertThat("The rule should match the fake ingress ports",
                 rule.getInPorts(),
                 arrayContainingInAnyOrder(fakePortIDs[0], fakePortIDs[1]));
-        assertThat("The rule should match group1 and group3",
-                rule.getPortGroups(),
-                arrayContainingInAnyOrder(group1.getId(), group3.getId()));
+        assertThat("The rule should match group1",
+                rule.getPortGroup(), equalTo(group1.getId()));
 
 
         // Delete the first group
