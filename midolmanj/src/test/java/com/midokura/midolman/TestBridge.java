@@ -1311,8 +1311,8 @@ public class TestBridge {
         Assert.assertNull(bridgeConfig.outboundFilter);
 
         /* assign the new chains (only the IDs) */
-        UUID newInboundFilter = getRandomUUID();
-        UUID newOutboundFilter = getRandomUUID();
+        UUID newInboundFilter = UUID.randomUUID();
+        UUID newOutboundFilter = UUID.randomUUID();
         assignChains(newInboundFilter, newOutboundFilter);
 
         /* check the new chains (IDs) were properly assigned */
@@ -1334,8 +1334,8 @@ public class TestBridge {
         Assert.assertNull(bridgeConfig.outboundFilter);
 
         /* assign the new chains (only the IDs) */
-        UUID newInboundFilter = getRandomUUID();
-        UUID newOutboundFilter = getRandomUUID();
+        UUID newInboundFilter = UUID.randomUUID();
+        UUID newOutboundFilter = UUID.randomUUID();
         assignChains(newInboundFilter, newOutboundFilter);
 
         /* check the new chains (IDs) were properly assigned */
@@ -1344,18 +1344,14 @@ public class TestBridge {
         Assert.assertEquals(newOutboundFilter, bridgeConfig.outboundFilter);
 
         /* make new chains (IDs) and assign them */
-        newInboundFilter = getRandomUUID();
-        newOutboundFilter = getRandomUUID();
+        newInboundFilter = UUID.randomUUID();
+        newOutboundFilter = UUID.randomUUID();
         assignChains(newInboundFilter, newOutboundFilter);
 
         /* check the new chains (IDs) were properly assigned */
         bridgeConfig = bridge.getBridgeConfig();
         Assert.assertEquals(newInboundFilter, bridgeConfig.inboundFilter);
         Assert.assertEquals(newOutboundFilter, bridgeConfig.outboundFilter);
-    }
-
-    private UUID getRandomUUID() {
-        return new UUID(new Random().nextLong(), new Random().nextLong());
     }
 
     private void assignChains(UUID inboundFilter, UUID outboundFilter)
