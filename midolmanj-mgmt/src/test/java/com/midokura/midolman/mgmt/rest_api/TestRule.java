@@ -28,6 +28,9 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midolman.packets.ARP;
+
+
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_CHAIN_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
@@ -223,8 +226,19 @@ public class TestRule extends JerseyTest {
         revSnatRule.setNatTargets(natTargets);
         revSnatRule.setPosition(1);
 
+        DtoRule filteringRule = new DtoRule();
+        filteringRule.setMatchForwardFlow(true);
+        filteringRule.setPortGroups(
+                new UUID[]{UUID.randomUUID(), UUID.randomUUID()});
+        filteringRule.setDlDst("aa:bb:cc:dd:ee:ff");
+        filteringRule.setDlSrc("11:22:33:44:55:66");
+        filteringRule.setDlType(ARP.ETHERTYPE);
+        filteringRule.setType(DtoRule.Drop);
+        filteringRule.setPosition(1);
+
         return Arrays.asList(
-            new Object[][]{{dnatRule}, {revDnatRule}, {snatRule}, {revSnatRule}});
+            new Object[][]{{dnatRule}, {revDnatRule}, {snatRule},
+                    {revSnatRule}, {filteringRule}});
     }
 
     @Test

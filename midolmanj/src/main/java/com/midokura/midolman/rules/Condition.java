@@ -14,6 +14,8 @@ import com.midokura.midolman.util.Net;
 
 public class Condition {
     public boolean conjunctionInv;
+    public boolean matchForwardFlow;
+    public boolean matchReturnFlow;
     public transient Set<UUID> inPortIds;
     public boolean inPortInv;
     public transient Set<UUID> outPortIds;
@@ -160,6 +162,8 @@ public class Condition {
         Condition condition = (Condition) o;
 
         if (conjunctionInv != condition.conjunctionInv) return false;
+        if (matchForwardFlow != condition.matchForwardFlow) return false;
+        if (matchReturnFlow != condition.matchReturnFlow) return false;
         if (inPortInv != condition.inPortInv) return false;
         if (invPortGroups != condition.invPortGroups) return false;
         if (invDlDst != condition.invDlDst) return false;
@@ -210,6 +214,8 @@ public class Condition {
     @Override
     public int hashCode() {
         int result = (conjunctionInv ? 1 : 0);
+        result = 31 * result + (matchForwardFlow ? 1 : 0);
+        result = 31 * result + (matchReturnFlow ? 1 : 0);
         result = 31 * result + (inPortIds != null ? inPortIds.hashCode() : 0);
         result = 31 * result + (inPortInv ? 1 : 0);
         result = 31 * result + (outPortIds != null ? outPortIds.hashCode() : 0);
@@ -245,7 +251,11 @@ public class Condition {
     public String toString() {
         StringBuilder sb = new StringBuilder("Condition [");
         if (conjunctionInv)
-            sb.append("conjunctionInv=").append(conjunctionInv).append(",");
+            sb.append("conjunctionInv=true");
+        if (matchForwardFlow)
+            sb.append("matchForwardFlow=true,");
+        if (matchReturnFlow)
+            sb.append("matchReturnFlow=true");
         if (inPortIds != null && inPortIds.size() > 0) {
             sb.append("inPortIds={");
             for (UUID id : inPortIds) {

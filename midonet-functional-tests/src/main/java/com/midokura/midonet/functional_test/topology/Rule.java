@@ -63,6 +63,16 @@ public class Rule {
             return this;
         }
 
+        public Builder matchForwardFlow() {
+            rule.setMatchForwardFlow(true);
+            return this;
+        }
+
+        public Builder matchReturnFlow() {
+            rule.setMatchReturnFlow(true);
+            return this;
+        }
+
         public Builder matchDlType(short dlType) {
             rule.setDlType(dlType);
             return this;

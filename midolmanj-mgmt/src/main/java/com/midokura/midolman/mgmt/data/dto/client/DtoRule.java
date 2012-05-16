@@ -25,6 +25,8 @@ public class DtoRule {
     private UUID id;
     private UUID chainId;
     private boolean condInvert;
+    private boolean matchForwardFlow;
+    private boolean matchReturnFlow;
     private UUID[] inPorts;
     private boolean invInPorts;
     private UUID[] outPorts;
@@ -89,6 +91,22 @@ public class DtoRule {
 
     public void setCondInvert(boolean condInvert) {
         this.condInvert = condInvert;
+    }
+
+    public boolean isMatchForwardFlow() {
+        return matchForwardFlow;
+    }
+
+    public void setMatchForwardFlow(boolean matchForwardFlow) {
+        this.matchForwardFlow = matchForwardFlow;
+    }
+
+    public boolean isMatchReturnFlow() {
+        return matchReturnFlow;
+    }
+
+    public void setMatchReturnFlow(boolean matchReturnFlow) {
+        this.matchReturnFlow = matchReturnFlow;
     }
 
     public UUID[] getInPorts() {

@@ -57,6 +57,8 @@ public class Rule extends UriResource {
     private UUID id = null;
     private UUID chainId = null;
     private boolean condInvert = false;
+    private boolean matchForwardFlow = false;
+    private boolean matchReturnFlow = false;
     private UUID[] inPorts = null;
     private boolean invInPorts = false;
     private UUID[] outPorts = null;
@@ -179,6 +181,22 @@ public class Rule extends UriResource {
      */
     public void setCondInvert(boolean condInvert) {
         this.condInvert = condInvert;
+    }
+
+    public boolean isMatchForwardFlow() {
+        return matchForwardFlow;
+    }
+
+    public void setMatchForwardFlow(boolean matchForwardFlow) {
+        this.matchForwardFlow = matchForwardFlow;
+    }
+
+    public boolean isMatchReturnFlow() {
+        return matchReturnFlow;
+    }
+
+    public void setMatchReturnFlow(boolean matchReturnFlow) {
+        this.matchReturnFlow = matchReturnFlow;
     }
 
     /**
@@ -749,6 +767,8 @@ public class Rule extends UriResource {
     private Condition makeCondition() {
         Condition c = new Condition();
         c.conjunctionInv = this.isCondInvert();
+        c.matchForwardFlow = this.matchForwardFlow;
+        c.matchReturnFlow = this.matchReturnFlow;
         if (this.getInPorts() != null) {
             c.inPortIds = new HashSet<UUID>(Arrays.asList(this.getInPorts()));
         } else {
@@ -864,6 +884,8 @@ public class Rule extends UriResource {
         this.setInvTpDst(c.tpDstInv);
         this.setInvTpSrc(c.tpSrcInv);
 
+        this.setMatchForwardFlow(c.matchForwardFlow);
+        this.setMatchReturnFlow(c.matchReturnFlow);
         if (c.inPortIds != null) {
             this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
         }
@@ -892,18 +914,8 @@ public class Rule extends UriResource {
         this.setTpSrcStart(c.tpSrcStart);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "id=" + id + ", chainId=" + chainId + ", type=" + type
-                + ", jumpChainName="
-                + jumpChainName + ", flowAction=" + flowAction + ", position="
-                + position + ", nwSrcAddress=" + nwSrcAddress
-                + ", nwSrcLength=" + nwSrcLength + ", nwDstAddress="
-                + nwDstAddress + ", nwDstLength=" + nwDstLength;
+        return "dto.Rule: " + toZkRule(null).toString();
     }
 }
