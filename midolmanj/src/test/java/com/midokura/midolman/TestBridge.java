@@ -2,7 +2,6 @@
 
 package com.midokura.midolman;
 
-import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -14,13 +13,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.midokura.midolman.state.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -49,9 +49,6 @@ import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.state.*;
-import com.midokura.midolman.util.Net;
-
 
 public class TestBridge {
     Logger log = LoggerFactory.getLogger(TestBridge.class);
@@ -83,6 +80,8 @@ public class TestBridge {
     OFAction[] floodActionLocalOnly;
     int tunnelID;
     int[] portKeys = new int[8];
+    private BridgeZkManager bridgeZkManager;
+    private ZkPathManager pathManager;
 
     // MACs:  8 normal addresses, and one multicast.
     MAC macList[] = { MAC.fromString("00:22:33:EE:EE:00"),
@@ -202,18 +201,18 @@ public class TestBridge {
 
         // Set up the (mock) ZooKeeper directories.
         String basePath = "/zk_root";
-        ZkPathManager pathMgr = new ZkPathManager(basePath);
+        pathManager = new ZkPathManager(basePath);
         MockDirectory zkDir = new MockDirectory();
         zkDir.add(basePath, null, CreateMode.PERSISTENT);
         Setup.createZkDirectoryStructure(zkDir, basePath);
 
         portLocMap = new PortToIntNwAddrMap(zkDir.getSubDirectory(
-                                pathMgr.getVRNPortLocationsPath()));
+                                pathManager.getVRNPortLocationsPath()));
         portLocMap.start();
         BridgeZkManager.BridgeConfig bcfg = new BridgeZkManager.BridgeConfig();
-        BridgeZkManager bzkm = new BridgeZkManager(zkDir, basePath);
-        UUID bridgeUUID = bzkm.create(bcfg);
-        String macPortPath = pathMgr.getBridgeMacPortsPath(bridgeUUID);
+        bridgeZkManager = new BridgeZkManager(zkDir, basePath);
+        UUID bridgeUUID = bridgeZkManager.create(bcfg);
+        String macPortPath = pathManager.getBridgeMacPortsPath(bridgeUUID);
         macPortMap = new MacPortMap(zkDir.getSubDirectory(macPortPath));
         macPortMap.start();
         PortSetMap portSetMap = new PortSetMap(zkDir, basePath);
@@ -1285,5 +1284,89 @@ public class TestBridge {
                                  timeout_ms/1000, 0, (short)(timeout_ms/1000),
                                  123, 456);
         assertNull(bridge.flowCount.get(key));
+    }
+
+    @Test
+    public void testNoChainsAssigned() {
+        Assert.assertNotNull(bridge);
+
+        BridgeZkManager.BridgeConfig bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertNotNull(bridgeConfig);
+
+        Assert.assertNull(bridgeConfig.inboundFilter);
+        Assert.assertNull(bridgeConfig.outboundFilter);
+    }
+
+    @Test
+    public void testAssignChains() throws
+            IOException, StateAccessException {
+        Assert.assertNotNull(bridge);
+
+        BridgeZkManager.BridgeConfig bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertNotNull(bridgeConfig);
+
+        /* no chains should be initially assigned */
+        bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertNull(bridgeConfig.inboundFilter);
+        Assert.assertNull(bridgeConfig.outboundFilter);
+
+        /* assign the new chains (only the IDs) */
+        UUID newInboundFilter = getRandomUUID();
+        UUID newOutboundFilter = getRandomUUID();
+        assignChains(newInboundFilter, newOutboundFilter);
+
+        /* check the new chains (IDs) were properly assigned */
+        bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertEquals(newInboundFilter, bridgeConfig.inboundFilter);
+        Assert.assertEquals(newOutboundFilter, bridgeConfig.outboundFilter);
+    }
+
+    @Test
+    public void testUpdateChains() throws
+            IOException, StateAccessException {
+        Assert.assertNotNull(bridge);
+
+        BridgeZkManager.BridgeConfig bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertNotNull(bridgeConfig);
+
+        /* no chains should be initially assigned */
+        Assert.assertNull(bridgeConfig.inboundFilter);
+        Assert.assertNull(bridgeConfig.outboundFilter);
+
+        /* assign the new chains (only the IDs) */
+        UUID newInboundFilter = getRandomUUID();
+        UUID newOutboundFilter = getRandomUUID();
+        assignChains(newInboundFilter, newOutboundFilter);
+
+        /* check the new chains (IDs) were properly assigned */
+        bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertEquals(newInboundFilter, bridgeConfig.inboundFilter);
+        Assert.assertEquals(newOutboundFilter, bridgeConfig.outboundFilter);
+
+        /* make new chains (IDs) and assign them */
+        newInboundFilter = getRandomUUID();
+        newOutboundFilter = getRandomUUID();
+        assignChains(newInboundFilter, newOutboundFilter);
+
+        /* check the new chains (IDs) were properly assigned */
+        bridgeConfig = bridge.getBridgeConfig();
+        Assert.assertEquals(newInboundFilter, bridgeConfig.inboundFilter);
+        Assert.assertEquals(newOutboundFilter, bridgeConfig.outboundFilter);
+    }
+
+    private UUID getRandomUUID() {
+        return new UUID(new Random().nextLong(), new Random().nextLong());
+    }
+
+    private void assignChains(UUID inboundFilter, UUID outboundFilter)
+            throws IOException, StateAccessException {
+        BridgeZkManager.BridgeConfig newBridgeConfig =
+                new BridgeZkManager.BridgeConfig(inboundFilter, outboundFilter);
+
+        newBridgeConfig.greKey = bridge.getBridgeConfig().greKey;
+
+        byte[] serializedConfig = bridgeZkManager.serialize(newBridgeConfig);
+        String path = pathManager.getBridgePath(bridge.getId());
+        bridgeZkManager.update(path, serializedConfig);
     }
 }

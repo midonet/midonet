@@ -560,4 +560,11 @@ public class Bridge implements ForwardingElement {
         for (MAC mac : macs)
             invalidateFlowsToMac(mac);
     }
+
+    /*
+     * Used only for testing
+     */
+    public BridgeConfig getBridgeConfig() {
+        return myConfig;
+    }
 }
