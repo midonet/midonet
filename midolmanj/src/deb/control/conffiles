@@ -1,0 +1,3 @@
+/etc/midolman/midolman.conf
+/etc/midolman/midolman-agent.conf
+/etc/midolman/log4j.xml
