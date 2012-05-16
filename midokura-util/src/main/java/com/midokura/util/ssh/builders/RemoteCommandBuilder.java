@@ -36,7 +36,7 @@ public class RemoteCommandBuilder
 
     public String run(int timeout) throws IOException {
         return
-            new RemoteSshCommand(sshSession)
+            new RemoteSshCommand(open(timeout))
 	         .execute(command, timeout);
     }
 }

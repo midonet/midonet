@@ -118,7 +118,7 @@ public class BridgeDHCPTest {
         stopMidolmanMgmt(mgmt);
     }
 
-    @Ignore @Test
+    @Test
     public void testSampleTest() throws Exception {
         Subnet subnet = bridge.newDhcpSubnet()
                               .havingSubnet("192.168.231.1", 24)
