@@ -2,4 +2,8 @@
 
 # Midokura
 
-/etc/init.d/midolmanj stop 2>/dev/null >/dev/null
+case "$1" in
+    remove)
+        /etc/init.d/midolmanj stop 2>/dev/null >/dev/null
+        ;;
+esac
