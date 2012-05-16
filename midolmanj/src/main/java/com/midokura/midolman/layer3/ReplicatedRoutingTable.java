@@ -22,13 +22,13 @@ import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.JSONSerializer;
 
 public class ReplicatedRoutingTable {
-    
+
     private static final Logger log = LoggerFactory.getLogger(ReplicatedRoutingTable.class);
 
     private class ReplicatedRouteSet extends ReplicatedSet<Route> {
-        
+
         JSONSerializer<Route> serializer = new JSONSerializer<Route>();
-        
+
         public ReplicatedRouteSet(Directory d, CreateMode mode) {
             super(d, mode);
         }
@@ -109,8 +109,7 @@ public class ReplicatedRoutingTable {
         routeSet.add(rt);
     }
 
-    public void deleteRoute(Route rt) throws KeeperException,
-            InterruptedException {
+    public void deleteRoute(Route rt) throws KeeperException {
         routeSet.remove(rt);
     }
 

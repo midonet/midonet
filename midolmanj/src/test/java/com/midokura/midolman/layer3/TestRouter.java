@@ -324,7 +324,8 @@ public class TestRouter {
     }
 
     @Test
-    public void testNoRoute() throws KeeperException, InterruptedException {
+    public void testNoRoute() throws StateAccessException,
+            KeeperException {
         // First, pretend that the remote controller that manages the uplink
         // removes it or crashes. The uplink route is removed from the rTable.
         rTable.deleteRoute(uplinkRoute);

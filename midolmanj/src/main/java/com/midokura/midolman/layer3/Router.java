@@ -106,8 +106,6 @@ public class Router implements ForwardingElement {
                     table.deleteRoute(rt);
                 } catch (KeeperException e) {
                     log.warn("routesChanged", e);
-                } catch (InterruptedException e) {
-                    log.warn("routesChanged", e);
                 }
             }
         }
@@ -210,8 +208,7 @@ public class Router implements ForwardingElement {
 
     // This should only be called for materialized ports, not logical ports.
     @Override
-    public void removePort(UUID portId) throws KeeperException,
-            InterruptedException {
+    public void removePort(UUID portId) throws StateAccessException {
         L3DevicePort port = devicePorts.get(portId);
         devicePorts.remove(portId);
         port.removeListener(portListener);
@@ -221,6 +218,10 @@ public class Router implements ForwardingElement {
                 table.deleteRoute(rt);
             } catch (NoNodeException e) {
                 log.warn("removePort got NoNodeException removing route.");
+                throw new StateAccessException(e);
+            } catch (KeeperException e) {
+                log.warn("removePort got KeeperException removing route.");
+                throw new StateAccessException(e);
             }
         }
         // TODO(pino): Any pending callbacks won't get called. Is that correct?

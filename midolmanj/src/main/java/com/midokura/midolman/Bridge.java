@@ -235,8 +235,7 @@ public class Bridge implements ForwardingElement {
     }
 
     @Override
-    public void removePort(UUID portId) throws StateAccessException,
-            KeeperException, InterruptedException, JMException {
+    public void removePort(UUID portId) throws StateAccessException {
         localPorts.remove(portId);
         controller.removeLocalPortFromSet(bridgeId, portId);
         if (localPorts.size() == 0)

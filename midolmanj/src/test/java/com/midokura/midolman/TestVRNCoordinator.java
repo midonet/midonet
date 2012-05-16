@@ -4,13 +4,11 @@
 
 package com.midokura.midolman;
 
-import java.lang.management.ManagementFactory;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -26,7 +24,6 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -38,8 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.ForwardingElement.Action;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
-import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.TestRouter;
@@ -47,20 +44,10 @@ import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 
@@ -75,6 +62,7 @@ public class TestVRNCoordinator {
     private MockReactor reactor;
     private MockControllerStub controllerStub;
     private MockVRNController controller;
+    private PortZkManager portMgr;
 
     protected Cache createCache() {
         return new MockCache();
@@ -99,7 +87,7 @@ public class TestVRNCoordinator {
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getGrePath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getVRNPortLocationsPath(), null, CreateMode.PERSISTENT);
-        PortZkManager portMgr = new PortZkManager(dir, basePath);
+        portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
 
@@ -398,10 +386,17 @@ public class TestVRNCoordinator {
         Assert.assertArrayEquals(expectedArp.serialize(), pkt.data);
     }
 
-    @Ignore
     @Test
-    public void testPortConfigChanges() {
-
+    public void testPortRemoval()
+            throws StateAccessException, InterruptedException,
+            IOException, JMException, KeeperException {
+        // First remove a port without removing the ZK config.
+        vrn.removePort(devPorts.get(0).getId());
+        // Now test port removal when the ZK config has already been deleted.
+        portMgr.delete(devPorts.get(1).getId());
+        vrn.removePort(devPorts.get(1).getId());
+        // Stuff should keep working.
+        testThreeRoutersForward();
     }
 
     @Test @Ignore

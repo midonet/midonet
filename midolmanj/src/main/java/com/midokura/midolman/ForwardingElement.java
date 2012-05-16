@@ -28,9 +28,7 @@ public interface ForwardingElement {
     void addPort(UUID portId)
          throws ZkStateSerializationException, StateAccessException,
                 KeeperException, InterruptedException, JMException;
-    void removePort(UUID portId)
-         throws ZkStateSerializationException, StateAccessException,
-                KeeperException, InterruptedException, JMException;
+    void removePort(UUID portId) throws StateAccessException;
     UUID getId();
     void freeFlowResources(OFMatch match, UUID inPortId);
     void destroy();

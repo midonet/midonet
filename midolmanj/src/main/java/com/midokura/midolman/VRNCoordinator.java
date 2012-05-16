@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 
-import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.rules.ChainProcessor;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
@@ -20,8 +18,18 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router;
+import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.LogicalPortConfig;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback1;
 
@@ -164,7 +172,7 @@ public class VRNCoordinator implements ForwardingElement {
         // TODO(pino): throw an exception if the config isn't found.
         FEType feType = feTypeOfPort(cfg);
         fe = getForwardingElement(cfg.device_id, feType);
-        feByPortId.put(cfg.device_id, fe);
+        feByPortId.put(portId, fe);
         return fe;
     }
 
@@ -185,14 +193,13 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     private PortConfig getPortConfigByUUID(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(id);
         return entry.value;
     }
 
     @Override
-    public void addPort(UUID portId) throws
-            ZkStateSerializationException, StateAccessException,
+    public void addPort(UUID portId) throws StateAccessException,
             KeeperException, InterruptedException, JMException {
         log.debug("addPort: {}", portId);
         PortConfig portCfg = getPortConfigByUUID(portId);
@@ -205,17 +212,11 @@ public class VRNCoordinator implements ForwardingElement {
 
     // This should only be called for materialized ports, not logical ports.
     @Override
-    public void removePort(UUID portId) throws
-            ZkStateSerializationException, StateAccessException,
-            KeeperException, InterruptedException, JMException {
+    public void removePort(UUID portId) throws StateAccessException {
         log.debug("removePort: {}", portId);
-        PortConfig portCfg = getPortConfigByUUID(portId);
-        ForwardingElement fe = getForwardingElement(portCfg.device_id,
-                                                    FEType.DontConstruct);
-        fe.removePort(portId);
-        feByPortId.remove(portId);
-        // TODO(pino): we should clean up any router that isn't a value in the
-        // routersByPortId map.
+        ForwardingElement fe = feByPortId.remove(portId);
+        if (null != fe)
+            fe.removePort(portId);
     }
 
     @Override
