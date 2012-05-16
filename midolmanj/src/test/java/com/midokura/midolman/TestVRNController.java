@@ -309,19 +309,19 @@ public class TestVRNController {
         // Create a Bridge with two local and two remote ports.
         byte HWaddr[] = new byte[] { (byte)2, (byte)22, (byte)222,
                                      (byte)1, (byte)10, (byte)portNumA };
-        BridgeZkManager.BridgeConfig brcfg = 
+        BridgeZkManager.BridgeConfig brcfg =
                 new BridgeZkManager.BridgeConfig(null, null);
         UUID bridgeID = bridgeMgr.create(brcfg);
         bridgeGreKey = brcfg.greKey;
         Assert.assertTrue(bridgeGreKey > 0);
-        PortDirectory.BridgePortConfig bridgePortConfig = 
+        PortDirectory.BridgePortConfig bridgePortConfig =
                 new PortDirectory.BridgePortConfig(bridgeID);
         UUID portID = portMgr.create(bridgePortConfig);
         OFPhysicalPort phyPort = new OFPhysicalPort();
         phyPort.setPortNumber(portNumA);
         phyPort.setHardwareAddress(HWaddr);
         portNumToUuid.put(portNumA, portID);
-        ovsdb.setPortExternalId(datapathId, portNumA, "midonet", 
+        ovsdb.setPortExternalId(datapathId, portNumA, "midonet",
                                 portID.toString());
         phyPort.setName("bridge_port_a");
         vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
@@ -333,13 +333,21 @@ public class TestVRNController {
         HWaddr[5] = (byte)portNumB;
         phyPort.setHardwareAddress(HWaddr);
         portNumToUuid.put(portNumB, portID);
-        ovsdb.setPortExternalId(datapathId, portNumB, "midonet", 
+        ovsdb.setPortExternalId(datapathId, portNumB, "midonet",
                                 portID.toString());
         phyPort.setName("bridge_port_b");
         vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
-        
+
+        // Now two remote ports.
+        bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
+        portID = portMgr.create(bridgePortConfig);
+        portLocMap.put(portID, IntIPv4.fromString("192.168.2.100"));
+        bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
+        portID = portMgr.create(bridgePortConfig);
+        portLocMap.put(portID, IntIPv4.fromString("192.168.2.110"));
+
         // Two flows should have been installed for each locally added port.
-        // (One's the tunnel.  What's the other?)
+        // (One's the tunnel, the other is DHCP.)
         Assert.assertEquals(4, controllerStub.addedFlows.size());
         // Clear the flows: unit-tests assume the addedFlows queue starts empty.
         controllerStub.addedFlows.clear();
