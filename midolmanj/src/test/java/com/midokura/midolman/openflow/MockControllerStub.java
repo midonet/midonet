@@ -42,6 +42,12 @@ public class MockControllerStub implements ControllerStub {
             this.actions = actions;
             this.data = data;
         }
+
+        public String toString() {
+            return String.format("Packet{buffer:%d, inPort:%d, actions:%s, " +
+                             "data[len=%d]}", bufferId, inPort, 
+                             actions.toString(), data.length);
+        }
     }
 
     public static class Flow {

@@ -28,8 +28,8 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
  */
 public class PortZkManager extends ZkManager {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(PortZkManager.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(PortZkManager.class);
     private final GreZkManager greZkManager;
     private FiltersZkManager filterZkManager;
     private BgpZkManager bgpManager;
@@ -310,10 +310,10 @@ public class PortZkManager extends ZkManager {
         localPort.peer_uuid = UUID.randomUUID();
         peerPort.peer_uuid = UUID.randomUUID();
 
-        ZkNodeEntry<UUID, PortConfig> localPortEntry = new ZkNodeEntry<UUID, PortConfig>(
-                peerPort.peer_uuid, localPort);
-        ZkNodeEntry<UUID, PortConfig> peerPortEntry = new ZkNodeEntry<UUID, PortConfig>(
-                localPort.peer_uuid, peerPort);
+        ZkNodeEntry<UUID, PortConfig> localPortEntry =
+            new ZkNodeEntry<UUID, PortConfig>(peerPort.peer_uuid, localPort);
+        ZkNodeEntry<UUID, PortConfig> peerPortEntry =
+            new ZkNodeEntry<UUID, PortConfig>(localPort.peer_uuid, peerPort);
         multi(preparePortCreateLink(localPortEntry, peerPortEntry));
         return new ZkNodeEntry<UUID, UUID>(peerPort.peer_uuid,
                 localPort.peer_uuid);

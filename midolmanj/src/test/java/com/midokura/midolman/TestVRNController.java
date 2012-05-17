@@ -105,7 +105,9 @@ public class TestVRNController {
     private Map<Short, UUID> portNumToUuid;
     private int bridgeGreKey;
     private short portNumA = 100;
-    private short portNumB = 110;
+    private short portNumB = 101;
+    private short tunnelPortNumA = 102;
+    private short tunnelPortNumB = 103;
 
     @Before
     public void setUp() throws Exception {
@@ -137,6 +139,7 @@ public class TestVRNController {
         portLocMap = new PortToIntNwAddrMap(portLocSubdir);
         portLocMap.start();
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
+        portSetMap.start();
 
         // Now create the Open vSwitch database connection
         ovsdb = new MockOpenvSwitchDatabaseConnection();
@@ -339,12 +342,31 @@ public class TestVRNController {
         vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
 
         // Now two remote ports.
+        IntIPv4 addr = IntIPv4.fromString("192.168.2.100");
         bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
         portID = portMgr.create(bridgePortConfig);
-        portLocMap.put(portID, IntIPv4.fromString("192.168.2.100"));
+        portLocMap.put(portID, addr);
+        // Normally, the remote controller would add the port to the bridge's
+        // port set, but here we have to do it.
+        portSetMap.addIPv4Addr(bridgeID, addr);
+        phyPort = new OFPhysicalPort();
+        phyPort.setName(vrnCtrl.makeGREPortName(addr));
+        HWaddr[5] = (byte)210;
+        phyPort.setHardwareAddress(HWaddr);
+        phyPort.setPortNumber(tunnelPortNumA);
+        vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
+
+        addr = IntIPv4.fromString("192.168.2.110");
         bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
         portID = portMgr.create(bridgePortConfig);
-        portLocMap.put(portID, IntIPv4.fromString("192.168.2.110"));
+        portLocMap.put(portID, addr);
+        portSetMap.addIPv4Addr(bridgeID, addr);
+        phyPort = new OFPhysicalPort();
+        phyPort.setName(vrnCtrl.makeGREPortName(addr));
+        HWaddr[5] = (byte)211;
+        phyPort.setHardwareAddress(HWaddr);
+        phyPort.setPortNumber(tunnelPortNumB);
+        vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
 
         // Two flows should have been installed for each locally added port.
         // (One's the tunnel, the other is DHCP.)
@@ -408,6 +430,43 @@ public class TestVRNController {
         checkInstalledFlow(controllerStub.addedFlows.get(0), match,
                 VRNController.NO_IDLE_TIMEOUT,
                 VRNController.TEMPORARY_DROP_SECONDS, 55, false, actions);
+    }
+
+    @Test
+    public void testBridgeFlood() {
+        // No MAC are known at startup, so any MAC should flood.
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                           MAC.fromString("02:00:11:22:00:12"), 0x0a000005,
+                           0x0a040005, (short) 101, (short) 212,
+                           new byte[] {4, 5, 6, 7, 8});
+        byte[] data = eth.serialize();
+        // Send to port A.
+        vrnCtrl.onPacketIn(-1, data.length, portNumA, data);
+        // Check that it flooded.
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        // Any order of the outputs will do, use the one actually chosen.
+        List<OFAction> expectActions = new ArrayList<OFAction>();
+        expectActions.add(new NxActionSetTunnelKey32(bridgeGreKey));
+        expectActions.add(new OFActionOutput(tunnelPortNumA, (short)0));
+        expectActions.add(new OFActionOutput(tunnelPortNumB, (short)0));
+        expectActions.add(new OFActionOutput(portNumB, (short)0));
+        MockControllerStub.Packet actualPacket =
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(-1, actualPacket.bufferId);
+        Assert.assertArrayEquals(data, actualPacket.data);
+        Assert.assertArrayEquals(expectActions.toArray(),
+                                 actualPacket.actions.toArray());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch match =
+                AbstractController.createMatchFromPacket(eth, portNumA);
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
+                -1, true, expectActions);
+
+        // Add a chain on port B which drops, re-do, verify it's sent to
+        // the two tunnel ports, but not to port B.
+        //  XXX
     }
 
     @Test

@@ -485,13 +485,14 @@ public class VRNController extends AbstractController
                     if (localPortNum != inPortNum)
                         outPorts.add((short)localPortNum);
                 }
-                //outPorts.addAll(localPortSetSlices.get(fwdInfo.outPortId));
             }
             IPv4Set controllersAddrs = portSetMap.get(fwdInfo.outPortId);
             if (controllersAddrs == null)
                 log.error("forwardPacket: no hosts for portset ID {}",
                         fwdInfo.outPortId);
             else for (String controllerAddr : controllersAddrs.getStrings()) {
+                log.debug("forwardPacket: {} within port set {}",
+                          controllerAddr, fwdInfo.outPortId);
                 IntIPv4 target = IntIPv4.fromString(controllerAddr);
                 // Skip the local controller.
                 if (target.equals(publicIp))
