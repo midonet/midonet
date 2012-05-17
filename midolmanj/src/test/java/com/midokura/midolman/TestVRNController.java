@@ -485,7 +485,12 @@ public class TestVRNController {
                 1, true, expectActions);
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertEquals(2, controllerStub.sentPackets.size());
-        //XXX
+        actualPacket = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(1, actualPacket.bufferId);
+        // Empty data array due to packet being buffered.
+        Assert.assertArrayEquals(new byte[]{}, actualPacket.data);
+        Assert.assertArrayEquals(expectActions.toArray(),
+                                 actualPacket.actions.toArray());
     }
 
     @Test
