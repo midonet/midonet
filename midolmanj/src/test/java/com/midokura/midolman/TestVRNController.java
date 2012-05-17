@@ -49,7 +49,6 @@ import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.MockPortService;
-import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.LiteralRule;
@@ -103,6 +102,7 @@ public class TestVRNController {
     private MAC rtr2LogPortMAC;
     private MAC rtr0to2LogPortMAC;
     private Map<Short, UUID> portNumToUuid;
+    private UUID bridgeID;
     private int bridgeGreKey;
     private short portNumA = 100;
     private short portNumB = 101;
@@ -314,7 +314,7 @@ public class TestVRNController {
                                      (byte)1, (byte)10, (byte)portNumA };
         BridgeZkManager.BridgeConfig brcfg =
                 new BridgeZkManager.BridgeConfig(null, null);
-        UUID bridgeID = bridgeMgr.create(brcfg);
+        bridgeID = bridgeMgr.create(brcfg);
         bridgeGreKey = brcfg.greKey;
         Assert.assertTrue(bridgeGreKey > 0);
         PortDirectory.BridgePortConfig bridgePortConfig =
@@ -433,7 +433,8 @@ public class TestVRNController {
     }
 
     @Test
-    public void testBridgeFlood() {
+    public void testBridgeFlood()
+            throws StateAccessException, RuleIndexOutOfBoundsException {
         // No MAC are known at startup, so any MAC should flood.
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
                            MAC.fromString("02:00:11:22:00:12"), 0x0a000005,
@@ -466,7 +467,25 @@ public class TestVRNController {
 
         // Add a chain on port B which drops, re-do, verify it's sent to
         // the two tunnel ports, but not to port B.
-        //  XXX
+        UUID chainUuid = chainMgr.create(new ChainConfig("TEST"));
+        Rule dropRule = new LiteralRule(new Condition(), Action.DROP, chainUuid,
+                                        1);
+        ruleMgr.create(dropRule);
+        PortDirectory.BridgePortConfig bridgePortConfig =
+                new PortDirectory.BridgePortConfig(bridgeID);
+        bridgePortConfig.outboundFilter = chainUuid;
+        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
+                           portNumToUuid.get(portNumB), bridgePortConfig));
+        // Send to port A.
+        vrnCtrl.onPacketIn(1, data.length, portNumA, data);
+        Assert.assertEquals(2, controllerStub.addedFlows.size());
+        expectActions.remove(3);
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match,
+                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
+                1, true, expectActions);
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        //XXX
     }
 
     @Test

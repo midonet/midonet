@@ -61,15 +61,14 @@ public class TestChainProcessor {
     class MockChain extends Chain {
 
         public MockChain(UUID chainId, String chainName) {
-
-            // we don't call super constructor, because it's got references
+            // We don't call the super constructor, because it has references
             // to zookeeper we don't need for testing.
             this.chainId = chainId;
             this.rules = new LinkedList<Rule>();
             this.setChainName(chainName);
         }
 
-        public void addRule (Rule rule) {
+        public void addRule(Rule rule) {
             if (rule == null) {
                 return;
             }

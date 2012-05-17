@@ -46,7 +46,7 @@ public class Chain {
     }
 
     protected Chain () {
-        // empty constructor for mock class
+        // empty constructor for TestChainProcessor.MockChain
     }
 
     List<Rule> getRules() {

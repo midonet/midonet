@@ -38,9 +38,8 @@ public class ChainProcessor {
     private Reactor reactor;
     private Map<UUID, NatMapping> natMappingMap;
 
-    public ChainProcessor(Directory dir, String zkBasePath,
-                           Cache cache, Reactor reactor)
-            throws StateAccessException {
+    public ChainProcessor(Directory dir, String zkBasePath, Cache cache,
+                          Reactor reactor) throws StateAccessException {
         this.zkDir = dir;
         this.zkBasePath = zkBasePath;
         this.cache = cache;

@@ -44,9 +44,9 @@ public class RuleZkManager extends ZkManager {
 
     private List<Op> prepareInsertPositionOrdering(
             ZkNodeEntry<UUID, Rule> ruleEntry)
-            throws ZkStateSerializationException, StateAccessException,
+        throws ZkStateSerializationException, StateAccessException,
             RuleIndexOutOfBoundsException {
-        // Make sure the position is greater than 0;
+        // Make sure the position is greater than 0.
         int position = ruleEntry.value.position;
         if (position <= 0) {
             throw new RuleIndexOutOfBoundsException("Invalid rule position "
@@ -89,7 +89,6 @@ public class RuleZkManager extends ZkManager {
     private List<Op> prepareDeletePositionOrdering(
             ZkNodeEntry<UUID, Rule> ruleEntry)
             throws ZkStateSerializationException, StateAccessException {
-
         List<Op> ops = new ArrayList<Op>();
         // Delete this one
         ops.addAll(prepareRuleDelete(ruleEntry));
@@ -99,7 +98,7 @@ public class RuleZkManager extends ZkManager {
 
         int position = ruleEntry.value.position;
         for (ZkNodeEntry<UUID, Rule> rule : rules) {
-            // For any node that has the > position value, shift down.
+            // For any rule that has position > the deleted rule, shift down.
             if (rule.value.position > position) {
                 String path = pathManager.getRulePath(rule.key);
                 rule.value.position--;

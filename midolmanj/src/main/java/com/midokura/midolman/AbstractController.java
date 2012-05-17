@@ -195,7 +195,7 @@ public abstract class AbstractController implements Controller {
     public abstract void clear();
 
     private void _addVirtualPort(int num, String name, MAC addr, UUID uuid) {
-        log.info("_addVirtualPort num:{} name:{} addr:{} id:{}",
+        log.debug("_addVirtualPort num:{} name:{} addr:{} id:{}",
                 new Object[] { num, name, addr, uuid });
         portNumToUuid.put(num, uuid);
         portUuidToNumberMap.put(uuid, num);

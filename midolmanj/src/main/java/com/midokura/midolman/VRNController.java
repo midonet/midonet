@@ -329,28 +329,8 @@ public class VRNController extends AbstractController
             // Add local OVS ports.
             if (localPortSetSlices.containsKey(destPortId)) {
                 for (short outPort : localPortSetSlices.get(destPortId)) {
-                    try {
-                        // Check the outPort's outgoingFilter with this packet.
-                        UUID outPortID = portNumToUuid.get(outPort);
-                        PortConfig portCfg = portMgr.get(outPortID).value;
-                        MidoMatch pktMatch = match.clone();
-                        RuleResult result = chainProcessor.applyChain(
-                            portCfg.outboundFilter, pktMatch, pktMatch,
-                            null /* inPortId */, outPortID, outPortID);
-                        // Ignore REJECT.
-                        if (result.action.equals(RuleResult.Action.ACCEPT)) {
-                            outPorts.add(outPort);
-                            if (!match.equals(result.match)) {
-                                log.warn("Egress port filter attempted to " +
-                                         "change packet.");
-                            }
-                        }
-                    } catch (StateAccessException e) {
-                        log.error("Got ZooKeeper error {} trying to get the " +
-                                  "outbound filter for OVS port {} -- adding " +
-                                  "it to the flood", e.getMessage(), outPort);
+                    if (doesFilterAcceptFloodedPacket(outPort, match))
                         outPorts.add(outPort);
-                    }
                 }
             }
         } else { // single egress
@@ -477,13 +457,17 @@ public class VRNController extends AbstractController
         int greKey;
         if (portSetMap.containsKey(fwdInfo.outPortId)) { // multiple egress
             log.debug("forwardPacket: FORWARD to PortSet {}: {}",
-                    fwdInfo.outPortId, fwdInfo);
+                      fwdInfo.outPortId, fwdInfo);
             // Add local OVS ports.
             if (localPortSetSlices.containsKey(fwdInfo.outPortId)) {
-                for (int localPortNum : localPortSetSlices.get(fwdInfo.outPortId)) {
+                for (short localPortNum :
+                         localPortSetSlices.get(fwdInfo.outPortId)) {
                     // For port sets, never go out the ingress port.
-                    if (localPortNum != inPortNum)
-                        outPorts.add((short)localPortNum);
+                    if (localPortNum == inPortNum)
+                        continue;
+                    if (doesFilterAcceptFloodedPacket(localPortNum,
+                                                      fwdInfo.matchOut))
+                        outPorts.add(localPortNum);
                 }
             }
             IPv4Set controllersAddrs = portSetMap.get(fwdInfo.outPortId);
@@ -566,6 +550,28 @@ public class VRNController extends AbstractController
                     ControllerStub.UNBUFFERED_ID, OFPort.OFPP_NONE.getValue(),
                     actions, genPktCtx.data);
             // TODO(pino): free the flow resources for generated packets?
+        }
+    }
+
+    private boolean doesFilterAcceptFloodedPacket(short portNum,
+                                                  MidoMatch mmatch) {
+        try {
+            UUID outPortID = portNumToUuid.get(new Integer(portNum));
+            PortConfig portCfg = portMgr.get(outPortID).value;
+            MidoMatch pktMatch = mmatch.clone();
+            RuleResult result = chainProcessor.applyChain(
+                            portCfg.outboundFilter, pktMatch, pktMatch,
+                            null /* inPortId */, outPortID, outPortID);
+            if (!mmatch.equals(result.match)) {
+                log.warn("Outbound port filter {} attempted to change " +
+                         "flooded packet.", portCfg.outboundFilter);
+            }
+            return result.action.equals(RuleResult.Action.ACCEPT);
+        } catch (StateAccessException e) {
+            log.error("Got ZooKeeper error {} trying to get the " +
+                      "outbound filter for OVS port {} -- adding " +
+                      "it to the flood", e.getMessage(), portNum);
+            return true;
         }
     }
 
