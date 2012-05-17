@@ -494,7 +494,8 @@ public class TestVRNController {
     }
 
     @Test
-    public void testFloodEgress() {
+    public void testFloodEgress()
+            throws StateAccessException, RuleIndexOutOfBoundsException {
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
                            MAC.fromString("02:00:11:22:00:12"), 0x0a000005,
                            0x0a040005, (short) 101, (short) 212,
@@ -524,8 +525,34 @@ public class TestVRNController {
         Assert.assertArrayEquals(expectActions.toArray(),
                                  actualPacket.actions.toArray());
 
-        //XXX
+        // Add a chain on port A which drops, re-do, verify it's sent to
+        // port B only.
+        UUID chainUuid = chainMgr.create(new ChainConfig("TEST"));
+        Rule dropRule = new LiteralRule(new Condition(), Action.DROP, chainUuid,
+                                        1);
+        ruleMgr.create(dropRule);
+        PortDirectory.BridgePortConfig bridgePortConfig =
+                new PortDirectory.BridgePortConfig(bridgeID);
+        bridgePortConfig.outboundFilter = chainUuid;
+        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
+                           portNumToUuid.get(portNumA), bridgePortConfig));
 
+        // Send to tunnel A.
+        vrnCtrl.onPacketIn(-1, data.length, tunnelPortNumA, data, bridgeGreKey);
+
+        // Verify it flooded to port B only.
+        expectActions.remove(0);
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(2, controllerStub.addedFlows.size());
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match,
+                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
+                -1, false, expectActions);
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        actualPacket = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(-1, actualPacket.bufferId);
+        Assert.assertArrayEquals(data, actualPacket.data);
+        Assert.assertArrayEquals(expectActions.toArray(),
+                                 actualPacket.actions.toArray());
     }
 
     @Test
