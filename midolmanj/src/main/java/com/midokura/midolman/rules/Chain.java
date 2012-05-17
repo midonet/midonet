@@ -50,7 +50,7 @@ public class Chain {
     }
 
     List<Rule> getRules() {
-        return rules;
+        return Collections.unmodifiableList(rules);
     }
 
     public String getChainName() {
@@ -65,7 +65,7 @@ public class Chain {
         return chainId;
     }
 
-    public void updateRules() {
+    protected void updateRules() {
 
         List<Rule> newRules = new ArrayList<Rule>();
 
