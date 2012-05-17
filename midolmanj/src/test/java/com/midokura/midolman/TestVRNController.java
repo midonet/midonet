@@ -445,7 +445,7 @@ public class TestVRNController {
         vrnCtrl.onPacketIn(-1, data.length, portNumA, data);
         // Check that it flooded.
         Assert.assertEquals(1, controllerStub.sentPackets.size());
-        // Any order of the outputs will do, use the one actually chosen.
+        // The output actions can be in any order; use the one actually chosen.
         List<OFAction> expectActions = new ArrayList<OFAction>();
         expectActions.add(new NxActionSetTunnelKey32(bridgeGreKey));
         expectActions.add(new OFActionOutput(tunnelPortNumA, (short)0));
@@ -491,6 +491,41 @@ public class TestVRNController {
         Assert.assertArrayEquals(new byte[]{}, actualPacket.data);
         Assert.assertArrayEquals(expectActions.toArray(),
                                  actualPacket.actions.toArray());
+    }
+
+    @Test
+    public void testFloodEgress() {
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                           MAC.fromString("02:00:11:22:00:12"), 0x0a000005,
+                           0x0a040005, (short) 101, (short) 212,
+                           new byte[] {4, 5, 6, 7, 8});
+        byte[] data = eth.serialize();
+        // Send to tunnel A.
+        vrnCtrl.onPacketIn(-1, data.length, tunnelPortNumA, data, bridgeGreKey);
+
+        // Verify it flooded to ports A and B.
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                              eth, tunnelPortNumA);
+        // The output actions can be in any order; use the one actually chosen.
+        List<OFAction> expectActions = new ArrayList<OFAction>();
+        expectActions.add(new OFActionOutput(portNumA, (short)0));
+        expectActions.add(new OFActionOutput(portNumB, (short)0));
+
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT,
+                -1, false, expectActions);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MockControllerStub.Packet actualPacket =
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(-1, actualPacket.bufferId);
+        Assert.assertArrayEquals(data, actualPacket.data);
+        Assert.assertArrayEquals(expectActions.toArray(),
+                                 actualPacket.actions.toArray());
+
+        //XXX
+
     }
 
     @Test
