@@ -14,13 +14,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.*;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionDataLayer;
+import org.openflow.protocol.action.OFActionDataLayerDestination;
+import org.openflow.protocol.action.OFActionDataLayerSource;
+import org.openflow.protocol.action.OFActionNetworkLayerAddress;
+import org.openflow.protocol.action.OFActionNetworkLayerDestination;
+import org.openflow.protocol.action.OFActionNetworkLayerSource;
+import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.action.OFActionTransportLayer;
+import org.openflow.protocol.action.OFActionTransportLayerDestination;
+import org.openflow.protocol.action.OFActionTransportLayerSource;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,16 +44,39 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
-import com.midokura.midolman.packets.*;
+import com.midokura.midolman.packets.ARP;
+import com.midokura.midolman.packets.DHCP;
+import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.packets.MalformedPacketException;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.GreZkManager;
 import com.midokura.midolman.state.GreZkManager.GreKey;
+import com.midokura.midolman.state.IPv4Set;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfigCache;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
+import com.midokura.midolman.state.ZkNodeEntry;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
+import com.midokura.util.functors.UnaryFunctor;
+import com.midokura.util.functors.UnaryFunctor;
 
 
 public class VRNController extends AbstractController
@@ -85,6 +118,8 @@ public class VRNController extends AbstractController
     private VpnZkManager vpnMgr;
     private Directory zkDir;
     PortConfigCache portCache;
+    private Collection<VRNControllerObserver> vrnObservers =
+        new CopyOnWriteArrayList<VRNControllerObserver>();
 
     public VRNController(Directory zkDir, String zkBasePath,
             IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
@@ -287,7 +322,8 @@ public class VRNController extends AbstractController
                             }
                         } catch (StateAccessException e) {
                             installDropFlowEntry(match, bufferId,
-                                    NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+                                                 NO_IDLE_TIMEOUT,
+                                                 TEMPORARY_DROP_SECONDS);
                             return;
                         }
                     }
@@ -309,7 +345,7 @@ public class VRNController extends AbstractController
                     "installing temporary drop rule: ", e);
             freeFlowResources(match, fwdInfo.getNotifiedFEs());
             installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
-                    TEMPORARY_DROP_SECONDS);
+                                 TEMPORARY_DROP_SECONDS);
             return;
         }
         if (fwdInfo.action != ForwardingElement.Action.PAUSED)
@@ -865,9 +901,23 @@ public class VRNController extends AbstractController
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
 
+    public void addControllerObserver(VRNControllerObserver observer) {
+        vrnObservers.add(observer);
+    }
+
+    public void removeControllerObserver(VRNControllerObserver observer) {
+        vrnObservers.remove(observer);
+    }
+
+    protected void notifyObservers(UnaryFunctor<VRNControllerObserver> functor) {
+        for (VRNControllerObserver observer : vrnObservers) {
+            functor.apply(observer);
+        }
+    }
+
     private void startBgpPortService(final short portNum, final UUID portId)
             throws KeeperException, InterruptedException,
-            ZkStateSerializationException, IOException, StateAccessException {
+            IOException, StateAccessException {
         // If the materiazlied router port isn't discovered yet, try
         // setting flows between BGP peers later.
 
@@ -952,10 +1002,19 @@ public class VRNController extends AbstractController
 
     @Override
     protected void addVirtualPort(
-            int portNum, String name, MAC hwAddr, UUID portId) {
+            final int portNum, final String name, final MAC addr, final UUID portId) {
         log.info("addVirtualPort number {} bound to vport {}", portNum, portId);
+
         try {
             vrn.addPort(portId);
+
+            notifyObservers(new UnaryFunctor<VRNControllerObserver>() {
+                @Override
+                public void apply(VRNControllerObserver arg0) {
+                    arg0.addVirtualPort(portNum, name, addr, portId);
+                }
+            });
+
             // TODO(pino): check with Yoshi - services only apply to L3 ports.
             PortConfig portConfig = portCache.get(portId);
             if (portConfig instanceof
@@ -979,11 +1038,19 @@ public class VRNController extends AbstractController
     }
 
     @Override
-    protected void deleteVirtualPort(int portNum, UUID portId) {
+    protected void deleteVirtualPort(final int portNum, final UUID portId) {
         log.info("deletePort number {} bound to virtual port {}",
                 portNum, portId);
         try {
             PortConfig portConfig = portCache.get(portId);
+
+            notifyObservers(new UnaryFunctor<VRNControllerObserver>() {
+                @Override
+                public void apply(VRNControllerObserver arg0) {
+                    arg0.delVirtualPort(portNum, portId);
+                }
+            });
+
             vrn.removePort(portId);
             removePredefTunnelRule(portNum, portConfig.greKey);
         } catch (Exception e) {

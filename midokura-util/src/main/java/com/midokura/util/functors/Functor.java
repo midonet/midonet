@@ -4,7 +4,7 @@
 package com.midokura.util.functors;
 
 /**
- * // TODO: Explain yourself.
+ * Simple Unary functor that converts an Argument into a Return value.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 4/5/12
