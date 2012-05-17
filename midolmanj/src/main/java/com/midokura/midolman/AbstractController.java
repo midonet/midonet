@@ -63,8 +63,30 @@ public abstract class AbstractController implements Controller {
     protected ControllerStub controllerStub;
 
     protected HashMap<UUID, Integer> portUuidToNumberMap;
-    protected HashMap<Integer, UUID> portNumToUuid;
+    protected portNumUuidMap portNumToUuid;
     protected PortToIntNwAddrMap portLocMap;
+
+    // HashMap's .get(Object) method interacts badly with autoboxing
+    // and isn't type safe.  Protect outselves with a veneer class.
+    protected static class portNumUuidMap {
+        private HashMap<Integer, UUID> portNumToUuid;
+
+        public void put(Integer i, UUID u) { portNumToUuid.put(i, u); }
+
+        public void remove(Integer i) { portNumToUuid.remove(i); }
+
+        public UUID get(Integer i) { return portNumToUuid.get(i); }
+
+        public boolean containsKey(Integer i) {
+            return portNumToUuid.containsKey(i);
+        }
+
+        public void clear() { portNumToUuid.clear(); }
+
+        public portNumUuidMap () {
+            portNumToUuid = new HashMap<Integer, UUID>();
+        }
+    }
 
     // Tunnel management data structures
     // private to AbstractController, but publicly queriable through
@@ -106,7 +128,7 @@ public abstract class AbstractController implements Controller {
         this.externalIdKey = externalIdKey;
         publicIp = internalIp;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
-        portNumToUuid = new HashMap<Integer, UUID>();
+        portNumToUuid = new portNumUuidMap();
         tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();
         peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
         downPorts = new HashSet<Integer>();
