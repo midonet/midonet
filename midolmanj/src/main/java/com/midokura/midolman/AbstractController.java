@@ -63,12 +63,12 @@ public abstract class AbstractController implements Controller {
     protected ControllerStub controllerStub;
 
     protected HashMap<UUID, Integer> portUuidToNumberMap;
-    protected portNumUuidMap portNumToUuid;
+    protected PortNumUuidMap portNumToUuid;
     protected PortToIntNwAddrMap portLocMap;
 
     // HashMap's .get(Object) method interacts badly with autoboxing
     // and isn't type safe.  Protect outselves with a veneer class.
-    protected static class portNumUuidMap {
+    protected static class PortNumUuidMap {
         private HashMap<Integer, UUID> portNumToUuid;
 
         public void put(Integer i, UUID u) { portNumToUuid.put(i, u); }
@@ -83,15 +83,35 @@ public abstract class AbstractController implements Controller {
 
         public void clear() { portNumToUuid.clear(); }
 
-        public portNumUuidMap () {
+        public PortNumUuidMap() {
             portNumToUuid = new HashMap<Integer, UUID>();
+        }
+    }
+
+    protected static class PortNumIPv4Map {
+        private HashMap<Integer, IntIPv4> map;
+
+        public void put(Integer i, IntIPv4 u) { map.put(i, u); }
+
+        public void remove(Integer i) { map.remove(i); }
+
+        public IntIPv4 get(Integer i) { return map.get(i); }
+
+        public boolean containsKey(Integer i) {
+            return map.containsKey(i);
+        }
+
+        public void clear() { map.clear(); }
+
+        public PortNumIPv4Map() {
+            map = new HashMap<Integer, IntIPv4>();
         }
     }
 
     // Tunnel management data structures
     // private to AbstractController, but publicly queriable through
     // tunnelPortNumOfPeer() and peerOfTunnelPortNum().
-    private HashMap<Integer, IntIPv4> tunnelPortNumToPeerIp;
+    private PortNumIPv4Map tunnelPortNumToPeerIp;
     private HashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
 
     protected ReplicatedMap.Watcher<UUID, IntIPv4> listener;
@@ -128,8 +148,8 @@ public abstract class AbstractController implements Controller {
         this.externalIdKey = externalIdKey;
         publicIp = internalIp;
         portUuidToNumberMap = new HashMap<UUID, Integer>();
-        portNumToUuid = new portNumUuidMap();
-        tunnelPortNumToPeerIp = new HashMap<Integer, IntIPv4>();
+        portNumToUuid = new PortNumUuidMap();
+        tunnelPortNumToPeerIp = new PortNumIPv4Map();
         peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
         downPorts = new HashSet<Integer>();
         try {
