@@ -39,4 +39,6 @@ public interface TypedMap<K, V> {
     boolean containsKey(K key);
 
     void clear();
+
+    Map<K, V> viewAsMap();
 }

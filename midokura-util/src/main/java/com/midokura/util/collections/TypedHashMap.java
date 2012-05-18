@@ -3,7 +3,9 @@
 */
 package com.midokura.util.collections;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * HashMap-wrapping implementation of a {@link TypedMap}.
@@ -14,6 +16,11 @@ public class TypedHashMap<K, V> implements TypedMap<K, V> {
 
     public TypedHashMap() {
         map = new HashMap<K, V>();
+    }
+
+    @Override
+    public Map<K, V> viewAsMap() {
+        return Collections.unmodifiableMap(map);
     }
 
     @Override
