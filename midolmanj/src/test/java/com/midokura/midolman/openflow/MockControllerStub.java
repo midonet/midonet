@@ -45,7 +45,7 @@ public class MockControllerStub implements ControllerStub {
 
         public String toString() {
             return String.format("Packet{buffer:%d, inPort:%d, actions:%s, " +
-                             "data[len=%d]}", bufferId, inPort, 
+                             "data[len=%d]}", bufferId, inPort,
                              actions.toString(), data.length);
         }
     }
@@ -110,7 +110,7 @@ public class MockControllerStub implements ControllerStub {
                    command==r.command && idleTimeoutSecs==r.idleTimeoutSecs &&
                    hardTimeoutSecs==r.hardTimeoutSecs && priority==r.priority &&
                    bufferId==r.bufferId && outPort==r.outPort &&
-                   sendFlowRemove==r.sendFlowRemove && 
+                   sendFlowRemove==r.sendFlowRemove &&
                    checkOverlap==r.checkOverlap && emergency==r.emergency &&
                    actionsEqual && matchTunnelId==r.matchTunnelId;
         }

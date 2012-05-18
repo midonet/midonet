@@ -303,9 +303,8 @@ public class VRNCoordinator implements ForwardingElement {
             }
             log.debug("Packet exited FE on materialized port or set.");
         }
-        // If we got here, return fwd_action to the caller. One of
-        // these holds:
-        // 1) the action is OUTPUT and the port type is not logical OR
+        // If we got here, return fwd_action to the caller.  One of these holds:
+        // 1) the action is OUTPUT and the port type is not logical, OR
         // 2) the action is not OUTPUT
     }
 
@@ -316,10 +315,11 @@ public class VRNCoordinator implements ForwardingElement {
         // If inbound, use the before-FE-processing match.  If outbound, use
         // the after-FE-processing match.
         MidoMatch pktMatch = inbound ? fwdInfo.matchIn : fwdInfo.matchOut;
+        // Ports themselves don't have ports for packets to be entering/exiting,
+        // so set inputPort and outputPort to null.
         RuleResult result = chainProcessor.applyChain(
                 inbound ? portCfg.inboundFilter : portCfg.outboundFilter,
-                fwdInfo.flowMatch, pktMatch,
-                null /* inPortId */, fwdInfo.outPortId,
+                fwdInfo.flowMatch, pktMatch, null, null,
                 inbound ? fwdInfo.inPortId : fwdInfo.outPortId,
                 fwdInfo.portGroups);
         // TODO(pino): add the code that handles the removal notification

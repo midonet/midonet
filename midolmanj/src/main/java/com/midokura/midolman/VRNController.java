@@ -329,7 +329,7 @@ public class VRNController extends AbstractController
             // Add local OVS ports.
             if (localPortSetSlices.containsKey(destPortId)) {
                 for (short outPort : localPortSetSlices.get(destPortId)) {
-                    if (doesFilterAcceptFloodedPacket(outPort, match))
+                    if (doesPortFilterAcceptFloodedPacket(outPort, match))
                         outPorts.add(outPort);
                 }
             }
@@ -465,7 +465,7 @@ public class VRNController extends AbstractController
                     // For port sets, never go out the ingress port.
                     if (localPortNum == inPortNum)
                         continue;
-                    if (doesFilterAcceptFloodedPacket(localPortNum,
+                    if (doesPortFilterAcceptFloodedPacket(localPortNum,
                                                       fwdInfo.matchOut))
                         outPorts.add(localPortNum);
                 }
@@ -553,15 +553,17 @@ public class VRNController extends AbstractController
         }
     }
 
-    private boolean doesFilterAcceptFloodedPacket(short portNum,
-                                                  MidoMatch mmatch) {
+    private boolean doesPortFilterAcceptFloodedPacket(short portNum,
+                                                      MidoMatch mmatch) {
         try {
-            UUID outPortID = portNumToUuid.get(new Integer(portNum));
-            PortConfig portCfg = portMgr.get(outPortID).value;
+            UUID portID = portNumToUuid.get(new Integer(portNum));
+            PortConfig portCfg = portMgr.get(portID).value;
             MidoMatch pktMatch = mmatch.clone();
+            // Ports themselves don't have ports for packets to be entering/
+            // exiting, so set inputPort and outputPort to null.
             RuleResult result = chainProcessor.applyChain(
                             portCfg.outboundFilter, pktMatch, pktMatch,
-                            null /* inPortId */, outPortID, outPortID);
+                            null, null, portID);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
