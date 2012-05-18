@@ -564,7 +564,7 @@ public class Bridge implements ForwardingElement {
     /*
      * Used only for testing
      */
-    public BridgeConfig getBridgeConfig() {
+    BridgeConfig getBridgeConfig() {
         return myConfig;
     }
 }
