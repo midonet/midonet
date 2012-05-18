@@ -44,8 +44,8 @@ import com.midokura.midolman.util.Serializer;
  */
 public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
-    private final static Logger log = 
-               LoggerFactory.getLogger(ZooKeeperDaoFactory.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(ZooKeeperDaoFactory.class);
     protected Directory directory = null;
     protected final String rootPath;
     protected final String rootMgmtPath;

@@ -561,9 +561,11 @@ public class VRNController extends AbstractController
             MidoMatch pktMatch = mmatch.clone();
             // Ports themselves don't have ports for packets to be entering/
             // exiting, so set inputPort and outputPort to null.
+            // The port groups *should* be set based on the original origin
+            // port, but we don't have access to that, so use null.
             RuleResult result = chainProcessor.applyChain(
                             portCfg.outboundFilter, pktMatch, pktMatch,
-                            null, null, portID, portCfg.portGroupIDs);
+                            null, null, portID, null);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
