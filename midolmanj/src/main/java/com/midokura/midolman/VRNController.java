@@ -563,7 +563,7 @@ public class VRNController extends AbstractController
             // exiting, so set inputPort and outputPort to null.
             RuleResult result = chainProcessor.applyChain(
                             portCfg.outboundFilter, pktMatch, pktMatch,
-                            null, null, portID);
+                            null, null, portID, portCfg.portGroupIDs);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
