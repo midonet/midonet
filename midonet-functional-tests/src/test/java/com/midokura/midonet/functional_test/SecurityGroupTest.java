@@ -26,11 +26,11 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
-
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+
 
 public class SecurityGroupTest {
     MidolmanMgmt mgmt;

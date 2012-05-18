@@ -89,13 +89,6 @@ public class ChainProcessor {
         return chain;
     }
 
-    public RuleResult applyChain(UUID chainID, MidoMatch flowMatch,
-            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId)
-            throws StateAccessException {
-        return applyChain(chainID, flowMatch, pktMatch, inPortId, outPortId,
-                ownerId, null);
-    }
-
     /**
      * @param chainID
      * @param flowMatch

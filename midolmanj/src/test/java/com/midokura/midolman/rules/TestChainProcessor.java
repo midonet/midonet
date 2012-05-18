@@ -190,7 +190,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.DROP, mockChain, 20); //match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         // When no rules are matched, expect ACCEPT
         Assert.assertEquals(Action.DROP, ruleResult.action);
@@ -203,7 +203,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.RETURN, mockChain, 20); //match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         // When chain is interrupted (RETURN), expect ACCEPT
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
@@ -217,7 +217,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.DROP, mockChain, 30);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         // When chain is interrupted (RETURN), expect ACCEPT
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
@@ -335,7 +335,7 @@ public class TestChainProcessor {
         mockChainProcessor.addChain(mockChainTarget);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.DROP, ruleResult.action);
     }
@@ -357,7 +357,7 @@ public class TestChainProcessor {
         mockChainProcessor.addChain(mockChainTarget);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.DROP, ruleResult.action);
     }
@@ -379,7 +379,7 @@ public class TestChainProcessor {
         mockChainProcessor.addChain(mockChainTarget);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.DROP, ruleResult.action);
     }
@@ -394,7 +394,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
     }
@@ -409,7 +409,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
     }
@@ -424,7 +424,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
     }
@@ -439,7 +439,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
     }
@@ -451,7 +451,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20); //match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
     }
@@ -463,7 +463,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20); //match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
     }
@@ -480,7 +480,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 30); //no match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
     }
@@ -496,7 +496,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 30); //no match
 
         RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
-                flowMatch, pktMatch, inPortId, outPortId, ownerId);
+                flowMatch, pktMatch, inPortId, outPortId, ownerId, null);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
     }
