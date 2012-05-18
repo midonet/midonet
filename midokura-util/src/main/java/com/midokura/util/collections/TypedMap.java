@@ -6,11 +6,12 @@ package com.midokura.util.collections;
 import java.util.Map;
 
 /**
- * A Map&lt;K, V&gt; specialization that provided typed accessor to elements and
- * typed deletion method for a key. Also this map can always be used as a proper
- * map but then you lose the enforcing of the key type.
+ * A Map&lt;K, V&gt;-like interface that provides type-safe access to elements
+ * and type-safe deletion, to avoid the pitfalls of Map's use of Object as
+ * the type of key arguments.
  * <p/>
- * It needs to be used in conjunction with {@link TypedHashMap}.
+ * {@link TypedHashMap} is a wrapper around HashMap which implements this
+ * interface.
  * <p/>
  * Sample usage:
  * <blockquote><pre>
@@ -21,21 +22,21 @@ import java.util.Map;
  * short shortKey = 10;
  * Short shortObjectKey = 10;
  *
- * map.getTyped(longKey);           // this compiles
- * map.getTyped(intKey);            // this fails at compilation
- * map.getTyped(shortKey);          // this fails at compilation
- * map.getTyped(shortObjectKey);    // this fails at compilation
+ * map.get(longKey);           // this compiles
+ * map.get(intKey);            // this fails at compilation
+ * map.get(shortKey);          // this fails at compilation
+ * map.get(shortObjectKey);    // this fails at compilation
  * </pre></blockquote><p/>
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 5/18/12
  */
-public interface TypedMap<K, V> extends Map<K, V> {
+public interface TypedMap<K, V> {
 
-    V getTyped(K key);
+    V put(K key, V value);
 
-    V removeTyped(K key);
+    V get(K key);
 
-    boolean containsKeyTyped(K key);
+    V remove(K key);
 
+    boolean containsKey(K key);
+
+    void clear();
 }

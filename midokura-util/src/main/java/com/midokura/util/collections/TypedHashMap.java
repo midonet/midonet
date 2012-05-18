@@ -6,27 +6,34 @@ package com.midokura.util.collections;
 import java.util.HashMap;
 
 /**
- * Default implementation of a {@link TypedMap}. See {@link TypedMap} for a
- * example of the intended usage.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 5/18/12
+ * HashMap-wrapping implementation of a {@link TypedMap}.
+ * See {@link TypedMap} for an example of the intended usage.
  */
-public class TypedHashMap<K, V> extends HashMap<K, V>
-    implements TypedMap<K, V> {
+public class TypedHashMap<K, V> implements TypedMap<K, V> {
+    private HashMap<K, V> map;
 
     @Override
-    public V getTyped(K key) {
-        return get(key);
+    public V get(K key) {
+        return map.get(key);
     }
 
     @Override
-    public V removeTyped(K key) {
-        return remove(key);
+    public V remove(K key) {
+        return map.remove(key);
     }
 
     @Override
-    public boolean containsKeyTyped(K key) {
-        return containsKey(key);
+    public boolean containsKey(K key) {
+        return map.containsKey(key);
+    }
+
+    @Override
+    public V put(K key, V value) {
+        return map.put(key, value);
+    }
+
+    @Override
+    public void clear() {
+        map.clear();
     }
 }
