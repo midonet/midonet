@@ -7,7 +7,6 @@ package com.midokura.midolman;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,8 @@ import com.midokura.midolman.state.ReplicatedMap.Watcher;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Net;
+import com.midokura.util.collections.TypedHashMap;
+
 
 public abstract class AbstractController implements Controller {
 
@@ -62,57 +63,15 @@ public abstract class AbstractController implements Controller {
 
     protected ControllerStub controllerStub;
 
-    protected HashMap<UUID, Integer> portUuidToNumberMap;
-    protected PortNumUuidMap portNumToUuid;
+    protected TypedHashMap<UUID, Integer> portUuidToNumberMap;
+    protected TypedHashMap<Integer, UUID> portNumToUuid;
     protected PortToIntNwAddrMap portLocMap;
-
-    // HashMap's .get(Object) method interacts badly with autoboxing
-    // and isn't type safe.  Protect outselves with a veneer class.
-    protected static class PortNumUuidMap {
-        private HashMap<Integer, UUID> portNumToUuid;
-
-        public void put(Integer i, UUID u) { portNumToUuid.put(i, u); }
-
-        public void remove(Integer i) { portNumToUuid.remove(i); }
-
-        public UUID get(Integer i) { return portNumToUuid.get(i); }
-
-        public boolean containsKey(Integer i) {
-            return portNumToUuid.containsKey(i);
-        }
-
-        public void clear() { portNumToUuid.clear(); }
-
-        public PortNumUuidMap() {
-            portNumToUuid = new HashMap<Integer, UUID>();
-        }
-    }
-
-    protected static class PortNumIPv4Map {
-        private HashMap<Integer, IntIPv4> map;
-
-        public void put(Integer i, IntIPv4 u) { map.put(i, u); }
-
-        public void remove(Integer i) { map.remove(i); }
-
-        public IntIPv4 get(Integer i) { return map.get(i); }
-
-        public boolean containsKey(Integer i) {
-            return map.containsKey(i);
-        }
-
-        public void clear() { map.clear(); }
-
-        public PortNumIPv4Map() {
-            map = new HashMap<Integer, IntIPv4>();
-        }
-    }
 
     // Tunnel management data structures
     // private to AbstractController, but publicly queriable through
     // tunnelPortNumOfPeer() and peerOfTunnelPortNum().
-    private PortNumIPv4Map tunnelPortNumToPeerIp;
-    private HashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
+    private TypedHashMap<Integer, IntIPv4> tunnelPortNumToPeerIp;
+    private TypedHashMap<IntIPv4, Integer> peerIpToTunnelPortNum;
 
     protected ReplicatedMap.Watcher<UUID, IntIPv4> listener;
 
@@ -147,10 +106,10 @@ public abstract class AbstractController implements Controller {
         this.ovsdb = ovsdb;
         this.externalIdKey = externalIdKey;
         publicIp = internalIp;
-        portUuidToNumberMap = new HashMap<UUID, Integer>();
-        portNumToUuid = new PortNumUuidMap();
-        tunnelPortNumToPeerIp = new PortNumIPv4Map();
-        peerIpToTunnelPortNum = new HashMap<IntIPv4, Integer>();
+        portUuidToNumberMap = new TypedHashMap<UUID, Integer>();
+        portNumToUuid = new TypedHashMap<Integer, UUID>();
+        tunnelPortNumToPeerIp = new TypedHashMap<Integer, IntIPv4>();
+        peerIpToTunnelPortNum = new TypedHashMap<IntIPv4, Integer>();
         downPorts = new HashSet<Integer>();
         try {
             // TODO(pino, jlm): use a PortLocMap per device instead of global.

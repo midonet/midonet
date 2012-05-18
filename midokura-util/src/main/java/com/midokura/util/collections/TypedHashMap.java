@@ -12,6 +12,10 @@ import java.util.HashMap;
 public class TypedHashMap<K, V> implements TypedMap<K, V> {
     private HashMap<K, V> map;
 
+    public TypedHashMap() {
+        map = new HashMap<K, V>();
+    }
+
     @Override
     public V get(K key) {
         return map.get(key);
