@@ -211,19 +211,21 @@ object OpenvSwitchDatabaseConnectionImpl {
                 TablePort,
                 whereUUIDEquals(portUUIDVal.getTextValue),
                 List(ColumnUUID, ColumnInterfaces)).get(0)
-            val ifs = portRow.get(ColumnInterfaces)
-            assume(ifs != null, "Invalid JSON object.")
-            assume(ifs.get(0) != null, "Invalid JSON object.")
-            val ifUUIDs: List[JsonNode] =
-                if (ifs.get(0).getTextValue == "uuid") {
-                    List(ifs)
-                } else {
-                    ifs.getElements.toList
-                }
-            for {
-                ifUUID <- ifUUIDs
-                ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
-            } tx.delete(TableInterface, Some(ifUUIDVal.getTextValue))
+            if (portRow != null) {
+                val ifs = portRow.get(ColumnInterfaces)
+                assume(ifs != null, "Invalid JSON object.")
+                assume(ifs.get(0) != null, "Invalid JSON object.")
+                val ifUUIDs: List[JsonNode] =
+                    if (ifs.get(0).getTextValue == "uuid") {
+                        List(ifs)
+                    } else {
+                        ifs.getElements.toList
+                    }
+                for {
+                    ifUUID <- ifUUIDs
+                    ifUUIDVal = ifUUID.get(1) if ifUUIDVal != null
+                } tx.delete(TableInterface, Some(ifUUIDVal.getTextValue))
+            }
         }
     }
 
