@@ -32,8 +32,7 @@ public class PortDirectory {
                 return true;
             if (!(other instanceof BridgePortConfig))
                 return false;
-            BridgePortConfig port = (BridgePortConfig) other;
-            return this.device_id.equals(port.device_id);
+            return super.equals(other);
         }
     }
 
