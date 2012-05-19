@@ -94,6 +94,8 @@ public class SecurityGroupTest {
         BridgePort bPort1 = bridge1.addPort()
                 .setOutboundFilter(portOutChain1.chain.getId()).build();
         // Add port1 to SecGroup1's membership
+        // TODO: Port filters can't match based on ports.  Use port groups
+        //       instead.
         sg1Members.addRule().matchInPort(bPort1.getId())
                 .setSimpleType(DtoRule.Accept).build();
 

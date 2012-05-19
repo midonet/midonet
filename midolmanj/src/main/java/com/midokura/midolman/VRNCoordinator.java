@@ -319,7 +319,7 @@ public class VRNCoordinator implements ForwardingElement {
         // so set inputPort and outputPort to null.
         RuleResult result = chainProcessor.applyChain(
                 inbound ? portCfg.inboundFilter : portCfg.outboundFilter,
-                fwdInfo.flowMatch, pktMatch, fwdInfo.inPortId, fwdInfo.outPortId,
+                fwdInfo.flowMatch, pktMatch, null, null,
                 inbound ? fwdInfo.inPortId : fwdInfo.outPortId,
                 fwdInfo.portGroups);
         // TODO(pino): add the code that handles the removal notification
