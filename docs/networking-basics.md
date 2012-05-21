@@ -1,6 +1,7 @@
 <!---
 Copyright 2012 Midokura Inc.
-Generate HTML with:  markdown_py networking.md -f networking.html -x toc
+Generate HTML with:  
+        markdown_py networking-basics.md -f networking-basics.html -x toc
 -->
 
 [TOC]
