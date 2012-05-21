@@ -147,8 +147,8 @@ To decide which route to use for a packet, the routes for address ranges
 containing the packet's address are compared, and the one with the largest
 prefix is chosen.  This is called *longest prefix matching*.
 The address range `0.0.0.0/0` matches every IP address, and a route for
-this range is called a *default route*, because it'll match packets iff
-no other route does.
+this range is called a *default route*, because it'll match packets exactly
+when no other route does.
 If an address range is contained inside another range, the smaller range
 is called a *subnet* of the larger.  IP addresses are assigned in a
 hierarchical basis, with a large provider giving subnets of a large range
