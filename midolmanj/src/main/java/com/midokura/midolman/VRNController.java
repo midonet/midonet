@@ -108,8 +108,6 @@ public class VRNController extends AbstractController
             this.bgpService.setController(this);
 
         this.vpnService = vpnService;
-        if (vpnService != null)
-            this.vpnService.setController(this);
 
         this.bgpPortServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
