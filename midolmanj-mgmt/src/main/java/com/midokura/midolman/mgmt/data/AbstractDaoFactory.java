@@ -25,4 +25,8 @@ public abstract class AbstractDaoFactory implements DaoFactory {
     public AbstractDaoFactory(AppConfig config) {
         this.config = config;
     }
+
+    protected AppConfig getAppConfig() {
+        return config;
+    }
 }

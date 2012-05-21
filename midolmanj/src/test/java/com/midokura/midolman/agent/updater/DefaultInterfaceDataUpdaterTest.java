@@ -27,9 +27,9 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
 
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.midolman.agent.midolman.MidolmanConfigurationWrapper;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
@@ -64,11 +64,20 @@ public class DefaultInterfaceDataUpdaterTest {
         pathManager = new ZkPathManager("");
 
         final HierarchicalConfiguration configuration = new HierarchicalConfiguration();
-        configuration.addNodes("midolman", Arrays.asList(
+        configuration.addNodes(HostAgentConfiguration.GROUP_NAME, Arrays.asList(
             new HierarchicalConfiguration.Node("midolman_root_key", "")
         ));
 
         Injector injector = Guice.createInjector(new AbstractAgentModule() {
+
+            @Override
+            protected void configure() {
+                super.configure();
+                bind(ConfigProvider.class)
+                    .toInstance(
+                        ConfigProvider.providerForIniConfig(configuration));
+            }
+
             @Provides
             Directory buildRootDirectory() {
                 return cleanDirectory;
@@ -78,11 +87,6 @@ public class DefaultInterfaceDataUpdaterTest {
             OpenvSwitchDatabaseConnection buildOvsConnection() {
                 // not used in this test yet so not necessary to mock
                 return null;
-            }
-
-            @Provides
-            HostAgentConfiguration buildConfigurationObject() {
-                return new MidolmanConfigurationWrapper(configuration);
             }
         });
 

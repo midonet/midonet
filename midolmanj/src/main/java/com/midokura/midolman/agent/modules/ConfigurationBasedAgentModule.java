@@ -5,11 +5,12 @@ package com.midokura.midolman.agent.modules;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.name.Names;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.config.DefaultHostAgentConfiguration;
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -34,22 +35,20 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
         this.configFilePath = configFilePath;
     }
 
-    /**
-     * This method is called by the Guice library to infer bindings for the
-     * objects that are managed by guice.
-     */
     @Override
-    protected void configure() {
-        super.configure();
+    @Provides
+    @Singleton
+    public HostAgentConfiguration buildHostAgentConfiguration(ConfigProvider config) {
+        return config.getConfig(HostAgentConfiguration.class);
+    }
 
-        bind(HostAgentConfiguration.class)
-            .to(DefaultHostAgentConfiguration.class);
+    @Provides
+    @Singleton
+    public ConfigProvider buildConfigProvider() throws ConfigurationException {
+        HierarchicalINIConfiguration config =
+            new HierarchicalINIConfiguration(configFilePath);
 
-        bind(String.class)
-            .annotatedWith(
-                Names.named(
-                    DefaultHostAgentConfiguration.AGENT_CONFIG_LOCATION))
-            .toInstance(configFilePath);
+        return ConfigProvider.providerForIniConfig(config);
     }
 
     @Provides

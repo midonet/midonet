@@ -37,6 +37,7 @@
         <versions.testng>6.5.2</versions.testng>
         <versions.junit>4.10</versions.junit>
         <versions.plugins.jdeb>0.10</versions.plugins.jdeb>
+        <versions.javax.servlet>2.5</versions.javax.servlet>
     </properties>
 
     <pluginRepositories>

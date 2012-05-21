@@ -361,7 +361,7 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <version>${versions.javax.servlet}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

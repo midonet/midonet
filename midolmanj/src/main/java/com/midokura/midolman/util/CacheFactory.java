@@ -6,11 +6,12 @@
 
 package com.midokura.midolman.util;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
+import com.midokura.midolman.config.MidolmanConfig;
 
 public class CacheFactory {
     private static final Logger log =
@@ -25,11 +26,11 @@ public class CacheFactory {
      * @return a Cache object
      * @throws CacheException if an error occurs
      */
-    public static Cache create(HierarchicalConfiguration config)
+    public static Cache create(MidolmanConfig config)
         throws CacheException {
         Cache cache = null;
-        String cacheType = config.configurationAt("midolman")
-                                 .getString("cache_type", "memcache");
+        String cacheType = config.getMidolmanCacheType();
+
         boolean isValid = false;
 
         try {
@@ -41,21 +42,17 @@ public class CacheFactory {
                           "net.spy.memcached.compat.log.Log4JLogger");
                 System.setProperties(props);
 
-                String memcacheHosts = config.configurationAt("memcache")
-                                             .getString("memcache_hosts");
+                String memcacheHosts = config.getMemcacheHosts();
 
                 cache = new MemcacheCache(memcacheHosts,
                                           CACHE_EXPIRATION_SECONDS);
             } else if (cacheType.equals("cassandra")) {
                 isValid = true;
-                String servers = config.configurationAt("cassandra")
-                                       .getString("servers");
-                String cluster = config.configurationAt("cassandra")
-                                       .getString("cluster");
-                String keyspace = config.configurationAt("cassandra")
-                                        .getString("keyspace");
-                int replicationFactor = config.configurationAt("cassandra")
-                                              .getInt("replication_factor");
+                String servers = config.getCassandraServers();
+                String cluster = config.getCassandraCluster();
+                String keyspace = config.getCassandraMidonetKeyspace();
+
+                int replicationFactor = config.getCassandraReplicationFactor();
 
                 cache = new CassandraCache(servers, cluster, keyspace,
                                            "nat", replicationFactor,

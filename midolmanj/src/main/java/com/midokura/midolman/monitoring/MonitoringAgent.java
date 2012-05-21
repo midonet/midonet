@@ -11,10 +11,10 @@ import static java.lang.String.format;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
@@ -53,7 +53,7 @@ public class MonitoringAgent {
 
         vmMetrics.registerMetrics();
 
-        int zkJmxPort = configuration.getZookeeperJMXPort();
+        int zkJmxPort = configuration.getMonitoringZookeeperJMXPort();
 
         if (zkJmxPort != -1) {
             String zkJmxUrl =
@@ -82,9 +82,9 @@ public class MonitoringAgent {
     }
 
     public static MonitoringAgent bootstrapMonitoring(
-        HierarchicalConfiguration config, HostIdProvider hostIdProvider) {
+        ConfigProvider configProvider, HostIdProvider hostIdProvider) {
         Injector injector = Guice.createInjector(
-            new MonitoringModule(config, hostIdProvider));
+            new MonitoringModule(configProvider, hostIdProvider));
 
         MonitoringAgent monitoringAgent =
             injector.getInstance(MonitoringAgent.class);

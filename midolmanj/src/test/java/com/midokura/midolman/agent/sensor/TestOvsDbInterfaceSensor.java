@@ -17,9 +17,8 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.midolman.agent.midolman.MidolmanConfigurationWrapper;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
 import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
@@ -50,11 +49,10 @@ public class TestOvsDbInterfaceSensor {
             @Override
             protected void configure() {
                 super.configure();
-            }
 
-            @Provides
-            HostAgentConfiguration buildConfigurationObject() {
-                return new MidolmanConfigurationWrapper(configuration);
+                bind(ConfigProvider.class)
+                    .toInstance(
+                        ConfigProvider.providerForIniConfig(configuration));
             }
 
             @Provides

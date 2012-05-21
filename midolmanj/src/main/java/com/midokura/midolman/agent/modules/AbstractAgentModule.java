@@ -7,6 +7,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
 import com.google.inject.Scopes;
+
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.commands.executors.CommandInterpreter;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;
@@ -44,5 +46,10 @@ public abstract class AbstractAgentModule extends AbstractModule {
                                    HostAgentConfiguration configuration) {
         return new HostZkManager(directory,
                                  configuration.getZooKeeperBasePath());
+    }
+
+    @Provides
+    public HostAgentConfiguration buildHostAgentConfiguration(ConfigProvider config) {
+        return config.getConfig(HostAgentConfiguration.class);
     }
 }

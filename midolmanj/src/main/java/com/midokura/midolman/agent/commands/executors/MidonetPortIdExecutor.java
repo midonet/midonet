@@ -39,7 +39,7 @@ public class MidonetPortIdExecutor extends AbstractCommandExecutor<UUID> {
         throws CommandExecutionFailedException {
 
         String vrnRouterNetworkId = configuration.getVrnRouterNetworkId();
-        String externalIdKey = configuration.getMidolmanExternalIdKey();
+        String externalIdKey = configuration.getOpenvSwitchMidolmanExternalIdKey();
 
         Set<String> bridgeNames = ovsdb.getBridgeNamesByExternalId(
             externalIdKey, vrnRouterNetworkId);

@@ -36,7 +36,7 @@ public class OvsDbInterfaceSensor implements InterfaceSensor {
             try {
                 String portExternalId = ovsdb.getPortExternalId(
                     interfaceDescription.getName(),
-                    configuration.getMidolmanExternalIdKey());
+                    configuration.getOpenvSwitchMidolmanExternalIdKey());
 
                 if (portExternalId != null) {
                     interfaceDescription.getProperties()

@@ -4,8 +4,6 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -89,8 +87,9 @@ import com.midokura.midolman.state.ZkPathManager;
  */
 public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ZooKeeperDaoFactory.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(ZooKeeperDaoFactory.class);
+
     protected ZkConnection conn;
     protected final String rootPath;
     protected final String rootMgmtPath;
@@ -113,6 +112,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
         this.rootPath = config.getZkRootPath();
         this.rootMgmtPath = config.getZkMgmtRootPath();
         this.connStr = config.getZkConnectionString();
+
         try {
             this.timeout = config.getZkTimeout();
         } catch (InvalidConfigException e) {
@@ -450,7 +450,9 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private CassandraStore getCassandraStore() {
-        MonitoringConfiguration configuration = getMonitoringConfiguration();
+        MonitoringConfiguration configuration =
+            getAppConfig().getConfigProvider().getConfig(MonitoringConfiguration.class);
+
         return new CassandraStore(
             configuration.getCassandraServers(),
             configuration.getCassandraCluster(),
@@ -459,56 +461,5 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
             configuration.getMonitoringCassandraReplicationFactor(),
             configuration.getMonitoringCassandraExpirationTimeout()
         );
-    }
-
-    private MonitoringConfiguration getMonitoringConfiguration() {
-        return new MonitoringConfiguration() {
-            @Override
-            public String getCassandraServers() {
-                return config.getCassandraServers("127.0.0.1:9171");
-            }
-
-            @Override
-            public String getCassandraCluster() {
-                return config.getCassandraCluster("midonet");
-            }
-
-            @Override
-            public String getMonitoringCassandraKeyspace() {
-                return config.getMonitoringCassandraKeyspace(
-                    "midonet_monitoring_keyspace");
-            }
-
-            @Override
-            public String getMonitoringCassandraColumnFamily() {
-                return config.getMonitoringCassandraColumnFamily(
-                    "midonet_monitoring_column_family");
-            }
-
-            @Override
-            public int getMonitoringCassandraReplicationFactor() {
-                return config.getMonitoringCassandraReplicationFactor(2);
-            }
-
-            @Override
-            public int getMonitoringCassandraExpirationTimeout() {
-                return config.getMonitoringCassandraExpirationTimeout(
-                    (int) TimeUnit.DAYS.toSeconds(365));
-            }
-
-            @Override
-            public int getMonitoringCassandraReporterPoolTime() {
-                throw new IllegalArgumentException(
-                    "This method should not be called from inside the " +
-                        "Midonet REST Api application.");
-            }
-
-            @Override
-            public int getZookeeperJMXPort() {
-                throw new IllegalArgumentException(
-                    "This method should not be called from inside the " +
-                        "Midonet REST Api application.");
-            }
-        };
     }
 }

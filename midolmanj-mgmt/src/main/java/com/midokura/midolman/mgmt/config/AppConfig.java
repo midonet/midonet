@@ -9,6 +9,9 @@ import javax.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.config.ConfigProvider;
+import com.midokura.config.providers.ServletContextConfigProvider;
+
 /**
  * Application configuration wrapper class.
  */
@@ -30,17 +33,20 @@ public class AppConfig {
     public final static String zkRootKey = "zk_root";
     public final static String zkMgmtRootKey = "zk_mgmt_root";
 
-    public final static String CASSANDRA_SERVERS = "cassandra_servers";
-    public final static String CASSANDRA_CLUSTER = "cassandra_cluster";
+    public final static String CASSANDRA_SERVERS = "cassandra-servers";
+    public final static String CASSANDRA_CLUSTER = "cassandra-cluster";
 
     public final static String MONITORING_CASSANDRA_KEYSPACE =
-        "monitoring_cassandra_keyspace";
+        "monitoring-cassandra_keyspace";
+
     public final static String MONITORING_CASSANDRA_COLUMN_FAMILY =
-        "monitoring_cassandra_column_family";
+        "monitoring-cassandra_column_family";
+
     public final static String MONITORING_CASSANDRA_REPLICATION_FACTOR =
-        "monitoring_cassandra_replication_factor";
+        "monitoring-cassandra_replication_factor";
+
     public final static String MONITORING_CASSANDRA_EXPIRATION_TIMEOUT =
-        "monitoring_cassandra_expiration_timeout";
+        "monitoring-cassandra_expiration_timeout";
 
     private final ServletContext ctx;
 
@@ -55,7 +61,7 @@ public class AppConfig {
     }
 
     /**
-     * @return　The version specified in the config.
+     * @return The version specified in the config.
      * @throws InvalidConfigException
      *             Version is missing.
      */
@@ -72,7 +78,7 @@ public class AppConfig {
     }
 
     /**
-     * @return　The data store class name specified in the config.
+     * @return The data store class name specified in the config.
      */
     public String getDataStoreClassName() {
         log.debug("AppConfig.getDataStoreClassName entered.");
@@ -90,7 +96,7 @@ public class AppConfig {
     }
 
     /**
-     * @return　The authorizer class name specified in the config.
+     * @return The authorizer class name specified in the config.
      */
     public String getAuthorizerClassName() {
         log.debug("AppConfig.getAuthorizerClassName entered.");
@@ -188,71 +194,7 @@ public class AppConfig {
         return val;
     }
 
-    public String getCassandraServers(String defaultValue) {
-        String val = ctx.getInitParameter(CASSANDRA_SERVERS);
-        if (val == null) {
-            val = defaultValue;
-        }
-
-        return val;
-    }
-
-    public String getCassandraCluster(String defaultValue) {
-        String val = ctx.getInitParameter(CASSANDRA_CLUSTER);
-        if (val == null) {
-            val = defaultValue;
-        }
-
-        return val;
-    }
-
-    public String getMonitoringCassandraKeyspace(String defaultValue) {
-        String val = ctx.getInitParameter(MONITORING_CASSANDRA_KEYSPACE);
-        if (val == null) {
-            val = defaultValue;
-        }
-
-        return val;
-    }
-
-    public String getMonitoringCassandraColumnFamily(String defaultValue) {
-        String val = ctx.getInitParameter(MONITORING_CASSANDRA_COLUMN_FAMILY);
-        if (val == null) {
-            val = defaultValue;
-        }
-
-        return val;
-    }
-
-    public int getMonitoringCassandraReplicationFactor(int defaultValue) {
-        String val = ctx.getInitParameter( MONITORING_CASSANDRA_REPLICATION_FACTOR);
-
-        try {
-            if (val == null ) {
-                return defaultValue;
-            }
-
-            return Integer.parseInt(val);
-        } catch (NumberFormatException ex) {
-            log.error("Could not interpret web context parameter {} as an int. Value was {}.",
-                      MONITORING_CASSANDRA_REPLICATION_FACTOR, val);
-            return defaultValue;
-        }
-    }
-
-    public int getMonitoringCassandraExpirationTimeout(int defaultValue) {
-        String val = ctx.getInitParameter(MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
-
-        try {
-            if (val == null ) {
-                return defaultValue;
-            }
-
-            return Integer.parseInt(val);
-        } catch (NumberFormatException ex) {
-            log.error("Could not interpret web context parameter {} as an int. Value was {}.",
-                      MONITORING_CASSANDRA_EXPIRATION_TIMEOUT, val);
-            return defaultValue;
-        }
+    public ConfigProvider getConfigProvider() {
+        return new ServletContextConfigProvider(ctx);
     }
 }

@@ -6,20 +6,26 @@
 
 package com.midokura.midolman.agent;
 
-import com.midokura.midolman.agent.config.DefaultHostAgentConfiguration;
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.agent.state.HostZkManager;
-import com.midokura.midolman.state.MockDirectory;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.Writer;
 import java.util.Properties;
 import java.util.UUID;
+
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.agent.config.HostAgentConfiguration;
+import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
 
 public class HostIdGeneratorTest {
 
@@ -56,28 +62,41 @@ public class HostIdGeneratorTest {
         zkManager.addPersistent(basePath + "/hosts", null);
 
         confFile = new File(confFileName);
-        BufferedWriter out = new BufferedWriter(new FileWriter(confFileName));
-        out.write("[midolman-agent]");
-        out.newLine();
-        out.write(uuidPropertyName + " = ");
-        out.write(hostId1);
+        Writer out = new FileWriter(confFileName);
+
+        IOUtils.write(
+            String.format("" +
+                              "[%s]\n" +
+                              "%s=%s\n",
+                          HostAgentConfiguration.GROUP_NAME,
+                          uuidPropertyName, hostId1),
+            out
+        );
         out.flush();
         out.close();
 
-        config = new DefaultHostAgentConfiguration(confFileName);
+        config =
+            ConfigProvider
+                .providerForIniConfig(
+                    new HierarchicalINIConfiguration(confFileName))
+                .getConfig(HostAgentConfiguration.class);
 
         confFileFake = new File(confFileNameFake);
-        BufferedWriter out1 = new BufferedWriter(
-                new FileWriter(confFileNameFake));
-        out1.write("[midolman-agent]");
-        out1.newLine();
-        out1.flush();
-        out1.close();
 
-        configFake = new DefaultHostAgentConfiguration(confFileNameFake);
+        out = new FileWriter(confFileNameFake);
+        IOUtils.write(
+            String.format("[%s]\n", HostAgentConfiguration.GROUP_NAME), out);
+        out.flush();
+        out.close();
+
+        configFake =
+            ConfigProvider
+                .providerForIniConfig(
+                    new HierarchicalINIConfiguration(confFileNameFake))
+                .getConfig(HostAgentConfiguration.class);
 
         Properties properties = new Properties();
-        properties.setProperty(uuidPropertyName, hostId2.toString());
+        properties.setProperty(uuidPropertyName, hostId2);
         propFile = new File(localPropertiesFile);
         properties.store(new FileOutputStream(localPropertiesFile), null);
     }
@@ -85,7 +104,7 @@ public class HostIdGeneratorTest {
     @Test
     public void getIdFromConfFile() throws Exception {
         UUID id = HostIdGenerator.getHostId(config, zkManager);
-        Assert.assertTrue(id.toString().equals(hostId1));
+        Assert.assertEquals(id.toString(), hostId1);
     }
 
     @Test
@@ -112,7 +131,7 @@ public class HostIdGeneratorTest {
         Properties properties = new Properties();
         properties.load(new FileInputStream(localPropertiesFile));
         UUID idFromProperty = UUID.fromString(
-                properties.getProperty(uuidPropertyName));
+            properties.getProperty(uuidPropertyName));
         Assert.assertTrue(id.equals(idFromProperty));
     }
 

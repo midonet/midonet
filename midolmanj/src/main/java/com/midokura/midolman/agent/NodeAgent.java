@@ -20,10 +20,10 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.commands.executors.NodeCommandWatcher;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
@@ -124,7 +124,7 @@ public final class NodeAgent {
      * @param ovsdbConnection the prebuilt OpenvSwitchDatabaseConnection object
      * @return the configured NodeAgent object.
      */
-    public static NodeAgent bootstrapAgent(HierarchicalConfiguration config,
+    public static NodeAgent bootstrapAgent(ConfigProvider config,
                                            ZkConnection zkConnection,
                                            OpenvSwitchDatabaseConnection ovsdbConnection) {
         return _internalBootstrap(

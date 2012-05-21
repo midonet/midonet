@@ -3,10 +3,11 @@
  */
 package com.midokura.midolman.agent.midolman;
 
-import com.google.inject.Provides;
-import com.google.inject.name.Names;
-import org.apache.commons.configuration.HierarchicalConfiguration;
+import javax.inject.Named;
 
+import com.google.inject.Provides;
+
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -24,9 +25,9 @@ public class MidolmanProvidedConnectionsModule extends AbstractAgentModule {
 
     private ZkConnection zkConnection;
     private OpenvSwitchDatabaseConnection ovsdbConnection;
-    private HierarchicalConfiguration config;
+    private ConfigProvider config;
 
-    public MidolmanProvidedConnectionsModule(HierarchicalConfiguration config,
+    public MidolmanProvidedConnectionsModule(ConfigProvider config,
                                              ZkConnection zkConnection,
                                              OpenvSwitchDatabaseConnection ovsdbConnection) {
         this.zkConnection = zkConnection;
@@ -42,16 +43,16 @@ public class MidolmanProvidedConnectionsModule extends AbstractAgentModule {
     protected void configure() {
         super.configure();
 
-        bind(HostAgentConfiguration.class)
-            .to(MidolmanConfigurationWrapper.class);
-
-        bind(HierarchicalConfiguration.class)
-            .annotatedWith(
-                Names.named(MidolmanConfigurationWrapper.NAMED_MIDOLMAN_CONFIG))
-            .toInstance(config);
+        bind(ConfigProvider.class).toInstance(config);
     }
 
     @Provides
+    @Named()
+    @Override
+    public HostAgentConfiguration buildHostAgentConfiguration(ConfigProvider config) {
+        return config.getConfig(MidolmanBasedHostAgentConfiguration.class);
+    }
+
     Directory buildRootDirectory() {
         return zkConnection.getRootDirectory();
     }

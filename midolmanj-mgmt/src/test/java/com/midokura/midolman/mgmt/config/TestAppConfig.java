@@ -16,210 +16,249 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
 
+import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_COLUMN_FAMILY;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_KEYSPACE;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_REPLICATION_FACTOR;
+
 @RunWith(MockitoJUnitRunner.class)
 public class TestAppConfig {
 
-	private AppConfig testObject;
+    private AppConfig testObject;
+    private MonitoringConfiguration monConfig;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private ServletContext context;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ServletContext context;
 
-	@Before
-	public void setUp() throws Exception {
-		testObject = new AppConfig(context);
-	}
+    @Before
+    public void setUp() throws Exception {
+        testObject = new AppConfig(context);
+        monConfig =
+            testObject.getConfigProvider()
+                      .getConfig(MonitoringConfiguration.class);
+    }
 
-	@Test
-	public void testGetVersionExists() throws Exception {
-		doReturn("v1").when(context).getInitParameter(AppConfig.versionKey);
+    @Test
+    public void testGetVersionExists() throws Exception {
+        doReturn("v1").when(context).getInitParameter(AppConfig.versionKey);
 
-		String result = testObject.getVersion();
+        String result = testObject.getVersion();
 
-		Assert.assertEquals("v1", result);
-	}
+        Assert.assertEquals("v1", result);
+    }
 
-	@Test(expected = InvalidConfigException.class)
-	public void testGetVersionNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(AppConfig.versionKey);
-		testObject.getVersion();
-	}
+    @Test(expected = InvalidConfigException.class)
+    public void testGetVersionNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.versionKey);
+        testObject.getVersion();
+    }
 
-	@Test
-	public void testGetDataStoreClassNameExists() throws Exception {
-		doReturn("foo").when(context).getInitParameter(
-				AppConfig.dataStoreKey);
+    @Test
+    public void testGetDataStoreClassNameExists() throws Exception {
+        doReturn("foo").when(context).getInitParameter(
+            AppConfig.dataStoreKey);
 
-		String result = testObject.getDataStoreClassName();
+        String result = testObject.getDataStoreClassName();
 
-		Assert.assertEquals("foo", result);
-	}
+        Assert.assertEquals("foo", result);
+    }
 
-	@Test
-	public void testGetDataStoreClassNameNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(
-				AppConfig.dataStoreKey);
+    @Test
+    public void testGetDataStoreClassNameNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(
+            AppConfig.dataStoreKey);
 
-		String result = testObject.getDataStoreClassName();
+        String result = testObject.getDataStoreClassName();
 
-		Assert.assertEquals(AppConfig.defaultDatatStore, result);
-	}
+        Assert.assertEquals(AppConfig.defaultDatatStore, result);
+    }
 
-	@Test
-	public void testGetAuthorizerClassNameExists() throws Exception {
-		doReturn("foo").when(context).getInitParameter(
-				AppConfig.authorizerKey);
+    @Test
+    public void testGetAuthorizerClassNameExists() throws Exception {
+        doReturn("foo").when(context).getInitParameter(
+            AppConfig.authorizerKey);
 
-		String result = testObject.getAuthorizerClassName();
+        String result = testObject.getAuthorizerClassName();
 
-		Assert.assertEquals("foo", result);
-	}
+        Assert.assertEquals("foo", result);
+    }
 
-	@Test
-	public void testGetAuthorizerClassNameNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(
-				AppConfig.authorizerKey);
+    @Test
+    public void testGetAuthorizerClassNameNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(
+            AppConfig.authorizerKey);
 
-		String result = testObject.getAuthorizerClassName();
+        String result = testObject.getAuthorizerClassName();
 
-		Assert.assertEquals(AppConfig.defaultAuthorizer, result);
-	}
+        Assert.assertEquals(AppConfig.defaultAuthorizer, result);
+    }
 
-	@Test
-	public void testGetZkConnectionStringExists() throws Exception {
-		doReturn("foo").when(context).getInitParameter(
-				AppConfig.zkConnStringKey);
+    @Test
+    public void testGetZkConnectionStringExists() throws Exception {
+        doReturn("foo").when(context).getInitParameter(
+            AppConfig.zkConnStringKey);
 
-		String result = testObject.getZkConnectionString();
+        String result = testObject.getZkConnectionString();
 
-		Assert.assertEquals("foo", result);
-	}
+        Assert.assertEquals("foo", result);
+    }
 
-	@Test
-	public void testGetZkConnectionStringNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(
-				AppConfig.zkConnStringKey);
+    @Test
+    public void testGetZkConnectionStringNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(
+            AppConfig.zkConnStringKey);
 
-		String result = testObject.getZkConnectionString();
+        String result = testObject.getZkConnectionString();
 
-		Assert.assertEquals(AppConfig.defaultZkConnString, result);
-	}
+        Assert.assertEquals(AppConfig.defaultZkConnString, result);
+    }
 
-	@Test
-	public void testGetZkTimeoutExists() throws Exception {
-		doReturn("1000").when(context).getInitParameter(
-				AppConfig.zkTimeoutKey);
+    @Test
+    public void testGetZkTimeoutExists() throws Exception {
+        doReturn("1000").when(context).getInitParameter(
+            AppConfig.zkTimeoutKey);
 
-		int result = testObject.getZkTimeout();
+        int result = testObject.getZkTimeout();
 
-		Assert.assertEquals(1000, result);
-	}
+        Assert.assertEquals(1000, result);
+    }
 
-	@Test
-	public void testGetZkTimeoutNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(
-				AppConfig.zkTimeoutKey);
+    @Test
+    public void testGetZkTimeoutNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(
+            AppConfig.zkTimeoutKey);
 
-		int result = testObject.getZkTimeout();
+        int result = testObject.getZkTimeout();
 
-		Assert.assertEquals(AppConfig.defaultZkTimeout, result);
-	}
+        Assert.assertEquals(AppConfig.defaultZkTimeout, result);
+    }
 
-	@Test(expected = InvalidConfigException.class)
-	public void testGetZkTimeoutBadValue() throws Exception {
-		doReturn("foo").when(context).getInitParameter(
-				AppConfig.zkTimeoutKey);
-		testObject.getZkTimeout();
-	}
+    @Test(expected = InvalidConfigException.class)
+    public void testGetZkTimeoutBadValue() throws Exception {
+        doReturn("foo").when(context).getInitParameter(
+            AppConfig.zkTimeoutKey);
+        testObject.getZkTimeout();
+    }
 
-	@Test
-	public void testGetZkRootPathExists() throws Exception {
-		doReturn("foo").when(context).getInitParameter(AppConfig.zkRootKey);
+    @Test
+    public void testGetZkRootPathExists() throws Exception {
+        doReturn("foo").when(context).getInitParameter(AppConfig.zkRootKey);
 
-		String result = testObject.getZkRootPath();
+        String result = testObject.getZkRootPath();
 
-		Assert.assertEquals("foo", result);
-	}
+        Assert.assertEquals("foo", result);
+    }
 
-	@Test
-	public void testGetZkRootPathNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(AppConfig.zkRootKey);
+    @Test
+    public void testGetZkRootPathNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.zkRootKey);
 
-		String result = testObject.getZkRootPath();
+        String result = testObject.getZkRootPath();
 
-		Assert.assertEquals(AppConfig.defaultZkRootPath, result);
-	}
+        Assert.assertEquals(AppConfig.defaultZkRootPath, result);
+    }
 
-	@Test
-	public void testGetZkMgmtRootPathExists() throws Exception {
-		doReturn("foo").when(context).getInitParameter(
-				AppConfig.zkMgmtRootKey);
+    @Test
+    public void testGetZkMgmtRootPathExists() throws Exception {
+        doReturn("foo").when(context).getInitParameter(
+            AppConfig.zkMgmtRootKey);
 
-		String result = testObject.getZkMgmtRootPath();
+        String result = testObject.getZkMgmtRootPath();
 
-		Assert.assertEquals("foo", result);
-	}
+        Assert.assertEquals("foo", result);
+    }
 
-	@Test
-	public void testGetZkMgmtRootPathNotExists() throws Exception {
-		doReturn(null).when(context).getInitParameter(
-				AppConfig.zkMgmtRootKey);
+    @Test
+    public void testGetZkMgmtRootPathNotExists() throws Exception {
+        doReturn(null).when(context).getInitParameter(
+            AppConfig.zkMgmtRootKey);
 
-		String result = testObject.getZkMgmtRootPath();
+        String result = testObject.getZkMgmtRootPath();
 
-		Assert.assertEquals(AppConfig.defaultZkMgmtRootPath, result);
-	}
+        Assert.assertEquals(AppConfig.defaultZkMgmtRootPath, result);
+    }
 
     @Test
     public void testGetCassandraServers() throws Exception {
-        doReturn(null).when(context).getInitParameter(AppConfig.CASSANDRA_SERVERS);
-        assertEquals("default", testObject.getCassandraServers("default"));
+        doReturn(null)
+            .when(context)
+            .getInitParameter(AppConfig.CASSANDRA_SERVERS);
+        assertEquals("127.0.0.1:9160", monConfig.getCassandraServers());
 
-        doReturn("value").when(context).getInitParameter(AppConfig.CASSANDRA_SERVERS);
-        assertEquals("value", testObject.getCassandraServers("default"));
+        doReturn("value")
+            .when(context)
+            .getInitParameter(AppConfig.CASSANDRA_SERVERS);
+        assertEquals("value", monConfig.getCassandraServers());
     }
 
     @Test
     public void testGetCassandraClusterServers() throws Exception {
-        doReturn(null).when(context).getInitParameter(AppConfig.CASSANDRA_CLUSTER);
-        assertEquals("default", testObject.getCassandraCluster("default"));
+        doReturn(null)
+            .when(context)
+            .getInitParameter(AppConfig.CASSANDRA_CLUSTER);
+        assertEquals("midonet", monConfig.getCassandraCluster());
 
-        doReturn("value").when(context).getInitParameter(AppConfig.CASSANDRA_CLUSTER);
-        assertEquals("value", testObject.getCassandraCluster("default"));
+        doReturn("value")
+            .when(context)
+            .getInitParameter(AppConfig.CASSANDRA_CLUSTER);
+        assertEquals("value", monConfig.getCassandraCluster());
     }
 
     @Test
     public void testGetMonitoringCassandraKeyspace() throws Exception {
-        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_KEYSPACE);
-        assertEquals("default", testObject.getMonitoringCassandraKeyspace("default"));
+        doReturn(null)
+            .when(context)
+            .getInitParameter(MONITORING_CASSANDRA_KEYSPACE);
+        assertEquals("midonet_monitoring_keyspace",
+                     monConfig.getMonitoringCassandraKeyspace());
 
-        doReturn("value").when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_KEYSPACE);
-        assertEquals("value", testObject.getMonitoringCassandraKeyspace("default"));
+        doReturn("value")
+            .when(context)
+            .getInitParameter(MONITORING_CASSANDRA_KEYSPACE);
+        assertEquals("value", monConfig.getMonitoringCassandraKeyspace());
     }
 
     @Test
     public void testGetMonitoringCassandraColumnFamily() throws Exception {
-        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_COLUMN_FAMILY);
-        assertEquals("default", testObject.getMonitoringCassandraColumnFamily("default"));
+        doReturn(null)
+            .when(context)
+            .getInitParameter(MONITORING_CASSANDRA_COLUMN_FAMILY);
+        assertEquals("midonet_monitoring_column_family",
+                     monConfig.getMonitoringCassandraColumnFamily());
 
-        doReturn("value").when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_COLUMN_FAMILY);
-        assertEquals("value", testObject.getMonitoringCassandraColumnFamily("default"));
+        doReturn("value")
+            .when(context)
+            .getInitParameter(MONITORING_CASSANDRA_COLUMN_FAMILY);
+        assertEquals("value", monConfig.getMonitoringCassandraColumnFamily());
     }
 
     @Test
     public void testGetMonitoringCassandraReplicationFactor() throws Exception {
-        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_REPLICATION_FACTOR);
-        assertEquals(8069, testObject.getMonitoringCassandraReplicationFactor(8069));
+        doReturn(null)
+            .when(context)
+            .getInitParameter(MONITORING_CASSANDRA_REPLICATION_FACTOR);
 
-        doReturn("" + 3001).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_REPLICATION_FACTOR);
-        assertEquals(3001, testObject.getMonitoringCassandraReplicationFactor(8069));
+        assertEquals(2, monConfig.getMonitoringCassandraReplicationFactor());
+
+        doReturn("" + 3001)
+            .when(context)
+            .getInitParameter(MONITORING_CASSANDRA_REPLICATION_FACTOR);
+
+        assertEquals(3001, monConfig.getMonitoringCassandraReplicationFactor());
     }
 
     @Test
     public void testGetMonitoringCassandraExpirationTimeout() throws Exception {
-        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
-        assertEquals(8069, testObject.getMonitoringCassandraExpirationTimeout(8069));
+        doReturn(null)
+            .when(context)
+            .getInitParameter(
+                AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
+        assertEquals(744600, monConfig.getMonitoringCassandraExpirationTimeout());
 
-        doReturn("" + 3001).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
-        assertEquals(3001, testObject.getMonitoringCassandraExpirationTimeout(8069));
+        doReturn("" + 3001)
+            .when(context)
+            .getInitParameter(
+                AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
+        assertEquals(3001, monConfig.getMonitoringCassandraExpirationTimeout());
     }
 }
