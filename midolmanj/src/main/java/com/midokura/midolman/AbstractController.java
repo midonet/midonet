@@ -145,9 +145,8 @@ public abstract class AbstractController implements Controller {
                 .getDatapathExternalId(datapathId, externalIdKey);
 
         if (uuid == null) {
-            log.warn(
-                    "onConnectionMade: datapath {} connected but has no relevant external id, ignore it",
-                    datapathId);
+            log.warn("onConnectionMade: datapath {} connected but has no "
+                     + "relevant external id, ignore it", datapathId);
             return;
         }
 
@@ -696,10 +695,18 @@ public abstract class AbstractController implements Controller {
                 new ArrayList<OFAction>(), null);
     }
 
+    /**
+     * Gets the datapath ID.
+     */
     public long getDatapathId() {
         return this.datapathId;
     }
 
+    /**
+     * Sets the datapath ID.
+     * This method is public so that it allows unit tests to set this value.
+     * In production, this value is set only from within the class.
+     */
     public void setDatapathId(long datapathId) {
         this.datapathId = datapathId;
     }

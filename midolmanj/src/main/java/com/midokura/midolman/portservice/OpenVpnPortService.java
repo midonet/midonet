@@ -141,7 +141,7 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void setController(ServiceFlowController controller) {
-        this.controller = controller;
+        throw new RuntimeException("not implemented");
     }
 
     @Override

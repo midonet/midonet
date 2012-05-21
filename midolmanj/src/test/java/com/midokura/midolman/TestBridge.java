@@ -244,7 +244,6 @@ public class TestBridge {
                 /* BGP service */               null,
                 /* VPN service */               null);
         controller.setControllerStub(controllerStub);
-        controller.setDatapathId(dp_id);
 
         // Insert ports 3..8 into portLocMap and macPortMap.
         for (int i = 3; i < 8; i++) {
