@@ -1,6 +1,6 @@
 <!---
 Copyright 2012 Midokura Inc.
-Generate HTML with:  
+Generate HTML with:
         markdown_py networking-basics.md -f networking-basics.html -x toc
 -->
 
@@ -80,11 +80,10 @@ is called an *Ethernet segment*.  Ethernet segments are enlarged with
 forwarding elements which broadcast all traffic they receive on any link
 out all their other links -- these are called *Ethernet hubs*.
 
-Because
-an Ethernet segment may contain traffic for multiple nodes, Ethernet frames
-begin with a pair of 6-byte addresses called *MAC addresses* to identify
-the sender and recipient.  MAC addresses consist of a three byte *OUI*
-(Organizationally Unique Identifier) assigned by the IEEE to companies
+Because an Ethernet segment may contain traffic for multiple nodes, Ethernet
+frames begin with a pair of 6-byte addresses called *MAC addresses* to
+identify the sender and recipient.  MAC addresses consist of a three byte
+*OUI* (Organizationally Unique Identifier) assigned by the IEEE to companies
 building network equipment, and three bytes of "extension identifier" assigned
 by the company, to compose a hopefully-unique address for every network
 interface.  MAC addresses are written as six colon-separated byte values,
@@ -94,15 +93,14 @@ each byte value written as two hexadecimal digits, for example
 The part of a computer which is responsible for digitizing, framing, and
 address-checking Ethernet traffic is the *NIC* (network interface card).
 A NIC which doesn't address-check (and so receives all traffic on the
-segment, even that with another intended recipient) is called *promiscuous*.
+segment, even that intended for a different recipient) is called *promiscuous*.
 
-A forwarding
-element which knows which Ethernet addresses are on which links is called
-an *Ethernet switch*.  A switch typically determines the link of an address
-by remembering the link used for a frame with that address as its sender
-address -- this is called *learning*.  A switch which hasn't learned an
-address it's asked to send to falls back to behaving like a hub, and
-broadcasting the traffic.
+A forwarding element which knows which Ethernet addresses are on which
+links is called an *Ethernet switch*.  A switch typically determines
+the link of an address by remembering the link used for a frame with
+that address as its sender address -- this is called *learning*.
+A switch which hasn't learned an address it's asked to send to falls
+back to behaving like a hub, and broadcasting the traffic.
 Switches break an Ethernet network into multiple segments, and an Ethernet
 network where every segment is a single link is called *fully switched*.
 
@@ -161,7 +159,7 @@ can be used to forward packets toward their intended destinations.
 
 As an IPv4 packet is contained inside a layer 2 protocol frame, to deliver
 packets to a node in the same L2 domain for which the sending node only knows
-an IP address, not an L2 address, it must first discovered the other node's
+an IP address, not an L2 address, it must first discover the other node's
 L2 address to use as the address in the outer layer 2 frame.  In the case
 of Ethernet, this discovery is accomplished using *ARP* (address resolution
 protocol).  To find a MAC address with ARP, a node sends a broadcast packet
