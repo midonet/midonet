@@ -90,9 +90,12 @@ public class TestVRNCoordinator {
         portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
+        UUID vrnId = UUID.randomUUID();
 
-        controller = new MockVRNController(679, dir, basePath, null,
-                   IntIPv4.fromString("192.168.200.200"), "externalIdKey");
+        controller = new MockVRNController(dir, basePath, null,
+                   IntIPv4.fromString("192.168.200.200"), "externalIdKey",
+                   vrnId, false);
+        controller.setDatapathId(679);
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
         Cache cache = createCache();
         ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,

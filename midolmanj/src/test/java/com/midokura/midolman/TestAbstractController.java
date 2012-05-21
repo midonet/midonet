@@ -63,8 +63,9 @@ class AbstractControllerTester extends AbstractController {
             long idleFlowExpireMillis,
             IntIPv4 internalIp,
             Directory dir,
-            String basePath) throws StateAccessException {
-        super(datapathId, dir, basePath, ovsdb, internalIp, "midonet");
+            String basePath,
+            UUID vrnID) throws StateAccessException {
+        super(dir, basePath, ovsdb, internalIp, "midonet", vrnID, false);
         virtualPortsAdded = new ArrayList<UUID>();
         virtualPortsRemoved = new ArrayList<UUID>();
         tunnelPortsAdded = new ArrayList<IntIPv4>();
@@ -158,6 +159,9 @@ class AbstractControllerTester extends AbstractController {
     protected void deleteServicePort(int num, String name, UUID vId) {}
 
     @Override
+    protected void initServicePorts(long datapathId) {}
+
+    @Override
     protected void addTunnelPort(int num, IntIPv4 peerIP) {
         tunnelPortsAdded.add(peerIP);
     }
@@ -181,6 +185,7 @@ public class TestAbstractController {
     private IntIPv4 port2peer;
     private UUID port3uuid;
     private int dp_id;
+    private UUID vrnId;
     private MockOpenvSwitchDatabaseConnection ovsdb;
     private PortToIntNwAddrMap portLocMap;
     private Directory portLocationDirectory;
@@ -192,7 +197,9 @@ public class TestAbstractController {
     public void setUp() throws StateAccessException, KeeperException,
                                InterruptedException {
         dp_id = 43;
+        vrnId = UUID.randomUUID();
         ovsdb = new MockOpenvSwitchDatabaseConnection();
+        ovsdb.setDatapathExternalId(dp_id, "midonet", vrnId.toString());
 
         String basePath = "/midonet";
         MockDirectory mockDir = new MockDirectory();
@@ -211,8 +218,12 @@ public class TestAbstractController {
                              (short)300 /* flowExpireSeconds */,
                              60 * 1000 /* idleFlowExpireMillis */,
                              localIp /* internalIp */,
-                             mockDir, basePath);
+                             mockDir /* mock Directory */,
+                             basePath /* ZK root path */,
+                             vrnId /* VRN ID */);
+
         controller.setControllerStub(controllerStub);
+        controller.setDatapathId(dp_id);
         controller.portLocMap.start();
 
         port1 = new OFPhysicalPort();
@@ -269,6 +280,7 @@ public class TestAbstractController {
         portList.add(port1);    // Regular port, gets recorded.
         portList.add(port2);    // Tunnel port, gets deleted.
         features.setPorts(portList);
+        features.setDatapathId(dp_id);
         controller.setFeatures(features);
         controller.onConnectionLost();
         assertArrayEquals(new OFPhysicalPort[]{},

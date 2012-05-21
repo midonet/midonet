@@ -422,12 +422,6 @@ class TestOpenVpnPortService {
     }
 
     @Test(expected = classOf[RuntimeException])
-    def testSetController() {
-        log.debug("testSetController")
-        portService.setController(null)
-    }
-
-    @Test(expected = classOf[RuntimeException])
     def testGetPorts() {
         log.debug("testGetPorts")
         portService.getPorts(null)

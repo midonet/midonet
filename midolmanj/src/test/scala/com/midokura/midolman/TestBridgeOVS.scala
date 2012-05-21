@@ -111,6 +111,7 @@ object TestBridgeOVS extends OpenvSwitchDatabaseConnectionBridgeConnector
         val macPortKey = pathMgr.getBridgeMacPortsPath(bridgeUUID)
         val macPortMap = new MacPortMap(
             zkDir.getSubDirectory(macPortKey))
+        val vrnID = UUID.randomUUID();
         macPortMap.start
 
         reactorThread = new Thread() { override def run() {
@@ -124,6 +125,7 @@ object TestBridgeOVS extends OpenvSwitchDatabaseConnectionBridgeConnector
                 /* ovsdb */                   ovsdb,
                 /* reactor */                 reactor,
                 /* externalIdKey */           bridgeExtIdKey,
+                /* VRN ID */                  vrnID,
                 /* portSemaphore */           portModSemaphore,
                 /* connectionSemaphore */     connectionSemaphore)
 
@@ -471,13 +473,14 @@ private class NotifyingSet(val portSemaphore: Semaphore)
     }
 }
 
-private class BridgeControllerTester(datapath: Long, zkDir: MockDirectory,
-        basePath: String, publicIP: IntIPv4,
+private class BridgeControllerTester(datapathId: Long,
+        zkDir: MockDirectory, basePath: String, publicIP: IntIPv4,
         ovsdb: OpenvSwitchDatabaseConnectionImpl, reactor: SelectLoop,
-        externalIDKey: String, portSemaphore: Semaphore,
+        externalIDKey: String, vrnId: UUID, portSemaphore: Semaphore,
         connectionSemaphore: Semaphore) extends
-                VRNController(datapath, zkDir, basePath, publicIP, ovsdb,
-                        reactor, null, externalIDKey, null) {
+                VRNController(zkDir, basePath, publicIP, ovsdb,
+                        reactor, null, externalIDKey, vrnId, false, null,
+                        null) {
     downPorts = new NotifyingSet(portSemaphore)
     var addedPorts = List[UUID]()
     final val log = LoggerFactory.getLogger(classOf[BridgeControllerTester])

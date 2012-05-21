@@ -8,12 +8,15 @@
 
 package com.midokura.midolman.portservice;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.newsclub.net.unix.AFUNIXServerSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +27,13 @@ import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.quagga.BgpConnection;
+import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.quagga.ZebraServer;
+import com.midokura.midolman.quagga.ZebraServerImpl;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
@@ -95,6 +101,49 @@ public class BgpPortService implements PortService {
         this(reactor, ovsdb, portIdExtIdKey, portServiceExtIdKey, portMgr,
              routeMgr, bgpMgr, adRouteMgr, zebra, bgpd);
         this.controller = controller;
+    }
+
+    public static PortService createBgpPortService(Reactor reactor,
+            OpenvSwitchDatabaseConnection ovsdb, Directory directory,
+            String basePath) throws IOException {
+
+        // The internal BGP daemon is started only when a switch connects
+        // to midolmanj. In a two midolman daemons setup the order in which the
+        // switch would connect is essentially random.
+        // As such the only way to truly decide which of the daemons
+        // (since it can be only one given the quagga package limitations)
+        // has the BGP functionality enabled is to force it in the configuration
+        // file.
+        File socketFile = new File("/var/run/quagga/zserv.api");
+        File socketDir = socketFile.getParentFile();
+        if (!socketDir.exists()) {
+            socketDir.mkdirs();
+            // Set permission to let quagga daemons write.
+            socketDir.setWritable(true, false);
+        }
+
+        if (socketFile.exists())
+            socketFile.delete();
+
+        AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
+        AFUNIXSocketAddress address = new AFUNIXSocketAddress(socketFile);
+
+        PortZkManager portMgr = new PortZkManager(directory,
+                basePath);
+        RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
+        BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
+        AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
+        ZebraServer zebraServer = new ZebraServerImpl(server, address,
+                portMgr, routeMgr, ovsdb);
+
+        BgpVtyConnection vtyConnection = new BgpVtyConnection("localhost",
+                2605, "zebra", bgpMgr, adRouteMgr);
+
+        PortService bgpPortService = new BgpPortService(reactor, ovsdb,
+                "midolman_port_id", "midolman_port_service", portMgr,
+                routeMgr, bgpMgr, adRouteMgr, zebraServer, vtyConnection);
+
+        return bgpPortService;
     }
 
     @Override

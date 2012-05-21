@@ -15,8 +15,10 @@ public class MockOpenvSwitchDatabaseConnection implements
     Logger log = LoggerFactory.getLogger(
                                MockOpenvSwitchDatabaseConnection.class);
 
-    Map<Long, Map<Integer, Map<String, String>>> bridgeToExternalIds =
+    Map<Long, Map<Integer, Map<String, String>>> bridgeToPortExternalIds =
         new HashMap<Long, Map<Integer, Map<String, String>>>();
+    Map<Long, Map<String, String>> bridgeToExternalIds =
+            new HashMap<Long, Map<String, String>>();
 
     MockOpenvSwitchBridges bridges = new MockOpenvSwitchBridges();
 
@@ -111,89 +113,89 @@ public class MockOpenvSwitchDatabaseConnection implements
             final long bridgeId,
             final String portName,
             final String remoteIp) {
-        
+
         return new GrePortBuilder() {
-            
+
             @Override
             public GrePortBuilder ttlInherit() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder ttl(byte ttl) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder tosInherit() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder tos(byte tos) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder outKeyFlow() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder outKey(int outKey) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder localIp(String localIp) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder keyFlow() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder key(int key) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder inKeyFlow() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder inKey(int inKey) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder ifMac(String ifMac) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder externalId(String key, String value) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder enableCsum() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder disablePmtud() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder disableHeaderCache() {
                 return this;
             }
-            
+
             @Override
             public void build() {
                 addedGrePorts.add(
@@ -208,89 +210,89 @@ public class MockOpenvSwitchDatabaseConnection implements
             final String bridgeName,
             final String portName,
             final String remoteIp) {
-        
+
         return new GrePortBuilder() {
-            
+
             @Override
             public GrePortBuilder ttlInherit() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder ttl(byte ttl) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder tosInherit() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder tos(byte tos) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder outKeyFlow() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder outKey(int outKey) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder localIp(String localIp) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder keyFlow() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder key(int key) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder inKeyFlow() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder inKey(int inKey) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder ifMac(String ifMac) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder externalId(String key, String value) {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder enableCsum() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder disablePmtud() {
                 return this;
             }
-            
+
             @Override
             public GrePortBuilder disableHeaderCache() {
                 return this;
             }
-            
+
             @Override
             public void build() {
                 addedGrePorts.add(new GrePort(bridgeName, portName, remoteIp));
@@ -364,8 +366,24 @@ public class MockOpenvSwitchDatabaseConnection implements
 
     @Override
     public String getDatapathExternalId(long bridgeId, String externalIdKey) {
-        // TODO Auto-generated method stub
-        return null;
+        log.info("reading external ID of dp#{} key:'{}'",
+                new Object[] { bridgeId, externalIdKey });
+        Map<String, String> externalIds = bridgeToExternalIds.get(bridgeId);
+       if (null == externalIds)
+           return null;
+       return externalIds.get(externalIdKey);
+    }
+
+    public void setDatapathExternalId(long bridgeId, String externalIdKey,
+            String value) {
+        log.info("Setting external ID of dp#{} '{}' => '{}'",
+                new Object[] { bridgeId, externalIdKey, value });
+        Map<String, String> externalIds = bridgeToExternalIds.get(bridgeId);
+        if (null == externalIds) {
+            externalIds = new HashMap<String, String>();
+            bridgeToExternalIds.put(bridgeId, externalIds);
+        }
+        externalIds.put(externalIdKey, value);
     }
 
     @Override
@@ -386,7 +404,7 @@ public class MockOpenvSwitchDatabaseConnection implements
         log.info("reading external ID of dp#{} port#{} key:'{}'",
                  new Object[] { bridgeId, portNum, externalIdKey });
         Map<Integer, Map<String, String>> portToExternalIds =
-                bridgeToExternalIds.get(bridgeId);
+                bridgeToPortExternalIds.get(bridgeId);
         if (null == portToExternalIds)
             return null;
         Map<String, String> externalIds = portToExternalIds.get(portNum);
@@ -400,10 +418,10 @@ public class MockOpenvSwitchDatabaseConnection implements
         log.info("Setting external ID of dp#{} port#{} '{}' => '{}'",
                  new Object[] { bridgeId, portNum, externalIdKey, value });
         Map<Integer, Map<String, String>> portToExternalIds =
-                bridgeToExternalIds.get(bridgeId);
+                bridgeToPortExternalIds.get(bridgeId);
         if (null == portToExternalIds) {
             portToExternalIds = new HashMap<Integer, Map<String, String>>();
-            bridgeToExternalIds.put(bridgeId, portToExternalIds);
+            bridgeToPortExternalIds.put(bridgeId, portToExternalIds);
         }
         Map<String, String> externalIds = portToExternalIds.get(portNum);
         if (null == externalIds) {

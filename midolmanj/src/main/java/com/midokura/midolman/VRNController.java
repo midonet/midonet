@@ -35,11 +35,13 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
+import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.GreZkManager.GreKey;
+import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.util.Cache;
 
 
@@ -61,8 +63,9 @@ public class VRNController extends AbstractController
     // TODO: Should we provide a setter or constructor parameter for this?
     private short idleFlowExpireSeconds = NORMAL_IDLE_TIMEOUT;
 
-    private PortService service;
-    private Map<UUID, List<Runnable>> portServicesById;
+    private PortService bgpService;
+    private PortService vpnService;
+    private Map<UUID, List<Runnable>> bgpPortServicesById;
     // Store port num of a port that has a service port.
     private short serviceTargetPort;
     // Track which routers processed an installed flow.
@@ -78,16 +81,20 @@ public class VRNController extends AbstractController
     private GreZkManager greMgr;
     private BridgeZkManager bridgeMgr;
     private ChainProcessor chainProcessor;
+    private VpnZkManager vpnMgr;
+    private Directory zkDir;
 
-    public VRNController(long datapathId, Directory zkDir, String zkBasePath,
+    public VRNController(Directory zkDir, String zkBasePath,
             IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
-            Reactor reactor, Cache cache, String externalIdKey,
-            PortService service) throws StateAccessException {
-        super(datapathId, zkDir, zkBasePath, ovsdb, localNwAddr, externalIdKey);
+            Reactor reactor, Cache cache, String externalIdKey, UUID vrnId,
+            boolean useNxm, PortService bgpService, PortService vpnService)
+                    throws StateAccessException {
+        super(zkDir, zkBasePath, ovsdb, localNwAddr, externalIdKey, vrnId, useNxm);
         this.reactor = reactor;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.greMgr = new GreZkManager(zkDir, zkBasePath);
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
+        this.vpnMgr = new VpnZkManager(zkDir, zkBasePath);
         this.portSetMap = new PortSetMap(zkDir, zkBasePath);
         this.portSetMap.start();
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
@@ -96,12 +103,18 @@ public class VRNController extends AbstractController
                 portSetMap, chainProcessor);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
-        this.service = service;
-        if (service != null)
-            this.service.setController(this);
-        this.portServicesById = new HashMap<UUID, List<Runnable>>();
+        this.bgpService = bgpService;
+        if (bgpService != null)
+            this.bgpService.setController(this);
+
+        this.vpnService = vpnService;
+        if (vpnService != null)
+            this.vpnService.setController(this);
+
+        this.bgpPortServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
         this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this);
+        this.zkDir = zkDir;
     }
 
     public void subscribePortSet(UUID portSetID)
@@ -848,24 +861,24 @@ public class VRNController extends AbstractController
                 ControllerStub.UNBUFFERED_ID, false, false, false, actions);
     }
 
-    private void startPortService(final short portNum, final UUID portId)
+    private void startBgpPortService(final short portNum, final UUID portId)
             throws KeeperException, InterruptedException,
             ZkStateSerializationException, IOException, StateAccessException {
         // If the materiazlied router port isn't discovered yet, try
         // setting flows between BGP peers later.
 
         if (portUuidToNumberMap.containsKey(portId)) {
-            service.start(datapathId, portNum,
+            bgpService.start(datapathId, portNum,
                     portUuidToNumberMap.get(portId).shortValue());
         } else {
-            if (!portServicesById.containsKey(portId)) {
-                portServicesById.put(portId, new ArrayList<Runnable>());
+            if (!bgpPortServicesById.containsKey(portId)) {
+                bgpPortServicesById.put(portId, new ArrayList<Runnable>());
             }
-            List<Runnable> watchers = portServicesById.get(portId);
+            List<Runnable> watchers = bgpPortServicesById.get(portId);
             watchers.add(new Runnable() {
                 public void run() {
                     try {
-                        service.start(datapathId, portNum,
+                        bgpService.start(datapathId, portNum,
                                 portUuidToNumberMap.get(portId).shortValue());
                     } catch (Exception e) {
                         log.warn("startPortService", e);
@@ -875,28 +888,28 @@ public class VRNController extends AbstractController
         }
     }
 
-    private void setupServicePort(int portNum, String portName)
+    private void setupBgpServicePort(int portNum, String portName)
         throws StateAccessException, IOException, KeeperException,
                InterruptedException, OpenvSwitchException.NotFoundException {
-        UUID portId = service.getRemotePort(portName);
+        UUID portId = bgpService.getRemotePort(portName);
         if (portId != null) {
-            service.configurePort(portId, portName);
-            startPortService((short)portNum, portId);
+            bgpService.configurePort(portId, portName);
+            startBgpPortService((short)portNum, portId);
         }
     }
 
-    private void addServicePort(UUID portId, MAC hwAddr)
+    private void addBgpServicePort(UUID portId, MAC hwAddr)
             throws StateAccessException, KeeperException {
-        Set<String> servicePorts = service.getPorts(portId);
+        Set<String> servicePorts = bgpService.getPorts(portId);
         if (!servicePorts.isEmpty()) {
-            if (portServicesById.containsKey(portId)) {
-                for (Runnable watcher : portServicesById.get(portId)) {
+            if (bgpPortServicesById.containsKey(portId)) {
+                for (Runnable watcher : bgpPortServicesById.get(portId)) {
                     watcher.run();
                 }
                 return;
             }
         }
-        service.addPort(datapathId, portId, hwAddr);
+        bgpService.addPort(datapathId, portId, hwAddr);
     }
 
     @Override
@@ -948,7 +961,7 @@ public class VRNController extends AbstractController
                                 entry.value);
                 rtrPort.setHwAddr(hwAddr);
                 portMgr.update(entry);
-                addServicePort(portId, hwAddr);
+                addBgpServicePort(portId, hwAddr);
             }
 
             // Install flows for this port's greKey to go directly to this port.
@@ -976,7 +989,7 @@ public class VRNController extends AbstractController
     @Override
     protected void addServicePort(int num, String name, UUID vId) {
         try {
-            setupServicePort(num, name);
+            setupBgpServicePort(num, name);
         } catch (Exception e) {
             log.error("addServicePort", e);
         }
@@ -995,6 +1008,30 @@ public class VRNController extends AbstractController
     @Override
     protected void deleteTunnelPort(int num, IntIPv4 peerIP) {
         // Do nothing.
+    }
+
+    @Override
+    protected void initServicePorts(long datapathId) {
+
+        long sessionId = 0;
+        if (zkDir instanceof ZkDirectory) {
+            ZkDirectory dir = ZkDirectory.class.cast(zkDir);
+            sessionId = dir.zk.getSessionId();
+        } else {
+            log.warn(
+                    "VRNController.initServicePorts: Directory object is not"
+                    + " ZkDirectory.  Cannot start VPN service.");
+            return;
+        }
+
+        // Initialize VPN service.
+        VpnPortAgent vpnAgent = new VpnPortAgent(sessionId, datapathId,
+                vpnMgr);
+
+        vpnAgent.setPortService(VpnType.OPENVPN_SERVER, this.vpnService);
+        vpnAgent.setPortService(VpnType.OPENVPN_TCP_SERVER, this.vpnService);
+        vpnAgent.setPortService(VpnType.OPENVPN_TCP_CLIENT, this.vpnService);
+        vpnAgent.start();
     }
 
     private static class OFPacketContext extends ForwardInfo {

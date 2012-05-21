@@ -191,6 +191,7 @@ public class TestBridge {
     public void setUp() throws java.lang.Exception {
         ovsdb = new MockOpenvSwitchDatabaseConnection();
         publicIp = IntIPv4.fromString("192.168.1.50");
+        UUID vrnId = UUID.randomUUID();
 
         // Create portUuids:
         //      Seven random UUIDs, and an eighth being a dup of the seventh.
@@ -201,6 +202,7 @@ public class TestBridge {
         portUuids[7] = portUuids[6];
 
         // Register local ports (ports 0, 1, 2) into datapath in ovsdb.
+        ovsdb.setDatapathExternalId(dp_id, "midonet", vrnId.toString());
         ovsdb.setPortExternalId(dp_id, 0, "midonet", portUuids[0].toString());
         ovsdb.setPortExternalId(dp_id, 1, "midonet", portUuids[1].toString());
         ovsdb.setPortExternalId(dp_id, 2, "midonet", portUuids[2].toString());
@@ -230,7 +232,6 @@ public class TestBridge {
         controllerStub = new MockControllerStub();
 
         controller = new VRNController(
-                /* datapathId */                dp_id,
                 /* dir */                       zkDir,
                 /* basePath */                  basePath,
                 /* publicIp */                  publicIp,
@@ -238,8 +239,12 @@ public class TestBridge {
                 /* reactor */                   reactor,
                 /* cache */                     null,
                 /* externalIdKey */             "midonet",
-                /* service */                   null);
+                /* VRN ID */                    vrnId,
+                /* Use NXM? */                  false,
+                /* BGP service */               null,
+                /* VPN service */               null);
         controller.setControllerStub(controllerStub);
+        controller.setDatapathId(dp_id);
 
         // Insert ports 3..8 into portLocMap and macPortMap.
         for (int i = 3; i < 8; i++) {
@@ -254,6 +259,7 @@ public class TestBridge {
         // Start with an empty port list.
         ArrayList<OFPhysicalPort> portList = new ArrayList<OFPhysicalPort>();
         features.setPorts(portList);
+        features.setDatapathId(dp_id);
         controllerStub.setFeatures(features);
         controller.onConnectionMade();
 

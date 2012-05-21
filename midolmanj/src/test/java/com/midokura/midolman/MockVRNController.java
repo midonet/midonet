@@ -35,11 +35,13 @@ public class MockVRNController extends AbstractController
         generatedPackets.add(newPkt);
     }
 
-    public MockVRNController(long datapathId, Directory zkDir,
+    public MockVRNController(Directory zkDir,
             String zkBasePath, OpenvSwitchDatabaseConnection ovsdb,
-            IntIPv4 internalIp, String externalIdKey)
+            IntIPv4 internalIp, String externalIdKey, UUID vrnId,
+            boolean useNxm)
             throws StateAccessException {
-        super(datapathId, zkDir, zkBasePath, ovsdb, internalIp, externalIdKey);
+        super(zkDir, zkBasePath, ovsdb, internalIp, externalIdKey, vrnId,
+                useNxm);
         generatedPackets = new ArrayList<GeneratedPacket>();
     }
 
@@ -71,4 +73,7 @@ public class MockVRNController extends AbstractController
 
     public void onPacketIn(int bufferId, int totalLen, short inPort,
                            byte[] data, long tunnelID) {}
+
+    @Override
+    protected void initServicePorts(long datapathId) {}
 }

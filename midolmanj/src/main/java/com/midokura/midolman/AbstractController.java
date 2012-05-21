@@ -79,6 +79,8 @@ public abstract class AbstractController implements Controller {
 
     protected IntIPv4 publicIp;
     protected String externalIdKey;
+    protected UUID vrnId;
+    protected boolean useNxm;
 
     public static final short nonePort = OFPort.OFPP_NONE.getValue();
     public static final int portDownFlag =
@@ -98,13 +100,14 @@ public abstract class AbstractController implements Controller {
         }
     }
 
-    public AbstractController(long datapathId, Directory zkDir,
-            String zkBasePath, OpenvSwitchDatabaseConnection ovsdb,
-            IntIPv4 internalIp, String externalIdKey)
+    public AbstractController(Directory zkDir, String zkBasePath,
+            OpenvSwitchDatabaseConnection ovsdb, IntIPv4 internalIp,
+            String externalIdKey, UUID vrnId, boolean useNxm)
                 throws StateAccessException {
-        this.datapathId = datapathId;
         this.ovsdb = ovsdb;
         this.externalIdKey = externalIdKey;
+        this.vrnId = vrnId;
+        this.useNxm = useNxm;
         publicIp = internalIp;
         portUuidToNumberMap = new TypedHashMap<UUID, Integer>();
         portNumToUuid = new TypedHashMap<Integer, UUID>();
@@ -132,9 +135,31 @@ public abstract class AbstractController implements Controller {
     public void onConnectionMade() {
         log.info("onConnectionMade");
 
-        // TODO: Maybe find and record the datapath_id?
-        //       The python implementation did, but here we get the dp_id
-        //       in the constructor.
+        if (useNxm)
+            controllerStub.enableNxm();
+
+        setDatapathId(controllerStub.getFeatures().getDatapathId());
+
+        // lookup midolman-vnet of datapath
+        String uuid = ovsdb
+                .getDatapathExternalId(datapathId, externalIdKey);
+
+        if (uuid == null) {
+            log.warn(
+                    "onConnectionMade: datapath {} connected but has no relevant external id, ignore it",
+                    datapathId);
+            return;
+        }
+
+        UUID deviceId = UUID.fromString(uuid);
+        log.info("onConnectionMade: DP with UUID {}", deviceId);
+
+        if (!deviceId.equals(this.vrnId)) {
+            log.error("onConnectionMade: Unrecognized OF switch.");
+            return;
+        }
+
+        initServicePorts(datapathId);
 
         // Delete all currently installed flows.
         OFMatch match = new OFMatch();
@@ -424,6 +449,12 @@ public abstract class AbstractController implements Controller {
     protected abstract void addTunnelPort(int num, IntIPv4 peerIP);
     protected abstract void deleteTunnelPort(int num, IntIPv4 peerIP);
 
+    /**
+     * Perform initialization on service ports.
+     * @param datapathId
+     */
+    protected abstract void initServicePorts(long datapathId);
+
     @Override
     public void onMessage(OFMessage m) {
         log.debug("onMessage: {}", m);
@@ -663,5 +694,13 @@ public abstract class AbstractController implements Controller {
         // TODO(pino): can we pass null instead of an empty action list?
         controllerStub.sendPacketOut(bufferId, (short) 0,
                 new ArrayList<OFAction>(), null);
+    }
+
+    public long getDatapathId() {
+        return this.datapathId;
+    }
+
+    public void setDatapathId(long datapathId) {
+        this.datapathId = datapathId;
     }
 }

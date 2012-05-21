@@ -89,7 +89,8 @@ public class TestVRNController {
     private MockCache cache;
     private int cacheExpireSecs; // This should be an even number.
     private MockOpenvSwitchDatabaseConnection ovsdb;
-    private MockPortService service;
+    private MockPortService bgpService;
+    private MockPortService vpnService;
     private long datapathId;
     private OFPhysicalPort uplinkPhyPort;
     private UUID uplinkId;
@@ -144,8 +145,11 @@ public class TestVRNController {
         // Now create the Open vSwitch database connection
         ovsdb = new MockOpenvSwitchDatabaseConnection();
 
-        // Now create the PortService
-        service = new MockPortService(portMgr, bgpMgr);
+        // Now create the BGP PortService
+        bgpService = new MockPortService(portMgr, bgpMgr);
+
+        // Now create the VPN PortService
+        vpnService = new MockPortService(portMgr, bgpMgr);
 
         // Now we can create the VRNController itself.
         IntIPv4 localNwIP = IntIPv4.fromString("192.168.1.4"); // 0xc0a80104
@@ -154,9 +158,12 @@ public class TestVRNController {
         cacheExpireSecs = 60; // Use an even number.
         idleFlowTimeoutSeconds = 20;
         cache = new MockCache(reactor, cacheExpireSecs);
-        vrnCtrl = new VRNController(datapathId, dir, basePath, localNwIP, ovsdb,
-                reactor, cache, "midonet", service);
+        UUID vrnId = UUID.randomUUID();
+        vrnCtrl = new VRNController(dir, basePath, localNwIP, ovsdb,
+                reactor, cache, "midonet", vrnId, false, bgpService,
+                vpnService);
         vrnCtrl.setControllerStub(controllerStub);
+        vrnCtrl.setDatapathId(datapathId);
         vrnCtrl.portLocMap.start();
 
         /*

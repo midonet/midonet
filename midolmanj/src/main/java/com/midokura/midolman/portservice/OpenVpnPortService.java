@@ -24,14 +24,15 @@ import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
-import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.Sudo;
@@ -70,6 +71,8 @@ public class OpenVpnPortService implements PortService {
     private int vpnPortIdx = 0;
     private boolean run = false;
 
+    protected ServiceFlowController controller;
+
     private Map<UUID, Process> vpnIdToProcess;
 
     public OpenVpnPortService(OpenvSwitchDatabaseConnection ovsdb,
@@ -90,6 +93,19 @@ public class OpenVpnPortService implements PortService {
                 clear();
             }
         });
+    }
+
+    public static PortService createVpnPortService(
+            OpenvSwitchDatabaseConnection ovsdb, String externalIdKey,
+            Directory directory, String basePath) {
+        PortZkManager portMgr = new PortZkManager(directory,
+                basePath);
+        VpnZkManager vpnMgr = new VpnZkManager(directory, basePath);
+        OpenVpnPortService openVpnSvc = new OpenVpnPortService(ovsdb,
+                externalIdKey, "midolman_port_service", portMgr, vpnMgr);
+        openVpnSvc.clear();
+
+        return openVpnSvc;
     }
 
     @Override
@@ -125,7 +141,7 @@ public class OpenVpnPortService implements PortService {
 
     @Override
     public void setController(ServiceFlowController controller) {
-        throw new RuntimeException("not implemented");
+        this.controller = controller;
     }
 
     @Override

@@ -106,8 +106,12 @@ public class TestRouter {
                      routerMgr.getRoutingTableDirectory(rtrId),
                      CreateMode.EPHEMERAL);
         rTable.start();
-        controller = new MockVRNController(679, dir, basePath, null,
-                IntIPv4.fromString("192.168.200.200"), "externalIdKey");
+
+        UUID vrnId = UUID.randomUUID();
+        controller = new MockVRNController(dir, basePath, null,
+                IntIPv4.fromString("192.168.200.200"), "externalIdKey", vrnId,
+                false);
+        controller.setDatapathId(679);
         rtr = new Router(
                 rtrId, dir, basePath, reactor, controller, chainProcessor);
         controllerStub = new MockControllerStub();
