@@ -3,11 +3,11 @@
  */
 package com.midokura.util.process;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
-
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
@@ -59,8 +59,18 @@ public class ProcessOutputDrainer {
 
     public interface DrainTarget {
 
+        /**
+         * Called when a line was printed on a stdout device.
+         *
+         * @param line the printed line
+         */
         public void outLine(String line);
 
+        /**
+         * Called when a line was printed on a stderr device.
+         *
+         * @param line the printed line
+         */
         public void errLine(String line);
 
     }
@@ -69,38 +79,40 @@ public class ProcessOutputDrainer {
 
         private InputStream inputStream;
         private DrainTarget drainTarget;
-        private boolean stdoutOrStderr;
+        private boolean drainStdError;
 
         public InputStreamDrainer(InputStream inputStream,
                                   DrainTarget drainTarget,
-                                  boolean stdoutOrStderr) {
+                                  boolean drainStdError) {
             this.inputStream = inputStream;
             this.drainTarget = drainTarget;
-            this.stdoutOrStderr = stdoutOrStderr;
+            this.drainStdError = drainStdError;
         }
 
         @Override
         public void run() {
             try {
-                LineIterator lineIterator = IOUtils.lineIterator(inputStream,
-                                                                 "UTF-8");
+                LineIterator lineIterator =
+                    IOUtils.lineIterator(inputStream, "UTF-8");
+
                 while (lineIterator.hasNext()) {
                     String line = lineIterator.nextLine();
 
-                    if (stdoutOrStderr) {
-                        drainTarget.outLine(line);
-                    } else {
+                    if (drainStdError) {
                         drainTarget.errLine(line);
+                    } else {
+                        drainTarget.outLine(line);
                     }
                 }
             } catch (IllegalStateException ex) {
                 Throwable cause = ex.getCause();
-                if ( cause != null
+                if (cause != null
                     && cause instanceof IOException
-                    && cause.getMessage().equals("Stream closed") ) {
-                    // we ignore an IllegalStateException caused by a stream close
+                    && cause.getMessage().equals("Stream closed")) {
+                    // we ignore an IllegalStateException caused by a
+                    // IOException caused by a stream close
                     // because this usually happens when the watched process is
-                    // destroyed forcibly (and we tend to that.
+                    // destroyed forcibly (and we tend to that).
                 } else {
                     throw ex;
                 }

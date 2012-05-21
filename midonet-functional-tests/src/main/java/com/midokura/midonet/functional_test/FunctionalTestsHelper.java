@@ -64,7 +64,9 @@ public class FunctionalTestsHelper {
             case Mac:
                 zkClient = "zkCli";
                 break;
-            case Linux: case Unix: case Solaris:
+            case Linux:
+            case Unix:
+            case Solaris:
                 zkClient = "zkCli.sh";
                 break;
             default:
@@ -90,24 +92,26 @@ public class FunctionalTestsHelper {
         //TODO      then throw an error to identify the bad test.
 
         int exitCode = ProcessHelper
-            .newLocalProcess(zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
+            .newLocalProcess(
+                zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
             .logOutput(log, "cleaning_zk")
             .runAndWait();
 
-	if (exitCode != 0 && SystemHelper.getOsType() == SystemHelper.OsType.Linux) {
-	    // Restart ZK to get around the bug where a directory cannot be deleted.
+        if (exitCode != 0 && SystemHelper.getOsType() == SystemHelper.OsType.Linux) {
+            // Restart ZK to get around the bug where a directory cannot be deleted.
             Sudo.sudoExec("service zookeeper stop");
-	    Sudo.sudoExec("service zookeeper start");
+            Sudo.sudoExec("service zookeeper start");
 
             // Now delete the functional test ZK directory.
             ProcessHelper
-                .newLocalProcess(zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
+                .newLocalProcess(
+                    zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
                 .logOutput(log, "cleaning_zk")
                 .runAndWait();
-         }
+        }
     }
 
-    protected static void removeRemoteTap(RemoteTap tap) {
+    public static void removeRemoteTap(RemoteTap tap) {
         if (tap != null) {
             try {
                 tap.remove();
@@ -117,7 +121,7 @@ public class FunctionalTestsHelper {
         }
     }
 
-    protected static void removeTapWrapper(TapWrapper tap) {
+    public static void removeTapWrapper(TapWrapper tap) {
         if (tap != null) {
             tap.remove();
         }
@@ -182,7 +186,7 @@ public class FunctionalTestsHelper {
         assertThat(
             String.format("The wait for: \"%s\" didn't complete successfully " +
                               "(waited %d seconds)", what,
-                          (System.currentTimeMillis() - start ) / 1000),
+                          (System.currentTimeMillis() - start) / 1000),
             executionResult.completed());
 
         return executionResult.result();
@@ -235,7 +239,8 @@ public class FunctionalTestsHelper {
 
     public static void assertNoMorePacketsOnTap(TapWrapper tapWrapper) {
         assertThat(
-            format("Got an unexpected packet from tap %s", tapWrapper.getName()),
+            format("Got an unexpected packet from tap %s",
+                   tapWrapper.getName()),
             tapWrapper.recv(), nullValue());
     }
 
@@ -246,6 +251,13 @@ public class FunctionalTestsHelper {
     }
 
     public static void assertPacketWasSentOnTap(TapWrapper tap,
+                                                byte[] packet) {
+        assertThat(
+            format("We couldn't send a packet via tap %s", tap.getName()),
+            tap.send(packet));
+    }
+
+    public static void assertPacketWasSentOnTap(RemoteTap tap,
                                                 byte[] packet) {
         assertThat(
             format("We couldn't send a packet via tap %s", tap.getName()),

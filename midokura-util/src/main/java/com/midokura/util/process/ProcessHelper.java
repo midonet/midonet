@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
 import org.slf4j.Logger;
@@ -30,8 +31,7 @@ public class ProcessHelper {
     private static final Logger log =
         LoggerFactory.getLogger(ProcessHelper.class);
 
-    public static RunnerConfiguration newDemonProcess(final String commandLine)
-    {
+    public static RunnerConfiguration newDemonProcess(String commandLine) {
         RunnerConfiguration configuration = _newProcess(commandLine, true);
 
         configuration.setDrainTarget(DrainTargets.noneTarget());
@@ -39,31 +39,26 @@ public class ProcessHelper {
         return configuration;
     }
 
-    public static RunnerConfiguration newLocalProcess(final String commandLine)
-    {
-       return _newProcess(commandLine, false);
+    public static RunnerConfiguration newLocalProcess(String commandLine) {
+        return _newProcess(commandLine, false);
     }
 
-    public static RunnerConfiguration newProcess(final String commandLine) {
+    public static RunnerConfiguration newProcess(String commandLine) {
         return _newProcess(commandLine, true);
     }
 
     private static RunnerConfiguration _newProcess(final String commandLine,
                                                    final boolean canBeRemote) {
         return new RunnerConfiguration() {
-            Logger logger;
-            String stdMarker;
             DrainTarget drainTarget;
-            EnumSet<OutputStreams> streamsToLog =
-                EnumSet.noneOf(OutputStreams.class);
+            String procCommandLine = commandLine;
 
-            String processCommandLine = commandLine;
+            EnumSet<OutputStreams> streamsToLog =
+                EnumSet.allOf(OutputStreams.class);
 
             @Override
             public RunnerConfiguration logOutput(Logger log, String marker,
                                                  OutputStreams... streams) {
-                logger = log;
-                stdMarker = marker;
                 streamsToLog.clear();
 
                 if (streams.length == 0) {
@@ -73,6 +68,7 @@ public class ProcessHelper {
                     Collections.addAll(streamsToLog, streams);
                 }
 
+                drainTarget = DrainTargets.slf4jTarget(log, marker);
                 return this;
             }
 
@@ -85,7 +81,7 @@ public class ProcessHelper {
             public int runAndWait() {
                 Process p = createProcess(true, canBeRemote);
 
-                String processName = getProcessName(processCommandLine,
+                String processName = getProcessName(procCommandLine,
                                                     canBeRemote);
                 try {
                     if (p != null) {
@@ -110,7 +106,7 @@ public class ProcessHelper {
 
             @Override
             public RunnerConfiguration withSudo() {
-                processCommandLine = "sudo " + processCommandLine;
+                procCommandLine = "sudo " + procCommandLine;
                 return this;
             }
 
@@ -119,9 +115,7 @@ public class ProcessHelper {
                 try {
                     Process p = launchProcess(canBeExecutedRemote);
                     if (drainTarget == null) {
-                        drainTarget = logger == null
-                            ? DrainTargets.noneTarget()
-                            : DrainTargets.slf4jTarget(logger, stdMarker);
+                        drainTarget = DrainTargets.noneTarget();
                     }
 
                     ProcessOutputDrainer outputDrainer;
@@ -153,90 +147,110 @@ public class ProcessHelper {
                 // the canBeExecutedRemote is a signal that if possbile this
                 // process will be executed remotely.
                 if (canBeExecutedRemote && remoteHostSpec.isValid()) {
-                    return new RemoteSshProcess(remoteHostSpec,
-                                             processCommandLine);
+                    return
+                        new RemoteSshProcess(remoteHostSpec, procCommandLine);
                 }
 
-                return Runtime.getRuntime().exec(processCommandLine);
+                return Runtime.getRuntime().exec(procCommandLine);
             }
         };
     }
 
     private static String getProcessName(String commandLine,
                                          boolean canBeRemote) {
-        if (canBeRemote && RemoteHost.getSpecification().isValid())
-            return String.format("[%s] on %s",
-                                 commandLine,
-                                 RemoteHost.getSpecification().getSafeName());
+        RemoteHost remoteHostSpec = RemoteHost.getSpecification();
+
+        if (canBeRemote && remoteHostSpec.isValid())
+            return
+                String.format("[%s] on %s", commandLine,
+                              remoteHostSpec.getSafeName());
 
         return commandLine;
     }
 
     public static void killProcess(final Process process) {
+        if (process == null)
+            return;
+
         // try to kill it naturally. If that fails we will try the hard way.
         process.destroy();
 
-        try {
-            // wait to see if the process exists for a couple of seconds
-            if (checkForProcessExit(process))
-                return;
+        // wait to see if the process exists for a short period of time
+        if (checkForProcessExit(process))
+            return;
 
-            log.warn(
-                "Process wasn't destroyed by Process.destroy(). We we will " +
-                    "try to actually do a kill by hand");
+        log.warn(
+            "Process wasn't destroyed by Process.destroy(). We we will " +
+                "try to actually do a kill by hand");
 
-            Field field = process.getClass().getDeclaredField("pid");
-            field.setAccessible(true);
-            Object o = field.get(process);
+        int pid = getProcessPid(process);
+        if (pid != -1) {
+            log.debug("Found pid. Trying kill SIGTEM {}.", pid);
 
-            if (o instanceof Integer) {
-                int pid = Integer.class.cast(o);
+            // try to send a kill -15 signal first.
+            newProcess("kill -15 " + pid)
+                .setDrainTarget(DrainTargets.noneTarget())
+                .runAndWait();
 
-                log.debug("Found pid. Trying kill SIGTEM {}.", pid);
+            if (!checkForProcessExit(process)) {
+                log.warn("Process didn't exit.  Trying: kill SIGKILL {}.",
+                         pid);
 
-                // try to send a kill -15 signal first.
-                newProcess("kill -15 " + pid)
+                newProcess("kill -9 " + pid)
                     .setDrainTarget(DrainTargets.noneTarget())
                     .runAndWait();
 
-                if (!checkForProcessExit(process)) {
-                    log.warn("Process didn't exit.  Trying: kill SIGKILL {}.",
-                             pid);
-
-                    newProcess("kill -9 " + pid)
-                        .setDrainTarget(DrainTargets.noneTarget())
-                        .runAndWait();
-
-                    boolean processExited = checkForProcessExit(process);
-                    log.debug("Process exit status: {}", processExited);
-                }
+                boolean processExited = checkForProcessExit(process);
+                log.debug("Process exit status: {}", processExited);
             }
-        } catch (Exception e) {
-            //
         }
     }
 
-    private static boolean checkForProcessExit(final Process process)
-        throws Exception {
-
-        Timed.ExecutionResult<Integer> waitResult =
-            Timed.newTimedExecution()
-                 .waiting(100)
-                 .until(5 * 1000)
-                 .execute(new Timed.Execution<Integer>() {
-                     @Override
-                     protected void _runOnce() throws Exception {
-                         try {
-                             setResult(process.exitValue());
-                             setCompleted(true);
-                         } catch (IllegalThreadStateException e) {
-                             // this exception is thrown if the process has not
-                             // existed yet
+    private static boolean checkForProcessExit(final Process process) {
+        try {
+            Timed.ExecutionResult<Integer> waitResult =
+                Timed.newTimedExecution()
+                     .waiting(TimeUnit.MILLISECONDS.toMillis(100))
+                     .until(TimeUnit.SECONDS.toMillis(5))
+                     .execute(new Timed.Execution<Integer>() {
+                         @Override
+                         protected void _runOnce() throws Exception {
+                             try {
+                                 setResult(process.exitValue());
+                                 setCompleted(true);
+                             } catch (IllegalThreadStateException e) {
+                                 // this exception is thrown if the process has not
+                                 // existed yet
+                             }
                          }
-                     }
-                 });
+                     });
 
-        return waitResult.completed();
+            return waitResult.completed();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (Exception e) {
+            log.error("This exception wasn't supposed to be thrown here!", e);
+            return true;
+        }
+    }
+
+    public static int getProcessPid(Process process) {
+        Field field = null;
+        try {
+            field = process.getClass().getDeclaredField("pid");
+            field.setAccessible(true);
+            Object o = field.get(process);
+            if (o instanceof Integer) {
+                return Integer.class.cast(o);
+            }
+
+            return -1;
+        } catch (NoSuchFieldException e) {
+            return -1;
+        } catch (IllegalAccessException e) {
+            return -1;
+        }
     }
 
     public interface RunnerConfiguration {
@@ -264,7 +278,6 @@ public class ProcessHelper {
     private static List<String> _executeCommandLine(String command,
                                                     boolean canBeRemote) {
         try {
-
             List<String> stringList = new ArrayList<String>();
 
             RunnerConfiguration runner = _newProcess(command, canBeRemote);

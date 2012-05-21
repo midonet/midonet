@@ -77,51 +77,33 @@ public class RemoteHost {
 
     private String hostName;
     private int hostPort = 22;
-    private String userName = null;
-    private String userPass = null;
-    private SshSession sshSession;
+    private String userName;
+    private String userPass;
+
+    private SshSession session;
 
     private HierarchicalINIConfiguration config;
 
     public SshSession getSession() throws IOException {
-        if (sshSession == null) {
-            sshSession = SshHelper.newSession()
-                                  .onHost(hostName, hostPort)
-                                  .withCredentials(userName, userPass)
-                                  .open();
+        if (session == null) {
+            session = SshHelper.newSession()
+                               .onHost(hostName, hostPort)
+                               .withCredentials(userName, userPass)
+                               .open();
         }
 
-        return sshSession;
+        return session;
     }
 
     public String getMidonetHelperPath(String defaultMidonetHelperPath) {
 
         if (isValid() && config.getSections()
                                .contains(SECTION_MIDONET_PRIVSEP)) {
-            return config
-                .configurationAt(SECTION_MIDONET_PRIVSEP)
-                .getString("path", defaultMidonetHelperPath);
+            return config.configurationAt(SECTION_MIDONET_PRIVSEP)
+                         .getString("path", defaultMidonetHelperPath);
         }
 
         return defaultMidonetHelperPath;
-    }
-
-    class TargetPort {
-        String targetHost;
-        int targetPort;
-
-        public TargetPort(String targetHost, int targetPort) {
-            this.targetHost = targetHost;
-            this.targetPort = targetPort;
-        }
-
-        @Override
-        public String toString() {
-            return "TargetPort{" +
-                "targetHost='" + targetHost + '\'' +
-                ", targetPort=" + targetPort +
-                '}';
-        }
     }
 
     private Map<Integer, TargetPort> localPortForwards =
@@ -179,9 +161,8 @@ public class RemoteHost {
                 TargetPort target = localPortForwards.get(localPort);
 
                 try {
-                    sshSession.setLocalPortForward(
-                        localPort, target.targetHost, target.targetPort
-                    );
+                    session.setLocalPortForward(
+                        localPort, target.targetHost, target.targetPort);
                 } catch (Exception e) {
                     log.debug("Could not forward local port {} to {}",
                               localPort, target);
@@ -192,9 +173,8 @@ public class RemoteHost {
                 TargetPort target = remotePortForwards.get(remotePort);
 
                 try {
-                    sshSession.setRemotePortForward(
-                        remotePort, target.targetHost, target.targetPort
-                    );
+                    session.setRemotePortForward(
+                        remotePort, target.targetHost, target.targetPort);
                 } catch (Exception e) {
                     log.debug("Could not forward remote port {} to {}",
                               remotePort, target);
@@ -257,7 +237,6 @@ public class RemoteHost {
         }
     }
 
-
     protected void parseSpecification(String specification) {
         if (specification == null)
             specification = "";
@@ -301,5 +280,23 @@ public class RemoteHost {
 
     private void setConfig(HierarchicalINIConfiguration config) {
         this.config = config;
+    }
+
+    class TargetPort {
+        String targetHost;
+        int targetPort;
+
+        public TargetPort(String targetHost, int targetPort) {
+            this.targetHost = targetHost;
+            this.targetPort = targetPort;
+        }
+
+        @Override
+        public String toString() {
+            return "TargetPort{" +
+                "targetHost='" + targetHost + '\'' +
+                ", targetPort=" + targetPort +
+                '}';
+        }
     }
 }
