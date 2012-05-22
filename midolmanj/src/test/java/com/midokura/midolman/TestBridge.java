@@ -49,15 +49,7 @@ import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Net;
 
 
@@ -71,6 +63,7 @@ public class TestBridge {
     private PortToIntNwAddrMap portLocMap;
     private MacPortMap macPortMap;
     private MockOpenvSwitchDatabaseConnection ovsdb;
+    private PortZkManager portMgr;
     private IntIPv4 publicIp;
     int dp_id = 43;
     MockControllerStub controllerStub;
@@ -225,7 +218,7 @@ public class TestBridge {
         macPortMap.start();
         PortSetMap portSetMap = new PortSetMap(zkDir, basePath);
         portSetMap.start();
-        PortZkManager portMgr = new PortZkManager(zkDir, basePath);
+        portMgr = new PortZkManager(zkDir, basePath);
 
         reactor = new MockReactor();
 
@@ -658,14 +651,18 @@ public class TestBridge {
 
     @Test
     public void testBadlyMappedPortUuid()
-                throws KeeperException, InterruptedException {
+            throws KeeperException, InterruptedException, StateAccessException {
+        // A Mac has been mapped to a VPort, and the VPort to the local IP addr.
+        // However, the local controller has no corresponding OpenFlow port.
         MAC srcMac = MAC.fromString("00:AA:AA:AA:AA:00");
         MAC dstMac = MAC.fromString("00:AA:AA:AA:AA:01");
         UUID dstUuid = UUID.fromString("251cbfb6-9ca1-4685-9320-c7203c4ffff2");
+        PortDirectory.BridgePortConfig bpc =
+                new PortDirectory.BridgePortConfig(bridge.getId());
+        portMgr.create(bpc, dstUuid);
         macPortMap.put(dstMac, dstUuid);
         portLocMap.put(dstUuid, publicIp);
         Ethernet packet = makePacket(srcMac, dstMac);
-        MidoMatch flowmatch = makeFlowMatch(srcMac, dstMac);
 
         // Send the packet from both local and tunnel ports.
         for (short inPortNum : new short[] { 2, 4 }) {
@@ -673,9 +670,14 @@ public class TestBridge {
             numPreinstalledFlows = 0;
             controllerStub.sentPackets.clear();
             controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-            // Mapping is bad, so expect a drop without installing a drop rule.
-            assertEquals(0, controllerStub.addedFlows.size());
             assertEquals(0, controllerStub.sentPackets.size());
+            assertEquals(0, controllerStub.droppedPktBufIds.size());
+            assertEquals(1, controllerStub.addedFlows.size());
+            MidoMatch match = AbstractController.createMatchFromPacket(
+                    packet, inPortNum);
+            checkInstalledFlow(match, 0, tempDropTime, tempDropTime,
+                    normalPriority, new OFAction[] {});
+            controllerStub.addedFlows.clear();
         }
     }
 

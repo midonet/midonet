@@ -1039,7 +1039,8 @@ public class TestVRNController {
         eth.setSourceMACAddress(dlSrc);
         eth.setEtherType(ARP.ETHERTYPE);
         Router rtr = new Router(
-                routerIds.get(2), dir, basePath, reactor, null, null);
+                routerIds.get(2), dir, basePath, reactor, null, null,
+                vrnCtrl.portCache);
         Assert.assertFalse(rtr.canSendICMP(eth, null));
 
         // Make a normal UDP packet from a host on router2's second port

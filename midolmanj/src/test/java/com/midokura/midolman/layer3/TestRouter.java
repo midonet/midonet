@@ -78,6 +78,7 @@ public class TestRouter {
     private RuleZkManager ruleMgr;
     private RouterZkManager routerMgr;
     private ChainProcessor chainProcessor;
+    private PortConfigCache portCache;
 
     @Before
     public void setUp() throws Exception {
@@ -103,6 +104,7 @@ public class TestRouter {
         reactor = new MockReactor();
         chainProcessor = new ChainProcessor(
                 dir, basePath, new MockCache(), reactor);
+        portCache = new PortConfigCache(reactor, 300*1000, dir, basePath);
 
         UUID rtrId = routerMgr.create();
         rTable = new ReplicatedRoutingTable(rtrId,
@@ -119,7 +121,8 @@ public class TestRouter {
                 IntIPv4.fromString("192.168.200.200"), "externalIdKey", vrnId,
                 false);
         rtr = new Router(
-                rtrId, dir, basePath, reactor, controller, chainProcessor);
+                rtrId, dir, basePath, reactor, controller, chainProcessor,
+                portCache);
         controllerStub = new MockControllerStub();
         controller.setControllerStub(controllerStub);
 

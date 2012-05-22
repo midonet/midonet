@@ -26,6 +26,7 @@ import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.state.BridgeDhcpZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
@@ -36,14 +37,15 @@ public class DhcpHandler {
     private static final Logger log = LoggerFactory
             .getLogger(DhcpHandler.class);
 
-    private PortZkManager portMgr;
     private BridgeDhcpZkManager dhcpMgr;
     private VRNController controller;
+    private PortConfigCache portCache;
 
-    public DhcpHandler(Directory zkDir, String zkBasePath, VRNController ctrl) {
-        this.portMgr = new PortZkManager(zkDir, zkBasePath);
+    public DhcpHandler(Directory zkDir, String zkBasePath, VRNController ctrl,
+                       PortConfigCache portCache) {
         this.dhcpMgr = new BridgeDhcpZkManager(zkDir, zkBasePath);
         this.controller = ctrl;
+        this.portCache = portCache;
     }
 
     public boolean handleDhcpRequest(UUID inPortId, DHCP request,
@@ -56,7 +58,7 @@ public class DhcpHandler {
         IntIPv4 yiaddr = null;
         IntIPv4 nwAddr = null;
         // Get the port configuration.
-        PortConfig config = portMgr.get(inPortId).value;
+        PortConfig config = portCache.get(inPortId);
         if (config instanceof PortDirectory.BridgePortConfig) {
             UUID bridgeId = config.device_id;
             List<BridgeDhcpZkManager.Subnet> subnets =

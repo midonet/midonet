@@ -21,15 +21,7 @@ import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.LogicalPortConfig;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback1;
 
@@ -43,20 +35,17 @@ public class VRNCoordinator implements ForwardingElement {
     private Reactor reactor;
     private Map<UUID, ForwardingElement> forwardingElements;
     private Map<UUID, ForwardingElement> feByPortId;
-    // These watchers are interested in routing table and rule changes.
-    private Set<Callback1<UUID>> watchers;
-    // TODO(pino): use Guava's CacheBuilder here.
-    // TODO(pino): the port configurations have to be watched for changes.
-    private Map<UUID, PortConfig> portIdToConfig;
     private Directory zkDir;
     private String zkBasePath;
     private VRNControllerIface ctrl;
     private PortSetMap portSetMap;
     private ChainProcessor chainProcessor;
+    private PortConfigCache portCache;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
                           Cache cache, VRNControllerIface ctrl,
-                          PortSetMap portSetMap, ChainProcessor chainProcessor)
+                          PortSetMap portSetMap, ChainProcessor chainProcessor,
+                          PortConfigCache portCache)
             throws StateAccessException {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
@@ -66,58 +55,8 @@ public class VRNCoordinator implements ForwardingElement {
         this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
-        this.watchers = new HashSet<Callback1<UUID>>();
         this.chainProcessor = chainProcessor;
-        // TODO(pino): use Guava's CacheBuilder here.
-        portIdToConfig = new HashMap<UUID, PortConfig>();
-    }
-
-    // This maintains consistency of the cached port configs w.r.t ZK.
-    private class PortWatcher implements Runnable {
-        UUID portId;
-
-        PortWatcher(UUID portId) {
-            this.portId = portId;
-        }
-
-        @Override
-        public void run() {
-            // Don't get the new config if the portId's entry has expired.
-            if (portIdToConfig.containsKey(portId)) {
-                try {
-                    refreshPortConfig(portId, this);
-                } catch (Exception e) {
-                    log.warn("PortWatcher.log", e);
-                }
-            }
-        }
-    }
-
-    public PortConfig getPortConfig(UUID portId) throws
-            ZkStateSerializationException, StateAccessException {
-        PortConfig pcfg = portIdToConfig.get(portId);
-        if (null == pcfg)
-            pcfg = refreshPortConfig(portId, null);
-        return pcfg;
-    }
-
-    private PortConfig refreshPortConfig(UUID portId, PortWatcher watcher)
-            throws ZkStateSerializationException, StateAccessException {
-        log.debug("refreshPortConfig for {} watcher", portId.toString(),
-                  watcher);
-
-        if (null == watcher) {
-            watcher = new PortWatcher(portId);
-        }
-
-        ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId, watcher);
-        PortConfig cfg = entry.value;
-        portIdToConfig.put(portId, cfg);
-        return cfg;
-    }
-
-    public void addWatcher(Callback1<UUID> watcher) {
-        watchers.add(watcher);
+        this.portCache = portCache;
     }
 
     protected enum FEType { Router, Bridge, DontConstruct }
@@ -133,11 +72,13 @@ public class VRNCoordinator implements ForwardingElement {
         switch (feType) {
           case Router:
             fe = new Router(
-                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor);
+                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor,
+                    portCache);
             break;
           case Bridge:
             fe = new Bridge(
-                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor);
+                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor,
+                    portCache);
             break;
           case DontConstruct:
             fe = null;
@@ -168,7 +109,7 @@ public class VRNCoordinator implements ForwardingElement {
         ForwardingElement fe = feByPortId.get(portId);
         if (null != fe)
             return fe;
-        PortConfig cfg = getPortConfig(portId);
+        PortConfig cfg = portCache.get(portId);
         // TODO(pino): throw an exception if the config isn't found.
         FEType feType = feTypeOfPort(cfg);
         fe = getForwardingElement(cfg.device_id, feType);
@@ -223,7 +164,7 @@ public class VRNCoordinator implements ForwardingElement {
     public void process(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
         log.debug("process: fwdInfo {}", fwdInfo);
-        PortConfig config = getPortConfig(fwdInfo.inPortId);
+        PortConfig config = portCache.get(fwdInfo.inPortId);
         if (null != config.portGroupIDs)
             fwdInfo.portGroups.addAll(config.portGroupIDs);
         processOneFE(fwdInfo);
@@ -246,7 +187,7 @@ public class VRNCoordinator implements ForwardingElement {
         fwdInfo.depth++;
         fwdInfo.addTraversedFE(fe.getId());
 
-        applyPortFilter(getPortConfig(fwdInfo.inPortId), fwdInfo, true);
+        applyPortFilter(portCache.get(fwdInfo.inPortId) , fwdInfo, true);
         if (fwdInfo.action != Action.FORWARD)
             return;
         fe.process(fwdInfo);
@@ -265,7 +206,7 @@ public class VRNCoordinator implements ForwardingElement {
                 log.debug("FE output to port set {}", fwdInfo.outPortId);
                 return;
             }
-            PortConfig cfg = getPortConfig(fwdInfo.outPortId);
+            PortConfig cfg = portCache.get(fwdInfo.outPortId) ;
             if (null == cfg) {
                 // Either the config wasn't found or it's not a router port.
                 log.error("Packet forwarded to a portId that either "

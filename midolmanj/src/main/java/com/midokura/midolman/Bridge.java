@@ -29,18 +29,10 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.ReplicatedMap;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkPathManager;
 
 public class Bridge implements ForwardingElement {
 
@@ -67,15 +59,17 @@ public class Bridge implements ForwardingElement {
     private VRNControllerIface controller;
     private BridgeConfig myConfig;
     private ChainProcessor chainProcessor;
+    private PortConfigCache portCache;
 
     public Bridge(UUID brId, Directory zkDir, String zkBasePath,
                   Reactor reactor, VRNControllerIface ctrl,
-                  ChainProcessor chainProcessor)
+                  ChainProcessor chainProcessor, PortConfigCache portCache)
             throws StateAccessException {
         this.bridgeId = brId;
         this.reactor = reactor;
         this.controller = ctrl;
         this.chainProcessor = chainProcessor;
+        this.portCache = portCache;
         portMgr = new PortZkManager(zkDir, zkBasePath);
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
         ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
@@ -130,7 +124,7 @@ public class Bridge implements ForwardingElement {
         }
         fwdInfo.action = Action.FORWARD;
         // If the ingress port is materialized, ask for removal notification.
-        if (!(portMgr.get(fwdInfo.inPortId).value instanceof
+        if (!(portCache.get(fwdInfo.inPortId) instanceof
                 LogicalBridgePortConfig)) {
             log.debug("Bridge {} asking for flow removal notification for " +
                       "port {}", bridgeId, fwdInfo.inPortId);
@@ -431,17 +425,9 @@ public class Bridge implements ForwardingElement {
             // Find the peer of the new logical port.
             LogicalBridgePortConfig lbcfg =
                     LogicalBridgePortConfig.class.cast(entry.value);
-            // TODO(pino): cache the port configs.
-            ZkNodeEntry<UUID, PortConfig> peerCfg;
-            LogicalRouterPortConfig lrcfg;
-            try {
-                peerCfg = portMgr.get(lbcfg.peerId());
-                lrcfg = LogicalRouterPortConfig.class.cast(peerCfg.value);
-            } catch (StateAccessException e) {
-                e.printStackTrace();
-                // TODO(pino): how do we handle this exception?
-                return;
-            }
+            PortConfig peerCfg = portCache.get(lbcfg.peerId());
+            LogicalRouterPortConfig lrcfg =
+                    LogicalRouterPortConfig.class.cast(peerCfg);
             // 'Learn' that the router's mac is reachable via the bridge port.
             rtrMacToLogicalPortId.put(lrcfg.getHwAddr(), entry.key);
             // Add the router port's IP and MAC to the permanent ARP map.

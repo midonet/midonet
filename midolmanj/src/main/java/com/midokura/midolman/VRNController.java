@@ -83,6 +83,7 @@ public class VRNController extends AbstractController
     private ChainProcessor chainProcessor;
     private VpnZkManager vpnMgr;
     private Directory zkDir;
+    PortConfigCache portCache;
 
     public VRNController(Directory zkDir, String zkBasePath,
             IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
@@ -99,8 +100,10 @@ public class VRNController extends AbstractController
         this.portSetMap.start();
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
                                                  reactor);
+        this.portCache =
+                new PortConfigCache(reactor, 300*1000, zkDir, zkBasePath);
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this,
-                portSetMap, chainProcessor);
+                portSetMap, chainProcessor, portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.bgpService = bgpService;
@@ -111,8 +114,8 @@ public class VRNController extends AbstractController
 
         this.bgpPortServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
-        this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this);
         this.zkDir = zkDir;
+        this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this, portCache);
     }
 
     public void subscribePortSet(UUID portSetID)
@@ -282,7 +285,8 @@ public class VRNController extends AbstractController
                                 return;
                             }
                         } catch (StateAccessException e) {
-                            freeBuffer(bufferId);
+                            installDropFlowEntry(match, bufferId,
+                                    NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
                             return;
                         }
                     }
@@ -300,9 +304,10 @@ public class VRNController extends AbstractController
         try {
             vrn.process(fwdInfo);
         } catch (Exception e) {
-            log.warn("onPacketIn dropping packet: ", e);
-            freeBuffer(bufferId);
+            log.warn("Exception during network simulation: ", e);
             freeFlowResources(match, fwdInfo.getNotifiedFEs());
+            installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
+                    TEMPORARY_DROP_SECONDS);
             return;
         }
         if (fwdInfo.action != ForwardingElement.Action.PAUSED)
@@ -325,13 +330,15 @@ public class VRNController extends AbstractController
             else {
                 log.error("Couldn't get port ID for tunnel ID {}: No entry in "+
                           "ZooKeeper", tunnelId);
-                // TODO: drop the flow.
+                installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
+                        TEMPORARY_DROP_SECONDS);
                 return;
             }
         } catch (StateAccessException e) {
             log.error("Couldn't get port ID for tunnel ID {}: ZooKeeper error "+
                       "{}", tunnelId, e.getMessage());
-            // TODO(pino): drop the flow.
+            installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
+                    TEMPORARY_DROP_SECONDS);
             return;
         }
         Set<Short> outPorts = new HashSet<Short>();
@@ -523,16 +530,8 @@ public class VRNController extends AbstractController
             } else
                 outPorts.add(tunPortNum.shortValue());
             // Extract the greKey from the PortConfig
-            // TODO(pino): cache the PortConfigs to reduce ZK calls.
-            try {
-                ZkNodeEntry<UUID, PortConfig> entry =
-                        portMgr.get(fwdInfo.outPortId);
-                greKey = entry.value.greKey;
-            } catch (StateAccessException e) {
-                // TODO(pino): drop this flow.
-                log.error("Got error trying to map the port to a GRE key.", e);
-                return;
-            }
+            PortConfig portConfig = portCache.get(fwdInfo.outPortId);
+            greKey = portConfig.greKey;
         }
         if (outPorts.size() == 0) {
             log.warn("forwardPacket: DROP - no OVS ports to output to.");
@@ -568,7 +567,7 @@ public class VRNController extends AbstractController
                                                       MidoMatch mmatch) {
         try {
             UUID portID = portNumToUuid.get(new Integer(portNum));
-            PortConfig portCfg = portMgr.get(portID).value;
+            PortConfig portCfg = portCache.get(portID);
             MidoMatch pktMatch = mmatch.clone();
             // Ports themselves don't have ports for packets to be entering/
             // exiting, so set inputPort and outputPort to null.
@@ -951,19 +950,20 @@ public class VRNController extends AbstractController
         try {
             vrn.addPort(portId);
             // TODO(pino): check with Yoshi - services only apply to L3 ports.
-            ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId);
-            if (entry.value instanceof
+            PortConfig portConfig = portCache.get(portId);
+            if (portConfig instanceof
                     PortDirectory.MaterializedRouterPortConfig) {
                 PortDirectory.MaterializedRouterPortConfig rtrPort =
                         PortDirectory.MaterializedRouterPortConfig.class.cast(
-                                entry.value);
+                                portConfig);
                 rtrPort.setHwAddr(hwAddr);
-                portMgr.update(entry);
+                portMgr.update(
+                        new ZkNodeEntry<UUID, PortConfig>(portId, portConfig));
                 addBgpServicePort(portId, hwAddr);
             }
 
             // Install flows for this port's greKey to go directly to this port.
-            int greKey = entry.value.greKey;
+            int greKey = portConfig.greKey;
             installPredefTunnelRule(portNum, greKey);
         } catch (Exception e) {
             log.error("addVirtualPort", e);
@@ -976,9 +976,9 @@ public class VRNController extends AbstractController
         log.info("deletePort number {} bound to virtual port {}",
                 portNum, portId);
         try {
-            ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(portId);
+            PortConfig portConfig = portCache.get(portId);
             vrn.removePort(portId);
-            removePredefTunnelRule(portNum, entry.value.greKey);
+            removePredefTunnelRule(portNum, portConfig.greKey);
         } catch (Exception e) {
             log.error("deleteVirtualPort", e);
         }

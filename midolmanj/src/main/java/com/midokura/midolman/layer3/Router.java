@@ -34,11 +34,19 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.ArpCacheEntry;
+import com.midokura.midolman.state.ArpTable;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.state.ReplicatedMap;
+import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.Net;
 
@@ -75,14 +83,6 @@ public class Router implements ForwardingElement {
      * of any
      */
     private class PortListener implements L3DevicePort.Listener {
-        @Override
-        public void configChanged(UUID portId,
-                MaterializedRouterPortConfig old,
-                MaterializedRouterPortConfig current) {
-            // Do nothing here. We get the non-routes configuration from the
-            // L3DevicePort each time we use it.
-        }
-
         @Override
         public void routesChanged(UUID portId, Collection<Route> added,
                 Collection<Route> removed) {
@@ -124,19 +124,19 @@ public class Router implements ForwardingElement {
     private LoadBalancer loadBalancer;
     private final ObjectName objectName;
     private final VRNControllerIface controller;
-    private PortZkManager portMgr;
     private RouteZkManager routeMgr;
     private RouterZkManager routerMgr;
     private RouterZkManager.RouterConfig myConfig;
+    private PortConfigCache portCache;
 
     public Router(UUID rtrId, Directory zkDir, String zkBasePath,
                   Reactor reactor, VRNControllerIface ctrl,
-                  ChainProcessor chainProcessor)
+                  ChainProcessor chainProcessor, PortConfigCache portCache)
             throws StateAccessException {
         this.routerId = rtrId;
         this.reactor = reactor;
         this.controller = ctrl;
-        this.portMgr = new PortZkManager(zkDir, zkBasePath);
+        this.portCache = portCache;
         this.routeMgr = new RouteZkManager(zkDir, zkBasePath);
         this.routerMgr = new RouterZkManager(zkDir, zkBasePath);
         table = new ReplicatedRoutingTable(routerId,
@@ -197,10 +197,10 @@ public class Router implements ForwardingElement {
     @Override
     public void addPort(UUID portId) throws KeeperException,
             InterruptedException, StateAccessException {
-        L3DevicePort port = new L3DevicePort(portMgr, routeMgr, portId);
+        L3DevicePort port = new L3DevicePort(portCache, routeMgr, portId);
         devicePorts.put(portId, port);
         port.addListener(portListener);
-        for (Route rt : port.getVirtualConfig().getRoutes()) {
+        for (Route rt : port.getRoutes()) {
             log.debug("{} adding route {} to table", this, rt);
             table.addRoute(rt);
         }
@@ -212,7 +212,7 @@ public class Router implements ForwardingElement {
         L3DevicePort port = devicePorts.get(portId);
         devicePorts.remove(portId);
         port.removeListener(portListener);
-        for (Route rt : port.getVirtualConfig().getRoutes()) {
+        for (Route rt : port.getRoutes()) {
             log.debug("{} removing route {} from table", this, rt);
             try {
                 table.deleteRoute(rt);
@@ -244,7 +244,7 @@ public class Router implements ForwardingElement {
         IntIPv4 intNwAddr = new IntIPv4(nwAddr);
         log.debug("getMacForIp: port {} ip {}", portId, intNwAddr);
 
-        PortConfig portCfg = portMgr.get(portId).value;
+        PortConfig portCfg = portCache.get(portId);
         RouterPortConfig rtrPortConfig = RouterPortConfig.class.cast(portCfg);
         String nwAddrStr = intNwAddr.toString();
         if (rtrPortConfig instanceof MaterializedRouterPortConfig) {
@@ -327,7 +327,7 @@ public class Router implements ForwardingElement {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
 
         MAC hwDst = new MAC(fwdInfo.matchIn.getDataLayerDestination());
-        PortConfig portCfg = portMgr.get(fwdInfo.inPortId).value;
+        PortConfig portCfg = portCache.get(fwdInfo.inPortId);
         RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
 
         // Process packets that are either IPv4 or ARP with proto IPv4.
@@ -466,7 +466,7 @@ public class Router implements ForwardingElement {
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
         // Drop packet addressed to the outPort's own IP.
-        portCfg = portMgr.get(fwdInfo.outPortId).value;
+        portCfg = portCache.get(fwdInfo.outPortId);
         rtrPortCfg = RouterPortConfig.class.cast(portCfg);
         IntIPv4 outPortIP = new IntIPv4(rtrPortCfg.portAddr);
         if (nwDst.equals(outPortIP)) {
@@ -500,15 +500,10 @@ public class Router implements ForwardingElement {
         if (!(rpCfg instanceof LogicalRouterPortConfig))
             return null;
         UUID peerId = LogicalRouterPortConfig.class.cast(rpCfg).peer_uuid;
-        PortConfig pc;
-        try {
-            pc = portMgr.get(peerId).value;
-        } catch (NullPointerException e) {
+        PortConfig pc = portCache.get(peerId);
+        if (null == pc) {
             log.error("No portConfig for {}'s peer port {} in ZK.",
                 IPv4.fromIPv4Address(rpCfg.portAddr), peerId);
-            return null;
-        } catch (StateAccessException e) {
-            log.error("ZK error fetching config for port {}: {}", peerId, e);
             return null;
         }
         if (!(pc instanceof RouterPortConfig))
@@ -906,7 +901,7 @@ public class Router implements ForwardingElement {
         if (null != egressPortId) {
             RouterPortConfig portConfig;
             try {
-                PortConfig cfg = portMgr.get(egressPortId).value;
+                PortConfig cfg = portCache.get(egressPortId);
                 portConfig = RouterPortConfig.class.cast(cfg);
             } catch (Exception e) {
                 log.error("Failed to get the egress port's config from ZK.", e);
@@ -967,11 +962,9 @@ public class Router implements ForwardingElement {
         // The nwDst is the source of triggering IPv4 as seen by this router.
         ip.setDestinationAddress(fwdInfo.matchIn.getNetworkSource());
         // The nwSrc is the address of the ingress port.
-        PortConfig cfg = null;
-        try {
-            cfg = portMgr.get(fwdInfo.inPortId).value;
-        } catch (StateAccessException e) {
-            log.error("Failed to get the inPort's config from ZK.", e);
+        PortConfig cfg = portCache.get(fwdInfo.inPortId);
+        if (null == cfg) {
+            log.error("Failed to get the inPort's config from ZK.");
             return;
         }
         RouterPortConfig portConfig =
@@ -987,11 +980,9 @@ public class Router implements ForwardingElement {
             LogicalRouterPortConfig lcfg =
                     LogicalRouterPortConfig.class.cast(portConfig);
             // Use cfg.peer_uuid to get the peer port's configuration.
-            PortConfig peerConfig = null;
-            try {
-                peerConfig = portMgr.get(lcfg.peerId()).value;
-            } catch (StateAccessException e) {
-                log.error("Failed to get the peer port's config from ZK.", e);
+            PortConfig peerConfig = portCache.get(lcfg.peerId());
+            if (null == peerConfig) {
+                log.error("Failed to get the peer port's config from ZK.");
                 return;
             }
             if (peerConfig instanceof LogicalRouterPortConfig)

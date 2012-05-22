@@ -76,6 +76,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
                             portMgr.get(portID, this);
                     put(portID, entry.value);
                 } catch (StateAccessException e) {
+                    // If the ZK lookup fails, the cache keeps the old value.
                     log.error("Exception refreshing PortConfig", e);
                 }
             }

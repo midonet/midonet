@@ -100,8 +100,10 @@ public class TestVRNCoordinator {
         Cache cache = createCache();
         ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,
                 cache, reactor);
+        PortConfigCache portCache =
+                new PortConfigCache(reactor, 300*1000, dir, basePath);
         vrn = new VRNCoordinator(dir, basePath, reactor, cache,
-                controller, portSetMap, chainProcessor);
+                controller, portSetMap, chainProcessor, portCache);
 
         /*
          * Create 3 routers such that:
@@ -145,7 +147,7 @@ public class TestVRNCoordinator {
                 // All the ports will be local to this controller.
                 // TODO: Should we construct this here, given that the Router
                 // will construct a clone?
-                L3DevicePort devPort = new L3DevicePort(portMgr, routeMgr,
+                L3DevicePort devPort = new L3DevicePort(portCache, routeMgr,
                         portId);
                 devPorts.add(devPort);
                 vrn.addPort(portId);
