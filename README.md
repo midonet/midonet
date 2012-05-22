@@ -13,6 +13,8 @@ Description of the module [contents](docs/midokura-util.md).
 
 Contains the *MidoNet* edge controller code.
 
+Description of the module [contents](docs/midolmanj.md).
+
 ### midolmanj-mgmt
 
 Contains the implementation of the *MidoNet* REST API.
