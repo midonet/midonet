@@ -10,6 +10,8 @@ import java.util.UUID;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
+
 
 public abstract class Rule implements Comparable<Rule> {
     private Condition condition;
@@ -41,21 +43,19 @@ public abstract class Rule implements Comparable<Rule> {
      * If the packet specified by res.match matches this rule's condition,
      * apply the rule.
      *
-     * @param flowMatch
-     *            matches the packet that originally entered the datapath. It
-     *            will NOT be modified by the rule chain.
-     * @param inPortId
-     * @param outPortId
+     * @paarm fwdInfo
+     *            the PacketContext for the packet being processed
      * @param res
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
      * @param natMapping
      *            NAT state of the element using this chain.
      */
-    public void process(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, NatMapping natMapping, Set<UUID> portGroups) {
-        if (condition.matches(inPortId, outPortId, res.match, portGroups)) {
-            apply(flowMatch, inPortId, outPortId, res, natMapping);
+    public void process(ChainPacketContext fwdInfo, RuleResult res,
+                        NatMapping natMapping) {
+        if (condition.matches(fwdInfo, res.match)) {
+            apply(fwdInfo.getFlowMatch(), fwdInfo.getInPortId(),
+                  fwdInfo.getOutPortId(), res, natMapping);
         }
     }
 

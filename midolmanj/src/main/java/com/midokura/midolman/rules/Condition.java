@@ -11,6 +11,8 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
+
 
 public class Condition {
     public boolean conjunctionInv;
@@ -66,12 +68,10 @@ public class Condition {
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
 
-    public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch) {
-        return matches(inPortId, outPortId, pktMatch, null);
-    }
-
-    public boolean matches(UUID inPortId, UUID outPortId, MidoMatch pktMatch,
-                           Set<UUID> senderGroups) {
+    public boolean matches(ChainPacketContext fwdInfo, MidoMatch pktMatch) {
+        UUID inPortId = fwdInfo.getInPortId();
+        UUID outPortId = fwdInfo.getOutPortId();
+        Set<UUID> senderGroups = fwdInfo.getPortGroups();
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
          * iff either:

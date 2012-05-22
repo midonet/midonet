@@ -25,6 +25,8 @@ import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
+import com.midokura.midolman.ForwardingElement.PacketContext;
+
 
 public class ChainProcessor {
 
@@ -91,22 +93,19 @@ public class ChainProcessor {
 
     /**
      * @param chainID
-     * @param flowMatch
-     *            matches the packet that originally entered the datapath. It
-     *            will NOT be modified by the rule chain.
+     * @param fwdInfo
+     *            The packet's PacketContext.  It will NOT be modified by the
+     *            rule chain.
      * @param pktMatch
      *            matches the packet that would be seen in this router/chain. It
      *            will NOT be modified by the rule chain.
-     * @param inPortId
-     * @param outPortId
      * @param ownerId
      *            UUID of the element using chainId.
      * @return
      */
-    public RuleResult applyChain(UUID chainID, MidoMatch flowMatch,
-            MidoMatch pktMatch, UUID inPortId, UUID outPortId, UUID ownerId,
-            Set<UUID> portGroups)
-                throws StateAccessException {
+    public RuleResult applyChain(UUID chainID, ChainPacketContext fwdInfo,
+                                 MidoMatch pktMatch, UUID ownerId)
+            throws StateAccessException {
         RuleResult res = new RuleResult(
                 RuleResult.Action.ACCEPT, null, pktMatch, false);
         if (null == chainID) {
@@ -133,8 +132,8 @@ public class ChainProcessor {
                 // transformed match and trackConnection.
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
-                cp.rules.get(cp.position).process(flowMatch, inPortId,
-                        outPortId, res, getNatMapping(ownerId), portGroups);
+                cp.rules.get(cp.position).process(fwdInfo, res,
+                                                  getNatMapping(ownerId));
                 cp.position++;
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)
@@ -197,4 +196,12 @@ public class ChainProcessor {
         }
     }
 
+    public interface ChainPacketContext {
+        UUID getInPortId();
+        UUID getOutPortId();
+        Set<UUID> getPortGroups();
+        boolean isConnTracked();
+        boolean isForwardFlow();
+        MidoMatch getFlowMatch();
+    }
 }

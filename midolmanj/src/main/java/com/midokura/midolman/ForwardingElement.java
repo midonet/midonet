@@ -17,8 +17,10 @@ import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.util.Cache;
 
 
 public interface ForwardingElement {
@@ -55,6 +57,7 @@ public interface ForwardingElement {
 
     // For use by VRNCoordinator.
     public interface CoordinatorPacketContext extends PacketContext {
+        UUID getOutPortId();
         void setInPortId(UUID inPortId);
         void setMatchIn(MidoMatch match);
         void setMatchOut(MidoMatch match);
@@ -65,7 +68,6 @@ public interface ForwardingElement {
         Collection<UUID> getNotifiedFEs();
         int getDepth();
         Action getAction();
-        UUID getOutPortId();
     }
 
     /* VRNController creates and partially populate an instance of
@@ -74,7 +76,8 @@ public interface ForwardingElement {
      * decisions:  the next action for the packet, the egress port,
      * the packet at egress (i.e. after possible modifications).
      */
-    public static class ForwardInfo implements CoordinatorPacketContext {
+    public static class ForwardInfo 
+            implements CoordinatorPacketContext, ChainPacketContext {
 
         // These fields are filled by the caller of ForwardingElement.process():
         public UUID inPortId;
@@ -93,9 +96,13 @@ public interface ForwardingElement {
         // Used by the VRNCoordinator to detect loops.
         private Map<UUID, Integer> traversedFEs = new HashMap<UUID, Integer>();
         public int depth = 0;  // depth in the VRN simulation
+        // Used for connection tracking.
+        private boolean connectionTracked = false;
+        private boolean forwardFlow;    
+        private Cache connectionCache;
 
-        public ForwardInfo() {}
-        public ForwardInfo(boolean internallyGenerated) {
+        public ForwardInfo(Cache c) {}
+        public ForwardInfo(boolean internallyGenerated, Cache c) {
             this.internallyGenerated = internallyGenerated;
         }
 
@@ -125,6 +132,43 @@ public interface ForwardingElement {
         @Override
         public void setDepth(int depth) {
             this.depth = depth;
+        }
+
+        @Override
+        public boolean isConnTracked() {
+            return connectionTracked;
+        }
+
+        @Override
+        public boolean isForwardFlow() {
+            // Connection tracking:  isConnTracked starts out as false.
+            // If isForwardFlow is called, isConnTracked becomes true and 
+            // a lookup into Cassandra determines which direction this packet
+            // is considered to be going.
+            if (connectionTracked)
+                return forwardFlow;
+
+            // Generated packets are always forward & not connection tracked.
+            if (internallyGenerated)
+                return true;
+
+            // TODO: ICMP Unreachables won't get through a return-flow-only
+            // filter, from either us or the external network.  How should
+            // we handle these?
+
+            connectionTracked = true;
+            //XXX: Query connectionCache.
+            return true; //XXX
+        }
+
+        @Override
+        public Set<UUID> getPortGroups() {
+            return portGroups;
+        }
+
+        @Override
+        public MidoMatch getFlowMatch() {
+            return flowMatch;
         }
 
         @Override

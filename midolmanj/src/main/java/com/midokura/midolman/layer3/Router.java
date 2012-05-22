@@ -376,8 +376,8 @@ public class Router implements ForwardingElement {
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
 
         RuleResult res = ruleEngine.applyChain(
-                myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
-                fwdInfo.inPortId, null, this.routerId, fwdInfo.portGroups);
+                myConfig.inboundFilter, fwdInfo, fwdInfo.matchIn,
+                this.routerId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -427,9 +427,8 @@ public class Router implements ForwardingElement {
         log.debug("{} pkt next hop {} and egress port {} - apply post-routing.",
                 new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort });
-        res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo.flowMatch,
-                res.match, fwdInfo.inPortId, rt.nextHopPort, this.routerId,
-                fwdInfo.portGroups);
+        res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo,
+                                    res.match, this.routerId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {

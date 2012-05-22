@@ -134,8 +134,8 @@ public class Bridge implements ForwardingElement {
 
         // Apply pre-bridging rules.
         RuleResult res = chainProcessor.applyChain(
-                myConfig.inboundFilter, fwdInfo.flowMatch, fwdInfo.matchIn,
-                fwdInfo.inPortId, null, this.bridgeId, fwdInfo.portGroups);
+                myConfig.inboundFilter, fwdInfo, fwdInfo.matchIn,
+                this.bridgeId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||
@@ -197,9 +197,7 @@ public class Bridge implements ForwardingElement {
 
         // Apply post-bridging rules.
         res = chainProcessor.applyChain(
-                myConfig.outboundFilter, fwdInfo.flowMatch, res.match,
-                fwdInfo.inPortId, fwdInfo.outPortId, this.bridgeId,
-                fwdInfo.portGroups);
+                myConfig.outboundFilter, fwdInfo, res.match, this.bridgeId);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||

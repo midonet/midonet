@@ -332,7 +332,8 @@ public class VRNController extends AbstractController
 
         // Send the packet to the network simulation.
         OFPacketContext fwdInfo = new OFPacketContext(
-                bufferId, data, inPort, totalLen, matchingTunnelId);
+                bufferId, data, inPort, totalLen, matchingTunnelId,
+                null /*connectionCache XXX*/);
         fwdInfo.inPortId = inPortId;
         fwdInfo.flowMatch = match;
         fwdInfo.matchIn = match.clone();
@@ -611,8 +612,8 @@ public class VRNController extends AbstractController
             // The port groups *should* be set based on the original origin
             // port, but we don't have access to that, so use null.
             RuleResult result = chainProcessor.applyChain(
-                            portCfg.outboundFilter, pktMatch, pktMatch,
-                            null, null, portID, null);
+                            portCfg.outboundFilter, null /*fwdInfo XXX*/,
+                            pktMatch, portID);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
@@ -1103,8 +1104,8 @@ public class VRNController extends AbstractController
         long tunnelId;
 
         private OFPacketContext(int bufferId, byte[] data, int inPortNum,
-                                int totalLen, long tunnelId) {
-            super(false);
+                                int totalLen, long tunnelId, Cache cache) {
+            super(false, cache);
             this.bufferId = bufferId;
             this.data = data;
             this.inPortNum = inPortNum;
@@ -1117,7 +1118,7 @@ public class VRNController extends AbstractController
         byte[] data;
 
         private GeneratedPacketContext(Ethernet pkt, UUID originPort) {
-            super(true);
+            super(true, null);
             this.data = pkt.serialize();
             this.pktIn = pkt;
 
