@@ -12,9 +12,11 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.packets.ICMP;
+import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.LLDP;
+import com.midokura.midolman.packets.LLDPTLV;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
@@ -29,6 +31,7 @@ import com.midokura.midonet.functional_test.topology.RuleChain;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
@@ -138,6 +141,50 @@ public class L2FilteringTest {
                 tapDst.recv(), nullValue());
     }
 
+    public byte[] makeLLDP(MAC dlSrc, MAC dlDst) {
+        LLDP packet = new LLDP();
+        LLDPTLV chassis = new LLDPTLV();
+        chassis.setType((byte)0xca);
+        chassis.setLength((short)7);
+        chassis.setValue("chassis".getBytes());
+        LLDPTLV port = new LLDPTLV();
+        port.setType((byte) 0);
+        port.setLength((short)4);
+        port.setValue("port".getBytes());
+        LLDPTLV ttl = new LLDPTLV();
+        ttl.setType((byte) 40);
+        ttl.setLength((short) 3);
+        ttl.setValue("ttl".getBytes());
+        packet.setChassisId(chassis);
+        packet.setPortId(port);
+        packet.setTtl(ttl);
+
+        Ethernet frame = new Ethernet();
+        frame.setPayload(packet);
+        frame.setEtherType(LLDP.ETHERTYPE);
+        frame.setDestinationMACAddress(dlDst);
+        frame.setSourceMACAddress(dlSrc);
+        return frame.serialize();
+    }
+
+    public void lldpFromTapArrivesAtTap(
+            TapWrapper tapSrc, TapWrapper tapDst, MAC dlSrc, MAC dlDst) {
+        byte[] pkt = makeLLDP(dlSrc, dlDst);
+        assertThat("The packet should have been sent from the source tap.",
+                tapSrc.send(pkt));
+        assertThat("The packet should have arrived at the destination tap.",
+                tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
+    }
+
+    public void lldpFromTapDoesntArriveAtTap(
+            TapWrapper tapSrc, TapWrapper tapDst, MAC dlSrc, MAC dlDst) {
+        byte[] pkt = makeLLDP(dlSrc, dlDst);
+        assertThat("The packet should have been sent from the source tap.",
+                tapSrc.send(pkt));
+        assertThat("The packet should not have arrived at the destination tap.",
+                tapDst.recv(), nullValue());
+    }
+
     @Test
     public void test() throws MalformedPacketException, InterruptedException {
         MAC mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
@@ -166,6 +213,10 @@ public class L2FilteringTest {
         // tap3 (ip3, mac3) can send packets to (ip1, mac1) and (ip2, mac2).
         icmpFromTapArrivesAtTap(tap3, tap1, mac3, mac1, ip3, ip1);
         icmpFromTapArrivesAtTap(tap3, tap2, mac3, mac2, ip3, ip2);
+        // tap3 (mac3) can send LLDP packets to mac1.
+        lldpFromTapArrivesAtTap(tap3, tap1, mac3, mac1);
+        // Retry the LLDP.
+        lldpFromTapArrivesAtTap(tap3, tap1, mac3, mac1);
 
         // Now create a chain for the L2 virtual bridge's inbound filter.
         RuleChain brInFilter = tenant1.addChain().setName("brInFilter").build();
@@ -176,6 +227,9 @@ public class L2FilteringTest {
         // Add a rule that drops packets from mac5 to mac2.
         Rule rule2 = brInFilter.addRule()
                 .matchDlSrc(mac5).matchDlDst(mac2)
+                .setSimpleType(DtoRule.Drop).build();
+        // Add a rule that drops LLDP packets.
+        Rule rule3 = brInFilter.addRule().matchDlType(LLDP.ETHERTYPE)
                 .setSimpleType(DtoRule.Drop).build();
         // Set this chain as the bridge's inbound filter.
         bridge1.setInboundFilter(brInFilter.chain.getId());
@@ -190,9 +244,14 @@ public class L2FilteringTest {
         icmpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip5, ip2);
         icmpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip4, ip2);
 
+        // No one can send LLDP packets.
+        lldpFromTapDoesntArriveAtTap(tap3, tap2, mac3, mac2);
+        lldpFromTapDoesntArriveAtTap(tap1, tap2, mac1, mac2);
+
         // Now remove the previous rules.
         rule1.delete();
         rule2.delete();
+        rule3.delete();
         // Add a rule the drops any packet from mac1.
         brInFilter.addRule().matchDlSrc(mac1)
                 .setSimpleType(DtoRule.Drop).build();
@@ -208,6 +267,10 @@ public class L2FilteringTest {
         icmpFromTapArrivesAtTap(tap4, tap3, mac4, mac3, ip4, ip1);
         // mac5 can again send packets to mac2
         icmpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip3, ip2);
+        // Anyone (except mac1) can again send LLDP packets to anyone else.
+        lldpFromTapArrivesAtTap(tap3, tap4, mac3, mac4);
+        lldpFromTapArrivesAtTap(tap4, tap1, mac4, mac1);
+        lldpFromTapArrivesAtTap(tap4, tap2, mac4, mac2);
 
         // ICMPs from mac1 should now be dropped.
         icmpFromTapDoesntArriveAtTap(tap1, tap3, mac1, mac3, ip1, ip3);

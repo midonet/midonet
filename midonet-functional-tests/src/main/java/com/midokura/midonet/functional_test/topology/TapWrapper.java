@@ -139,29 +139,47 @@ public class TapWrapper {
         if (size < 14)
             return -1;
         ByteBuffer bb = ByteBuffer.wrap(pktBytes);
+        bb.limit(size);
         bb.position(12);
         short etherType = bb.getShort();
         while (etherType == (short) 0x8100) {
             // Move past any vlan tags.
-            if (size - bb.position() < 4)
+            if (bb.remaining() < 4)
                 return -1;
             bb.getShort();
             etherType = bb.getShort();
         }
         // Now parse the payload.
         if (etherType == ARP.ETHERTYPE) {
+            if (bb.remaining() < 6)
+                return -1;
             bb.getInt();
             int hwLen = bb.get();
             int protoLen = bb.get();
-            bb.getShort();
-            return bb.position() + 2 * (hwLen + protoLen);
+            // The ARP includes a 2-octet Operation, 2 hw and 2 proto addrs.
+            return bb.position() + 2 + (2 * hwLen) + (2 * protoLen);
+        }
+        if (etherType == LLDP.ETHERTYPE) {
+            while(true) {
+                if (bb.remaining() < 2)
+                    return -1;
+                // Get the TL of the TLV
+                short tl = bb.getShort();
+                // The end of the LLDP is marked by TLV of zero.
+                if (0 == tl)
+                    return bb.position();
+                // Get the length of the TLV
+                int length = tl & 0x1ff;
+                if(bb.remaining() < length)
+                    return -1;
+                bb.position(length + bb.position());
+            }
         }
         if (etherType != IPv4.ETHERTYPE) {
             log.debug("Ether type different from IPv4.ETHERTYPE, was {}", String.format("%x", etherType));
             return -2;
         }
-        //throw new RuntimeException("Received non-IPv4 packet");
-        if (size - bb.position() < 4)
+        if (bb.remaining() < 4)
             return -1;
         // Ignore the first 2 bytes of the IP header.
         bb.getShort();
