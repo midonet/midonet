@@ -964,7 +964,8 @@ public class Router implements ForwardingElement {
         // The nwSrc is the address of the ingress port.
         PortConfig cfg = portCache.get(fwdInfo.inPortId);
         if (null == cfg) {
-            log.error("Failed to get the inPort's config from ZK.");
+            log.error("Failed to retrieve the inPort's configuration {}",
+                    fwdInfo.inPortId);
             return;
         }
         RouterPortConfig portConfig =

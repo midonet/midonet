@@ -45,8 +45,7 @@ public class Bridge implements ForwardingElement {
     PortZkManager portMgr;
     private BridgeZkManager bridgeMgr;
     private Runnable logicalPortsWatcher;
-    private Set<ZkNodeEntry<UUID, PortConfig>> logicalPorts =
-            new HashSet<ZkNodeEntry<UUID, PortConfig>>();
+    private Set<UUID> logicalPortIDs = new HashSet<UUID>();
     private Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
     private Map<IntIPv4, MAC> rtrIpToMac = new HashMap<IntIPv4, MAC>();
     private Map<UUID, IntIPv4> brPortIdToRtrPortIp =
@@ -393,51 +392,58 @@ public class Bridge implements ForwardingElement {
     }
 
     private void updateLogicalPorts() {
-        Set<ZkNodeEntry<UUID, PortConfig>> oldPorts = logicalPorts;
-        logicalPorts = new HashSet<ZkNodeEntry<UUID, PortConfig>>();
+        Set<UUID> oldLogicalPortIDs = logicalPortIDs;
         try {
-            logicalPorts.addAll(portMgr.listBridgeLogicalPorts(
-                    bridgeId, logicalPortsWatcher));
+            logicalPortIDs = portMgr.getBridgeLogicalPortIDs(
+                    bridgeId, logicalPortsWatcher);
         } catch (StateAccessException e) {
             // TODO(pino): if we get a NoPathException give up.
             // TODO(pino): what about other excepetion types?
             return;
         }
-        Set<ZkNodeEntry<UUID, PortConfig>> diff =
-                new HashSet<ZkNodeEntry<UUID, PortConfig>>();
+        Set<UUID> diff = new HashSet<UUID>();
         // First find the ports that have been removed.
-        diff.addAll(oldPorts);
-        diff.removeAll(logicalPorts);
-        for (ZkNodeEntry<UUID, PortConfig> entry : diff){
-            IntIPv4 rtrPortIp = brPortIdToRtrPortIp.remove(entry.key);
+        diff.addAll(oldLogicalPortIDs);
+        diff.removeAll(logicalPortIDs);
+        for (UUID id : diff){
+            IntIPv4 rtrPortIp = brPortIdToRtrPortIp.remove(id);
             MAC rtrPortMAC = rtrIpToMac.remove(rtrPortIp);
             rtrMacToLogicalPortId.remove(rtrPortMAC);
             log.debug("updateLogicalPorts: removed bridge port {} " +
                     "connected to router port with MAC:{} and IP:{}",
-                    new Object[]{entry.key, rtrPortMAC, rtrPortIp});
+                    new Object[]{id, rtrPortMAC, rtrPortIp});
 
         }
         // Now find all the newly added ports
         diff.clear();
-        diff.addAll(logicalPorts);
-        diff.removeAll(oldPorts);
-        for (ZkNodeEntry<UUID, PortConfig> entry : diff) {
+        diff.addAll(logicalPortIDs);
+        diff.removeAll(oldLogicalPortIDs);
+        for (UUID id : diff) {
             // Find the peer of the new logical port.
             LogicalBridgePortConfig lbcfg =
-                    LogicalBridgePortConfig.class.cast(entry.value);
-            PortConfig peerCfg = portCache.get(lbcfg.peerId());
-            LogicalRouterPortConfig lrcfg =
-                    LogicalRouterPortConfig.class.cast(peerCfg);
+                    portCache.get(id, LogicalBridgePortConfig.class);
+            if (null == lbcfg) {
+                log.error("Failed to find the logical bridge port's config {}",
+                        id);
+                continue;
+            }
+            LogicalRouterPortConfig lrcfg = portCache.get(
+                    lbcfg.peerId(), LogicalRouterPortConfig.class);
+            if (null == lrcfg) {
+                log.error("Failed to find the logical router port's config {}",
+                        lbcfg);
+                continue;
+            }
             // 'Learn' that the router's mac is reachable via the bridge port.
-            rtrMacToLogicalPortId.put(lrcfg.getHwAddr(), entry.key);
+            rtrMacToLogicalPortId.put(lrcfg.getHwAddr(), id);
             // Add the router port's IP and MAC to the permanent ARP map.
             IntIPv4 rtrPortIp = new IntIPv4(lrcfg.portAddr);
             rtrIpToMac.put(rtrPortIp, lrcfg.getHwAddr());
             // Need a way to clean up if the logical bridge port is deleted.
-            brPortIdToRtrPortIp.put(entry.key, rtrPortIp);
+            brPortIdToRtrPortIp.put(id, rtrPortIp);
             log.debug("updateLogicalPorts: added bridge port {} " +
                     "connected to router port with MAC:{} and IP:{}",
-                    new Object[]{entry.key, lrcfg.getHwAddr(), rtrPortIp});
+                    new Object[]{id, lrcfg.getHwAddr(), rtrPortIp});
         }
     }
 

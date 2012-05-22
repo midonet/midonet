@@ -39,6 +39,17 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         portMgr = new PortZkManager(zkDir, zkBasePath);
     }
 
+    public <T extends PortConfig> T get(UUID key, Class<T> clazz) {
+        PortConfig config = get(key);
+        try {
+            return clazz.cast(config);
+        } catch (ClassCastException e) {
+            log.error("Tried to cast {} to a {}",
+                    new Object[] {config, clazz, e});
+            return null;
+        }
+    }
+
     @Override
     protected PortConfig load(UUID key) {
         try {

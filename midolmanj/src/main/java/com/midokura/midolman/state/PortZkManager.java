@@ -7,6 +7,7 @@ package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -384,6 +385,17 @@ public class PortZkManager extends ZkManager {
         return result;
     }
 
+    public Set<UUID> listPortIDs(String path, Runnable watcher)
+            throws StateAccessException {
+        Set<UUID> result = new HashSet<UUID>();
+        Set<String> portIds = getChildren(path, watcher);
+        for (String portId : portIds) {
+            // For now, get each one.
+            result.add(UUID.fromString(portId));
+        }
+        return result;
+    }
+
     /**
      * Gets a list of ZooKeeper port nodes belonging to a router with the given
      * ID.
@@ -452,21 +464,19 @@ public class PortZkManager extends ZkManager {
     }
 
     /**
-     * Gets a list of ZooKeeper port nodes belonging to a bridge with the given
-     * ID.
+     * Get the set of IDs of a Bridge's logical ports.
      *
      * @param bridgeId
-     *            The ID of the bridge to find the ports of.
-     * @return A list of ZooKeeper port nodes.
+     *              The ID of the bridge whose logical port IDs to retrieve.
      * @param watcher
-     *            The watcher to set on the changes to the ports for this
-     *            router.
+     *              The watcher to notify if the set of IDs changes.
+     * @return  A set of logical port IDs.
      * @throws StateAccessException
-     *             Serialization error occurred.
+     *              If a data error occurs while accessing ZK.
      */
-    public List<ZkNodeEntry<UUID, PortConfig>> listBridgeLogicalPorts(
-            UUID bridgeId, Runnable watcher) throws StateAccessException {
-        return listPorts(
+    public Set<UUID> getBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
+        throws StateAccessException {
+        return listPortIDs(
                 pathManager.getBridgeLogicalPortsPath(bridgeId), watcher);
     }
 
