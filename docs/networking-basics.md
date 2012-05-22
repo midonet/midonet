@@ -93,7 +93,8 @@ each byte value written as two hexadecimal digits, for example
 The part of a computer which is responsible for digitizing, framing, and
 address-checking Ethernet traffic is the *NIC* (network interface card).
 A NIC which doesn't address-check (and so receives all traffic on the
-segment, even that intended for a different recipient) is called *promiscuous*.
+segment, even that intended for a different recipient) is said to be
+operating in *promiscuous mode*.
 
 A forwarding element which knows which Ethernet addresses are on which
 links is called an *Ethernet switch*.  A switch typically determines
@@ -149,13 +150,19 @@ prefix is chosen.  This is called *longest prefix matching*.
 The address range `0.0.0.0/0` matches every IP address, and a route for
 this range is called a *default route*, because it'll match packets exactly
 when no other route does.
+
 If an address range is contained inside another range, the smaller range
 is called a *subnet* of the larger.  IP addresses are assigned in a
 hierarchical basis, with a large provider giving subnets of a large range
 it owns to its clients, who give smaller subnets of their own subnet to
 their clients.  This way the organization of the IP address space matches
 the organization of the network, at least somewhat, and longest prefix matching
-can be used to forward packets toward their intended destinations.
+can be used to forward packets toward their intended destinations.  The highest
+numbered address of a subnet is reserved for broadcast traffic to all nodes
+in that subnet.  Unless the subnet is an isolated network with no outside
+connections, an address must be used for each gateway connecting the subnet
+to an external network.  The other addresses in the subnet are available to
+be used by leaf nodes or to form smaller subnets.
 
 As an IPv4 packet is contained inside a layer 2 protocol frame, to deliver
 packets to a node in the same L2 domain for which the sending node only knows
@@ -165,7 +172,9 @@ of Ethernet, this discovery is accomplished using *ARP* (address resolution
 protocol).  To find a MAC address with ARP, a node sends a broadcast packet
 requesting the owner of the IP address of interest to respond back with its
 MAC address.  If no reply is received after several tries, traffic delivery
-is aborted with a "no route to host" error.
+is aborted with a "no route to host" error.  If a reply is received, the
+node records the contents of the reply in an *ARP cache* so it won't have
+to make an ARP request for other packets for the same destination.
 
 Routers use the "next hop" field of the route to determine the L2 address
 to use on their egress link when they forward the packet.  If the next hop
@@ -173,14 +182,14 @@ is absent from the route, that indicates that the router is the last hop,
 and it sends the packet using the final destination's L2 address, discovering
 it (eg, with ARP) if necessary.  If a sequence of routers have routes that
 each point to the next router in the sequence for some address, then back to
-the first router, then that address has a *routing loop*.  (An example of
+the first router, then that address has a *routing loop*.  An example of
 such a misconfiguration is if Router 1 handles Router 2's default traffic
 and thinks Router 2 handles `168.212.226.0/24`, but Router 2 doesn't think it
 does.  This is represented in the routing tables
 by Router 1 having a route to Router 2 for `168.212.226.0/24`, but
 Router 2 not having
 entries for that range, and having a route for `0.0.0.0/0` which points
-back to Router 1.)  To keep such loops from going indefinitely, IP packets
+back to Router 1.  To keep such loops from going indefinitely, IP packets
 have a *TTL* (time to live) field, which is decremented by each router in
 the course of forwarding.  If this field reaches zero, the packet is discarded
 with a "TTL expired" error.
