@@ -661,6 +661,11 @@ public class VRNController extends AbstractController
             actions.add(new NxActionSetTunnelKey32(setTunnelId));
         for (Short outPortNum : outPorts) {
             short out = outPortNum.shortValue();
+            /* See OpenFlow 1.0, enum ofp_port {...
+             * OFPP_IN_PORT	= 0xfff8,
+             * Send the packet out the input port. This virtual port must be
+             * explicitly used in order to send back out of the input port.
+             */
             if (out == origMatch.getInputPort())
                 out = OFPort.OFPP_IN_PORT.getValue();
             actions.add(new OFActionOutput(out, (short) 0));
