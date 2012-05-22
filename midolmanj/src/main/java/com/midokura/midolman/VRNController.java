@@ -1011,16 +1011,7 @@ public class VRNController extends AbstractController
     @Override
     protected void initServicePorts(long datapathId) {
 
-        long sessionId = 0;
-        if (zkDir instanceof ZkDirectory) {
-            ZkDirectory dir = ZkDirectory.class.cast(zkDir);
-            sessionId = dir.zk.getSessionId();
-        } else {
-            log.warn(
-                    "VRNController.initServicePorts: Directory object is not"
-                    + " ZkDirectory.  Cannot start VPN service.");
-            return;
-        }
+        long sessionId = zkDir.getSessionId();
 
         // Initialize VPN service.
         VpnPortAgent vpnAgent = new VpnPortAgent(sessionId, datapathId,
