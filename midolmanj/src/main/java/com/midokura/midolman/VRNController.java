@@ -57,6 +57,7 @@ import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;
+import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
@@ -117,6 +118,7 @@ public class VRNController extends AbstractController
     private VpnZkManager vpnMgr;
     private Directory zkDir;
     PortConfigCache portCache;
+    private Cache connectionCache;
     private Collection<VRNControllerObserver> vrnObservers =
         new CopyOnWriteArrayList<VRNControllerObserver>();
 
@@ -135,10 +137,11 @@ public class VRNController extends AbstractController
         this.portSetMap.start();
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
                                                  reactor);
-        this.portCache =
-                new PortConfigCache(reactor, zkDir, zkBasePath);
-        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this,
-                portSetMap, chainProcessor, portCache);
+        this.portCache = new PortConfigCache(reactor, zkDir, zkBasePath);
+        this.connectionCache = cache;
+        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, 
+                                      this, portSetMap, chainProcessor, 
+                                      portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.bgpService = bgpService;
@@ -330,19 +333,21 @@ public class VRNController extends AbstractController
             }
         }
 
-        // Send the packet to the network simulation.
-        OFPacketContext fwdInfo = new OFPacketContext(
-                bufferId, data, inPort, totalLen, matchingTunnelId,
-                null /*connectionCache XXX*/);
-        fwdInfo.inPortId = inPortId;
-        fwdInfo.flowMatch = match;
-        fwdInfo.matchIn = match.clone();
-        fwdInfo.pktIn = ethPkt;
+        OFPacketContext fwdInfo = null;
         try {
+            // Send the packet to the network simulation.
+            fwdInfo = new OFPacketContext(
+                    bufferId, data, inPort, totalLen, matchingTunnelId,
+                    connectionCache,
+                    vrn.getForwardingElementByPort(inPortId).getId());
+            fwdInfo.inPortId = inPortId;
+            fwdInfo.flowMatch = match;
+            fwdInfo.matchIn = match.clone();
+            fwdInfo.pktIn = ethPkt;
             vrn.process(fwdInfo);
         } catch (Exception e) {
             log.warn("Exception during network simulation, " +
-                    "installing temporary drop rule: ", e);
+                     "installing temporary drop rule: ", e);
             freeFlowResources(match, fwdInfo.getNotifiedFEs());
             installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
                                  TEMPORARY_DROP_SECONDS);
@@ -465,6 +470,28 @@ public class VRNController extends AbstractController
         }
     }
 
+    private void installConnectionCacheEntry(UUID outPortID, 
+                                             MidoMatch flowMatch) {
+        UUID fe;
+        try {
+            fe = vrn.getForwardingElementByPort(outPortID).getId();
+        } catch (StateAccessException e) {
+            log.error("Couldn't find just-traversed FE for port {}: {}",
+                      outPortID, e.getMessage());
+            return;
+        } catch (KeeperException e) {
+            log.error("Couldn't find just-traversed FE for port {}: {}",
+                      outPortID, e.getMessage());
+            return;
+        }
+        String key = ForwardInfo.connectionKey(
+                         flowMatch.getNetworkDestination(),
+                         flowMatch.getTransportDestination(),
+                         flowMatch.getNetworkSource(),
+                         flowMatch.getTransportSource(), fe);
+        connectionCache.set(key, "r");
+    }
+
     private void forwardLocalPacket(ForwardInfo fwdInfo) {
         OFPacketContext ofPktCtx = null;
         GeneratedPacketContext genPktCtx = null;
@@ -476,6 +503,10 @@ public class VRNController extends AbstractController
             inPortNum = ofPktCtx.inPortNum;
         }
 
+        if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow()) {
+            installConnectionCacheEntry(fwdInfo.outPortId, fwdInfo.flowMatch);
+        }
+            
         List<OFAction> actions;
         Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
         // Is the egress a locally installed virtual port?
@@ -612,8 +643,9 @@ public class VRNController extends AbstractController
             // The port groups *should* be set based on the original origin
             // port, but we don't have access to that, so use null.
             RuleResult result = chainProcessor.applyChain(
-                            portCfg.outboundFilter, null /*fwdInfo XXX*/,
-                            pktMatch, portID);
+                            portCfg.outboundFilter,
+                            new DummyPacketContext(pktMatch), pktMatch, portID,
+                            true);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
@@ -625,6 +657,25 @@ public class VRNController extends AbstractController
                       "it to the flood", e.getMessage(), portNum);
             return true;
         }
+    }
+
+    private static class DummyPacketContext implements ChainPacketContext {
+        // Dummy packet context for use on chain rules with flooded packets.
+        // No port IDs (can't be used by port filters), no port groups,
+        // packet is never conn tracked and always a forward flow.
+
+        private MidoMatch match;
+
+        public DummyPacketContext(MidoMatch m) {
+            match = m;
+        }
+
+        public UUID getInPortId() { return null; }
+        public UUID getOutPortId() { return null; }
+        public Set<UUID> getPortGroups() { return null; }
+        public boolean isConnTracked() { return false; }
+        public boolean isForwardFlow() { return true; }
+        public MidoMatch getFlowMatch() { return match; }
     }
 
     private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
@@ -1104,8 +1155,9 @@ public class VRNController extends AbstractController
         long tunnelId;
 
         private OFPacketContext(int bufferId, byte[] data, int inPortNum,
-                                int totalLen, long tunnelId, Cache cache) {
-            super(false, cache);
+                                int totalLen, long tunnelId, Cache cache,
+                                UUID ingressFE) {
+            super(false, cache, ingressFE);
             this.bufferId = bufferId;
             this.data = data;
             this.inPortNum = inPortNum;
@@ -1118,7 +1170,7 @@ public class VRNController extends AbstractController
         byte[] data;
 
         private GeneratedPacketContext(Ethernet pkt, UUID originPort) {
-            super(true, null);
+            super(true, null, null);
             this.data = pkt.serialize();
             this.pktIn = pkt;
 

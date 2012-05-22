@@ -101,10 +101,13 @@ public class ChainProcessor {
      *            will NOT be modified by the rule chain.
      * @param ownerId
      *            UUID of the element using chainId.
+     * @param isPortFilter
+     *            whether the chain is being processed in a port filter context
      * @return
      */
     public RuleResult applyChain(UUID chainID, ChainPacketContext fwdInfo,
-                                 MidoMatch pktMatch, UUID ownerId)
+                                 MidoMatch pktMatch, UUID ownerId, 
+                                 boolean isPortFilter)
             throws StateAccessException {
         RuleResult res = new RuleResult(
                 RuleResult.Action.ACCEPT, null, pktMatch, false);
@@ -133,7 +136,8 @@ public class ChainProcessor {
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
                 cp.rules.get(cp.position).process(fwdInfo, res,
-                                                  getNatMapping(ownerId));
+                                                  getNatMapping(ownerId),
+                                                  isPortFilter);
                 cp.position++;
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)

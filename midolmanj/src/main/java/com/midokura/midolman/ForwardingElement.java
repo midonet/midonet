@@ -21,6 +21,7 @@ import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.util.Net;
 
 
 public interface ForwardingElement {
@@ -100,9 +101,11 @@ public interface ForwardingElement {
         private boolean connectionTracked = false;
         private boolean forwardFlow;    
         private Cache connectionCache;
+        private UUID ingressFE;
 
-        public ForwardInfo(Cache c) {}
-        public ForwardInfo(boolean internallyGenerated, Cache c) {
+        public ForwardInfo(boolean internallyGenerated, Cache c, UUID ingressFE) {
+            connectionCache = c;
+            this.ingressFE = ingressFE;
             this.internallyGenerated = internallyGenerated;
         }
 
@@ -152,13 +155,28 @@ public interface ForwardingElement {
             if (internallyGenerated)
                 return true;
 
-            // TODO: ICMP Unreachables won't get through a return-flow-only
+            // TODO(jlm): ICMP Unreachables won't get through a return-flow-only
             // filter, from either us or the external network.  How should
             // we handle these?
 
             connectionTracked = true;
-            //XXX: Query connectionCache.
-            return true; //XXX
+            // Query connectionCache.
+            String key = connectionKey(flowMatch.getNetworkSource(),
+                                       flowMatch.getTransportSource(),
+                                       flowMatch.getNetworkDestination(),
+                                       flowMatch.getTransportDestination(),
+                                       ingressFE);
+            String value = connectionCache.get(key);
+            return !("r".equals(value));
+        }
+
+        public static String connectionKey(int ip1, short port1, int ip2,
+                                           short port2, UUID fe) {
+            return new StringBuilder(Net.convertIntAddressToString(ip1))
+                                 .append('|').append(port1).append('|')
+                                 .append(Net.convertIntAddressToString(ip2))
+                                 .append('|').append(port2).append('|')
+                                 .append(fe.toString()).toString();
         }
 
         @Override

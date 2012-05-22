@@ -377,7 +377,7 @@ public class Router implements ForwardingElement {
 
         RuleResult res = ruleEngine.applyChain(
                 myConfig.inboundFilter, fwdInfo, fwdInfo.matchIn,
-                this.routerId);
+                this.routerId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -428,7 +428,7 @@ public class Router implements ForwardingElement {
                 new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort });
         res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo,
-                                    res.match, this.routerId);
+                                    res.match, this.routerId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {

@@ -68,9 +68,10 @@ public class Condition {
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
 
-    public boolean matches(ChainPacketContext fwdInfo, MidoMatch pktMatch) {
-        UUID inPortId = fwdInfo.getInPortId();
-        UUID outPortId = fwdInfo.getOutPortId();
+    public boolean matches(ChainPacketContext fwdInfo, MidoMatch pktMatch,
+                           boolean isPortFilter) {
+        UUID inPortId = isPortFilter ? null : fwdInfo.getInPortId();
+        UUID outPortId = isPortFilter ? null : fwdInfo.getOutPortId();
         Set<UUID> senderGroups = fwdInfo.getPortGroups();
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
@@ -85,6 +86,14 @@ public class Condition {
          * of 'conjunctionInv'.  If the conjunction evaluates to true, then
          * we return 'NOT conjunctionInv'.
          */
+        if (matchForwardFlow) {
+            if (!fwdInfo.isForwardFlow())
+                return conjunctionInv;
+        }
+        if (matchReturnFlow) {
+            if (fwdInfo.isForwardFlow())
+                return conjunctionInv;
+        }
         if (null != inPortIds && inPortIds.size() > 0
                 && inPortIds.contains(inPortId) == inPortInv)
             return conjunctionInv;

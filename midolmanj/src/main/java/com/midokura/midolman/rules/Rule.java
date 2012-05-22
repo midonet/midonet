@@ -50,12 +50,16 @@ public abstract class Rule implements Comparable<Rule> {
      *            preceding this rule. This may be modified.
      * @param natMapping
      *            NAT state of the element using this chain.
+     * @param isPortFilter
+     *            whether the rule is being processed in a port filter context
      */
     public void process(ChainPacketContext fwdInfo, RuleResult res,
-                        NatMapping natMapping) {
-        if (condition.matches(fwdInfo, res.match)) {
-            apply(fwdInfo.getFlowMatch(), fwdInfo.getInPortId(),
-                  fwdInfo.getOutPortId(), res, natMapping);
+                        NatMapping natMapping, boolean isPortFilter) {
+        if (condition.matches(fwdInfo, res.match, isPortFilter)) {
+            apply(fwdInfo.getFlowMatch(),
+                  isPortFilter ? null : fwdInfo.getInPortId(),
+                  isPortFilter ? null : fwdInfo.getOutPortId(), 
+                  res, natMapping);
         }
     }
 
