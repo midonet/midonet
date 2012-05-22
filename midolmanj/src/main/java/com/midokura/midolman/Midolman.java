@@ -58,6 +58,7 @@ public class Midolman implements SelectListener, Watcher {
     private String externalIdKey;
     private UUID vrnId;
 
+    private Controller controller;
     private ScheduledExecutorService executor;
     private OpenvSwitchDatabaseConnection ovsdb;
     private ZkConnection zkConnection;
@@ -184,6 +185,12 @@ public class Midolman implements SelectListener, Watcher {
     public void handleEvent(SelectionKey key) throws IOException {
         log.info("handleEvent " + key);
 
+        // If the controller is already set, don't accept any new connection.
+        if (controller != null) {
+            log.warn("Midolman.handleEvent: Controller has already started.");
+            return;
+        }
+
         try {
             SocketChannel sock = listenSock.accept();
             log.info("handleEvent accepted connection from " +
@@ -206,10 +213,10 @@ public class Midolman implements SelectListener, Watcher {
             PortService vpnPortService = OpenVpnPortService.createVpnPortService(
                     ovsdb, externalIdKey, midonetDirectory, basePath);
 
-            Controller controller = new VRNController(midonetDirectory,
-                    basePath, localNwAddr, ovsdb, loop,
-                    CacheFactory.create(config), externalIdKey, vrnId,
-                    useNxm, bgpPortService, vpnPortService);
+            controller = new VRNController(midonetDirectory, basePath,
+                    localNwAddr, ovsdb, loop, CacheFactory.create(config),
+                    externalIdKey, vrnId, useNxm, bgpPortService,
+                    vpnPortService);
 
             ControllerStubImpl controllerStubImpl =
                 new ControllerStubImpl(sock, loop, controller);
