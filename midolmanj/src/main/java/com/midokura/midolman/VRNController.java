@@ -76,7 +76,6 @@ import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.util.functors.UnaryFunctor;
-import com.midokura.util.functors.UnaryFunctor;
 
 
 public class VRNController extends AbstractController
@@ -1001,8 +1000,8 @@ public class VRNController extends AbstractController
     }
 
     @Override
-    protected void addVirtualPort(
-            final int portNum, final String name, final MAC addr, final UUID portId) {
+    protected void addVirtualPort(final int portNum, final String name,
+                                  final MAC hwAddr, final UUID portId) {
         log.info("addVirtualPort number {} bound to vport {}", portNum, portId);
 
         try {
@@ -1011,7 +1010,7 @@ public class VRNController extends AbstractController
             notifyObservers(new UnaryFunctor<VRNControllerObserver>() {
                 @Override
                 public void apply(VRNControllerObserver arg0) {
-                    arg0.addVirtualPort(portNum, name, addr, portId);
+                    arg0.addVirtualPort(VRNController.this, portNum, portId, name);
                 }
             });
 
@@ -1047,7 +1046,7 @@ public class VRNController extends AbstractController
             notifyObservers(new UnaryFunctor<VRNControllerObserver>() {
                 @Override
                 public void apply(VRNControllerObserver arg0) {
-                    arg0.delVirtualPort(portNum, portId);
+                    arg0.delVirtualPort(VRNController.this, portNum, portId);
                 }
             });
 

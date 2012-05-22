@@ -17,8 +17,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.midokura.midolman.AbstractVrnControllerTest;
+import com.midokura.midolman.VRNController;
 import com.midokura.midolman.VRNControllerObserver;
-import com.midokura.midolman.packets.MAC;
 import static com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 
 /**
@@ -54,18 +54,6 @@ public class VrnControllerObserverTest extends AbstractVrnControllerTest {
         port2 = toOFPhysicalPort(portNumber, "port2", portConfig);
     }
 
-    private OFPhysicalPort toOFPhysicalPort(int portNum, String portName,
-                                            MaterializedRouterPortConfig portConfig) {
-
-        OFPhysicalPort physicalPort = new OFPhysicalPort();
-
-        physicalPort.setHardwareAddress(portConfig.getHwAddr().getAddress());
-        physicalPort.setPortNumber((byte) portNum);
-        physicalPort.setName(portName);
-
-        return physicalPort;
-    }
-
     @Override
     @AfterMethod
     public void tearDown() throws Exception {
@@ -79,13 +67,15 @@ public class VrnControllerObserverTest extends AbstractVrnControllerTest {
 
         VRNControllerObserver observer = new VRNControllerObserver() {
             @Override
-            public void addVirtualPort(int portNum, String name, MAC addr,
-                                       UUID portId) {
+            public void addVirtualPort(VRNController controller,
+                                       int portNum, UUID portId,
+                                       String portName) {
                 uuids.add(portId);
             }
 
             @Override
-            public void delVirtualPort(int portNum, UUID portId) {
+            public void delVirtualPort(VRNController controller,
+                                       int portNum, UUID portId) {
                 uuids.remove(portId);
             }
         };

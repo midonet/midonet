@@ -5,8 +5,6 @@ package com.midokura.midolman;
 
 import java.util.UUID;
 
-import com.midokura.midolman.packets.MAC;
-
 /**
  * Observer for Virtual Router Network events that happen inside a specific
  * controller instance (aka on the current machine).
@@ -19,18 +17,22 @@ public interface VRNControllerObserver {
     /**
      * Called when a port has just become visible to a controller.
      *
-     * @param portNum is the portNumber (as known by OVS)
-     * @param name is the port name (as known by OVS)
-     * @param addr is the mac address
-     * @param portId is the UUID of the port (as known by OVS)
+     * @param controller is a reference on the controller that has this
+     *                   observer registered
+     * @param portNum    is the portNumber (as known by OVSDB)
+     * @param portId     is the UUID of the port (from the OVSDB external ID key)
+     * @param portName   is the port name (as known by OVSDB)
      */
-    void addVirtualPort(int portNum, String name, MAC addr, UUID portId);
+    void addVirtualPort(VRNController controller,
+                        int portNum, UUID portId, String portName);
 
     /**
      * Called when the controller has been notified that a port was just removed.
      *
-     * @param portNum is the portNumber (as known by OVS)
-     * @param portId is the UUID of the port (as known by OVS)
+     * @param controller is a reference to the controller that has this
+     *                   observer registered.
+     * @param portNum    is the portNumber (as known by OVSDB)
+     * @param portId     is the UUID of the port (from the OVSDB external ID key)
      */
-    void delVirtualPort(int portNum, UUID portId);
+    void delVirtualPort(VRNController controller, int portNum, UUID portId);
 }
