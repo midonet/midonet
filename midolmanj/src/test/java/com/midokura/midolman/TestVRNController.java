@@ -2191,4 +2191,116 @@ public class TestVRNController {
                 new ArrayList<OFAction>());
         */
     }
+
+    @Test
+    public void testPortGroupsChange() throws StateAccessException,
+            RuleIndexOutOfBoundsException, InterruptedException,
+            KeeperException {
+        // Send a packet from router1's first port to an address on router2's
+        // second port. Pre-seed Router2's ARP cache.
+        IntIPv4 srcIp = new IntIPv4(0x0a010099);
+        IntIPv4 dstIp = new IntIPv4(0x0a020199);
+        long now = reactor.currentTimeMillis();
+        MAC dstMac = MAC.fromString("02:dd:dd:dd:0d:a1");
+        arpTables.get(routerIds.get(2)).put(
+                dstIp,
+                new ArpCacheEntry(dstMac, now + Router.ARP_TIMEOUT_MILLIS,
+                         now + Router.ARP_RETRY_MILLIS, now));
+        reactor.incrementTime(0, TimeUnit.SECONDS);
+
+        byte[] payload = new byte[] { (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+        OFPhysicalPort phyPortIn = phyPorts.get(1).get(0);
+        OFPhysicalPort phyPortOut = phyPorts.get(2).get(1);
+        UUID egressUuid = portNumToUuid.get((short)21);
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                new MAC(phyPortIn.getHardwareAddress()), 0x0a010099,
+                0x0a020199, (short) 101, (short) 212, payload);
+        byte[] data = eth.serialize();
+        vrnCtrl.onPacketIn(999, data.length, phyPortIn.getPortNumber(), data);
+
+        MAC routerMac = new MAC(phyPortOut.getHardwareAddress());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        MidoMatch match = AbstractController.createMatchFromPacket(
+                eth, phyPortIn.getPortNumber());
+        List<OFAction> actions = new ArrayList<OFAction>();
+        OFActionDataLayerSource ofDlSrcAction = new OFActionDataLayerSource();
+        ofDlSrcAction.setDataLayerAddress(routerMac.getAddress());
+        actions.add(ofDlSrcAction);
+        OFActionDataLayerDestination ofDlDstAction =
+                new OFActionDataLayerDestination();
+        ofDlDstAction.setDataLayerAddress(dstMac.getAddress());
+        actions.add(ofDlDstAction);
+        // Set the tunnel ID to indicate the output port to use.
+        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.value.greKey;
+        NxActionSetTunnelKey32 ofTunnelIdAction =
+                new NxActionSetTunnelKey32(tunnelId);
+        actions.add(ofTunnelIdAction);
+        // Router2's second port is reachable via the tunnel OF port number 21.
+        OFActionOutput ofOutAction = new OFActionOutput((short) 21, (short) 0);
+        actions.add(ofOutAction); // the Output action goes at the end.
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT, 999,
+                false, actions);
+        MockControllerStub.Packet actualPacket =
+                controllerStub.sentPackets.get(0);
+        Assert.assertEquals(999, actualPacket.bufferId);
+        // Empty data array due to packet being buffered.
+        Assert.assertArrayEquals(new byte[]{}, actualPacket.data);
+        Assert.assertArrayEquals(actions.toArray(),
+                                 actualPacket.actions.toArray());
+
+        // Now add port 10 to a new PortGroup.
+        ZkNodeEntry<UUID, PortConfig> entry =
+                portMgr.get(portNumToUuid.get((short)10));
+        entry.value.portGroupIDs = new HashSet<UUID>();
+        UUID portGroupID = UUID.randomUUID();
+        entry.value.portGroupIDs.add(portGroupID);
+        portMgr.update(entry);
+
+        // Now add a filter on port 21 that drops packets from that PortGroup.
+        UUID chainId = chainMgr.create(new ChainConfig("portOutboundFilter"));
+        // Set this chain as the outboundFilter of port 20's PortConfig
+        entry = portMgr.get(portNumToUuid.get((short)21));
+        entry.value.outboundFilter = chainId;
+        portMgr.update(entry);
+
+        Condition cond = new Condition();
+        cond.portGroup = portGroupID;
+        Rule r = new LiteralRule(cond, Action.DROP, chainId, 1);
+        ruleMgr.create(r);
+
+        // Now resend the packet from port 20 to 21 and show that a DROP rule
+        // is installed.
+        vrnCtrl.onPacketIn(1000, data.length, phyPortIn.getPortNumber(), data);
+        Assert.assertEquals(2, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        checkInstalledFlow(controllerStub.addedFlows.get(1), match,
+                VRNController.NO_IDLE_TIMEOUT,
+                VRNController.TEMPORARY_DROP_SECONDS, 1000, false,
+                new ArrayList<OFAction>());
+
+        // Remove port 10 from the PortGroup and try resending the packet.
+        entry = portMgr.get(portNumToUuid.get((short)10));
+        entry.value.portGroupIDs = null;
+        portMgr.update(entry);
+
+        // Resend the packet from port 20 to 21 and show it's Forwarded.
+        vrnCtrl.onPacketIn(1001, data.length, phyPortIn.getPortNumber(), data);
+        Assert.assertEquals(3, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(2, controllerStub.sentPackets.size());
+        checkInstalledFlow(controllerStub.addedFlows.get(2), match,
+                idleFlowTimeoutSeconds, VRNController.NO_HARD_TIMEOUT, 1001,
+                false, actions);
+        actualPacket = controllerStub.sentPackets.get(1);
+        Assert.assertEquals(1001, actualPacket.bufferId);
+        // Empty data array due to packet being buffered.
+        Assert.assertArrayEquals(new byte[]{}, actualPacket.data);
+        Assert.assertArrayEquals(actions.toArray(),
+                actualPacket.actions.toArray());
+    }
 }
