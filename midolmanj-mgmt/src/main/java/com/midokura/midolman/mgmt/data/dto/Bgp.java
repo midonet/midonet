@@ -1,7 +1,6 @@
 /*
- * @(#)Bgp        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -17,9 +16,6 @@ import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
 /**
  * Class representing BGP.
- *
- * @version 1.6 11 Sept 2011
- * @author Yoshi Tamura
  */
 @XmlRootElement
 public class Bgp extends UriResource {
@@ -164,6 +160,13 @@ public class Bgp extends UriResource {
      */
     public void setPortId(UUID portId) {
         this.portId = portId;
+    }
+
+    /**
+     * @return the port URI
+     */
+    public URI getPort() {
+        return ResourceUriBuilder.getPort(getBaseUri(), portId);
     }
 
     /**

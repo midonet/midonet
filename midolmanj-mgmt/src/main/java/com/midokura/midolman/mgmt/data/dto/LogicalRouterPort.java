@@ -1,10 +1,10 @@
 /*
- * @(#)LogicalRouterPort        1.6 18/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
@@ -20,9 +21,6 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Data transfer class for logical router port.
- *
- * @version 1.6 18 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class LogicalRouterPort extends RouterPort {
@@ -93,6 +91,13 @@ public class LogicalRouterPort extends RouterPort {
     }
 
     /**
+     * @return the peer port URI
+     */
+    public URI getPeer() {
+        return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+    }
+
+    /**
      * @return the peerPortAddress
      */
     public String getPeerPortAddress() {
@@ -120,6 +125,13 @@ public class LogicalRouterPort extends RouterPort {
      */
     public void setPeerRouterId(UUID peerRouterId) {
         this.peerRouterId = peerRouterId;
+    }
+
+    /**
+     * @return the peer router URI
+     */
+    public URI getPeerRouter() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), peerRouterId);
     }
 
     /*

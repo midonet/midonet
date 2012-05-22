@@ -93,6 +93,13 @@ public class Route extends UriResource {
     public UUID getRouterId() {
         return routerId;
     }
+    
+    /**
+     * @return the router URI
+     */
+    public URI getRouter() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+    }
 
     /**
      * @param routerId

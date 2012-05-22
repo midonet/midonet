@@ -1,7 +1,6 @@
 /*
- * @(#)Vpn        1.6 11/10/25
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -17,9 +16,6 @@ import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 
 /**
  * Class representing VPN.
- *
- * @version 1.6 25 Oct 2011
- * @author Yoshi Tamura
  */
 @XmlRootElement
 public class Vpn extends UriResource {
@@ -120,6 +116,13 @@ public class Vpn extends UriResource {
     }
 
     /**
+     * @return the pubilc port URI
+     */
+    public URI getPublicPort() {
+        return ResourceUriBuilder.getPort(getBaseUri(), publicPortId);
+    }
+
+    /**
      * Get private port ID.
      *
      * @return Private port ID.
@@ -136,6 +139,13 @@ public class Vpn extends UriResource {
      */
     public void setPrivatePortId(UUID privatePortId) {
         this.privatePortId = privatePortId;
+    }
+
+    /**
+     * @return the private port URI
+     */
+    public URI getPrivatePort() {
+        return ResourceUriBuilder.getPort(getBaseUri(), privatePortId);
     }
 
     /**

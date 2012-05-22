@@ -1,7 +1,6 @@
 /*
- * @(#)Port        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -17,11 +16,7 @@ import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Class representing port.
- *
- * @version 1.6 08 Sept 2011
- * @author Ryu Ishimoto
  */
-
 public abstract class Port extends UriResource {
 
     /**
@@ -101,6 +96,11 @@ public abstract class Port extends UriResource {
     public UUID getDeviceId() {
         return deviceId;
     }
+    
+    /**
+     * @return the device URI
+     */
+    abstract public URI getDevice();
 
     /**
      * logical Set device ID.

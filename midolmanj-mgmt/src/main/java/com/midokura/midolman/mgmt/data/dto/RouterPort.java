@@ -1,19 +1,16 @@
 /*
- * @(#)RouterPort        1.6 12/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Data transfer class for router port.
- *
- * @version 1.6 12 Sept 2011
- * @author Ryu Ishimoto
  */
 public abstract class RouterPort extends Port {
 
@@ -51,6 +48,14 @@ public abstract class RouterPort extends Port {
         super(id, deviceId, vifId);
     }
 
+    /**
+     * @return the router URI
+     */
+    @Override
+    public URI getDevice() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), deviceId);
+    }
+    
     /**
      * @return the networkAddress
      */

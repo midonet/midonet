@@ -1,7 +1,6 @@
 /*
- * @(#)PeerRouterLink        1.6 11/09/19
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -15,9 +14,6 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Class representing port.
- *
- * @version 1.6 19 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class PeerRouterLink extends UriResource {
@@ -100,6 +96,13 @@ public class PeerRouterLink extends UriResource {
     }
 
     /**
+     * @return the peer port URI
+     */
+    public URI getPeerPort() {
+        return ResourceUriBuilder.getPort(getBaseUri(), peerPortId);
+    }
+
+    /**
      * @return the routerId
      */
     public UUID getRouterId() {
@@ -115,6 +118,13 @@ public class PeerRouterLink extends UriResource {
     }
 
     /**
+     * @return the router URI
+     */
+    public URI getRouter() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+    }
+
+    /**
      * @return the peerRouterId
      */
     public UUID getPeerRouterId() {
@@ -127,6 +137,13 @@ public class PeerRouterLink extends UriResource {
      */
     public void setPeerRouterId(UUID peerRouterId) {
         this.peerRouterId = peerRouterId;
+    }
+
+    /**
+     * @return the peer router URI
+     */
+    public URI getPeerRouter() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), peerRouterId);
     }
 
     /**
