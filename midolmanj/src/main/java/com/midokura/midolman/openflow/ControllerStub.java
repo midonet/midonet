@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.openflow;
@@ -72,6 +72,27 @@ public interface ControllerStub {
     void sendFlowModDelete(OFMatch match, boolean strict,
             short priority, short outPort, long matchingTunnelId);
 
+    /**
+     * Send a ofp_packet_out message to the switch. See OpenFlow1.0 spec,
+     * Section 5.3.6 "Send Packet Message":
+     *
+     * "The buffer_id is the same given in the ofp_packet_in message. If the
+     * buffer_id is -1, then the packet data is included in the data array.
+     * If OFPP_TABLE is specified as the output port of an action, the in_port
+     * in the packet_out message is used in the flow table lookup."
+     *
+     * In testing we found that the switch drops sent packets if inPort is
+     * not OFPP_NONE and there is no action that outputs to OFPP_TABLE.
+     *
+     * @param bufferId
+     *              ID assigned by datapath (-1 if none).
+     * @param inPort
+     *              Packet’s input port (OFPP_NONE if none).
+     * @param actions
+     *              Actions to apply to the packet.
+     * @param data
+     *              The packet data (only if bufferId is -1).
+     */
     void sendPacketOut(int bufferId, short inPort, List<OFAction> actions,
                        byte[] data);
 
