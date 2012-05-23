@@ -146,15 +146,15 @@ public class PortDaoAdapter implements PortDao {
                     port = new MaterializedRouterPort(id, mgmtConfig,
                             (MaterializedRouterPortConfig) config);
                 } else {
-                    port = new BridgePort(
-                            id, config.device_id, mgmtConfig.vifId);
+                    port = new BridgePort(id, config.device_id,
+                            mgmtConfig.vifId);
                 }
             }
             port.setInboundFilter(config.inboundFilter);
             port.setOutboundFilter(config.outboundFilter);
             if (null != config.portGroupIDs && config.portGroupIDs.size() > 0)
-                port.setPortGroupIDs(config.portGroupIDs.toArray(
-                        new UUID[config.portGroupIDs.size()]));
+                port.setPortGroupIDs(config.portGroupIDs
+                        .toArray(new UUID[config.portGroupIDs.size()]));
         }
 
         log.debug("PortDaoAdapter.get existing: port={}", port);
@@ -257,5 +257,28 @@ public class PortDaoAdapter implements PortDao {
         log.debug("PortDaoAdapter.listRouterPorts exiting: port count={}",
                 ports.size());
         return ports;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.PortDao#update(com.midokura.midolman
+     * .mgmt.data.dto.Port)
+     */
+    @Override
+    public void update(Port port) throws StateAccessException {
+        log.debug("PortDaoAdapter.update entered: port={}", port);
+
+        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
+        mgmtConfig.vifId = port.getVifId();  // null means unplug
+
+        // Currently you can only do 'plug'/'unplug' so you can just call
+        // buildPlug method.  However, in the future, we may want to add port
+        // name and update that as well.
+        List<Op> ops = opService.buildUpdate(port.getId(), mgmtConfig);
+        zkDao.multi(ops);
+
+        log.debug("PortDaoAdapter.update exiting");
     }
 }

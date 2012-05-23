@@ -13,6 +13,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -128,6 +129,41 @@ public class PortResource {
         port.setBaseUri(uriInfo.getBaseUri());
 
         return port;
+    }
+
+    /**
+     * Handler to updating a port.
+     *
+     * @param id
+     *            Port ID from the request.
+     * @param port
+     *            Port object.
+     * @param context
+     *            Object that holds the security data.
+     * @param daoFactory
+     *            Data access factory object.
+     * @param authorizer
+     *            Authorizer object.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    @PUT
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("{id}")
+    @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
+            MediaType.APPLICATION_JSON })
+    public Response update(@PathParam("id") UUID id, Port port,
+            @Context SecurityContext context, @Context DaoFactory daoFactory,
+            @Context Authorizer authorizer) throws StateAccessException {
+
+        if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to update this port.");
+        }
+        PortDao dao = daoFactory.getPortDao();
+        port.setId(id);
+        dao.update(port);
+        return Response.ok().build();
     }
 
     /**

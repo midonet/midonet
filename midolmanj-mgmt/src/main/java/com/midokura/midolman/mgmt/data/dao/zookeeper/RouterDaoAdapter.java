@@ -13,11 +13,9 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
-import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
@@ -36,7 +34,6 @@ public class RouterDaoAdapter implements RouterDao {
             .getLogger(RouterDaoAdapter.class);
     private final RouterZkDao zkDao;
     private final RouterOpService opService;
-    private final ChainDao chainDao;
     private final PortDao portDao;
     private final RouteDao routeDao;
 
@@ -47,18 +44,15 @@ public class RouterDaoAdapter implements RouterDao {
      *            RouterZkDao object
      * @param opService
      *            RouterOpService object
-     * @param chainDao
-     *            ChainDao object
      * @param portDao
      *            PortDao object
      * @param routeDao
      *            RouteDao object
      */
     public RouterDaoAdapter(RouterZkDao zkDao, RouterOpService opService,
-            ChainDao chainDao, PortDao portDao, RouteDao routeDao) {
+            PortDao portDao, RouteDao routeDao) {
         this.zkDao = zkDao;
         this.opService = opService;
-        this.chainDao = chainDao;
         this.portDao = portDao;
         this.routeDao = routeDao;
     }

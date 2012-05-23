@@ -1,7 +1,6 @@
 /*
- * @(#)PortDao        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao;
 
@@ -13,9 +12,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Port data accessor interface.
- *
- * @version 1.6 24 Nov 2011
- * @author Ryu Ishimoto
  */
 public interface PortDao {
 
@@ -107,4 +103,13 @@ public interface PortDao {
      *             Data access error.
      */
     List<Port> listRouterPorts(UUID routerId) throws StateAccessException;
+
+    /**
+     * Update the Port whose ID is specified in the Port DTO.
+     *
+     * @param port
+     *          New port configuration.
+     * @throws StateAccessException
+     */
+    void update(Port port) throws StateAccessException;
 }

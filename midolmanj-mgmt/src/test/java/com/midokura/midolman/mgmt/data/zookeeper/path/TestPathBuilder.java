@@ -1,7 +1,6 @@
 /*
- * @(#)TestPathBuilder        1.6 11/12/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
@@ -166,8 +165,8 @@ public class TestPathBuilder {
 
         // Bridges
         result = builder.getBridgeRouterPath(uuid, uuid2);
-        expected = root + "/" + PathBuilder.BRIDGES_PATH + "/" + uuid + "/" +
-                PathBuilder.ROUTERS_PATH + "/" + uuid2;
+        expected = root + "/" + PathBuilder.BRIDGES_PATH + "/" + uuid + "/"
+                + PathBuilder.ROUTERS_PATH + "/" + uuid2;
         Assert.assertEquals(expected, result);
 
         // Ports

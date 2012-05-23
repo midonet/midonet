@@ -1,7 +1,6 @@
 /*
- * @(#)ZooKeeperDaoFactory        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
@@ -38,14 +37,11 @@ import com.midokura.midolman.util.Serializer;
 
 /**
  * ZooKeeper DAO factory class.
- *
- * @version 1.6 15 Nov 2011
- * @author Ryu Ishimoto
  */
 public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(ZooKeeperDaoFactory.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(ZooKeeperDaoFactory.class);
     protected Directory directory = null;
     protected final String rootPath;
     protected final String rootMgmtPath;
@@ -63,7 +59,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     public ZooKeeperDaoFactory(AppConfig config)
             throws DaoInitializationException {
         super(config);
-
+        log.debug("ZooKeeperDaoFactory: Initailizing ZooKeeperDaoFactory");
         this.rootPath = config.getZkRootPath();
         this.rootMgmtPath = config.getZkMgmtRootPath();
         this.connStr = config.getZkConnectionString();
@@ -311,7 +307,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     @Override
     public RouterDao getRouterDao() throws StateAccessException {
         return new RouterDaoAdapter(getRouterZkDao(), getRouterOpService(),
-                getChainDao(), getPortDao(), getRouteDao());
+                getPortDao(), getRouteDao());
     }
 
     private RouterZkManager getRouterZkManager() throws StateAccessException {
