@@ -1,26 +1,38 @@
 /*
- * @(#)TestApplicationZkDao        1.6 11/12/20
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.state.StatePathExistsException;
 import com.midokura.midolman.state.ZkManager;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestApplicationZkDao {
 
-    private ZkManager managerMock = null;
-    private PathService pathMock = null;
+    private ApplicationDao testObject;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ZkManager dao;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PathService pathService;
+
     private static final String testPath1 = "/foo";
     private static final String testPath2 = "/foo/bar";
     private static final String testPath3 = "/foo/bar/baz";
@@ -34,51 +46,16 @@ public class TestApplicationZkDao {
 
     @Before
     public void setUp() throws Exception {
-        managerMock = Mockito.mock(ZkManager.class);
-        pathMock = Mockito.mock(PathService.class);
-        Mockito.when(pathMock.getInitialPaths()).thenReturn(testPaths);
+        testObject = new ApplicationZkDao(dao, pathService);
     }
 
     @Test
-    public void testInitializeSuccess() throws Exception {
+    public void testInitializeIdempotence() throws Exception {
 
-        Mockito.when(managerMock.addPersistent(testPath1, null)).thenReturn(
-                testPath1);
-        Mockito.when(managerMock.addPersistent(testPath2, null)).thenReturn(
-                testPath2);
-        Mockito.when(managerMock.addPersistent(testPath3, null)).thenReturn(
-                testPath3);
+        doReturn(testPaths).when(pathService).getInitialPaths();
+        doThrow(StatePathExistsException.class).when(dao).addPersistent(
+                testPath1, null);
 
-        ApplicationDao dao = new ApplicationZkDao(managerMock, pathMock);
-        dao.initialize();
-
-        Mockito.verify(managerMock, Mockito.times(1)).addPersistent(testPath1,
-                null);
-        Mockito.verify(managerMock, Mockito.times(1)).addPersistent(testPath2,
-                null);
-        Mockito.verify(managerMock, Mockito.times(1)).addPersistent(testPath3,
-                null);
-
-    }
-
-    @Test
-    public void testInitializeExistingPaths() throws Exception {
-        Mockito.when(managerMock.addPersistent(testPath1, null)).thenThrow(
-                new StatePathExistsException());
-        Mockito.when(managerMock.addPersistent(testPath2, null)).thenThrow(
-                new StatePathExistsException());
-        Mockito.when(managerMock.addPersistent(testPath3, null)).thenThrow(
-                new StatePathExistsException());
-
-        ApplicationDao dao = new ApplicationZkDao(managerMock, pathMock);
-        dao.initialize();
-
-        Mockito.verify(managerMock, Mockito.times(1)).addPersistent(testPath1,
-                null);
-        Mockito.verify(managerMock, Mockito.times(1)).addPersistent(testPath2,
-                null);
-        Mockito.verify(managerMock, Mockito.times(1)).addPersistent(testPath3,
-                null);
-
+        testObject.initialize();
     }
 }

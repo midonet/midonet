@@ -1,7 +1,6 @@
 /*
- * @(#)ApplicationZkDao        1.6 11/12/20
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -18,9 +17,6 @@ import com.midokura.midolman.state.ZkManager;
 
 /**
  * ZooKeeper data access manager for application-wide operations.
- *
- * @version 1.6 20 Dec 2011
- * @author Ryu Ishimoto
  */
 public class ApplicationZkDao implements ApplicationDao {
 

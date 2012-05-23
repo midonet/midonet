@@ -20,7 +20,6 @@ import com.midokura.midolman.state.ZkNodeEntry;
 /**
  * Data access class for advertising route.
  *
- * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
 public class AdRouteZkProxy implements AdRouteDao {
