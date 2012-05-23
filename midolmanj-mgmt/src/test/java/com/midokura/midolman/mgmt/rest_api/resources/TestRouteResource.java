@@ -1,7 +1,6 @@
 /*
- * @(#)TestRouteResource        1.6 12/01/16
- *
  * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
@@ -20,6 +19,8 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
@@ -30,6 +31,7 @@ import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestRouteResource {
 
     private SecurityContext contextMock = null;

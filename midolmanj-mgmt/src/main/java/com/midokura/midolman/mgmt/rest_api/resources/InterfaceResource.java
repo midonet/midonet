@@ -49,7 +49,7 @@ public class InterfaceResource {
     private final UUID hostId;
 
     private final static Logger log = LoggerFactory
-        .getLogger(PortBgpResource.class);
+        .getLogger(InterfaceResource.class);
 
     public InterfaceResource(UUID hostId) {
         this.hostId = hostId;

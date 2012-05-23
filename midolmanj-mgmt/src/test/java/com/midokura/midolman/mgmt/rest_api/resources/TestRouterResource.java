@@ -1,170 +1,93 @@
 /*
- * @(#)TestRouterResource        1.6 12/01/18
- *
  * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.net.URI;
 import java.util.UUID;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
-import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestRouterResource {
 
-    private SecurityContext contextMock = null;
-    private DaoFactory factoryMock = null;
-    private Authorizer authMock = null;
-    private UriInfo uriInfoMock = null;
-    private RouterResource resource = null;
-    private RouterDao daoMock = null;
+    private RouterResource testObject;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private SecurityContext context;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private DaoFactory factory;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private Authorizer auth;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private UriInfo uriInfo;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private RouterDao dao;
 
     @Before
     public void setUp() throws Exception {
-        this.contextMock = mock(SecurityContext.class);
-        this.factoryMock = mock(DaoFactory.class);
-        this.authMock = mock(Authorizer.class);
-        this.daoMock = mock(RouterDao.class);
-        this.uriInfoMock = mock(UriInfo.class);
-        this.resource = new RouterResource();
-
-        doReturn(daoMock).when(factoryMock).getRouterDao();
-    }
-
-    @Test
-    public void testDeleteSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-
-        verify(daoMock, times(1)).delete(id);
+        testObject = new RouterResource();
+        doReturn(dao).when(factory).getRouterDao();
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
+        // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
+        doReturn(false).when(auth).routerAuthorized(context, AuthAction.WRITE,
+                id);
 
-    @Test(expected = NoStatePathException.class)
-    public void testDeleteNonExistentData() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doThrow(NoStatePathException.class).when(daoMock).delete(id);
-
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
-
-    @Test(expected = StateAccessException.class)
-    public void testDeleteDataAccessError() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doThrow(StateAccessException.class).when(daoMock).delete(id);
-        resource.delete(id, contextMock, factoryMock, authMock);
-    }
-
-    private Router getRouter(URI baseUri) {
-        Router router = new Router();
-        router.setBaseUri(baseUri);
-        return router;
+        // Execute
+        testObject.delete(id, context, factory, auth);
     }
 
     @Test
-    public void testGetSuccess() throws Exception {
+    public void testDeleteNonExistentData() throws Exception {
+        // Set up
         UUID id = UUID.randomUUID();
-        URI uri = URI.create("http://www.foo.com");
-        Router router = getRouter(uri);
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.READ, id);
-        doReturn(uri).when(uriInfoMock).getBaseUri();
-        doReturn(router).when(daoMock).get(id);
+        doReturn(true).when(auth).routerAuthorized(context, AuthAction.WRITE,
+                id);
+        doThrow(NoStatePathException.class).when(dao).delete(id);
 
-        Router result = resource.get(id, contextMock, uriInfoMock, factoryMock,
-                authMock);
+        // Execute
+        testObject.delete(id, context, factory, auth);
 
-        Assert.assertEquals(router, result);
-        Assert.assertEquals(uri, result.getBaseUri());
+        // Verify
+        verify(dao, times(1)).delete(id);
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testGetUnauthorized() throws Exception {
+        // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(authMock).routerAuthorized(contextMock,
-                AuthAction.READ, id);
-        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
-    }
+        doReturn(false).when(auth).routerAuthorized(context, AuthAction.READ,
+                id);
 
-    @Test(expected = StateAccessException.class)
-    public void testGetDataAccessError() throws Exception {
-        UUID id = UUID.randomUUID();
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.READ, id);
-        doThrow(StateAccessException.class).when(daoMock).get(id);
-        resource.get(id, contextMock, uriInfoMock, factoryMock, authMock);
-    }
-
-    @Test
-    public void testUpdateSuccess() throws Exception {
-        UUID id = UUID.randomUUID();
-        URI uri = URI.create("http://www.foo.com");
-        Router router = getRouter(uri);
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doReturn(uri).when(uriInfoMock).getBaseUri();
-
-        Response resp = resource.update(id, router, contextMock, factoryMock,
-                authMock);
-
-        Assert.assertEquals(id, router.getId());
-        Assert.assertEquals(Response.Status.OK.getStatusCode(),
-                resp.getStatus());
-        verify(daoMock, times(1)).update(router);
-    }
-
-    @Test(expected = ForbiddenHttpException.class)
-    public void testUpdateUnauthorized() throws Exception {
-        UUID id = UUID.randomUUID();
-        URI uri = URI.create("http://www.foo.com");
-        Router router = getRouter(uri);
-        doReturn(false).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        resource.update(id, router, contextMock, factoryMock, authMock);
-    }
-
-    @Test(expected = StateAccessException.class)
-    public void testUpdateDataAccessError() throws Exception {
-        UUID id = UUID.randomUUID();
-        URI uri = URI.create("http://www.foo.com");
-        Router router = getRouter(uri);
-        doReturn(true).when(authMock).routerAuthorized(contextMock,
-                AuthAction.WRITE, id);
-        doThrow(StateAccessException.class).when(daoMock).update(router);
-        resource.update(id, router, contextMock, factoryMock, authMock);
+        // Execute
+        testObject.get(id, context, uriInfo, factory, auth);
     }
 }

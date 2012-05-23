@@ -5,7 +5,6 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
-import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
@@ -35,6 +34,10 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
+import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.TenantChainResource;
+import com.midokura.midolman.mgmt.rest_api.resources.PortGroupResource.TenantPortGroupResource;
+import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
