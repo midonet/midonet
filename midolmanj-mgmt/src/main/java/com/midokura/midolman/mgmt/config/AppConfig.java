@@ -1,7 +1,6 @@
 /*
- * @(#)AppConfig        1.6 11/11/15
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.config;
 
@@ -12,9 +11,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Application configuration wrapper class.
- *
- * @version 1.6 15 Nov 2011
- * @author Ryu Ishimoto
  */
 public class AppConfig {
 

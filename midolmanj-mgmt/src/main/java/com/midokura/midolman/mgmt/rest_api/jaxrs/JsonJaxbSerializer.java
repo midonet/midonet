@@ -1,7 +1,6 @@
 /*
- * @(#)JsonJaxbSerializer        1.6 11/11/11
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.jaxrs;
 
@@ -27,9 +26,6 @@ import com.midokura.midolman.util.Serializer;
 
 /**
  * JAXB serializer using Jackson JAXB annotation inspector.
- *
- * @version 1.6 22 Nov 2011
- * @author Ryu Ishimoto
  *
  * @param <T>
  *            Class type to serialize.

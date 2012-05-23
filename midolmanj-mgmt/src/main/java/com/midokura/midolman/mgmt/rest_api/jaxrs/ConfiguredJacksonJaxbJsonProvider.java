@@ -1,7 +1,5 @@
 /*
- * @(#)WildCardJacksonJaxbJsonProvider        1.6 11/11/11
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2011 Midokura Europe SARL
  */
 package com.midokura.midolman.mgmt.rest_api.jaxrs;
 

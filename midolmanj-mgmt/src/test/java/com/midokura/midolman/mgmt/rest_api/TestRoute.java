@@ -4,8 +4,22 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTE_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.net.URI;
 import java.util.UUID;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
@@ -15,30 +29,17 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 public class TestRoute extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(TestRoute.class);
     private final String testTenantName = "TEST-TENANT";
     private final String testRouterName = "TEST-ROUTER";
-    private final String testBridgeName = "TEST-BRIDGE";
 
     private WebResource resource;
     private ClientResponse response;
     private URI testRouterUri;
-    private URI testBridgeUri;
 
     private UUID testRouterPortId;
-    private UUID testBridgePortId;
 
     DtoRouter router = new DtoRouter();
 

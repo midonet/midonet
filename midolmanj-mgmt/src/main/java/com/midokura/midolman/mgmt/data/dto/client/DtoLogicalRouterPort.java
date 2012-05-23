@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.mgmt.data.dto.client;
 
-import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;

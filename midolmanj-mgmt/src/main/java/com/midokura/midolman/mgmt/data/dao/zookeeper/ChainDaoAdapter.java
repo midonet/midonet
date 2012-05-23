@@ -21,7 +21,6 @@ import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -103,7 +102,6 @@ public class ChainDaoAdapter implements ChainDao {
         Chain chain = null;
         if (zkDao.exists(id)) {
             ChainMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-            ChainConfig config = zkDao.getData(id);
             chain = new Chain(id, mgmtConfig.tenantId, mgmtConfig.name);
         }
 

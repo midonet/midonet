@@ -1,7 +1,6 @@
 /*
- * @(#)RuleDao        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao;
 
@@ -14,9 +13,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Data access class for Rule.
- *
- * @version 1.6 29 Nov 2011
- * @author Ryu Ishimoto
  */
 public interface RuleDao {
 

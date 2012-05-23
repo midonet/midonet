@@ -1,7 +1,6 @@
 /*
- * @(#)AuthorizerSelector        1.6 12/1/16
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.auth;
 
@@ -12,6 +11,9 @@ import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 
+/**
+ * Class that selects the authorizer.
+ */
 public class AuthorizerSelector {
 
     private final AppConfig config;

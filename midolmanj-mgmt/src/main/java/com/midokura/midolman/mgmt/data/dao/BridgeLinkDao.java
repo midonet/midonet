@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
+ */
 package com.midokura.midolman.mgmt.data.dao;
 
 import java.util.List;

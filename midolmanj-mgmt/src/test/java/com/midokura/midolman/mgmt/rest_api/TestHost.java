@@ -3,24 +3,10 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.core.UriBuilder;
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
-import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -30,6 +16,18 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.ws.rs.core.UriBuilder;
+
+import org.apache.zookeeper.KeeperException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
@@ -43,14 +41,14 @@ import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkPathManager;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.test.framework.AppDescriptor;
+import com.sun.jersey.test.framework.JerseyTest;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 
 public class TestHost extends JerseyTest {
 
-    private final static Logger log = LoggerFactory.getLogger(TestHost.class);
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     private HostZkManager hostManager;

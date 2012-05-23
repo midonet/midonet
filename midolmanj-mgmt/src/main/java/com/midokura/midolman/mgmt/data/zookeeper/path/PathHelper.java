@@ -1,7 +1,6 @@
 /*
- * @(#)PathHelper        1.6 20/12/11
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
@@ -13,9 +12,6 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * Path utility class.
- *
- * @version 1.6 20 Dec 2011
- * @author Ryu Ishimoto
  */
 public class PathHelper {
 

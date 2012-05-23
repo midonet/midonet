@@ -1,7 +1,6 @@
 /*
- * @(#)ExceptionFilter        1.6 12/02/08
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 

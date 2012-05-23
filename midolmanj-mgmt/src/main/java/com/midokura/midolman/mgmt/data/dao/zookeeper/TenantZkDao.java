@@ -1,7 +1,6 @@
 /*
- * @(#)TenantZkDao        1.6 12/1/6
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -18,9 +17,6 @@ import com.midokura.midolman.state.ZkManager;
 
 /**
  * Proxy class to access ZooKeeper for tenants data.
- *
- * @version 1.6 6 Jan 2012
- * @author Ryu Ishimoto
  */
 public class TenantZkDao {
 

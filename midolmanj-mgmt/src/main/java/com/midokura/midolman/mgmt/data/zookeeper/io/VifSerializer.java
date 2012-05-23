@@ -1,7 +1,6 @@
 /*
- * @(#)VifSerializer        1.6 11/12/25
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.io;
 
@@ -13,9 +12,6 @@ import com.midokura.midolman.util.Serializer;
 
 /**
  * ZK VIF serializer class.
- *
- * @version 1.6 25 Dec 2011
- * @author Ryu Ishimoto
  */
 public class VifSerializer {
 

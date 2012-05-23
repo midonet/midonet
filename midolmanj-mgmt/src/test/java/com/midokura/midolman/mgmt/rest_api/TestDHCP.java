@@ -4,8 +4,18 @@
 
 package com.midokura.midolman.mgmt.rest_api;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.test.framework.JerseyTest;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,12 +24,8 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpHost;
 import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpOption121;
 import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpSubnet;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-
-
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.test.framework.JerseyTest;
 
 public class TestDHCP extends JerseyTest {
 
@@ -69,6 +75,7 @@ public class TestDHCP extends JerseyTest {
             resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
                 .get(DtoDhcpSubnet[].class);
+        Assert.assertNotNull(subnets);
     }
 
     @Test

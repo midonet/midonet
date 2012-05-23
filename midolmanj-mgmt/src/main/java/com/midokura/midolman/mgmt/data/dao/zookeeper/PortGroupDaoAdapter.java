@@ -100,7 +100,6 @@ public class PortGroupDaoAdapter implements PortGroupDao {
         log.debug("PortGroupDaoAdapter.get entered: id={}", id);
 
         PortGroup group = null;
-        String path = pathBuilder.getPortGroupPath(id);
         if (exists(id)) {
             PortGroupMgmtConfig mgmtConfig = getMgmtData(id);
             group = new PortGroup(id, mgmtConfig.tenantId, mgmtConfig.name);

@@ -1,7 +1,6 @@
 /*
- * @(#)PortType        1.6 12/1/10
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -11,9 +10,6 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * Enum representing port types.
- *
- * @version 1.6 10 Jan 2012
- * @author Ryu Ishimoto
  */
 @XmlEnum
 @XmlType(name = "port_type")

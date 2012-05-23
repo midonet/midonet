@@ -1,7 +1,6 @@
 /*
- * @(#)BridgeDao        1.6 12/1/10
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao;
 
@@ -13,9 +12,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Bridge DAO interface.
- *
- * @version 1.6 10 Jan 2012
- * @author Ryu Ishimoto
  */
 public interface BridgeDao {
 

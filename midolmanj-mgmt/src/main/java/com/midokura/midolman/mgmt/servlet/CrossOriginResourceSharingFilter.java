@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Servlet filter which allows clients cross-origin request sharing (CORS).
  *
- * @version 1.6 29 Feb 2012
  * @author Taku Fukushima <tfukushima@midokura.com>
  */
 public final class CrossOriginResourceSharingFilter implements Filter {

@@ -3,30 +3,34 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import static com.sun.jersey.api.client.ClientResponse.Status;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 import com.midokura.midolman.agent.commands.executors.CommandProperty;
 import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
@@ -34,6 +38,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
 import com.midokura.midolman.mgmt.data.dto.client.DtoHostCommand;
 import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
+import com.midokura.midolman.mgmt.data.dto.client.DtoInterface.PropertyKeys;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.servlet.AuthFilter;
@@ -42,11 +47,12 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkPathManager;
-import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
-import static com.midokura.midolman.mgmt.data.dto.client.DtoInterface.PropertyKeys;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.test.framework.AppDescriptor;
+import com.sun.jersey.test.framework.JerseyTest;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 
 /**
  * Test cases to validate the update/create interface functionality of the
@@ -57,15 +63,10 @@ import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATI
  */
 public class TestHostCommand extends JerseyTest {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(TestHostCommand.class);
-
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     private HostZkManager hostManager;
-    private ZkPathManager pathManager;
     private Directory rootDirectory;
-    private WebResource resource;
     private ClientResponse response;
 
     private DtoHost dtoHost;
@@ -80,8 +81,6 @@ public class TestHostCommand extends JerseyTest {
 
     public TestHostCommand() {
         super(createWebApp());
-
-        pathManager = new ZkPathManager(ZK_ROOT_MIDOLMAN);
     }
 
     private static AppDescriptor createWebApp() {

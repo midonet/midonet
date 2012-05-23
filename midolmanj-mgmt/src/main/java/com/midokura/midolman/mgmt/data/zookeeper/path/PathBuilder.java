@@ -1,7 +1,6 @@
 /*
- * @(#)PathBuilder        1.6 20/12/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
@@ -10,9 +9,6 @@ import java.util.UUID;
 /**
  * This class was created to have all state classes share the Zk path
  * information.
- *
- * @version 1.6 19 Sept 2011
- * @author Ryu Ishimoto
  */
 public class PathBuilder {
 

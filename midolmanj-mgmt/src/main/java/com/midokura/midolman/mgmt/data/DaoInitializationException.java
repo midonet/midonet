@@ -1,15 +1,11 @@
 /*
- * @(#)DaoInitializationException        1.6 11/11/23
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data;
 
 /**
  * Exception to indicate that DAO could not be initialized.
- *
- * @version 1.6 23 Nov 2011
- * @author Ryu Ishimoto
  */
 public class DaoInitializationException extends Exception {
 

@@ -12,7 +12,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoApplication {
     private String version;
     private URI uri;
-    private URI admin;
     private URI tenant;
     private URI vifs;
     private URI hosts;

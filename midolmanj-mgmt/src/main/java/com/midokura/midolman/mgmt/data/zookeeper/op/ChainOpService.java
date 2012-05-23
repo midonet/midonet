@@ -1,7 +1,6 @@
 /*
- * @(#)ChainOpService        1.6 11/12/26
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
@@ -22,9 +21,6 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Chain Op service.
- *
- * @version 1.6 26 Dec 2011
- * @author Ryu Ishimoto
  */
 public class ChainOpService {
 

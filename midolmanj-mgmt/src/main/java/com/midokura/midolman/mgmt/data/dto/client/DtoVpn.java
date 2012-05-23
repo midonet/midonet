@@ -9,9 +9,6 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.state.VpnZkManager;
-
 @XmlRootElement
 public class DtoVpn {
 

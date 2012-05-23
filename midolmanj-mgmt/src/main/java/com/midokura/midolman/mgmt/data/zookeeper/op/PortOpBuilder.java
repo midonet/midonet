@@ -1,7 +1,6 @@
 /*
- * @(#)PortOpBuilder        1.6 12/1/6
- *
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
@@ -23,9 +22,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Class to build Op for the port paths.
- *
- * @version 1.6 6 Jan 2012
- * @author Ryu Ishimoto
  */
 public class PortOpBuilder {
 

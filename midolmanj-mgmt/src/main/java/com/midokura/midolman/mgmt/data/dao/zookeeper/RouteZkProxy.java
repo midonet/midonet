@@ -1,7 +1,6 @@
 /*
- * @(#)RouteZkProxy        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
@@ -18,9 +17,6 @@ import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for routes.
- *
- * @version 1.6 08 Sept 2011
- * @author Ryu Ishimoto
  */
 public class RouteZkProxy implements RouteDao {
 

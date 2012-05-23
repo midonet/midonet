@@ -1,7 +1,6 @@
 /*
- * @(#)DataStoreSelector        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data;
 
@@ -12,9 +11,6 @@ import com.midokura.midolman.mgmt.config.AppConfig;
 
 /**
  * DAO factory selector.
- *
- * @version 1.6 15 Nov 2011
- * @author Ryu Ishimoto
  */
 public class DataStoreSelector {
 

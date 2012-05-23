@@ -1,7 +1,6 @@
 /*
- * @(#)PathService        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
@@ -16,9 +15,6 @@ import com.midokura.midolman.state.ZkPathManager;
 
 /**
  * ZooKeeper path service
- *
- * @version 1.6 2 Dec 2011
- * @author Ryu Ishimoto
  */
 public class PathService {
 

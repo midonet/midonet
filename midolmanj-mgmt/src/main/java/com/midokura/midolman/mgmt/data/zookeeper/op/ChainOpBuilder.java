@@ -1,7 +1,6 @@
 /*
- * @(#)ChainOpBuilder        1.6 11/12/25
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
@@ -24,9 +23,6 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
  * Class to build Op for the chain paths.
- *
- * @version 1.6 25 Dec 2011
- * @author Ryu Ishimoto
  */
 public class ChainOpBuilder {
 

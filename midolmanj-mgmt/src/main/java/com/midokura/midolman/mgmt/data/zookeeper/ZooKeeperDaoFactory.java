@@ -157,7 +157,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     @Override
     public BridgeLinkDao getBridgeLinkDao() throws StateAccessException {
-        return new BridgeLinkDaoAdapter(getBridgeZkDao(), getBridgeOpService());
+        return new BridgeLinkDaoAdapter(getBridgeZkDao());
     }
 
     private BridgeZkManager getBridgeZkManager() throws StateAccessException {

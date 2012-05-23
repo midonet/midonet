@@ -1,6 +1,4 @@
 /*
- * @(#)InitZkDirectories        1.6 11/11/11
- *
  * Copyright 2011 Midokura KK
  */
 package com.midokura.midolman.mgmt.tools;

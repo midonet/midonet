@@ -1,12 +1,10 @@
 /*
- * @(#)TestAppConfig        1.6 12/1/18
- *
  * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.config;
 
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 import javax.servlet.ServletContext;
 
@@ -14,155 +12,161 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestAppConfig {
 
-    private ServletContext contextMock = null;
-    private AppConfig appConfig = null;
+	private AppConfig testObject;
 
-    @Before
-    public void setUp() throws Exception {
-        this.contextMock = mock(ServletContext.class);
-        appConfig = new AppConfig(this.contextMock);
-    }
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	private ServletContext context;
 
-    @Test
-    public void testGetVersionExists() throws Exception {
-        doReturn("v1").when(contextMock).getInitParameter(AppConfig.versionKey);
+	@Before
+	public void setUp() throws Exception {
+		testObject = new AppConfig(context);
+	}
 
-        String result = appConfig.getVersion();
+	@Test
+	public void testGetVersionExists() throws Exception {
+		doReturn("v1").when(context).getInitParameter(AppConfig.versionKey);
 
-        Assert.assertEquals("v1", result);
-    }
+		String result = testObject.getVersion();
 
-    @Test(expected = InvalidConfigException.class)
-    public void testGetVersionNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(AppConfig.versionKey);
-        appConfig.getVersion();
-    }
+		Assert.assertEquals("v1", result);
+	}
 
-    @Test
-    public void testGetDataStoreClassNameExists() throws Exception {
-        doReturn("foo").when(contextMock).getInitParameter(
-                AppConfig.dataStoreKey);
+	@Test(expected = InvalidConfigException.class)
+	public void testGetVersionNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(AppConfig.versionKey);
+		testObject.getVersion();
+	}
 
-        String result = appConfig.getDataStoreClassName();
+	@Test
+	public void testGetDataStoreClassNameExists() throws Exception {
+		doReturn("foo").when(context).getInitParameter(
+				AppConfig.dataStoreKey);
 
-        Assert.assertEquals("foo", result);
-    }
+		String result = testObject.getDataStoreClassName();
 
-    @Test
-    public void testGetDataStoreClassNameNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(
-                AppConfig.dataStoreKey);
+		Assert.assertEquals("foo", result);
+	}
 
-        String result = appConfig.getDataStoreClassName();
+	@Test
+	public void testGetDataStoreClassNameNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(
+				AppConfig.dataStoreKey);
 
-        Assert.assertEquals(AppConfig.defaultDatatStore, result);
-    }
+		String result = testObject.getDataStoreClassName();
 
-    @Test
-    public void testGetAuthorizerClassNameExists() throws Exception {
-        doReturn("foo").when(contextMock).getInitParameter(
-                AppConfig.authorizerKey);
+		Assert.assertEquals(AppConfig.defaultDatatStore, result);
+	}
 
-        String result = appConfig.getAuthorizerClassName();
+	@Test
+	public void testGetAuthorizerClassNameExists() throws Exception {
+		doReturn("foo").when(context).getInitParameter(
+				AppConfig.authorizerKey);
 
-        Assert.assertEquals("foo", result);
-    }
+		String result = testObject.getAuthorizerClassName();
 
-    @Test
-    public void testGetAuthorizerClassNameNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(
-                AppConfig.authorizerKey);
+		Assert.assertEquals("foo", result);
+	}
 
-        String result = appConfig.getAuthorizerClassName();
+	@Test
+	public void testGetAuthorizerClassNameNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(
+				AppConfig.authorizerKey);
 
-        Assert.assertEquals(AppConfig.defaultAuthorizer, result);
-    }
+		String result = testObject.getAuthorizerClassName();
 
-    @Test
-    public void testGetZkConnectionStringExists() throws Exception {
-        doReturn("foo").when(contextMock).getInitParameter(
-                AppConfig.zkConnStringKey);
+		Assert.assertEquals(AppConfig.defaultAuthorizer, result);
+	}
 
-        String result = appConfig.getZkConnectionString();
+	@Test
+	public void testGetZkConnectionStringExists() throws Exception {
+		doReturn("foo").when(context).getInitParameter(
+				AppConfig.zkConnStringKey);
 
-        Assert.assertEquals("foo", result);
-    }
+		String result = testObject.getZkConnectionString();
 
-    @Test
-    public void testGetZkConnectionStringNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(
-                AppConfig.zkConnStringKey);
+		Assert.assertEquals("foo", result);
+	}
 
-        String result = appConfig.getZkConnectionString();
+	@Test
+	public void testGetZkConnectionStringNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(
+				AppConfig.zkConnStringKey);
 
-        Assert.assertEquals(AppConfig.defaultZkConnString, result);
-    }
+		String result = testObject.getZkConnectionString();
 
-    @Test
-    public void testGetZkTimeoutExists() throws Exception {
-        doReturn("1000").when(contextMock).getInitParameter(
-                AppConfig.zkTimeoutKey);
+		Assert.assertEquals(AppConfig.defaultZkConnString, result);
+	}
 
-        int result = appConfig.getZkTimeout();
+	@Test
+	public void testGetZkTimeoutExists() throws Exception {
+		doReturn("1000").when(context).getInitParameter(
+				AppConfig.zkTimeoutKey);
 
-        Assert.assertEquals(1000, result);
-    }
+		int result = testObject.getZkTimeout();
 
-    @Test
-    public void testGetZkTimeoutNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(
-                AppConfig.zkTimeoutKey);
+		Assert.assertEquals(1000, result);
+	}
 
-        int result = appConfig.getZkTimeout();
+	@Test
+	public void testGetZkTimeoutNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(
+				AppConfig.zkTimeoutKey);
 
-        Assert.assertEquals(AppConfig.defaultZkTimeout, result);
-    }
+		int result = testObject.getZkTimeout();
 
-    @Test(expected = InvalidConfigException.class)
-    public void testGetZkTimeoutBadValue() throws Exception {
-        doReturn("foo").when(contextMock).getInitParameter(
-                AppConfig.zkTimeoutKey);
-        appConfig.getZkTimeout();
-    }
+		Assert.assertEquals(AppConfig.defaultZkTimeout, result);
+	}
 
-    @Test
-    public void testGetZkRootPathExists() throws Exception {
-        doReturn("foo").when(contextMock).getInitParameter(AppConfig.zkRootKey);
+	@Test(expected = InvalidConfigException.class)
+	public void testGetZkTimeoutBadValue() throws Exception {
+		doReturn("foo").when(context).getInitParameter(
+				AppConfig.zkTimeoutKey);
+		testObject.getZkTimeout();
+	}
 
-        String result = appConfig.getZkRootPath();
+	@Test
+	public void testGetZkRootPathExists() throws Exception {
+		doReturn("foo").when(context).getInitParameter(AppConfig.zkRootKey);
 
-        Assert.assertEquals("foo", result);
-    }
+		String result = testObject.getZkRootPath();
 
-    @Test
-    public void testGetZkRootPathNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(AppConfig.zkRootKey);
+		Assert.assertEquals("foo", result);
+	}
 
-        String result = appConfig.getZkRootPath();
+	@Test
+	public void testGetZkRootPathNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(AppConfig.zkRootKey);
 
-        Assert.assertEquals(AppConfig.defaultZkRootPath, result);
-    }
+		String result = testObject.getZkRootPath();
 
-    @Test
-    public void testGetZkMgmtRootPathExists() throws Exception {
-        doReturn("foo").when(contextMock).getInitParameter(
-                AppConfig.zkMgmtRootKey);
+		Assert.assertEquals(AppConfig.defaultZkRootPath, result);
+	}
 
-        String result = appConfig.getZkMgmtRootPath();
+	@Test
+	public void testGetZkMgmtRootPathExists() throws Exception {
+		doReturn("foo").when(context).getInitParameter(
+				AppConfig.zkMgmtRootKey);
 
-        Assert.assertEquals("foo", result);
-    }
+		String result = testObject.getZkMgmtRootPath();
 
-    @Test
-    public void testGetZkMgmtRootPathNotExists() throws Exception {
-        doReturn(null).when(contextMock).getInitParameter(
-                AppConfig.zkMgmtRootKey);
+		Assert.assertEquals("foo", result);
+	}
 
-        String result = appConfig.getZkMgmtRootPath();
+	@Test
+	public void testGetZkMgmtRootPathNotExists() throws Exception {
+		doReturn(null).when(context).getInitParameter(
+				AppConfig.zkMgmtRootKey);
 
-        Assert.assertEquals(AppConfig.defaultZkMgmtRootPath, result);
-    }
+		String result = testObject.getZkMgmtRootPath();
+
+		Assert.assertEquals(AppConfig.defaultZkMgmtRootPath, result);
+	}
 }

@@ -1,7 +1,6 @@
 /*
- * @(#)ChainSerializer        1.6 11/11/29
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.zookeeper.io;
 
@@ -14,9 +13,6 @@ import com.midokura.midolman.util.Serializer;
 
 /**
  * ZK Chain serializer class.
- *
- * @version 1.6 29 Nov 2011
- * @author Ryu Ishimoto
  */
 public class ChainSerializer {
 
