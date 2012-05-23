@@ -53,9 +53,13 @@ public abstract class RouterPort extends Port {
      */
     @Override
     public URI getDevice() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), deviceId);
+        if (getBaseUri() != null && deviceId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), deviceId);
+        } else {
+            return null;
+        }
     }
-    
+
     /**
      * @return the networkAddress
      */

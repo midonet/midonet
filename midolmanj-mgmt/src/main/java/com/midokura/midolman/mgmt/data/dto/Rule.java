@@ -1,7 +1,6 @@
 /*
- * @(#)Route      1.6 11/09/10
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -29,9 +28,6 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Class representing rule.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Rule extends UriResource {
@@ -277,8 +273,8 @@ public class Rule extends UriResource {
 
     /**
      * Get the Data Layer Destination that this rule matches on.
-     * @return
-     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     *
+     * @return A MAC address specified as "aa:bb:cc:dd:ee:ff"
      */
     public String getDlDst() {
         return dlDst;
@@ -286,8 +282,9 @@ public class Rule extends UriResource {
 
     /**
      * Set the Data Layer Destination that this rule matches on.
+     *
      * @param dlDst
-     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     *            A MAC address specified as "aa:bb:cc:dd:ee:ff"
      */
     public void setDlDst(String dlDst) {
         this.dlDst = dlDst;
@@ -296,10 +293,12 @@ public class Rule extends UriResource {
     /**
      * Set whether the match on the data layer destination should be inverted.
      * This will be stored but ignored until the DlDst has been set.
+     *
      * @param invDlDst
-     *      True if the rule should match packets whose data layer destination
-     *      is NOT equal to the MAC set by 'setDlDst'. False if the rule should
-     *      match packets whose DlDst IS equal to that MAC.
+     *            True if the rule should match packets whose data layer
+     *            destination is NOT equal to the MAC set by 'setDlDst'. False
+     *            if the rule should match packets whose DlDst IS equal to that
+     *            MAC.
      */
     public void setInvDlDst(boolean invDlDst) {
         this.invDlDst = invDlDst;
@@ -308,10 +307,10 @@ public class Rule extends UriResource {
     /**
      * Find out whether this rule's match on the Data Layer Destination is
      * inverted.
-     * @return
-     *      True if the rule matches packets whose data layer destination
-     *      is NOT equal to the MAC set by 'setDlDst'. False if the rule matches
-     *      packets whose DlDst is equal to that MAC.
+     *
+     * @return True if the rule matches packets whose data layer destination is
+     *         NOT equal to the MAC set by 'setDlDst'. False if the rule matches
+     *         packets whose DlDst is equal to that MAC.
      */
     public boolean isInvDlDst() {
         return invDlDst;
@@ -319,8 +318,8 @@ public class Rule extends UriResource {
 
     /**
      * Get the Data Layer Source that this rule matches on.
-     * @return
-     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     *
+     * @return A MAC address specified as "aa:bb:cc:dd:ee:ff"
      */
     public String getDlSrc() {
         return dlSrc;
@@ -328,32 +327,33 @@ public class Rule extends UriResource {
 
     /**
      * Set the Data Layer Source address that this rule matches on.
+     *
      * @param dlSrc
-     *      A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     *            A MAC address specified as "aa:bb:cc:dd:ee:ff"
      */
     public void setDlSrc(String dlSrc) {
         this.dlSrc = dlSrc;
     }
 
     /**
-     * Set whether the match on the data layer source should be inverted.
-     * This will be stored but ignored until the DlSrc has been set.
+     * Set whether the match on the data layer source should be inverted. This
+     * will be stored but ignored until the DlSrc has been set.
+     *
      * @param invDlSrc
-     *      True if the rule should match packets whose data layer source
-     *      is NOT equal to the MAC set by 'setDlSrc'. False if the rule should
-     *      match packets whose DlSrc IS equal to that MAC.
+     *            True if the rule should match packets whose data layer source
+     *            is NOT equal to the MAC set by 'setDlSrc'. False if the rule
+     *            should match packets whose DlSrc IS equal to that MAC.
      */
     public void setInvDlSrc(boolean invDlSrc) {
         this.invDlSrc = invDlSrc;
     }
 
     /**
-     * Find out whether this rule's match on the Data Layer Source is
-     * inverted.
-     * @return
-     *      True if the rule matches packets whose data layer source
-     *      is NOT equal to the MAC set by 'setDlSrc'. False if the rule matches
-     *      packets whose DlSrc is equal to that MAC.
+     * Find out whether this rule's match on the Data Layer Source is inverted.
+     *
+     * @return True if the rule matches packets whose data layer source is NOT
+     *         equal to the MAC set by 'setDlSrc'. False if the rule matches
+     *         packets whose DlSrc is equal to that MAC.
      */
     public boolean isInvDlSrc() {
         return invDlSrc;
@@ -361,9 +361,11 @@ public class Rule extends UriResource {
 
     /**
      * Set the Data Layer Type (Ethertype) of packets matched by this rule.
+     *
      * @param dlType
-     *      Ethertype value. We do not check the validity of the value provided:
-     *      i.e. whether it's in the correct range for Ethertypes.
+     *            Ethertype value. We do not check the validity of the value
+     *            provided: i.e. whether it's in the correct range for
+     *            Ethertypes.
      */
     public void setDlType(Short dlType) {
         this.dlType = dlType;
@@ -371,33 +373,34 @@ public class Rule extends UriResource {
 
     /**
      * Get the Data Layer Type (Ethertype) of packets matched by this rule.
-     * @return
-     *      The value of the Ethertype as a Short if the rule matches Ethertype,
-     *      otherwise null.
+     *
+     * @return The value of the Ethertype as a Short if the rule matches
+     *         Ethertype, otherwise null.
      */
     public Short getDlType() {
         return dlType;
     }
 
     /**
-     * Set whether the match on the data layer type should be inverted.
-     * This will be stored but ignored until the DlType has been set.
+     * Set whether the match on the data layer type should be inverted. This
+     * will be stored but ignored until the DlType has been set.
+     *
      * @param invDlType
-     *      True if the rule should match packets whose data layer type
-     *      is NOT equal to the Ethertype set by 'setDlType'. False if the rule
-     *      should match packets whose DlType IS equal to that Ethertype.
+     *            True if the rule should match packets whose data layer type is
+     *            NOT equal to the Ethertype set by 'setDlType'. False if the
+     *            rule should match packets whose DlType IS equal to that
+     *            Ethertype.
      */
     public void setInvDlType(boolean invDlType) {
         this.invDlType = invDlType;
     }
 
     /**
-     * Find out whether this rule's match on the Data Layer Type is
-     * inverted.
-     * @return
-     *      True if the rule matches packets whose data layer type
-     *      is NOT equal to the Ethertype set by 'setDlType'. False if the rule
-     *      matches packets whose DlSrc is equal to that Ethertype.
+     * Find out whether this rule's match on the Data Layer Type is inverted.
+     *
+     * @return True if the rule matches packets whose data layer type is NOT
+     *         equal to the Ethertype set by 'setDlType'. False if the rule
+     *         matches packets whose DlSrc is equal to that Ethertype.
      */
     public boolean isInvDlType() {
         return invDlType;
@@ -723,7 +726,11 @@ public class Rule extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getRule(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getRule(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     public static String getActionString(Action a) {

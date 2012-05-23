@@ -96,7 +96,7 @@ public abstract class Port extends UriResource {
     public UUID getDeviceId() {
         return deviceId;
     }
-    
+
     /**
      * @return the device URI
      */
@@ -156,7 +156,11 @@ public abstract class Port extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getPort(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -171,12 +175,12 @@ public abstract class Port extends UriResource {
         config.inboundFilter = inboundFilter;
         config.outboundFilter = outboundFilter;
         if (this.portGroupIDs != null) {
-            config.portGroupIDs =
-                    new HashSet<UUID>(Arrays.asList(this.portGroupIDs));
+            config.portGroupIDs = new HashSet<UUID>(
+                    Arrays.asList(this.portGroupIDs));
         } else {
             config.portGroupIDs = new HashSet<UUID>();
         }
-;
+        ;
     }
 
     /**

@@ -7,11 +7,11 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.state.BridgeDhcpZkManager;
 import com.midokura.midolman.state.BridgeDhcpZkManager.Opt121;
 import com.midokura.midolman.state.BridgeDhcpZkManager.Subnet;
 
@@ -65,13 +65,20 @@ public class DhcpSubnet extends RelativeUriResource {
     }
 
     public URI getHosts() {
-        return ResourceUriBuilder.getDhcpHosts(getUri());
+        if (getUri() != null) {
+            return ResourceUriBuilder.getDhcpHosts(getUri());
+        } else {
+            return null;
+        }
     }
 
-
     public URI getUri() {
-        return ResourceUriBuilder.getBridgeDhcp(
-                getParentUri(), IntIPv4.fromString(subnetPrefix, subnetLength));
+        if (getParentUri() != null && subnetPrefix != null) {
+            return ResourceUriBuilder.getBridgeDhcp(getParentUri(),
+                    IntIPv4.fromString(subnetPrefix, subnetLength));
+        } else {
+            return null;
+        }
     }
 
     public static DhcpSubnet fromSubnet(Subnet subnet) {
@@ -80,9 +87,8 @@ public class DhcpSubnet extends RelativeUriResource {
             for (Opt121 opt : subnet.getOpt121Routes())
                 routes.add(DhcpOption121.fromOpt121(opt));
         }
-        DhcpSubnet dtoSub = new DhcpSubnet(
-                subnet.getSubnetAddr().toUnicastString(),
-                subnet.getSubnetAddr().getMaskLength());
+        DhcpSubnet dtoSub = new DhcpSubnet(subnet.getSubnetAddr()
+                .toUnicastString(), subnet.getSubnetAddr().getMaskLength());
         IntIPv4 gway = subnet.getDefaultGateway();
         if (null != gway)
             dtoSub.setDefaultGateway(gway.toUnicastString());
@@ -90,27 +96,22 @@ public class DhcpSubnet extends RelativeUriResource {
         return dtoSub;
     }
 
-
     public Subnet toSubnet() {
         List<Opt121> routes = new ArrayList<Opt121>();
         if (null != getOpt121Routes()) {
             for (DhcpOption121 opt : getOpt121Routes())
                 routes.add(opt.toOpt121());
         }
-        return new Subnet(
-                IntIPv4.fromString(subnetPrefix, subnetLength),
-                null == defaultGateway
-                        ? null : IntIPv4.fromString(defaultGateway),
-                routes);
+        return new Subnet(IntIPv4.fromString(subnetPrefix, subnetLength),
+                null == defaultGateway ? null
+                        : IntIPv4.fromString(defaultGateway), routes);
     }
 
     @Override
     public String toString() {
-        return "DhcpSubnet{" +
-            "subnetPrefix='" + subnetPrefix + '\'' +
-            ", subnetLength=" + subnetLength +
-            ", defaultGateway='" + defaultGateway + '\'' +
-            ", opt121Routes=" + opt121Routes +
-            '}';
+        return "DhcpSubnet{" + "subnetPrefix='" + subnetPrefix + '\''
+                + ", subnetLength=" + subnetLength + ", defaultGateway='"
+                + defaultGateway + '\'' + ", opt121Routes=" + opt121Routes
+                + '}';
     }
 }

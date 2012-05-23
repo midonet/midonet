@@ -133,7 +133,11 @@ public class AdRoute extends UriResource {
      * @return the BGP URI
      */
     public URI getBgp() {
-        return ResourceUriBuilder.getBgp(getBaseUri(), bgpId);
+        if (getBaseUri() != null && bgpId != null) {
+            return ResourceUriBuilder.getBgp(getBaseUri(), bgpId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -141,7 +145,11 @@ public class AdRoute extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getAdRoute(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getAdRoute(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**

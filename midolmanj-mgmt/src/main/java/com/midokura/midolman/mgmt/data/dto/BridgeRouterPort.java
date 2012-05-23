@@ -82,7 +82,11 @@ public class BridgeRouterPort extends RouterPort {
      * @return the peer port URI
      */
     public URI getPeer() {
-        return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+        if (peerId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -104,7 +108,11 @@ public class BridgeRouterPort extends RouterPort {
      * @return the peer bridge port URI
      */
     public URI getBridge() {
-        return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
+        if (getBaseUri() != null && bridgeId != null) {
+            return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
+        } else {
+            return null;
+        }
     }
 
     /*

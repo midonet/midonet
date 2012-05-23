@@ -11,8 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 1/30/12
+ * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
  */
 @XmlRootElement
 public class Host extends UriResource {
@@ -63,20 +62,32 @@ public class Host extends UriResource {
 
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getHost(super.getBaseUri(), id);
+        if (super.getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getHost(super.getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the interfaces URI
      */
     public URI getInterfaces() {
-        return ResourceUriBuilder.getHostInterfaces(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getHostInterfaces(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the commands URI
      */
     public URI getHostCommands() {
-        return ResourceUriBuilder.getHostCommands(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getHostCommands(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 }

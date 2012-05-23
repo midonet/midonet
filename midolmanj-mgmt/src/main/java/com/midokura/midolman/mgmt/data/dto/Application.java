@@ -1,7 +1,6 @@
 /*
- * @(#)Application        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -13,9 +12,6 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Application DTO.
- *
- * @version 1.6 20 Nov 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Application extends UriResource {
@@ -51,21 +47,33 @@ public class Application extends UriResource {
      * @return the tenants URI
      */
     public URI getTenant() {
-        return ResourceUriBuilder.getTenants(getBaseUri());
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTenants(getBaseUri());
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the VIFs URI
      */
     public URI getVifs() {
-        return ResourceUriBuilder.getVifs(getBaseUri());
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getVifs(getBaseUri());
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the hosts URI
      */
     public URI getHosts() {
-        return ResourceUriBuilder.getHosts(getBaseUri());
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getHosts(getBaseUri());
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -73,6 +81,10 @@ public class Application extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getRoot(getBaseUri());
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getRoot(getBaseUri());
+        } else {
+            return null;
+        }
     }
 }

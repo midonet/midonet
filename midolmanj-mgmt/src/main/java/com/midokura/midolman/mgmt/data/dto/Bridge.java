@@ -29,7 +29,8 @@ public class Bridge extends UriResource {
     /**
      * Constructor.
      */
-    public Bridge() {}
+    public Bridge() {
+    }
 
     /**
      * Constructor
@@ -125,28 +126,44 @@ public class Bridge extends UriResource {
      * @return the ports URI
      */
     public URI getPorts() {
-        return ResourceUriBuilder.getBridgePorts(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBridgePorts(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the routers URI
      */
     public URI getPeerRouters() {
-        return ResourceUriBuilder.getBridgeRouters(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBridgeRouters(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the Filtering Database URI
      */
-   public URI getFilteringDb() {
-        return ResourceUriBuilder.getFilteringDb(getBaseUri(), id);
+    public URI getFilteringDb() {
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getFilteringDb(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the DHCP server configuration URI
      */
     public URI getDhcpSubnets() {
-        return ResourceUriBuilder.getBridgeDhcps(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBridgeDhcps(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -154,7 +171,11 @@ public class Bridge extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getBridge(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBridge(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**

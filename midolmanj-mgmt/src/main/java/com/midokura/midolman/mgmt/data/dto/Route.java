@@ -93,12 +93,16 @@ public class Route extends UriResource {
     public UUID getRouterId() {
         return routerId;
     }
-    
+
     /**
      * @return the router URI
      */
     public URI getRouter() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+        if (getBaseUri() != null && routerId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -249,7 +253,11 @@ public class Route extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getRoute(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getRoute(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     public com.midokura.midolman.layer3.Route toZkRoute() {

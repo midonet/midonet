@@ -66,7 +66,11 @@ public class BridgeRouterLink extends UriResource {
      * @return the peer router port URI
      */
     public URI getRouterPort() {
-        return ResourceUriBuilder.getPort(getBaseUri(), routerPortId);
+        if (getBaseUri() != null && routerPortId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), routerPortId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -88,7 +92,11 @@ public class BridgeRouterLink extends UriResource {
      * @return the peer bridge port URI
      */
     public URI getBridgePort() {
-        return ResourceUriBuilder.getPort(getBaseUri(), bridgePortId);
+        if (getBaseUri() != null && bridgePortId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), bridgePortId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -110,7 +118,11 @@ public class BridgeRouterLink extends UriResource {
      * @return the router URI
      */
     public URI getRouter() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+        if (getBaseUri() != null && routerId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -132,7 +144,11 @@ public class BridgeRouterLink extends UriResource {
      * @return the bridge URI
      */
     public URI getBridge() {
-        return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
+        if (getBaseUri() != null && bridgeId != null) {
+            return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -140,8 +156,12 @@ public class BridgeRouterLink extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getRouterBridge(getBaseUri(), routerId,
-                bridgeId);
+        if (getBaseUri() != null && routerId != null && bridgeId != null) {
+            return ResourceUriBuilder.getRouterBridge(getBaseUri(), routerId,
+                    bridgeId);
+        } else {
+            return null;
+        }
     }
 
     @Override

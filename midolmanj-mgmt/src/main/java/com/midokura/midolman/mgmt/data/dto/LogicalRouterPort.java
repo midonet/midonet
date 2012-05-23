@@ -94,7 +94,11 @@ public class LogicalRouterPort extends RouterPort {
      * @return the peer port URI
      */
     public URI getPeer() {
-        return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+        if (peerId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -116,7 +120,11 @@ public class LogicalRouterPort extends RouterPort {
      * @return the peerRouterId
      */
     public UUID getPeerRouterId() {
-        return peerRouterId;
+        if (peerRouterId != null) {
+            return peerRouterId;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -131,7 +139,11 @@ public class LogicalRouterPort extends RouterPort {
      * @return the peer router URI
      */
     public URI getPeerRouter() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), peerRouterId);
+        if (peerRouterId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), peerRouterId);
+        } else {
+            return null;
+        }
     }
 
     /*
@@ -141,12 +153,11 @@ public class LogicalRouterPort extends RouterPort {
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.LogicalRouterPortConfig config =
-                new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
-                Net.convertStringAddressToInt(this.getNetworkAddress()),
-                this.getNetworkLength(), Net.convertStringAddressToInt(this
-                        .getPortAddress()), new HashSet<Route>(),
-                this.getPeerId(), null);
+        PortDirectory.LogicalRouterPortConfig config = new PortDirectory.LogicalRouterPortConfig(
+                this.getDeviceId(), Net.convertStringAddressToInt(this
+                        .getNetworkAddress()), this.getNetworkLength(),
+                Net.convertStringAddressToInt(this.getPortAddress()),
+                new HashSet<Route>(), this.getPeerId(), null);
         super.toConfig(config);
         return config;
     }

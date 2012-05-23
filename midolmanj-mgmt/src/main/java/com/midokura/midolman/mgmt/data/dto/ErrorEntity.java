@@ -1,7 +1,6 @@
 /*
- * @(#)ErrorEntity        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -9,9 +8,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Class representing error.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class ErrorEntity {

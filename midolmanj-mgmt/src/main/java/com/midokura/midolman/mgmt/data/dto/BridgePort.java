@@ -47,8 +47,7 @@ public class BridgePort extends Port {
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.BridgePortConfig config =
-                new PortDirectory.BridgePortConfig();
+        PortDirectory.BridgePortConfig config = new PortDirectory.BridgePortConfig();
         super.toConfig(config);
         return config;
     }
@@ -82,12 +81,16 @@ public class BridgePort extends Port {
     public PortType getType() {
         return PortType.BRIDGE;
     }
-    
+
     /**
      * @return the bridge URI
      */
     @Override
     public URI getDevice() {
-        return ResourceUriBuilder.getBridge(getBaseUri(), deviceId);
+        if (getBaseUri() != null && deviceId != null) {
+            return ResourceUriBuilder.getBridge(getBaseUri(), deviceId);
+        } else {
+            return null;
+        }
     }
 }

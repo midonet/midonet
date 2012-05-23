@@ -5,19 +5,19 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.state.BridgeDhcpZkManager;
 import com.midokura.midolman.state.BridgeDhcpZkManager.Host;
 
 @XmlRootElement
 public class DhcpHost extends RelativeUriResource {
     protected String macAddr;
-    protected String ipAddr;    // DHCP "your ip address"
-    protected String name;      // DHCP option 12 - host name
+    protected String ipAddr; // DHCP "your ip address"
+    protected String name; // DHCP option 12 - host name
 
     public DhcpHost(String macAddr, String ipAddr, String name) {
         this.macAddr = macAddr;
@@ -26,14 +26,19 @@ public class DhcpHost extends RelativeUriResource {
     }
 
     /* Default constructor - for deserialization. */
-    public DhcpHost() {}
+    public DhcpHost() {
+    }
 
     /**
      * @return the self URI
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getDhcpHost(getParentUri(), macAddr);
+        if (getParentUri() != null && macAddr != null) {
+            return ResourceUriBuilder.getDhcpHost(getParentUri(), macAddr);
+        } else {
+            return null;
+        }
     }
 
     public String getMacAddr() {
@@ -61,8 +66,8 @@ public class DhcpHost extends RelativeUriResource {
     }
 
     public Host toStateHost() {
-        return new Host(MAC.fromString(macAddr),
-                IntIPv4.fromString(ipAddr), name);
+        return new Host(MAC.fromString(macAddr), IntIPv4.fromString(ipAddr),
+                name);
     }
 
     public static DhcpHost fromStateHost(Host h) {

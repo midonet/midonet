@@ -1,7 +1,6 @@
 /*
- * @(#)Chain      1.6 11/09/10
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -16,9 +15,6 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
  * Class representing chain.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Chain extends UriResource {
@@ -114,14 +110,22 @@ public class Chain extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getChain(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getChain(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the rules URI
      */
     public URI getRules() {
-        return ResourceUriBuilder.getChainRules(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getChainRules(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     public ChainConfig toConfig() {

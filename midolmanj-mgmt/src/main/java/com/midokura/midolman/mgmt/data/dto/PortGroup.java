@@ -106,7 +106,11 @@ public class PortGroup extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getPortGroup(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getPortGroup(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     public PortGroupMgmtConfig toMgmtConfig() {

@@ -1,7 +1,6 @@
 /*
- * @(#)Vif      1.6 11/09/24
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -15,9 +14,6 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Class representing Vif.
- *
- * @version 1.6 24 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Vif extends UriResource {
@@ -79,7 +75,11 @@ public class Vif extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getVif(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getVif(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**

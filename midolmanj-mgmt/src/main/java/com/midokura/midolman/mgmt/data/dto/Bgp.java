@@ -166,7 +166,12 @@ public class Bgp extends UriResource {
      * @return the port URI
      */
     public URI getPort() {
-        return ResourceUriBuilder.getPort(getBaseUri(), portId);
+        if (getBaseUri() != null && portId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), portId);
+        } else {
+            return null;
+        }
+
     }
 
     /**
@@ -174,14 +179,22 @@ public class Bgp extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getBgp(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBgp(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the Ad routes URI
      */
     public URI getAdRoutes() {
-        return ResourceUriBuilder.getBgpAdRoutes(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBgpAdRoutes(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     public BgpConfig toConfig() {

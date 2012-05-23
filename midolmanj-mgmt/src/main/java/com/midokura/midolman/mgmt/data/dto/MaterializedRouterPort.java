@@ -1,7 +1,6 @@
 /*
- * @(#)MaterializedRouterPort        1.6 18/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -23,9 +22,6 @@ import com.midokura.midolman.util.Net;
 
 /**
  * Data transfer class for materialized router port.
- *
- * @version 1.6 18 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class MaterializedRouterPort extends RouterPort {
@@ -107,14 +103,22 @@ public class MaterializedRouterPort extends RouterPort {
      * @return the bgps URI
      */
     public URI getBgps() {
-        return ResourceUriBuilder.getPortBgps(getBaseUri(), this.getId());
+        if (getBaseUri() != null && this.getId() != null) {
+            return ResourceUriBuilder.getPortBgps(getBaseUri(), this.getId());
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the vpns URI
      */
     public URI getVpns() {
-        return ResourceUriBuilder.getPortVpns(getBaseUri(), this.getId());
+        if (getBaseUri() != null && this.getId() != null) {
+            return ResourceUriBuilder.getPortVpns(getBaseUri(), this.getId());
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -124,8 +128,7 @@ public class MaterializedRouterPort extends RouterPort {
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.MaterializedRouterPortConfig config =
-                new PortDirectory.MaterializedRouterPortConfig(
+        PortDirectory.MaterializedRouterPortConfig config = new PortDirectory.MaterializedRouterPortConfig(
                 this.getDeviceId(), Net.convertStringAddressToInt(this
                         .getNetworkAddress()), this.getNetworkLength(),
                 Net.convertStringAddressToInt(this.getPortAddress()), null,

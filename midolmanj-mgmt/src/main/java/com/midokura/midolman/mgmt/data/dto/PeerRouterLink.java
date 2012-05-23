@@ -99,7 +99,11 @@ public class PeerRouterLink extends UriResource {
      * @return the peer port URI
      */
     public URI getPeerPort() {
-        return ResourceUriBuilder.getPort(getBaseUri(), peerPortId);
+        if (getBaseUri() != null && peerPortId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), peerPortId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -121,7 +125,11 @@ public class PeerRouterLink extends UriResource {
      * @return the router URI
      */
     public URI getRouter() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+        if (getBaseUri() != null && routerId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -143,7 +151,11 @@ public class PeerRouterLink extends UriResource {
      * @return the peer router URI
      */
     public URI getPeerRouter() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), peerRouterId);
+        if (getBaseUri() != null && peerRouterId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), peerRouterId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -151,7 +163,12 @@ public class PeerRouterLink extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getRouterLink(getBaseUri(), routerId, peerRouterId);
+        if (getBaseUri() != null && routerId != null && peerRouterId != null) {
+            return ResourceUriBuilder.getRouterLink(getBaseUri(), routerId,
+                    peerRouterId);
+        } else {
+            return null;
+        }
     }
 
     /**

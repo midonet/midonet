@@ -46,7 +46,8 @@ public class Vpn extends UriResource {
         this.privatePortId = config.privatePortId;
         this.publicPortId = config.publicPortId;
         this.remoteIp = config.remoteIp;
-        this.vpnType = Enum.valueOf(DtoVpn.VpnType.class, config.vpnType.name());
+        this.vpnType = Enum
+                .valueOf(DtoVpn.VpnType.class, config.vpnType.name());
         this.id = id;
     }
 
@@ -93,7 +94,11 @@ public class Vpn extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getVpn(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getVpn(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -119,7 +124,11 @@ public class Vpn extends UriResource {
      * @return the pubilc port URI
      */
     public URI getPublicPort() {
-        return ResourceUriBuilder.getPort(getBaseUri(), publicPortId);
+        if (getBaseUri() != null && publicPortId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), publicPortId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -145,7 +154,11 @@ public class Vpn extends UriResource {
      * @return the private port URI
      */
     public URI getPrivatePort() {
-        return ResourceUriBuilder.getPort(getBaseUri(), privatePortId);
+        if (getBaseUri() != null && privatePortId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), privatePortId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -189,7 +202,7 @@ public class Vpn extends UriResource {
     public VpnConfig toConfig() {
         return new VpnConfig(this.getPublicPortId(), this.getPrivatePortId(),
                 this.getRemoteIp(), Enum.valueOf(VpnZkManager.VpnType.class,
-                this.vpnType.name()), this.getPort());
+                        this.vpnType.name()), this.getPort());
     }
 
     /*

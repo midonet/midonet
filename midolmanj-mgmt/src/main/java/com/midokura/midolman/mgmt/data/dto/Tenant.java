@@ -1,7 +1,6 @@
 /*
- * @(#)Tenant        1.6 11/09/07
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -13,9 +12,6 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
  * Tenant DTO.
- *
- * @version 1.6 20 Nov 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Tenant extends UriResource {
@@ -63,28 +59,44 @@ public class Tenant extends UriResource {
      * @return the bridges URI
      */
     public URI getBridges() {
-        return ResourceUriBuilder.getTenantBridges(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getTenantBridges(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the routers URI
      */
     public URI getRouters() {
-        return ResourceUriBuilder.getTenantRouters(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getTenantRouters(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the URI for the Tenant's chains resource.
      */
     public URI getChains() {
-        return ResourceUriBuilder.getTenantChains(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getTenantChains(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return the URI for the Tenant's chains resource.
      */
     public URI getPortGroups() {
-        return ResourceUriBuilder.getTenantPortGroups(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getTenantPortGroups(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -92,7 +104,11 @@ public class Tenant extends UriResource {
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getTenant(getBaseUri(), id);
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getTenant(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /*

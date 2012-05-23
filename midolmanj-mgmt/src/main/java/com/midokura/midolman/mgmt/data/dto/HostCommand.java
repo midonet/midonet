@@ -10,11 +10,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 /**
- * Class encapsulating the commands that should be executed by a node agent
- * into a host at startup.
+ * Class encapsulating the commands that should be executed by a node agent into
+ * a host at startup.
  *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/20/12
+ * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 2/20/12
  */
 @XmlRootElement
 public class HostCommand extends UriResource {
@@ -42,6 +41,11 @@ public class HostCommand extends UriResource {
 
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getHostCommand(super.getBaseUri(), hostId, id);
+        if (super.getBaseUri() != null && hostId != null) {
+            return ResourceUriBuilder.getHostCommand(super.getBaseUri(),
+                    hostId, id);
+        } else {
+            return null;
+        }
     }
 }
