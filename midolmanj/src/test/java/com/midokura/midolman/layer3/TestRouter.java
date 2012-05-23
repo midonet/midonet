@@ -21,6 +21,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.openflow.protocol.OFFeaturesReply;
+import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.ForwardingElement.Action;
@@ -30,6 +32,7 @@ import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
+import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
@@ -108,13 +111,23 @@ public class TestRouter {
         rTable.start();
 
         UUID vrnId = UUID.randomUUID();
-        controller = new MockVRNController(dir, basePath, null,
+        int dpId = 679;
+        MockOpenvSwitchDatabaseConnection ovsdb =
+                new MockOpenvSwitchDatabaseConnection();
+        ovsdb.setDatapathExternalId(dpId, "externalIdKey", vrnId.toString());
+        controller = new MockVRNController(dir, basePath, ovsdb,
                 IntIPv4.fromString("192.168.200.200"), "externalIdKey", vrnId,
                 false);
-        controller.setDatapathId(679);
         rtr = new Router(
                 rtrId, dir, basePath, reactor, controller, chainProcessor);
         controllerStub = new MockControllerStub();
+        controller.setControllerStub(controllerStub);
+
+        OFFeaturesReply features = new OFFeaturesReply();
+        features.setPorts(new ArrayList<OFPhysicalPort>());
+        features.setDatapathId(dpId);
+        ((MockControllerStub) controllerStub).setFeatures(features);
+        controller.onConnectionMade();
 
         // Create ports in ZK.
         // Create one port that works as an uplink for the router.

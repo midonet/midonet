@@ -95,7 +95,7 @@ public class TestVRNCoordinator {
         controller = new MockVRNController(dir, basePath, null,
                    IntIPv4.fromString("192.168.200.200"), "externalIdKey",
                    vrnId, false);
-        controller.setDatapathId(679);
+        controller.datapathId = 679;
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
         Cache cache = createCache();
         ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,

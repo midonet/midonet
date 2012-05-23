@@ -138,7 +138,7 @@ public abstract class AbstractController implements Controller {
         if (useNxm)
             controllerStub.enableNxm();
 
-        setDatapathId(controllerStub.getFeatures().getDatapathId());
+        datapathId = controllerStub.getFeatures().getDatapathId();
 
         // lookup midolman-vnet of datapath
         String uuid = ovsdb
@@ -693,21 +693,5 @@ public abstract class AbstractController implements Controller {
         // TODO(pino): can we pass null instead of an empty action list?
         controllerStub.sendPacketOut(bufferId, (short) 0,
                 new ArrayList<OFAction>(), null);
-    }
-
-    /**
-     * Gets the datapath ID.
-     */
-    public long getDatapathId() {
-        return this.datapathId;
-    }
-
-    /**
-     * Sets the datapath ID.
-     * This method is public so that it allows unit tests to set this value.
-     * In production, this value is set only from within the class.
-     */
-    public void setDatapathId(long datapathId) {
-        this.datapathId = datapathId;
     }
 }

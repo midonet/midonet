@@ -57,7 +57,6 @@ class AbstractControllerTester extends AbstractController {
     public Logger log = LoggerFactory.getLogger(AbstractControllerTester.class);
 
     AbstractControllerTester(
-            int datapathId,
             OpenvSwitchDatabaseConnection ovsdb,
             short flowExpireSeconds,
             long idleFlowExpireMillis,
@@ -213,7 +212,6 @@ public class TestAbstractController {
 
         localIp = IntIPv4.fromString("192.168.1.50");
         controller = new AbstractControllerTester(
-                             dp_id /* datapathId */,
                              ovsdb /* ovsdb */,
                              (short)300 /* flowExpireSeconds */,
                              60 * 1000 /* idleFlowExpireMillis */,
@@ -223,7 +221,7 @@ public class TestAbstractController {
                              vrnId /* VRN ID */);
 
         controller.setControllerStub(controllerStub);
-        controller.setDatapathId(dp_id);
+        controller.datapathId = dp_id;
         controller.portLocMap.start();
 
         port1 = new OFPhysicalPort();

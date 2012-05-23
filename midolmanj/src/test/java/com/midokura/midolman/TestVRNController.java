@@ -163,7 +163,7 @@ public class TestVRNController {
                 reactor, cache, "midonet", vrnId, false, bgpService,
                 vpnService);
         vrnCtrl.setControllerStub(controllerStub);
-        vrnCtrl.setDatapathId(datapathId);
+        vrnCtrl.datapathId = datapathId;
         vrnCtrl.portLocMap.start();
 
         /*
