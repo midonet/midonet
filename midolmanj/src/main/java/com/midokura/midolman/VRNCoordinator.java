@@ -4,6 +4,7 @@
 
 package com.midokura.midolman;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -123,8 +124,33 @@ public class VRNCoordinator implements ForwardingElement {
         return null;
     }
 
+    /**
+     * Notify all the subscribers that the flow has been removed so that they
+     * may free resources. Subscribers may be port, bridge or router UUIDs.
+     *
+     * @param match The flow match that has been removed.
+     * @param subscribers The elements that requested notification.
+     * @param inPortID The UUID of the ingress port of the removed flow.
+     */
+    public void freeFlowResources(
+            OFMatch match, Collection<UUID> subscribers, UUID inPortID) {
+        // TODO(pino): are FEs mapping the correct match for invalidation?
+        for (UUID id : subscribers) {
+            // Whether the subscriber is a port, bridge or router, the
+            // chainProcessor handles freeing NAT resources.
+            // TODO(pino): why doesn't the chainProcessor need the inPortID?
+            chainProcessor.freeFlowResources(match, id);
+            // If the subscriber is a bridge or router, call its freeResources.
+            ForwardingElement fe = forwardingElements.get(id);
+            if (null != fe)
+                fe.freeFlowResources(match, inPortID);
+        }
+    }
+
     @Override
     public void freeFlowResources(OFMatch match, UUID inPortId) {
+        // This should never be called.
+        throw new UnsupportedOperationException();
     }
 
     @Override

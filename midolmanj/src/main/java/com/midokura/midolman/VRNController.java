@@ -804,27 +804,8 @@ public class VRNController extends AbstractController
     }
 
     public void freeFlowResources(OFMatch match, Collection<UUID> forwardingElements) {
-        // TODO(pino): are FEs mapping the correct match for invalidation?
-        for (UUID feId : forwardingElements) {
-            try {
-                ForwardingElement fe = vrn.getForwardingElement(feId,
-                        VRNCoordinator.FEType.DontConstruct);
-                fe.freeFlowResources(match,
-                        portNumToUuid.get(U16.f(match.getInputPort())));
-            } catch (KeeperException e) {
-                log.warn("freeFlowResources failed for match {} in FE {} -"
-                        + " caught: \n{}",
-                        new Object[] { match, feId, e.getStackTrace() });
-            } catch (ZkStateSerializationException e) {
-                log.warn("freeFlowResources failed for match {} in FE {} -"
-                        + " caught: \n{}",
-                        new Object[] { match, feId, e.getStackTrace() });
-            } catch (StateAccessException e) {
-                log.warn("freeFlowResources failed for match {} in FE {} -"
-                        + " caught: \n{}",
-                        new Object[] { match, feId, e.getStackTrace() });
-            }
-        }
+        vrn.freeFlowResources(match, forwardingElements,
+                portNumToUuid.get(U16.f(match.getInputPort())));
     }
 
     @Override

@@ -261,6 +261,8 @@ public class Bridge implements ForwardingElement {
 
     @Override
     public void freeFlowResources(OFMatch match, UUID inPortId) {
+        // NOTE: resources used by filters are freed elsewhere.
+
         // Note: we only subscribe to removal notification for flows that arrive
         // via materialized ports. This makes it possible to use the flow
         // match's own source hardware address to reference count learned macs.

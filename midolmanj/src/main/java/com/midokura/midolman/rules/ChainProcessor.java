@@ -65,7 +65,8 @@ public class ChainProcessor {
 
     public void freeFlowResources(OFMatch match, UUID ownerId) {
         log.debug("freeFlowResources: match {}", match);
-        NatMapping natMap = getNatMapping(ownerId);
+        // If the NatMapping doesn't exist, it doesn't have resources to free.
+        NatMapping natMap = natMappingMap.get(ownerId);
         if (null != natMap)
             natMap.freeFlowResources(match);
     }
