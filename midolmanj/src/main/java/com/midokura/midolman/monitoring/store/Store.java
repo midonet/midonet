@@ -9,24 +9,20 @@ import java.util.Map;
 
 public interface Store {
 
-    public void addTSPoint(String targetIdentifier, long time, long value,
-                           String metricName);
+    public void addTSPoint(String type, String targetIdentifier,
+                           String metricName, long time,
+                           long value);
 
-    public long getTSPoint(String targetIdentifier, long time,
-                           String metricName);
+    public long getTSPoint(String type, String targetIdentifier,
+                           String metricName, long time);
 
-    public Map<String, Long> getTSPoints(String targetIdentifier,
-                                         long timeStart,
-                                         long timeEnd, String metricName);
+    public Map<String, Long> getTSPoints(String type, String targetIdentifier,
+                                         String metricName, long timeStart,
+                                         long timeEnd);
 
-    public void addMetric(String targetIdentifier, String metricName);
+    public void addMetric(String type, String targetIdentifier,
+                          String metricName);
 
-    public String getMetric(String targetIdentifier);
-
-    public void addGranularity(String targetIdentifier, String metricName,
-                               String granularity);
-
-    public List<Long> getAvailableGranularities(String targetIdentifier,
-                                                String metricName);
+    public List<String> getMetrics(String type, String targetIdentifier);
 
 }

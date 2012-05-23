@@ -5,10 +5,13 @@
 package com.midokura.midolman.monitoring.metrics;
 
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,29 +24,26 @@ public class VMMetricsCollection {
     private final static Logger log =
             LoggerFactory.getLogger(VMMetricsCollection.class);
 
-    private final static String VM_METRIC_NAME = "VMMetricsCollection";
-    private static final MBeanServer SERVER = ManagementFactory.getPlatformMBeanServer();
-    private static final String TYPE = "VM";
 
+    private static final MBeanServer SERVER = ManagementFactory.getPlatformMBeanServer();
 
     public static void addMetricsToRegistry() {
+        String hostName = "UNKNOWN";
         try {
-
-            MetricNameWrapper metricName = new MetricNameWrapper(VM_METRIC_NAME,
-                                                                 TYPE,
-                                                                 "ThreadCount",
-                                                                 "");
-            JMXServerConnectionGauge gauge = new JMXServerConnectionGauge(
+            //TODO use a unique id, maybe hostUUID?
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.error("Host unknown!", e);
+        }
+        try {
+            MetricName metricName = new MetricName(VMMetricsCollection.class,
+                                                   "ThreadCount", hostName);
+            Metrics.newGauge(metricName, new JMXRemoteBeanGauge<Integer>(
                     SERVER,
-                    "java.lang:type=Threading", "ThreadCount");
-            Metrics.newGauge(metricName, gauge);
+                    "java.lang:type=Threading", "ThreadCount", Integer.class));
 
         } catch (MalformedObjectNameException e) {
             log.error("Malformed object", e);
         }
-    }
-
-    public static String getMetricsCollectorName() {
-        return VM_METRIC_NAME;
     }
 }

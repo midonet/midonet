@@ -22,7 +22,6 @@ import com.yammer.metrics.reporting.AbstractPollingReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.monitoring.metrics.MetricNameWrapper;
 import com.midokura.midolman.monitoring.store.Store;
 
 /**
@@ -63,18 +62,10 @@ public class MidoReporter extends AbstractPollingReporter
 
     private void addNewMetricsInfoToStore() {
         for (MetricName metric : metricsToStore) {
-            MetricNameWrapper metricNameWrapper = new MetricNameWrapper(metric);
-            store.addMetric(metricNameWrapper.getTargetIdentifier(),
-                            metricNameWrapper.getName());
-            log.debug("Added metric {} for target {}",
-                      new Object[]{metricNameWrapper.getName(), metricNameWrapper
-                              .getTargetIdentifier()});
-            store.addGranularity(metricNameWrapper.getTargetIdentifier(),
-                                 metricNameWrapper.getName(),
-                                 metricNameWrapper.getGranularity());
-            log.debug("Added granularity {} for metric {}",
-                      new Object[]{metricNameWrapper.getGranularity(), metricNameWrapper
-                              .getName()});
+            store.addMetric(metric.getType(), metric.getScope(),
+                            metric.getName());
+            log.debug("Added metric {} for target {} type {}",
+                      new Object[]{metric.getName(), metric.getScope(), metric.getType()});
         }
         // clear list
         metricsToStore.clear();
@@ -83,25 +74,32 @@ public class MidoReporter extends AbstractPollingReporter
     @Override
     public void processGauge(MetricName name, Gauge<?> gauge, String s)
             throws Exception {
+        Long val;
+        Object originalValue = gauge.value();
+        if (originalValue instanceof Number) {
+            val = ((Number) originalValue).longValue();
+        } else if (originalValue instanceof Boolean) {
+            val = (Boolean) originalValue ? 1l : 0l;
+        } else {
+            log.debug("Unsupported value type {}",
+                      originalValue.getClass().getCanonicalName());
+            return;
+        }
 
-        Long val = Long.decode(gauge.value().toString());
-        MetricNameWrapper metricWrapper = new MetricNameWrapper(name);
+        store.addTSPoint(name.getType(), name.getScope(),
+                         name.getName(), System.currentTimeMillis(), val
+        );
 
-        //TODO what shall we do with granularity? Probably for first version it's useless
-        store.addTSPoint(metricWrapper.getTargetIdentifier(),
-                         System.currentTimeMillis(), val,
-                         metricWrapper.getName());
     }
 
     @Override
     public void processMeter(MetricName metricName, Metered metered, String s)
             throws Exception {
         Long val = metered.count();
-        MetricNameWrapper metricWrapper = new MetricNameWrapper(metricName);
 
-        store.addTSPoint(metricWrapper.getTargetIdentifier(),
-                         System.currentTimeMillis(), val,
-                         metricWrapper.getName());
+        store.addTSPoint(metricName.getType(), metricName.getScope(),
+                         metricName.getName(), System.currentTimeMillis(), val
+        );
     }
 
     @Override
@@ -109,11 +107,10 @@ public class MidoReporter extends AbstractPollingReporter
             throws Exception {
 
         Long val = counter.count();
-        MetricNameWrapper metricWrapper = new MetricNameWrapper(metricName);
 
-        store.addTSPoint(metricWrapper.getTargetIdentifier(),
-                         System.currentTimeMillis(), val,
-                         metricWrapper.getName());
+        store.addTSPoint(metricName.getType(), metricName.getScope(),
+                         metricName.getName(), System.currentTimeMillis(), val
+        );
     }
 
     @Override
@@ -130,7 +127,6 @@ public class MidoReporter extends AbstractPollingReporter
 
     @Override
     public void onMetricAdded(MetricName name, Metric metric) {
-
         metricsToStore.add(name);
     }
 

@@ -16,35 +16,44 @@ import org.slf4j.LoggerFactory;
  * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/24/12
  */
-public class JMXServerConnectionGauge extends Gauge<Object> {
+public class JMXRemoteBeanGauge<T> extends Gauge<T> {
 
     private final static Logger log =
-            LoggerFactory.getLogger(JMXServerConnectionGauge.class);
+            LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
     private MBeanServerConnection serverConnection;
 
     private ObjectName objectName;
     private String mBeanAttribute;
+    Class<T> clazz;
 
 
-    public JMXServerConnectionGauge(MBeanServerConnection serverConnection,
-                                    String mBean,
-                                    String mBeanAttribute)
+    public JMXRemoteBeanGauge(MBeanServerConnection serverConnection,
+                              String mBean,
+                              String mBeanAttribute, Class<T> clazz)
             throws MalformedObjectNameException {
         this.objectName = new ObjectName(mBean);
         this.serverConnection = serverConnection;
         this.mBeanAttribute = mBeanAttribute;
+        this.clazz = clazz;
     }
 
     @Override
-    public Object value() {
+    public T value() {
+        Object val = null;
         try {
-            return serverConnection.getAttribute(objectName,
-                                                 mBeanAttribute);
+            val = serverConnection.getAttribute(objectName,
+                                                mBeanAttribute);
+            return clazz.cast(val);
+        } catch (ClassCastException e) {
+            log.error("Couldn't convert class {} got from {}, {} to {}",
+                      new Object[]{val.getClass()
+                                      .getCanonicalName(), mBeanAttribute, clazz
+                              .getCanonicalName(), e});
         } catch (Exception e) {
             log.error("There was a problem in retrieving {}, {}",
                       new Object[]{objectName, mBeanAttribute, e});
-            return null;
         }
+        return null;
     }
 
 }

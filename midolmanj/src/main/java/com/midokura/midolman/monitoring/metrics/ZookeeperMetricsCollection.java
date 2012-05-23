@@ -4,6 +4,8 @@
 
 package com.midokura.midolman.monitoring.metrics;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.remote.JMXConnector;
@@ -11,6 +13,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,37 +23,36 @@ import org.slf4j.LoggerFactory;
  */
 public class ZookeeperMetricsCollection {
 
-    private final static String ZK_METRIC_NAME = "Zookeeper";
-    private static final String TYPE = "ZK";
-
     private final static Logger log =
-            LoggerFactory.getLogger(JMXServerConnectionGauge.class);
+            LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
 
 
     public static void addMetricsToRegistry(String mBeanServerUrl) {
         MBeanServerConnection serverConnection = connectJMXServer(
                 mBeanServerUrl);
-
+        String hostName = "UNKNOWN";
         try {
-            MetricNameWrapper metricName = new MetricNameWrapper(ZK_METRIC_NAME,
-                                                                 TYPE,
-                                                                 "PacketsSent",
-                                                                 "");
-            JMXServerConnectionGauge gauge = new JMXServerConnectionGauge(
+            //TODO use a unique id, maybe hostUUID?
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.error("Host unknown!", e);
+        }
+        try {
+            MetricName metricName = new MetricName(
+                    ZookeeperMetricsCollection.class,
+                    "PacketsSent",
+                    hostName);
+
+            Metrics.newGauge(metricName, new JMXRemoteBeanGauge<Integer>(
                     serverConnection,
                     "org.apache.ZooKeeperService:name0=StandaloneServer_port-1",
-                    "ZKPacketsSent");
-            Metrics.newGauge(metricName, gauge);
+                    "ZKPacketsSent", Integer.class));
 
         } catch (MalformedObjectNameException e) {
             log.debug(
-                    "Malformed Exception while trying to add a JMXServerConnectionGauge",
+                    "Malformed Exception while trying to add a JMXRemoteBeanGauge",
                     e);
         }
-    }
-
-    public String getMetricsCollectorName() {
-        return ZK_METRIC_NAME;
     }
 
     //TODO(rossella) use Mihai's helper once the code is pushed to master

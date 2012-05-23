@@ -19,9 +19,6 @@ public class CassandraStore implements Store {
 
     private static int maxNumberQueryResult = 1024;
 
-    private static final String METRICNAME_COLUMN = "MetricName";
-
-
     private static final Logger log =
             LoggerFactory.getLogger(CassandraStore.class);
 
@@ -38,9 +35,10 @@ public class CassandraStore implements Store {
     }
 
     @Override
-    public void addTSPoint(String targetIdentifier, long time, long value,
-                           String metricName) {
-        String key = targetIdentifier + metricName + GMTTime.getDayMonthYear(
+    public void addTSPoint(String type, String targetIdentifier,
+                           String metricName, long time,
+                           long value) {
+        String key = targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
                 time);
         client.set(key, Long.toString(value), Long.toString(time));
         log.debug("Added value {}, for key {}, column {}",
@@ -48,22 +46,21 @@ public class CassandraStore implements Store {
     }
 
     @Override
-    public long getTSPoint(String targetIdentifier, long time,
-                           String metricName) {
-        String key = targetIdentifier + metricName + GMTTime.getDayMonthYear(
+    public long getTSPoint(String type, String targetIdentifier,
+                           String metricName, long time) {
+        String key = targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
                 time);
         return Long.parseLong(client.get(key, Long.toString(time)));
     }
 
     @Override
-    public Map<String, Long> getTSPoints(String targetIdentifier,
-                                         long timeStart,
-                                         long timeEnd,
-                                         String metricName) {
+    public Map<String, Long> getTSPoints(String type, String targetIdentifier,
+                                         String metricName, long timeStart,
+                                         long timeEnd) {
         int numberOfDays = GMTTime.getNumberOfDays(timeStart, timeEnd);
 
         if (numberOfDays == 0) {
-            String key = targetIdentifier + metricName + GMTTime.getDayMonthYear(
+            String key = targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
                     timeStart);
 
             return client.executeSliceQuery(key, Long.toString(timeStart),
@@ -76,7 +73,7 @@ public class CassandraStore implements Store {
                 // since we store each day using a different key, calculate
                 // the keys
                 keys.add(
-                        targetIdentifier + metricName + GMTTime.getDayMonthYear(
+                        targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
                                 timeStart + i * msInADay));
             }
 
@@ -87,28 +84,15 @@ public class CassandraStore implements Store {
     }
 
     @Override
-    public void addMetric(String targetIdentifier, String metricName) {
+    public void addMetric(String type, String targetIdentifier,
+                          String metricName) {
         //TODO use another columnfamily?
-        client.set(targetIdentifier, metricName, METRICNAME_COLUMN);
+        client.set(targetIdentifier + type, metricName, metricName);
     }
 
     @Override
-    public String getMetric(String targetIdentifier) {
-        return client.get(targetIdentifier, METRICNAME_COLUMN);
-    }
-
-    @Override
-    public void addGranularity(String targetIdentifier, String metricName,
-                               String granularity) {
-        client.set(targetIdentifier + metricName, granularity, granularity);
-    }
-
-    @Override
-    public List<Long> getAvailableGranularities(
-            String targetIdentifier,
-            String metricName) {
-        return client.getAllColumnsValues(targetIdentifier + metricName,
-                                          Long.class,
+    public List<String> getMetrics(String type, String targetIdentifier) {
+        return client.getAllColumnsValues(targetIdentifier + type, String.class,
                                           maxNumberQueryResult);
     }
 
