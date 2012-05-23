@@ -14,7 +14,7 @@ public class DtoMetricQueryResponse {
     String metricName;
     long startEpochTime;
     long endEpochTime;
-    Map<String, String> results;
+    Map<String, Long> results;
     String granularity;
 
     public void setInterfaceName(String interfaceName) {
@@ -33,7 +33,7 @@ public class DtoMetricQueryResponse {
         this.endEpochTime = endEpochTime;
     }
 
-    public void setResults(Map<String, String> results) {
+    public void setResults(Map<String, Long> results) {
         this.results = results;
     }
 
@@ -57,7 +57,7 @@ public class DtoMetricQueryResponse {
         return endEpochTime;
     }
 
-    public Map<String, String> getResults() {
+    public Map<String, Long> getResults() {
         return results;
     }
 
@@ -74,11 +74,11 @@ public class DtoMetricQueryResponse {
                 "end=" + endEpochTime +
                 "granularity=" + granularity;
 
-        for (Map.Entry<String, String> entry : results.entrySet()) {
+        for (Map.Entry<String, Long> entry : results.entrySet()) {
             res += "[";
             res += entry.getKey();
             res += ",";
-            res += entry.getValue();
+            res += entry.getValue().toString();
             res += "]";
         }
 

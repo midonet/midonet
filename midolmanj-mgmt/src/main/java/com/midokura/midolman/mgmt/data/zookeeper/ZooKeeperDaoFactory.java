@@ -445,7 +445,12 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
         return new MetricCassandraDao(getCassandraStore());
     }
 
-    private CassandraStore getCassandraStore(){
-        return new CassandraStore(AppConfig.cassandraServer, AppConfig.cassandraCluster, AppConfig.cassandraMonitoringKeySpace, AppConfig.cassandraMonitoringColumnFamily, AppConfig.cassandraReplicationFactor, AppConfig.cassandraTtlInSecs);
+    private CassandraStore getCassandraStore() {
+        return new CassandraStore(AppConfig.cassandraServer,
+                                  AppConfig.cassandraCluster,
+                                  AppConfig.cassandraMonitoringKeySpace,
+                                  AppConfig.cassandraMonitoringColumnFamily,
+                                  AppConfig.cassandraReplicationFactor,
+                                  AppConfig.cassandraTtlInSecs);
     }
 }

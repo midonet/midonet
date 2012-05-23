@@ -44,10 +44,6 @@ public class MonitoringQueryResource {
                                     @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
                                     @Context Authorizer authorizer) throws StateAccessException {
 
-        /*if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view the host information.");
-        }*/
         MetricQueryResponse res = new MetricQueryResponse();
         return res;
     }
@@ -57,16 +53,12 @@ public class MonitoringQueryResource {
     @PermitAll
     @Consumes({VendorMediaType.APPLICATION_MONITORING_QUERY_JSON,
                       MediaType.APPLICATION_JSON})
-    @Produces({ VendorMediaType.APPLICATION_MONITORING_RESOURCE_JSON, // what's that?
+    @Produces({ VendorMediaType.APPLICATION_MONITORING_RESOURCE_JSON,
                       MediaType.APPLICATION_JSON })
     public MetricQueryResponse post(MetricQuery query, @Context SecurityContext context,
                     @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
                     @Context Authorizer authorizer) throws StateAccessException {
 
-        /*if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view the host information.");
-        }*/
         MetricDao dao = daoFactory.getMetricDao();
         return dao.executeQuery(query);
     }

@@ -32,12 +32,12 @@ public class MetricCassandraDao implements MetricDao {
 
     @Override
     public MetricQueryResponse executeQuery(MetricQuery query) {
-        Map<String, String> results = new HashMap<String, String>();
-        results = store.getTSPoint(query.getInterfaceName(),
-                                   query.getStartEpochTime(),
-                                   query.getEndEpochTime(),
-                                   query.getMetricName(),
-                                   query.getGranularity());
+        Map<String, Long> results = new HashMap<String, Long>();
+        results = store.getTSPoints(query.getInterfaceName(),
+                                    query.getStartEpochTime(),
+                                    query.getEndEpochTime(),
+                                    query.getMetricName()
+        );
         MetricQueryResponse response = new MetricQueryResponse();
         response.setMetricName(query.getMetricName());
         response.setInterfaceName(query.getInterfaceName());

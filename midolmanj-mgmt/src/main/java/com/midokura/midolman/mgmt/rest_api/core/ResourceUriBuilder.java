@@ -32,7 +32,7 @@ public class ResourceUriBuilder {
     public static final String HOSTS = "/hosts";
     public static final String INTERFACES = "/interfaces";
     public static final String COMMANDS = "/commands";
-    public static final String MONITORING_METRICS = "/metrics";
+    public static final String METRICS = "/metrics";
 
     private ResourceUriBuilder() {
     }

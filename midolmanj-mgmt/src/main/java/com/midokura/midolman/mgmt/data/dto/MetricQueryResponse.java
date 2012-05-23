@@ -18,7 +18,7 @@ public class MetricQueryResponse extends UriResource {
     String metricName;
     long timeStampStart;
     long timeStampEnd;
-    Map<String, String> results;
+    Map<String, Long> results;
     String granularity;
 
 
@@ -37,7 +37,7 @@ public class MetricQueryResponse extends UriResource {
         this.timeStampEnd = timeStampEnd;
     }
 
-    public void setResults(Map<String, String> results) {
+    public void setResults(Map<String, Long> results) {
         this.results = results;
     }
 
@@ -65,7 +65,7 @@ public class MetricQueryResponse extends UriResource {
         return timeStampEnd;
     }
 
-    public Map<String, String> getResults() {
+    public Map<String, Long> getResults() {
         return results;
     }
 
