@@ -101,7 +101,7 @@ public class TestVRNCoordinator {
         ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,
                 cache, reactor);
         PortConfigCache portCache =
-                new PortConfigCache(reactor, 300*1000, dir, basePath);
+                new PortConfigCache(reactor, dir, basePath);
         vrn = new VRNCoordinator(dir, basePath, reactor, cache,
                 controller, portSetMap, chainProcessor, portCache);
 

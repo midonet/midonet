@@ -102,8 +102,7 @@ public class VRNController extends AbstractController
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
                                                  reactor);
         this.portCache =
-                new PortConfigCache(reactor, TimeUnit.SECONDS.toMillis(300),
-                        zkDir, zkBasePath);
+                new PortConfigCache(reactor, zkDir, zkBasePath);
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this,
                 portSetMap, chainProcessor, portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
@@ -306,7 +305,8 @@ public class VRNController extends AbstractController
         try {
             vrn.process(fwdInfo);
         } catch (Exception e) {
-            log.warn("Exception during network simulation: ", e);
+            log.warn("Exception during network simulation, " +
+                    "installing temporary drop rule: ", e);
             freeFlowResources(match, fwdInfo.getNotifiedFEs());
             installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
                     TEMPORARY_DROP_SECONDS);
@@ -330,8 +330,8 @@ public class VRNController extends AbstractController
             if (entry != null)
                 destPortId = entry.value.ownerId;
             else {
-                log.error("Couldn't get port ID for tunnel ID {}: No entry in "+
-                          "ZooKeeper", tunnelId);
+                log.error("Failed to get vport ID for tunnel ID {}. " +
+                        "Installing temporary DROP rule", tunnelId);
                 installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
                         TEMPORARY_DROP_SECONDS);
                 return;

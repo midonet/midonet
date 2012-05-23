@@ -45,7 +45,7 @@ public class Bridge implements ForwardingElement {
     PortZkManager portMgr;
     private BridgeZkManager bridgeMgr;
     private Runnable logicalPortsWatcher;
-    private Set<UUID> logicalPortIDs = new HashSet<UUID>();
+    private HashSet<UUID> logicalPortIDs = new HashSet<UUID>();
     private Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
     private Map<IntIPv4, MAC> rtrIpToMac = new HashMap<IntIPv4, MAC>();
     private Map<UUID, IntIPv4> brPortIdToRtrPortIp =
@@ -392,20 +392,21 @@ public class Bridge implements ForwardingElement {
     }
 
     private void updateLogicalPorts() {
-        Set<UUID> oldLogicalPortIDs = logicalPortIDs;
+        HashSet<UUID> oldLogicalPortIDs = logicalPortIDs;
         try {
-            logicalPortIDs = portMgr.getBridgeLogicalPortIDs(
+            Set<UUID> newLogicalPortIDs = portMgr.getBridgeLogicalPortIDs(
                     bridgeId, logicalPortsWatcher);
+            logicalPortIDs = new HashSet<UUID>(newLogicalPortIDs);
         } catch (StateAccessException e) {
-            // TODO(pino): if we get a NoPathException give up.
-            // TODO(pino): what about other excepetion types?
+            log.error("Failed to retrieve the logical port IDs for bridge {}",
+                    bridgeId);
             return;
         }
-        Set<UUID> diff = new HashSet<UUID>();
+
         // First find the ports that have been removed.
-        diff.addAll(oldLogicalPortIDs);
+        HashSet<UUID> diff = (HashSet<UUID>)oldLogicalPortIDs.clone();
         diff.removeAll(logicalPortIDs);
-        for (UUID id : diff){
+        for (UUID id : diff) {
             IntIPv4 rtrPortIp = brPortIdToRtrPortIp.remove(id);
             MAC rtrPortMAC = rtrIpToMac.remove(rtrPortIp);
             rtrMacToLogicalPortId.remove(rtrPortMAC);
@@ -415,35 +416,34 @@ public class Bridge implements ForwardingElement {
 
         }
         // Now find all the newly added ports
-        diff.clear();
-        diff.addAll(logicalPortIDs);
+        diff = (HashSet<UUID>)logicalPortIDs.clone();
         diff.removeAll(oldLogicalPortIDs);
         for (UUID id : diff) {
             // Find the peer of the new logical port.
-            LogicalBridgePortConfig lbcfg =
+            LogicalBridgePortConfig bridgePort =
                     portCache.get(id, LogicalBridgePortConfig.class);
-            if (null == lbcfg) {
+            if (null == bridgePort) {
                 log.error("Failed to find the logical bridge port's config {}",
                         id);
                 continue;
             }
-            LogicalRouterPortConfig lrcfg = portCache.get(
-                    lbcfg.peerId(), LogicalRouterPortConfig.class);
-            if (null == lrcfg) {
-                log.error("Failed to find the logical router port's config {}",
-                        lbcfg);
+            LogicalRouterPortConfig routerPort = portCache.get(
+                    bridgePort.peerId(), LogicalRouterPortConfig.class);
+            if (null == routerPort) {
+                log.error("Failed to get the config for the bridge's peer {}",
+                        bridgePort);
                 continue;
             }
             // 'Learn' that the router's mac is reachable via the bridge port.
-            rtrMacToLogicalPortId.put(lrcfg.getHwAddr(), id);
+            rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
             // Add the router port's IP and MAC to the permanent ARP map.
-            IntIPv4 rtrPortIp = new IntIPv4(lrcfg.portAddr);
-            rtrIpToMac.put(rtrPortIp, lrcfg.getHwAddr());
+            IntIPv4 rtrPortIp = new IntIPv4(routerPort.portAddr);
+            rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
             // Need a way to clean up if the logical bridge port is deleted.
             brPortIdToRtrPortIp.put(id, rtrPortIp);
             log.debug("updateLogicalPorts: added bridge port {} " +
                     "connected to router port with MAC:{} and IP:{}",
-                    new Object[]{id, lrcfg.getHwAddr(), rtrPortIp});
+                    new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
         }
     }
 

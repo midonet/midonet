@@ -104,8 +104,7 @@ public class TestRouter {
         reactor = new MockReactor();
         chainProcessor = new ChainProcessor(
                 dir, basePath, new MockCache(), reactor);
-        portCache = new PortConfigCache(
-                reactor, TimeUnit.SECONDS.toMillis(300), dir, basePath);
+        portCache = new PortConfigCache(reactor, dir, basePath);
 
         UUID rtrId = routerMgr.create();
         rTable = new ReplicatedRoutingTable(rtrId,

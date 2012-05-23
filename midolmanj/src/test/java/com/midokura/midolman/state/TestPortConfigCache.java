@@ -28,7 +28,6 @@ public class TestPortConfigCache {
     private UUID bridgeID;
     private UUID portID;
     private PortConfigCache portCache;
-    private int expiryMillis = 300*1000;
 
     @Before
     public void setUp() throws Exception {
@@ -38,7 +37,7 @@ public class TestPortConfigCache {
         Setup.createZkDirectoryStructure(dir, basePath);
         portMgr = new PortZkManager(dir, basePath);
         reactor = new MockReactor();
-        portCache = new PortConfigCache(reactor, expiryMillis, dir, basePath);
+        portCache = new PortConfigCache(reactor, dir, basePath);
 
         BridgeZkManager bridgeMgr = new BridgeZkManager(dir, basePath);
         BridgeZkManager.BridgeConfig bridgeConfig =
@@ -85,7 +84,8 @@ public class TestPortConfigCache {
         assertThat("The cache should contain the portID as key",
                 portCache.hasKey(portID));
         // Advance the clock to allow expiration to occur.
-        reactor.incrementTime(expiryMillis, TimeUnit.MILLISECONDS);
+        reactor.incrementTime(
+                PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
         // Modify the entry in ZK to trigger removal of the key.
         portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
                 portID, getNewConfig()));
@@ -101,7 +101,8 @@ public class TestPortConfigCache {
         // Pin the value.
         portCache.pin(portID);
         // Advance the clock and verify that expiration did not occur.
-        reactor.incrementTime(expiryMillis, TimeUnit.MILLISECONDS);
+        reactor.incrementTime(
+                PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
         // Modify the entry in ZK to trigger removal of the key.
         portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
                 portID, getNewConfig()));
@@ -110,7 +111,8 @@ public class TestPortConfigCache {
         // Unpin the value
         portCache.unPin(portID);
         // Advance the clock to allow expiration to occur.
-        reactor.incrementTime(expiryMillis, TimeUnit.MILLISECONDS);
+        reactor.incrementTime(
+                PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
         // Modify the entry in ZK to trigger removal of the key.
         portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
                 portID, getNewConfig()));

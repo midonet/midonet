@@ -5,6 +5,7 @@
 package com.midokura.midolman.state;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +31,11 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
             LoggerFactory.getLogger(PortConfigCache.class);
 
     private PortZkManager portMgr;
-    private long expiryMillis;
+    public static final long expiryMillis = TimeUnit.SECONDS.toMillis(300);
 
-    public PortConfigCache(Reactor reactor, long expiryMillis,
-                           Directory zkDir, String zkBasePath) {
+    public PortConfigCache(Reactor reactor, Directory zkDir,
+                           String zkBasePath) {
         super(reactor);
-        this.expiryMillis = expiryMillis;
         portMgr = new PortZkManager(zkDir, zkBasePath);
     }
 
@@ -44,7 +44,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         try {
             return clazz.cast(config);
         } catch (ClassCastException e) {
-            log.error("Tried to cast {} to a {}",
+            log.error("Failed to cast {} to a {}",
                     new Object[] {config, clazz, e});
             return null;
         }
