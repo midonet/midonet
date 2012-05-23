@@ -132,7 +132,7 @@ public class BridgeRouterLink extends UriResource {
      * @return the bridge URI
      */
     public URI setBridge() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), bridgeId);
+        return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
     }
 
     /**
