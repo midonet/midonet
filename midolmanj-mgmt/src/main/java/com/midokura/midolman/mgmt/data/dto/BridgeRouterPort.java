@@ -104,7 +104,7 @@ public class BridgeRouterPort extends RouterPort {
      * @return the peer bridge port URI
      */
     public URI getBridge() {
-        return ResourceUriBuilder.getRouter(getBaseUri(), bridgeId);
+        return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
     }
 
     /*

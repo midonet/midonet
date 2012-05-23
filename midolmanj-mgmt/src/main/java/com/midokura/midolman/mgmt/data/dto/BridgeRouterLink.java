@@ -109,7 +109,7 @@ public class BridgeRouterLink extends UriResource {
     /**
      * @return the router URI
      */
-    public URI setRouter() {
+    public URI getRouter() {
         return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
     }
 
@@ -131,7 +131,7 @@ public class BridgeRouterLink extends UriResource {
     /**
      * @return the bridge URI
      */
-    public URI setBridge() {
+    public URI getBridge() {
         return ResourceUriBuilder.getBridge(getBaseUri(), bridgeId);
     }
 
