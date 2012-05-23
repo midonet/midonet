@@ -244,8 +244,13 @@ public class Router implements ForwardingElement {
         IntIPv4 intNwAddr = new IntIPv4(nwAddr);
         log.debug("getMacForIp: port {} ip {}", portId, intNwAddr);
 
-        PortConfig portCfg = portCache.get(portId);
-        RouterPortConfig rtrPortConfig = RouterPortConfig.class.cast(portCfg);
+        RouterPortConfig rtrPortConfig =
+                portCache.get(portId, RouterPortConfig.class);
+        if (null == rtrPortConfig) {
+            log.error("cannot get the configuration for the port {}", portId);
+            cb.call(null);
+            return;
+        }
         String nwAddrStr = intNwAddr.toString();
         if (rtrPortConfig instanceof MaterializedRouterPortConfig) {
             MaterializedRouterPortConfig mPortConfig =
@@ -327,8 +332,14 @@ public class Router implements ForwardingElement {
         log.debug("{} process fwdInfo {}", this, fwdInfo);
 
         MAC hwDst = new MAC(fwdInfo.matchIn.getDataLayerDestination());
-        PortConfig portCfg = portCache.get(fwdInfo.inPortId);
-        RouterPortConfig rtrPortCfg = RouterPortConfig.class.cast(portCfg);
+        RouterPortConfig rtrPortCfg =
+                portCache.get(fwdInfo.inPortId, RouterPortConfig.class);
+        if (null == rtrPortCfg) {
+            log.error("Could not get the port's configuration {}",
+                    fwdInfo.inPortId);
+            fwdInfo.action = Action.DROP;
+            return;
+        }
 
         // Process packets that are either IPv4 or ARP with proto IPv4.
         if (fwdInfo.matchIn.getDataLayerType() != IPv4.ETHERTYPE
@@ -465,20 +476,26 @@ public class Router implements ForwardingElement {
 
         fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
+        RouterPortConfig outPortCfg = portCache.get(
+                fwdInfo.outPortId, RouterPortConfig.class);
+        if (null == outPortCfg) {
+            log.error("Can't find the configuration for the egress port {}",
+                    fwdInfo.outPortId);
+            fwdInfo.action = Action.DROP;
+            return;
+        }
         // Drop packet addressed to the outPort's own IP.
-        portCfg = portCache.get(fwdInfo.outPortId);
-        rtrPortCfg = RouterPortConfig.class.cast(portCfg);
-        IntIPv4 outPortIP = new IntIPv4(rtrPortCfg.portAddr);
+        IntIPv4 outPortIP = new IntIPv4(outPortCfg.portAddr);
         if (nwDst.equals(outPortIP)) {
             fwdInfo.action = Action.DROP;
             return;
         }
         // Set the hwSrc and hwDst before forwarding the packet.
-        fwdInfo.matchOut.setDataLayerSource(rtrPortCfg.getHwAddr());
+        fwdInfo.matchOut.setDataLayerSource(outPortCfg.getHwAddr());
         // If sending to a logical router port, just grab the MAC from
         // that port's PortConfig.  Else we have to ARP for the next hop's
         // MAC, unless it's already in our ARP cache.
-        MAC peerMac = getPeerMac(rtrPortCfg);
+        MAC peerMac = getPeerMac(outPortCfg);
         if (peerMac != null) {
             fwdInfo.action = Action.FORWARD;
             fwdInfo.matchOut.setDataLayerDestination(peerMac);
@@ -500,15 +517,13 @@ public class Router implements ForwardingElement {
         if (!(rpCfg instanceof LogicalRouterPortConfig))
             return null;
         UUID peerId = LogicalRouterPortConfig.class.cast(rpCfg).peer_uuid;
-        PortConfig pc = portCache.get(peerId);
+        RouterPortConfig pc = portCache.get(peerId, RouterPortConfig.class);
         if (null == pc) {
             log.error("No portConfig for {}'s peer port {} in ZK.",
                 IPv4.fromIPv4Address(rpCfg.portAddr), peerId);
             return null;
         }
-        if (!(pc instanceof RouterPortConfig))
-            return null;
-        return RouterPortConfig.class.cast(pc).hwAddr;
+        return pc.hwAddr;
     }
 
     private boolean isIcmpEchoRequest(OFMatch match) {
@@ -899,12 +914,11 @@ public class Router implements ForwardingElement {
         // Ignore packets sent to the local-subnet IP broadcast address of the
         // intended egress port.
         if (null != egressPortId) {
-            RouterPortConfig portConfig;
-            try {
-                PortConfig cfg = portCache.get(egressPortId);
-                portConfig = RouterPortConfig.class.cast(cfg);
-            } catch (Exception e) {
-                log.error("Failed to get the egress port's config from ZK.", e);
+            RouterPortConfig portConfig = portCache.get(
+                    egressPortId, RouterPortConfig.class);
+            if (null == portConfig) {
+                log.error("Failed to get the egress port's config from ZK {}",
+                        egressPortId);
                 return false;
             }
             if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
@@ -962,14 +976,13 @@ public class Router implements ForwardingElement {
         // The nwDst is the source of triggering IPv4 as seen by this router.
         ip.setDestinationAddress(fwdInfo.matchIn.getNetworkSource());
         // The nwSrc is the address of the ingress port.
-        PortConfig cfg = portCache.get(fwdInfo.inPortId);
-        if (null == cfg) {
+        RouterPortConfig portConfig = portCache.get(
+                fwdInfo.inPortId, RouterPortConfig.class);
+        if (null == portConfig) {
             log.error("Failed to retrieve the inPort's configuration {}",
                     fwdInfo.inPortId);
             return;
         }
-        RouterPortConfig portConfig =
-                RouterPortConfig.class.cast(cfg);
         ip.setSourceAddress(portConfig.portAddr);
         Ethernet eth = new Ethernet();
         eth.setPayload(ip);

@@ -30,9 +30,9 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
             LoggerFactory.getLogger(PortConfigCache.class);
 
     private PortZkManager portMgr;
-    private int expiryMillis;
+    private long expiryMillis;
 
-    public PortConfigCache(Reactor reactor, int expiryMillis,
+    public PortConfigCache(Reactor reactor, long expiryMillis,
                            Directory zkDir, String zkBasePath) {
         super(reactor);
         this.expiryMillis = expiryMillis;

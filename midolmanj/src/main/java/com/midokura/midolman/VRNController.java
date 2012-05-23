@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -101,7 +102,8 @@ public class VRNController extends AbstractController
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
                                                  reactor);
         this.portCache =
-                new PortConfigCache(reactor, 300*1000, zkDir, zkBasePath);
+                new PortConfigCache(reactor, TimeUnit.SECONDS.toMillis(300),
+                        zkDir, zkBasePath);
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, this,
                 portSetMap, chainProcessor, portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
