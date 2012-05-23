@@ -1,7 +1,6 @@
 /*
- * @(#)Bridge        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -17,18 +16,15 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 
 /**
  * Class representing Virtual Bridge.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Bridge extends UriResource {
 
-    private UUID id = null;
-    private String name = null;
-    private String tenantId = null;
-    private UUID inboundFilter = null;
-    private UUID outboundFilter = null;
+    private UUID id;
+    private String name;
+    private String tenantId;
+    private UUID inboundFilter;
+    private UUID outboundFilter;
 
     /**
      * Constructor.
@@ -135,7 +131,7 @@ public class Bridge extends UriResource {
     /**
      * @return the routers URI
      */
-    public URI getRouters() {
+    public URI getPeerRouters() {
         return ResourceUriBuilder.getBridgeRouters(getBaseUri(), id);
     }
 

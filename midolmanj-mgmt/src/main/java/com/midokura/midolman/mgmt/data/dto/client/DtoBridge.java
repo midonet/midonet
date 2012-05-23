@@ -78,11 +78,11 @@ public class DtoBridge {
         this.ports = ports;
     }
 
-    public URI getRouters() {
+    public URI getPeerRouters() {
         return routers;
     }
 
-    public void setRouters(URI routers) {
+    public void setPeerRouters(URI routers) {
         this.routers = routers;
     }
 

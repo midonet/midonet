@@ -1,7 +1,6 @@
 /*
- * @(#)Router        1.6 11/09/05
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.data.dto;
 
@@ -17,23 +16,21 @@ import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 /**
  * Class representing Virtual Router.
- *
- * @version 1.6 05 Sept 2011
- * @author Ryu Ishimoto
  */
 @XmlRootElement
 public class Router extends UriResource {
 
-    private UUID id = null;
-    private String name = null;
-    private String tenantId = null;
-    private UUID inboundFilter = null;
-    private UUID outboundFilter = null;
+    private UUID id;
+    private String name;
+    private String tenantId;
+    private UUID inboundFilter;
+    private UUID outboundFilter;
 
     /**
      * Constructor.
      */
-    public Router() {}
+    public Router() {
+    }
 
     /**
      * Constructor
@@ -140,13 +137,16 @@ public class Router extends UriResource {
     }
 
     /**
-     * @return the peerRouters URI.F
+     * @return the peerRouters URI.
      */
     public URI getPeerRouters() {
         return ResourceUriBuilder.getRouterRouters(getBaseUri(), id);
     }
 
-    public URI getBridges() {
+    /**
+     * @return the peerBridges URI.
+     */
+    public URI getPeerBridges() {
         return ResourceUriBuilder.getRouterBridges(getBaseUri(), id);
     }
 

@@ -103,11 +103,11 @@ public class DtoRouter {
         this.peerRouters = peerRouters;
     }
 
-    public URI getBridges() {
+    public URI getPeerBridges() {
         return bridges;
     }
 
-    public void setBridges(URI bridges) {
+    public void setPeerBridges(URI bridges) {
         this.bridges = bridges;
     }
 

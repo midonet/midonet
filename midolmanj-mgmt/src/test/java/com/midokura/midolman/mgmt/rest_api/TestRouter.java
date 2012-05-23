@@ -262,7 +262,7 @@ public class TestRouter extends JerseyTest {
         port.setPortAddress("10.0.0.1");
         DtoRouter router1 = resource().uri(testRouterUri)
                 .type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);
-        response = resource().uri(router1.getBridges())
+        response = resource().uri(router1.getPeerBridges())
                 .type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
@@ -282,7 +282,7 @@ public class TestRouter extends JerseyTest {
         assertEquals(link1, response.getEntity(DtoBridgeRouterLink.class));
 
         // Verify that you get the identical link by querying the bridge.
-        response = resource().uri(UriBuilder.fromUri(bridge1.getRouters())
+        response = resource().uri(UriBuilder.fromUri(bridge1.getPeerRouters())
                 .path(router1.getId().toString()).build())
                 .type(APPLICATION_ROUTER_LINK_JSON).get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -303,7 +303,7 @@ public class TestRouter extends JerseyTest {
         port.setNetworkAddress("10.0.1.0");
         port.setNetworkLength(24);
         port.setPortAddress("10.0.1.1");
-        response = resource().uri(router1.getBridges())
+        response = resource().uri(router1.getPeerBridges())
                 .type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
@@ -317,14 +317,14 @@ public class TestRouter extends JerseyTest {
         assertEquals(router1.getId(), link2.getRouterId());
 
         // Verify that you get the identical link by querying the bridge.
-        response = resource().uri(UriBuilder.fromUri(bridge2.getRouters())
+        response = resource().uri(UriBuilder.fromUri(bridge2.getPeerRouters())
                 .path(router1.getId().toString()).build())
                 .type(APPLICATION_ROUTER_LINK_JSON).get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         assertEquals(link2, response.getEntity(DtoBridgeRouterLink.class));
 
         // Now try to list the bridge links of the router.
-        response = resource().uri(router1.getBridges())
+        response = resource().uri(router1.getPeerBridges())
                 .type(APPLICATION_ROUTER_LINK_JSON).get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         DtoBridgeRouterLink[] links =
@@ -347,7 +347,7 @@ public class TestRouter extends JerseyTest {
         port.setPortAddress("10.0.0.254");
         DtoRouter router2 = resource().uri(anotherRouterUri)
                 .type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);
-        response = resource().uri(router2.getBridges())
+        response = resource().uri(router2.getPeerBridges())
                 .type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
@@ -361,7 +361,7 @@ public class TestRouter extends JerseyTest {
         assertEquals(router2.getId(), link3.getRouterId());
 
         // Now list the routers that link to bridge1
-        response = resource().uri(bridge1.getRouters())
+        response = resource().uri(bridge1.getPeerRouters())
                 .type(APPLICATION_ROUTER_LINK_JSON).get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         links = response.getEntity(DtoBridgeRouterLink[].class);
@@ -393,14 +393,14 @@ public class TestRouter extends JerseyTest {
         assertEquals(204, response.getStatus());
 
         // List the routers that link to bridge1 - there should only be rotuer2
-        response = resource().uri(bridge1.getRouters())
+        response = resource().uri(bridge1.getPeerRouters())
                 .type(APPLICATION_ROUTER_LINK_JSON).get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         links = response.getEntity(DtoBridgeRouterLink[].class);
         assertEquals(1, links.length);
         assertEquals(links[0], link3);
         // List the bridges that link to router1 - there should only be bridge2
-        response = resource().uri(router1.getBridges())
+        response = resource().uri(router1.getPeerBridges())
                 .type(APPLICATION_ROUTER_LINK_JSON).get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         links = response.getEntity(DtoBridgeRouterLink[].class);

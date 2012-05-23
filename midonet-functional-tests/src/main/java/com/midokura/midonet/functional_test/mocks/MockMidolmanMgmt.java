@@ -214,7 +214,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public DtoBridgeRouterLink linkRouterToBridge(
         DtoRouter router, DtoBridgeRouterPort logPort) {
-        return resource().uri(router.getBridges())
+        return resource().uri(router.getPeerBridges())
             .type(MediaType.APPLICATION_JSON)
             .post(DtoBridgeRouterLink.class, logPort);
     }
