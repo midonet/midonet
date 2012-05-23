@@ -1,14 +1,15 @@
 /*
  * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
  */
 
 package com.midokura.midolman.mgmt.data.dto;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.UUID;
 
-import com.midokura.midolman.layer3.*;
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.ZkNodeEntry;
@@ -41,7 +42,8 @@ public class BridgeRouterPort extends RouterPort {
      * @param config
      *            LogicalRouterPortConfig object
      */
-    public BridgeRouterPort(UUID id, PortDirectory.LogicalRouterPortConfig config) {
+    public BridgeRouterPort(UUID id,
+            PortDirectory.LogicalRouterPortConfig config) {
         this(id, config.device_id);
         this.networkAddress = Net.convertIntAddressToString(config.nwAddr);
         this.networkLength = config.nwLength;
@@ -77,6 +79,13 @@ public class BridgeRouterPort extends RouterPort {
     }
 
     /**
+     * @return the peer port URI
+     */
+    public URI getPeer() {
+        return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+    }
+
+    /**
      * @return the connected bridge's Id
      */
     public UUID getBridgeId() {
@@ -91,6 +100,13 @@ public class BridgeRouterPort extends RouterPort {
         this.bridgeId = bridgeId;
     }
 
+    /**
+     * @return the peer bridge port URI
+     */
+    public URI getBridge() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), bridgeId);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -98,11 +114,11 @@ public class BridgeRouterPort extends RouterPort {
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.LogicalRouterPortConfig config =
-                new PortDirectory.LogicalRouterPortConfig(this.getDeviceId(),
-                Net.convertStringAddressToInt(this.getNetworkAddress()),
-                this.getNetworkLength(), Net.convertStringAddressToInt(this
-                .getPortAddress()), new HashSet<com.midokura.midolman.layer3.Route>(),
+        PortDirectory.LogicalRouterPortConfig config = new PortDirectory.LogicalRouterPortConfig(
+                this.getDeviceId(), Net.convertStringAddressToInt(this
+                        .getNetworkAddress()), this.getNetworkLength(),
+                Net.convertStringAddressToInt(this.getPortAddress()),
+                new HashSet<com.midokura.midolman.layer3.Route>(),
                 this.getPeerId(), null);
         super.toConfig(config);
         return config;
@@ -112,8 +128,8 @@ public class BridgeRouterPort extends RouterPort {
      * @return PortConfig object of the peer.
      */
     public PortConfig toPeerConfig() {
-        return new PortDirectory.LogicalBridgePortConfig(
-                this.getBridgeId(), this.getId());
+        return new PortDirectory.LogicalBridgePortConfig(this.getBridgeId(),
+                this.getId());
     }
 
     /**
@@ -142,8 +158,8 @@ public class BridgeRouterPort extends RouterPort {
      * @return ZkNodeEntry object for the peer port node.
      */
     public ZkNodeEntry<UUID, PortConfig> toPeerZkNode() {
-        return new ZkNodeEntry<UUID, PortConfig>(
-                this.getPeerId(), toPeerConfig());
+        return new ZkNodeEntry<UUID, PortConfig>(this.getPeerId(),
+                toPeerConfig());
     }
 
     /*
@@ -158,9 +174,7 @@ public class BridgeRouterPort extends RouterPort {
 
     @Override
     public String toString() {
-        return "BridgeRouterPort{" +
-                "bridgeId=" + bridgeId +
-                ", peerId=" + peerId +
-                '}';
+        return "BridgeRouterPort{" + "bridgeId=" + bridgeId + ", peerId="
+                + peerId + '}';
     }
 }

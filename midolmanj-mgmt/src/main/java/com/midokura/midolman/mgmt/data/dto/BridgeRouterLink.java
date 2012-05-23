@@ -1,14 +1,15 @@
 /*
  * Copyright 2011 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
  */
 
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 
 @XmlRootElement
@@ -38,8 +39,8 @@ public class BridgeRouterLink extends UriResource {
      * @param bridgeId
      *            ID of the bridge.
      */
-    public BridgeRouterLink(UUID routerPortId, UUID bridgePortId, UUID routerId,
-                            UUID bridgeId) {
+    public BridgeRouterLink(UUID routerPortId, UUID bridgePortId,
+            UUID routerId, UUID bridgeId) {
         this.routerPortId = routerPortId;
         this.bridgePortId = bridgePortId;
         this.routerId = routerId;
@@ -62,6 +63,13 @@ public class BridgeRouterLink extends UriResource {
     }
 
     /**
+     * @return the peer router port URI
+     */
+    public URI getRouterPort() {
+        return ResourceUriBuilder.getPort(getBaseUri(), routerPortId);
+    }
+
+    /**
      * @return the bridgePortId
      */
     public UUID getBridgePortId() {
@@ -74,6 +82,13 @@ public class BridgeRouterLink extends UriResource {
      */
     public void setBridgePortId(UUID bridgePortId) {
         this.bridgePortId = bridgePortId;
+    }
+
+    /**
+     * @return the peer bridge port URI
+     */
+    public URI getBridgePort() {
+        return ResourceUriBuilder.getPort(getBaseUri(), bridgePortId);
     }
 
     /**
@@ -92,6 +107,13 @@ public class BridgeRouterLink extends UriResource {
     }
 
     /**
+     * @return the router URI
+     */
+    public URI setRouter() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
+    }
+
+    /**
      * @return the bridgeId
      */
     public UUID getBridgeId() {
@@ -107,17 +129,25 @@ public class BridgeRouterLink extends UriResource {
     }
 
     /**
+     * @return the bridge URI
+     */
+    public URI setBridge() {
+        return ResourceUriBuilder.getRouter(getBaseUri(), bridgeId);
+    }
+
+    /**
      * @return the self URI
      */
     @Override
     public URI getUri() {
-        return ResourceUriBuilder.getRouterBridge(
-                getBaseUri(), routerId, bridgeId);
+        return ResourceUriBuilder.getRouterBridge(getBaseUri(), routerId,
+                bridgeId);
     }
 
     @Override
     public String toString() {
-        return "routerPortId=" + routerPortId + ", bridgePortId=" + bridgePortId
-                + ", routerId=" + routerId + ", bridgeId=" + bridgeId;
+        return "routerPortId=" + routerPortId + ", bridgePortId="
+                + bridgePortId + ", routerId=" + routerId + ", bridgeId="
+                + bridgeId;
     }
 }
