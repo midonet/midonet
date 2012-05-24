@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import javax.management.JMException;
-import javax.management.ObjectName;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -58,7 +56,6 @@ import com.midokura.midolman.util.Net;
  * @version ?
  * @author Pino de Candia
  */
-//@MXBean // FIXME: this throws NotCompliantMBeanExceptions ATM
 public class Router implements ForwardingElement {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
@@ -114,7 +111,6 @@ public class Router implements ForwardingElement {
     private Map<UUID, Map<Integer, List<Callback1<MAC>>>> arpCallbackLists;
     private Reactor reactor;
     private LoadBalancer loadBalancer;
-    private final ObjectName objectName;
     private final VRNControllerIface controller;
     private RouteZkManager routeMgr;
     private RouterZkManager routerMgr;
@@ -154,27 +150,10 @@ public class Router implements ForwardingElement {
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
         ruleEngine = chainProcessor;
-        try {
-            objectName = new ObjectName(
-                    "com.midokura.midolman.layer3:type=Router,name="+ routerId);
-            // FIXME: this throws NotCompliantMBeanExceptions ATM
-            // ManagementFactory.getPlatformMBeanServer()
-            //         .registerMBean(this, objectName);
-        } catch (JMException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
-    public void destroy() {
-        try {
-            ManagementFactory.getPlatformMBeanServer()
-                             .unregisterMBean(objectName);
-        } catch (JMException e) {
-            throw new RuntimeException("Dan Dumitriu swore this would " +
-                                       "NEVER happen!", e);
-        }
-    }
+    public void destroy() { }
 
     public String toString() {
         return routerId.toString();
@@ -867,11 +846,14 @@ public class Router implements ForwardingElement {
     }
 
     /**
-     * Determine whether a packet can trigger an ICMP error. Per RFC 1812 sec.
-     * 4.3.2.7, some packets should not trigger ICMP errors: 1) Other ICMP
-     * errors. 2) Invalid IP packets. 3) Destined to IP bcast or mcast address.
-     * 4) Destined to a link-layer bcast or mcast. 5) With source network prefix
-     * zero or invalid source. 6) Second and later IP fragments.
+     * Determine whether a packet can trigger an ICMP error.  Per RFC 1812 sec.
+     * 4.3.2.7, some packets should not trigger ICMP errors:
+     *   1) Other ICMP errors.
+     *   2) Invalid IP packets.
+     *   3) Destined to IP bcast or mcast address.
+     *   4) Destined to a link-layer bcast or mcast.
+     *   5) With source network prefix zero or invalid source.
+     *   6) Second and later IP fragments.
      *
      * @param ethPkt
      *            We wish to know whether this packet may trigger an ICMP error
