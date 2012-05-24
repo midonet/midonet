@@ -2,6 +2,7 @@
 
 package com.midokura.midolman;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -503,54 +504,18 @@ public class TestBridge {
         // Trigger a notification that the remote port on the other
         // end of the tunnel has gone away.
         log.info("Removing port {} from portLocMap", portUuids[3]);
-        portLocMap.remove(portUuids[3]);
+        portLocMap.removeIfOwner(portUuids[3]);
         assertEquals(oldDelCount+1, controllerStub.deletedFlows.size());
         MidoMatch expectedMatch = new MidoMatch();
         expectedMatch.setDataLayerDestination(macList[3]);
         assertEquals(expectedMatch,
                      controllerStub.deletedFlows.get(oldDelCount).match);
         log.info("Removing port {} from portLocMap", portUuids[4]);
-        portLocMap.remove(portUuids[4]);
+        portLocMap.removeIfOwner(portUuids[4]);
         assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
         expectedMatch.setDataLayerDestination(macList[4]);
         assertEquals(expectedMatch,
                      controllerStub.deletedFlows.get(oldDelCount+1).match);
-    }
-
-    @Test @Ignore // TODO: The invalidation logic has changed -- update this test.
-    public void testFlowInvalidatePortMoves()
-                throws KeeperException, InterruptedException {
-        int oldDelCount = controllerStub.deletedFlows.size();
-        short inPortNum = 1;
-        short outPortNum = 3;
-        final Ethernet packet = packet13;
-        MidoMatch expectMatch = flowmatch13.clone();
-        expectMatch.setInputPort(inPortNum);
-        OFAction[] expectAction = { new OFActionOutput(outPortNum, (short)0) };
-        controller.onPacketIn(14, 13, inPortNum, packet.serialize());
-        checkInstalledFlow(expectMatch, normalIdle, 0, 0, normalPriority, expectAction);
-        checkSentPacket(14, (short)-1, expectAction, new byte[] {});
-
-        assertEquals(oldDelCount+2, controllerStub.deletedFlows.size());
-        MidoMatch expectSrcDelete = new MidoMatch();
-        expectSrcDelete.setDataLayerSource(macList[1]);
-        MidoMatch expectDstDelete = new MidoMatch();
-        expectDstDelete.setDataLayerDestination(macList[1]);
-        assertEquals(expectSrcDelete,
-                     controllerStub.deletedFlows.get(oldDelCount).match);
-        assertEquals(expectDstDelete,
-                     controllerStub.deletedFlows.get(oldDelCount+1).match);
-        oldDelCount += 2;
-
-        // Move the port, check that the controller removed the flow.
-        portLocMap.put(portUuids[3], IntIPv4.fromString("1.2.3.4"));
-        assertTrue(oldDelCount < controllerStub.deletedFlows.size());
-        MidoMatch expectedMatch = new MidoMatch();
-        expectedMatch.setDataLayerDestination(macList[3]);
-        for (int i = oldDelCount; i < controllerStub.deletedFlows.size(); i++) {
-            assertEquals(expectedMatch,
-                         controllerStub.deletedFlows.get(i).match);
-        }
     }
 
     @Test
@@ -605,7 +570,7 @@ public class TestBridge {
         // Remove the port->location mapping for the remote port and verify
         // that the new packets generate drop rules.
         // TODO: This should generate a flood.  Fix it.
-        portLocMap.remove(portUuids[outPortNum]);
+        portLocMap.removeIfOwner(portUuids[outPortNum]);
         controllerStub.addedFlows.clear();
         numPreinstalledFlows = 0;
         controllerStub.sentPackets.clear();
@@ -620,7 +585,7 @@ public class TestBridge {
     @Test
     public void testInvalidateDropFlowsReachablePort()
                 throws KeeperException, InterruptedException {
-        portLocMap.remove(portUuids[4]);
+        portLocMap.removeIfOwner(portUuids[4]);
         short inPortNum = 0;
         short outPortNum = 4;
         final Ethernet packet = packet04;
@@ -815,13 +780,22 @@ public class TestBridge {
 
         // Delete port 1.
         controller.onPortStatus(phyPorts[1], OFPortReason.OFPPR_DELETE);
+        // Port removal only schedules removal of the Mac-Port mapping.
+        assertEquals(portUuids[1], macPortMap.get(macList[1]));
+        assertEquals(portUuids[0], macPortMap.get(macList[0]));
+        // Wait for the timeout
+        reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
         assertNull(macPortMap.get(macList[1]));
         assertEquals(portUuids[0], macPortMap.get(macList[0]));
 
         // Delete port 0.
         controller.onPortStatus(phyPorts[0], OFPortReason.OFPPR_DELETE);
         assertNull(macPortMap.get(macList[1]));
-        assertNull(macPortMap.get(macList[0]));
+        assertEquals(portUuids[0], macPortMap.get(macList[0]));
+        // Wait for the timeout
+        reactor.incrementTime(timeout_ms, TimeUnit.MILLISECONDS);
+        assertNull(macPortMap.get(macList[1]));
+        assertNull(macPortMap.get(macList[1]));
     }
 
     @Test
@@ -985,7 +959,7 @@ public class TestBridge {
 
         // Remove MAC 0 from macPortMap.
         controllerStub.deletedFlows.clear();
-        macPortMap.remove(macList[0]);
+        macPortMap.removeIfOwner(macList[0]);
         // Only flows with dstMAC = MAC 0 should be invalidated.  Flows with
         // srcMAC = MAC 0 should still be valid.
         /* // TODO: Invalidation
@@ -996,90 +970,6 @@ public class TestBridge {
         */
     }
 
-    @Ignore // TODO: Invalidation
-    @Test
-    public void testPortLocUpdateInvalidatesFlows()
-                throws KeeperException, InterruptedException {
-        controller.onPacketIn(14, 13, (short)0, packet04.serialize());
-        controller.onPacketIn(14, 13, (short)1, packet15.serialize());
-        controller.onPacketIn(14, 13, (short)2, packet23.serialize());
-        controller.onPacketIn(14, 13, (short)2, packet25.serialize());
-
-        OFAction expectedActions[][] = {
-                { new OFActionOutput((short)4, (short)0) },
-                { new OFActionOutput((short)5, (short)0) },
-                { new OFActionOutput((short)3, (short)0) },
-                { new OFActionOutput((short)5, (short)0) } };
-        MidoMatch expectedMatches[] = {
-                flowmatch04.clone(), flowmatch15.clone(),
-                flowmatch23.clone(), flowmatch25.clone() };
-        expectedMatches[0].setInputPort((short)0);
-        expectedMatches[1].setInputPort((short)1);
-        expectedMatches[2].setInputPort((short)2);
-        expectedMatches[3].setInputPort((short)2);
-
-        assertEquals(4, controllerStub.addedFlows.size());
-        for (int i = 0; i < 4; i++) {
-            assertArrayEquals(expectedActions[i],
-                              controllerStub.addedFlows.get(i).actions.toArray()
-                             );
-            assertEquals(expectedMatches[i],
-                         controllerStub.addedFlows.get(i).match);
-        }
-
-        // Move portUuid 5 to peer 3.
-        controllerStub.deletedFlows.clear();
-        portLocMap.put(portUuids[5], IntIPv4.fromString(peerStrList[3]));
-        // Flows to MAC 5 should have been invalidated.
-        MidoMatch expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[5]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-
-        // Now packet25 should go to peer 3 not peer 5.
-        controller.onPacketIn(14, 13, (short)2, packet25.serialize());
-        assertEquals(5, controllerStub.addedFlows.size());
-        assertArrayEquals(new OFAction[] {
-                                  new OFActionOutput((short)3, (short)0) },
-                          controllerStub.addedFlows.get(4).actions.toArray());
-        expectMatch = flowmatch25.clone();
-        expectMatch.setInputPort((short)2);
-        assertEquals(expectMatch, controllerStub.addedFlows.get(4).match);
-
-        // Delete the portLocMap entry for portUuid[5].  Flows to MAC 5 should
-        // be invalidated.
-        controllerStub.deletedFlows.clear();
-        portLocMap.remove(portUuids[5]);
-        expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[5]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-
-        // Now packet25 should go to ALL.
-        controller.onPacketIn(14, 13, (short)2, packet25.serialize());
-        assertEquals(6, controllerStub.addedFlows.size());
-        assertArrayEquals(new OFAction[] { OUTPUT_ALL_ACTION },
-                          controllerStub.addedFlows.get(5).actions.toArray());
-        expectMatch = flowmatch25.clone();
-        expectMatch.setInputPort((short)2);
-        assertEquals(expectMatch, controllerStub.addedFlows.get(5).match);
-
-        // Re-add portUuid 5 at peer 5.
-        controllerStub.deletedFlows.clear();
-        portLocMap.put(portUuids[5], IntIPv4.fromString(peerStrList[5]));
-        // Flows to MAC 5 should have been invalidated.
-        expectMatch = new MidoMatch();
-        expectMatch.setDataLayerDestination(macList[5]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-
-        controllerStub.deletedFlows.clear();
-        portLocMap.remove(portUuids[4]);
-        expectMatch.setDataLayerDestination(macList[4]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectMatch));
-    }
-
     boolean flowListContainsMatch(List<MockControllerStub.Flow> flowList,
                                   OFMatch match) {
         for (MockControllerStub.Flow flow : flowList)
@@ -1087,62 +977,6 @@ public class TestBridge {
                 return true;
 
         return false;
-    }
-
-    @Ignore // TODO: Invalidation.
-    @Test
-    public void testNontunnelPortDeleteInvalidatesFlows() {
-        controller.onPacketIn(14, 13, (short)0, packet04.serialize());
-        assertEquals(portUuids[0], macPortMap.get(macList[0]));
-        MAC newMac = MAC.fromString("00:AA:AA:AA:22:22");
-        final Ethernet packet = makePacket(newMac, macList[5]);
-        MidoMatch flowmatch = makeFlowMatch(newMac, macList[5]);
-        controller.onPacketIn(14, 13, (short)0, packet.serialize());
-        assertEquals(portUuids[0], macPortMap.get(newMac));
-
-        // Send several packets to MAC 0.
-        controller.onPacketIn(14, 13, (short)1, packet10.serialize());
-        controller.onPacketIn(14, 13, (short)2, packet20.serialize());
-        controller.onPacketIn(14, 13, (short)7, packet70.serialize());
-
-        OFAction expectedActions[][] = {
-                { new OFActionOutput((short)4, (short)0) },
-                { new OFActionOutput((short)5, (short)0) },
-                { new OFActionOutput((short)0, (short)0) },
-                { new OFActionOutput((short)0, (short)0) },
-                { new OFActionOutput((short)0, (short)0) } };
-        MidoMatch expectedMatches[] = {
-                flowmatch04.clone(), flowmatch, flowmatch10.clone(),
-                flowmatch20.clone(), flowmatch70.clone() };
-        short flowMatchInPorts[] = { 0, 0, 1, 2, 7 };
-        for (int i = 0; i < 5; i++) {
-            expectedMatches[i].setInputPort(flowMatchInPorts[i]);
-        }
-
-        assertEquals(5, controllerStub.addedFlows.size());
-        for (int i = 0; i < 5; i++) {
-            assertArrayEquals(expectedActions[i],
-                              controllerStub.addedFlows.get(i).actions.toArray()
-                             );
-            assertEquals(expectedMatches[i],
-                         controllerStub.addedFlows.get(i).match);
-        }
-
-        // Delete port 0.
-        controllerStub.deletedFlows.clear();
-        controller.onPortStatus(phyPorts[0], OFPortReason.OFPPR_DELETE);
-
-        assertNull(macPortMap.get(macList[0]));
-        assertNull(macPortMap.get(newMac));
-
-        MidoMatch expectedMatchSrc = new MidoMatch();
-        MidoMatch expectedMatchDst = new MidoMatch();
-        expectedMatchSrc.setDataLayerSource(macList[0]);
-        expectedMatchDst.setDataLayerDestination(macList[0]);
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectedMatchSrc));
-        assertTrue(flowListContainsMatch(controllerStub.deletedFlows,
-                                         expectedMatchDst));
     }
 
     @Test

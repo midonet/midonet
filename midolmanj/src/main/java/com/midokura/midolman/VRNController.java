@@ -20,17 +20,7 @@ import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionDataLayer;
-import org.openflow.protocol.action.OFActionDataLayerDestination;
-import org.openflow.protocol.action.OFActionDataLayerSource;
-import org.openflow.protocol.action.OFActionNetworkLayerAddress;
-import org.openflow.protocol.action.OFActionNetworkLayerDestination;
-import org.openflow.protocol.action.OFActionNetworkLayerSource;
-import org.openflow.protocol.action.OFActionOutput;
-import org.openflow.protocol.action.OFActionTransportLayer;
-import org.openflow.protocol.action.OFActionTransportLayerDestination;
-import org.openflow.protocol.action.OFActionTransportLayerSource;
+import org.openflow.protocol.action.*;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,37 +34,16 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.DHCP;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.ICMP;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.MalformedPacketException;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.midolman.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.GreZkManager;
 import com.midokura.midolman.state.GreZkManager.GreKey;
-import com.midokura.midolman.state.IPv4Set;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfigCache;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
-import com.midokura.midolman.state.ZkNodeEntry;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.util.functors.UnaryFunctor;
 
@@ -120,7 +89,8 @@ public class VRNController extends AbstractController
     PortConfigCache portCache;
     private Cache connectionCache;
     private Collection<VRNControllerObserver> vrnObservers =
-        new CopyOnWriteArrayList<VRNControllerObserver>();
+            new CopyOnWriteArrayList<VRNControllerObserver>();
+    private CookieMonster cookieMgr = new CookieMonster();
 
     public VRNController(Directory zkDir, String zkBasePath,
             IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
@@ -136,12 +106,11 @@ public class VRNController extends AbstractController
         this.portSetMap = new PortSetMap(zkDir, zkBasePath);
         this.portSetMap.start();
         this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
-                                                 reactor);
+                                                 reactor, this);
         this.portCache = new PortConfigCache(reactor, zkDir, zkBasePath);
         this.connectionCache = cache;
-        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache,
-                                      this, portSetMap, chainProcessor,
-                                      portCache);
+        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, this,
+                                      portSetMap, chainProcessor, portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.bgpService = bgpService;
@@ -188,6 +157,15 @@ public class VRNController extends AbstractController
         Integer portNum = portUuidToNumberMap.get(portID);
         if (null != portNum)
             portSetSlice.remove(portNum.shortValue());
+    }
+
+    @Override
+    public void invalidateFlowsByElement(UUID id) {
+        Set<Long> cookies = cookieMgr.getCookieSetForID(id);
+        MidoMatch match = new MidoMatch();
+        for (Long cookie : cookies)
+            controllerStub.sendFlowModDelete(match, false, FLOW_PRIORITY,
+                    OFPort.OFPP_NONE.getValue(), 0, cookie.longValue());
     }
 
     // TODO(pino): fix this quick hack that's used for DHCP replies.
@@ -303,7 +281,7 @@ public class VRNController extends AbstractController
             MidoMatch flowMatch = new MidoMatch();
             flowMatch.setInputPort(shortInPort);
             installDropFlowEntry(flowMatch, bufferId, NO_IDLE_TIMEOUT,
-                    TEMPORARY_DROP_SECONDS);
+                    TEMPORARY_DROP_SECONDS, 0, 0);
             return;
         }
 
@@ -325,7 +303,7 @@ public class VRNController extends AbstractController
                         } catch (StateAccessException e) {
                             installDropFlowEntry(match, bufferId,
                                                  NO_IDLE_TIMEOUT,
-                                                 TEMPORARY_DROP_SECONDS);
+                                                 TEMPORARY_DROP_SECONDS, 0, 0);
                             return;
                         }
                     }
@@ -349,7 +327,9 @@ public class VRNController extends AbstractController
                      "installing temporary drop rule: ", e);
             freeFlowResources(match, fwdInfo.getNotifiedFEs());
             installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
-                                 TEMPORARY_DROP_SECONDS);
+                                 TEMPORARY_DROP_SECONDS, 0,
+                                 cookieMgr.getCookieForIdSet(
+                                        fwdInfo.getTraversedElementIDs()));
             return;
         }
         if (fwdInfo.action != ForwardingElement.Action.PAUSED)
@@ -373,23 +353,31 @@ public class VRNController extends AbstractController
                 log.error("Failed to get vport ID for tunnel ID {}. " +
                         "Installing temporary DROP rule", tunnelId);
                 installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
-                        TEMPORARY_DROP_SECONDS);
+                        TEMPORARY_DROP_SECONDS, tunnelId, 0);
                 return;
             }
         } catch (StateAccessException e) {
             log.error("Couldn't get port ID for tunnel ID {}: ZooKeeper error "+
                       "{}", tunnelId, e.getMessage());
             installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
-                    TEMPORARY_DROP_SECONDS);
+                    TEMPORARY_DROP_SECONDS, tunnelId, 0);
             return;
         }
         Set<Short> outPorts = new HashSet<Short>();
+        Set<UUID> traversedElements = new HashSet<UUID>();
         if (portSetMap.containsKey(destPortId)) { // multiple egress
             log.debug("forwardTunneledPkt: to PortSet.");
             // Add local OVS ports.
             if (localPortSetSlices.containsKey(destPortId)) {
                 for (short outPort : localPortSetSlices.get(destPortId)) {
-                    if (doesPortFilterAcceptFloodedPacket(outPort, match))
+                    // Add the port to the 'traversed elements' set. Whether
+                    // or not the packet is accepted by the port's filter,
+                    // we want to be able to recompute the flow if the filter
+                    // (or any part of the port) changes.
+                    traversedElements.add(
+                            portNumToUuid.get(U16.f(outPort)));
+                    if (doesPortFilterAcceptFloodedPacket(
+                            outPort, match, traversedElements))
                         outPorts.add(outPort);
                 }
             }
@@ -402,18 +390,20 @@ public class VRNController extends AbstractController
                 outPorts.add(portNum.shortValue());
             }
         }
+        long cookie = cookieMgr.getCookieForIdSet(traversedElements);
         if (outPorts.size() == 0) {
             log.warn("forwardTunneledPkt: DROP - no OVS ports to output to.");
-            installDropFlowEntry(match, bufferId,
-                    NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+            installDropFlowEntry(match, bufferId, NO_IDLE_TIMEOUT,
+                    TEMPORARY_DROP_SECONDS, tunnelId, cookie);
             return;
         }
         log.debug("forwardTunneledPkt: sending to ports {}", outPorts);
         // TODO(pino): avoid installing flows for controller-generated ARP/ICMP?
-        // TODO(pino): wildcard everything except inPort and tunnelId?
+        // This is expected to mostly be used for PortSets, and given that each
+        // port may filter packets differently, we can't use wildcards much.
         List<OFAction> actions = makeActionsForFlow(match, match, outPorts, 0);
         addFlowAndSendPacket(bufferId, match, idleFlowExpireSeconds,
-                NO_HARD_TIMEOUT, false, actions, data, tunnelId);
+                NO_HARD_TIMEOUT, false, actions, data, tunnelId, cookie);
     }
 
     private void handleProcessResult(ForwardInfo fwdInfo) {
@@ -431,7 +421,9 @@ public class VRNController extends AbstractController
             log.debug("handleProcessResult: DROP {}", fwdInfo);
             if (null != ofPktCtx)
                 installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId,
-                        NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+                        NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS, 0,
+                        cookieMgr.getCookieForIdSet(
+                                fwdInfo.getTraversedElementIDs()));
             freeFlowResources(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             return;
         case NOT_IPV4:
@@ -448,7 +440,7 @@ public class VRNController extends AbstractController
                 // The flow should be temporary because the topology might
                 // change so that the router is no longer in the packet's path.
                 installDropFlowEntry(flowMatch, ofPktCtx.bufferId,
-                        NO_IDLE_TIMEOUT, NO_HARD_TIMEOUT);
+                        NO_IDLE_TIMEOUT, NO_HARD_TIMEOUT, 0, 0);
             }
             freeFlowResources(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             return;
@@ -517,7 +509,9 @@ public class VRNController extends AbstractController
                                        fwdInfo.getNotifiedFEs());
                 addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                         idleFlowExpireSeconds, NO_HARD_TIMEOUT,
-                        removalNotification, actions, ofPktCtx.data, 0);
+                        removalNotification, actions, ofPktCtx.data, 0,
+                        cookieMgr.getCookieForIdSet(
+                                fwdInfo.getTraversedElementIDs()));
             } else { // generated packet
                 log.debug("Forwarding a generated packet.");
                 controllerStub.sendPacketOut(
@@ -541,8 +535,10 @@ public class VRNController extends AbstractController
                     // For port sets, never go out the ingress port.
                     if (localPortNum == inPortNum)
                         continue;
+                    fwdInfo.addTraversedElementID(
+                            portNumToUuid.get(U16.f(localPortNum)));
                     if (doesPortFilterAcceptFloodedPacket(localPortNum,
-                                                      fwdInfo.matchOut))
+                            fwdInfo.matchOut, fwdInfo.getTraversedElementIDs()))
                         outPorts.add(localPortNum);
                 }
             }
@@ -595,7 +591,9 @@ public class VRNController extends AbstractController
             log.warn("forwardPacket: DROP - no OVS ports to output to.");
             if (null != ofPktCtx)
                 installDropFlowEntry(fwdInfo.flowMatch, ofPktCtx.bufferId,
-                         NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS);
+                         NO_IDLE_TIMEOUT, TEMPORARY_DROP_SECONDS, 0,
+                        cookieMgr.getCookieForIdSet(
+                                fwdInfo.getTraversedElementIDs()));
             freeFlowResources(fwdInfo.flowMatch, fwdInfo.getNotifiedFEs());
             return;
         }
@@ -611,7 +609,9 @@ public class VRNController extends AbstractController
             log.debug("installing a flow entry for this packet.");
             addFlowAndSendPacket(ofPktCtx.bufferId, fwdInfo.flowMatch,
                     idleFlowExpireSeconds, NO_HARD_TIMEOUT,
-                    removalNotification, actions, ofPktCtx.data, 0);
+                    removalNotification, actions, ofPktCtx.data, 0,
+                    cookieMgr.getCookieForIdSet(
+                            fwdInfo.getTraversedElementIDs()));
         } else { // generated packet
             log.debug("Not installing a flow entry for this generated packet.");
             controllerStub.sendPacketOut(
@@ -622,9 +622,9 @@ public class VRNController extends AbstractController
     }
 
     private boolean doesPortFilterAcceptFloodedPacket(short portNum,
-                                                      MidoMatch mmatch) {
+            MidoMatch mmatch, Set<UUID> traversedElementIDs) {
         try {
-            UUID portID = portNumToUuid.get(new Integer(portNum));
+            UUID portID = portNumToUuid.get(U16.f(portNum));
             PortConfig portCfg = portCache.get(portID);
             MidoMatch pktMatch = mmatch.clone();
             // Ports themselves don't have ports for packets to be entering/
@@ -632,9 +632,9 @@ public class VRNController extends AbstractController
             // The port groups *should* be set based on the original origin
             // port, but we don't have access to that, so use null.
             RuleResult result = chainProcessor.applyChain(
-                            portCfg.outboundFilter,
-                            new EgressPacketContext(pktMatch), pktMatch, portID,
-                            true);
+                    portCfg.outboundFilter,
+                    new EgressPacketContext(pktMatch, traversedElementIDs),
+                    pktMatch, portID, true);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
@@ -654,9 +654,16 @@ public class VRNController extends AbstractController
         // packet is never conn tracked and always a forward flow.
 
         private MidoMatch match;
+        Set<UUID> traversedElements;
 
-        public EgressPacketContext(MidoMatch m) {
-            match = m;
+        public EgressPacketContext(MidoMatch m, Set<UUID> traversedElements) {
+            this.match = m;
+            this.traversedElements = traversedElements;
+        }
+
+        @Override
+        public void addTraversedElementID(UUID id) {
+            traversedElements.add(id);
         }
 
         public UUID getInPortId() { return null; }
@@ -752,8 +759,8 @@ public class VRNController extends AbstractController
     private void addFlowAndSendPacket(int bufferId, OFMatch match,
             short idleTimeoutSecs, short hardTimeoutSecs,
             boolean sendFlowRemove, List<OFAction> actions,
-            byte[] data, long matchingTunnelId) {
-        controllerStub.sendFlowModAdd(match, 0, idleTimeoutSecs,
+            byte[] data, long matchingTunnelId, long cookie) {
+        controllerStub.sendFlowModAdd(match, cookie, idleTimeoutSecs,
                 hardTimeoutSecs, FLOW_PRIORITY, bufferId, sendFlowRemove,
                 false, false, actions, matchingTunnelId);
         // Unbuffered packets need to be explicitly sent.
@@ -763,11 +770,14 @@ public class VRNController extends AbstractController
     }
 
     private void installDropFlowEntry(MidoMatch flowMatch, int bufferId,
-                                      short idleTimeout, short hardTimeout) {
-        if (bufferId != ControllerStub.UNBUFFERED_ID)
-            controllerStub.sendFlowModAdd(flowMatch, (long) 0, idleTimeout,
-                    hardTimeout, FLOW_PRIORITY, bufferId, false, false, false,
-                    new ArrayList<OFAction>());
+            short idleTimeout, short hardTimeout, long matchingTunnelId,
+            long cookie) {
+        // Install a flow regardless of whether the packet was buffered.
+        // If the packet was buffered, then bufferId != UNBUFFERED_ID,
+        // and the buffer is freed; otherwise, the switch already forgot it.
+        controllerStub.sendFlowModAdd(flowMatch, cookie, idleTimeout,
+                hardTimeout, FLOW_PRIORITY, bufferId, false, false, false,
+                new ArrayList<OFAction>(), matchingTunnelId);
     }
 
     private void installPredefTunnelRule(int portNum, int greKey) {
@@ -785,7 +795,7 @@ public class VRNController extends AbstractController
         // (strict match)
         MidoMatch match = new MidoMatch();
         controllerStub.sendFlowModDelete(match, true, FLOW_PRIORITY,
-                                         (short) portNum, greKey);
+                (short) portNum, greKey, 0);
     }
 
     @Override
@@ -969,7 +979,7 @@ public class VRNController extends AbstractController
         UUID portId = bgpService.getRemotePort(portName);
         if (portId != null) {
             bgpService.configurePort(portId, portName);
-            startBgpPortService((short)portNum, portId);
+            startBgpPortService((short) portNum, portId);
         }
     }
 
@@ -989,7 +999,7 @@ public class VRNController extends AbstractController
 
     @Override
     protected void portMoved(UUID portUuid, IntIPv4 oldAddr, IntIPv4 newAddr) {
-        // Do nothing.
+        invalidateFlowsByElement(portUuid);
     }
 
     @Override
@@ -1054,7 +1064,7 @@ public class VRNController extends AbstractController
         } catch (Exception e) {
             log.error("addVirtualPort", e);
         }
-        setFlowsForHandlingDhcpInController((short)portNum);
+        setFlowsForHandlingDhcpInController((short) portNum);
     }
 
     @Override
@@ -1150,5 +1160,9 @@ public class VRNController extends AbstractController
                     pkt, (short) 0);
             this.flowMatch = this.matchOut.clone();
         }
+    }
+
+    public CookieMonster getCookieMgr() {
+        return cookieMgr;
     }
 }

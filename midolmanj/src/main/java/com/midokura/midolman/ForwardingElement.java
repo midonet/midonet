@@ -99,6 +99,10 @@ public interface ForwardingElement {
         private Collection<UUID> notifyFEs = new HashSet<UUID>();
         // Used by the VRNCoordinator to detect loops.
         private Map<UUID, Integer> traversedFEs = new HashMap<UUID, Integer>();
+        // Used for coarse invalidation. If any element in this set changes
+        // there's a chance the flow is no longer correct. Elements can be
+        // Routers, Bridges, Ports and Chains.
+        private Set<UUID> traversedElementIDs = new HashSet<UUID>();
         public int depth = 0;  // depth in the VRN simulation
         // Used for connection tracking.
         private boolean connectionTracked = false;
@@ -230,6 +234,19 @@ public interface ForwardingElement {
         }
 
         @Override
+        public void addRemovalNotification(UUID deviceId) {
+            notifyFEs.add(deviceId);
+        }
+
+        public void addTraversedElementID(UUID id) {
+            traversedElementIDs.add(id);
+        }
+
+        public Set<UUID> getTraversedElementIDs() {
+            return traversedElementIDs;
+        }
+
+        @Override
         public boolean isGeneratedPacket() {
             return internallyGenerated;
         }
@@ -257,11 +274,6 @@ public interface ForwardingElement {
         @Override
         public MidoMatch getMatchOut() {
             return matchOut;
-        }
-
-        @Override
-        public void addRemovalNotification(UUID deviceId) {
-            notifyFEs.add(deviceId);
         }
 
         @Override

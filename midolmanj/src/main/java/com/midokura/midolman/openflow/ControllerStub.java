@@ -68,9 +68,14 @@ public interface ControllerStub {
      *      tunnel ID of the incoming packet. This argument should be 0 unless
      *      you previously called enableNxm. Otherwise, this method throws an
      *      IllegalArgumentException.
+     * @param cookie
+     *      Specifies additional meta-data the the flow entry should match: the
+     *      cookie that was assigned to the added flow at creation-time. The
+     *      argument should be 0 unless you previously called enableNxm.
+     *      Otherwise, this method throws an IllegalArgumentException.
      */
     void sendFlowModDelete(OFMatch match, boolean strict,
-            short priority, short outPort, long matchingTunnelId);
+            short priority, short outPort, long matchingTunnelId, long cookie);
 
     /**
      * Send a ofp_packet_out message to the switch. See OpenFlow1.0 spec,

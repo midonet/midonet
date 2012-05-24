@@ -37,6 +37,7 @@ import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.util.Callback0;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.Net;
 
@@ -130,13 +131,25 @@ public class Router implements ForwardingElement {
         table = new ReplicatedRoutingTable(routerId,
                         routerMgr.getRoutingTableDirectory(routerId),
                         CreateMode.EPHEMERAL);
+        table.addWatcher(new Callback0() {
+            @Override
+            public void call() {
+            if (null != controller)
+                controller.invalidateFlowsByElement(routerId);
+            }
+        });
         table.start();
-        // Get the Router's configurationa and watch it for changes.
+        // Get the Router's configuration and watch it for changes.
         myConfig = routerMgr.get(routerId,
                 new Runnable() {
                     public void run() {
                         try {
-                            myConfig = routerMgr.get(routerId, this).value;
+                            RouterZkManager.RouterConfig config =
+                                    routerMgr.get(routerId, this).value;
+                            if (!myConfig.equals(config)) {
+                                myConfig = config;
+                                controller.invalidateFlowsByElement(routerId);
+                            }
                         } catch (StateAccessException e) {
                             log.error("Failed to update router config", e);
                         }
@@ -153,7 +166,12 @@ public class Router implements ForwardingElement {
     }
 
     @Override
-    public void destroy() { }
+    public void destroy() {
+        // TODO(pino): the router should completely tear down its state and
+        // TODO: throw exceptions if it's called again. Old callbacks should
+        // TODO: unregistered or result in no-ops.
+        controller.invalidateFlowsByElement(routerId);
+    }
 
     public String toString() {
         return routerId.toString();
@@ -376,9 +394,8 @@ public class Router implements ForwardingElement {
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
 
         fwdInfo.outPortId = null;
-        RuleResult res = ruleEngine.applyChain(
-                myConfig.inboundFilter, fwdInfo, fwdInfo.matchIn,
-                this.routerId, false);
+        RuleResult res = ruleEngine.applyChain(myConfig.inboundFilter,
+                fwdInfo, fwdInfo.matchIn, this.routerId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -488,13 +505,17 @@ public class Router implements ForwardingElement {
         if (!(rpCfg instanceof LogicalRouterPortConfig))
             return null;
         UUID peerId = LogicalRouterPortConfig.class.cast(rpCfg).peer_uuid;
-        RouterPortConfig pc = portCache.get(peerId, RouterPortConfig.class);
-        if (null == pc) {
+        // We don't know if the peer is a bridge or router port. Use the form of
+        // PortConfigCache.get that will avoid class cast exceptions in the log.
+        PortConfig peerConfig = portCache.get(peerId);
+        if (null == peerConfig) {
             log.error("No portConfig for {}'s peer port {} in ZK.",
                 IPv4.fromIPv4Address(rpCfg.portAddr), peerId);
             return null;
         }
-        return pc.hwAddr;
+        if (peerConfig instanceof LogicalRouterPortConfig)
+            return ((LogicalRouterPortConfig) peerConfig).hwAddr;
+        return null;
     }
 
     private boolean isIcmpEchoRequest(OFMatch match) {
@@ -737,7 +758,7 @@ public class Router implements ForwardingElement {
                 log.debug("{} expiring ARP cache entry for {}", this,
                         intNwAddr);
                 try {
-                    arpTable.remove(intNwAddr);
+                    arpTable.removeIfOwner(intNwAddr);
                 } catch (KeeperException e) {
                     log.error("KeeperException while removing ARP table entry", e);
                 } catch (InterruptedException e) {

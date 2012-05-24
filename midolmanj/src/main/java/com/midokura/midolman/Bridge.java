@@ -39,6 +39,9 @@ public class Bridge implements ForwardingElement {
     private final Logger log = LoggerFactory.getLogger(Bridge.class);
 
     UUID bridgeId;
+    // The "flood ID" is used to tag flooded flows so that they can be
+    // invalidated independently of the bridge's other flows.
+    UUID floodElementID;
     MacPortMap macPortMap;
     long mac_port_timeout = 40*1000;
     Reactor reactor;
@@ -65,6 +68,8 @@ public class Bridge implements ForwardingElement {
                   ChainProcessor chainProcessor, PortConfigCache portCache)
             throws StateAccessException {
         this.bridgeId = brId;
+        // The "flood ID" can be locally generated - it's only used on this VM.
+        this.floodElementID = bridgeIdToFloodId(bridgeId);
         this.reactor = reactor;
         this.controller = ctrl;
         this.chainProcessor = chainProcessor;
@@ -93,14 +98,25 @@ public class Bridge implements ForwardingElement {
                 new Runnable() {
                     public void run() {
                         try {
-                            myConfig = bridgeMgr.get(bridgeId, this).value;
-                            log.debug("Bridge {} has a new configuration {}",
-                                    bridgeId, myConfig);
+                            BridgeConfig config =
+                                    bridgeMgr.get(bridgeId, this).value;
+                            if (!myConfig.equals(config)) {
+                                myConfig = config;
+                                log.debug("Bridge {} has a new config {}",
+                                        bridgeId, myConfig);
+                                controller.invalidateFlowsByElement(bridgeId);
+                            }
                         } catch (StateAccessException e) {
                             log.error("Failed to update bridge config", e);
                         }
                     }
                 }).value;
+    }
+
+    public static UUID bridgeIdToFloodId(UUID bridgeId) {
+        // Purposely reverse least/most significant bits and add 1.
+        return new UUID(bridgeId.getLeastSignificantBits() + 1,
+                bridgeId.getMostSignificantBits()+1);
     }
 
     @Override
@@ -140,8 +156,7 @@ public class Bridge implements ForwardingElement {
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||
                 res.action.equals(RuleResult.Action.REJECT)) {
-            // TODO: Should we send an ICMP !X for REJECT?  If so, with what
-            // srcIP?
+            // TODO: Send an ICMP !X for REJECT? If so, with what srcIP?
             fwdInfo.action = Action.DROP;
             return;
         }
@@ -182,29 +197,21 @@ public class Bridge implements ForwardingElement {
         }
         // Do mac-address learning if the source is not another FE.
         if (!rtrMacToLogicalPortId.containsKey(srcDlAddress)) {
-            UUID mappedPortUuid = macPortMap.get(srcDlAddress);
-            if (!fwdInfo.inPortId.equals(mappedPortUuid)) {
-                // The MAC changed port:  invalidate old flows before installing
-                // a new flowmod for this MAC.
-                invalidateFlowsFromMac(srcDlAddress);
-                invalidateFlowsToMac(srcDlAddress);
-            }
             // Learn the MAC source address.
             increaseMacPortFlowCount(srcDlAddress, fwdInfo.getInPortId());
-            // We don't need flow removal notification for flows from FEs.
+            // We need flow removal notification so that the number of flows
+            // can be used as a reference count on the mac-port mapping.
             fwdInfo.addRemovalNotification(bridgeId);
         }
 
         // Apply post-bridging rules.
-        res = chainProcessor.applyChain(
-                myConfig.outboundFilter, fwdInfo, res.match, this.bridgeId,
-                false);
+        res = chainProcessor.applyChain(myConfig.outboundFilter, fwdInfo,
+                res.match, this.bridgeId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||
                 res.action.equals(RuleResult.Action.REJECT)) {
-            // TODO: Should we send an ICMP !X for REJECT?  If so, with what
-            // srcIP?
+            // TODO: Send an ICMP !X for REJECT?  If so, with what srcIP?
             fwdInfo.action = Action.DROP;
         }
         if (!res.action.equals(RuleResult.Action.ACCEPT)) {
@@ -212,14 +219,21 @@ public class Bridge implements ForwardingElement {
                         "other than ACCEPT, DROP or REJECT.");
         }
 
+        // If the packet is being forwarded and flooded, then add the "flood ID"
+        // to the list of traversed elements. This allows us to invalidate only
+        // flooded flows (instead of all the bridge's flows) when we learn
+        // a new mac-port mapping.
+        if (fwdInfo.action == Action.FORWARD &&
+                bridgeId.equals(fwdInfo.outPortId))
+            fwdInfo.addTraversedElementID(floodElementID);
+
         return;
     }
 
     @Override
     public void addPort(UUID portId) throws StateAccessException,
             KeeperException, InterruptedException, JMException {
-        // TODO(pino): controller invals by local portNum - so no-op here?
-        invalidateFlowsToPortUuid(portId);
+        // No invalidation needed: controller invalidates on Port-Loc changes.
         localPorts.add(portId);
         if (localPorts.size() == 1)
             controller.subscribePortSet(bridgeId);
@@ -228,29 +242,19 @@ public class Bridge implements ForwardingElement {
 
     @Override
     public void removePort(UUID portId) throws StateAccessException {
+        // No invalidation needed: controller invalidates on Port-Loc changes.
         localPorts.remove(portId);
         controller.removeLocalPortFromSet(bridgeId, portId);
         if (localPorts.size() == 0)
             controller.unsubscribePortSet(bridgeId);
-        // TODO(pino): controller invals by local portNum - so no-op here?
-        // TODO(pino): we'll automatically get flow removal notifications.
-        log.info("removePort - delete MAC-port entries for port {}", portId);
+        log.info("removePort - expire MAC-port entries for port {}", portId);
         List<MAC> macList = macPortMap.getByValue(portId);
         for (MAC mac : macList) {
             log.info("Removing mapping from MAC {} to port {}", mac, portId);
             flowCount.remove(new MacPort(mac, portId));
-            invalidateFlowsFromMac(mac);
-            invalidateFlowsToMac(mac);
-            try {
-                macPortMap.remove(mac);
-            } catch (KeeperException e) {
-                log.error("Caught ZooKeeper exception {}", e);
-                // TODO: What should we do?
-            } catch (InterruptedException e) {
-                log.error("ZooKeeper operation interrupted: {}", e);
-                // TODO: Is ignoring this OK, because we'll resynch with ZK
-                // at the next ZK operation?
-            }
+            // Only schedule the mac-port mapping for expiration. We want it
+            // to be remembered for a short time in case the port is migrating.
+            expireMacPortEntry(mac, portId);
         }
     }
 
@@ -261,7 +265,8 @@ public class Bridge implements ForwardingElement {
 
     @Override
     public void freeFlowResources(OFMatch match, UUID inPortId) {
-        // NOTE: resources used by filters are freed elsewhere.
+        // NOTE: resources used by the bridge's filters are managed by a
+        // a NatMapping that is handled by the singleton ChainProcessor.
 
         // Note: we only subscribe to removal notification for flows that arrive
         // via materialized ports. This makes it possible to use the flow
@@ -290,43 +295,35 @@ public class Bridge implements ForwardingElement {
                     "id:{} removed at {}", new Object[] { flowcountKey.mac,
                     match.getInputPort(), inPortId, new Date() });
             flowCount.remove(flowcountKey);
-            expireMacPortEntry(flowcountKey.mac, inPortId, false);
+            expireMacPortEntry(flowcountKey.mac, inPortId);
         }
     }
 
     @Override
     public void destroy() {
-        // TODO(pino): do we really need to do flow invalidation?
-        // TODO: if the FE is being destroyed, it should have no flows left?
-        // TODO: alternatively, everything is being shut down...
         log.info("destroy");
+        controller.invalidateFlowsByElement(bridgeId);
+        // TODO(pino): the bridge should completely tear down its state and
+        // TODO: throw exceptions if it's called again. Old callbacks should
+        // TODO: unregistered or result in no-ops.
 
-        // Entries in macPortMap we own are either live with flows, in which
-        // case they're in flowCount; or are expiring, in which case they're
-        // in delayedDeletes.
-        for (MacPort macPort : flowCount.keySet()) {
-            log.info("clear: Deleting MAC-Port entry {} :: {}", macPort.mac,
-                    macPort.port);
-            expireMacPortEntry(macPort.mac, macPort.port, true);
+        for (PortFuture pF : delayedDeletes.values())
+            pF.future.cancel(false);
+        delayedDeletes.clear();
+        for (MacPort mp : flowCount.keySet()) {
+            try {
+                macPortMap.removeIfOwner(mp.mac);
+            } catch (KeeperException e) {
+                log.error("Error while destroying", e);
+            } catch (InterruptedException e) {
+                log.error("Error while destroying", e);
+            }
         }
         flowCount.clear();
-        for (Map.Entry<MAC, PortFuture> entry : delayedDeletes.entrySet()) {
-            log.info("clear: Deleting MAC-Port entry {} :: {}", entry.getKey(),
-                    entry.getValue().port);
-            expireMacPortEntry(entry.getKey(), entry.getValue().port, true);
-            entry.getValue().future.cancel(false);
-        }
-        delayedDeletes.clear();
-
         macPortMap.removeWatcher(macToPortWatcher);
         macPortMap.stop();
         // .stop() includes a .clear() of the underlying map, so we don't
         // need to clear out the entries here.
-
-        // Clear all flows.
-        MidoMatch match = new MidoMatch();
-        // TODO(pino): controller needs to expose ability for FEs to invalidate?
-        //controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
     }
 
     static private class PortFuture {
@@ -365,30 +362,33 @@ public class Bridge implements ForwardingElement {
 
     private class MacPortWatcher implements
             ReplicatedMap.Watcher<MAC, UUID> {
-        public void processChange(MAC key, UUID old_uuid, UUID new_uuid) {
-            /* Update callback for the MacPortMap */
-
-            /* If the new port is local, the flow updates have already been
-             * applied, and we return immediately. */
-            if (portIsLocal(new_uuid)) {
-                // TODO(pino): agree with devs about having method name in log.
-                log.info("MacPortWatcher.processChange: port {} is " +
-                         "local, returning without taking action", new_uuid);
+        public void processChange(MAC key, UUID oldPortId, UUID newPortId) {
+            // If we own the new port, we already know about the change.
+            if (localPorts.contains(newPortId))
                 return;
-            }
-            log.info("MacPortWatcher.processChange: mac {} changed "
-                      + "from port {} to port {}", new Object[] {
-                      key, old_uuid, new_uuid});
+            // We want to invalidate any flows that would not idle out.
+            // Flows from the mac and inPort==oldPortId, will idle out.
+            // Flows to the mac would have outPort==oldPortId (or bridgeId in
+            // the flood case) and need to be invalidated to be re-computed.
+            if (null == oldPortId) {
+                // This is not needed for correctness - any flows to this mac
+                // would have been flooded and therefore would continue to reach
+                // their destination. However, a unicast flow is more efficient.
+                controller.invalidateFlowsByElement(floodElementID);
 
-            /* If the MAC's old port was local, we need to invalidate its
-             * flows. */
-            if (portIsLocal(old_uuid)) {
-                log.debug("MacPortWatcher.processChange: Old port " +
-                          "was local.  Invalidating its flows.");
-                invalidateFlowsFromMac(key);
+                /* TODO(pino): Invalidate by destination mac (more precise):
+                 * We don't have to worry about flooded flows that are tunneled
+                 * to this host: they'll idle out because the ingress controller
+                 * will stop using the PortSetID as the tunnelID.
+                 * Any other flooded flows directed to this mac ingressed
+                 * locally, and on a materialized port on the same bridge;
+                 * they can therefore be invalidated by destination MAC.
+                 */
             }
-
-            invalidateFlowsToMac(key);
+            else {
+                // TODO(pino): invalidate only flows that egress at oldPortId
+                controller.invalidateFlowsByElement(oldPortId);
+            }
         }
     }
 
@@ -403,6 +403,8 @@ public class Bridge implements ForwardingElement {
                     bridgeId);
             return;
         }
+        // TODO(pino): should we invalidate all the bridge's flows if the
+        // TODO:       the set of logical ports has changed?
 
         // First find the ports that have been removed.
         HashSet<UUID> diff = (HashSet<UUID>)oldLogicalPortIDs.clone();
@@ -448,59 +450,33 @@ public class Bridge implements ForwardingElement {
         }
     }
 
-    private void expireMacPortEntry(final MAC mac, UUID port, boolean delete) {
+    private void expireMacPortEntry(final MAC mac, final UUID port) {
         UUID currentPort = macPortMap.get(mac);
         if (currentPort == null) {
-            log.debug("expireMacPortEntry: MAC->port mapping for MAC {} " +
-                      "has already been removed", mac);
+            log.debug("MAC->port mapping for MAC {} has already been removed",
+                    mac);
+            return;
         } else if (currentPort.equals(port)) {
-            if (delete) {
-                log.info("expireMacPortEntry: deleting the mapping from " +
-                          "MAC {} to port {}", mac, port);
-                // Remove & cancel any delayedDeletes invalidated.
-                PortFuture delayedDelete = delayedDeletes.remove(mac);
-                if (delayedDelete != null)
-                    delayedDelete.future.cancel(false);
-                // The macPortMap watcher will invalidate flows associated
-                // with this MAC, so we don't need to do it here.
-                try {
-                    macPortMap.remove(mac);
-                } catch (KeeperException e) {
-                    log.error("Delete of MAC {} threw ZooKeeper exception {}",
-                              mac, e);
-                    // TODO: What do we do about this?
-                } catch (InterruptedException e) {
-                    log.error("Delete of MAC {} interrupted: {}", mac, e);
-                    // TODO: What do we do about this?
-                }
-            } else {
-                log.info("expireMacPortEntry: setting the mapping from " +
-                         "MAC {} to port {} to expire", mac, port);
-                Future future = reactor.schedule(
-                    new Runnable() {
-                        public void run() {
-                            try {
-                                // TODO: Should we check that
-                                // macPortMap.get(mac) still points to the port?
-                                macPortMap.remove(mac);
-                            } catch (KeeperException e) {
-                                log.error("Delayed delete of MAC {} from " +
-                                          "expireMacPortEntry threw ZooKeeper "+
-                                          "exception {}", mac, e);
-                                // TODO: What do we do about this?
-                            } catch (InterruptedException e) {
-                                log.error("Delayed delete of MAC {} from " +
-                                          "expireMacPortEntry was " +
-                                          "interrupted: {}", mac, e);
-                                // TODO: What do we do about this?
+            Future future = reactor.schedule(
+                new Runnable() {
+                    public void run() {
+                        try {
+                            if (port.equals(macPortMap.get(mac))) {
+                                macPortMap.removeIfOwner(mac);
+                                log.debug("Un-mapped {} from {}", mac, port);
                             }
+                        } catch (Exception e) {
+                            log.error("Failed to unmap {} from port {}: {}",
+                                    new Object[] {mac, port, e});
                         }
-                    }, mac_port_timeout, TimeUnit.MILLISECONDS);
-                delayedDeletes.put(mac, new PortFuture(port, future));
-            }
+                    }
+                }, mac_port_timeout, TimeUnit.MILLISECONDS);
+            delayedDeletes.put(mac, new PortFuture(port, future));
+            log.debug("Will un-map {} from port {} in {} milliseconds.",
+                    new Object[] {mac, port, mac_port_timeout});
         } else {
-            log.debug("expireMacPortEntry: MAC {} is now mapped to port {} " +
-                      "not {}", new Object[] { mac, currentPort, port });
+            log.debug("No need to unmap MAC {} from port {} - it's mapped " +
+                      "to {}", new Object[] { mac, port, currentPort });
         }
     }
 
@@ -520,8 +496,25 @@ public class Bridge implements ForwardingElement {
 
         log.info("Increased flow count for source MAC {} from port {} to {}",
                  new Object[] { macAddr, portUuid, count });
-        if (!macPortMap.containsKey(macAddr) ||
-                                !macPortMap.get(macAddr).equals(portUuid)) {
+        boolean writeMacPortMap = false;
+        if (macPortMap.containsKey(macAddr)) {
+            // Since mac was mapped to another port, flows to the mac would
+            // not have been flooded, only directed to that port. So we can
+            // invalidate by the port ID.
+            UUID oldPortUuid = macPortMap.get(macAddr);
+            if (!oldPortUuid.equals(portUuid)) {
+                controller.invalidateFlowsByElement(oldPortUuid);
+                writeMacPortMap = true;
+            }
+        } else {
+            // The mac was not mapped to any port. So the flows to this mac
+            // may have been flooded. We have to invalidate all flooded flows.
+            controller.invalidateFlowsByElement(floodElementID);
+            writeMacPortMap = true;
+        }
+        // We need to write to the MacPortMap if the mac wasn't mapped or the
+        // mapping needs to change, or if we're not the owner of the map entry.
+        if (writeMacPortMap || !macPortMap.isKeyOwner(macAddr)) {
             try {
                 macPortMap.put(macAddr, portUuid);
             } catch (KeeperException e) {
@@ -534,33 +527,15 @@ public class Bridge implements ForwardingElement {
         }
     }
 
-    private void invalidateFlowsFromMac(MAC mac) {
-        log.info("invalidating flows with dl_src {}", mac);
-        MidoMatch match = new MidoMatch();
-        match.setDataLayerSource(mac);
-        // TODO(pino): need access to controller's invalidation.
-        // TODO(pino): need to invalidate based on MAC and in/out port.
-        //controllerStub.sendFlowModDelete(match, false, (short)0, nonePort);
-    }
-
+    // TODO(pino): re-implement this? More efficient invalidation.
+    /*
     private void invalidateFlowsToMac(MAC mac) {
         log.info("invalidating flows with dl_dst {}", mac);
         MidoMatch match = new MidoMatch();
         match.setDataLayerDestination(mac);
         // TODO(pino): controller needs to expose ability for FEs to invalidate?
         //controllerStub.sendFlowModDelete(match, false, (short) 0, nonePort);
-    }
-
-    private boolean portIsLocal(UUID port) {
-        return localPorts.contains(port);
-    }
-
-    private void invalidateFlowsToPortUuid(UUID port_uuid) {
-        log.info("Invalidating flows to port ID {}", port_uuid);
-        List<MAC> macs = macPortMap.getByValue(port_uuid);
-        for (MAC mac : macs)
-            invalidateFlowsToMac(mac);
-    }
+    }*/
 
     /*
      * Used only for testing

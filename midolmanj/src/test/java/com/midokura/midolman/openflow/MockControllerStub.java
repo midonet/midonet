@@ -84,42 +84,67 @@ public class MockControllerStub implements ControllerStub {
             this.matchTunnelId = matchTunnelId;
         }
 
+        @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("match["+match+"]");
-            sb.append(",cookie:"+cookie);
-            sb.append(",idle:"+idleTimeoutSecs);
-            sb.append(",hard:"+hardTimeoutSecs);
-            sb.append(",pri:"+priority);
-            sb.append(",buf_id:"+bufferId);
-            sb.append(",out_port:" + (outPort &  0xfff));
-            sb.append(",flow_remove:"+sendFlowRemove);
-            sb.append(",overlap:"+checkOverlap);
-            sb.append(",emerg:"+emergency);
-            sb.append(",actions["+actions+"]");
-            return sb.toString();
+            return "Flow{" +
+                    "actions=" + actions +
+                    ", match=" + match +
+                    ", cookie=" + cookie +
+                    ", command=" + command +
+                    ", idleTimeoutSecs=" + idleTimeoutSecs +
+                    ", hardTimeoutSecs=" + hardTimeoutSecs +
+                    ", priority=" + priority +
+                    ", bufferId=" + bufferId +
+                    ", outPort=" + outPort +
+                    ", sendFlowRemove=" + sendFlowRemove +
+                    ", checkOverlap=" + checkOverlap +
+                    ", emergency=" + emergency +
+                    ", matchTunnelId=" + matchTunnelId +
+                    '}';
         }
 
-        public boolean equals(Object rhs) {
-            if (!(rhs instanceof Flow))
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Flow flow = (Flow) o;
+
+            if (bufferId != flow.bufferId) return false;
+            if (checkOverlap != flow.checkOverlap) return false;
+            if (command != flow.command) return false;
+            if (cookie != flow.cookie) return false;
+            if (emergency != flow.emergency) return false;
+            if (hardTimeoutSecs != flow.hardTimeoutSecs) return false;
+            if (idleTimeoutSecs != flow.idleTimeoutSecs) return false;
+            if (matchTunnelId != flow.matchTunnelId) return false;
+            if (outPort != flow.outPort) return false;
+            if (priority != flow.priority) return false;
+            if (sendFlowRemove != flow.sendFlowRemove) return false;
+            if (actions != null ? !actions.equals(flow.actions) : flow.actions != null)
                 return false;
-            Flow r = (Flow) rhs;
-            boolean actionsEqual = (actions==null) ? (r.actions==null)
-                                                   : actions.equals(r.actions);
-            return match.equals(r.match) && cookie==r.cookie &&
-                   command==r.command && idleTimeoutSecs==r.idleTimeoutSecs &&
-                   hardTimeoutSecs==r.hardTimeoutSecs && priority==r.priority &&
-                   bufferId==r.bufferId && outPort==r.outPort &&
-                   sendFlowRemove==r.sendFlowRemove &&
-                   checkOverlap==r.checkOverlap && emergency==r.emergency &&
-                   actionsEqual && matchTunnelId==r.matchTunnelId;
+            if (match != null ? !match.equals(flow.match) : flow.match != null)
+                return false;
+
+            return true;
         }
 
+        @Override
         public int hashCode() {
-            return match.hashCode() ^ (int)(cookie&0xFFFFFFFF) ^ command ^
-                   idleTimeoutSecs ^ hardTimeoutSecs ^ priority ^ bufferId ^
-                   outPort ^ (actions==null ? 0 : actions.hashCode()) ^
-                   (int)(matchTunnelId&0xFFFFFFFF);
+            int result = match != null ? match.hashCode() : 0;
+            result = 31 * result + (int) (cookie ^ (cookie >>> 32));
+            result = 31 * result + (int) command;
+            result = 31 * result + (int) idleTimeoutSecs;
+            result = 31 * result + (int) hardTimeoutSecs;
+            result = 31 * result + (int) priority;
+            result = 31 * result + bufferId;
+            result = 31 * result + (int) outPort;
+            result = 31 * result + (sendFlowRemove ? 1 : 0);
+            result = 31 * result + (checkOverlap ? 1 : 0);
+            result = 31 * result + (emergency ? 1 : 0);
+            result = 31 * result + (actions != null ? actions.hashCode() : 0);
+            result = 31 * result + (int) (matchTunnelId ^ (matchTunnelId >>> 32));
+            return result;
         }
     }
 
@@ -183,15 +208,15 @@ public class MockControllerStub implements ControllerStub {
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict,
                                   short priority, short outPort) {
-        sendFlowModDelete(match, strict, priority, outPort, 0);
+        sendFlowModDelete(match, strict, priority, outPort, 0, 0);
     }
 
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict, short priority,
-            short outPort, long matchingTunnelId) {
+            short outPort, long matchingTunnelId, long cookie) {
         // For deletedFlows, use hardTimeout for outPort and
         // sendFlowRemove for strict.
-        deletedFlows.add(new Flow(match, 0,
+        deletedFlows.add(new Flow(match, cookie,
                 strict ? OFFlowMod.OFPFC_DELETE_STRICT : OFFlowMod.OFPFC_DELETE,
                 (short) 0, (short) 0, priority, -1, outPort,
                 false, false, false, null, matchingTunnelId));

@@ -40,7 +40,7 @@ public class RouteZkManager extends ZkManager {
     }
 
     private List<String> getSubDirectoryRoutePaths(ZkNodeEntry<UUID, Route> entry)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         // Determine whether to add the Route data under routers or ports.
         // Router routes and logical port routes should also be added to the
         // routing table.
@@ -87,27 +87,22 @@ public class RouteZkManager extends ZkManager {
      * @param entry
      *            ZooKeeper node representing a key-value entry of Route UUID
      *            and Route object.
-     * @param persistent
-     *            Store as PERSISTENT mode if true.
      * @return A list of Op objects to represent the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
-    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry,
-                                       boolean persistent)
-        throws ZkStateSerializationException, StateAccessException {
-
+    public List<Op> prepareRouteCreate(
+            ZkNodeEntry<UUID, Route> entry, boolean persistent)
+            throws StateAccessException {
+        CreateMode mode =
+                persistent ? CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
         // TODO(pino): sanity checking on route - egress belongs to device.
         List<Op> ops = new ArrayList<Op>();
-        CreateMode mode = persistent ?
-            CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
-
         // Add to root
         try {
-            ops.add(Op.create(pathManager.getRoutePath(entry.key),
-                              serialize(entry.value), Ids.OPEN_ACL_UNSAFE,
-                              mode));
+            ops.add(Op.create(
+                    pathManager.getRoutePath(entry.key), serialize(entry.value),
+                    Ids.OPEN_ACL_UNSAFE, mode));
         } catch (IOException e) {
             throw new ZkStateSerializationException(
                     "Could not serialize Route data", e, Route.class);
@@ -116,13 +111,19 @@ public class RouteZkManager extends ZkManager {
         // Add under port or router. Router routes and logical port routes
         // should also be added to the routing table.
         for (String path : getSubDirectoryRoutePaths(entry)) {
-            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
+            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE,
+                    mode));
         }
         return ops;
     }
 
+    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry)
+            throws StateAccessException {
+        return prepareRouteCreate(entry, true);
+    }
+
     public List<Op> prepareRouteDelete(UUID id)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         return prepareRouteDelete(get(id));
     }
 
@@ -132,12 +133,11 @@ public class RouteZkManager extends ZkManager {
      * @param entry
      *            Route ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         String routePath = pathManager.getRoutePath(entry.key);
         log.debug("Preparing to delete: " + routePath);
@@ -154,34 +154,20 @@ public class RouteZkManager extends ZkManager {
      *
      * @param route
      *            Route object to add to the ZooKeeper directory.
-     * @param persistent
-     *            Store as PERSISTENT mode if true.
      * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public UUID create(Route route, boolean persistent)
-        throws ZkStateSerializationException, StateAccessException {
+        throws StateAccessException {
         UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, Route> entry = new ZkNodeEntry<UUID, Route>(id, route);
         multi(prepareRouteCreate(entry, persistent));
         return id;
     }
 
-    /**
-     * Performs an atomic update on the ZooKeeper to add a new route entry.
-     *
-     * @param route
-     *            Route object to add to the ZooKeeper directory.
-     * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
-     * @throws StateAccessException
-     */
-    public UUID create(Route route) throws ZkStateSerializationException,
-            StateAccessException {
-        return this.create(route, true);
+    public UUID create(Route route) throws StateAccessException {
+        return create(route, true);
     }
 
     /**
@@ -190,12 +176,11 @@ public class RouteZkManager extends ZkManager {
      * @param id
      *            The ID of the route.
      * @return Route object found.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public ZkNodeEntry<UUID, Route> get(UUID id)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         return get(id, null);
     }
 
@@ -209,12 +194,11 @@ public class RouteZkManager extends ZkManager {
      *            The watcher that gets notified when there is a change in the
      *            node.
      * @return Route object found.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public ZkNodeEntry<UUID, Route> get(UUID id, Runnable watcher)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         byte[] routeData = get(pathManager.getRoutePath(id), watcher);
         Route r = null;
         try {
@@ -237,13 +221,11 @@ public class RouteZkManager extends ZkManager {
      *            The watcher to set on the changes to the routes for this
      *            router.
      * @return A list of ZooKeeper route nodes.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public List<ZkNodeEntry<UUID, Route>> listRouterRoutes(UUID routerId,
-            Runnable watcher) throws ZkStateSerializationException,
-            StateAccessException {
+            Runnable watcher) throws StateAccessException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
         Set<String> routeIds = getChildren(pathManager
                 .getRouterRoutesPath(routerId), watcher);
@@ -254,7 +236,7 @@ public class RouteZkManager extends ZkManager {
     }
 
     public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         return listPortRoutes(portId, null);
     }
 
@@ -267,13 +249,11 @@ public class RouteZkManager extends ZkManager {
      * @param watcher
      *            The watcher to set on the changes to the routes for this port.
      * @return A list of ZooKeeper route nodes.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId,
-            Runnable watcher) throws ZkStateSerializationException,
-            StateAccessException {
+            Runnable watcher) throws StateAccessException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
         Set<String> routeIds = getChildren(pathManager
                 .getPortRoutesPath(portId), watcher);
@@ -287,15 +267,14 @@ public class RouteZkManager extends ZkManager {
      * Gets a list of ZooKeeper route nodes belonging to a router with the given
      * ID.
      *
-     * @param portId
+     * @param routerId
      *            The ID of the router to find the routes of.
      * @return A list of ZooKeeper route nodes.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
     public List<ZkNodeEntry<UUID, Route>> list(UUID routerId)
-            throws ZkStateSerializationException, StateAccessException {
+            throws StateAccessException {
         List<ZkNodeEntry<UUID, Route>> routes = listRouterRoutes(routerId, null);
         Set<String> portIds = getChildren(pathManager
                 .getRouterPortsPath(routerId), null);
@@ -327,12 +306,10 @@ public class RouteZkManager extends ZkManager {
      *
      * @param id
      *            ID of the route to delete.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      * @throws StateAccessException
+     *             Serialization or data access error occurred.
      */
-    public void delete(UUID id) throws ZkStateSerializationException,
-            StateAccessException {
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareRouteDelete(id));
     }
 

@@ -71,6 +71,9 @@ public class MockVRNController extends AbstractController
     public void addLocalPortToSet(UUID portSetID, UUID portID) {}
     public void removeLocalPortFromSet(UUID portSetID, UUID portID) {}
 
+    @Override
+    public void invalidateFlowsByElement(UUID id) {}
+
     public void onPacketIn(int bufferId, int totalLen, short inPort,
                            byte[] data, long tunnelID) {}
 

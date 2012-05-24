@@ -176,7 +176,7 @@ public class TapWrapper {
             }
         }
         if (etherType != IPv4.ETHERTYPE) {
-            log.debug("Ether type different from IPv4.ETHERTYPE, was {}", String.format("%x", etherType));
+            log.debug("Unknown ethertype {}", String.format("%x", etherType));
             return -2;
         }
         if (bb.remaining() < 4)

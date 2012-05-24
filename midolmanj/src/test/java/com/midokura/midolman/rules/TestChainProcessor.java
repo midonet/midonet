@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.rules;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
@@ -49,7 +50,7 @@ public class TestChainProcessor {
 
         public MockChainProcessor(Directory dir, String zkBasePath, Cache cache,
                                   Reactor reactor) throws StateAccessException {
-            super(dir, zkBasePath, cache, reactor);
+            super(dir, zkBasePath, cache, reactor, null);
         }
 
         public void addChain(Chain chain) {

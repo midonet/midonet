@@ -4,6 +4,8 @@
 
 package com.midokura.midolman.state;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -11,7 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.midolman.util.Callback0;
+import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.LoadingCache;
+import com.midokura.util.collections.TypedHashMap;
+import com.midokura.util.collections.TypedMap;
 
 /**
  * An implementation of {@link com.midokura.midolman.util.LoadingCache} that
@@ -32,6 +38,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
 
     private PortZkManager portMgr;
     public static final long expiryMillis = TimeUnit.SECONDS.toMillis(300);
+    private Set<Callback1<UUID>> watchers = new HashSet<Callback1<UUID>>();
 
     public PortConfigCache(Reactor reactor, Directory zkDir,
                            String zkBasePath) {
@@ -47,6 +54,21 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
             log.error("Failed to cast {} to a {}",
                     new Object[] {config, clazz, e});
             return null;
+        }
+    }
+
+    public void addWatcher(Callback1<UUID> watcher) {
+        watchers.add(watcher);
+    }
+
+    public void removeWatcher(Callback1<UUID> watcher) {
+        watchers.remove(watcher);
+    }
+
+    private void notifyWatchers(UUID portId) {
+        // TODO(pino): should these be called asynchronously?
+        for (Callback1<UUID> watcher : watchers) {
+            watcher.call(portId);
         }
     }
 
@@ -83,6 +105,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
                 try {
                     PortConfig config = portMgr.get(portID, this);
                     put(portID, config);
+                    notifyWatchers(portID);
                 } catch (StateAccessException e) {
                     // If the ZK lookup fails, the cache keeps the old value.
                     log.error("Exception refreshing PortConfig", e);

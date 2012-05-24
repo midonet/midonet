@@ -15,12 +15,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.OFPort;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 
 import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -36,7 +34,6 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertArrayEquals;
 
 public class NxmTest {
     static OpenvSwitchDatabaseConnection ovsdb;

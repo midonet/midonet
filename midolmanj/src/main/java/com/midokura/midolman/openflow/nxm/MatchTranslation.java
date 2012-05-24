@@ -19,7 +19,8 @@ import com.midokura.midolman.util.Net;
 
 public class MatchTranslation {
 
-    public static NxMatch toNxMatch(OFMatch match, long matchingTunnelId) {
+    public static NxMatch toNxMatch(OFMatch match, long matchingTunnelId,
+                                    long cookie) {
         /* The documentation for NXM states that:
          * "A zero-length nx_match (one with no "nxm_entry"s) matches every
          * packet. An nxm_entry places a constraint on the packets matched by
@@ -30,11 +31,13 @@ public class MatchTranslation {
          */
         try {
             NxMatch nxm = new NxMatch();
-            // First, deal with inPort and tunnel ID
+            // First, deal with inPort, tunnel ID, and cookie
             if ((match.getWildcards() & OFMatch.OFPFW_IN_PORT) == 0)
                 nxm.setInPort(match.getInputPort());
             if (matchingTunnelId != 0)
                 nxm.setTunnelId(matchingTunnelId);
+            if (cookie != 0)
+                nxm.setCookie(cookie);
 
             // Now layer2
             if ((match.getWildcards() & OFMatch.OFPFW_DL_DST) == 0)

@@ -251,7 +251,7 @@ public abstract class AbstractController implements Controller {
         portNumToUuid.remove(portNum);
         portUuidToNumberMap.remove(uuid);
         try {
-            portLocMap.remove(uuid);
+            portLocMap.removeIfOwner(uuid);
         } catch (KeeperException e) {
             log.warn("callAddPort", e);
         } catch (InterruptedException e) {
@@ -512,6 +512,8 @@ public abstract class AbstractController implements Controller {
         return (extId == null) ? null : UUID.fromString(extId);
     }
 
+    // TODO(pino): this shouldn't need to be synchronized. It's called from
+    // TODO:  a watcher, and watchers are executed in the SelectLoop's thread.
     private synchronized void portLocationUpdate(UUID portUuid, IntIPv4 oldAddr,
                                                  IntIPv4 newAddr) {
         /* oldAddr: Former address of the port as an IntIPv4;

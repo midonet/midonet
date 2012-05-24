@@ -20,4 +20,5 @@ public interface VRNControllerIface {
     void addLocalPortToSet(UUID portSetID, UUID portID);
     void removeLocalPortFromSet(UUID portSetID, UUID portID);
 
+    void invalidateFlowsByElement(UUID id);
 }

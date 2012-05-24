@@ -57,11 +57,11 @@ public class TestNxFlowRemoved {
 
     @Test
     public void test() throws NxmIOException {
-        testFlowRemoved(MatchTranslation.toNxMatch(Match.arp(), 0));
-        testFlowRemoved(MatchTranslation.toNxMatch(Match.tcp(), 0));
-        testFlowRemoved(MatchTranslation.toNxMatch(Match.udp(), 0));
-        testFlowRemoved(MatchTranslation.toNxMatch(Match.icmp(), 0));
-        testFlowRemoved(MatchTranslation.toNxMatch(Match.ipv6(), 0));
+        testFlowRemoved(MatchTranslation.toNxMatch(Match.arp(), 0, 0));
+        testFlowRemoved(MatchTranslation.toNxMatch(Match.tcp(), 0, 0));
+        testFlowRemoved(MatchTranslation.toNxMatch(Match.udp(), 0, 0));
+        testFlowRemoved(MatchTranslation.toNxMatch(Match.icmp(), 0, 0));
+        testFlowRemoved(MatchTranslation.toNxMatch(Match.ipv6(), 0, 0));
     }
 
 }

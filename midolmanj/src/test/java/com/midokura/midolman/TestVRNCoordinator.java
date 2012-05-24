@@ -99,10 +99,10 @@ public class TestVRNCoordinator {
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
         Cache cache = createCache();
         ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,
-                cache, reactor);
+                cache, reactor, null);
         PortConfigCache portCache =
                 new PortConfigCache(reactor, dir, basePath);
-        vrn = new VRNCoordinator(dir, basePath, reactor, cache,
+        vrn = new VRNCoordinator(dir, basePath, reactor,
                 controller, portSetMap, chainProcessor, portCache);
 
         /*

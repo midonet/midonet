@@ -16,6 +16,7 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.VRNControllerIface;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
@@ -33,21 +34,23 @@ public class ChainProcessor {
     private final static Logger log =
         LoggerFactory.getLogger(ChainProcessor.class);
 
-    protected Map<UUID, Chain> chainByUuid;
     private Directory zkDir;
     private String zkBasePath;
     private Cache cache;
     private Reactor reactor;
-    private Map<UUID, NatMapping> natMappingMap;
+    protected Map<UUID, Chain> chainByUuid = new HashMap<UUID, Chain>();
+    private Map<UUID, NatMapping> natMappingMap =
+            new HashMap<UUID, NatMapping>();
+    private VRNControllerIface ctrl;
 
     public ChainProcessor(Directory dir, String zkBasePath, Cache cache,
-                          Reactor reactor) throws StateAccessException {
+                          Reactor reactor, VRNControllerIface ctrl)
+            throws StateAccessException {
         this.zkDir = dir;
         this.zkBasePath = zkBasePath;
         this.cache = cache;
         this.reactor = reactor;
-        chainByUuid = new HashMap<UUID, Chain>();
-        natMappingMap = new HashMap<UUID, NatMapping>();
+        this.ctrl = ctrl;
     }
 
     private NatMapping getNatMapping(UUID ownerId) {
@@ -87,7 +90,7 @@ public class ChainProcessor {
         Chain chain = chainByUuid.get(id);
         if (null != chain)
             return chain;
-        chain = new Chain(id, zkDir, zkBasePath);
+        chain = new Chain(id, zkDir, zkBasePath, ctrl);
         rememberChain(chain, id);
         return chain;
     }
@@ -116,6 +119,7 @@ public class ChainProcessor {
              return res;
         }
         Chain currentChain = getOrCreateChain(chainID);
+        fwdInfo.addTraversedElementID(chainID);
         if (null == currentChain) {
             log.warn("Could not find a Chain corresponding to ID {}", chainID);
             return res;
@@ -124,6 +128,8 @@ public class ChainProcessor {
                 currentChain.getChainName(), chainID);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(chainID, currentChain.getRules(), 0));
+        // We can't use traversedElementIDs to detect loops because the same
+        // chains may have been traversed by some other device's filters.
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(chainID);
 
@@ -158,13 +164,16 @@ public class ChainProcessor {
                         // Avoid jumping to chains we've already seen.
                         log.warn("applyChain {}({}) cannot jump from chain " +
                                  " {}({}) to chain {}({}) -- already visited",
-                                new Object[]{ chainID, getOrCreateChain(chainID).getChainName(),
-                                cp.id, getOrCreateChain(cp.id).getChainName(),
-                                res.jumpToChain, nextChain.getChainName() });
+                                new Object[] {chainID,
+                                getOrCreateChain(chainID).getChainName(), cp.id,
+                                getOrCreateChain(cp.id).getChainName(),
+                                res.jumpToChain, nextChain.getChainName()});
                         continue;
                     }
-
+                    // Keep track of the traversed chains to detect loops.
                     traversedChains.add(nextID);
+                    // The flow may be invalidated if any traversed id changes.
+                    fwdInfo.addTraversedElementID(nextID);
                     // Remember the calling chain.
                     chainStack.push(cp);
                     chainStack.push(
@@ -205,6 +214,7 @@ public class ChainProcessor {
         UUID getInPortId();
         UUID getOutPortId();
         Set<UUID> getPortGroups();
+        void addTraversedElementID(UUID id);
         boolean isConnTracked();
         boolean isForwardFlow();
         MidoMatch getFlowMatch();

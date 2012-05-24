@@ -300,7 +300,7 @@ public class TestChain {
                 new ChainZkManager.ChainConfig(chainName);
         chainId = chainMgr.create(chainConfig);
 
-        chain = new Chain(chainId, mockDirectory, basePath);
+        chain = new Chain(chainId, mockDirectory, basePath, null);
     }
 
     private void addRule(int position) throws

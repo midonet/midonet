@@ -67,7 +67,7 @@ public class TestReplicatedMap {
         }
     }
 
-    private class ReplicatedStringToLocationMap extends 
+    private class ReplicatedStringToLocationMap extends
             ReplicatedMap<String, Location> {
 
         public ReplicatedStringToLocationMap(Directory dir) {
@@ -125,7 +125,7 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testStringMapStartWithSomeEntries() 
+    public void testStringMapStartWithSomeEntries()
             throws KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
@@ -143,7 +143,7 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testStringMapContainsValue() 
+    public void testStringMapContainsValue()
             throws KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         mapDir.add("/one,100,", null, CreateMode.PERSISTENT_SEQUENTIAL);
@@ -153,12 +153,13 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testStringMapAddUpdateGetRemove() throws 
+    public void testStringMapAddUpdateGetRemove() throws
             KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("one", "100");
-        mapDir.add("/one,100,", null, CreateMode.PERSISTENT_SEQUENTIAL);
+        String firstEntry =
+                mapDir.add("/one,100,", null, CreateMode.PERSISTENT_SEQUENTIAL);
         strMap.start();
         Assert.assertEquals(expectedMap, strMap.getMap());
         expectedMap.put("two", "200");
@@ -176,10 +177,12 @@ public class TestReplicatedMap {
         Assert.assertEquals("changed200", strMap.get("two"));
         Assert.assertEquals("changed300", strMap.get("three"));
         expectedMap.remove("one");
-        strMap.remove("one");
+        // The entry with key "one" must be removed via the Directory because
+        // that's the way it was added - it doesn't belong to the ReplicatedMap.
+        mapDir.delete(firstEntry);
         Assert.assertEquals(expectedMap, strMap.getMap());
         expectedMap.remove("two");
-        strMap.remove("two");
+        strMap.removeIfOwner("two");
         Assert.assertEquals(expectedMap, strMap.getMap());
         strMap.stop();
         expectedMap.clear();
@@ -187,7 +190,7 @@ public class TestReplicatedMap {
     }
 
     @Test
-    public void testStringMapExternalChanges() throws 
+    public void testStringMapExternalChanges() throws
             KeeperException, InterruptedException {
         ReplicatedStringMap strMap = new ReplicatedStringMap(mapDir);
         Map<String, String> expectedMap = new HashMap<String, String>();
@@ -219,7 +222,7 @@ public class TestReplicatedMap {
         Assert.assertEquals(expectedMap, strMap.getMap());
         // The external node writes key 'one' again.
         expectedMap.put("one", "100changed3");
-        path1 = mapDir.add("/one,100changed3,", null, 
+        path1 = mapDir.add("/one,100changed3,", null,
                 CreateMode.PERSISTENT_SEQUENTIAL);
         Assert.assertEquals(expectedMap, strMap.getMap());
         // External node removes key 'one'. Our old value shouldn't come back.
@@ -301,8 +304,8 @@ public class TestReplicatedMap {
         Assert.assertEquals(oldValuesMap, watch1.map2);
         Assert.assertEquals(oldValuesMap, watch2.map2);
         oldValuesMap.put("ten", expectedMap.put("ten", "Blah1"));
-        mapDir.add("/ten,Blah1,", null,
-                CreateMode.PERSISTENT_SEQUENTIAL);
+        String tenPath = mapDir.add(
+                "/ten,Blah1,", null, CreateMode.PERSISTENT_SEQUENTIAL);
         Assert.assertEquals(expectedMap, watch1.map1);
         Assert.assertEquals(expectedMap, watch2.map1);
         Assert.assertEquals(oldValuesMap, watch1.map2);
@@ -317,7 +320,9 @@ public class TestReplicatedMap {
         Assert.assertEquals(oldValuesMap, watch1.map2);
         Assert.assertEquals(oldValuesMap, watch2.map2);
         oldValuesMap.put("ten", expectedMap.remove("ten"));
-        strMap.remove("ten");
+        // The entry with key "ten" must be removed via the Directory because
+        // it's not owned by the ReplicatedMap.
+        mapDir.delete(tenPath);
         oldValuesMap.put("two", expectedMap.remove("two"));
         mapDir.delete(path2);
         Assert.assertEquals(expectedMap, watch1.map1);
@@ -336,7 +341,7 @@ public class TestReplicatedMap {
 
     @Test
     public void testStringToLocationMap() throws KeeperException, InterruptedException {
-        ReplicatedStringToLocationMap strMap = new 
+        ReplicatedStringToLocationMap strMap = new
                 ReplicatedStringToLocationMap(mapDir);
         Map<String, Location> expectedMap = new HashMap<String, Location>();
         Location loc1 = new Location(1, 2, false);
@@ -353,7 +358,7 @@ public class TestReplicatedMap {
         strMap.put("three", loc3);
         Assert.assertEquals(expectedMap, strMap.getMap());
         expectedMap.remove("three");
-        strMap.remove("three");
+        strMap.removeIfOwner("three");
         Assert.assertEquals(expectedMap, strMap.getMap());
         expectedMap.put("one", loc2);
         strMap.put("one", loc2);

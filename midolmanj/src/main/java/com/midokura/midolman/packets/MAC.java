@@ -6,12 +6,14 @@
 package com.midokura.midolman.packets;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import com.midokura.midolman.util.Net;
 
 public class MAC implements Cloneable {
 
     private byte[] address;
+    static Random rand = new Random();
 
     /* Default constructor for deserialization. */
     public MAC() {
@@ -36,6 +38,13 @@ public class MAC implements Cloneable {
 
     public static MAC fromString(String str) {
         return new MAC(Ethernet.toMACAddress(str));
+    }
+
+    public static MAC random() {
+        byte[] addr = new byte[6];
+        rand.nextBytes(addr);
+        addr[0] = 0x02;
+        return new MAC(addr);
     }
 
     public boolean unicast() {

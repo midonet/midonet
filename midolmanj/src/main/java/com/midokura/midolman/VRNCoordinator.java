@@ -6,9 +6,7 @@ package com.midokura.midolman;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import javax.management.JMException;
 
@@ -23,7 +21,6 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
-import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Callback1;
 
 public class VRNCoordinator implements ForwardingElement {
@@ -38,26 +35,31 @@ public class VRNCoordinator implements ForwardingElement {
     private Map<UUID, ForwardingElement> feByPortId;
     private Directory zkDir;
     private String zkBasePath;
-    private VRNControllerIface ctrl;
+    private VRNControllerIface controller;
     private PortSetMap portSetMap;
     private ChainProcessor chainProcessor;
     private PortConfigCache portCache;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
-                          Cache cache, VRNControllerIface ctrl,
-                          PortSetMap portSetMap, ChainProcessor chainProcessor,
-                          PortConfigCache portCache)
+            VRNControllerIface ctrl, PortSetMap portSetMap,
+            ChainProcessor chainProcessor, PortConfigCache portCache)
             throws StateAccessException {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.reactor = reactor;
-        this.ctrl = ctrl;
+        this.controller = ctrl;
         this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
         this.chainProcessor = chainProcessor;
         this.portCache = portCache;
+        portCache.addWatcher(new Callback1<UUID>() {
+            @Override
+            public void call(UUID portId) {
+                controller.invalidateFlowsByElement(portId);
+            }
+        });
     }
 
     protected enum FEType { Router, Bridge, DontConstruct }
@@ -73,13 +75,13 @@ public class VRNCoordinator implements ForwardingElement {
         switch (feType) {
           case Router:
             fe = new Router(
-                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor,
-                    portCache);
+                    deviceId, zkDir, zkBasePath, reactor, controller,
+                    chainProcessor, portCache);
             break;
           case Bridge:
             fe = new Bridge(
-                    deviceId, zkDir, zkBasePath, reactor, ctrl, chainProcessor,
-                    portCache);
+                    deviceId, zkDir, zkBasePath, reactor, controller,
+                    chainProcessor, portCache);
             break;
           case DontConstruct:
             fe = null;
@@ -111,9 +113,16 @@ public class VRNCoordinator implements ForwardingElement {
         if (null != fe)
             return fe;
         PortConfig cfg = portCache.get(portId);
-        // TODO(pino): throw an exception if the config isn't found.
+        if (null == cfg) {
+            log.error("Failed to get the port configuration for {}", portId);
+            return null;
+        }
         FEType feType = feTypeOfPort(cfg);
         fe = getForwardingElement(cfg.device_id, feType);
+        if (null == fe) {
+            log.error("Failed to create a forwarding element of type {} " +
+                    "for device {}", feType, cfg.device_id);
+        }
         feByPortId.put(portId, fe);
         return fe;
     }
@@ -134,7 +143,6 @@ public class VRNCoordinator implements ForwardingElement {
      */
     public void freeFlowResources(
             OFMatch match, Collection<UUID> subscribers, UUID inPortID) {
-        // TODO(pino): are FEs mapping the correct match for invalidation?
         for (UUID id : subscribers) {
             // Whether the subscriber is a port, bridge or router, the
             // chainProcessor handles freeing NAT resources.
@@ -198,10 +206,12 @@ public class VRNCoordinator implements ForwardingElement {
     protected void processOneFE(ForwardInfo fwdInfo)
             throws StateAccessException, KeeperException {
         ForwardingElement fe = getForwardingElementByPort(fwdInfo.inPortId);
-        if (null == fe)
-            throw new RuntimeException("Packet arrived on a port that hasn't "
-                    + "been added to the network instance (yet?).");
-
+        if (null == fe) {
+            log.error("Failed to process a packet - failed to get the " +
+                    "ForwardingElement for the ingress port: {}", fwdInfo);
+            fwdInfo.action = Action.DROP;
+            return;
+        }
         if (fwdInfo.depth >= MAX_HOPS) {
             // We traversed MAX_HOPS routers without reaching an edge port.
             log.warn("Traversed {} FEs without reaching an edge port; " +
@@ -210,11 +220,16 @@ public class VRNCoordinator implements ForwardingElement {
             return;
         }
         fwdInfo.depth++;
+        // Keep track of the traversed Forwarding Elements to prevent loops.
         fwdInfo.addTraversedFE(fe.getId());
+        // Track the traversed elements (ports or FEs) to aid invalidation.
+        fwdInfo.addTraversedElementID(fwdInfo.inPortId);
 
         applyPortFilter(portCache.get(fwdInfo.inPortId) , fwdInfo, true);
         if (fwdInfo.action != Action.FORWARD)
             return;
+
+        fwdInfo.addTraversedElementID(fe.getId());
         fe.process(fwdInfo);
         if (fwdInfo.action != Action.PAUSED)
             handleProcessResult(fwdInfo);
@@ -224,13 +239,14 @@ public class VRNCoordinator implements ForwardingElement {
             throws StateAccessException, KeeperException {
         log.debug("Process the FE's response {}", fwdInfo);
         if (fwdInfo.action.equals(Action.FORWARD)) {
-            log.debug("The FE is forwarding the packet from a port.");
+            log.debug("The FE is forwarding the packet.");
             // If the outPort is a PortSet, the simulation is finished.
             if (portSetMap.containsKey(fwdInfo.outPortId)) {
-                // TODO(pino): implement Firewall simulation for FLOOD.
                 log.debug("FE output to port set {}", fwdInfo.outPortId);
                 return;
             }
+            // Track the traversed elements (ports or FEs) to aid invalidation.
+            fwdInfo.addTraversedElementID(fwdInfo.outPortId);
             PortConfig cfg = portCache.get(fwdInfo.outPortId) ;
             if (null == cfg) {
                 // Either the config wasn't found or it's not a router port.
@@ -287,7 +303,6 @@ public class VRNCoordinator implements ForwardingElement {
                 inbound ? portCfg.inboundFilter : portCfg.outboundFilter,
                 fwdInfo, pktMatch,
                 inbound ? fwdInfo.inPortId : fwdInfo.outPortId, true);
-        // TODO(pino): add the code that handles the removal notification
         if (result.trackConnection)
             fwdInfo.addRemovalNotification(
                     inbound ? fwdInfo.inPortId : fwdInfo.outPortId);

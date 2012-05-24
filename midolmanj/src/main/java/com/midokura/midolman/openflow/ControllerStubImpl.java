@@ -554,7 +554,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         log.debug("sendFlowModAdd");
         if (nxm_enabled) {
             sendNxFlowModAdd(
-                    MatchTranslation.toNxMatch(match, matchingTunnelId),
+                    MatchTranslation.toNxMatch(match, matchingTunnelId, cookie),
                     cookie, idleTimeoutSecs, hardTimeoutSecs, priority,
                     bufferId, sendFlowRemove, checkOverlap, emergency, actions);
             return;
@@ -654,21 +654,26 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict,
                                   short priority, short outPort) {
-        sendFlowModDelete(match, strict, priority, outPort, 0);
+        sendFlowModDelete(match, strict, priority, outPort, 0, 0);
     }
 
     @Override
     public void sendFlowModDelete(OFMatch match, boolean strict, short priority,
-            short outPort, long matchingTunnelId) {
+            short outPort, long matchingTunnelId, long cookie) {
         log.debug("sendFlowModDelete");
         if (nxm_enabled) {
             sendNxFlowModDelete(
-                    MatchTranslation.toNxMatch(match, matchingTunnelId),
+                    MatchTranslation.toNxMatch(match, matchingTunnelId, cookie),
                     strict, priority, outPort);
             return;
-        } else if (matchingTunnelId != 0)
-            throw new IllegalArgumentException("Since NXM has not been " +
-                    "enabled you cannot match on Tunnel ID.");
+        } else {
+            if (matchingTunnelId != 0)
+                throw new IllegalArgumentException("Since NXM has not been " +
+                        "enabled you cannot match on Tunnel ID.");
+            if (cookie != 0)
+                throw new IllegalArgumentException("Since NXM has not been " +
+                        "enabled you cannot match on the Cookie.");
+        }
 
         OFFlowMod fm = (OFFlowMod) factory.getMessage(OFType.FLOW_MOD);
         fm.setCommand(strict ? OFFlowMod.OFPFC_DELETE_STRICT

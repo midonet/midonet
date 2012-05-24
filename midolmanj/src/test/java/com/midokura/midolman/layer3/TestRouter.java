@@ -103,7 +103,7 @@ public class TestRouter {
 
         reactor = new MockReactor();
         chainProcessor = new ChainProcessor(
-                dir, basePath, new MockCache(), reactor);
+                dir, basePath, new MockCache(), reactor, null);
         portCache = new PortConfigCache(reactor, dir, basePath);
 
         UUID rtrId = routerMgr.create();

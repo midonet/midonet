@@ -18,21 +18,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedMap<K, V> {
-    
+
     private final static Logger log = LoggerFactory.getLogger(ReplicatedMap.class);
 
     /*
      * TODO(pino): don't allow deletes to be lost.
-     * 
+     *
      * Problem with current code is that calling remove on a key only removes
      * the value with the highest sequence number. If the owner of the previous
      * sequence number never saw the most recent sequence number than it won't
      * have removed its value and hence the 'delete' will result in that old
      * value coming back.
-     * 
+     *
      * Typical fix is to implement remove by writing a tombstone (e.g. empty
      * string for value) with a higher sequence number.
-     * 
+     *
      * Unresolved issue: who cleans up the tombstones.
      */
 
@@ -190,9 +190,18 @@ public abstract class ReplicatedMap<K, V> {
             notifyWatchers(key, null, value);
     }
 
-    public V remove(K key) throws KeeperException, InterruptedException {
+    public boolean isKeyOwner(K key) {
         MapValue mv = map.get(key);
         if (null == mv)
+            return false;
+        return mv.owner;
+    }
+
+    public V removeIfOwner(K key) throws KeeperException, InterruptedException {
+        MapValue mv = map.get(key);
+        if (null == mv)
+            return null;
+        if (!mv.owner)
             return null;
         map.remove(key);
         notifyWatchers(key, mv.value, null);

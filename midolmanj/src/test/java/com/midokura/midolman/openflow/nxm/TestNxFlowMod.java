@@ -62,11 +62,11 @@ public class TestNxFlowMod {
 
     @Test
     public void test() throws NxmIOException {
-        testFlowMod(MatchTranslation.toNxMatch(Match.arp(), 0));
-        testFlowMod(MatchTranslation.toNxMatch(Match.arpInVlan(), 0));
-        testFlowMod(MatchTranslation.toNxMatch(Match.tcp(), 0));
-        testFlowMod(MatchTranslation.toNxMatch(Match.udp(), 0));
-        testFlowMod(MatchTranslation.toNxMatch(Match.icmp(), 0));
-        testFlowMod(MatchTranslation.toNxMatch(Match.ipv6(), 0));
+        testFlowMod(MatchTranslation.toNxMatch(Match.arp(), 0, 0));
+        testFlowMod(MatchTranslation.toNxMatch(Match.arpInVlan(), 0, 0));
+        testFlowMod(MatchTranslation.toNxMatch(Match.tcp(), 0, 0));
+        testFlowMod(MatchTranslation.toNxMatch(Match.udp(), 0, 0));
+        testFlowMod(MatchTranslation.toNxMatch(Match.icmp(), 0, 0));
+        testFlowMod(MatchTranslation.toNxMatch(Match.ipv6(), 0, 0));
     }
 }
