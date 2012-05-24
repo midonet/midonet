@@ -51,7 +51,8 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
         for (InterfaceDescription description : descriptions) {
             Interface hostInterface =
                 processDescription(description,
-                                   currentInterfacesByName, newInterfacesByName);
+                                   currentInterfacesByName,
+                                   newInterfacesByName);
 
             newInterfacesByName.put(hostInterface.getName(), hostInterface);
         }
@@ -92,9 +93,14 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 }
             }
 
-            log.info("Input: " + curMapByName);
-            log.info("Updated: " + updatedInterfaces);
-            log.info("Removed: " + interfacesToRemove);
+            log.debug("Input: " + curMapByName);
+            if (updatedInterfaces.size() > 0) {
+                log.info("Updated: " + updatedInterfaces);
+            }
+            if (interfacesToRemove.size() > 0) {
+                log.info("Removed: " + interfacesToRemove);
+            }
+
             hostZkManager.updateHostInterfaces(hostId,
                                                updatedInterfaces,
                                                interfacesToRemove);

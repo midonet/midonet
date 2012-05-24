@@ -83,7 +83,7 @@ public class IniBasedHostAgentConfiguration
 
     @Override
     public String getPropertiesFilePath() {
-        return safelyGetString("midolman-agent", "properties-file",
+        return safelyGetString("midolman-agent", "properties_file",
                                "host_uuid.properties");
     }
 
