@@ -198,9 +198,9 @@ public class TestVRNCoordinator {
     }
 
     public static ForwardInfo prepareFwdInfo(UUID inPortId, Ethernet ethPkt) {
-        MidoMatch match = AbstractController.createMatchFromPacket(
-                ethPkt, (short)0);
-        ForwardInfo fInfo = new ForwardInfo();
+        MidoMatch match = AbstractController.createMatchFromPacket(ethPkt,
+                                                                   (short)0);
+        ForwardInfo fInfo = new ForwardInfo(false, null, null);
         fInfo.inPortId = inPortId;
         fInfo.flowMatch = match;
         fInfo.matchIn = match;
@@ -210,7 +210,7 @@ public class TestVRNCoordinator {
 
     @Test
     public void testFwdInfoMultiplityCount() {
-        ForwardInfo fi = new ForwardInfo();
+        ForwardInfo fi = new ForwardInfo(false, null, null);
         UUID id = UUID.randomUUID();
         Assert.assertEquals(0, fi.getTimesTraversed(id));
         fi.addTraversedFE(id);

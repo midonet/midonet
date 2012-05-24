@@ -77,7 +77,7 @@ public interface ForwardingElement {
      * decisions:  the next action for the packet, the egress port,
      * the packet at egress (i.e. after possible modifications).
      */
-    public static class ForwardInfo 
+    public static class ForwardInfo
             implements CoordinatorPacketContext, ChainPacketContext {
 
         // These fields are filled by the caller of ForwardingElement.process():
@@ -99,7 +99,7 @@ public interface ForwardingElement {
         public int depth = 0;  // depth in the VRN simulation
         // Used for connection tracking.
         private boolean connectionTracked = false;
-        private boolean forwardFlow;    
+        private boolean forwardFlow;
         private Cache connectionCache;
         private UUID ingressFE;
 
@@ -145,7 +145,7 @@ public interface ForwardingElement {
         @Override
         public boolean isForwardFlow() {
             // Connection tracking:  isConnTracked starts out as false.
-            // If isForwardFlow is called, isConnTracked becomes true and 
+            // If isForwardFlow is called, isConnTracked becomes true and
             // a lookup into Cassandra determines which direction this packet
             // is considered to be going.
             if (connectionTracked)

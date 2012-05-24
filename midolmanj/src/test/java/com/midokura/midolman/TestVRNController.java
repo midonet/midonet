@@ -1342,7 +1342,7 @@ public class TestVRNController {
         RouterConfig rtrConfig = new RouterConfig(chainId, null);
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(natPrivateNwAddr, natPrivateNwAddr,
-                natPrivateTpPort, natPrivateTpPort));
+                               natPrivateTpPort, natPrivateTpPort));
         Condition cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(uplinkId);

@@ -43,7 +43,7 @@ public abstract class Rule implements Comparable<Rule> {
      * If the packet specified by res.match matches this rule's condition,
      * apply the rule.
      *
-     * @paarm fwdInfo
+     * @param fwdInfo
      *            the PacketContext for the packet being processed
      * @param res
      *            contains a match of the packet after all transformations
@@ -58,7 +58,7 @@ public abstract class Rule implements Comparable<Rule> {
         if (condition.matches(fwdInfo, res.match, isPortFilter)) {
             apply(fwdInfo.getFlowMatch(),
                   isPortFilter ? null : fwdInfo.getInPortId(),
-                  isPortFilter ? null : fwdInfo.getOutPortId(), 
+                  isPortFilter ? null : fwdInfo.getOutPortId(),
                   res, natMapping);
         }
     }

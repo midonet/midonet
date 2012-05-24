@@ -139,8 +139,8 @@ public class VRNController extends AbstractController
                                                  reactor);
         this.portCache = new PortConfigCache(reactor, zkDir, zkBasePath);
         this.connectionCache = cache;
-        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache, 
-                                      this, portSetMap, chainProcessor, 
+        this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, cache,
+                                      this, portSetMap, chainProcessor,
                                       portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
@@ -470,7 +470,7 @@ public class VRNController extends AbstractController
         }
     }
 
-    private void installConnectionCacheEntry(UUID outPortID, 
+    private void installConnectionCacheEntry(UUID outPortID,
                                              MidoMatch flowMatch) {
         UUID fe;
         try {
@@ -506,7 +506,7 @@ public class VRNController extends AbstractController
         if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow()) {
             installConnectionCacheEntry(fwdInfo.outPortId, fwdInfo.flowMatch);
         }
-            
+
         List<OFAction> actions;
         Integer outPortNum = portUuidToNumberMap.get(fwdInfo.outPortId);
         // Is the egress a locally installed virtual port?

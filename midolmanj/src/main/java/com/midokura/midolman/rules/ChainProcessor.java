@@ -106,7 +106,7 @@ public class ChainProcessor {
      * @return
      */
     public RuleResult applyChain(UUID chainID, ChainPacketContext fwdInfo,
-                                 MidoMatch pktMatch, UUID ownerId, 
+                                 MidoMatch pktMatch, UUID ownerId,
                                  boolean isPortFilter)
             throws StateAccessException {
         RuleResult res = new RuleResult(
