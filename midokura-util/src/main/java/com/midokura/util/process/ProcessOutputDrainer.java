@@ -10,6 +10,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 
 /**
+ * It is a class that will spawn one or two threads that continuously pool
+ * a process stdout/stderr streams and pass each new line they can get to 
+ * a provided instance of a {@link DrainTarget} class.
+ * 
+ * Used by the {@link ProcessHelper} class to make sure a launched process
+ * is not stalled when the stdout buffer is full. 
+ *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 11/20/11
  */
@@ -33,16 +40,18 @@ public class ProcessOutputDrainer {
 
     public void drainOutput(DrainTarget drainTarget, boolean wait) {
 
-        Thread stdoutThread = new Thread(
-            new InputStreamDrainer(process.getInputStream(), drainTarget,
-                                   true));
+        Thread stdoutThread =
+	    new Thread(
+                new InputStreamDrainer(process.getInputStream(), 
+                                       drainTarget, false));
         stdoutThread.start();
 
         Thread stderrThread = null;
         if (separateErrorStream) {
-            stderrThread = new Thread(
-                new InputStreamDrainer(process.getErrorStream(), drainTarget,
-                                       false));
+            stderrThread = 
+	        new Thread(
+                    new InputStreamDrainer(process.getErrorStream(), 
+                                           drainTarget, true));
             stderrThread.start();
         }
         if (wait) {
@@ -52,7 +61,7 @@ public class ProcessOutputDrainer {
                     stderrThread.join();
                 }
             } catch (InterruptedException e) {
-                //
+                Thread.currentThread().interrupt();
             }
         }
     }
