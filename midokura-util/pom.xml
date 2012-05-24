@@ -158,6 +158,29 @@
 
     <profiles>
         <profile>
+            <id>use-tools-for-sun</id>
+            <activation>
+	        <activeByDefault>true</activeByDefault>
+<!--
+	This is how you normally do it but it doesn't seem to work yet.
+                <property>
+                    <name>java.vendor</name>
+                    <value>[Oracle Corporation],[Sun Microsystems Inc.]</value>
+                </property>
+-->    
+        </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>${java.version}</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+      
+	<profile>
             <id>functional-tests</id>
             <build>
                 <plugins>
