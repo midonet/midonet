@@ -58,7 +58,7 @@ public class DtoRule {
     private String type;
     private String jumpChainName;
     private String flowAction;
-    private String[][][] natTargets;
+    private NatTarget[] natTargets;
     private int position;
 
     public URI getUri() {
@@ -357,11 +357,11 @@ public class DtoRule {
         this.flowAction = flowAction;
     }
 
-    public String[][][] getNatTargets() {
+    public NatTarget[] getNatTargets() {
         return natTargets;
     }
 
-    public void setNatTargets(String[][][] natTargets) {
+    public void setNatTargets(NatTarget[] natTargets) {
         this.natTargets = natTargets;
     }
 
@@ -371,5 +371,22 @@ public class DtoRule {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public static class NatTarget {
+        public String addressFrom, addressTo;
+        public int portFrom, portTo;
+
+        public NatTarget() {
+        }
+
+        public NatTarget(String addressFrom, String addressTo,
+                         int portFrom,
+                         int portTo) {
+            this.addressFrom = addressFrom;
+            this.addressTo = addressTo;
+            this.portFrom = portFrom;
+            this.portTo = portTo;
+        }
     }
 }

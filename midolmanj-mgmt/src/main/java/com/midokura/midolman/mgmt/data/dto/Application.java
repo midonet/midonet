@@ -18,6 +18,9 @@ public class Application extends UriResource {
 
     private String version = null;
 
+    public Application() {
+    }
+
     /**
      * Constructor
      *

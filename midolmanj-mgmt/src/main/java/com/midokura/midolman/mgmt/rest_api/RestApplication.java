@@ -6,10 +6,11 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+
+import com.wordnik.swagger.jaxrs.ApiListingResourceJSON;
 
 import com.midokura.midolman.mgmt.auth.AuthorizerSelector;
 import com.midokura.midolman.mgmt.config.AppConfig;
@@ -54,6 +55,7 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         HashSet<Class<?>> set = new HashSet<Class<?>>();
         set.add(ApplicationResource.class);
+        set.add(ApiListingResourceJSON.class);
         set.add(WebApplicationExceptionMapper.class);
         set.add(ThrowableMapper.class);
         return set;

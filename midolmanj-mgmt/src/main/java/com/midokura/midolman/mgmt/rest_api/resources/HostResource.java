@@ -6,7 +6,6 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 import java.util.UUID;
-
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
@@ -44,12 +43,13 @@ public class HostResource {
 
     @GET
     @PermitAll
-    @Produces({ VendorMediaType.APPLICATION_HOST_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
+    @Produces({VendorMediaType.APPLICATION_HOST_COLLECTION_JSON,
+                  MediaType.APPLICATION_JSON})
     public List<Host> list(@Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws ForbiddenHttpException,
-            StateAccessException {
+                           @Context UriInfo uriInfo,
+                           @Context DaoFactory daoFactory,
+                           @Context Authorizer authorizer)
+        throws ForbiddenHttpException, StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
             throw new ForbiddenHttpException("Not authorized to view hosts.");
@@ -66,32 +66,27 @@ public class HostResource {
     /**
      * Handler to getting a host information.
      *
-     * @param id
-     *            Host ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
+     * @param id         Host ID from the request.
+     * @param context    Object that holds the security data.
+     * @param uriInfo    Object that holds the request URI data.
+     * @param daoFactory Data access factory object.
+     * @param authorizer Authorizer object.
      * @return A Host object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      */
     @GET
     @PermitAll
     @Path("{id}")
-    @Produces({ VendorMediaType.APPLICATION_HOST_JSON,
-            MediaType.APPLICATION_JSON })
+    @Produces({VendorMediaType.APPLICATION_HOST_JSON,
+                  MediaType.APPLICATION_JSON})
     public Host get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+                    @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
+                    @Context Authorizer authorizer)
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
             throw new ForbiddenHttpException(
-                    "Not authorized to view the host information.");
+                "Not authorized to view the host information.");
         }
 
         HostDao dao = daoFactory.getHostDao();
@@ -106,28 +101,26 @@ public class HostResource {
     /**
      * Handler to deleting a host.
      *
-     * @param id
-     *            Host ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
+     * @param id         Host ID from the request.
+     * @param context    Object that holds the security data.
+     * @param daoFactory Data access factory object.
+     * @param authorizer Authorizer object.
      * @return Response object with 204 status code set if successful and 403 is
      *         the deletion could not be executed.
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public Response delete(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+                           @Context SecurityContext context,
+                           @Context DaoFactory daoFactory,
+                           @Context Authorizer authorizer)
+        throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to delete a host.");
+            throw new ForbiddenHttpException(
+                "Not authorized to delete a host.");
         }
 
         HostDao dao = daoFactory.getHostDao();
@@ -146,26 +139,24 @@ public class HostResource {
     /**
      * Interface resource locator for hosts.
      *
-     * @param hostId
-     *            Host ID from the request.
+     * @param hostId Host ID from the request.
      * @return InterfaceResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.INTERFACES)
-    public InterfaceResource getInterfaceResource(@PathParam("id") UUID hostId) {
+    public InterfaceResource getInterfaceResource(
+        @PathParam("id") UUID hostId) {
         return new InterfaceResource(hostId);
     }
 
     /**
      * Interface resource locator for hosts.
      *
-     *
-     * @param hostId
-     *            Host ID from the request.
+     * @param hostId Host ID from the request.
      * @return InterfaceResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.COMMANDS)
     public HostCommandResource getHostCommandsResource(
-            @PathParam("id") UUID hostId) {
+        @PathParam("id") UUID hostId) {
         return new HostCommandResource(hostId);
     }
 }

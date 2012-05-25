@@ -358,6 +358,12 @@
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
             <version>12.06-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.midokura</groupId>
@@ -395,6 +401,43 @@
                         <configuration>
                             <skipTests>true</skipTests>
                         </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>generate-api-docs</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.enunciate</groupId>
+                        <artifactId>maven-enunciate-slim-plugin</artifactId>
+                        <version>1.25</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>docs</goal>
+                                </goals>
+                                <configuration>
+                                    <docsDir>${project.build.directory}/docs</docsDir>
+                                    <excludes>
+                                        <exclude>Rule.java</exclude>
+                                    </excludes>
+                                    <javacCheck>false</javacCheck>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.codehaus.enunciate</groupId>
+                                <artifactId>enunciate-docs</artifactId>
+                                <version>1.25</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
             </build>

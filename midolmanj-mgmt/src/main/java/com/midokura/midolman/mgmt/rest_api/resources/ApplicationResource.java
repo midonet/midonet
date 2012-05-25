@@ -27,7 +27,7 @@ public class ApplicationResource {
     /**
      * Tenant resource locator.
      *
-     * @returns TenantResource object to handle sub-resource requests.
+     * @return TenantResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.TENANTS)
     public TenantResource getTenantResource() {
@@ -37,7 +37,7 @@ public class ApplicationResource {
     /**
      * Router resource locator.
      *
-     * @returns RouterResource object to handle sub-resource requests.
+     * @return RouterResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.ROUTERS)
     public RouterResource getRouterResource() {
@@ -47,7 +47,7 @@ public class ApplicationResource {
     /**
      * Bridge resource locator.
      *
-     * @returns BridgeResource object to handle sub-resource requests.
+     * @return BridgeResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.BRIDGES)
     public BridgeResource getBridgeResource() {
@@ -57,7 +57,7 @@ public class ApplicationResource {
     /**
      * Port resource locator.
      *
-     * @returns PortResource object to handle sub-resource requests.
+     * @return PortResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.PORTS)
     public PortResource getPortResource() {
@@ -67,7 +67,7 @@ public class ApplicationResource {
     /**
      * VIF resource locator.
      *
-     * @returns VifResource object to handle sub-resource requests.
+     * @return VifResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.VIFS)
     public VifResource getVifResource() {
@@ -77,7 +77,7 @@ public class ApplicationResource {
     /**
      * Route resource locator.
      *
-     * @returns RouteResource object to handle sub-resource requests.
+     * @return RouteResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.ROUTES)
     public RouteResource getRouteResource() {
@@ -87,7 +87,7 @@ public class ApplicationResource {
     /**
      * Chain resource locator.
      *
-     * @returns ChainResource object to handle sub-resource requests.
+     * @return ChainResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.CHAINS)
     public ChainResource getChainResource() {
@@ -97,7 +97,7 @@ public class ApplicationResource {
     /**
      * PortGroups resource locator.
      *
-     * @returns ChainResource object to handle sub-resource requests.
+     * @return ChainResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.PORT_GROUPS)
     public PortGroupResource getPortGroupResource() {
@@ -107,7 +107,7 @@ public class ApplicationResource {
     /**
      * Rule resource locator.
      *
-     * @returns RuleResource object to handle sub-resource requests.
+     * @return RuleResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.RULES)
     public RuleResource getRuleResource() {
@@ -117,7 +117,7 @@ public class ApplicationResource {
     /**
      * BGP resource locator.
      *
-     * @returns BgpResource object to handle sub-resource requests.
+     * @return BgpResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.BGP)
     public BgpResource getBgpResource() {
@@ -127,7 +127,7 @@ public class ApplicationResource {
     /**
      * Ad route resource locator.
      *
-     * @returns AdRouteResource object to handle sub-resource requests.
+     * @return AdRouteResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.AD_ROUTES)
     public AdRouteResource getAdRouteResource() {
@@ -137,7 +137,7 @@ public class ApplicationResource {
     /**
      * VPN resource locator.
      *
-     * @returns VpnResource object to handle sub-resource requests.
+     * @return VpnResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.VPN)
     public VpnResource getVpnResource() {
@@ -173,7 +173,7 @@ public class ApplicationResource {
      *            AppConfig object that holds the application configurations.
      * @throws InvalidConfigException
      *             Missing configuration parameter.
-     * @returns An Application object.
+     * @return An Application object.
      */
     @GET
     @PermitAll

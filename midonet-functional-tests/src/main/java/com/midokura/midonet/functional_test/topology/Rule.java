@@ -1,13 +1,10 @@
 package com.midokura.midonet.functional_test.topology;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.UUID;
 
-import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
@@ -38,11 +35,11 @@ public class Rule {
         public Builder setDnat(IntIPv4 dst, int port) {
             rule.setType(DtoRule.DNAT);
             rule.setFlowAction(DtoRule.Accept);
-            String[][][] target = new String[1][2][];
-            target[0][0] = new String[] { dst.toString(), dst.toString() };
-            String p = new Integer(port).toString();
-            target[0][1] = new String[] { p, p };
-            rule.setNatTargets(target);
+            rule.setNatTargets(
+                new DtoRule.NatTarget[]{
+                    new DtoRule.NatTarget(dst.toString(), dst.toString(),
+                                          port, port)
+                });
             return this;
         }
 
@@ -55,11 +52,11 @@ public class Rule {
         public Builder setSnat(IntIPv4 src, int port) {
             rule.setType(DtoRule.SNAT);
             rule.setFlowAction(DtoRule.Accept);
-            String[][][] target = new String[1][2][];
-            target[0][0] = new String[] { src.toString(), src.toString() };
-            String p = new Integer(port).toString();
-            target[0][1] = new String[] { p, p };
-            rule.setNatTargets(target);
+            rule.setNatTargets(
+                new DtoRule.NatTarget[]{
+                    new DtoRule.NatTarget(src.toString(), src.toString(),
+                                          port, port)
+                });
             return this;
         }
 
@@ -101,12 +98,12 @@ public class Rule {
         }
 
         public Builder matchInPort(UUID vportId) {
-            rule.setInPorts(new UUID[] { vportId });
+            rule.setInPorts(new UUID[]{vportId});
             return this;
         }
 
         public Builder matchOutPort(UUID vportId) {
-            rule.setOutPorts(new UUID[] { vportId });
+            rule.setOutPorts(new UUID[]{vportId});
             return this;
         }
 

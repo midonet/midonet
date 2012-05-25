@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
@@ -20,7 +19,6 @@ import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
 import com.midokura.midolman.rules.LiteralRule;
-import com.midokura.midolman.rules.NatRule;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.RuleResult.Action;
@@ -42,13 +40,13 @@ public class Rule extends UriResource {
     public static final String RevDNAT = "rev_dnat";
     public static final String RevSNAT = "rev_snat";
 
-    public static final String[] RuleTypes = { Accept, DNAT, Drop, Jump,
-            Reject, Return, RevDNAT, RevSNAT, SNAT };
-    public static final String[] SimpleRuleTypes = { Accept, Drop, Reject,
-            Return };
-    public static final String[] NatRuleTypes = { DNAT, SNAT };
-    public static final String[] RevNatRuleTypes = { RevDNAT, RevSNAT };
-    public static final String[] RuleActions = { Accept, Continue, Return };
+    public static final String[] RuleTypes = {Accept, DNAT, Drop, Jump,
+        Reject, Return, RevDNAT, RevSNAT, SNAT};
+    public static final String[] SimpleRuleTypes = {Accept, Drop, Reject,
+        Return};
+    public static final String[] NatRuleTypes = {DNAT, SNAT};
+    public static final String[] RevNatRuleTypes = {RevDNAT, RevSNAT};
+    public static final String[] RuleActions = {Accept, Continue, Return};
 
     private UUID id = null;
     private UUID chainId = null;
@@ -86,11 +84,11 @@ public class Rule extends UriResource {
     private String type = null;
     private String jumpChainName = null;
     private String flowAction = null;
-    private String[][][] natTargets = new String[2][2][];
+    private DtoNatTarget[] natTargets = {};
     private int position = 1;
 
     /**
-     * Default construtor
+     * Default constructor
      */
     public Rule() {
         super();
@@ -99,10 +97,8 @@ public class Rule extends UriResource {
     /**
      * Constructor
      *
-     * @param id
-     *            ID of the rule
-     * @param zkRule
-     *            com.midokura.midolman.rules.Rule object
+     * @param id     ID of the rule
+     * @param zkRule com.midokura.midolman.rules.Rule object
      */
     public Rule(UUID id, com.midokura.midolman.rules.Rule zkRule) {
         this.chainId = zkRule.chainId;
@@ -110,23 +106,16 @@ public class Rule extends UriResource {
         if (zkRule instanceof LiteralRule) {
             this.type = Rule.getActionString(zkRule.action);
         } else if (zkRule instanceof ForwardNatRule) {
-            String[][][] targets = Rule
-                    .makeNatTargetStrings(((ForwardNatRule) zkRule)
-                            .getNatTargets());
-            this.natTargets = targets;
+            ForwardNatRule natRule = (ForwardNatRule) zkRule;
+
             this.flowAction = Rule.getActionString(zkRule.action);
-            if (((NatRule) zkRule).dnat) {
-                this.type = Rule.DNAT;
-            } else {
-                this.type = Rule.SNAT;
-            }
+            this.type = natRule.dnat ? Rule.DNAT : Rule.SNAT;
+            this.natTargets = makeTargetsFromRule(natRule);
         } else if (zkRule instanceof ReverseNatRule) {
-            if (((NatRule) zkRule).dnat) {
-                this.type = Rule.RevDNAT;
-            } else {
-                this.type = Rule.RevSNAT;
-            }
+            ReverseNatRule natRule = (ReverseNatRule) zkRule;
+
             this.flowAction = Rule.getActionString(zkRule.action);
+            this.type = natRule.dnat ? Rule.RevDNAT : Rule.RevSNAT;
         } else {
             this.jumpChainName = ((JumpRule) zkRule).jumpToChainName;
         }
@@ -142,8 +131,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param id
-     *            the id to set
+     * @param id the id to set
      */
     public void setId(UUID id) {
         this.id = id;
@@ -157,8 +145,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param chainId
-     *            the chainId to set
+     * @param chainId the chainId to set
      */
     public void setChainId(UUID chainId) {
         this.chainId = chainId;
@@ -172,8 +159,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param condInvert
-     *            the condInvert to set
+     * @param condInvert the condInvert to set
      */
     public void setCondInvert(boolean condInvert) {
         this.condInvert = condInvert;
@@ -203,8 +189,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param inPorts
-     *            the inPorts to set
+     * @param inPorts the inPorts to set
      */
     public void setInPorts(UUID[] inPorts) {
         this.inPorts = inPorts;
@@ -218,8 +203,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invInPorts
-     *            the invInPorts to set
+     * @param invInPorts the invInPorts to set
      */
     public void setInvInPorts(boolean invInPorts) {
         this.invInPorts = invInPorts;
@@ -233,8 +217,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param outPorts
-     *            the outPorts to set
+     * @param outPorts the outPorts to set
      */
     public void setOutPorts(UUID[] outPorts) {
         this.outPorts = outPorts;
@@ -248,8 +231,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invOutPorts
-     *            the invOutPorts to set
+     * @param invOutPorts the invOutPorts to set
      */
     public void setInvOutPorts(boolean invOutPorts) {
         this.invOutPorts = invOutPorts;
@@ -283,8 +265,7 @@ public class Rule extends UriResource {
     /**
      * Set the Data Layer Destination that this rule matches on.
      *
-     * @param dlDst
-     *            A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     * @param dlDst A MAC address specified as "aa:bb:cc:dd:ee:ff"
      */
     public void setDlDst(String dlDst) {
         this.dlDst = dlDst;
@@ -294,11 +275,10 @@ public class Rule extends UriResource {
      * Set whether the match on the data layer destination should be inverted.
      * This will be stored but ignored until the DlDst has been set.
      *
-     * @param invDlDst
-     *            True if the rule should match packets whose data layer
-     *            destination is NOT equal to the MAC set by 'setDlDst'. False
-     *            if the rule should match packets whose DlDst IS equal to that
-     *            MAC.
+     * @param invDlDst True if the rule should match packets whose data layer
+     *                 destination is NOT equal to the MAC set by 'setDlDst'. False
+     *                 if the rule should match packets whose DlDst IS equal to that
+     *                 MAC.
      */
     public void setInvDlDst(boolean invDlDst) {
         this.invDlDst = invDlDst;
@@ -328,8 +308,7 @@ public class Rule extends UriResource {
     /**
      * Set the Data Layer Source address that this rule matches on.
      *
-     * @param dlSrc
-     *            A MAC address specified as "aa:bb:cc:dd:ee:ff"
+     * @param dlSrc A MAC address specified as "aa:bb:cc:dd:ee:ff"
      */
     public void setDlSrc(String dlSrc) {
         this.dlSrc = dlSrc;
@@ -339,10 +318,9 @@ public class Rule extends UriResource {
      * Set whether the match on the data layer source should be inverted. This
      * will be stored but ignored until the DlSrc has been set.
      *
-     * @param invDlSrc
-     *            True if the rule should match packets whose data layer source
-     *            is NOT equal to the MAC set by 'setDlSrc'. False if the rule
-     *            should match packets whose DlSrc IS equal to that MAC.
+     * @param invDlSrc True if the rule should match packets whose data layer source
+     *                 is NOT equal to the MAC set by 'setDlSrc'. False if the rule
+     *                 should match packets whose DlSrc IS equal to that MAC.
      */
     public void setInvDlSrc(boolean invDlSrc) {
         this.invDlSrc = invDlSrc;
@@ -362,10 +340,9 @@ public class Rule extends UriResource {
     /**
      * Set the Data Layer Type (Ethertype) of packets matched by this rule.
      *
-     * @param dlType
-     *            Ethertype value. We do not check the validity of the value
-     *            provided: i.e. whether it's in the correct range for
-     *            Ethertypes.
+     * @param dlType Ethertype value. We do not check the validity of the value
+     *               provided: i.e. whether it's in the correct range for
+     *               Ethertypes.
      */
     public void setDlType(Short dlType) {
         this.dlType = dlType;
@@ -385,11 +362,10 @@ public class Rule extends UriResource {
      * Set whether the match on the data layer type should be inverted. This
      * will be stored but ignored until the DlType has been set.
      *
-     * @param invDlType
-     *            True if the rule should match packets whose data layer type is
-     *            NOT equal to the Ethertype set by 'setDlType'. False if the
-     *            rule should match packets whose DlType IS equal to that
-     *            Ethertype.
+     * @param invDlType True if the rule should match packets whose data layer type is
+     *                  NOT equal to the Ethertype set by 'setDlType'. False if the
+     *                  rule should match packets whose DlType IS equal to that
+     *                  Ethertype.
      */
     public void setInvDlType(boolean invDlType) {
         this.invDlType = invDlType;
@@ -414,8 +390,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param nwTos
-     *            the nwTos to set
+     * @param nwTos the nwTos to set
      */
     public void setNwTos(int nwTos) {
         this.nwTos = nwTos;
@@ -429,8 +404,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invNwTos
-     *            the invNwTos to set
+     * @param invNwTos the invNwTos to set
      */
     public void setInvNwTos(boolean invNwTos) {
         this.invNwTos = invNwTos;
@@ -444,8 +418,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param nwProto
-     *            the nwProto to set
+     * @param nwProto the nwProto to set
      */
     public void setNwProto(int nwProto) {
         this.nwProto = nwProto;
@@ -459,8 +432,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invNwProto
-     *            the invNwProto to set
+     * @param invNwProto the invNwProto to set
      */
     public void setInvNwProto(boolean invNwProto) {
         this.invNwProto = invNwProto;
@@ -474,8 +446,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param nwSrcAddress
-     *            the nwSrcAddress to set
+     * @param nwSrcAddress the nwSrcAddress to set
      */
     public void setNwSrcAddress(String nwSrcAddress) {
         this.nwSrcAddress = nwSrcAddress;
@@ -489,8 +460,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param nwSrcLength
-     *            the nwSrcLength to set
+     * @param nwSrcLength the nwSrcLength to set
      */
     public void setNwSrcLength(int nwSrcLength) {
         this.nwSrcLength = nwSrcLength;
@@ -504,8 +474,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invNwSrc
-     *            the invNwSrc to set
+     * @param invNwSrc the invNwSrc to set
      */
     public void setInvNwSrc(boolean invNwSrc) {
         this.invNwSrc = invNwSrc;
@@ -519,8 +488,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param nwDstAddress
-     *            the nwDstAddress to set
+     * @param nwDstAddress the nwDstAddress to set
      */
     public void setNwDstAddress(String nwDstAddress) {
         this.nwDstAddress = nwDstAddress;
@@ -534,8 +502,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param nwDstLength
-     *            the nwDstLength to set
+     * @param nwDstLength the nwDstLength to set
      */
     public void setNwDstLength(int nwDstLength) {
         this.nwDstLength = nwDstLength;
@@ -549,8 +516,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invNwDst
-     *            the invNwDst to set
+     * @param invNwDst the invNwDst to set
      */
     public void setInvNwDst(boolean invNwDst) {
         this.invNwDst = invNwDst;
@@ -564,8 +530,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param tpSrcStart
-     *            the tpSrcStart to set
+     * @param tpSrcStart the tpSrcStart to set
      */
     public void setTpSrcStart(short tpSrcStart) {
         this.tpSrcStart = tpSrcStart;
@@ -579,8 +544,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param tpSrcEnd
-     *            the tpSrcEnd to set
+     * @param tpSrcEnd the tpSrcEnd to set
      */
     public void setTpSrcEnd(short tpSrcEnd) {
         this.tpSrcEnd = tpSrcEnd;
@@ -594,8 +558,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invTpSrc
-     *            the invTpSrc to set
+     * @param invTpSrc the invTpSrc to set
      */
     public void setInvTpSrc(boolean invTpSrc) {
         this.invTpSrc = invTpSrc;
@@ -609,8 +572,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param tpDstStart
-     *            the tpDstStart to set
+     * @param tpDstStart the tpDstStart to set
      */
     public void setTpDstStart(short tpDstStart) {
         this.tpDstStart = tpDstStart;
@@ -624,8 +586,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param tpDstEnd
-     *            the tpDstEnd to set
+     * @param tpDstEnd the tpDstEnd to set
      */
     public void setTpDstEnd(short tpDstEnd) {
         this.tpDstEnd = tpDstEnd;
@@ -639,8 +600,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param invTpDst
-     *            the invTpDst to set
+     * @param invTpDst the invTpDst to set
      */
     public void setInvTpDst(boolean invTpDst) {
         this.invTpDst = invTpDst;
@@ -654,8 +614,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param type
-     *            the type to set
+     * @param type the type to set
      */
     public void setType(String type) {
         this.type = type;
@@ -669,8 +628,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param jumpChainName
-     *            the jumpChainName to set
+     * @param jumpChainName the jumpChainName to set
      */
     public void setJumpChainName(String jumpChainName) {
         this.jumpChainName = jumpChainName;
@@ -684,25 +642,17 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param flowAction
-     *            the flowAction to set
+     * @param flowAction the flowAction to set
      */
     public void setFlowAction(String flowAction) {
         this.flowAction = flowAction;
     }
 
-    /**
-     * @return the natTargets
-     */
-    public String[][][] getNatTargets() {
+    public DtoNatTarget[] getNatTargets() {
         return natTargets;
     }
 
-    /**
-     * @param natTargets
-     *            the natTargets to set
-     */
-    public void setNatTargets(String[][][] natTargets) {
+    public void setNatTargets(DtoNatTarget[] natTargets) {
         this.natTargets = natTargets;
     }
 
@@ -714,8 +664,7 @@ public class Rule extends UriResource {
     }
 
     /**
-     * @param position
-     *            the position to set
+     * @param position the position to set
      */
     public void setPosition(int position) {
         this.position = position;
@@ -735,20 +684,20 @@ public class Rule extends UriResource {
 
     public static String getActionString(Action a) {
         switch (a) {
-        case ACCEPT:
-            return Rule.Accept;
-        case CONTINUE:
-            return Rule.Continue;
-        case DROP:
-            return Rule.Drop;
-        case JUMP:
-            return Rule.Jump;
-        case REJECT:
-            return Rule.Reject;
-        case RETURN:
-            return Rule.Return;
-        default:
-            throw new IllegalArgumentException("Invalid action passed in.");
+            case ACCEPT:
+                return Rule.Accept;
+            case CONTINUE:
+                return Rule.Continue;
+            case DROP:
+                return Rule.Drop;
+            case JUMP:
+                return Rule.Jump;
+            case REJECT:
+                return Rule.Reject;
+            case RETURN:
+                return Rule.Return;
+            default:
+                throw new IllegalArgumentException("Invalid action passed in.");
         }
     }
 
@@ -821,32 +770,41 @@ public class Rule extends UriResource {
         return c;
     }
 
-    private static Set<NatTarget> makeNatTargets(String[][][] natTargets) {
+    private Set<NatTarget> makeTargetsForRule(DtoNatTarget[] natTargets) {
         Set<NatTarget> targets = new HashSet<NatTarget>(natTargets.length);
-        for (String[][] natTarget : natTargets) {
-            String[] addressRange = natTarget[0];
-            String[] portRange = natTarget[1];
+
+        for (DtoNatTarget natTarget : natTargets) {
             NatTarget t = new NatTarget(
-                    Net.convertStringAddressToInt(addressRange[0]),
-                    Net.convertStringAddressToInt(addressRange[1]),
-                    (short) Integer.parseInt(portRange[0]),
-                    (short) Integer.parseInt(portRange[1]));
+                Net.convertStringAddressToInt(natTarget.addressFrom),
+                Net.convertStringAddressToInt(natTarget.addressTo),
+                (short) natTarget.portFrom,
+                (short) natTarget.portTo);
             targets.add(t);
         }
         return targets;
     }
 
-    public static String[][][] makeNatTargetStrings(Set<NatTarget> natTargets) {
-        List<String[][]> targets = new ArrayList<String[][]>(natTargets.size());
-        for (NatTarget t : natTargets) {
-            String[] addressRange = { Net.convertIntAddressToString(t.nwStart),
-                    Net.convertIntAddressToString(t.nwEnd) };
-            String[] portRange = { String.valueOf(t.tpStart),
-                    String.valueOf(t.tpEnd) };
-            String[][] target = { addressRange, portRange };
+    private DtoNatTarget[] makeTargetsFromRule(ForwardNatRule natRule) {
+        Set<NatTarget> ruleTargets = natRule.getNatTargets();
+
+        List<DtoNatTarget> targets = new ArrayList<DtoNatTarget>(
+            ruleTargets.size());
+
+        for (NatTarget natTarget : ruleTargets) {
+            DtoNatTarget target = new DtoNatTarget();
+
+            target.addressFrom =
+                Net.convertIntAddressToString(natTarget.nwStart);
+            target.addressTo =
+                Net.convertIntAddressToString(natTarget.nwEnd);
+
+            target.portFrom = natTarget.tpStart;
+            target.portTo = natTarget.tpEnd;
+
             targets.add(target);
         }
-        return targets.toArray(new String[2][2][targets.size()]);
+
+        return targets.toArray(new DtoNatTarget[ruleTargets.size()]);
     }
 
     public com.midokura.midolman.rules.Rule toZkRule(UUID jumpChainID) {
@@ -857,12 +815,15 @@ public class Rule extends UriResource {
         if (Arrays.asList(Rule.SimpleRuleTypes).contains(type)) {
             r = new LiteralRule(cond, action);
         } else if (Arrays.asList(Rule.NatRuleTypes).contains(type)) {
-            Set<NatTarget> targets = makeNatTargets(this.getNatTargets());
+            Set<NatTarget> targets =
+                makeTargetsForRule(this.getNatTargets());
+
             r = new ForwardNatRule(cond, getAction(this.getFlowAction()),
-                    chainId, position, type.equals(Rule.DNAT), targets);
+                                   chainId, position, type.equals(Rule.DNAT),
+                                   targets);
         } else if (Arrays.asList(Rule.RevNatRuleTypes).contains(type)) {
             r = new ReverseNatRule(cond, getAction(this.getFlowAction()),
-                    type.equals(Rule.RevDNAT));
+                                   type.equals(Rule.RevDNAT));
         } else {
             // Jump
             r = new JumpRule(cond, jumpChainID, getJumpChainName());
@@ -893,7 +854,8 @@ public class Rule extends UriResource {
             this.setInPorts(c.inPortIds.toArray(new UUID[c.inPortIds.size()]));
         }
         if (c.outPortIds != null) {
-            this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
+            this.setOutPorts(
+                c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
         }
         this.setPortGroup(c.portGroup);
         this.setDlType(c.dlType);
@@ -918,5 +880,23 @@ public class Rule extends UriResource {
     @Override
     public String toString() {
         return "dto.Rule: " + toZkRule(null).toString();
+    }
+
+    public static class DtoNatTarget {
+        public String addressFrom, addressTo;
+        public int portFrom, portTo;
+
+        public DtoNatTarget() {
+        }
+
+        @Override
+        public String toString() {
+            return "DtoNatTarget{" +
+                "addressFrom='" + addressFrom + '\'' +
+                ", addressTo='" + addressTo + '\'' +
+                ", portFrom=" + portFrom +
+                ", portTo=" + portTo +
+                '}';
+        }
     }
 }

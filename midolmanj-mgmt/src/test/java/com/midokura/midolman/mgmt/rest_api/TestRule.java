@@ -119,11 +119,10 @@ public class TestRule extends JerseyTest {
 		DtoRule dnatRule = new DtoRule();
 		log.debug("type rule: {}", Rule.class);
 		UUID[] inPorts = new UUID[] { UUID.randomUUID() };
-		String[][][] natTargets = new String[2][2][];
-		natTargets[0][0] = new String[] { "192.168.100.1", "192.168.100.6" };
-		natTargets[0][1] = new String[] { "80", "8080" };
-		natTargets[1][0] = new String[] { "192.168.100.7", "192.168.100.10" };
-		natTargets[1][1] = new String[] { "8081", "8089" };
+        DtoRule.NatTarget []natTargets = new DtoRule.NatTarget[] {
+            new DtoRule.NatTarget("192.168.100.1", "192.168.100.6", 80, 8080),
+            new DtoRule.NatTarget("192.168.100.7", "192.168.100.10", 8081, 8089)
+        };
 
 		dnatRule.setCondInvert(true);
 		dnatRule.setInPorts(inPorts);
