@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) 2012 Midokura Pte.Ltd.
+ */
+
 package com.midokura.midolman.mgmt.rest_api;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -17,22 +22,23 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.DtoMetricQuery;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.DtoMetricQueryResponse;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMetric;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMetricQuery;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMetricQueryResponse;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMetricTarget;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.midokura.midolman.monitoring.store.CassandraStore;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 5/4/12
  */
-public class TestMonitoringQuery extends JerseyTest {
+public class TestMonitoring extends JerseyTest {
 
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
     private static CassandraStore store;
-    String interfaceName = "myInterface";
-    String granularity = "1m";
+    String targetIdentifier = "826400c0-a589-11e1-b3dd-0800200c9a66";
+    String type = "Test";
     String metricName = "TestMetric";
     long epochNow = System.currentTimeMillis();
     static int replicationFactor = 1;
@@ -47,7 +53,7 @@ public class TestMonitoringQuery extends JerseyTest {
                                  NoAuthClient.class.getName());
     }
 
-    public TestMonitoringQuery() throws TestContainerException {
+    public TestMonitoring() throws TestContainerException {
         super(FuncTest.appDesc);
 
     }
@@ -80,21 +86,69 @@ public class TestMonitoringQuery extends JerseyTest {
     }
 
     @Test
+    public void testGetMetric() {
+        // No metric in the store
+        DtoMetricTarget target = new DtoMetricTarget();
+        target.setTargetUUID(UUID.fromString(targetIdentifier));
+        target.setType(type);
+
+        DtoMetric[] metrics = resource().path("/metrics/filter").type(
+                VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+                .post(DtoMetric[].class, target);
+        assertThat("The size of the array is correct, it's empty",
+                   metrics.length, equalTo(0));
+
+        store.addMetric(type, targetIdentifier, metricName);
+
+        metrics = resource().path("/metrics/filter").type(
+                VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+                .post(DtoMetric[].class, target);
+        assertThat("The size of the array is correct", metrics.length,
+                   equalTo(1));
+        assertThat("We retrieved the metric correctly", metrics[0].getName(),
+                   equalTo(metricName));
+        assertThat("The metric was assigned to the right targetObject",
+                   metrics[0].getTargetIdentifier().toString(),
+                   equalTo(targetIdentifier));
+
+        // add a metric
+        String secondMetricName = "TestMetric2";
+        store.addMetric(type, targetIdentifier, secondMetricName);
+        metrics = resource().path("/metrics/filter").type(
+                VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+                .post(DtoMetric[].class, target);
+        assertThat("The size of the array is correct", metrics.length,
+                   equalTo(2));
+        assertThat("We retrieved the metric correctly", metrics[0].getName(),
+                   equalTo(metricName));
+        assertThat("We retrieved the metric correctly", metrics[1].getName(),
+                   equalTo(secondMetricName));
+
+        assertThat("The metric was assigned to the right targetObject",
+                   metrics[0].getTargetIdentifier().toString(),
+                   equalTo(targetIdentifier));
+        assertThat("The metric was assigned to the right targetObject",
+                   metrics[1].getTargetIdentifier().toString(),
+                   equalTo(targetIdentifier));
+
+    }
+
+    @Test
     public void testQueryOneDay() {
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, i,
-                             metricName
+            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+
             );
         }
 
         // Create the DtoMetricQuery object
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(interfaceName);
+        query.setType(type);
+        query.setInterfaceName(targetIdentifier);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow);
         query.setEndEpochTime(epochNow + numEntries);
-        query.setGranularity(granularity);
 
         DtoMetricQueryResponse response =
                 resource().path("/metrics/query").type(
@@ -117,18 +171,18 @@ public class TestMonitoringQuery extends JerseyTest {
         int numberOfSamples = 1;
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, i,
-                             metricName
+            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+
             );
         }
 
         // Create the DtoMetricQuery object, that queries from epochNow to epochNow+numberOfSamples
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(interfaceName);
+        query.setInterfaceName(targetIdentifier);
+        query.setType(type);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow);
         query.setEndEpochTime(epochNow + numberOfSamples);
-        query.setGranularity(granularity);
 
         DtoMetricQueryResponse response =
                 resource().path("/metrics/query").type(
@@ -165,18 +219,18 @@ public class TestMonitoringQuery extends JerseyTest {
     public void emptyQuery() {
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, i,
-                             metricName
+            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+
             );
         }
 
         // Create the DtoMetricQuery object
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(interfaceName);
+        query.setInterfaceName(targetIdentifier);
+        query.setType(type);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow + numEntries);
         query.setEndEpochTime(epochNow + numEntries + numEntries);
-        query.setGranularity(granularity);
 
         DtoMetricQueryResponse response =
                 resource().path("/metrics/query").type(
@@ -191,18 +245,19 @@ public class TestMonitoringQuery extends JerseyTest {
     public void queryBroaderThenSamples() {
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(interfaceName, epochNow + i, i,
-                             metricName
+            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+
             );
         }
         long epochTomorrow = epochNow + (24 * 60 * 60 * 1000);
+
         // Create the DtoMetricQuery object
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(interfaceName);
+        query.setInterfaceName(targetIdentifier);
+        query.setType(type);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow);
-        query.setEndEpochTime(epochNow + epochTomorrow);
-        query.setGranularity(granularity);
+        query.setEndEpochTime(epochTomorrow);
 
         DtoMetricQueryResponse response =
                 resource().path("/metrics/query").type(

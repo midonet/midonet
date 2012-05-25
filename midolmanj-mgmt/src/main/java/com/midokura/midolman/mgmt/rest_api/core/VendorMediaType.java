@@ -52,6 +52,9 @@ public class VendorMediaType {
 
     public static final String APPLICATION_MONITORING_RESOURCE_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricQueryResponse+json";
     public static final String APPLICATION_MONITORING_QUERY_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricQuery+json";
+    public static final String APPLICATION_METRICS_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Metric+json";
+    public static final String APPLICATION_METRIC_TARGET_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricTarget+json";
+
 
 
 }

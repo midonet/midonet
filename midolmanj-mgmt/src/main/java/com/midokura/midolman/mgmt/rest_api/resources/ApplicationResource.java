@@ -160,8 +160,8 @@ public class ApplicationResource {
      * @return HostResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.METRICS)
-    public MonitoringQueryResource getMonitoringQueryResource() {
-        return new MonitoringQueryResource();
+    public MonitoringResource getMonitoringQueryResource() {
+        return new MonitoringResource();
     }
 
     /**

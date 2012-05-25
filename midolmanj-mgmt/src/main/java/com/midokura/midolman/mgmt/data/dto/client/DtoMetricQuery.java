@@ -1,9 +1,12 @@
-package com.midokura.midolman.mgmt.data.dao.zookeeper;
+/*
+ * Copyright (c) 2012 Midokura Pte.Ltd.
+ */
+
+package com.midokura.midolman.mgmt.data.dto.client;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 5/4/12
  */
 @XmlRootElement
@@ -13,7 +16,7 @@ public class DtoMetricQuery {
     long startEpochTime;
     private long endEpochTime;
     String interfaceName;
-    String granularity;
+    String type;
 
     public void setMetricName(String metricName) {
         this.metricName = metricName;
@@ -35,8 +38,8 @@ public class DtoMetricQuery {
         this.interfaceName = interfaceName;
     }
 
-    public void setGranularity(String granularity) {
-        this.granularity = granularity;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getMetricName() {
@@ -51,18 +54,18 @@ public class DtoMetricQuery {
         return interfaceName;
     }
 
-    public String getGranularity() {
-        return granularity;
+    public String getType() {
+        return type;
     }
 
     @Override
     public String toString() {
         return "DtoMetricQuery{" +
+                "type=" + type +
                 "interfaceName=" + interfaceName +
                 "metricName=" + metricName +
                 "start=" + startEpochTime +
                 "end=" + endEpochTime +
-                "granularity=" + granularity +
                 "}";
     }
 }

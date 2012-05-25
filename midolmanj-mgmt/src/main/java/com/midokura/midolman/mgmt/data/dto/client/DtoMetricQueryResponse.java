@@ -1,10 +1,13 @@
-package com.midokura.midolman.mgmt.data.dao.zookeeper;
+/*
+ * Copyright (c) 2012 Midokura Pte.Ltd.
+ */
+
+package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.util.Map;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 5/4/12
  */
 @XmlRootElement
@@ -72,7 +75,7 @@ public class DtoMetricQueryResponse {
                 "metricName=" + metricName +
                 "start=" + startEpochTime +
                 "end=" + endEpochTime +
-                "granularity=" + granularity;
+                "type=" + granularity;
 
         for (Map.Entry<String, Long> entry : results.entrySet()) {
             res += "[";

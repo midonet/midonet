@@ -6,7 +6,6 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 import java.util.UUID;
-
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
@@ -123,7 +122,8 @@ public class InterfaceResource {
         throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to delete tenant.");
+            throw new ForbiddenHttpException("Not authorized to delete the" +
+                                                     " interface.");
         }
 
         HostDao dao = daoFactory.getHostDao();
@@ -156,7 +156,7 @@ public class InterfaceResource {
         throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to view tenants.");
+            throw new ForbiddenHttpException("Not authorized to view interfaces.");
         }
 
         HostDao dao = daoFactory.getHostDao();

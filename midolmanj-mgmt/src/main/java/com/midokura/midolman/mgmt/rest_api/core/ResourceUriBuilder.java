@@ -304,4 +304,8 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getPortGroups(baseUri))
                 .path(id.toString()).build();
     }
+    public static URI getMetrics(URI baseUri){
+        return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();
+    }
+
 }

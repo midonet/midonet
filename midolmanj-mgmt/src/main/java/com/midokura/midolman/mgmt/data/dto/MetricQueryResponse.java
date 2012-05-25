@@ -19,7 +19,7 @@ public class MetricQueryResponse extends UriResource {
     long timeStampStart;
     long timeStampEnd;
     Map<String, Long> results;
-    String granularity;
+    String type;
 
 
     public MetricQueryResponse() {
@@ -45,8 +45,8 @@ public class MetricQueryResponse extends UriResource {
         this.interfaceName = interfaceName;
     }
 
-    public void setGranularity(String granularity) {
-        this.granularity = granularity;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getInterfaceName() {
@@ -69,7 +69,7 @@ public class MetricQueryResponse extends UriResource {
         return results;
     }
 
-    public String getGranularity() {
-        return granularity;
+    public String getType() {
+        return type;
     }
 }

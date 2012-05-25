@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Pte.Ltd.
  */
 
 package com.midokura.midolman.mgmt.data.dto;
@@ -7,7 +7,6 @@ package com.midokura.midolman.mgmt.data.dto;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 5/4/12
  */
 @XmlRootElement
@@ -17,7 +16,7 @@ public class MetricQuery {
     long startEpochTime;
     long endEpochTime;
     String interfaceName;
-    String granularity;
+    String type;
 
     public MetricQuery() {
     }
@@ -38,8 +37,8 @@ public class MetricQuery {
         return interfaceName;
     }
 
-    public String getGranularity() {
-        return granularity;
+    public String getType() {
+        return type;
     }
 
     public void setMetricName(String metricName) {
@@ -58,7 +57,7 @@ public class MetricQuery {
         this.interfaceName = interfaceName;
     }
 
-    public void setGranularity(String granularity) {
-        this.granularity = granularity;
+    public void setType(String type) {
+        this.type = type;
     }
 }
