@@ -82,6 +82,9 @@
                         <org.newsclub.net.unix.library.path>
                             ${project.build.directory}/lib-native
                         </org.newsclub.net.unix.library.path>
+                        <midonet.functional.tests.current_midonet_project>
+                            ${basedir}/../
+                        </midonet.functional.tests.current_midonet_project>
                     </systemPropertyVariables>
                     <parallel>false</parallel>
                 </configuration>
@@ -339,32 +342,11 @@
 
 
     <profiles>
-        <profile>
-            <id>use-project-midolman</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <useUnlimitedThreads>true</useUnlimitedThreads>
-                            <systemPropertyVariables>
-                                <midonet.functional.tests.current_midonet_project>
-                                    ${basedir}/../
-                                </midonet.functional.tests.current_midonet_project>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
         <!--
-            This will allow proper dependency resolution when running the build
-            like:
-                mvn -P functional-tests test -Dtest=XXXTest
+            This allows proper dependency resolution between the functional tests and the classes in the midolmanj-mgmt.jar
+            when running the build like:
+
+                mvn -DjustFunctionalTests test -Dtest=XXXTest
 
             We are actually dependent on a war file and when maven resolves the
             jar dependency it will always look into the local repository and
@@ -375,6 +357,11 @@
         -->
         <profile>
             <id>functional-tests</id>
+            <activation>
+                <property>
+                    <name>justFunctionalTests</name>
+                </property>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.midokura</groupId>
@@ -385,6 +372,27 @@
                 </dependency>
             </dependencies>
         </profile>
+
+        <profile>
+            <id>skip-functional-tests</id>
+            <activation>
+                <property>
+                    <name>skipFunctionalTests</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
+

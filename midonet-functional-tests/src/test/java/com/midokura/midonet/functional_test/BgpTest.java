@@ -86,7 +86,8 @@ public class BgpTest {
         ovsBridge = new OvsBridge(ovsdb, "smoke-br");
 
         mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start("BgpTest");
+        midolman = MidolmanLauncher.start(MidolmanLauncher.ConfigType.With_Bgp,
+                                          "BgpTest");
 
         tenant = new Tenant.Builder(mgmt).setName("tenant-bgp").build();
 

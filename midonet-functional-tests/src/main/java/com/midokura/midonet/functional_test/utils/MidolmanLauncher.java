@@ -43,7 +43,7 @@ public class MidolmanLauncher {
     }
 
     public enum ConfigType {
-        Default, Without_Bgp, With_Node_Agent
+        Default, Without_Bgp, With_Bgp, With_Node_Agent
     }
 
     public static MidolmanLauncher start(String logPostFix) throws IOException {
