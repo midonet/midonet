@@ -375,6 +375,7 @@ public class Router implements ForwardingElement {
         // Apply pre-routing rules.
         log.debug("{} apply pre-routing rules to {}", this, fwdInfo);
 
+        fwdInfo.outPortId = null;
         RuleResult res = ruleEngine.applyChain(
                 myConfig.inboundFilter, fwdInfo, fwdInfo.matchIn,
                 this.routerId, false);
@@ -427,6 +428,7 @@ public class Router implements ForwardingElement {
         log.debug("{} pkt next hop {} and egress port {} - apply post-routing.",
                 new Object[] { this, IPv4.fromIPv4Address(rt.nextHopGateway),
                 rt.nextHopPort });
+        fwdInfo.outPortId = rt.nextHopPort;
         res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo,
                                     res.match, this.routerId, false);
         if (res.trackConnection)
@@ -444,13 +446,12 @@ public class Router implements ForwardingElement {
             throw new RuntimeException("Post-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
 
-        fwdInfo.outPortId = rt.nextHopPort;
         fwdInfo.matchOut = res.match;
-        RouterPortConfig outPortCfg = portCache.get(
-                fwdInfo.outPortId, RouterPortConfig.class);
+        RouterPortConfig outPortCfg = portCache.get(fwdInfo.outPortId,
+                                                    RouterPortConfig.class);
         if (null == outPortCfg) {
             log.error("Can't find the configuration for the egress port {}",
-                    fwdInfo.outPortId);
+                      fwdInfo.outPortId);
             fwdInfo.action = Action.DROP;
             return;
         }
