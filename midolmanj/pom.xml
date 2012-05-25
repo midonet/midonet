@@ -106,7 +106,7 @@
                         <version>2.12</version>
                     </dependency>
                 </dependencies>
-         
+
                 <configuration>
                     <parallel>false</parallel>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
@@ -115,13 +115,6 @@
                             ${project.build.directory}/lib-native
                         </org.newsclub.net.unix.library.path>
                     </systemPropertyVariables>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <configuration>
                 </configuration>
             </plugin>
 
@@ -153,6 +146,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.4</version>
             </plugin>
 
             <plugin>
@@ -569,6 +563,11 @@
     <profiles>
         <profile>
             <id>functional-tests</id>
+            <activation>
+                <property>
+                    <name>justFunctionalTests</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>

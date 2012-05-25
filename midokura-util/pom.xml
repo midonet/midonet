@@ -71,13 +71,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <configuration>
-                </configuration>
+                <version>2.4</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.4</version>
             </plugin>
 
         </plugins>
@@ -158,17 +158,12 @@
 
     <profiles>
         <profile>
-            <id>use-tools-for-sun</id>
+            <id>use-tools-jar</id>
             <activation>
-	        <activeByDefault>true</activeByDefault>
-<!--
-	This is how you normally do it but it doesn't seem to work yet.
-                <property>
-                    <name>java.vendor</name>
-                    <value>[Oracle Corporation],[Sun Microsystems Inc.]</value>
-                </property>
--->    
-        </activation>
+                <os>
+                    <family>!mac</family>
+                </os>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.sun</groupId>
@@ -179,9 +174,14 @@
                 </dependency>
             </dependencies>
         </profile>
-      
-	<profile>
+
+        <profile>
             <id>functional-tests</id>
+            <activation>
+                <property>
+                    <name>justFunctionalTests</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>

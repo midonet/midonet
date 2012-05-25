@@ -129,7 +129,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.2</version>
+                <version>2.4</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
@@ -365,9 +365,16 @@
             <version>12.06-SNAPSHOT</version>
         </dependency>
     </dependencies>
+
     <profiles>
         <profile>
             <id>functional-tests</id>
+            <activation>
+                <property>
+                    <name>justFunctionalTests</name>
+                </property>
+            </activation>
+
             <build>
                 <plugins>
                     <plugin>

@@ -39,17 +39,24 @@ This will build all the modules while skipping all the tests from the modules.
 
 ### Build all & Run functional tests
 
-    ~/midonet$ mvn -P functional-tests,use-project-midolman test
+    ~/midonet$ mvn -DjustFunctionalTests clean test
 
 This will build all the modules but only run the tests from the
 midonet-functional-tests module.
 
 ### Build all & Run a functional test
 
-    ~/midonet$ mvn -P functional-tests,use-project-midolman test -Dtest=BridgeTest
+    ~/midonet$ mvn -DjustFunctionalTests test -Dtest=BridgeTest
 
 This will build all the modules but only run the tests from the
 midonet-functional-tests module.
+
+### Build all & Run tests (but skip the functional tests)
+
+    ~/midonet$ mvn -DskipFunctionalTests clean test
+
+This will build all the modules and run all the test (but it will skip all the
+functional tests)
 
 ### Running with a remotely managed host.
 
@@ -92,4 +99,7 @@ virtue of being executed remotely.
 
 ## Subsystems documentation
 
-TBD
+### Metrics & Monitoring subsystem.
+
+See the [Metrics & Monitoring document](docs/monitoring.md) for details on the
+metrics monitoring subsystem.
