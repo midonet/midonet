@@ -334,16 +334,15 @@ public class VRNController extends AbstractController
         }
 
         OFPacketContext fwdInfo = null;
-        try {
-            // Send the packet to the network simulation.
-            fwdInfo = new OFPacketContext(
+        // Send the packet to the network simulation.
+        fwdInfo = new OFPacketContext(
                     bufferId, data, inPort, totalLen, matchingTunnelId,
-                    connectionCache,
-                    vrn.getForwardingElementByPort(inPortId).getId());
-            fwdInfo.inPortId = inPortId;
-            fwdInfo.flowMatch = match;
-            fwdInfo.matchIn = match.clone();
-            fwdInfo.pktIn = ethPkt;
+                    connectionCache, portCache.get(inPortId).device_id);
+        fwdInfo.inPortId = inPortId;
+        fwdInfo.flowMatch = match;
+        fwdInfo.matchIn = match.clone();
+        fwdInfo.pktIn = ethPkt;
+        try {
             vrn.process(fwdInfo);
         } catch (Exception e) {
             log.warn("Exception during network simulation, " +
@@ -472,23 +471,13 @@ public class VRNController extends AbstractController
 
     private void installConnectionCacheEntry(UUID outPortID,
                                              MidoMatch flowMatch) {
-        UUID fe;
-        try {
-            fe = vrn.getForwardingElementByPort(outPortID).getId();
-        } catch (StateAccessException e) {
-            log.error("Couldn't find just-traversed FE for port {}: {}",
-                      outPortID, e.getMessage());
-            return;
-        } catch (KeeperException e) {
-            log.error("Couldn't find just-traversed FE for port {}: {}",
-                      outPortID, e.getMessage());
-            return;
-        }
+        UUID fe = portCache.get(outPortID).device_id;
         String key = ForwardInfo.connectionKey(
                          flowMatch.getNetworkDestination(),
                          flowMatch.getTransportDestination(),
                          flowMatch.getNetworkSource(),
-                         flowMatch.getTransportSource(), fe);
+                         flowMatch.getTransportSource(),
+                         flowMatch.getNetworkProtocol(), fe);
         connectionCache.set(key, "r");
     }
 
@@ -644,7 +633,7 @@ public class VRNController extends AbstractController
             // port, but we don't have access to that, so use null.
             RuleResult result = chainProcessor.applyChain(
                             portCfg.outboundFilter,
-                            new DummyPacketContext(pktMatch), pktMatch, portID,
+                            new EgressPacketContext(pktMatch), pktMatch, portID,
                             true);
             if (!mmatch.equals(result.match)) {
                 log.warn("Outbound port filter {} attempted to change " +
@@ -659,14 +648,14 @@ public class VRNController extends AbstractController
         }
     }
 
-    private static class DummyPacketContext implements ChainPacketContext {
+    private static class EgressPacketContext implements ChainPacketContext {
         // Dummy packet context for use on chain rules with flooded packets.
         // No port IDs (can't be used by port filters), no port groups,
         // packet is never conn tracked and always a forward flow.
 
         private MidoMatch match;
 
-        public DummyPacketContext(MidoMatch m) {
+        public EgressPacketContext(MidoMatch m) {
             match = m;
         }
 

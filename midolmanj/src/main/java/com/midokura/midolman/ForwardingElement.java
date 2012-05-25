@@ -17,6 +17,9 @@ import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.Ethernet;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.TCP;
+import com.midokura.midolman.packets.UDP;
 import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -151,13 +154,22 @@ public interface ForwardingElement {
             if (connectionTracked)
                 return forwardFlow;
 
-            // Generated packets are always forward & not connection tracked.
+            // Generated packets are always return & not connection tracked.
             if (internallyGenerated)
-                return true;
+                return false;
 
-            // TODO(jlm): ICMP Unreachables won't get through a return-flow-only
-            // filter, from either us or the external network.  How should
-            // we handle these?
+            // TODO(jlm): Currently ICMP Unreachables from the external network
+            // won't get through a return-flow-only filter.  How should we
+            // handle these?  Manually simulate every external ICMP, and have
+            // ICMPs shunted to their own queue to mitigate ICMP floods?
+
+            // Non-IPv4 and and non-(TCP or UDP) packets aren't connection
+            // tracked, always treated as forward flows.
+            if (flowMatch.getDataLayerType() != IPv4.ETHERTYPE ||
+                    (flowMatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
+                     flowMatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER)) {
+                return true;
+            }
 
             connectionTracked = true;
             // Query connectionCache.
@@ -165,17 +177,20 @@ public interface ForwardingElement {
                                        flowMatch.getTransportSource(),
                                        flowMatch.getNetworkDestination(),
                                        flowMatch.getTransportDestination(),
+                                       flowMatch.getNetworkProtocol(),
                                        ingressFE);
             String value = connectionCache.get(key);
-            return !("r".equals(value));
+            forwardFlow = !("r".equals(value));
+            return forwardFlow;
         }
 
         public static String connectionKey(int ip1, short port1, int ip2,
-                                           short port2, UUID fe) {
+                                           short port2, short proto, UUID fe) {
             return new StringBuilder(Net.convertIntAddressToString(ip1))
                                  .append('|').append(port1).append('|')
                                  .append(Net.convertIntAddressToString(ip2))
                                  .append('|').append(port2).append('|')
+                                 .append(proto).append('|')
                                  .append(fe.toString()).toString();
         }
 

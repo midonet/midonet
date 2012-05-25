@@ -40,8 +40,8 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, NatMapping natMapping) {
+    public void apply(MidoMatch flowMatch, RuleResult res,
+                      NatMapping natMapping) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;
         log.debug("Rule evaluation jumping to chain {} with ID {}.",

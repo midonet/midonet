@@ -50,19 +50,19 @@ public class Condition {
     /* Custom accessors for Jackson serialization with more readable IP addresses. */
 
     public String getNwSrcIp() {
-    	return Net.convertIntAddressToString(this.nwSrcIp);
+        return Net.convertIntAddressToString(this.nwSrcIp);
     }
 
     public void setNwSrcIp(String addr) {
-    	this.nwSrcIp = Net.convertStringAddressToInt(addr);
+        this.nwSrcIp = Net.convertStringAddressToInt(addr);
     }
 
     public String getNwDstIp() {
-    	return Net.convertIntAddressToString(this.nwDstIp);
+        return Net.convertIntAddressToString(this.nwDstIp);
     }
 
     public void setNwDstIp(String addr) {
-    	this.nwDstIp = Net.convertStringAddressToInt(addr);
+        this.nwDstIp = Net.convertStringAddressToInt(addr);
     }
 
     // Default constructor for the Jackson deserialization.

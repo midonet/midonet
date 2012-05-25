@@ -55,12 +55,8 @@ public abstract class Rule implements Comparable<Rule> {
      */
     public void process(ChainPacketContext fwdInfo, RuleResult res,
                         NatMapping natMapping, boolean isPortFilter) {
-        if (condition.matches(fwdInfo, res.match, isPortFilter)) {
-            apply(fwdInfo.getFlowMatch(),
-                  isPortFilter ? null : fwdInfo.getInPortId(),
-                  isPortFilter ? null : fwdInfo.getOutPortId(),
-                  res, natMapping);
-        }
+        if (condition.matches(fwdInfo, res.match, isPortFilter))
+            apply(fwdInfo.getFlowMatch(), res, natMapping);
     }
 
     public Condition getCondition() {
@@ -73,16 +69,14 @@ public abstract class Rule implements Comparable<Rule> {
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It
      *            will NOT be modified by the rule chain.
-     * @param inPortId
-     * @param outPortId
      * @param res
      *            contains a match of the packet after all transformations
      *            preceding this rule. This may be modified.
      * @param natMapping
      *            NAT state of the element using this chain.
      */
-    protected abstract void apply(MidoMatch flowMatch, UUID inPortId,
-            UUID outPortId, RuleResult res, NatMapping natMapping);
+    protected abstract void apply(MidoMatch flowMatch, RuleResult res,
+                                  NatMapping natMapping);
 
     @Override
     public int hashCode() {

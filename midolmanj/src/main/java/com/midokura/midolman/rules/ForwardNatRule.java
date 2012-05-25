@@ -50,8 +50,8 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, NatMapping natMapping) {
+    public void apply(MidoMatch flowMatch, RuleResult res,
+                      NatMapping natMapping) {
         if (null == natMapping)
             return;
         if (dnat)

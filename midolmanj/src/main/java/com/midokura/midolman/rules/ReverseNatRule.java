@@ -39,8 +39,8 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(MidoMatch flowMatch, UUID inPortId, UUID outPortId,
-            RuleResult res, NatMapping natMapping) {
+    public void apply(MidoMatch flowMatch, RuleResult res,
+                      NatMapping natMapping) {
         // Don't attempt to do port translation on anything but udp/tcp
         byte nwProto = res.match.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
@@ -52,13 +52,12 @@ public class ReverseNatRule extends NatRule {
         }
 
         if (dnat)
-            applyReverseDnat(inPortId, outPortId, res, natMapping);
+            applyReverseDnat(res, natMapping);
         else
-            applyReverseSnat(inPortId, outPortId, res, natMapping);
+            applyReverseSnat(res, natMapping);
     }
 
-    private void applyReverseDnat(UUID inPortId, UUID outPortId, RuleResult res,
-                                  NatMapping natMapping) {
+    private void applyReverseDnat(RuleResult res, NatMapping natMapping) {
         if (null == natMapping)
             return;
         NwTpPair origConn = natMapping.lookupDnatRev(res.match
@@ -78,8 +77,7 @@ public class ReverseNatRule extends NatRule {
         res.action = action;
     }
 
-    private void applyReverseSnat(UUID inPortId, UUID outPortId, RuleResult res,
-                                  NatMapping natMapping) {
+    private void applyReverseSnat(RuleResult res, NatMapping natMapping) {
         if (null == natMapping)
             return;
         NwTpPair origConn = natMapping.lookupSnatRev(res.match
