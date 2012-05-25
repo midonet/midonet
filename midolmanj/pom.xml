@@ -309,7 +309,7 @@
                     </execution>
                     <execution>
                         <id>copy-midokura-dependencies</id>
-                        <phase>package</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
